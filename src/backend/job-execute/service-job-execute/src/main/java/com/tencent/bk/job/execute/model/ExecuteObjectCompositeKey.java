@@ -37,9 +37,9 @@ import lombok.ToString;
 @ToString
 public class ExecuteObjectCompositeKey {
     /**
-     * 执行对象实例 ID
+     * 执行对象 ID
      */
-    private Long executeObjectId;
+    private String executeObjectId;
     /**
      * 执行对象类型
      */
@@ -51,7 +51,7 @@ public class ExecuteObjectCompositeKey {
     private Long hostId;
 
     /**
-     * ipv4
+     * 管控区域+ipv4 方式标识主机
      */
     private String cloudIp;
 
@@ -60,7 +60,7 @@ public class ExecuteObjectCompositeKey {
      */
     private Long containerId;
 
-    public static ExecuteObjectCompositeKey of(Long executeObjectId) {
+    public static ExecuteObjectCompositeKey of(String executeObjectId) {
         ExecuteObjectCompositeKey query = new ExecuteObjectCompositeKey();
         query.setExecuteObjectId(executeObjectId);
         return query;

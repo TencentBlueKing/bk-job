@@ -73,51 +73,57 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
 
         List<TaskExecuteObjectLog> taskExecuteObjectLogs =
             request.getLogs().stream()
-                .map(log -> convertToTaskHostLog(
+                .map(log -> convertToTaskExecuteObjectLog(
                     request.getLogType(),
                     request.getJobCreateDate(),
-                    log.getStepInstanceId(),
-                    log.getExecuteCount(),
-                    log.getBatch(),
-                    log.getHostId(),
-                    log.getCloudIp(),
-                    log.getCloudIpv6(),
-                    log.getScriptLog(),
-                    log.getFileTaskLogs()))
+                    log))
                 .collect(Collectors.toList());
         LogTypeEnum logType = LogTypeEnum.getLogType(request.getLogType());
         logService.saveLogs(logType, taskExecuteObjectLogs);
         return InternalResponse.buildSuccessResp(null);
     }
 
-    private TaskExecuteObjectLog convertToTaskHostLog(Integer logType,
-                                                      String jobCreateDate,
-                                                      long stepInstanceId,
-                                                      int executeCount,
-                                                      Integer batch,
-                                                      Long hostId,
-                                                      String ip,
-                                                      String ipv6,
-                                                      ServiceScriptLogDTO scriptLog,
-                                                      List<ServiceFileTaskLogDTO> fileTaskLogs) {
+    private TaskExecuteObjectLog convertToTaskExecuteObjectLog(Integer logType,
+                                                               String jobCreateDate,
+                                                               ServiceExecuteObjectLogDTO log) {
         TaskExecuteObjectLog taskExecuteObjectLog = new TaskExecuteObjectLog();
         taskExecuteObjectLog.setLogType(logType);
-        taskExecuteObjectLog.setStepInstanceId(stepInstanceId);
-        taskExecuteObjectLog.setExecuteCount(executeCount);
-        taskExecuteObjectLog.setBatch(batch);
-        taskExecuteObjectLog.setHostId(hostId);
-        taskExecuteObjectLog.setIp(ip);
-        taskExecuteObjectLog.setIpv6(ipv6);
+        taskExecuteObjectLog.setStepInstanceId(log.getStepInstanceId());
+        taskExecuteObjectLog.setExecuteCount(log.getExecuteCount());
+        taskExecuteObjectLog.setBatch(log.getBatch());
+        if (log.getExecuteObjectId() != null) {
+            taskExecuteObjectLog.setExecuteObjectId(log.getExecuteObjectId());
+            ServiceScriptLogDTO scriptLog = log.getScriptLog();
+            if (scriptLog != null) {
+                taskExecuteObjectLog.setScriptTaskLog(new ScriptTaskLogDoc(log.getStepInstanceId(),
+                    log.getExecuteCount(), log.getBatch(), log.getExecuteObjectId(), scriptLog.getContent(),
+                    scriptLog.getOffset()));
+            }
+            List<ServiceFileTaskLogDTO> fileTaskLogs = log.getFileTaskLogs();
+            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+                List<FileTaskLogDoc> fileTaskLogDocs = fileTaskLogs.stream()
+                    .map(FileTaskLogDoc::convert).collect(Collectors.toList());
+                taskExecuteObjectLog.setFileTaskLogs(fileTaskLogDocs);
+            }
+        } else {
+            taskExecuteObjectLog.setHostId(log.getHostId());
+            taskExecuteObjectLog.setIp(log.getCloudIp());
+            taskExecuteObjectLog.setIpv6(log.getCloudIpv6());
+            ServiceScriptLogDTO scriptLog = log.getScriptLog();
+            if (scriptLog != null) {
+                taskExecuteObjectLog.setScriptTaskLog(new ScriptTaskLogDoc(log.getStepInstanceId(),
+                    log.getExecuteCount(), log.getBatch(), log.getHostId(), log.getCloudIp(), log.getCloudIpv6(),
+                    scriptLog.getContent(), scriptLog.getOffset()));
+            }
+            List<ServiceFileTaskLogDTO> fileTaskLogs = log.getFileTaskLogs();
+            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+                List<FileTaskLogDoc> fileTaskLogDocs = fileTaskLogs.stream()
+                    .map(FileTaskLogDoc::convert).collect(Collectors.toList());
+                taskExecuteObjectLog.setFileTaskLogs(fileTaskLogDocs);
+            }
+        }
         taskExecuteObjectLog.setJobCreateDate(jobCreateDate);
-        if (scriptLog != null) {
-            taskExecuteObjectLog.setScriptTaskLog(new ScriptTaskLogDoc(stepInstanceId, executeCount, batch, hostId, ip, ipv6,
-                scriptLog.getContent(), scriptLog.getOffset()));
-        }
-        if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-            List<FileTaskLogDoc> fileTaskLogDocs = fileTaskLogs.stream()
-                .map(FileTaskLogDoc::convert).collect(Collectors.toList());
-            taskExecuteObjectLog.setFileTaskLogs(fileTaskLogDocs);
-        }
+
         return taskExecuteObjectLog;
     }
 
@@ -129,12 +135,18 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setStepInstanceId(taskExecuteObjectLog.getStepInstanceId());
         result.setExecuteCount(taskExecuteObjectLog.getExecuteCount());
         result.setBatch(taskExecuteObjectLog.getBatch());
+        result.setExecuteObjectId(taskExecuteObjectLog.getExecuteObjectId());
         result.setHostId(taskExecuteObjectLog.getHostId());
         result.setCloudIp(taskExecuteObjectLog.getIp());
         result.setCloudIpv6(taskExecuteObjectLog.getIpv6());
         if (StringUtils.isNotEmpty(taskExecuteObjectLog.getScriptContent())) {
-            result.setScriptLog(new ServiceScriptLogDTO(taskExecuteObjectLog.getHostId(), taskExecuteObjectLog.getIp(),
-                taskExecuteObjectLog.getIpv6(), taskExecuteObjectLog.getScriptContent()));
+            result.setScriptLog(new ServiceScriptLogDTO(
+                taskExecuteObjectLog.getExecuteObjectId(),
+                taskExecuteObjectLog.getHostId(),
+                taskExecuteObjectLog.getIp(),
+                taskExecuteObjectLog.getIpv6(),
+                taskExecuteObjectLog.getScriptContent())
+            );
         }
         if (CollectionUtils.isNotEmpty(taskExecuteObjectLog.getFileTaskLogs())) {
             result.setFileTaskLogs(taskExecuteObjectLog.getFileTaskLogs().stream()
@@ -152,16 +164,27 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                                                                                  Integer batch) {
 
         return InternalResponse.buildSuccessResp(
-            getScriptHostLog(jobCreateDate, stepInstanceId, executeCount, hostId, batch, null));
+            getScriptExecuteObjectLog(jobCreateDate, stepInstanceId, executeCount, batch, null, hostId));
     }
 
-    private ServiceExecuteObjectLogDTO getScriptHostLog(String jobCreateDate,
-                                                        Long stepInstanceId,
-                                                        Integer executeCount,
-                                                        Long hostId,
-                                                        Integer batch,
-                                                        String ip) {
+    @Override
+    public InternalResponse<ServiceExecuteObjectLogDTO> getScriptLogByExecuteObjectId(String jobCreateDate,
+                                                                                      Long stepInstanceId,
+                                                                                      Integer executeCount,
+                                                                                      String executeObjectId,
+                                                                                      Integer batch) {
+        return InternalResponse.buildSuccessResp(
+            getScriptExecuteObjectLog(jobCreateDate, stepInstanceId, executeCount, batch, executeObjectId, null));
+    }
+
+    private ServiceExecuteObjectLogDTO getScriptExecuteObjectLog(String jobCreateDate,
+                                                                 Long stepInstanceId,
+                                                                 Integer executeCount,
+                                                                 Integer batch,
+                                                                 String executeObjectId,
+                                                                 Long hostId) {
         ScriptLogQuery query = new ScriptLogQuery(jobCreateDate, stepInstanceId, executeCount, batch,
+            executeObjectId == null ? null : Collections.singletonList(executeObjectId),
             hostId == null ? null : Collections.singletonList(hostId));
         List<TaskExecuteObjectLog> taskExecuteObjectLogs = logService.listScriptLogs(query);
         if (CollectionUtils.isEmpty(taskExecuteObjectLogs)) {
@@ -172,52 +195,26 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     }
 
     @Override
-    public InternalResponse<List<ServiceExecuteObjectLogDTO>> listScriptLogs(String jobCreateDate,
-                                                                             Long stepInstanceId,
-                                                                             Integer executeCount,
-                                                                             ServiceScriptLogQueryRequest query) {
+    public InternalResponse<List<ServiceExecuteObjectLogDTO>> listScriptExecuteObjectLogs(
+        String jobCreateDate,
+        Long stepInstanceId,
+        Integer executeCount,
+        ServiceScriptLogQueryRequest query) {
+
         ScriptLogQuery scriptLogQuery = new ScriptLogQuery(jobCreateDate, stepInstanceId, executeCount,
-            query.getBatch(), query.getHostIds());
+            query.getBatch(), query.getExecuteObjectIds(), query.getHostIds());
         List<TaskExecuteObjectLog> taskExecuteObjectLogs = logService.listScriptLogs(scriptLogQuery);
         List<ServiceExecuteObjectLogDTO> scriptLogs =
             taskExecuteObjectLogs.stream().map(this::toServiceLogDTO).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(scriptLogs);
     }
 
-    @Override
-    public InternalResponse<ServiceExecuteObjectLogDTO> getFileHostLogByIp(String jobCreateDate,
-                                                                           Long stepInstanceId,
-                                                                           Integer executeCount,
-                                                                           String ip,
-                                                                           Integer mode,
-                                                                           Integer batch) {
-        FileLogQuery query = FileLogQuery.builder()
-            .jobCreateDate(jobCreateDate)
-            .stepInstanceId(stepInstanceId)
-            .executeCount(executeCount)
-            .mode(mode)
-            .batch(batch)
-            .ips(Collections.singletonList(ip))
-            .build();
-        List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
-        ServiceExecuteObjectLogDTO result = new ServiceExecuteObjectLogDTO();
-        result.setStepInstanceId(stepInstanceId);
-        result.setExecuteCount(executeCount);
-        result.setBatch(batch);
-        result.setCloudIp(ip);
-        if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-            result.setFileTaskLogs(fileTaskLogs.stream()
-                .map(FileTaskLogDoc::toServiceFileTaskLogDTO)
-                .collect(Collectors.toList()));
-        }
-        return InternalResponse.buildSuccessResp(result);
-    }
 
     @Override
     public InternalResponse<ServiceExecuteObjectLogDTO> getFileLogByExecuteObjectId(String jobCreateDate,
                                                                                     Long stepInstanceId,
                                                                                     Integer executeCount,
-                                                                                    Long hostId,
+                                                                                    String executeObjectId,
                                                                                     Integer mode,
                                                                                     Integer batch) {
         FileLogQuery query = FileLogQuery.builder()
@@ -226,14 +223,14 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .executeCount(executeCount)
             .mode(mode)
             .batch(batch)
-            .hostIds(Collections.singletonList(hostId))
+            .executeObjectIds(Collections.singletonList(executeObjectId))
             .build();
         List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
         ServiceExecuteObjectLogDTO result = new ServiceExecuteObjectLogDTO();
         result.setStepInstanceId(stepInstanceId);
         result.setExecuteCount(executeCount);
         result.setBatch(batch);
-        result.setHostId(hostId);
+        result.setExecuteObjectId(executeObjectId);
         if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
             result.setFileTaskLogs(fileTaskLogs.stream()
                 .map(FileTaskLogDoc::toServiceFileTaskLogDTO)
@@ -255,7 +252,6 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .executeCount(executeCount)
             .batch(batch)
             .mode(mode)
-            .ips(StringUtils.isEmpty(ip) ? null : Collections.singletonList(ip))
             .hostIds(hostId == null ? null : Collections.singletonList(hostId))
             .build();
 
@@ -300,13 +296,13 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             .hostIds(request.getHostIds())
             .build();
 
-        ServiceExecuteObjectLogsDTO ipLogsResult = new ServiceExecuteObjectLogsDTO();
-        ipLogsResult.setStepInstanceId(request.getStepInstanceId());
-        ipLogsResult.setExecuteCount(request.getExecuteCount());
+        ServiceExecuteObjectLogsDTO executeObjectLogs = new ServiceExecuteObjectLogsDTO();
+        executeObjectLogs.setStepInstanceId(request.getStepInstanceId());
+        executeObjectLogs.setExecuteCount(request.getExecuteCount());
 
         List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
-            return InternalResponse.buildSuccessResp(ipLogsResult);
+            return InternalResponse.buildSuccessResp(executeObjectLogs);
         }
 
         List<ServiceFileTaskLogDTO> fileLogs = fileTaskLogs.stream().map(FileTaskLogDoc::toServiceFileTaskLogDTO)
@@ -326,7 +322,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         });
 
         List<ServiceExecuteObjectLogDTO> ipLogs = new ArrayList<>();
-        ipLogsResult.setIpLogs(ipLogs);
+        executeObjectLogs.setIpLogs(ipLogs);
         cloudIpAndLogs.forEach((cloudIp, logs) -> {
             ServiceExecuteObjectLogDTO ipLog = new ServiceExecuteObjectLogDTO();
             ipLog.setCloudIp(cloudIp);
@@ -334,15 +330,76 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             ipLogs.add(ipLog);
         });
 
-        return InternalResponse.buildSuccessResp(ipLogsResult);
+        return InternalResponse.buildSuccessResp(executeObjectLogs);
     }
 
     @Override
-    public InternalResponse<List<ServiceExecuteObjectLogDTO>> listFileExecuteObjectLogs(String jobCreateDate,
-                                                                                        Long stepInstanceId,
-                                                                                        Integer executeCount,
-                                                                                        ServiceFileLogQueryRequest query) {
-        return null;
+    public InternalResponse<List<ServiceExecuteObjectLogDTO>> listFileExecuteObjectLogs(
+        String jobCreateDate,
+        Long stepInstanceId,
+        Integer executeCount,
+        ServiceFileLogQueryRequest request) {
+
+        List<ServiceExecuteObjectLogDTO> executeObjectLogs = new ArrayList<>();
+
+        FileLogQuery query = FileLogQuery.builder()
+            .jobCreateDate(jobCreateDate)
+            .stepInstanceId(stepInstanceId)
+            .executeCount(executeCount)
+            .batch(request.getBatch())
+            .mode(request.getMode())
+            .hostIds(request.getHostIds())
+            .executeObjectIds(request.getExecuteObjectIds())
+            .build();
+
+        List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
+            return InternalResponse.buildSuccessResp(executeObjectLogs);
+        }
+
+        boolean isExistExecuteObjectId = StringUtils.isNotEmpty(fileTaskLogs.get(0).getExecuteObjectId());
+
+        if (isExistExecuteObjectId) {
+            Map<String, List<FileTaskLogDoc>> logGroups = new HashMap<>();
+            fileTaskLogs.forEach(fileTaskLogDoc -> {
+                List<FileTaskLogDoc> logGroup = logGroups.computeIfAbsent(fileTaskLogDoc.getExecuteObjectId(),
+                    k -> new ArrayList<>());
+                logGroup.add(fileTaskLogDoc);
+            });
+            logGroups.forEach(
+                (executeObjectId, logGroup) -> {
+                    ServiceExecuteObjectLogDTO executeObjectLog = new ServiceExecuteObjectLogDTO();
+                    executeObjectLog.setStepInstanceId(stepInstanceId);
+                    executeObjectLog.setExecuteCount(executeCount);
+                    executeObjectLog.setBatch(request.getBatch());
+                    executeObjectLog.setExecuteObjectId(executeObjectId);
+                    executeObjectLog.setFileTaskLogs(logGroup.stream().map(FileTaskLogDoc::toServiceFileTaskLogDTO)
+                        .collect(Collectors.toList()));
+                    executeObjectLogs.add(executeObjectLog);
+                }
+            );
+        } else {
+            Map<Long, List<FileTaskLogDoc>> logGroups = new HashMap<>();
+            fileTaskLogs.forEach(fileTaskLogDoc -> {
+                List<FileTaskLogDoc> logGroup = logGroups.computeIfAbsent(fileTaskLogDoc.getHostId(),
+                    k -> new ArrayList<>());
+                logGroup.add(fileTaskLogDoc);
+            });
+            logGroups.forEach(
+                (hostId, logGroup) -> {
+                    ServiceExecuteObjectLogDTO executeObjectLog = new ServiceExecuteObjectLogDTO();
+                    executeObjectLog.setStepInstanceId(stepInstanceId);
+                    executeObjectLog.setExecuteCount(executeCount);
+                    executeObjectLog.setBatch(request.getBatch());
+                    executeObjectLog.setHostId(hostId);
+                    executeObjectLog.setFileTaskLogs(logGroup.stream().map(FileTaskLogDoc::toServiceFileTaskLogDTO)
+                        .collect(Collectors.toList()));
+                    executeObjectLogs.add(executeObjectLog);
+                }
+            );
+        }
+
+        return InternalResponse.buildSuccessResp(executeObjectLogs);
     }
 
     @Override
@@ -351,36 +408,40 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                                                                   Integer executeCount,
                                                                   Integer batch,
                                                                   String keyword) {
-        List<HostDTO> ips = logService.getHostsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
-        return InternalResponse.buildSuccessResp(ips);
+        List<HostDTO> hosts = logService.getHostsByKeyword(jobCreateDate, stepInstanceId, executeCount, batch, keyword);
+        return InternalResponse.buildSuccessResp(hosts);
     }
 
-    @Override
-    public InternalResponse<ServiceExecuteObjectLogDTO> getScriptLogByExecuteObjectId(String jobCreateDate,
-                                                                                      Long stepInstanceId,
-                                                                                      Integer executeCount,
-                                                                                      String executeObjectId,
-                                                                                      Integer batch) {
-        return null;
-    }
 
     @Override
     public InternalResponse<ServiceExecuteObjectLogDTO> getFileHostLogByHostId(String jobCreateDate,
                                                                                Long stepInstanceId,
                                                                                Integer executeCount,
                                                                                Long hostId,
-                                                                               Integer mode, Integer batch) {
-        return null;
+                                                                               Integer mode,
+                                                                               Integer batch) {
+        FileLogQuery query = FileLogQuery.builder()
+            .jobCreateDate(jobCreateDate)
+            .stepInstanceId(stepInstanceId)
+            .executeCount(executeCount)
+            .mode(mode)
+            .batch(batch)
+            .hostIds(Collections.singletonList(hostId))
+            .build();
+        List<FileTaskLogDoc> fileTaskLogs = logService.listFileLogs(query);
+        ServiceExecuteObjectLogDTO result = new ServiceExecuteObjectLogDTO();
+        result.setStepInstanceId(stepInstanceId);
+        result.setExecuteCount(executeCount);
+        result.setBatch(batch);
+        result.setHostId(hostId);
+        if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
+            result.setFileTaskLogs(fileTaskLogs.stream()
+                .map(FileTaskLogDoc::toServiceFileTaskLogDTO)
+                .collect(Collectors.toList()));
+        }
+        return InternalResponse.buildSuccessResp(result);
     }
 
-    @Override
-    public InternalResponse<ServiceExecuteObjectLogDTO> getFileLogByExecuteObjectId(String jobCreateDate,
-                                                                                    Long stepInstanceId,
-                                                                                    Integer executeCount,
-                                                                                    String executeObjectId,
-                                                                                    Integer mode, Integer batch) {
-        return null;
-    }
 
     @Override
     public InternalResponse<List<String>> queryExecuteObjectsByLogKeyword(String jobCreateDate,
@@ -388,6 +449,8 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                                                                           Integer executeCount,
                                                                           Integer batch,
                                                                           String keyword) {
-        return null;
+        List<String> executeObjectIds = logService.getExecuteObjectIdsByKeyword(jobCreateDate, stepInstanceId,
+            executeCount, batch, keyword);
+        return InternalResponse.buildSuccessResp(executeObjectIds);
     }
 }

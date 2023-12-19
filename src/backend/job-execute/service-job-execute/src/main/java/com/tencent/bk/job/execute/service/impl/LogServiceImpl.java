@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileIpLogContent;
@@ -91,7 +92,9 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ServiceScriptLogDTO buildSystemScriptLog(HostDTO host, String content, int offset,
+    public ServiceScriptLogDTO buildSystemScriptLog(ExecuteObject executeObject,
+                                                    String content,
+                                                    int offset,
                                                     Long logTimeInMillSeconds) {
         String logDateTime;
         if (logTimeInMillSeconds != null) {
@@ -148,7 +151,8 @@ public class LogServiceImpl implements LogService {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        ExecuteObjectTask agentTask = scriptAgentTaskService.getTaskByExecuteObjectCompositeKey(stepInstance, executeCount, batch, host);
+        ExecuteObjectTask agentTask = scriptAgentTaskService.getTaskByExecuteObjectCompositeKey(stepInstance,
+            executeCount, batch, host);
         if (agentTask == null) {
             return null;
         }
@@ -217,7 +221,7 @@ public class LogServiceImpl implements LogService {
         }
 
         InternalResponse<List<ServiceExecuteObjectLogDTO>> resp =
-            logResource.listScriptLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
+            logResource.listScriptExecuteObjectLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
         if (!resp.isSuccess()) {
             log.error("Get script log content by ips error, stepInstanceId={}, executeCount={}, batch={}, ips={}",
                 stepInstanceId, executeCount, batch, hosts);

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.model;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -60,7 +60,7 @@ public class TaskVariableDTO {
      */
     private String value;
 
-    private ServersDTO targetServers;
+    private ExecuteObjectsDTO targetServers;
 
 
     /**

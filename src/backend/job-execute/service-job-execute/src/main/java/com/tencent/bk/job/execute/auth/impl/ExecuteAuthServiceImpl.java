@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
@@ -88,7 +88,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
-    public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers) {
+    public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers) {
 
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
@@ -110,7 +110,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ServersDTO servers) {
+    public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
@@ -131,7 +131,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
-                                           String scriptId, String scriptName, ServersDTO servers) {
+                                           String scriptId, String scriptName, ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO scriptInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.SCRIPT, scriptId, null);
@@ -182,7 +182,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authExecutePublicScript(String username, AppResourceScope appResourceScope,
-                                              String scriptId, String scriptName, ServersDTO servers) {
+                                              String scriptId, String scriptName, ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO scriptInstance = buildExecutableInstance(
@@ -220,7 +220,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
-                                      Long planId, String planName, ServersDTO servers) {
+                                      Long planId, String planName, ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO planInstance = buildExecutableInstance(
@@ -259,7 +259,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     @Override
     public AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope, Long templateId,
-                                        ServersDTO servers) {
+                                        ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
 
         InstanceDTO jobTemplateInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.TEMPLATE,
@@ -302,7 +302,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<InstanceDTO> buildBizStaticHostInstances(AppResourceScope appResourceScope,
-                                                          ServersDTO servers) {
+                                                          ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
         servers.getStaticIpList().forEach(host -> {
             InstanceDTO hostInstance = new InstanceDTO();
@@ -319,7 +319,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<InstanceDTO> buildHostInstances(AppResourceScope appResourceScope,
-                                                 ServersDTO servers) {
+                                                 ExecuteObjectsDTO servers) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
         // 静态IP
         if (!CollectionUtils.isEmpty(servers.getStaticIpList())) {
@@ -362,7 +362,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostInstanceList;
     }
 
-    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(ServersDTO servers) {
+    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(ExecuteObjectsDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
         servers.getStaticIpList().forEach(host -> {
             PermissionResource resource = new PermissionResource();
@@ -417,7 +417,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                                  ServersDTO servers) {
+                                                                                  ExecuteObjectsDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
         servers.getDynamicServerGroups().forEach(serverGroup -> {
             PermissionResource resource = new PermissionResource();
@@ -435,7 +435,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<PermissionResource> convertHostsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                          ServersDTO servers) {
+                                                                          ExecuteObjectsDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
 
         if (!CollectionUtils.isEmpty(servers.getStaticIpList())) {

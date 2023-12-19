@@ -25,6 +25,7 @@
 package com.tencent.bk.job.logsvr.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,12 +51,12 @@ public class FileLogQuery {
      * 执行任务的主机ID列表
      */
     @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+    @CompatibleImplementation(name = "execute_object", type = CompatibleType.HISTORY_DATA, deprecatedVersion = "3.9.x")
     private List<Long> hostIds;
     /**
      * 执行对象实例 ID
      */
-    private List<Long> executeObjectIds;
+    private List<String> executeObjectIds;
     /**
      * 执行次数
      */

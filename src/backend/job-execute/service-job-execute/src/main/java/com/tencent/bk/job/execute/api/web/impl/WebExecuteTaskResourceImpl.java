@@ -55,10 +55,10 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
@@ -197,8 +197,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
                 TaskTargetVO webServers = webTaskVariable.getTargetValue();
-                ServersDTO serversDTO = convertToServersDTO(webServers);
-                taskVariableDTO.setTargetServers(serversDTO);
+                ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(webServers);
+                taskVariableDTO.setTargetServers(executeObjectsDTO);
             } else if (webTaskVariable.getType() == NAMESPACE.getType()) {
                 taskVariableDTO.setValue(webTaskVariable.getValue());
             }
@@ -500,12 +500,12 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return stepInstance;
     }
 
-    private ServersDTO convertToServersDTO(TaskTargetVO target) {
+    private ExecuteObjectsDTO convertToServersDTO(TaskTargetVO target) {
         if (target == null || target.getHostNodeInfo() == null) {
             return null;
         }
         TaskHostNodeVO hostNode = target.getHostNodeInfo();
-        ServersDTO serversDTO = new ServersDTO();
+        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
         if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
             List<HostDTO> hostList = new ArrayList<>();
             hostNode.getHostList().forEach(host -> {
@@ -515,22 +515,22 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
                 hostList.add(targetHost);
             });
-            serversDTO.setStaticIpList(hostList);
+            executeObjectsDTO.setStaticIpList(hostList);
         }
         if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             hostNode.getDynamicGroupIdList().forEach(
                 groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-            serversDTO.setDynamicServerGroups(dynamicServerGroups);
+            executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
         }
         if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
             hostNode.getNodeList().forEach(
                 topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(),
                     topoNode.getObjectId())));
-            serversDTO.setTopoNodes(topoNodes);
+            executeObjectsDTO.setTopoNodes(topoNodes);
         }
-        return serversDTO;
+        return executeObjectsDTO;
     }
 
     private List<FileSourceDTO> convertFileSource(List<ExecuteFileSourceInfoVO> fileSources) {

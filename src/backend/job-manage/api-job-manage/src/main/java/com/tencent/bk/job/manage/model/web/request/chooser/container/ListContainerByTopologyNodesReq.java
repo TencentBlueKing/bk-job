@@ -53,7 +53,7 @@ public class ListContainerByTopologyNodesReq {
     @ApiModelProperty(value = "筛选条件：Pod名称")
     private String podName;
 
-    @ApiModelProperty(value = "筛选条件：Pod lable")
+    @ApiModelProperty(value = "筛选条件：Pod label")
     private Map<String, String> podLabels;
 
     @ApiModelProperty(value = "数据起始位置")

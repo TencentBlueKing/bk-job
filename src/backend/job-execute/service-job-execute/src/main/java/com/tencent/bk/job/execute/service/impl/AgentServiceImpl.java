@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -97,10 +97,10 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public ServersDTO getLocalServersDTO() {
+    public ExecuteObjectsDTO getLocalServersDTO() {
         List<HostDTO> hostDTOList = new ArrayList<>();
         hostDTOList.add(getLocalAgentHost());
-        ServersDTO servers = new ServersDTO();
+        ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
         servers.setStaticIpList(hostDTOList);
         servers.setIpList(hostDTOList);
         return servers;

@@ -102,6 +102,22 @@ public class ScriptTaskLogDoc {
                             Integer executeCount,
                             Integer batch,
                             String executeObjectId,
+                            String content,
+                            Integer offset) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        this.executeObjectId = executeObjectId;
+        this.content = content;
+        this.offset = offset;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用")
+    public ScriptTaskLogDoc(Long stepInstanceId,
+                            Integer executeCount,
+                            Integer batch,
                             Long hostId,
                             String ip,
                             String ipv6,
@@ -110,7 +126,6 @@ public class ScriptTaskLogDoc {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
-        this.executeObjectId = executeObjectId;
         this.hostId = hostId;
         this.ip = ip;
         this.ipv6 = ipv6;

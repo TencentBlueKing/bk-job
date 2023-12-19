@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
@@ -95,8 +95,8 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 taskVariableDTO.setName(globalVar.getName());
                 EsbServerV3DTO server = globalVar.getServer();
                 if (StringUtils.isEmpty(globalVar.getValue()) && server != null && server.checkHostParamsNonEmpty()) {
-                    ServersDTO serversDTO = convertToServersDTO(globalVar.getServer());
-                    taskVariableDTO.setTargetServers(serversDTO);
+                    ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(globalVar.getServer());
+                    taskVariableDTO.setTargetServers(executeObjectsDTO);
                 } else {
                     taskVariableDTO.setValue(globalVar.getValue());
                 }

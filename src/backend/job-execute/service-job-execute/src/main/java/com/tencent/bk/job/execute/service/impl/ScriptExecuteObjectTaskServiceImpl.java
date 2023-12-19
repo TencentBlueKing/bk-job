@@ -8,9 +8,9 @@ import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -100,7 +100,7 @@ public class ScriptExecuteObjectTaskServiceImpl
      * @param stepInstance 步骤实例
      */
     private boolean isUsingExecuteObject(StepInstanceBaseDTO stepInstance) {
-        ServersDTO servers = stepInstance.getTargetServers();
+        ExecuteObjectsDTO servers = stepInstance.getTargetServers();
         if (CollectionUtils.isNotEmpty(servers.getExecuteObjects())) {
             ExecuteObject executeObject = servers.getExecuteObjects().stream().findAny().orElse(null);
             return Objects.requireNonNull(executeObject).getId() != null;

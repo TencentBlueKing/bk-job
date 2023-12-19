@@ -374,6 +374,7 @@ public class LogServiceImpl implements LogService {
         int executeCount = scriptLogQuery.getExecuteCount();
         Integer batch = scriptLogQuery.getBatch();
         List<Long> hostIds = scriptLogQuery.getHostIds();
+        List<String> executeObjectIds = scriptLogQuery.getExecuteObjectIds();
 
         Query query = new Query();
         query.addCriteria(Criteria.where(ScriptTaskLogDocField.STEP_ID).is(stepInstanceId));
@@ -381,7 +382,14 @@ public class LogServiceImpl implements LogService {
         if (batch != null && batch > 0) {
             query.addCriteria(Criteria.where(ScriptTaskLogDocField.BATCH).is(batch));
         }
-        if (CollectionUtils.isNotEmpty(hostIds)) {
+        // executeObjectIds/hostIds 两个参数二选一，优先使用 executeObjectIds
+        if (CollectionUtils.isNotEmpty(scriptLogQuery.getExecuteObjectIds())) {
+            if (executeObjectIds.size() == 1) {
+                query.addCriteria(Criteria.where(ScriptTaskLogDocField.EXECUTE_OBJECT_ID).is(executeObjectIds.get(0)));
+            } else {
+                query.addCriteria(Criteria.where(ScriptTaskLogDocField.EXECUTE_OBJECT_ID).in(executeObjectIds));
+            }
+        } else if (CollectionUtils.isNotEmpty(hostIds)) {
             if (hostIds.size() == 1) {
                 query.addCriteria(Criteria.where(ScriptTaskLogDocField.HOST_ID).is(hostIds.get(0)));
             } else {
@@ -421,19 +429,20 @@ public class LogServiceImpl implements LogService {
         if (getLogRequest.getMode() != null) {
             query.addCriteria(Criteria.where(FileTaskLogDocField.MODE).is(getLogRequest.getMode()));
         }
-        if (CollectionUtils.isNotEmpty(getLogRequest.getHostIds())) {
-            if (getLogRequest.getHostIds().size() > 1) {
-                query.addCriteria(Criteria.where(FileTaskLogDocField.HOST_ID).in(getLogRequest.getHostIds()));
-            } else {
-                query.addCriteria(Criteria.where(FileTaskLogDocField.HOST_ID).is(getLogRequest.getHostIds().get(0)));
-            }
-        } else if (CollectionUtils.isNotEmpty(getLogRequest.getExecuteObjectIds())) {
+        // executeObjectIds/hostIds 两个参数二选一，优先使用 executeObjectIds
+        if (CollectionUtils.isNotEmpty(getLogRequest.getExecuteObjectIds())) {
             if (getLogRequest.getExecuteObjectIds().size() > 1) {
                 query.addCriteria(Criteria.where(FileTaskLogDocField.EXECUTE_OBJECT_ID)
                     .in(getLogRequest.getExecuteObjectIds()));
             } else {
                 query.addCriteria(Criteria.where(FileTaskLogDocField.EXECUTE_OBJECT_ID)
                     .is(getLogRequest.getExecuteObjectIds().get(0)));
+            }
+        } else if (CollectionUtils.isNotEmpty(getLogRequest.getHostIds())) {
+            if (getLogRequest.getHostIds().size() > 1) {
+                query.addCriteria(Criteria.where(FileTaskLogDocField.HOST_ID).in(getLogRequest.getHostIds()));
+            } else {
+                query.addCriteria(Criteria.where(FileTaskLogDocField.HOST_ID).is(getLogRequest.getHostIds().get(0)));
             }
         }
         if (getLogRequest.getBatch() != null && getLogRequest.getBatch() > 0) {

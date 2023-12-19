@@ -44,10 +44,10 @@ import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -348,7 +348,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 fileSourceDTO.setAccountId(accountDTO.getId());
                 fileSourceDTO.setLocalUpload(false);
 
-                ServersDTO servers = new ServersDTO();
+                ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
                 HostDTO hostDTO = parseFileWorkerHostWithCache(
                     fileSourceTaskStatusDTO.getCloudId(),
                     fileSourceTaskStatusDTO.getIpProtocol(),
@@ -376,7 +376,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                     sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
-                servers.addStaticIps(hostDTOList);
+                servers.addStaticHosts(hostDTOList);
                 if (servers.getIpList() == null) {
                     servers.setIpList(hostDTOList);
                 } else {

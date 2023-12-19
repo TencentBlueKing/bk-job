@@ -107,7 +107,7 @@ public interface ServiceLogResource {
 
     @ApiOperation("批量获取脚本任务对应的执行日志")
     @PostMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}"})
-    InternalResponse<List<ServiceExecuteObjectLogDTO>> listScriptLogs(
+    InternalResponse<List<ServiceExecuteObjectLogDTO>> listScriptExecuteObjectLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -160,7 +160,7 @@ public interface ServiceLogResource {
 
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "使用 getFileHostLogByHostId() 替换，发布完成后可删除")
+        explain = "使用 listFileExecuteObjectLogs() 替换，发布完成后可删除")
     @ApiOperation("获取文件任务对应的执行日志")
     @GetMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
     InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(
@@ -200,7 +200,7 @@ public interface ServiceLogResource {
     @PostMapping("/file")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "使用 listFileExecuteObjectLogs() 替换")
+        explain = "发布之后不再被使用，可删除")
     InternalResponse<ServiceExecuteObjectLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
 
     @ApiOperation("批量获取文件任务对应的执行日志")
@@ -214,7 +214,7 @@ public interface ServiceLogResource {
         @ApiParam("执行次数")
         @PathVariable("executeCount") Integer executeCount,
         @ApiParam("查询请求")
-        @RequestBody ServiceFileLogQueryRequest query
+        @RequestBody ServiceFileLogQueryRequest request
     );
 
     /**

@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
@@ -46,26 +47,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Job 服务器DTO
+ * 执行对象集合 DTO
  */
 @Data
 @PersistenceObject
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServersDTO implements Cloneable {
+public class ExecuteObjectsDTO implements Cloneable {
     /**
      * 如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name
      */
     private String variable;
     /**
-     * 用户选择的服务器ip列表（静态）
+     * 用户选择的主机列表（静态）
      */
-    @Deprecated
     private List<HostDTO> staticIpList;
 
     /**
      * 用户选择的执行对象列表（静态）
      */
-    private List<ExecuteObject> staticExecuteObjectList;
+    private List<Container> staticContainerList;
 
     /**
      * 主机动态分组列表
@@ -78,80 +78,92 @@ public class ServersDTO implements Cloneable {
     private List<DynamicServerTopoNodeDTO> topoNodes;
 
     /**
-     * 服务器（动态分组、静态ip、动态topo节点）等对应的所有ip的集合
+     * 主机动态分组、静态主机列表、动态主机topo的所有主机的集合。
+     *
+     * @deprecated 使用 executeObjects 替换
      */
     @Deprecated
     private List<HostDTO> ipList;
 
     /**
-     * 执行对象列表
+     * 执行对象列表(所有主机+容器）
      */
     private List<ExecuteObject> executeObjects;
 
-    public static ServersDTO emptyInstance() {
-        ServersDTO serversDTO = new ServersDTO();
-        serversDTO.setIpList(Collections.emptyList());
-        serversDTO.setDynamicServerGroups(Collections.emptyList());
-        serversDTO.setStaticIpList(Collections.emptyList());
-        serversDTO.setTopoNodes(Collections.emptyList());
-        return serversDTO;
+    public static ExecuteObjectsDTO emptyInstance() {
+        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+        executeObjectsDTO.setIpList(Collections.emptyList());
+        executeObjectsDTO.setDynamicServerGroups(Collections.emptyList());
+        executeObjectsDTO.setStaticIpList(Collections.emptyList());
+        executeObjectsDTO.setTopoNodes(Collections.emptyList());
+        return executeObjectsDTO;
     }
 
-    public ServersDTO clone() {
-        ServersDTO cloneServersDTO = new ServersDTO();
-        cloneServersDTO.setVariable(variable);
-        if (staticIpList != null) {
+    public ExecuteObjectsDTO clone() {
+        ExecuteObjectsDTO cloneExecuteObjectsDTO = new ExecuteObjectsDTO();
+        cloneExecuteObjectsDTO.setVariable(variable);
+        if (CollectionUtils.isNotEmpty(staticIpList)) {
             List<HostDTO> cloneStaticIpList = new ArrayList<>(staticIpList.size());
             staticIpList.forEach(staticIp -> cloneStaticIpList.add(staticIp.clone()));
-            cloneServersDTO.setStaticIpList(cloneStaticIpList);
+            cloneExecuteObjectsDTO.setStaticIpList(cloneStaticIpList);
         }
-        if (dynamicServerGroups != null) {
+        if (CollectionUtils.isNotEmpty(dynamicServerGroups)) {
             List<DynamicServerGroupDTO> cloneServerGroups = new ArrayList<>(dynamicServerGroups.size());
             dynamicServerGroups.forEach(serverGroup -> cloneServerGroups.add(serverGroup.clone()));
-            cloneServersDTO.setDynamicServerGroups(cloneServerGroups);
+            cloneExecuteObjectsDTO.setDynamicServerGroups(cloneServerGroups);
         }
-        if (topoNodes != null) {
-            cloneServersDTO.setTopoNodes(topoNodes);
+        if (CollectionUtils.isNotEmpty(topoNodes)) {
+            cloneExecuteObjectsDTO.setTopoNodes(topoNodes);
         }
-        if (ipList != null) {
+        if (CollectionUtils.isNotEmpty(staticContainerList)) {
+            List<Container> cloneContainerList = new ArrayList<>(staticContainerList.size());
+            staticContainerList.forEach(container -> cloneContainerList.add(container.clone()));
+            cloneExecuteObjectsDTO.setStaticContainerList(cloneContainerList);
+        }
+        if (CollectionUtils.isNotEmpty(ipList)) {
             List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
-            cloneServersDTO.setIpList(cloneIpList);
+            cloneExecuteObjectsDTO.setIpList(cloneIpList);
         }
-        return cloneServersDTO;
+        if (CollectionUtils.isNotEmpty(executeObjects)) {
+            List<ExecuteObject> cloneExecuteObjectList = new ArrayList<>(executeObjects.size());
+            executeObjects.forEach(executeObject -> cloneExecuteObjectList.add(executeObject.clone()));
+            cloneExecuteObjectsDTO.setExecuteObjects(cloneExecuteObjectList);
+        }
+        return cloneExecuteObjectsDTO;
     }
 
-    public ServersDTO merge(ServersDTO servers) {
-        if (servers == null) {
+    public ExecuteObjectsDTO merge(ExecuteObjectsDTO executeObjects) {
+        if (executeObjects == null) {
             return this;
         }
-        if (servers.getStaticIpList() != null) {
+        if (executeObjects.getStaticIpList() != null) {
             if (this.staticIpList == null) {
-                this.staticIpList = new ArrayList<>(servers.getStaticIpList());
+                this.staticIpList = new ArrayList<>(executeObjects.getStaticIpList());
             } else {
-                servers.getStaticIpList().forEach(ipDTO -> {
+                executeObjects.getStaticIpList().forEach(ipDTO -> {
                     if (!this.staticIpList.contains(ipDTO)) {
                         this.staticIpList.add(ipDTO);
                     }
                 });
             }
         }
-        if (servers.getTopoNodes() != null) {
+        if (executeObjects.getTopoNodes() != null) {
             if (this.topoNodes == null) {
-                this.topoNodes = new ArrayList<>(servers.getTopoNodes());
+                this.topoNodes = new ArrayList<>(executeObjects.getTopoNodes());
             } else {
-                servers.getTopoNodes().forEach(topoNode -> {
+                executeObjects.getTopoNodes().forEach(topoNode -> {
                     if (!this.topoNodes.contains(topoNode)) {
                         this.topoNodes.add(topoNode);
                     }
                 });
             }
         }
-        if (servers.getDynamicServerGroups() != null) {
+        if (executeObjects.getDynamicServerGroups() != null) {
             if (this.dynamicServerGroups == null) {
-                this.dynamicServerGroups = new ArrayList<>(servers.getDynamicServerGroups());
+                this.dynamicServerGroups = new ArrayList<>(executeObjects.getDynamicServerGroups());
             } else {
-                servers.getDynamicServerGroups().forEach(dynamicServerGroup -> {
+                executeObjects.getDynamicServerGroups().forEach(dynamicServerGroup -> {
                     if (!this.dynamicServerGroups.contains(dynamicServerGroup)) {
                         this.dynamicServerGroups.add(dynamicServerGroup);
                     }
@@ -161,15 +173,15 @@ public class ServersDTO implements Cloneable {
         return this;
     }
 
-    public void addStaticIps(Collection<HostDTO> ips) {
+    public void addStaticHosts(Collection<HostDTO> hosts) {
         if (staticIpList == null) {
             staticIpList = new ArrayList<>();
         }
-        staticIpList.addAll(ips);
+        staticIpList.addAll(hosts);
     }
 
     /**
-     * 服务器是否为空
+     * 执行对象是否为空
      */
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(this.staticIpList)

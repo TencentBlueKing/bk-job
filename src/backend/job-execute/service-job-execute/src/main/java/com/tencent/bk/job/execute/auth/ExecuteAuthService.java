@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.auth;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.Collection;
@@ -44,7 +44,7 @@ public interface ExecuteAuthService {
      * @param servers          服务器
      * @return 鉴权结果
      */
-    AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ServersDTO servers);
+    AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers);
 
     /**
      * 快速执行脚本鉴权
@@ -54,7 +54,7 @@ public interface ExecuteAuthService {
      * @param servers          服务器
      * @return 鉴权结果
      */
-    AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers);
+    AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers);
 
     /**
      * 执行业务脚本鉴权
@@ -67,7 +67,7 @@ public interface ExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
-                                    String scriptId, String scriptName, ServersDTO servers);
+                                    String scriptId, String scriptName, ExecuteObjectsDTO servers);
 
     /**
      * 执行公共脚本鉴权
@@ -80,7 +80,7 @@ public interface ExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authExecutePublicScript(String username, AppResourceScope appResourceScope,
-                                       String scriptId, String scriptName, ServersDTO servers);
+                                       String scriptId, String scriptName, ExecuteObjectsDTO servers);
 
     /**
      * 执行执行方案鉴权
@@ -93,7 +93,7 @@ public interface ExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
-                               Long planId, String planName, ServersDTO servers);
+                               Long planId, String planName, ExecuteObjectsDTO servers);
 
     /**
      * 作业模板调试鉴权
@@ -105,7 +105,7 @@ public interface ExecuteAuthService {
      * @return 鉴权结果
      */
     AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope,
-                                 Long templateId, ServersDTO servers);
+                                 Long templateId, ExecuteObjectsDTO servers);
 
     /**
      * 作业执行实例查看权限鉴权

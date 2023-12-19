@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
@@ -151,7 +151,7 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    ServersDTO servers = fileSource.getServers();
+                    ExecuteObjectsDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isNotEmpty(servers.getIpList())) {
                         List<HostDTO> ipList = servers.getIpList();
                         for (HostDTO hostDTO : ipList) {

@@ -50,7 +50,7 @@ public class ExecuteObject implements Cloneable {
     /**
      * 执行对象 ID
      */
-    private Long id;
+    private String id;
 
     /**
      * 执行对象类型
@@ -58,11 +58,6 @@ public class ExecuteObject implements Cloneable {
      * @see ExecuteObjectTypeEnum
      */
     private ExecuteObjectTypeEnum type;
-
-    /**
-     * 执行对象资源 ID（比如 hostId/containerId)
-     */
-    private String resourceId;
 
     /**
      * 容器
@@ -74,13 +69,13 @@ public class ExecuteObject implements Cloneable {
      */
     private HostDTO host;
 
-    public ExecuteObject(Long id, Container container) {
+    public ExecuteObject(String id, Container container) {
         this.id = id;
         this.type = ExecuteObjectTypeEnum.CONTAINER;
         this.container = container;
     }
 
-    public ExecuteObject(Long id, HostDTO host) {
+    public ExecuteObject(String id, HostDTO host) {
         this.id = id;
         this.type = ExecuteObjectTypeEnum.HOST;
         this.host = host;
@@ -89,5 +84,19 @@ public class ExecuteObject implements Cloneable {
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
         return ExecuteObjectTypeEnum.valOf(type);
+    }
+
+    @Override
+    public ExecuteObject clone() {
+        ExecuteObject clone = new ExecuteObject();
+        clone.setId(id);
+        clone.setType(type);
+        if (host != null) {
+            clone.setHost(host.clone());
+        }
+        if (container != null) {
+            clone.setContainer(container);
+        }
+        return clone;
     }
 }

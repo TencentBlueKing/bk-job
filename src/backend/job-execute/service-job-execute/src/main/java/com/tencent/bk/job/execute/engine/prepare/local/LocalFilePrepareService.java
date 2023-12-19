@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
@@ -123,7 +123,7 @@ public class LocalFilePrepareService {
         boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
-                ServersDTO localHost = agentService.getLocalServersDTO();
+                ExecuteObjectsDTO localHost = agentService.getLocalServersDTO();
                 if (!isGseV2Task) {
                     // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
                     localHost.getIpList().forEach(host -> host.setAgentId(host.toCloudIp()));

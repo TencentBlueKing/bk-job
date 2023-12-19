@@ -107,7 +107,7 @@ public class StepInstanceBaseDTO {
     /**
      * 目标服务器
      */
-    protected ServersDTO targetServers;
+    protected ExecuteObjectsDTO targetServers;
     /**
      * 不合法的服务器
      */
