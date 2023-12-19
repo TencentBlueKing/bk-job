@@ -73,12 +73,13 @@ export default (interceptors) => {
       }
       // 默认使用 http 错误描述，
       // 如果 response body 里面有自定义错误描述优先使用
+      const errorCode = error.response.status || -1;
       let errorMessage = error.response.statusText;
       if (error.response.data && error.response.data.errorMsg) {
         errorMessage = error.response.data.errorMsg;
       }
       return Promise.reject(new RequestError(
-        error.response.status || -1,
+        errorCode,
         errorMessage,
         error.response,
       ));
@@ -127,18 +128,19 @@ export default (interceptors) => {
       case 'ECONNABORTED':
         messageError('请求超时');
         break;
-        // 消息通知中心API不存在
-      case 1217001:
-        break;
       default:
-        messageError({
-          code: error.code,
-          overview: error.message,
-          suggestion: '',
-          details: JSON.stringify(error.response.data),
-          assistant: window.PROJECT_CONFIG.HELPER_CONTACT_LINK,
-
-        });
+        if (error.response.data.code === 1217001) {
+          // 消息通知中心API不存在错误不做处理
+          break;
+        } else {
+          messageError({
+            code: error.code,
+            overview: error.message,
+            suggestion: '',
+            details: JSON.stringify(error.response.data),
+            assistant: window.PROJECT_CONFIG.HELPER_CONTACT_LINK,
+          });
+        }
     }
     return Promise.reject(error);
   });
