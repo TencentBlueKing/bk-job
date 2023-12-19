@@ -22,40 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.runner;
-
-import com.tencent.bk.job.common.notice.IBkNoticeClient;
-import com.tencent.bk.job.common.notice.model.BkNoticeApp;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ThreadPoolExecutor;
+package com.tencent.bk.job.common.i18n.locale;
 
 /**
- * 进程启动时向消息中心注册平台信息（幂等操作）
+ * 蓝鲸公共协议涉及的常量
  */
-@Slf4j
-@Component
-public class RegisterBkNoticeRunner implements CommandLineRunner {
+public class BkConsts {
 
-    private final IBkNoticeClient bkNoticeClient;
-    private final ThreadPoolExecutor initRunnerExecutor;
+    // 国际化语言Header取值
+    public static final String HEADER_VALUE_LANG_ZH = "zh";
+    public static final String HEADER_VALUE_LANG_ZH_CN = "zh-cn";
+    public static final String HEADER_VALUE_LANG_EN = "en";
+    public static final String HEADER_VALUE_LANG_EN_US = "en-us";
 
-    @Autowired
-    public RegisterBkNoticeRunner(IBkNoticeClient bkNoticeClient,
-                                  @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
-        this.bkNoticeClient = bkNoticeClient;
-        this.initRunnerExecutor = initRunnerExecutor;
-    }
-
-    @Override
-    public void run(String... args) {
-        initRunnerExecutor.submit(() -> {
-            BkNoticeApp bkNoticeApp = bkNoticeClient.registerApplication();
-            log.info("registerApplication result:{}", bkNoticeApp);
-        });
-    }
 }

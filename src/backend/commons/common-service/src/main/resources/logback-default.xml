@@ -18,7 +18,6 @@ Default job logback configuration provided for import
     <property name="GSE_LOG_FILE" value="${APP_LOG_DIR}/gse.log"/>
     <property name="CMDB_LOG_FILE" value="${APP_LOG_DIR}/cmdb.log"/>
     <property name="PAAS_LOG_FILE" value="${APP_LOG_DIR}/paas.log"/>
-    <property name="NOTICE_LOG_FILE" value="${APP_LOG_DIR}/notice.log"/>
     <property name="AUDIT_EVENT_LOG_FILE" value="${APP_LOG_DIR}/audit_event.log"/>
 
     <!-- 程序主日志 -->
@@ -127,20 +126,6 @@ Default job logback configuration provided for import
         </encoder>
     </appender>
 
-    <!-- BK-NOTICE 日志 -->
-    <appender name="notice-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${NOTICE_LOG_FILE}</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${NOTICE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <maxHistory>7</maxHistory>
-            <totalSizeCap>2GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
 
     <!-- 审计事件日志 -->
     <appender name="audit-event-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -220,10 +205,6 @@ Default job logback configuration provided for import
             <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
-            <appender-ref ref="notice-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
         <logger name="bk_audit" level="INFO" additivity="false">
             <appender-ref ref="audit-event-appender"/>
         </logger>
@@ -259,10 +240,6 @@ Default job logback configuration provided for import
         </logger>
         <logger name="com.tencent.bk.job.common.paas" level="INFO" additivity="false">
             <appender-ref ref="paas-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
-            <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="bk_audit" level="INFO" additivity="false">
@@ -309,10 +286,6 @@ Default job logback configuration provided for import
             <appender-ref ref="paas-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
-            <appender-ref ref="notice-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
         <logger name="bk_audit" level="INFO" additivity="false">
             <appender-ref ref="audit-event-appender"/>
         </logger>
@@ -356,10 +329,6 @@ Default job logback configuration provided for import
         <logger name="com.tencent.bk.job.common.paas" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="paas-appender"/>
-            <appender-ref ref="error-appender"/>
-        </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
-            <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
         <logger name="bk_audit" level="INFO" additivity="false">
