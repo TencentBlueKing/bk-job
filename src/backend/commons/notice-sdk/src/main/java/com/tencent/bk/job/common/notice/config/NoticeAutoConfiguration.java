@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.notice.impl.BkNoticeClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +36,6 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({BkNoticeProperties.class})
-@ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true")
 public class NoticeAutoConfiguration {
 
     @Bean

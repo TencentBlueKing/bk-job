@@ -26,7 +26,13 @@ package com.tencent.bk.job.manage.runner;
 
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
+import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
+import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
@@ -45,19 +51,53 @@ public class RegisterBkNoticeRunner implements CommandLineRunner {
 
     private final IBkNoticeClient bkNoticeClient;
     private final ThreadPoolExecutor initRunnerExecutor;
+    private final GlobalSettingDAO globalSettingDAO;
 
     @Autowired
     public RegisterBkNoticeRunner(IBkNoticeClient bkNoticeClient,
-                                  @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
+                                  @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor,
+                                  GlobalSettingDAO globalSettingDAO) {
         this.bkNoticeClient = bkNoticeClient;
         this.initRunnerExecutor = initRunnerExecutor;
+        this.globalSettingDAO = globalSettingDAO;
     }
 
     @Override
     public void run(String... args) {
         initRunnerExecutor.submit(() -> {
-            BkNoticeApp bkNoticeApp = bkNoticeClient.registerApplication();
-            log.info("registerApplication result:{}", bkNoticeApp);
+            boolean registerSuccess = false;
+            // 最多重试30min，覆盖整个蓝鲸部署时间
+            int maxRetryTimes = 180;
+            int retryTimes = 0;
+            while (!registerSuccess && retryTimes < maxRetryTimes) {
+                try {
+                    BkNoticeApp bkNoticeApp = bkNoticeClient.registerApplication();
+                    log.info("registerApplication result:{}", bkNoticeApp);
+                    registerSuccess = true;
+                } catch (Exception e) {
+                    retryTimes++;
+                    if (retryTimes < maxRetryTimes) {
+                        String msg = MessageFormatter.format(
+                            "Fail to registerApplication, retry {}",
+                            retryTimes
+                        ).getMessage();
+                        log.warn(msg, e);
+                        ThreadUtils.sleep(10000);
+                    } else {
+                        log.warn("Fail to registerApplication finally", e);
+                    }
+                }
+            }
+            // 将注册结果写入DB中
+            globalSettingDAO.updateGlobalSetting(buildRegisterResult(registerSuccess));
         });
+    }
+
+    private GlobalSettingDTO buildRegisterResult(boolean registerSuccess) {
+        GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO();
+        globalSettingDTO.setKey(GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS);
+        globalSettingDTO.setValue(String.valueOf(registerSuccess));
+        globalSettingDTO.setDescription("Updated at " + TimeUtil.getCurrentTimeStr("yyyy-MM-dd HH:mm:ss.SSS"));
+        return globalSettingDTO;
     }
 }
