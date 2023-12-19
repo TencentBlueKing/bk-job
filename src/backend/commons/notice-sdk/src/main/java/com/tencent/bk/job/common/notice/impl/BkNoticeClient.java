@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
 import java.util.List;
@@ -92,10 +93,10 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
     }
 
     @Override
-    public List<AnnouncementDTO> getCurrentAnnouncements(Integer offset, Integer limit) {
+    public List<AnnouncementDTO> getCurrentAnnouncements(String bkLanguage, Integer offset, Integer limit) {
         EsbResp<List<AnnouncementDTO>> resp = requestBkNoticeApi(
             HttpMethodEnum.GET,
-            buildUriWithParams(offset, limit),
+            buildUriWithParams(bkLanguage, offset, limit),
             null,
             new TypeReference<EsbResp<List<AnnouncementDTO>>>() {
             },
@@ -104,11 +105,15 @@ public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClie
         return resp.getData();
     }
 
-    private String buildUriWithParams(Integer offset, Integer limit) {
+    private String buildUriWithParams(String bkLanguage, Integer offset, Integer limit) {
         StringBuilder sb = new StringBuilder();
         sb.append(URI_GET_CURRENT_ANNOUNCEMENTS);
         sb.append("?platform=");
         sb.append(appProperties.getCode());
+        if (StringUtils.isNotBlank(bkLanguage)) {
+            sb.append("&language=");
+            sb.append(bkLanguage);
+        }
         if (offset != null) {
             sb.append("&offset=");
             sb.append(offset);

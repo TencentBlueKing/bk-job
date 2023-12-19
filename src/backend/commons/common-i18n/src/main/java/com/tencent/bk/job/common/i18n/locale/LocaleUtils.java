@@ -38,6 +38,12 @@ public class LocaleUtils {
     public static final String LANG_ZH = "zh";
     public static final String LANG_EN = "en";
     public static final String LANG_EN_US = "en_US";
+
+    public static final String BK_LANG_ZH = "zh";
+    public static final String BK_LANG_ZH_CN = "zh-cn";
+    public static final String BK_LANG_EN = "en";
+    public static final String BK_LANG_EN_US = "en-us";
+
     /**
      * 蓝鲸通用的LANG HEADER
      */
@@ -50,12 +56,21 @@ public class LocaleUtils {
     private static final Map<String, String> localeMap = new HashMap<>();
 
     static {
-        localeMap.put("zh", LANG_ZH);
-        localeMap.put("zh-cn", LANG_ZH_CN);
+        localeMap.put(BK_LANG_ZH, LANG_ZH);
+        localeMap.put(BK_LANG_ZH_CN, LANG_ZH_CN);
         localeMap.put("zh_cn", LANG_ZH_CN);
-        localeMap.put("en", LANG_EN);
-        localeMap.put("en-us", LANG_EN_US);
+        localeMap.put(BK_LANG_EN, LANG_EN);
+        localeMap.put(BK_LANG_EN_US, LANG_EN_US);
         localeMap.put("en_us", LANG_EN_US);
+    }
+
+    private static final Map<String, String> bkLangMap = new HashMap<>();
+
+    static {
+        bkLangMap.put(LANG_ZH, BK_LANG_ZH);
+        bkLangMap.put(LANG_ZH_CN, BK_LANG_ZH_CN);
+        bkLangMap.put(LANG_EN, BK_LANG_EN);
+        bkLangMap.put(LANG_EN_US, BK_LANG_EN_US);
     }
 
     /**
@@ -70,6 +85,19 @@ public class LocaleUtils {
             return localeMap.get(lang);
         }
         return lang;
+    }
+
+    /**
+     * 根据标准语言取值获取蓝鲸协议语言参数取值
+     *
+     * @param normalLang 标准语言取值
+     * @return 蓝鲸协议语言参数取值
+     */
+    public static String getBkLang(String normalLang) {
+        if (bkLangMap.containsKey(normalLang)) {
+            return bkLangMap.get(normalLang);
+        }
+        return null;
     }
 
     public static Locale getLocale(String lang) {

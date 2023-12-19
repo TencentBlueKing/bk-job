@@ -44,6 +44,11 @@ public class AnnouncementDTO {
     private String title;
 
     /**
+     * 内容
+     */
+    private String content;
+
+    /**
      * 内容列表（国际化，各种语言的内容）
      */
     @JsonProperty("content_list")

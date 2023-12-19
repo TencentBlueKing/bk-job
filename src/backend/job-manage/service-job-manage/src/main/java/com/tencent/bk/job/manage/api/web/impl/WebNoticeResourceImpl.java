@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNoticeResource;
 import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +50,12 @@ public class WebNoticeResourceImpl implements WebNoticeResource {
 
     @Override
     public Response<List<AnnouncementVO>> getCurrentAnnouncements(String username, Integer offset, Integer limit) {
-        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(offset, limit).stream()
+        String userLang = JobContextUtil.getUserLang();
+        String bkLang = LocaleUtils.getBkLang(userLang);
+        if (bkLang == null) {
+            bkLang = LocaleUtils.BK_LANG_EN;
+        }
+        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(bkLang, offset, limit).stream()
             .map(AnnouncementVO::fromDTO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(resultList);

@@ -25,19 +25,13 @@
 package com.tencent.bk.job.manage.model.web.vo.notice;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
-
-import java.util.List;
 
 @Slf4j
 @NoArgsConstructor
@@ -71,36 +65,10 @@ public class AnnouncementVO {
         AnnouncementVO announcementVO = new AnnouncementVO();
         announcementVO.setId(announcementDTO.getId());
         announcementVO.setTitle(announcementDTO.getTitle());
-        announcementVO.setContent(chooseI18nContent(announcementDTO.getContentList()));
+        announcementVO.setContent(announcementDTO.getContent());
         announcementVO.setAnnounceType(announcementDTO.getAnnounceType());
         announcementVO.setStartTime(announcementDTO.getStartTime());
         announcementVO.setEndTime(announcementDTO.getEndTime());
         return announcementVO;
-    }
-
-    private static String chooseI18nContent(List<AnnouncementDTO.ContentWithLanguage> contentList) {
-        if (CollectionUtils.isEmpty(contentList)) {
-            log.warn("contentList is null empty, please check response from bk-notice");
-            return null;
-        }
-        String currentUserLang = JobContextUtil.getUserLang();
-        if (StringUtils.isBlank(currentUserLang)) {
-            currentUserLang = LocaleUtils.LANG_ZH_CN;
-            log.warn("currentUserLang is blank, use default {}", currentUserLang);
-        }
-        for (AnnouncementDTO.ContentWithLanguage contentWithLanguage : contentList) {
-            String lang = contentWithLanguage.getLanguage();
-            if (StringUtils.isBlank(lang)) {
-                lang = LocaleUtils.LANG_ZH_CN;
-                log.warn("language is blank, consider as default {}", lang);
-            } else {
-                lang = LocaleUtils.getNormalLang(lang);
-            }
-            if (lang.equals(currentUserLang)) {
-                return contentWithLanguage.getContent();
-            }
-        }
-        log.warn("Cannot find content match currentUserLang:{}, please check response from bk-notice", currentUserLang);
-        return null;
     }
 }
