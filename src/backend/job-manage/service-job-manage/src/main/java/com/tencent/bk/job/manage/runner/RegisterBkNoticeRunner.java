@@ -89,7 +89,8 @@ public class RegisterBkNoticeRunner implements CommandLineRunner {
                 }
             }
             // 将注册结果写入DB中
-            globalSettingDAO.updateGlobalSetting(buildRegisterResult(registerSuccess));
+            int affectedNum = globalSettingDAO.upsertGlobalSetting(buildRegisterResult(registerSuccess));
+            log.info("Write to db, registerSuccess={}, affectedNum={}", registerSuccess, affectedNum);
         });
     }
 
