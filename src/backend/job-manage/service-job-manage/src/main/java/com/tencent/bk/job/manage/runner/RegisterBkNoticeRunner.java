@@ -44,6 +44,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * 进程启动时向消息中心注册平台信息（幂等操作）
  */
+@SuppressWarnings("ConstantConditions")
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "bkNotice.enabled", havingValue = "true", matchIfMissing = true)
@@ -89,8 +90,10 @@ public class RegisterBkNoticeRunner implements CommandLineRunner {
                 }
             }
             // 将注册结果写入DB中
-            int affectedNum = globalSettingDAO.upsertGlobalSetting(buildRegisterResult(registerSuccess));
-            log.info("Write to db, registerSuccess={}, affectedNum={}", registerSuccess, affectedNum);
+            if (registerSuccess) {
+                int affectedNum = globalSettingDAO.upsertGlobalSetting(buildRegisterResult(registerSuccess));
+                log.info("Write to db, registerSuccess={}, affectedNum={}", registerSuccess, affectedNum);
+            }
         });
     }
 

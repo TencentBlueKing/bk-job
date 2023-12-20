@@ -35,14 +35,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class BkApiGatewayProperties {
 
 
-    private GseApiGwConfig gse;
+    private ApiGwConfig gse;
 
-    private GseApiGwConfig bkNotice;
+    private ApiGwConfig bkNotice;
 
     @Getter
     @Setter
     @ToString
-    public static class GseApiGwConfig {
+    public static class ApiGwConfig {
         /**
          * 蓝鲸Api Gateway url
          */
