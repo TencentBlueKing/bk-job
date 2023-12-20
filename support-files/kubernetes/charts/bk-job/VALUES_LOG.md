@@ -4,6 +4,8 @@
 1. 增加消息通知中心配置
 
 ```yaml
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 # 消息通知中心配置
 bkNotice:
   # 是否对接消息通知中心
