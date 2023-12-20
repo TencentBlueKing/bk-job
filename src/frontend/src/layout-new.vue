@@ -350,14 +350,17 @@
     .then((data) => {
       isEnableBKNotice.value = data.ENABLE_BK_NOTICE;
       isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
+      if (isEnableBKNotice.value) {
+        NoticeService.fetchAnnouncement()
+          .then((data) => {
+            noticeList.value = data.map((item, index) => ({
+              id: index,
+              ...item,
+            }));
+          });
+      }
     });
-  NoticeService.fetchAnnouncement()
-    .then((data) => {
-      noticeList.value = data.map((item, index) => ({
-        id: index,
-        ...item,
-      }));
-    });
+
   /**
    * @desc 侧导航展开收起
    */
