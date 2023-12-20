@@ -129,6 +129,19 @@ public class ExecutorConfiguration {
         );
     }
 
+    @Bean("initRunnerExecutor")
+    public ThreadPoolExecutor initRunnerExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "initRunnerExecutor",
+            0,
+            5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
+
     private ThreadFactory getThreadFactoryByNameAndSeq(String namePrefix, AtomicInteger seq) {
         return r -> {
             Thread t = new Thread(Thread.currentThread().getThreadGroup(), r,

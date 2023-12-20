@@ -126,6 +126,7 @@ Default job logback configuration provided for import
         </encoder>
     </appender>
 
+
     <!-- 审计事件日志 -->
     <appender name="audit-event-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${AUDIT_EVENT_LOG_FILE}</file>
