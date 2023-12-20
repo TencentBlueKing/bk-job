@@ -27,7 +27,9 @@
 
 <template>
   <div>
-    <notice-component :list="noticeList" />
+    <notice-component
+      v-if="isEnableBKNotice"
+      :list="noticeList" />
     <site-frame
       :side-fixed="isFrameSideFixed"
       @on-side-expand="handleSideExpandChange"
@@ -309,6 +311,7 @@
   const isAdmin = ref(false);
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
+  const isEnableBKNotice = ref(false);
 
   const noticeList = ref([]);
 
@@ -345,15 +348,19 @@
    */
   QueryGlobalSettingService.fetchJobConfig()
     .then((data) => {
+      isEnableBKNotice.value = data.ENABLE_BK_NOTICE;
       isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
+      if (isEnableBKNotice.value) {
+        NoticeService.fetchAnnouncement()
+          .then((data) => {
+            noticeList.value = data.map((item, index) => ({
+              id: index,
+              ...item,
+            }));
+          });
+      }
     });
-  NoticeService.fetchAnnouncement()
-    .then((data) => {
-      noticeList.value = data.map((item, index) => ({
-        id: index,
-        ...item,
-      }));
-    });
+
   /**
    * @desc 侧导航展开收起
    */
