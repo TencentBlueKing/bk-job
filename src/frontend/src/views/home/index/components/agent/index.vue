@@ -80,9 +80,8 @@
 
   import I18n from '@/i18n';
 
-  import HostList from '../host-list';
-
   import ActionExtend from './components/action-extend';
+  import HostList from './components/host-list';
   import SidesliderBox from './components/sideslider-box';
 
   export default {

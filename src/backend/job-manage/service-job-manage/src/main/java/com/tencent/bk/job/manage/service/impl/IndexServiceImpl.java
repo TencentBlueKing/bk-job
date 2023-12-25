@@ -50,6 +50,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.service.IndexService;
+import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -74,6 +75,7 @@ public class IndexServiceImpl implements IndexService {
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
     private final ScriptDAO scriptDAO;
+    private final HostDetailService hostDetailService;
 
     @Autowired
     public IndexServiceImpl(IndexGreetingDAO indexGreetingDAO,
@@ -82,7 +84,8 @@ public class IndexServiceImpl implements IndexService {
                             TopologyHelper topologyHelper,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
-                            ScriptDAO scriptDAO) {
+                            ScriptDAO scriptDAO,
+                            HostDetailService hostDetailService) {
         this.indexGreetingDAO = indexGreetingDAO;
         this.applicationDAO = applicationDAO;
         this.applicationHostDAO = applicationHostDAO;
@@ -90,6 +93,7 @@ public class IndexServiceImpl implements IndexService {
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.scriptDAO = scriptDAO;
+        this.hostDetailService = hostDetailService;
     }
 
     @Override
@@ -187,6 +191,7 @@ public class IndexServiceImpl implements IndexService {
         List<HostInfoVO> hostInfoVOList;
         val hosts = applicationHostDAO.listHostInfoBySearchContents(
             bizIds, null, null, null, status, start, pageSize);
+        hostDetailService.fillDetailForApplicationHosts(hosts);
         Long count = applicationHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
         hostInfoVOList = hosts.stream()
