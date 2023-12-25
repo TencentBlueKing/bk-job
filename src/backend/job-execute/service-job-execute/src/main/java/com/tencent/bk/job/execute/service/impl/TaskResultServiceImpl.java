@@ -434,7 +434,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (stepInstance.isRollingStep()) {
             targetServers = rollingConfigService.getRollingServers(stepInstance, batch);
         } else {
-            targetServers = stepInstance.getTargetServers().getIpList();
+            targetServers = stepInstance.getTargetExecuteObjects().getIpList();
         }
 
         return targetServers;
@@ -831,11 +831,11 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<HostDTO> getHostsByLogContentKeyword(long stepInstanceId, int executeCount, Integer batch,
                                                       String keyword) {
-        return logService.getIpsByContentKeyword(stepInstanceId, executeCount, batch, keyword);
+        return logService.getHostsByContentKeyword(stepInstanceId, executeCount, batch, keyword);
     }
 
     private List<HostDTO> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
-        return stepInstance.getTargetServers().getIpList().stream()
+        return stepInstance.getTargetExecuteObjects().getIpList().stream()
             .filter(host -> isMatchByIp(host, searchIp))
             .collect(Collectors.toList());
     }

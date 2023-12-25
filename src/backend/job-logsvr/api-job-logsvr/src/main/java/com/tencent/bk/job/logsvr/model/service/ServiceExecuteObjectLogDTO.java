@@ -94,7 +94,7 @@ public class ServiceExecuteObjectLogDTO {
      */
     @ApiModelProperty(value = "脚本日志内容，保存日志的时候需要传入,查询日志的时候该字段无效")
     @JsonProperty("scriptLog")
-    private ServiceScriptLogDTO scriptLog;
+    private ServiceExecuteObjectScriptLogDTO scriptLog;
 
     /**
      * 文件任务执行日志

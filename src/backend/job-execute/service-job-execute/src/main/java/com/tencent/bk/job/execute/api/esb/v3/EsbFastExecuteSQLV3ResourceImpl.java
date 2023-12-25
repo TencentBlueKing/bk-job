@@ -185,7 +185,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
 
         stepInstance.setDbAccountId(request.getDbAccountId());
         stepInstance.setOperator(username);

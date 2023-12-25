@@ -33,25 +33,24 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.api.ServiceLogResource;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,37 +64,33 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service("jobExecuteLogService")
+@Service
 @Slf4j
 public class LogServiceImpl implements LogService {
     private final ServiceLogResource logResource;
     private final TaskInstanceService taskInstanceService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
-    private final StepInstanceService stepInstanceService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
 
     @Autowired
     public LogServiceImpl(ServiceLogResource logResource,
                           TaskInstanceService taskInstanceService,
-                          ScriptExecuteObjectTaskService scriptAgentTaskService,
-                          FileExecuteObjectTaskService fileAgentTaskService,
-                          StepInstanceService stepInstanceService) {
+                          ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                          FileExecuteObjectTaskService fileExecuteObjectTaskService) {
         this.logResource = logResource;
         this.taskInstanceService = taskInstanceService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
-        this.stepInstanceService = stepInstanceService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
     }
 
     @Override
-    public ServiceScriptLogDTO buildSystemScriptLog(ExecuteObject executeObject,
-                                                    String content,
-                                                    int offset,
-                                                    Long logTimeInMillSeconds) {
+    public ServiceExecuteObjectScriptLogDTO buildSystemScriptLog(StepInstanceBaseDTO stepInstance,
+                                                                 ExecuteObject executeObject,
+                                                                 String content,
+                                                                 int offset,
+                                                                 Long logTimeInMillSeconds) {
         String logDateTime;
         if (logTimeInMillSeconds != null) {
             logDateTime = DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS,
@@ -105,13 +100,33 @@ public class LogServiceImpl implements LogService {
                 "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
         }
         String logContentWithDateTime = "[" + logDateTime + "] " + content + "\n";
-        int length = logContentWithDateTime.getBytes(StandardCharsets.UTF_8).length;
-        return new ServiceScriptLogDTO(host, offset + length, logContentWithDateTime);
+        return buildScriptLog(stepInstance, executeObject, logContentWithDateTime, offset);
     }
 
     @Override
-    public void batchWriteScriptLog(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
-                                    List<ServiceScriptLogDTO> scriptLogs) {
+    public ServiceExecuteObjectScriptLogDTO buildScriptLog(StepInstanceBaseDTO stepInstance,
+                                                           ExecuteObject executeObject,
+                                                           String content,
+                                                           int offset) {
+
+        int length = content.getBytes(StandardCharsets.UTF_8).length;
+        if (stepInstance.isSupportExecuteObject()) {
+            return new ServiceExecuteObjectScriptLogDTO(
+                executeObject.getId(), content, offset + length);
+        } else {
+            // 兼容历史版本使用 hostId 的方式；发布完成并全量切换到执行对象特性之后，可删除这里的兼容代码
+            HostDTO host = executeObject.getHost();
+            return new ServiceExecuteObjectScriptLogDTO(
+                host.getHostId(), host.toCloudIp(), host.toCloudIpv6(), content, offset + length);
+        }
+    }
+
+    @Override
+    public void batchWriteScriptLog(long jobCreateTime,
+                                    long stepInstanceId,
+                                    int executeCount,
+                                    Integer batch,
+                                    List<ServiceExecuteObjectScriptLogDTO> scriptLogs) {
         if (CollectionUtils.isEmpty(scriptLogs)) {
             return;
         }
@@ -121,10 +136,10 @@ public class LogServiceImpl implements LogService {
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());
         List<ServiceExecuteObjectLogDTO> logs = scriptLogs.stream()
-            .map(scriptLog -> buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog))
+            .map(scriptLog -> buildServiceExecuteObjectLogDTO(stepInstanceId, executeCount, batch, scriptLog))
             .collect(Collectors.toList());
         request.setLogs(logs);
-        InternalResponse resp = logResource.saveLogs(request);
+        InternalResponse<?> resp = logResource.saveLogs(request);
         if (!resp.isSuccess()) {
             log.error("Batch write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",
                 stepInstanceId, executeCount, batch);
@@ -132,12 +147,15 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-    private ServiceExecuteObjectLogDTO buildServiceLogDTO(long stepInstanceId, int executeCount, Integer batch,
-                                                          ServiceScriptLogDTO scriptLog) {
+    private ServiceExecuteObjectLogDTO buildServiceExecuteObjectLogDTO(long stepInstanceId,
+                                                                       int executeCount,
+                                                                       Integer batch,
+                                                                       ServiceExecuteObjectScriptLogDTO scriptLog) {
         ServiceExecuteObjectLogDTO logDTO = new ServiceExecuteObjectLogDTO();
         logDTO.setStepInstanceId(stepInstanceId);
         logDTO.setExecuteCount(executeCount);
         logDTO.setBatch(batch);
+        logDTO.setExecuteObjectId(scriptLog.getExecuteObjectId());
         logDTO.setHostId(scriptLog.getHostId());
         logDTO.setCloudIp(scriptLog.getCloudIp());
         logDTO.setCloudIpv6(scriptLog.getCloudIpv6());
@@ -146,166 +164,173 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ScriptHostLogContent getScriptHostLogContent(long stepInstanceId, int executeCount, Integer batch,
-                                                        HostDTO host) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
+    public ScriptExecuteObjectLogContent getScriptExecuteObjectLogContent(
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        ExecuteObjectCompositeKey executeObjectCompositeKey
+    ) {
+
+        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        ExecuteObjectTask agentTask = scriptAgentTaskService.getTaskByExecuteObjectCompositeKey(stepInstance,
-            executeCount, batch, host);
-        if (agentTask == null) {
+        ExecuteObjectTask executeObjectTask =
+            scriptExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(stepInstance,
+                executeCount, batch, executeObjectCompositeKey);
+        if (executeObjectTask == null) {
             return null;
         }
 
-        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
-            actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == ExecuteObjectTaskStatusEnum.LAST_SUCCESS) {
-            // 兼容历史数据
-            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
+        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
+            actualExecuteCount = executeObjectTask.getActualExecuteCount();
         }
 
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
+        long stepInstanceId = stepInstance.getId();
         InternalResponse<ServiceExecuteObjectLogDTO> resp;
-        if (agentTask.getHostId() != null) {
-            resp = logResource.getScriptHostLogByHostId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, agentTask.getHostId(), batch);
+        if (stepInstance.isSupportExecuteObject()) {
+            resp = logResource.getScriptLogByExecuteObjectId(taskCreateDateStr,
+                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getExecuteObjectId(), batch);
         } else {
-            // 兼容ip查询
-            resp = logResource.getScriptHostLogByIp(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), batch);
+            // 兼容hostId查询
+            resp = logResource.getScriptHostLogByHostId(taskCreateDateStr,
+                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getHostId(), batch);
         }
         if (!resp.isSuccess()) {
-            log.error("Get script log content by host error, stepInstanceId={}, executeCount={}, batch={}, host={}",
-                stepInstanceId, actualExecuteCount, batch, host);
+            log.error("Get script log content by execute object error, stepInstanceId={}, executeCount={}, batch={}" +
+                "executeObject={}", stepInstanceId, actualExecuteCount, batch, executeObjectCompositeKey);
             throw new InternalException(resp.getCode());
         }
-        return convertToScriptHostLogContent(stepInstanceId, executeCount, resp.getData(), agentTask);
+        return convertToScriptExecuteObjectLogContent(executeObjectCompositeKey, stepInstance, executeCount,
+            resp.getData(), executeObjectTask);
     }
 
-    private ScriptHostLogContent convertToScriptHostLogContent(long stepInstanceId,
-                                                               int executeCount,
-                                                               ServiceExecuteObjectLogDTO logDTO,
-                                                               ExecuteObjectTask agentTask) {
+    private String buildTaskCreateDateStr(StepInstanceBaseDTO stepInstance) {
+        return DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
+            "yyyy_MM_dd", ZoneId.of("UTC"));
+    }
+
+    private ScriptExecuteObjectLogContent convertToScriptExecuteObjectLogContent(
+        ExecuteObjectCompositeKey executeObjectCompositeKey,
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        ServiceExecuteObjectLogDTO executeObjectLog,
+        ExecuteObjectTask executeObjectTask
+    ) {
+        if (executeObjectLog == null) {
+            return null;
+        }
+        ExecuteObject executeObject =
+            stepInstance.getTargetExecuteObjects().findExecuteObjectByCompositeKey(executeObjectCompositeKey);
         // 日志是否拉取完成
-        boolean isFinished = agentTask.getStatus().isFinished();
-        String scriptContent = logDTO != null && logDTO.getScriptLog() != null ?
-            logDTO.getScriptLog().getContent() : "";
-        Long hostId = logDTO != null ? logDTO.getHostId() : null;
-        String ip = logDTO != null ? logDTO.getCloudIp() : null;
-        String ipv6 = logDTO != null ? logDTO.getCloudIpv6() : null;
-        return new ScriptHostLogContent(stepInstanceId, executeCount, hostId, ip, ipv6, scriptContent, isFinished);
+        boolean isFinished = executeObjectTask.getStatus().isFinished();
+        String scriptContent = executeObjectLog.getScriptLog() != null ?
+            executeObjectLog.getScriptLog().getContent() : "";
+        return new ScriptExecuteObjectLogContent(stepInstance.getId(), executeCount, executeObject, scriptContent,
+            isFinished);
     }
 
     @Override
-    public List<ScriptHostLogContent> batchGetScriptHostLogContent(String jobCreateDateStr,
-                                                                   long stepInstanceId,
-                                                                   int executeCount,
-                                                                   Integer batch,
-                                                                   List<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
+    public List<ScriptExecuteObjectLogContent> batchGetScriptExecuteObjectLogContent(
+        String jobCreateDateStr,
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
+    ) {
+        if (CollectionUtils.isEmpty(executeObjectCompositeKeys)) {
             return Collections.emptyList();
         }
         ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
         query.setBatch(batch);
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        if (isQueryByHostIdCondition(stepInstance)) {
-            query.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
-            if (CollectionUtils.isEmpty(query.getHostIds())) {
-                return Collections.emptyList();
-            }
+        List<ExecuteObject> queryExecuteObjects =
+            stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
+        if (stepInstance.isSupportExecuteObject()) {
+            List<String> executeObjectId = queryExecuteObjects.stream()
+                .map(ExecuteObject::getId).collect(Collectors.toList());
+            query.setExecuteObjectIds(executeObjectId);
         } else {
-            // 兼容历史数据的查询（使用ip，没有hostId)
-            query.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
+            // 兼容 hostId 查询
+            List<Long> hostIds = queryExecuteObjects.stream()
+                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
+            query.setHostIds(hostIds);
         }
 
+        long stepInstanceId = stepInstance.getId();
         InternalResponse<List<ServiceExecuteObjectLogDTO>> resp =
             logResource.listScriptExecuteObjectLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
         if (!resp.isSuccess()) {
-            log.error("Get script log content by ips error, stepInstanceId={}, executeCount={}, batch={}, ips={}",
-                stepInstanceId, executeCount, batch, hosts);
+            log.error("Get script log content by execute objects error, stepInstanceId={}, executeCount={}, batch={}," +
+                "executeObjectCompositeKeys: {}", stepInstanceId, executeCount, batch, executeObjectCompositeKeys);
             throw new InternalException(resp.getCode());
         }
         if (CollectionUtils.isEmpty(resp.getData())) {
             return Collections.emptyList();
         }
-        return resp.getData().stream().map(logDTO -> {
-            String scriptContent = logDTO.getScriptLog() != null ?
-                logDTO.getScriptLog().getContent() : "";
-            return new ScriptHostLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(), logDTO.getHostId(),
-                logDTO.getCloudIp(), logDTO.getCloudIpv6(), scriptContent, true);
-        }).collect(Collectors.toList());
 
-    }
-
-    private boolean isQueryByHostIdCondition(StepInstanceBaseDTO stepInstance) {
-        return stepInstance.getTargetServers().getIpList().stream()
-            .anyMatch(host -> host.getHostId() != null);
-    }
-
-    private List<Long> buildHostIdQueryCondition(StepInstanceBaseDTO stepInstance, List<HostDTO> hosts) {
-        boolean hostIdParamNull = hosts.get(0).getHostId() == null;
-        List<Long> hostIds;
-        if (hostIdParamNull) {
-            // 需要把ip查询参数转换为基于hostId的查询参数
-            Map<String, HostDTO> ip2Hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::toCloudIp);
-            hostIds = hosts.stream()
-                .map(host -> Optional.ofNullable(ip2Hosts.get(host.toCloudIp()))
-                    .map(HostDTO::getHostId)
-                    .orElse(null))
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
+        if (stepInstance.isSupportExecuteObject()) {
+            Map<String, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
+                .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject));
+            return resp.getData().stream().map(logDTO -> {
+                String scriptContent = logDTO.getScriptLog() != null ?
+                    logDTO.getScriptLog().getContent() : "";
+                return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
+                    executeObjectMap.get(logDTO.getExecuteObjectId()), scriptContent, true);
+            }).collect(Collectors.toList());
         } else {
-            hostIds = hosts.stream()
-                .map(HostDTO::getHostId)
-                .distinct()
-                .collect(Collectors.toList());
+            Map<Long, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
+                .collect(Collectors.toMap(
+                    executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject));
+            return resp.getData().stream().map(logDTO -> {
+                String scriptContent = logDTO.getScriptLog() != null ?
+                    logDTO.getScriptLog().getContent() : "";
+                return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
+                    executeObjectMap.get(logDTO.getHostId()), scriptContent, true);
+            }).collect(Collectors.toList());
         }
-
-        return hostIds;
     }
 
     @Override
-    public FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host,
-                                                Integer mode) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
-        // 如果存在重试，那么该ip可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
+    public FileExecuteObjectLogContent getFileExecuteObjectLogContent(
+        StepInstanceDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        ExecuteObjectCompositeKey executeObjectCompositeKey,
+        Integer mode
+    ) {
+        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
         int actualExecuteCount = executeCount;
-        ExecuteObjectTask agentTask = fileAgentTaskService.getAgentTaskByHost(stepInstance, executeCount, batch,
-            FileTaskModeEnum.getFileTaskMode(mode), host);
-        if (agentTask == null) {
+        ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(
+            stepInstance, executeCount, batch, FileTaskModeEnum.getFileTaskMode(mode), executeObjectCompositeKey);
+        if (executeObjectTask == null) {
             return null;
         }
-        if (executeCount > 0 && agentTask.getActualExecuteCount() != null) {
-            actualExecuteCount = agentTask.getActualExecuteCount();
-        } else if (agentTask.getStatus() == ExecuteObjectTaskStatusEnum.LAST_SUCCESS) {
-            // 兼容历史数据
-            actualExecuteCount = scriptAgentTaskService.getActualSuccessExecuteCount(stepInstanceId, host.toCloudIp());
+        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
+            actualExecuteCount = executeObjectTask.getActualExecuteCount();
         }
 
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
+        long stepInstanceId = stepInstance.getId();
         InternalResponse<ServiceExecuteObjectLogDTO> resp;
-        if (agentTask.getHostId() != null) {
+        if (stepInstance.isSupportExecuteObject()) {
             resp = logResource.getFileLogByExecuteObjectId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, agentTask.getHostId(), mode, batch);
+                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getExecuteObjectId(), mode, batch);
         } else {
-            // 兼容ip查询
-            resp = logResource.getFileHostLogByIp(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, agentTask.getCloudIp(), mode, batch);
+            // 兼容hostId查询
+            resp = logResource.getFileHostLogByHostId(taskCreateDateStr,
+                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getHostId(), mode, batch);
         }
 
         if (!resp.isSuccess()) {
-            log.error("Get file log content by ip error, stepInstanceId={}, executeCount={}, batch={}, host={}",
-                stepInstanceId, actualExecuteCount, batch, host);
+            log.error("Get file log content by execute object error, stepInstanceId={}, executeCount={}, batch={}" +
+                "executeObject={}", stepInstanceId, actualExecuteCount, batch, executeObjectCompositeKey);
             throw new InternalException(resp.getCode());
         }
         List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
-        ExecuteObjectTaskStatusEnum agentTaskStatus = agentTask.getStatus();
-        boolean isFinished = agentTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
-        return new FileIpLogContent(stepInstanceId, executeCount, null, fileTaskLogs, isFinished);
+        ExecuteObjectTaskStatusEnum executeObjectTaskStatus = executeObjectTask.getStatus();
+        boolean isFinished = executeObjectTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
+        ExecuteObject executeObject = stepInstance.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+        return new FileExecuteObjectLogContent(stepInstanceId, executeCount, executeObject, fileTaskLogs, isFinished);
     }
 
     private boolean isAllFileTasksFinished(List<ServiceFileTaskLogDTO> fileTaskLogs) {
@@ -325,11 +350,12 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId, int executeCount, Integer batch,
+    public List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId,
+                                                                  int executeCount,
+                                                                  Integer batch,
                                                                   List<String> taskIds) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<ServiceExecuteObjectLogDTO> resp = logResource.listFileLogsByTaskIds(
             taskCreateDateStr, stepInstanceId, executeCount, batch, taskIds);
         if (!resp.isSuccess()) {
@@ -344,12 +370,11 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<ServiceFileTaskLogDTO> batchGetFileSourceIpLogContent(long stepInstanceId,
-                                                                      int executeCount,
-                                                                      Integer batch) {
+    public List<ServiceFileTaskLogDTO> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
+                                                                                 int executeCount,
+                                                                                 Integer batch) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<List<ServiceFileTaskLogDTO>> resp = logResource.listFileHostLogs(
             taskCreateDateStr, stepInstanceId, executeCount, batch, FileDistModeEnum.UPLOAD.getValue(), null, null);
         if (!resp.isSuccess()) {
@@ -361,30 +386,37 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public ServiceExecuteObjectLogsDTO batchGetFileIpLogContent(long stepInstanceId, int executeCount, Integer batch,
-                                                                List<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
+    public List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
+        StepInstanceDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
+    ) {
+        if (CollectionUtils.isEmpty(executeObjectCompositeKeys)) {
             return null;
         }
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
-        request.setStepInstanceId(stepInstanceId);
+        request.setStepInstanceId(stepInstance.getId());
         request.setExecuteCount(executeCount);
         request.setBatch(batch);
         request.setJobCreateDate(taskCreateDateStr);
 
-        if (isQueryByHostIdCondition(stepInstance)) {
-            request.setHostIds(buildHostIdQueryCondition(stepInstance, hosts));
-            if (CollectionUtils.isEmpty(request.getHostIds())) {
-                return null;
-            }
+        List<ExecuteObject> queryExecuteObjects =
+            stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
+        if (stepInstance.isSupportExecuteObject()) {
+            List<String> executeObjectId = queryExecuteObjects.stream()
+                .map(ExecuteObject::getId).collect(Collectors.toList());
+            request.setExecuteObjectIds(executeObjectId);
         } else {
-            request.setIps(hosts.stream().map(HostDTO::toCloudIp).distinct().collect(Collectors.toList()));
+            // 兼容 hostId 查询
+            List<Long> hostIds = queryExecuteObjects.stream()
+                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
+            request.setHostIds(hostIds);
         }
 
-        InternalResponse<ServiceExecuteObjectLogsDTO> resp = logResource.listFileHostLogs(request);
+        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listFileExecuteObjectLogs(
+            taskCreateDateStr, stepInstance.getId(), executeCount, request);
         if (!resp.isSuccess()) {
             log.error("Get file log content error, request={}", request);
             return null;
@@ -393,11 +425,10 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<HostDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch,
-                                                String keyword) {
+    public List<HostDTO> getHostsByContentKeyword(long stepInstanceId, int executeCount, Integer batch,
+                                                  String keyword) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
-        String taskCreateDateStr = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<List<HostDTO>> resp = logResource.questHostsByLogKeyword(taskCreateDateStr,
             stepInstanceId, executeCount, batch, keyword);
 
@@ -444,65 +475,106 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> hostFileLogs) {
-        writeFileLogsWithTimestamp(jobCreateTime, hostFileLogs, System.currentTimeMillis());
+    public void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> executeObjectLogs) {
+        writeFileLogsWithTimestamp(jobCreateTime, executeObjectLogs, System.currentTimeMillis());
     }
 
     @Override
-    public ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(JobFile srcFile,
+    public ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                                  JobFile srcFile,
                                                                   FileDistStatusEnum status,
                                                                   String size,
                                                                   String speed,
                                                                   String process,
                                                                   String content) {
-        return new ServiceFileTaskLogDTO(
-            FileDistModeEnum.UPLOAD.getValue(),
-            null,
-            null,
-            null,
-            null,
-            srcFile.getHost().getHostId(),
-            srcFile.getHost().toCloudIp(),
-            srcFile.getHost().toCloudIpv6(),
-            srcFile.getFileType().getType(),
-            srcFile.getStandardFilePath(),
-            srcFile.getDisplayFilePath(),
-            size,
-            status.getValue(),
-            status.getName(),
-            speed,
-            process,
-            content
-        );
+        if (stepInstance.isSupportExecuteObject()) {
+            return new ServiceFileTaskLogDTO(
+                FileDistModeEnum.UPLOAD.getValue(),
+                null,
+                null,
+                srcFile.getExecuteObject().getId(),
+                srcFile.getFileType().getType(),
+                srcFile.getStandardFilePath(),
+                srcFile.getDisplayFilePath(),
+                size,
+                status.getValue(),
+                status.getName(),
+                speed,
+                process,
+                content
+            );
+        } else {
+            HostDTO sourceHost = srcFile.getExecuteObject().getHost();
+            return new ServiceFileTaskLogDTO(
+                FileDistModeEnum.UPLOAD.getValue(),
+                null,
+                null,
+                null,
+                null,
+                sourceHost.getHostId(),
+                sourceHost.toCloudIp(),
+                sourceHost.toCloudIpv6(),
+                srcFile.getFileType().getType(),
+                srcFile.getStandardFilePath(),
+                srcFile.getDisplayFilePath(),
+                size,
+                status.getValue(),
+                status.getName(),
+                speed,
+                process,
+                content
+            );
+        }
     }
 
     @Override
-    public ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(JobFile srcFile,
-                                                                    HostDTO targetHost,
+    public ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                                    JobFile srcFile,
+                                                                    ExecuteObject targetExecuteObject,
                                                                     String targetPath,
                                                                     FileDistStatusEnum status,
                                                                     String size,
                                                                     String speed,
                                                                     String process,
                                                                     String content) {
-        return new ServiceFileTaskLogDTO(
-            FileDistModeEnum.DOWNLOAD.getValue(),
-            targetHost.getHostId(),
-            targetHost.toCloudIp(),
-            targetHost.toCloudIpv6(),
-            targetPath,
-            srcFile.getHost().getHostId(),
-            srcFile.getHost().toCloudIp(),
-            srcFile.getHost().toCloudIpv6(),
-            srcFile.getFileType().getType(),
-            srcFile.getStandardFilePath(),
-            srcFile.getDisplayFilePath(),
-            size,
-            status.getValue(),
-            status.getName(),
-            speed,
-            process,
-            content
-        );
+        if (stepInstance.isSupportExecuteObject()) {
+            return new ServiceFileTaskLogDTO(
+                FileDistModeEnum.DOWNLOAD.getValue(),
+                targetExecuteObject.getId(),
+                targetPath,
+                srcFile.getExecuteObject().getId(),
+                srcFile.getFileType().getType(),
+                srcFile.getStandardFilePath(),
+                srcFile.getDisplayFilePath(),
+                size,
+                status.getValue(),
+                status.getName(),
+                speed,
+                process,
+                content
+            );
+        } else {
+            HostDTO sourceHost = srcFile.getExecuteObject().getHost();
+            HostDTO targetHost = targetExecuteObject.getHost();
+            return new ServiceFileTaskLogDTO(
+                FileDistModeEnum.DOWNLOAD.getValue(),
+                targetHost.getHostId(),
+                targetHost.toCloudIp(),
+                targetHost.toCloudIpv6(),
+                targetPath,
+                sourceHost.getHostId(),
+                sourceHost.toCloudIp(),
+                sourceHost.toCloudIpv6(),
+                srcFile.getFileType().getType(),
+                srcFile.getStandardFilePath(),
+                srcFile.getDisplayFilePath(),
+                size,
+                status.getValue(),
+                status.getName(),
+                speed,
+                process,
+                content
+            );
+        }
     }
 }

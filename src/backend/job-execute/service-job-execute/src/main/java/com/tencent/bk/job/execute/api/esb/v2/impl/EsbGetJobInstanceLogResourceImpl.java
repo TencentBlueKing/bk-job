@@ -40,9 +40,9 @@ import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
-import com.tencent.bk.job.execute.model.FileIpLogContent;
+import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceResultAndLog;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogRequest;
@@ -171,14 +171,14 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
 
         for (ExecuteObjectTaskDetail agentTask : agentTasks) {
             if (stepInstance.isScriptStep()) {
-                ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId,
+                ScriptExecuteObjectLogContent scriptExecuteObjectLogContent = logService.getScriptExecuteObjectLogContent(stepInstanceId,
                     executeCount,
                     null, agentTask.getHost());
-                agentTask.setScriptLogContent(scriptHostLogContent == null ? "" : scriptHostLogContent.getContent());
+                agentTask.setScriptLogContent(scriptExecuteObjectLogContent == null ? "" : scriptExecuteObjectLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
-                FileIpLogContent fileIpLogContent = logService.getFileIpLogContent(stepInstanceId, executeCount,
+                FileExecuteObjectLogContent fileExecuteObjectLogContent = logService.getFileExecuteObjectLogContent(stepInstanceId, executeCount,
                     null, agentTask.getHost(), FileDistModeEnum.DOWNLOAD.getValue());
-                agentTask.setScriptLogContent(fileIpLogContent == null ? "" : fileIpLogContent.getContent());
+                agentTask.setScriptLogContent(fileExecuteObjectLogContent == null ? "" : fileExecuteObjectLogContent.getContent());
             }
         }
     }

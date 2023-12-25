@@ -22,28 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.common.gse.v2.model;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import lombok.Getter;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * 执行对象KEY, 用于跟 GSE 交互
  */
+@Getter
 public class ExecuteObjectGseKey {
-    private final String key;
+    private String agentId;
+    private String containerId;
+    private String key;
 
-    private ExecuteObjectGseKey(String key) {
-        this.key = key;
+    private ExecuteObjectGseKey() {
     }
 
-    public static ExecuteObjectGseKey ofHostKey(String agentId) {
-        return new ExecuteObjectGseKey(ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId);
+    public static ExecuteObjectGseKey ofHost(String agentId) {
+        ExecuteObjectGseKey executeObjectGseKey = new ExecuteObjectGseKey();
+        executeObjectGseKey.agentId = agentId;
+        executeObjectGseKey.key = ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId;
+        return executeObjectGseKey;
     }
 
-    public static ExecuteObjectGseKey ofContainerKey(String containerId) {
-        return new ExecuteObjectGseKey(ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + containerId);
+    public static ExecuteObjectGseKey ofContainer(String agentId, String containerId) {
+        ExecuteObjectGseKey executeObjectGseKey = new ExecuteObjectGseKey();
+        executeObjectGseKey.agentId = agentId;
+        executeObjectGseKey.containerId = containerId;
+        executeObjectGseKey.key = ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId;
+        return executeObjectGseKey;
     }
 
     @Override
@@ -57,5 +68,12 @@ public class ExecuteObjectGseKey {
     @Override
     public int hashCode() {
         return Objects.hash(key);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ExecuteObjectGseKey.class.getSimpleName() + "[", "]")
+            .add("key='" + key + "'")
+            .toString();
     }
 }

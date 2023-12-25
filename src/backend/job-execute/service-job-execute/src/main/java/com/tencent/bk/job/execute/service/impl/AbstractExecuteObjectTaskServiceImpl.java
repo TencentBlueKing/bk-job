@@ -8,15 +8,14 @@ import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -24,46 +23,28 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObjectTaskService {
     protected final StepInstanceService stepInstanceService;
-    protected final TaskInstanceExecuteObjectService taskInstanceExecuteObjectService;
 
-    public AbstractExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
-                                                TaskInstanceExecuteObjectService taskInstanceExecuteObjectService) {
+    public AbstractExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService) {
         this.stepInstanceService = stepInstanceService;
-        this.taskInstanceExecuteObjectService = taskInstanceExecuteObjectService;
     }
 
-    protected final List<ExecuteObjectTaskDetail> fillExecuteObjectDetail(StepInstanceBaseDTO stepInstance,
-                                                                          List<ExecuteObjectTask> tasks) {
+    protected final List<ExecuteObjectTaskDetail> convertToExecuteObjectDetailList(StepInstanceBaseDTO stepInstance,
+                                                                                   List<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return Collections.emptyList();
         }
 
         List<ExecuteObjectTaskDetail> taskList;
-        boolean hasExecuteObjectId = tasks.stream().anyMatch(task -> task.getExecuteObjId() != null);
-        if (hasExecuteObjectId) {
+        if (stepInstance.isSupportExecuteObject()) {
             taskList = tasks
                 .stream()
                 .map(ExecuteObjectTaskDetail::new)
                 .collect(Collectors.toList());
 
-            long taskInstanceId = stepInstance.getTaskInstanceId();
-            Map<Long, ExecuteObject> executeObjectMap = new HashMap<>();
-            List<ExecuteObject> executeObjects;
-            if (tasks.size() > 1000) {
-                executeObjects = taskInstanceExecuteObjectService.listExecuteObjectsByJobInstanceId(taskInstanceId);
-            } else {
-                // in 查询控制个数在 1000 以内
-                Set<Long> executeObjectIds =
-                    tasks.stream().map(ExecuteObjectTask::getExecuteObjId).collect(Collectors.toSet());
-                executeObjects = taskInstanceExecuteObjectService.listExecuteObjectsByIds(executeObjectIds);
-            }
-            if (CollectionUtils.isEmpty(executeObjects)) {
-                return taskList;
-            }
-            executeObjects.forEach(executeObject -> executeObjectMap.put(executeObject.getId(), executeObject));
-
+            Map<String, ExecuteObject> executeObjectMap =
+                stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
             taskList.forEach(
-                task -> task.setExecuteObject(executeObjectMap.get(task.getExecuteObjId())));
+                task -> task.setExecuteObject(executeObjectMap.get(task.getExecuteObjectId())));
         } else {
             // 兼容老版本不支持执行对象的数据
             Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
@@ -72,7 +53,7 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
                 .map(task -> {
                     ExecuteObjectTaskDetail taskDetail = new ExecuteObjectTaskDetail(task);
                     HostDTO host = hosts.get(task.getHostId());
-                    ExecuteObject executeObject = new ExecuteObject(null, host);
+                    ExecuteObject executeObject = new ExecuteObject(host);
                     taskDetail.setExecuteObject(executeObject);
                     return taskDetail;
                 }).collect(Collectors.toList());
@@ -91,6 +72,17 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
                 resultGroups.add(resultGroup);
             });
         return resultGroups;
+    }
+
+    /**
+     * 判断任务是否需要按照<执行对象>的方式保存到 DB
+     *
+     * @param tasks 需要被保存的任务
+     */
+    protected boolean isSaveTasksUsingExecuteObjectMode(Collection<? extends ExecuteObjectTask> tasks) {
+        // 根据执行对象任务模型中的 executeObjectId 参数判断是否支持执行对象
+        ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
+        return Objects.requireNonNull(anyTask).getExecuteObjectId() != null;
     }
 
 

@@ -223,7 +223,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());
             scriptStepVO.setScriptId(stepInstance.getScriptId());
             scriptStepVO.setScriptVersionId(stepInstance.getScriptVersionId());
-            scriptStepVO.setExecuteTarget(stepInstance.getTargetServers().convertToTaskTargetVO());
+            scriptStepVO.setExecuteTarget(stepInstance.getTargetExecuteObjects().convertToTaskTargetVO());
             scriptStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
             stepVO.setScriptStepInfo(scriptStepVO);
         } else if (stepType == StepExecuteTypeEnum.SEND_FILE) {
@@ -238,7 +238,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             } else {
                 fileDestinationInfoVO.setPath(stepInstance.getFileTargetPath());
             }
-            fileDestinationInfoVO.setServer(stepInstance.getTargetServers().convertToTaskTargetVO());
+            fileDestinationInfoVO.setServer(stepInstance.getTargetExecuteObjects().convertToTaskTargetVO());
             fileStepVO.setFileDestination(fileDestinationInfoVO);
 
             fileStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);

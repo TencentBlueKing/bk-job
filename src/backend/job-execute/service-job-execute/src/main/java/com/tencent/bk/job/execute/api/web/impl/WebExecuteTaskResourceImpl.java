@@ -321,7 +321,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setName(request.getName());
         stepInstance.setStepId(-1L);
         stepInstance.setAppId(appId);
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServers()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServers()));
         if (request.getScriptLanguage().equals(ScriptTypeEnum.SQL.getValue())) {
             stepInstance.setDbAccountId(request.getAccount());
             stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
@@ -477,7 +477,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setName(request.getName());
         ExecuteFileDestinationInfoVO fileDestination = request.getFileDestination();
         stepInstance.setAccountId(fileDestination.getAccountId());
-        stepInstance.setTargetServers(convertToServersDTO(fileDestination.getServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(fileDestination.getServer()));
         stepInstance.setFileTargetPath(fileDestination.getPath());
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());

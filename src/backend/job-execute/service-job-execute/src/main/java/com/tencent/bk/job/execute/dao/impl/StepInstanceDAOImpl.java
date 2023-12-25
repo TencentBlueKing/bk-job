@@ -146,7 +146,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             stepInstance.getStartTime(),
             stepInstance.getEndTime(),
             stepInstance.getTotalTime(),
-            stepInstance.getTargetServers() == null ? null : JsonUtils.toJson(stepInstance.getTargetServers()),
+            stepInstance.getTargetExecuteObjects() == null ? null : JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
             stepInstance.getCreateTime(),
             stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
             stepInstance.getStepNum(),
@@ -444,7 +444,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setTotalTime(record.get(t.TOTAL_TIME));
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
             ExecuteObjectsDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ExecuteObjectsDTO.class);
-            stepInstance.setTargetServers(targetServers);
+            stepInstance.setTargetExecuteObjects(targetServers);
         }
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
         stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null

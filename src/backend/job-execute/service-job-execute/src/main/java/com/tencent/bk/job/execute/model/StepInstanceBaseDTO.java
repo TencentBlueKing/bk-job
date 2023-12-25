@@ -27,11 +27,15 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -105,9 +109,9 @@ public class StepInstanceBaseDTO {
      */
     protected boolean ignoreError;
     /**
-     * 目标服务器
+     * 执行目标
      */
-    protected ExecuteObjectsDTO targetServers;
+    protected ExecuteObjectsDTO targetExecuteObjects;
     /**
      * 不合法的服务器
      */
@@ -128,6 +132,11 @@ public class StepInstanceBaseDTO {
      * 滚动配置ID
      */
     protected Long rollingConfigId;
+
+    /**
+     * 是否支持执行对象特性
+     */
+    private Boolean supportExecuteObject;
 
     /**
      * 获取步骤类型
@@ -173,8 +182,8 @@ public class StepInstanceBaseDTO {
     }
 
     public int getTargetServerTotalCount() {
-        if (this.targetServers != null && this.targetServers.getIpList() != null) {
-            return this.targetServers.getIpList().size();
+        if (this.targetExecuteObjects != null && this.targetExecuteObjects.getIpList() != null) {
+            return this.targetExecuteObjects.getIpList().size();
         } else {
             return 0;
         }
@@ -206,8 +215,28 @@ public class StepInstanceBaseDTO {
      */
     public boolean isTargetGseV2Agent() {
         // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
-        boolean isTargetGseV1Agent = this.targetServers.getIpList().stream()
+        boolean isTargetGseV1Agent = this.targetExecuteObjects.getIpList().stream()
             .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
         return !isTargetGseV1Agent;
+    }
+
+    /**
+     * 通过执行目标判断是否支持"执行对象"
+     */
+    public boolean isSupportExecuteObject() {
+        if (supportExecuteObject == null) {
+            supportExecuteObject = CollectionUtils.isNotEmpty(targetExecuteObjects.getExecuteObjects());
+        }
+        return supportExecuteObject;
+
+    }
+
+    public ExecuteObject findExecuteObjectByCompositeKey(ExecuteObjectCompositeKey executeObjectCompositeKey) {
+        return targetExecuteObjects.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+    }
+
+    public List<ExecuteObject> findExecuteObjectByCompositeKeys(
+        Collection<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
+        return targetExecuteObjects.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
     }
 }

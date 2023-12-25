@@ -25,16 +25,23 @@
 package com.tencent.bk.job.execute.engine.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 /**
  * 作业执行对象通用模型
@@ -69,14 +76,23 @@ public class ExecuteObject implements Cloneable {
      */
     private HostDTO host;
 
-    public ExecuteObject(String id, Container container) {
-        this.id = id;
+    /**
+     * 执行对象对应的 <GSE 执行目标 KEY>。不会被持久化
+     */
+    @JsonIgnore
+    private ExecuteObjectGseKey executeObjectGseKey;
+
+    /**
+     * 执行对象对应的组合KEY
+     */
+    private ExecuteObjectCompositeKey executeObjectCompositeKey;
+
+    public ExecuteObject(Container container) {
         this.type = ExecuteObjectTypeEnum.CONTAINER;
         this.container = container;
     }
 
-    public ExecuteObject(String id, HostDTO host) {
-        this.id = id;
+    public ExecuteObject(HostDTO host) {
         this.type = ExecuteObjectTypeEnum.HOST;
         this.host = host;
     }
@@ -98,5 +114,66 @@ public class ExecuteObject implements Cloneable {
             clone.setContainer(container);
         }
         return clone;
+    }
+
+    @JsonIgnore
+    public boolean isExecuteObjectFeatureEnabled() {
+        // 如果执行对象的特性生效，那么这里的 ID 不为空
+        return StringUtils.isNotEmpty(id);
+    }
+
+    @JsonIgnore
+    public boolean isHost() {
+        return type == ExecuteObjectTypeEnum.HOST;
+    }
+
+    @JsonIgnore
+    public boolean isContainer() {
+        return type == ExecuteObjectTypeEnum.CONTAINER;
+    }
+
+    public ExecuteObjectGseKey toExecuteObjectGseKey() {
+        if (executeObjectGseKey != null) {
+            return executeObjectGseKey;
+        }
+        if (isHost()) {
+            executeObjectGseKey = ExecuteObjectGseKey.ofHost(host.getAgentId());
+        } else {
+            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getAgentId(), container.getContainerId());
+        }
+        return executeObjectGseKey;
+    }
+
+    @JsonIgnore
+    public boolean isAgentIdEmpty() {
+        if (isHost()) {
+            return StringUtils.isNotEmpty(getHost().getAgentId());
+        } else {
+            return StringUtils.isNotEmpty(getContainer().getAgentId());
+        }
+    }
+
+    public Agent toGseAgent() {
+        Agent agent = new Agent();
+        if (isHost()) {
+            agent.setAgentId(host.getAgentId());
+        } else {
+            agent.setAgentId(container.getAgentId());
+            agent.setContainerId(container.getContainerId());
+        }
+        return agent;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExecuteObject that = (ExecuteObject) o;
+        return getExecuteObjectGseKey().equals(that.getExecuteObjectGseKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getExecuteObjectGseKey());
     }
 }

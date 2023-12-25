@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -41,6 +41,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
@@ -89,9 +90,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     protected String requestId;
     /**
-     * GSE 目标 Agent 任务, Map<AgentId,AgentTask>
+     * GSE任务与JOB执行对象任务的映射关系
      */
-    protected Map<String, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
+    protected Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> targetExecuteObjectTaskMap = new HashMap<>();
     /**
      * 全局参数分析结果
      */
@@ -105,17 +106,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
     /**
-     * Agent ID 与 host 映射关系
+     * 执行对象任务列表
      */
-    protected Map<String, HostDTO> agentIdHostMap;
-    /**
-     * hostId 与 host 映射关系
-     */
-    protected Map<Long, HostDTO> hostIdHostMap;
-    /**
-     * Agent tasks
-     */
-    protected List<ExecuteObjectTask> agentTasks;
+    protected List<ExecuteObjectTaskDetail> executeObjectTasks;
 
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -162,8 +155,6 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
-        this.hostIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
     }
 
 
@@ -243,29 +234,31 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         }
     }
 
-    private void initAgentTasks() {
-        this.agentTasks = executeObjectTaskService.listTasksByGseTaskId(gseTask.getId());
-        updateUninstalledAgentTasks(this.agentTasks);
+    private void initExecuteObjectTasks() {
+        this.executeObjectTasks = executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        updateUninstalledExecuteObjectTasks(this.executeObjectTasks);
 
-        agentTasks.stream()
+        executeObjectTasks.stream()
             .filter(ExecuteObjectTask::isTarget)
-            .filter(agentTask -> !agentTask.isAgentIdEmpty())
-            .forEach(agentTask -> this.targetAgentTaskMap.put(agentTask.getAgentId(), agentTask));
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .forEach(executeObjectTask ->
+                this.targetExecuteObjectTaskMap.put(
+                    executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
     }
 
-    private void updateUninstalledAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
-        List<ExecuteObjectTask> invalidAgentTasks = agentTasks.stream()
-            .filter(ExecuteObjectTask::isAgentIdEmpty)
+    private void updateUninstalledExecuteObjectTasks(Collection<ExecuteObjectTaskDetail> executeObjectTasks) {
+        List<ExecuteObjectTask> invalidExecuteObjectTasks = executeObjectTasks.stream()
+            .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty())
             .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(invalidAgentTasks)) {
-            log.warn("{} contains invalid agent tasks: {}", gseTaskInfo, invalidAgentTasks);
-            invalidAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
-                agentTask.setStartTime(System.currentTimeMillis());
-                agentTask.setEndTime(System.currentTimeMillis());
-                agentTask.calculateTotalTime();
+        if (CollectionUtils.isNotEmpty(invalidExecuteObjectTasks)) {
+            log.warn("{} contains invalid execute object tasks: {}", gseTaskInfo, invalidExecuteObjectTasks);
+            invalidExecuteObjectTasks.forEach(executeObjectTask -> {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
+                executeObjectTask.setStartTime(System.currentTimeMillis());
+                executeObjectTask.setEndTime(System.currentTimeMillis());
+                executeObjectTask.calculateTotalTime();
             });
-            executeObjectTaskService.batchUpdateTasks(agentTasks);
+            executeObjectTaskService.batchUpdateTasks(executeObjectTasks);
         }
     }
 
@@ -345,7 +338,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      * 初始化执行上下文，在GSE任务下发前调用
      */
     protected void initExecutionContext() {
-        initAgentTasks();
+        initExecuteObjectTasks();
         initVariables();
     }
 

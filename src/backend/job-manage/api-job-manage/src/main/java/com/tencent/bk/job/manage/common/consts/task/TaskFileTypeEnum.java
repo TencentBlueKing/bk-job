@@ -27,9 +27,6 @@ package com.tencent.bk.job.manage.common.consts.task;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * @since 3/10/2019 17:08
- */
 @Getter
 @AllArgsConstructor
 public enum TaskFileTypeEnum {

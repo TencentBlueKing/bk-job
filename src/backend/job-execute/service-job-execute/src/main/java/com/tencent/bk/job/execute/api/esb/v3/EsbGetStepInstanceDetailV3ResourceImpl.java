@@ -129,7 +129,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 }
                 scriptStepInfo.setScriptTimeout(getTimeout(stepInstance));
                 scriptStepInfo.setAccount(getAccount(stepInstance));
-                scriptStepInfo.setServer(stepInstance.getTargetServers().toEsbServerV3DTO());
+                scriptStepInfo.setServer(stepInstance.getTargetExecuteObjects().toEsbServerV3DTO());
                 scriptStepInfo.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
                 esbStepV3DTO.setScriptInfo(scriptStepInfo);
                 break;
@@ -221,7 +221,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
         EsbFileDestinationV3DTO esbFileDestinationV3DTO = new EsbFileDestinationV3DTO();
         esbFileDestinationV3DTO.setPath(stepInstance.getFileTargetPath());
         esbFileDestinationV3DTO.setAccount(getAccount(stepInstance));
-        esbFileDestinationV3DTO.setServer(stepInstance.getTargetServers().toEsbServerV3DTO());
+        esbFileDestinationV3DTO.setServer(stepInstance.getTargetExecuteObjects().toEsbServerV3DTO());
         return esbFileDestinationV3DTO;
     }
 }

@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -40,6 +39,7 @@ import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -69,7 +69,7 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -81,6 +81,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
@@ -268,13 +269,20 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         builder.addScriptFile(scriptFilePath, scriptFileName, scriptContent);
 
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-        List<Agent> agents = gseClient.buildAgents(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
+        List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
         return builder.build();
+    }
+
+    private List<Agent> buildTargetAgents() {
+        AccountDTO account = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
+            stepInstance.getAppId());
+        return gseClient.fillAgentAuthInfo(
+            targetExecuteObjectTaskMap.values().stream().map(executeObjectTask ->
+                executeObjectTask.getExecuteObject().toGseAgent()).collect(Collectors.toList()),
+            account.getAccount(),
+            account.getPassword());
     }
 
     /**
@@ -303,11 +311,9 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
 
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
-        builder.addScriptTask(agentList, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
+        List<Agent> agents = buildTargetAgents();
+
+        builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         return builder.build();
     }
 
@@ -424,10 +430,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
 
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
+        List<Agent> agents = buildTargetAgents();
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
 
@@ -459,8 +462,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         builder.addScriptFile(scriptFilePath, wrapperScriptFileName, wrapperScriptContent);
         builder.addScriptFile(scriptFilePath, getJobParamScriptFileName, getJobParamScriptContent);
 
-        builder.addScriptTask(agentList, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
-        builder.addScriptTask(agentList, scriptFilePath, getJobParamScriptFileName, null, timeout);
+        builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
+        builder.addScriptTask(agents, scriptFilePath, getJobParamScriptFileName, null, timeout);
         return builder.build();
     }
 
@@ -657,10 +660,10 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
-                targetAgentTaskMap,
+                targetExecuteObjectTaskMap,
                 gseTask,
                 requestId,
-                agentTasks);
+                executeObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -673,31 +676,32 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         String errorMsg = "GSE Job failed:" + gseTaskResponse.getErrorMessage();
         int errorMsgLength = errorMsg.length();
 
-        List<ServiceScriptLogDTO> scriptLogs = new ArrayList<>(targetAgentTaskMap.size());
-        for (ExecuteObjectTask agentTask : targetAgentTaskMap.values()) {
-            HostDTO host = agentIdHostMap.get(agentTask.getAgentId());
+        List<ServiceExecuteObjectScriptLogDTO> scriptLogs = new ArrayList<>(targetExecuteObjectTaskMap.size());
+        for (ExecuteObjectTaskDetail executeObjectTask : targetExecuteObjectTaskMap.values()) {
+            ExecuteObject executeObject = executeObjectTask.getExecuteObject();
             // 日志输出
-            ServiceScriptLogDTO scriptLog = logService.buildSystemScriptLog(
-                host,
+            ServiceExecuteObjectScriptLogDTO scriptLog = logService.buildSystemScriptLog(
+                stepInstance,
+                executeObject,
                 errorMsg,
-                agentTask.getScriptLogOffset() + errorMsgLength,
+                executeObjectTask.getScriptLogOffset() + errorMsgLength,
                 now);
             scriptLogs.add(scriptLog);
 
             // AgentTask 结果更新
-            agentTask.setGseTaskId(gseTask.getId());
-            agentTask.setStartTime(gseTask.getStartTime());
-            agentTask.setEndTime(now);
-            agentTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
-            agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
+            executeObjectTask.setGseTaskId(gseTask.getId());
+            executeObjectTask.setStartTime(gseTask.getStartTime());
+            executeObjectTask.setEndTime(now);
+            executeObjectTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
+            executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
-        scriptAgentTaskService.batchUpdateTasks(targetAgentTaskMap.values());
+        scriptAgentTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
     }
 
     @Override
     protected boolean checkGseTaskExecutable() {
-        if (this.targetAgentTaskMap.isEmpty()) {
+        if (this.targetExecuteObjectTaskMap.isEmpty()) {
             log.warn("Script gse task target agent is empty, can not execute! Set gse task status fail");
             return false;
         }

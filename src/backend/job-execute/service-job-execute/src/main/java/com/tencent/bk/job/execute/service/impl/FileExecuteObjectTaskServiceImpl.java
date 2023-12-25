@@ -1,22 +1,18 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
-import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,11 +34,10 @@ public class FileExecuteObjectTaskServiceImpl
     private final FileAgentTaskDAO fileAgentTaskDAO;
 
     @Autowired
-    public FileExecuteObjectTaskServiceImpl(FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO,
-                                            StepInstanceService stepInstanceService,
-                                            FileAgentTaskDAO fileAgentTaskDAO,
-                                            TaskInstanceExecuteObjectService taskInstanceExecuteObjectService) {
-        super(stepInstanceService, taskInstanceExecuteObjectService);
+    public FileExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
+                                            FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO,
+                                            FileAgentTaskDAO fileAgentTaskDAO) {
+        super(stepInstanceService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.fileExecuteObjectTaskDAO = fileExecuteObjectTaskDAO;
     }
@@ -53,9 +47,8 @@ public class FileExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
 
-        if (Objects.requireNonNull(anyTask).getExecuteObjId() != null) {
+        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             fileExecuteObjectTaskDAO.batchSaveTasks(tasks);
         } else {
             fileAgentTaskDAO.batchSaveAgentTasks(tasks);
@@ -67,8 +60,8 @@ public class FileExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
-        if (Objects.requireNonNull(anyTask).getExecuteObjId() != null) {
+
+        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             fileExecuteObjectTaskDAO.batchUpdateTasks(tasks);
         } else {
             fileAgentTaskDAO.batchUpdateAgentTasks(tasks);
@@ -89,32 +82,17 @@ public class FileExecuteObjectTaskServiceImpl
         return listTasks(stepInstance, executeCount, batch, null);
     }
 
-    /**
-     * 判断是否使用执行对象的方式存储
-     *
-     * @param stepInstance 步骤实例
-     */
-    private boolean isUsingExecuteObject(StepInstanceBaseDTO stepInstance) {
-        ExecuteObjectsDTO servers = stepInstance.getTargetServers();
-        if (CollectionUtils.isNotEmpty(servers.getExecuteObjects())) {
-            ExecuteObject executeObject = servers.getExecuteObjects().stream().findAny().orElse(null);
-            return Objects.requireNonNull(executeObject).getId() != null;
-        } else {
-            return false;
-        }
-    }
-
     @Override
-    public List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
+    public List<ExecuteObjectTaskDetail> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
         List<ExecuteObjectTask> executeObjectTasks;
-
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTasksByGseTaskId(gseTaskId);
         } else {
             // 兼容老版本数据
             executeObjectTasks = fileAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
         }
-        return executeObjectTasks;
+
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     @Override
@@ -123,84 +101,26 @@ public class FileExecuteObjectTaskServiceImpl
                                                                 Integer batch,
                                                                 FileTaskModeEnum fileTaskMode,
                                                                 ExecuteObjectCompositeKey executeObjectCompositeKey) {
-        ExecuteObjectTask executeObjectTask = null;
-        long stepInstanceId = stepInstance.getId();
 
-        if (isUsingExecuteObject(stepInstance)) {
-            String executeObjectResourceId = executeObjectCompositeKey.getResourceId();
-            if (executeObjectResourceId != null) {
-                ExecuteObject executeObject = taskInstanceExecuteObjectService.getExecuteObject(
-                    executeObjectCompositeKey.getExecuteObjectType(), executeObjectCompositeKey.getResourceId());
-                if (executeObject == null) {
-                    return null;
-                }
-                executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
-                    batch, fileTaskMode, executeObject.getId());
-            } else {
-                // 兼容使用<云区域+ip> 的方式查询主机执行任务
-                ExecuteObject executeObject = getStepHostExecuteObjectByCloudIp(
-                    stepInstance, executeObjectCompositeKey.getCloudIp());
-                executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstance.getId(),
-                    executeCount, batch, fileTaskMode, executeObject.getId());
-            }
+        ExecuteObject executeObject =
+            stepInstance.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+        if (executeObject == null) {
+            return null;
+        }
+
+        long stepInstanceId = stepInstance.getId();
+        ExecuteObjectTask executeObjectTask;
+        if (stepInstance.isSupportExecuteObject()) {
+            executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
+                batch, fileTaskMode, executeObject.getId());
         } else {
             // 兼容老版本不使用执行对象的场景(仅支持主机）
-            Long hostId = executeObjectCompositeKey.getHostId();
-            if (hostId != null) {
-                executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                    batch, fileTaskMode, hostId);
-            } else {
-                // 兼容使用<云区域+ip> 的方式查询主机执行任务
-                HostDTO host = getStepHostByCloudIp(stepInstance, executeObjectCompositeKey.getCloudIp());
-                if (host != null) {
-                    executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                        batch, fileTaskMode, host.getHostId());
-                }
-            }
-
+            Long hostId = executeObject.getHost().getHostId();
+            executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
+                batch, fileTaskMode, hostId);
         }
+
         return executeObjectTask;
-    }
-
-    private ExecuteObject getStepHostExecuteObjectByCloudIp(StepInstanceBaseDTO stepInstance, String cloudIp) {
-        return stepInstance.getTargetServers().getExecuteObjects()
-            .stream()
-            .filter(executeObject -> {
-                HostDTO host = executeObject.getHost();
-                if (host == null) {
-                    return false;
-                }
-                return cloudIp.equals(host.toCloudIp());
-            })
-            .findFirst()
-            .orElse(null);
-    }
-
-    private HostDTO getStepHostByCloudIp(StepInstanceDTO stepInstance,
-                                         String cloudIp) {
-        HostDTO matchHost = stepInstance.getTargetServers().getIpList()
-            .stream()
-            .filter(host -> cloudIp.equals(host.toCloudIp()))
-            .findFirst()
-            .orElse(null);
-        if (matchHost == null) {
-            if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
-                for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
-                    if (fileSource.getServers() != null
-                        && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
-                        matchHost = fileSource.getServers().getIpList().stream()
-                            .filter(sourceHost -> cloudIp.equals(sourceHost.toCloudIp()))
-                            .findFirst()
-                            .orElse(null);
-                        if (matchHost != null) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return matchHost;
     }
 
     @Override
@@ -213,7 +133,8 @@ public class FileExecuteObjectTaskServiceImpl
             return resultGroups;
         }
 
-        List<ExecuteObjectTaskDetail> agentTaskDetailList = fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        List<ExecuteObjectTaskDetail> agentTaskDetailList = convertToExecuteObjectDetailList(stepInstance,
+            executeObjectTasks);
         resultGroups = groupTasks(agentTaskDetailList);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
@@ -226,7 +147,7 @@ public class FileExecuteObjectTaskServiceImpl
         List<ResultGroupBaseDTO> resultGroups;
         long stepInstanceId = stepInstance.getId();
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             resultGroups = fileExecuteObjectTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
         } else {
             // 兼容历史数据
@@ -243,7 +164,7 @@ public class FileExecuteObjectTaskServiceImpl
                                                                      String tag) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(stepInstance.getId(),
                 executeCount, batch, status);
         } else {
@@ -252,7 +173,7 @@ public class FileExecuteObjectTaskServiceImpl
                 stepInstance.getId(), executeCount, batch, status);
         }
 
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
 
@@ -267,7 +188,7 @@ public class FileExecuteObjectTaskServiceImpl
                                                                      Order order) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(stepInstance.getId(),
                 executeCount, batch, status, limit, orderField, order);
         } else {
@@ -276,7 +197,7 @@ public class FileExecuteObjectTaskServiceImpl
                 batch, status, limit, orderField, order);
         }
 
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     @Override
@@ -284,7 +205,7 @@ public class FileExecuteObjectTaskServiceImpl
                                                         Integer executeCount,
                                                         Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks = listTasks(stepInstance, executeCount, batch);
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
@@ -297,7 +218,7 @@ public class FileExecuteObjectTaskServiceImpl
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             fileExecuteObjectTaskDAO.updateTaskFields(stepInstance.getId(), executeCount, batch,
                 actualExecuteCount, gseTaskId);
         } else {
@@ -314,7 +235,7 @@ public class FileExecuteObjectTaskServiceImpl
                                              FileTaskModeEnum fileTaskMode) {
         List<ExecuteObjectTask> executeObjectTasks;
         long stepInstanceId = stepInstance.getId();
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTasks(stepInstanceId, executeCount, batch, fileTaskMode);
         } else {
             // 兼容老版本数据

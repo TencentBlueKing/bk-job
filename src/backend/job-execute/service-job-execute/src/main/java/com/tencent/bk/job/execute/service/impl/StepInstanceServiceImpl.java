@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -78,7 +79,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                                                 Function<? super HostDTO, K> keyMapper) {
 
         Map<K, HostDTO> hosts = new HashMap<>();
-        stepInstance.getTargetServers().getIpList()
+        stepInstance.getTargetExecuteObjects().getIpList()
             .forEach(host -> {
                 K key = keyMapper.apply(host);
                 if (key != null) {
@@ -120,6 +121,48 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                                                 Function<? super HostDTO, K> keyMapper) {
         StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         return computeStepHosts(stepInstance, keyMapper);
+    }
+
+    @Override
+    public <K> Map<K, ExecuteObject> computeStepExecuteObjects(StepInstanceBaseDTO stepInstance,
+                                                               Function<? super ExecuteObject, K> keyMapper) {
+
+        Map<K, ExecuteObject> executeObjects = new HashMap<>();
+        stepInstance.getTargetExecuteObjects().getExecuteObjects()
+            .forEach(executeObject -> {
+                K key = keyMapper.apply(executeObject);
+                if (key != null) {
+                    executeObjects.put(keyMapper.apply(executeObject), executeObject);
+                }
+            });
+
+        if (stepInstance.isFileStep()) {
+            List<FileSourceDTO> fileSourceList;
+            if (stepInstance instanceof StepInstanceDTO) {
+                fileSourceList = ((StepInstanceDTO) stepInstance).getFileSourceList();
+            } else {
+                FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
+                fileSourceList = fileStepInstance.getFileSourceList();
+            }
+
+            if (CollectionUtils.isNotEmpty(fileSourceList)) {
+                fileSourceList.forEach(
+                    fileSource -> {
+                        if (fileSource.getServers() != null
+                            && CollectionUtils.isNotEmpty(fileSource.getServers().getExecuteObjects())) {
+                            fileSource.getServers().getExecuteObjects()
+                                .forEach(executeObject -> {
+                                    K key = keyMapper.apply(executeObject);
+                                    if (key != null) {
+                                        executeObjects.put(keyMapper.apply(executeObject), executeObject);
+                                    }
+                                });
+                        }
+                    });
+            }
+        }
+
+        return executeObjects;
     }
 
     @Override

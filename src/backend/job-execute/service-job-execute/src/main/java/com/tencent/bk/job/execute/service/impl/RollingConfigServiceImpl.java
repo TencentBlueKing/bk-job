@@ -71,14 +71,14 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
             if (batch == null || batch == 0) {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
-                return stepInstance.getTargetServers().getIpList();
+                return stepInstance.getTargetExecuteObjects().getIpList();
             } else {
                 return rollingConfig.getConfigDetail().getHostsBatchList()
                     .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
                     .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getHosts();
             }
         } else {
-            return stepInstance.getTargetServers().getIpList();
+            return stepInstance.getTargetExecuteObjects().getIpList();
         }
     }
 
@@ -100,7 +100,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
 
         RollingBatchServersResolver resolver =
-            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetServers().getIpList(),
+            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetExecuteObjects().getIpList(),
                 rollingConfig.getExpr());
         List<RollingServerBatch> serversBatchList = resolver.resolve();
         rollingConfigDetailDO.setHostsBatchList(

@@ -160,7 +160,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileSourceList(convertConfigFileSource(username, configFileList));
         stepInstance.setAppId(request.getAppId());
-        stepInstance.setTargetServers(convertToStandardServers(null, request.getIpList(), null));
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(null, request.getIpList(), null));
         stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());

@@ -141,8 +141,8 @@ public class JobLastHostsVariableResolver implements VariableResolver {
 
     private Set<HostDTO> extractAllHosts(StepInstanceDTO stepInstance) {
         Set<HostDTO> hosts = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getIpList())) {
-            hosts.addAll(stepInstance.getTargetServers().getIpList());
+        if (CollectionUtils.isNotEmpty(stepInstance.getTargetExecuteObjects().getIpList())) {
+            hosts.addAll(stepInstance.getTargetExecuteObjects().getIpList());
         }
         if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
             stepInstance.getFileSourceList().forEach(fileSource -> {

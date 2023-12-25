@@ -267,7 +267,7 @@ public class GseStepEventHandler implements StepEventHandler {
             // 普通步骤，启动的时候需要初始化所有AgentTask
             List<ExecuteObjectTask> agentTasks = new ArrayList<>(
                 buildInitialGseAgentTasks(stepInstanceId, executeCount, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetServers().getIpList()));
+                    gseTaskId, stepInstance.getTargetExecuteObjects().getIpList()));
             saveAgentTasks(stepInstance, agentTasks);
         }
     }

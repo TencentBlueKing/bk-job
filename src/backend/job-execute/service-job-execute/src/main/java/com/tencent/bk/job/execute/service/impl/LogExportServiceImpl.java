@@ -38,7 +38,7 @@ import com.tencent.bk.job.execute.constants.LogExportStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
@@ -276,18 +276,17 @@ public class LogExportServiceImpl implements LogExportService {
                                      LogBatchQuery query,
                                      List<HostDTO> hosts,
                                      boolean isGetByHost) {
-        List<ScriptHostLogContent> scriptHostLogContentList =
-            logService.batchGetScriptHostLogContent(jobCreateDate, stepInstance.getId(),
-                query.getExecuteCount(),
-                null, hosts);
-        for (ScriptHostLogContent scriptHostLogContent : scriptHostLogContentList) {
-            if (scriptHostLogContent != null && StringUtils.isNotEmpty(scriptHostLogContent.getContent())) {
-                String[] logList = scriptHostLogContent.getContent().split("\n");
+        List<ScriptExecuteObjectLogContent> scriptExecuteObjectLogContentList =
+            logService.batchGetScriptExecuteObjectLogContent(jobCreateDate, stepInstance,
+                query.getExecuteCount(), null, hosts);
+        for (ScriptExecuteObjectLogContent scriptExecuteObjectLogContent : scriptExecuteObjectLogContentList) {
+            if (scriptExecuteObjectLogContent != null && StringUtils.isNotEmpty(scriptExecuteObjectLogContent.getContent())) {
+                String[] logList = scriptExecuteObjectLogContent.getContent().split("\n");
                 for (String log : logList) {
                     if (isGetByHost) {
                         out.println(log);
                     } else {
-                        out.println(scriptHostLogContent.getPrimaryIp() + " | " + log);
+                        out.println(scriptExecuteObjectLogContent.getPrimaryIp() + " | " + log);
                     }
                 }
             }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
@@ -61,7 +62,7 @@ import static org.jooq.impl.DSL.count;
 
 @Repository
 @Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     private static final GseScriptAgentTask T_GSE_SCRIPT_AGENT_TASK = GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK;
@@ -91,7 +92,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
+    public void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_script_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + " host_id, agent_id, gse_task_id, status, start_time, end_time, total_time, error_code, exit_code, tag,"
             + " log_offset)"
@@ -121,7 +122,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
 import java.util.Map;
@@ -84,6 +85,15 @@ public interface StepInstanceService {
      */
     <K> Map<K, HostDTO> computeStepHosts(long stepInstanceId,
                                          Function<? super HostDTO, K> keyMapper);
+
+    /**
+     * 获取步骤包含的执行对象(源+目标)
+     *
+     * @param stepInstance 步骤实例
+     * @return 步骤实例包含的主机列表
+     */
+    <K> Map<K, ExecuteObject> computeStepExecuteObjects(StepInstanceBaseDTO stepInstance,
+                                                        Function<? super ExecuteObject, K> keyMapper);
 
     /**
      * 获取步骤实例

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class FileIpLogContent {
+public class FileExecuteObjectLogContent {
     /**
      * 步骤实例ID
      */
@@ -46,9 +47,9 @@ public class FileIpLogContent {
      */
     private int executeCount;
     /**
-     * 目标IP
+     * 目标执行对象
      */
-    private String ip;
+    private ExecuteObject executeObject;
     /**
      * 日志内容
      */
@@ -62,11 +63,14 @@ public class FileIpLogContent {
      */
     private boolean finished;
 
-    public FileIpLogContent(long stepInstanceId, int executeCount, String ip,
-                            List<ServiceFileTaskLogDTO> fileTaskLogs, boolean finished) {
+    public FileExecuteObjectLogContent(long stepInstanceId,
+                                       int executeCount,
+                                       ExecuteObject executeObject,
+                                       List<ServiceFileTaskLogDTO> fileTaskLogs,
+                                       boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
-        this.ip = ip;
+        this.executeObject = executeObject;
         this.fileTaskLogs = fileTaskLogs;
         this.finished = finished;
     }

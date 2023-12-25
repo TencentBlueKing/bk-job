@@ -85,10 +85,10 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getEndTime()).isEqualTo(1572868801000L);
         assertThat(stepInstance.getTotalTime()).isEqualTo(1111L);
         assertThat(stepInstance.getCreateTime()).isEqualTo(1572868800000L);
-        assertThat(stepInstance.getTargetServers()).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects()).isNotNull();
         List<HostDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
-        assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(stepInstance.getTargetExecuteObjects().getIpList()).containsAll(expectedServer);
         assertThat(stepInstance.getBatch()).isEqualTo(0);
     }
 
@@ -104,7 +104,7 @@ public class StepInstanceDAOImplIntegrationTest {
         List<HostDTO> ipList = new ArrayList<>();
         ipList.add(new HostDTO(0L, "127.0.0.1"));
         servers.setIpList(ipList);
-        stepInstanceDTO.setTargetServers(servers);
+        stepInstanceDTO.setTargetExecuteObjects(servers);
         stepInstanceDTO.setOperator("admin");
         stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS);
         stepInstanceDTO.setExecuteCount(0);
@@ -125,10 +125,10 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getStepId()).isEqualTo(1L);
         assertThat(returnStepInstance.getName()).isEqualTo("task1-step1");
         assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
+        assertThat(returnStepInstance.getTargetExecuteObjects().getIpList()).hasSize(1);
         List<HostDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
-        assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(returnStepInstance.getTargetExecuteObjects().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(returnStepInstance.getExecuteCount()).isEqualTo(0);

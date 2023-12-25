@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -61,7 +62,7 @@ import static org.jooq.impl.DSL.count;
 
 @Repository
 @Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
     private static final GseFileAgentTask T_GSE_FILE_AGENT_TASK = GseFileAgentTask.GSE_FILE_AGENT_TASK;
@@ -89,7 +90,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
+    public void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_file_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + "mode, host_id, agent_id ,gse_task_id,status, start_time, end_time, total_time, error_code)"
             + " values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -116,7 +117,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }

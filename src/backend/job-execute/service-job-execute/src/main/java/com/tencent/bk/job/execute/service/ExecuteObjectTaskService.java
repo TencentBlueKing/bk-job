@@ -44,14 +44,14 @@ public interface ExecuteObjectTaskService {
      *
      * @param tasks 任务列表
      */
-    void batchSaveTasks(Collection<ExecuteObjectTask> tasks);
+    void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 批量更新执行对象任务
      *
      * @param tasks 执行对象任务
      */
-    void batchUpdateTasks(Collection<ExecuteObjectTask> tasks);
+    void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 获取执行成功的执行对象任务数量
@@ -70,7 +70,7 @@ public interface ExecuteObjectTaskService {
      * @param gseTaskId    GSE任务ID
      * @return 执行对象任务
      */
-    List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId);
+    List<ExecuteObjectTaskDetail> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId);
 
     /**
      * 获取执行对象任务

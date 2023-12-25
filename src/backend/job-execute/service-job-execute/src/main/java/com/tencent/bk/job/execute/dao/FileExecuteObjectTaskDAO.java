@@ -41,14 +41,14 @@ public interface FileExecuteObjectTaskDAO {
      *
      * @param tasks 任务列表
      */
-    void batchSaveTasks(Collection<ExecuteObjectTask> tasks);
+    void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 批量更新任务
      *
      * @param tasks 任务
      */
-    void batchUpdateTasks(Collection<ExecuteObjectTask> tasks);
+    void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 获取步骤成功执行的任务数量
@@ -139,7 +139,7 @@ public interface FileExecuteObjectTaskDAO {
                                                Integer executeCount,
                                                Integer batch,
                                                FileTaskModeEnum mode,
-                                               long executeObjectId);
+                                               String executeObjectId);
 
 
     /**

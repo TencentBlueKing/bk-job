@@ -40,14 +40,14 @@ public interface ScriptExecuteObjectTaskDAO {
      *
      * @param tasks 任务
      */
-    void batchSaveTasks(Collection<ExecuteObjectTask> tasks);
+    void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 批量更新任务
      *
      * @param tasks 任务
      */
-    void batchUpdateTasks(Collection<ExecuteObjectTask> tasks);
+    void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks);
 
     /**
      * 获取步骤成功执行的任务数量
@@ -138,7 +138,7 @@ public interface ScriptExecuteObjectTaskDAO {
     ExecuteObjectTask getTaskByExecuteObjectId(Long stepInstanceId,
                                                Integer executeCount,
                                                Integer batch,
-                                               long executeObjectId);
+                                               String executeObjectId);
 
     /**
      * 判断步骤实例的执行对象任务记录是否存在

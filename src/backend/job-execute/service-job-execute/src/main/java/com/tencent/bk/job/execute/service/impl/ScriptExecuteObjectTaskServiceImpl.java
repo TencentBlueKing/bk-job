@@ -1,20 +1,17 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,11 +32,10 @@ public class ScriptExecuteObjectTaskServiceImpl
     private final ScriptAgentTaskDAO scriptAgentTaskDAO;
 
     @Autowired
-    public ScriptExecuteObjectTaskServiceImpl(ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO,
-                                              StepInstanceService stepInstanceService,
-                                              ScriptAgentTaskDAO scriptAgentTaskDAO,
-                                              TaskInstanceExecuteObjectService taskInstanceExecuteObjectService) {
-        super(stepInstanceService, taskInstanceExecuteObjectService);
+    public ScriptExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
+                                              ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO,
+                                              ScriptAgentTaskDAO scriptAgentTaskDAO) {
+        super(stepInstanceService);
         this.scriptExecuteObjectTaskDAO = scriptExecuteObjectTaskDAO;
         this.scriptAgentTaskDAO = scriptAgentTaskDAO;
     }
@@ -50,9 +45,8 @@ public class ScriptExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
 
-        if (Objects.requireNonNull(anyTask).getExecuteObjId() != null) {
+        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             scriptExecuteObjectTaskDAO.batchSaveTasks(tasks);
         } else {
             scriptAgentTaskDAO.batchSaveAgentTasks(tasks);
@@ -60,12 +54,11 @@ public class ScriptExecuteObjectTaskServiceImpl
     }
 
     @Override
-    public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
+    public void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
-        if (Objects.requireNonNull(anyTask).getExecuteObjId() != null) {
+        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             scriptExecuteObjectTaskDAO.batchUpdateTasks(tasks);
         } else {
             scriptAgentTaskDAO.batchUpdateAgentTasks(tasks);
@@ -85,7 +78,7 @@ public class ScriptExecuteObjectTaskServiceImpl
     public List<ExecuteObjectTask> listTasks(StepInstanceBaseDTO stepInstance, Integer executeCount, Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks;
         long stepInstanceId = stepInstance.getId();
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasks(stepInstanceId, executeCount, batch);
         } else {
             // 兼容老版本数据
@@ -94,32 +87,17 @@ public class ScriptExecuteObjectTaskServiceImpl
         return executeObjectTasks;
     }
 
-    /**
-     * 判断是否使用执行对象的方式存储
-     *
-     * @param stepInstance 步骤实例
-     */
-    private boolean isUsingExecuteObject(StepInstanceBaseDTO stepInstance) {
-        ExecuteObjectsDTO servers = stepInstance.getTargetServers();
-        if (CollectionUtils.isNotEmpty(servers.getExecuteObjects())) {
-            ExecuteObject executeObject = servers.getExecuteObjects().stream().findAny().orElse(null);
-            return Objects.requireNonNull(executeObject).getId() != null;
-        } else {
-            return false;
-        }
-    }
-
     @Override
-    public List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
+    public List<ExecuteObjectTaskDetail> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByGseTaskId(gseTaskId);
         } else {
             // 兼容老版本数据
             executeObjectTasks = scriptAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
         }
-        return executeObjectTasks;
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     @Override
@@ -127,66 +105,24 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                                 Integer executeCount,
                                                                 Integer batch,
                                                                 ExecuteObjectCompositeKey executeObjectCompositeKey) {
-        ExecuteObjectTask executeObjectTask = null;
-        long stepInstanceId = stepInstance.getId();
+        ExecuteObject executeObject =
+            stepInstance.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+        if (executeObject == null) {
+            return null;
+        }
 
-        if (isUsingExecuteObject(stepInstance)) {
-            String executeObjectResourceId = executeObjectCompositeKey.getResourceId();
-            if (executeObjectResourceId != null) {
-                ExecuteObject executeObject = taskInstanceExecuteObjectService.getExecuteObject(
-                    executeObjectCompositeKey.getExecuteObjectType(), executeObjectCompositeKey.getResourceId());
-                if (executeObject == null) {
-                    return null;
-                }
-                executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
-                    batch, executeObject.getId());
-            } else {
-                // 兼容使用<云区域+ip> 的方式查询主机执行任务
-                ExecuteObject executeObject = getStepHostExecuteObjectByCloudIp(
-                    stepInstance, executeObjectCompositeKey.getCloudIp());
-                executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstance.getId(),
-                    executeCount, batch, executeObject.getId());
-            }
+        long stepInstanceId = stepInstance.getId();
+        ExecuteObjectTask executeObjectTask;
+        if (stepInstance.isSupportExecuteObject()) {
+            executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
+                batch, executeObject.getId());
         } else {
             // 兼容老版本不使用执行对象的场景(仅支持主机）
-            Long hostId = executeObjectCompositeKey.getHostId();
-            if (hostId != null) {
-                executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                    batch, hostId);
-            } else {
-                // 兼容使用<云区域+ip> 的方式查询主机执行任务
-                HostDTO host = getStepHostByCloudIp(stepInstance, executeObjectCompositeKey.getCloudIp());
-                if (host != null) {
-                    executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                        batch, host.getHostId());
-                }
-            }
-
+            Long hostId = executeObject.getHost().getHostId();
+            executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
+                batch, hostId);
         }
         return executeObjectTask;
-    }
-
-    private ExecuteObject getStepHostExecuteObjectByCloudIp(StepInstanceBaseDTO stepInstance, String cloudIp) {
-        return stepInstance.getTargetServers().getExecuteObjects()
-            .stream()
-            .filter(executeObject -> {
-                HostDTO host = executeObject.getHost();
-                if (host == null) {
-                    return false;
-                }
-                return cloudIp.equals(host.toCloudIp());
-            })
-            .findFirst()
-            .orElse(null);
-    }
-
-    private HostDTO getStepHostByCloudIp(StepInstanceBaseDTO stepInstance,
-                                         String cloudIp) {
-        return stepInstance.getTargetServers().getIpList()
-            .stream()
-            .filter(targetHost -> cloudIp.equals(targetHost.toCloudIp()))
-            .findFirst()
-            .orElse(null);
     }
 
     @Override
@@ -199,7 +135,7 @@ public class ScriptExecuteObjectTaskServiceImpl
             return resultGroups;
         }
 
-        List<ExecuteObjectTaskDetail> agentTaskDetailList = fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        List<ExecuteObjectTaskDetail> agentTaskDetailList = convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
         resultGroups = groupTasks(agentTaskDetailList);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
@@ -212,7 +148,7 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ResultGroupBaseDTO> resultGroups;
         long stepInstanceId = stepInstance.getId();
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
         } else {
             // 兼容历史数据
@@ -229,7 +165,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                                      String tag) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
                 executeCount, batch, status, tag);
         } else {
@@ -238,7 +174,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                 stepInstance.getId(), executeCount, batch, status, tag);
         }
 
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
 
@@ -253,7 +189,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                                      Order order) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
                 executeCount, batch, status, tag, limit, orderField, order);
         } else {
@@ -262,7 +198,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                 batch, status, tag, limit, orderField, order);
         }
 
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     @Override
@@ -270,7 +206,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                         Integer executeCount,
                                                         Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks = listTasks(stepInstance, executeCount, batch);
-        return fillExecuteObjectDetail(stepInstance, executeObjectTasks);
+        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
     }
 
     private boolean isStepInstanceRecordExist(long stepInstanceId) {
@@ -283,7 +219,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        if (isUsingExecuteObject(stepInstance)) {
+        if (stepInstance.isSupportExecuteObject()) {
             scriptExecuteObjectTaskDAO.updateTaskFields(stepInstance.getId(), executeCount, batch,
                 actualExecuteCount, gseTaskId);
         } else {

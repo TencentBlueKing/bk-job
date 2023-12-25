@@ -38,12 +38,12 @@ import java.util.List;
 public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
 
     @Override
-    public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
+    public void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks) {
 
     }
 
     @Override
-    public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
+    public void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks) {
 
     }
 
@@ -96,7 +96,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                       Integer executeCount,
                                                       Integer batch,
                                                       FileTaskModeEnum mode,
-                                                      long executeObjectId) {
+                                                      String executeObjectId) {
         return null;
     }
 

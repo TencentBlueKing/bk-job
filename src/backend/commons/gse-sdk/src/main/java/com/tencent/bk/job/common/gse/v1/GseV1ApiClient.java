@@ -42,7 +42,7 @@ import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
-import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.ScriptExecuteObjectTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
@@ -283,10 +283,10 @@ public class GseV1ApiClient implements IGseClient {
     private ScriptTaskResult toScriptTaskResult(api_task_detail_result resultV1) {
         ScriptTaskResult result = new ScriptTaskResult();
         if (CollectionUtils.isNotEmpty(resultV1.getResult())) {
-            List<ScriptAgentTaskResult> agentTaskResults =
+            List<ScriptExecuteObjectTaskResult> agentTaskResults =
                 resultV1.getResult().stream()
                     .map(agentTaskResultV1 -> {
-                        ScriptAgentTaskResult agentTaskResult = new ScriptAgentTaskResult();
+                        ScriptExecuteObjectTaskResult agentTaskResult = new ScriptExecuteObjectTaskResult();
                         agentTaskResult.setAgentId(agentTaskResultV1.getGse_composite_id() + ":"
                             + agentTaskResultV1.getIp());
                         agentTaskResult.setAtomicTaskId(agentTaskResultV1.getAtomic_task_id());
@@ -439,8 +439,9 @@ public class GseV1ApiClient implements IGseClient {
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
         api_map_rsp rsp;
-        if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
-            rsp = pullCopyFileResult(request.getTaskId(), request.getAgentIds());
+        if (CollectionUtils.isNotEmpty(request.getAgents())) {
+            rsp = pullCopyFileResult(request.getTaskId(),
+                request.getAgents().stream().map(Agent::getAgentId).collect(Collectors.toList()));
         } else if (StringUtils.isNotBlank(request.getTaskId())) {
             rsp = pullCopyFileResult(request.getTaskId());
         } else {
@@ -622,11 +623,11 @@ public class GseV1ApiClient implements IGseClient {
                                                       GseTaskTypeEnum taskType) {
         api_stop_task_request stopRequest = new api_stop_task_request();
         stopRequest.setStop_task_id(request.getTaskId());
-        if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
-            stopRequest.setAgents(request.getAgentIds().stream()
-                .map(agentId ->
+        if (CollectionUtils.isNotEmpty(request.getAgents())) {
+            stopRequest.setAgents(request.getAgents().stream()
+                .map(agent ->
                     // 终止任务并不不需要账号密码,此处传入为了绕过thrift协议的校验
-                    buildAgent(agentId, buildEmptyApiAuth()))
+                    buildAgent(agent.getAgentId(), buildEmptyApiAuth()))
                 .collect(Collectors.toList()));
         }
         stopRequest.setType(taskType.getValue());

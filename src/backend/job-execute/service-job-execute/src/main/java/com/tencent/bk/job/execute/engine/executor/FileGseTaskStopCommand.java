@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -57,7 +58,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
         super(agentService,
             accountService,
             gseTaskService,
-                executeObjectTaskService,
+            executeObjectTaskService,
             tracer,
             gseClient,
             taskInstance,
@@ -68,8 +69,9 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse file task, gseTask:" + gseTaskInfo);
-        List<ExecuteObjectTask> agentTasks = executeObjectTaskService.listTasksByGseTaskId(gseTask.getId());
-        List<String> agentIds = agentTasks.stream()
+        List<ExecuteObjectTaskDetail> executeObjectTasks =
+            executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        List<String> agentIds = executeObjectTasks.stream()
             .map(ExecuteObjectTask::getAgentId)
             .distinct()
             .collect(Collectors.toList());

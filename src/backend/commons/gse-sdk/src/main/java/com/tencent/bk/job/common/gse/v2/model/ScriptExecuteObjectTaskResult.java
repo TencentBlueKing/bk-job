@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,16 +9,22 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.StringJoiner;
 
 /**
- * GSE - Agent脚本任务执行结果
+ * GSE - 脚本任务执行结果
  */
 @Data
 @NoArgsConstructor
-public class ScriptAgentTaskResult {
+public class ScriptExecuteObjectTaskResult {
     /**
      * agent id
      */
     @JsonProperty("bk_agent_id")
     private String agentId;
+
+    /**
+     * container id
+     */
+    @JsonProperty("bk_container_id")
+    private String containerId;
 
     /**
      * 脚本原子任务ID
@@ -78,15 +85,35 @@ public class ScriptAgentTaskResult {
      */
     private long contentLength;
 
+    /**
+     * 执行目标对应的 GSE KEY。非协议内容
+     */
+    @JsonIgnore
+    private ExecuteObjectGseKey executeObjectGseKey;
+
 
     public void setScreen(String screen) {
         this.screen = screen;
         this.contentLength = StringUtils.isEmpty(screen) ? 0 : screen.length();
     }
 
+    @JsonIgnore
+    public ExecuteObjectGseKey getExecuteObjectGseKey() {
+        if (executeObjectGseKey != null) {
+            return executeObjectGseKey;
+        }
+        if (StringUtils.isNotEmpty(containerId)) {
+            // bk_container_id 不为空，说明是容器执行对象
+            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(agentId, containerId);
+        } else {
+            executeObjectGseKey = ExecuteObjectGseKey.ofHost(agentId);
+        }
+        return executeObjectGseKey;
+    }
+
     @Override
     public String toString() {
-        return new StringJoiner(", ", ScriptAgentTaskResult.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", ScriptExecuteObjectTaskResult.class.getSimpleName() + "[", "]")
             .add("agentId=" + agentId)
             .add("atomicTaskId=" + atomicTaskId)
             .add("status=" + status)

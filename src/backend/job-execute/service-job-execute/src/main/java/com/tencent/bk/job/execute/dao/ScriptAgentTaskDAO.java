@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -36,21 +37,21 @@ import java.util.List;
  * ScriptAgentTaskDAO
  */
 @Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public interface ScriptAgentTaskDAO {
     /**
      * 批量保存Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
+    void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
+    void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量

@@ -178,7 +178,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
 
-        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
+        List<Agent> agentList = gseClient.buildAgents(targetExecuteObjectTaskMap.keySet(),
             accountInfo.getAccount(), accountInfo.getPassword());
 
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),

@@ -37,12 +37,12 @@ import java.util.List;
 public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDAO {
 
     @Override
-    public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
+    public void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks) {
 
     }
 
     @Override
-    public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
+    public void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks) {
 
     }
 
@@ -95,7 +95,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     public ExecuteObjectTask getTaskByExecuteObjectId(Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
-                                                      long executeObjectId) {
+                                                      String executeObjectId) {
         return null;
     }
 

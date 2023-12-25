@@ -24,51 +24,45 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-
-import java.util.Collection;
-import java.util.List;
-
 public interface TaskInstanceExecuteObjectService {
-    /**
-     * 批量保存执行对象
-     *
-     * @param executeObjects 执行对象
-     */
-    void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects);
-
-    /**
-     * 根据作业实例ID获取执行对象
-     *
-     * @param jobInstanceId 作业实例ID
-     * @return 执行对象
-     */
-    List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId);
-
-    /**
-     * 根据执行对象ID批量查询执行对象
-     *
-     * @param executeObjectIds 执行对象ID集合
-     * @return 执行对象
-     */
-    List<ExecuteObject> listExecuteObjectsByIds(Collection<Long> executeObjectIds);
-
-
-    /**
-     * 根据执行对象ID查询执行对象
-     *
-     * @param executeObjectId 执行对象ID
-     * @return 执行对象
-     */
-    ExecuteObject getExecuteObjectById(long executeObjectId);
-
-    /**
-     * 根据执行对象ID查询执行对象
-     *
-     * @param executeObjectType 执行对象类型
-     * @param resourceId        执行对象资源ID
-     * @return 执行对象
-     */
-    ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType, String resourceId);
+//    /**
+//     * 批量保存执行对象
+//     *
+//     * @param executeObjects 执行对象
+//     */
+//    void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects);
+//
+//    /**
+//     * 根据作业实例ID获取执行对象
+//     *
+//     * @param jobInstanceId 作业实例ID
+//     * @return 执行对象
+//     */
+//    List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId);
+//
+//    /**
+//     * 根据执行对象ID批量查询执行对象
+//     *
+//     * @param executeObjectIds 执行对象ID集合
+//     * @return 执行对象
+//     */
+//    List<ExecuteObject> listExecuteObjectsByIds(Collection<Long> executeObjectIds);
+//
+//
+//    /**
+//     * 根据执行对象ID查询执行对象
+//     *
+//     * @param executeObjectId 执行对象ID
+//     * @return 执行对象
+//     */
+//    ExecuteObject getExecuteObjectById(long executeObjectId);
+//
+//    /**
+//     * 根据执行对象ID查询执行对象
+//     *
+//     * @param executeObjectType 执行对象类型
+//     * @param resourceId        执行对象资源ID
+//     * @return 执行对象
+//     */
+//    ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType, String resourceId);
 }

@@ -24,16 +24,16 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * 脚本日志内容
  */
 @Data
 @NoArgsConstructor
-public class ScriptHostLogContent {
+public class ScriptExecuteObjectLogContent {
     /**
      * 步骤实例ID
      */
@@ -43,17 +43,9 @@ public class ScriptHostLogContent {
      */
     private int executeCount;
     /**
-     * 主机ID
+     * 执行对象
      */
-    private Long hostId;
-    /**
-     * 目标云区域ID:ipv4
-     */
-    private String cloudIp;
-    /**
-     * 目标云区域ID:ipv6
-     */
-    private String cloudIpv6;
+    private ExecuteObject executeObject;
     /**
      * 日志内容
      */
@@ -63,28 +55,15 @@ public class ScriptHostLogContent {
      */
     private boolean finished;
 
-    public ScriptHostLogContent(long stepInstanceId,
-                                int executeCount,
-                                Long hostId,
-                                String cloudIp,
-                                String cloudIpv6,
-                                String content,
-                                boolean finished) {
+    public ScriptExecuteObjectLogContent(long stepInstanceId,
+                                         int executeCount,
+                                         ExecuteObject executeObject,
+                                         String content,
+                                         boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
-        this.hostId = hostId;
-        this.cloudIp = cloudIp;
-        this.cloudIpv6 = cloudIpv6;
+        this.executeObject = executeObject;
         this.content = content;
         this.finished = finished;
-    }
-
-    /**
-     * 获取主机的ip，优先返回ipv4
-     *
-     * @return 主机ipv4/ipv6, ipv4 优先
-     */
-    public String getPrimaryIp() {
-        return StringUtils.isNotEmpty(cloudIp) ? cloudIp : cloudIpv6;
     }
 }

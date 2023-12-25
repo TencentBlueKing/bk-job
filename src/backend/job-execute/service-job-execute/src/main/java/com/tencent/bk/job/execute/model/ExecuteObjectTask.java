@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
@@ -63,18 +64,20 @@ public class ExecuteObjectTask {
     /**
      * 执行对象 ID
      */
-    private Long executeObjId;
+    private String executeObjectId;
     /**
      * 主机 ID
      */
     @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
     private Long hostId;
     /**
      * 主机 agentId
      */
     @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
     private String agentId;
     /**
      * 任务状态
@@ -121,23 +124,23 @@ public class ExecuteObjectTask {
      */
     private volatile boolean changed;
 
-    public ExecuteObjectTask(long stepInstanceId, int executeCount, int batch, Long executeObjId) {
+    public ExecuteObjectTask(long stepInstanceId, int executeCount, int batch, String executeObjectId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
-        this.executeObjId = executeObjId;
+        this.executeObjectId = executeObjectId;
     }
 
     public ExecuteObjectTask(long stepInstanceId,
                              int executeCount,
                              int batch,
                              FileTaskModeEnum fileTaskMode,
-                             Long executeObjId) {
+                             String executeObjectId) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
-        this.executeObjId = executeObjId;
+        this.executeObjectId = executeObjectId;
     }
 
     public ExecuteObjectTask(ExecuteObjectTask executeObjectTask) {
@@ -146,7 +149,9 @@ public class ExecuteObjectTask {
         this.actualExecuteCount = executeObjectTask.getActualExecuteCount();
         this.batch = executeObjectTask.getBatch();
         this.fileTaskMode = executeObjectTask.getFileTaskMode();
-        this.executeObjId = executeObjectTask.getExecuteObjId();
+        this.executeObjectId = executeObjectTask.getExecuteObjectId();
+        this.hostId = executeObjectTask.getHostId();
+        this.agentId = executeObjectTask.getAgentId();
         this.status = executeObjectTask.getStatus();
         this.startTime = executeObjectTask.getStartTime();
         this.endTime = executeObjectTask.getEndTime();

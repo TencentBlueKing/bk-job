@@ -15,6 +15,12 @@ public class Agent {
     private String agentId;
 
     /**
+     * 目标容器 ID, 空则为主机
+     */
+    @JsonProperty("bk_container_id")
+    private String containerId;
+
+    /**
      * 执行账号名
      */
     private String user;

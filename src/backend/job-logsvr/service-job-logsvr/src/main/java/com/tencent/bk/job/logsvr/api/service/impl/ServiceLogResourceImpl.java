@@ -37,9 +37,9 @@ import com.tencent.bk.job.logsvr.model.TaskExecuteObjectLog;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import com.tencent.bk.job.logsvr.service.LogService;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +93,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         taskExecuteObjectLog.setBatch(log.getBatch());
         if (log.getExecuteObjectId() != null) {
             taskExecuteObjectLog.setExecuteObjectId(log.getExecuteObjectId());
-            ServiceScriptLogDTO scriptLog = log.getScriptLog();
+            ServiceExecuteObjectScriptLogDTO scriptLog = log.getScriptLog();
             if (scriptLog != null) {
                 taskExecuteObjectLog.setScriptTaskLog(new ScriptTaskLogDoc(log.getStepInstanceId(),
                     log.getExecuteCount(), log.getBatch(), log.getExecuteObjectId(), scriptLog.getContent(),
@@ -109,7 +109,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
             taskExecuteObjectLog.setHostId(log.getHostId());
             taskExecuteObjectLog.setIp(log.getCloudIp());
             taskExecuteObjectLog.setIpv6(log.getCloudIpv6());
-            ServiceScriptLogDTO scriptLog = log.getScriptLog();
+            ServiceExecuteObjectScriptLogDTO scriptLog = log.getScriptLog();
             if (scriptLog != null) {
                 taskExecuteObjectLog.setScriptTaskLog(new ScriptTaskLogDoc(log.getStepInstanceId(),
                     log.getExecuteCount(), log.getBatch(), log.getHostId(), log.getCloudIp(), log.getCloudIpv6(),
@@ -140,7 +140,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setCloudIp(taskExecuteObjectLog.getIp());
         result.setCloudIpv6(taskExecuteObjectLog.getIpv6());
         if (StringUtils.isNotEmpty(taskExecuteObjectLog.getScriptContent())) {
-            result.setScriptLog(new ServiceScriptLogDTO(
+            result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
                 taskExecuteObjectLog.getExecuteObjectId(),
                 taskExecuteObjectLog.getHostId(),
                 taskExecuteObjectLog.getIp(),

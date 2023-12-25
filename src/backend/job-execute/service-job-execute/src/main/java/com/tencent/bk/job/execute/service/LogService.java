@@ -24,16 +24,18 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
-import com.tencent.bk.job.execute.model.FileIpLogContent;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogDTO;
 
 import java.util.List;
 
@@ -45,16 +47,32 @@ public interface LogService {
     /**
      * 构造job系统日志
      *
-     * @param host                 主机
+     * @param stepInstance         步骤实例
+     * @param executeObject        执行对象
      * @param content              日志原始内容
      * @param offset               日志偏移 - 字节
      * @param logTimeInMillSeconds 日志时间
      * @return 系统日志
      */
-    ServiceScriptLogDTO buildSystemScriptLog(HostDTO host,
-                                             String content,
-                                             int offset,
-                                             Long logTimeInMillSeconds);
+    ServiceExecuteObjectScriptLogDTO buildSystemScriptLog(StepInstanceBaseDTO stepInstance,
+                                                          ExecuteObject executeObject,
+                                                          String content,
+                                                          int offset,
+                                                          Long logTimeInMillSeconds);
+
+    /**
+     * 构造脚本日志
+     *
+     * @param stepInstance  步骤实例
+     * @param executeObject 执行对象
+     * @param content       日志原始内容
+     * @param offset        日志偏移 - 字节
+     * @return 系统日志
+     */
+    ServiceExecuteObjectScriptLogDTO buildScriptLog(StepInstanceBaseDTO stepInstance,
+                                                    ExecuteObject executeObject,
+                                                    String content,
+                                                    int offset);
 
     /**
      * 写脚本执行日志
@@ -65,47 +83,62 @@ public interface LogService {
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLogs     脚本日志
      */
-    void batchWriteScriptLog(long jobCreateTime, long stepInstanceId, int executeCount, Integer batch,
-                             List<ServiceScriptLogDTO> scriptLogs);
+    void batchWriteScriptLog(long jobCreateTime,
+                             long stepInstanceId,
+                             int executeCount,
+                             Integer batch,
+                             List<ServiceExecuteObjectScriptLogDTO> scriptLogs);
 
 
     /**
      * 获取脚本执行日志
      *
-     * @param stepInstanceId 步骤实例 ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param host           主机
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次;非滚动步骤传入null
+     * @param key          执行对象复合 KEY
      * @return 日志内容
      */
-    ScriptHostLogContent getScriptHostLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host);
+    ScriptExecuteObjectLogContent getScriptExecuteObjectLogContent(StepInstanceBaseDTO stepInstance,
+                                                                   int executeCount,
+                                                                   Integer batch,
+                                                                   ExecuteObjectCompositeKey key);
 
     /**
      * 批量获取脚本执行日志
      *
-     * @param jobCreateDateStr 作业创建时间
-     * @param stepInstanceId   步骤实例 ID
-     * @param executeCount     执行次数
-     * @param batch            滚动执行批次;非滚动步骤传入null
-     * @param hosts            主机列表,最大支持1000个
+     * @param jobCreateDateStr           作业创建时间
+     * @param stepInstance               步骤实例
+     * @param executeCount               执行次数
+     * @param batch                      滚动执行批次;非滚动步骤传入null
+     * @param executeObjectCompositeKeys 执行对象复合 KEY 列表,最大支持1000个
      * @return 日志内容
      */
-    List<ScriptHostLogContent> batchGetScriptHostLogContent(String jobCreateDateStr, long stepInstanceId,
-                                                            int executeCount, Integer batch, List<HostDTO> hosts);
+    List<ScriptExecuteObjectLogContent> batchGetScriptExecuteObjectLogContent(
+        String jobCreateDateStr,
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
+    );
 
     /**
      * 获取脚本执行日志
      *
-     * @param stepInstanceId 步骤实例 ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param host           主机
-     * @param mode           文件传输模式
+     * @param stepInstance              步骤实例
+     * @param executeCount              执行次数
+     * @param batch                     滚动执行批次;非滚动步骤传入null
+     * @param executeObjectCompositeKey 执行对象复合 KEY
+     * @param mode                      文件传输模式
      * @return 日志内容
-     * @throws ServiceException 异常
      */
-    FileIpLogContent getFileIpLogContent(long stepInstanceId, int executeCount, Integer batch, HostDTO host,
-                                         Integer mode);
+    FileExecuteObjectLogContent getFileExecuteObjectLogContent(
+        StepInstanceDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        ExecuteObjectCompositeKey executeObjectCompositeKey,
+        Integer mode
+    );
 
     /**
      * 获取脚本执行日志
@@ -116,7 +149,9 @@ public interface LogService {
      * @param taskIds        文件任务ID列表
      * @return 日志内容
      */
-    List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId, int executeCount, Integer batch,
+    List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId,
+                                                           int executeCount,
+                                                           Integer batch,
                                                            List<String> taskIds);
 
     /**
@@ -127,23 +162,25 @@ public interface LogService {
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @return 日志内容
      */
-    List<ServiceFileTaskLogDTO> batchGetFileSourceIpLogContent(long stepInstanceId,
-                                                               int executeCount,
-                                                               Integer batch);
+    List<ServiceFileTaskLogDTO> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
+                                                                          int executeCount,
+                                                                          Integer batch);
 
     /**
      * 获取文件任务文件源日志
      *
-     * @param stepInstanceId 步骤实例 ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param hosts          主机列表
+     * @param stepInstance               步骤实例
+     * @param executeCount               执行次数
+     * @param batch                      滚动执行批次;非滚动步骤传入null
+     * @param executeObjectCompositeKeys 执行对象复合 KEY 列表
      * @return 日志内容
      */
-    ServiceExecuteObjectLogsDTO batchGetFileIpLogContent(long stepInstanceId,
-                                                         int executeCount,
-                                                         Integer batch,
-                                                         List<HostDTO> hosts);
+    List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
+        StepInstanceDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
+    );
 
     /**
      * 根据关键字获取对应的ip
@@ -154,7 +191,7 @@ public interface LogService {
      * @param keyword        关键字
      * @return ips
      */
-    List<HostDTO> getIpsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
+    List<HostDTO> getHostsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
 
     /**
      * 写文件日志日志 - 指定时间
@@ -171,22 +208,24 @@ public interface LogService {
     /**
      * 写文件日志日志
      *
-     * @param jobCreateTime 任务创建时间
-     * @param hostFileLogs  文件任务执行日志
+     * @param jobCreateTime     任务创建时间
+     * @param executeObjectLogs 文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> hostFileLogs);
+    void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> executeObjectLogs);
 
     /**
      * 构造上传文件任务日志
      *
-     * @param srcFile 源文件
-     * @param status  任务状态
-     * @param size    源文件大小
-     * @param speed   上传速度
-     * @param process 进度
-     * @param content 日志内容
+     * @param stepInstance 步骤实例
+     * @param srcFile      源文件
+     * @param status       任务状态
+     * @param size         源文件大小
+     * @param speed        上传速度
+     * @param process      进度
+     * @param content      日志内容
      */
-    ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(JobFile srcFile,
+    ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                           JobFile srcFile,
                                                            FileDistStatusEnum status,
                                                            String size,
                                                            String speed,
@@ -196,17 +235,19 @@ public interface LogService {
     /**
      * 构造下载文件任务日志
      *
-     * @param srcFile    源文件
-     * @param targetHost 目标主机
-     * @param targetPath 目标路径
-     * @param status     任务状态
-     * @param size       源文件大小
-     * @param speed      下载速度
-     * @param process    进度
-     * @param content    日志内容
+     * @param stepInstance        步骤实例
+     * @param srcFile             源文件
+     * @param targetExecuteObject 目标执行对象
+     * @param targetPath          目标路径
+     * @param status              任务状态
+     * @param size                源文件大小
+     * @param speed               下载速度
+     * @param process             进度
+     * @param content             日志内容
      */
-    ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(JobFile srcFile,
-                                                             HostDTO targetHost,
+    ServiceFileTaskLogDTO buildDownloadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                             JobFile srcFile,
+                                                             ExecuteObject targetExecuteObject,
                                                              String targetPath,
                                                              FileDistStatusEnum status,
                                                              String size,

@@ -34,13 +34,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 脚本日志
+ * 执行对象对应的脚本日志
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
-@ApiModel("脚本日志")
-public class ServiceScriptLogDTO {
+@ApiModel("执行对象对应的脚本日志")
+public class ServiceExecuteObjectScriptLogDTO {
     /**
      * 执行对象ID
      */
@@ -89,23 +89,38 @@ public class ServiceScriptLogDTO {
     /**
      * Constructor
      *
-     * @param executeObjectId 执行对象 ID
-     * @param hostId          主机hostId
-     * @param cloudIp         主机ipv4,格式: 云区域ID:IPv4
-     * @param cloudIpv6       主机ipv6,格式: 云区域ID:IPv6
-     * @param content         日志内容
+     * @param hostId    主机hostId
+     * @param cloudIp   主机ipv4,格式: 云区域ID:IPv4
+     * @param cloudIpv6 主机ipv6,格式: 云区域ID:IPv6
+     * @param content   日志内容
+     * @param offset    日志偏移量
      */
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
-    public ServiceScriptLogDTO(String executeObjectId,
-                               Long hostId,
-                               String cloudIp,
-                               String cloudIpv6,
-                               String content) {
-        this.executeObjectId = executeObjectId;
+    public ServiceExecuteObjectScriptLogDTO(Long hostId,
+                                            String cloudIp,
+                                            String cloudIpv6,
+                                            String content,
+                                            int offset) {
         this.hostId = hostId;
         this.cloudIp = cloudIp;
         this.cloudIpv6 = cloudIpv6;
         this.content = content;
+        this.offset = offset;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param executeObjectId 执行对象 ID
+     * @param content         日志内容
+     * @param offset          日志偏移量
+     */
+    public ServiceExecuteObjectScriptLogDTO(String executeObjectId,
+                                            String content,
+                                            int offset) {
+        this.executeObjectId = executeObjectId;
+        this.content = content;
+        this.offset = offset;
     }
 }

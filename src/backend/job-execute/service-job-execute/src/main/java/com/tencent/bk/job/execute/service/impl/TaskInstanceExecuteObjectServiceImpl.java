@@ -24,34 +24,29 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-
 @Service
 public class TaskInstanceExecuteObjectServiceImpl implements TaskInstanceExecuteObjectService {
-    @Override
-    public void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects) {
-
-    }
-
-    @Override
-    public List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId) {
-        return null;
-    }
-
-    @Override
-    public ExecuteObject getExecuteObjectById(long executeObjectId) {
-        return null;
-    }
-
-    @Override
-    public ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType,
-                                          String resourceId) {
-        return null;
-    }
+//    @Override
+//    public void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects) {
+//
+//    }
+//
+//    @Override
+//    public List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId) {
+//        return null;
+//    }
+//
+//    @Override
+//    public ExecuteObject getExecuteObjectById(long executeObjectId) {
+//        return null;
+//    }
+//
+//    @Override
+//    public ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType,
+//                                          String resourceId) {
+//        return null;
+//    }
 }

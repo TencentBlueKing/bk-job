@@ -683,7 +683,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             , accountId);
 
         AuthResult serverAuthResult;
-        ExecuteObjectsDTO servers = stepInstance.getTargetServers().clone();
+        ExecuteObjectsDTO servers = stepInstance.getTargetExecuteObjects().clone();
         filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, servers, whiteHostAllowActions);
         if (servers.isEmpty()) {
             // 如果主机为空，无需对主机进行鉴权
@@ -750,7 +750,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
 
-        ExecuteObjectsDTO servers = stepInstance.getTargetServers().clone();
+        ExecuteObjectsDTO servers = stepInstance.getTargetExecuteObjects().clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
@@ -839,7 +839,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
                 hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
             stepInstances.forEach(stepInstance -> {
-                setHostsForDynamicGroup(stepInstance.getTargetServers(), dynamicGroupHosts);
+                setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
                 if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
                     List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
                     for (FileSourceDTO fileSource : fileSources) {
@@ -872,7 +872,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
                 hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
             stepInstances.forEach(stepInstance -> {
-                setHostsForTopoNode(stepInstance.getTargetServers(), topoNodeHosts);
+                setHostsForTopoNode(stepInstance.getTargetExecuteObjects(), topoNodeHosts);
                 if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
                     List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
                     for (FileSourceDTO fileSource : fileSources) {
@@ -942,7 +942,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             TaskStepTypeEnum stepType = stepInstance.getStepType();
             // 检查目标主机
-            stepInstance.getTargetServers().getIpList().forEach(host -> {
+            stepInstance.getTargetExecuteObjects().getIpList().forEach(host -> {
                 if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
                     invalidHosts.add(host);
                 }
@@ -1034,7 +1034,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void extractDynamicGroupsAndTopoNodes(StepInstanceDTO stepInstance,
                                                   Set<DynamicServerGroupDTO> groups,
                                                   Set<DynamicServerTopoNodeDTO> topoNodes) {
-        extractDynamicGroupsAndTopoNodes(stepInstance.getTargetServers(), groups, topoNodes);
+        extractDynamicGroupsAndTopoNodes(stepInstance.getTargetExecuteObjects(), groups, topoNodes);
         if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
             List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
             for (FileSourceDTO fileSource : fileSources) {
@@ -1079,7 +1079,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!isStepContainsHostProps(stepInstance)) {
             return;
         }
-        ExecuteObjectsDTO targetServers = stepInstance.getTargetServers();
+        ExecuteObjectsDTO targetServers = stepInstance.getTargetExecuteObjects();
         if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
             log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
             throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
@@ -1184,7 +1184,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        fillServersDetail(stepInstance.getTargetServers(), hostMap);
+        fillServersDetail(stepInstance.getTargetExecuteObjects(), hostMap);
     }
 
     private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
@@ -1232,8 +1232,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (!isStepContainsHostProps(stepInstance)) {
                 continue;
             }
-            if (stepInstance.getTargetServers() != null) {
-                hosts.addAll(stepInstance.getTargetServers().extractHosts());
+            if (stepInstance.getTargetExecuteObjects() != null) {
+                hosts.addAll(stepInstance.getTargetExecuteObjects().extractHosts());
             }
             if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
@@ -1465,9 +1465,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getTargetServers() != null
-                && CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getDynamicServerGroups())) {
-                standardizeServerDynamicGroupId(stepInstance.getTargetServers());
+            if (stepInstance.getTargetExecuteObjects() != null
+                && CollectionUtils.isNotEmpty(stepInstance.getTargetExecuteObjects().getDynamicServerGroups())) {
+                standardizeServerDynamicGroupId(stepInstance.getTargetExecuteObjects());
             }
             if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
                 for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
@@ -1614,7 +1614,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Set<Long> accountIds = new HashSet<>();
         accountIds.add(stepInstance.getAccountId());
         if (stepInstance.isFileStep()) {
-            ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetServers().clone();
+            ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
             filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepTargetServers,
                 whiteHostAllowActions);
             authServers.merge(stepTargetServers);
@@ -1632,7 +1632,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     );
             }
         } else if (stepInstance.isScriptStep()) {
-            ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetServers().clone();
+            ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
             filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, stepTargetServers, whiteHostAllowActions);
             authServers.merge(stepTargetServers);
         }
@@ -2001,7 +2001,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServiceTaskTargetDTO target = scriptStepInfo.getExecuteTarget();
         ExecuteObjectsDTO targetServers = buildFinalTargetServers(target, variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        stepInstance.setTargetExecuteObjects(targetServers);
 
         stepInstance.setIgnoreError(scriptStepInfo.getIgnoreError());
     }
@@ -2064,7 +2064,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         ServiceTaskTargetDTO target = fileStepInfo.getExecuteTarget();
         ExecuteObjectsDTO targetServers = buildFinalTargetServers(target, variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        stepInstance.setTargetExecuteObjects(targetServers);
 
         if (fileStepInfo.getDownloadSpeedLimit() != null) {
             // MB->KB
@@ -2113,8 +2113,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setAccount(originStepInstance.getAccount());
         }
 
-        ExecuteObjectsDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteObjectsDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(), variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
     }
 
     private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
@@ -2140,8 +2140,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setFileSourceList(fileSourceList);
         }
 
-        ExecuteObjectsDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteObjectsDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(), variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
     }
 
     private ExecuteObjectsDTO buildFinalTargetServers(@NotNull ServiceTaskTargetDTO target,

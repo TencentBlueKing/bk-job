@@ -59,9 +59,9 @@ import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
-import com.tencent.bk.job.execute.model.FileIpLogContent;
+import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepExecutionDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
@@ -632,13 +632,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                     Integer batch) {
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        ScriptHostLogContent scriptHostLogContent = logService.getScriptHostLogContent(stepInstanceId, executeCount,
+        ScriptExecuteObjectLogContent scriptExecuteObjectLogContent = logService.getScriptExecuteObjectLogContent(stepInstanceId, executeCount,
             batch, HostDTO.fromHostId(hostId));
         IpScriptLogContentVO ipScriptLogContentVO = new IpScriptLogContentVO();
-        if (scriptHostLogContent != null) {
-            ipScriptLogContentVO.setDisplayIp(scriptHostLogContent.getCloudIp());
-            ipScriptLogContentVO.setLogContent(scriptHostLogContent.getContent());
-            ipScriptLogContentVO.setFinished(scriptHostLogContent.isFinished());
+        if (scriptExecuteObjectLogContent != null) {
+            ipScriptLogContentVO.setDisplayIp(scriptExecuteObjectLogContent.getCloudIp());
+            ipScriptLogContentVO.setLogContent(scriptExecuteObjectLogContent.getContent());
+            ipScriptLogContentVO.setFinished(scriptExecuteObjectLogContent.isFinished());
         }
         return Response.buildSuccessResp(ipScriptLogContentVO);
     }
@@ -826,7 +826,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         result.setFileDistributionDetails(fileDistDetailVOS);
 
         if ("download".equals(mode)) {
-            FileIpLogContent downloadLog = logService.getFileIpLogContent(stepInstanceId, executeCount, batch,
+            FileExecuteObjectLogContent downloadLog = logService.getFileExecuteObjectLogContent(stepInstanceId, executeCount, batch,
                 HostDTO.fromHostIdOrCloudIp(hostId, ip), FileDistModeEnum.DOWNLOAD.getValue());
             // downloadLog为null说明步骤还未下发至GSE就被终止
             if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
@@ -840,7 +840,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
             Collections.sort(fileDistDetailVOS);
         } else {
-            List<ServiceFileTaskLogDTO> fileTaskLogs = logService.batchGetFileSourceIpLogContent(stepInstanceId,
+            List<ServiceFileTaskLogDTO> fileTaskLogs = logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
                 executeCount, batch);
             if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
                 fileTaskLogs.forEach(fileTaskLog -> {

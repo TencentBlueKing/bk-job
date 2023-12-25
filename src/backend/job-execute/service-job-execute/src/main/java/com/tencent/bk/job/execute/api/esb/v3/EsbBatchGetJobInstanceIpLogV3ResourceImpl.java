@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.execute.model.ScriptHostLogContent;
+import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileLogV3DTO;
@@ -138,7 +138,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
 
         String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
             "yyyy_MM_dd", ZoneId.of("UTC"));
-        List<ScriptHostLogContent> hostLogContentList = logService.batchGetScriptHostLogContent(jobCreateDate,
+        List<ScriptExecuteObjectLogContent> hostLogContentList = logService.batchGetScriptExecuteObjectLogContent(jobCreateDate,
             stepInstance.getId(), stepInstance.getExecuteCount(), null, queryHosts);
 
         if (CollectionUtils.isEmpty(hostLogContentList)) {
@@ -184,7 +184,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                                List<HostDTO> queryHosts) {
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
-        ServiceExecuteObjectLogsDTO ipLogs = logService.batchGetFileIpLogContent(
+        ServiceExecuteObjectLogsDTO ipLogs = logService.batchGetFileExecuteObjectLogContent(
             stepInstance.getId(), stepInstance.getExecuteCount(), null, queryHosts);
 
         if (ipLogs == null || CollectionUtils.isEmpty(ipLogs.getIpLogs())) {

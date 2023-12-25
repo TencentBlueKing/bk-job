@@ -25,6 +25,10 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -169,7 +173,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.totalTime = stepInstanceBase.totalTime;
         this.createTime = stepInstanceBase.createTime;
         this.ignoreError = stepInstanceBase.ignoreError;
-        this.targetServers = stepInstanceBase.targetServers;
+        this.targetExecuteObjects = stepInstanceBase.targetExecuteObjects;
         this.rollingConfigId = stepInstanceBase.rollingConfigId;
         this.batch = stepInstanceBase.getBatch();
     }
@@ -223,5 +227,30 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.confirmUsers = confirmStepInstance.getConfirmUsers();
         this.confirmRoles = confirmStepInstance.getConfirmRoles();
         this.notifyChannels = confirmStepInstance.getNotifyChannels();
+    }
+
+    @Override
+    public ExecuteObject findExecuteObjectByCompositeKey(ExecuteObjectCompositeKey executeObjectCompositeKey) {
+        if (stepType == TaskStepTypeEnum.SCRIPT) {
+            return targetExecuteObjects.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+        } else if (stepType == TaskStepTypeEnum.FILE) {
+            ExecuteObject executeObject =
+                targetExecuteObjects.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+            if (executeObject != null) {
+                return executeObject;
+            }
+            for (FileSourceDTO fileSource : fileSourceList) {
+                if (fileSource.getServers() == null) {
+                    continue;
+                }
+                executeObject = fileSource.getServers().findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+                if (executeObject != null) {
+                    return executeObject;
+                }
+            }
+            return null;
+        } else {
+            throw new InternalException("Not support method invoke for step", ErrorCode.INTERNAL_ERROR);
+        }
     }
 }
