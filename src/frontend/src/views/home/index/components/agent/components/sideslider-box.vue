@@ -57,9 +57,7 @@
             </scroll-faker>
           </div>
           <div class="box-footer">
-            <bk-button
-              theme="primary"
-              @click="handleClose">
+            <bk-button @click="handleClose">
               {{ $t('关闭') }}
             </bk-button>
           </div>
