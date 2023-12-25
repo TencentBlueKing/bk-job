@@ -42,17 +42,17 @@
         prop="ip" />
       <bk-table-column :label="$t('home.管控区域')">
         <template slot-scope="{ row }">
-          {{ row.cloudAreaInfo.name || '--' }}
+          {{ row.cloudArea.name || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column :label="$t('home.主机名')">
         <template slot-scope="{ row }">
-          {{ row.ipDesc || '--' }}
+          {{ row.hostName || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column :label="$t('home.操作系统名称')">
         <template slot-scope="{ row }">
-          {{ row.os || '--' }}
+          {{ row.osName || '--' }}
         </template>
       </bk-table-column>
     </bk-table>
