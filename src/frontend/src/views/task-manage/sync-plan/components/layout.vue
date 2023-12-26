@@ -27,8 +27,10 @@
 
 <template>
   <div
+    ref="root"
     v-bkloading="{ isLoading: loading }"
-    class="sync-plan-layout">
+    class="sync-plan-layout"
+    :style="layoutStyle">
     <div
       class="wraper"
       :class="{ loading }">
@@ -52,6 +54,10 @@
   </div>
 </template>
 <script>
+  import {
+    getOffset,
+  } from '@utils/assist';
+
   import Empty from '@components/empty';
 
   export default {
@@ -69,12 +75,20 @@
         default: false,
       },
     },
+    data() {
+      return {
+        layoutStyle: {},
+      };
+    },
+    mounted() {
+      this.layoutStyle = {
+        height: `calc(100vh - ${getOffset(this.$refs.root).top}px)`,
+      };
+    },
   };
 </script>
 <style lang='postcss'>
   .sync-plan-layout {
-    height: calc(100vh - 158px);
-
     .wraper {
       opacity: 100%;
       visibility: visible;

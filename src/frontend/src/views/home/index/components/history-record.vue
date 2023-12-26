@@ -27,8 +27,10 @@
 
 <template>
   <div
+    ref="root"
     v-bkloading="{ isLoading }"
-    class="history-record-box">
+    class="history-record-box"
+    :style="rootStyle">
     <div
       v-if="!isLoading"
       class="history-record">
@@ -87,6 +89,8 @@
   import TaskExecuteService from '@service/task-execute';
   import UserService from '@service/user';
 
+  import { getOffset } from '@utils/assist';
+
   import Empty from '@components/empty';
 
   export default {
@@ -99,11 +103,17 @@
         isLoading: true,
         recordOperator: '',
         recordList: [],
+        rootStyle: {},
       };
     },
     created() {
       this.fetchUserInfo();
       this.fetchExecuteHistory();
+    },
+    mounted() {
+      this.rootStyle = {
+        height: `calc(100vh - ${getOffset(this.$refs.root).top + 92}px)`,
+      };
     },
     methods: {
       /**
@@ -175,7 +185,6 @@
   .history-record-box {
     position: relative;
     width: 100%;
-    height: calc(100vh - 484px);
 
     .history-record {
       height: 100%;
