@@ -61,6 +61,7 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,9 @@ public class LogServiceImpl implements LogService {
     private final ScriptAgentTaskService scriptAgentTaskService;
     private final FileAgentTaskService fileAgentTaskService;
     private final StepInstanceService stepInstanceService;
+
+    // 脚本日志阈值1MB，当批量保存脚本日志时，如果日志集合超过阈值，采用分批保存
+    private static final int batchSizeThreshold = 1024 * 1024;
 
     @Autowired
     public LogServiceImpl(ServiceLogResource logResource,
@@ -117,16 +121,51 @@ public class LogServiceImpl implements LogService {
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());
-        List<ServiceHostLogDTO> logs = scriptLogs.stream()
-            .map(scriptLog -> buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog))
-            .collect(Collectors.toList());
-        request.setLogs(logs);
+        List<ServiceHostLogDTO> logs = new ArrayList<>();
+        long accumulatedSize = 0;
+
+        for (ServiceScriptLogDTO scriptLog : scriptLogs) {
+            ServiceHostLogDTO hostLogDTO = buildServiceLogDTO(stepInstanceId, executeCount, batch, scriptLog);
+            long logSize = calculateLogSize(hostLogDTO);
+            if (accumulatedSize + logSize > batchSizeThreshold) {
+                // 当达到阈值，保存当前积累的logs集合
+                request.setLogs(logs);
+                saveLogs(request, stepInstanceId, executeCount, batch);
+                logs.clear();
+                accumulatedSize = 0;
+                log.debug("The current script log is too large, exceeding {}, and should be saved in batches, " +
+                    "stepInstanceId:{}, executeCount:{}, batch: {}", batchSizeThreshold, stepInstanceId, executeCount
+                    , batch);
+            }
+            logs.add(hostLogDTO);
+            accumulatedSize += logSize;
+        }
+
+        if (!logs.isEmpty()) {
+            request.setLogs(logs);
+            saveLogs(request, stepInstanceId, executeCount, batch);
+        }
+    }
+
+    private void saveLogs(ServiceBatchSaveLogRequest request,
+                          long stepInstanceId,
+                          int executeCount,
+                          Integer batch) {
         InternalResponse resp = logResource.saveLogs(request);
         if (!resp.isSuccess()) {
             log.error("Batch write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",
                 stepInstanceId, executeCount, batch);
             throw new InternalException(resp.getCode());
         }
+    }
+
+    private long calculateLogSize(ServiceHostLogDTO hostLogDTO) {
+        String content = hostLogDTO.getScriptLog() == null ? null : hostLogDTO.getScriptLog().getContent();
+        if (content != null) {
+            byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+            return contentBytes.length;
+        }
+        return 0;
     }
 
     private ServiceHostLogDTO buildServiceLogDTO(long stepInstanceId, int executeCount, Integer batch,
