@@ -9,11 +9,9 @@ relations:
   - usermgr^2.5.4
   - bkiam^1.12.0
   - bk_iam^1.10.0
-- rationale: "ESB及网关"
+- rationale: "ESB"
   requires:
-  - "bkpaas^2.14.0 OR bkpaas3^1.1.0"
-  suggests:
-  - bkapigateway^1.12.0
+  - "bkpaas^2.14.0 OR bk-apigateway^1.12.0"
 - rationale: "支持hostid"
   requires:
   - "bk-cmdb^3.10.10"
