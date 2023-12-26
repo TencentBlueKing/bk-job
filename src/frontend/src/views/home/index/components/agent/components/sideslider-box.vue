@@ -135,7 +135,7 @@
       z-index: 1;
       display: flex;
       width: 1240px;
-      height: 754px;
+      height: 640px;
       background: #fff;
       flex-direction: column;
     }
