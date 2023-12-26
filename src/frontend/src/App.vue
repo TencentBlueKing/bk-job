@@ -119,7 +119,6 @@
 
   import EnvService from '@service/env';
   import LogoutService from '@service/logout';
-  import noticeService from '@service/notice';
   import QueryGlobalSettingService from '@service/query-global-setting';
   import UserService from '@service/user';
 
