@@ -74,6 +74,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -130,6 +131,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     private final ApplicationDAO applicationDAO;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
+
+    // 页面查询主机、主机数量时排除app_id=0和1(公共业务ID、资源池业务ID)
+    private static final List<Long> EXCLUDED_APP_ID = Arrays.asList(0L, 1L);
 
     @Autowired
     public ApplicationHostDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext context,
@@ -623,6 +627,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
             conditions.add(tHostTopo.APP_ID.in(bizIds));
+        } else {
+            conditions.add(tHostTopo.APP_ID.notIn(EXCLUDED_APP_ID));
         }
         if (agentAlive != null) {
             conditions.add(tHost.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(agentAlive)));
@@ -1226,6 +1232,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (conditions == null) {
             conditions = Collections.emptyList();
         }
+        if (!conditions.contains(TABLE.APP_ID)) {
+            conditions.add(TABLE.APP_ID.notIn(EXCLUDED_APP_ID));
+        }
         return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
     }
 
@@ -1287,6 +1296,8 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         List<Condition> conditions = new ArrayList<>();
         if (bizIds != null) {
             conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
+        } else {
+            conditions.add(HostTopo.HOST_TOPO.APP_ID.notIn(EXCLUDED_APP_ID));
         }
         var query = context.select(
             TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
