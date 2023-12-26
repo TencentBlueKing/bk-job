@@ -29,7 +29,7 @@
   <div>
     <notice-component
       v-if="isEnableBKNotice"
-      :list="noticeList" />
+      :api-url="noticApiUrl" />
     <site-frame
       :side-fixed="isFrameSideFixed"
       @on-side-expand="handleSideExpandChange"
@@ -287,7 +287,6 @@
     watch,
   } from 'vue';
 
-  import NoticeService from '@service/notice';
   import QueryGlobalSettingService from '@service/query-global-setting';
 
   import AppSelect from '@components/app-select';
@@ -313,10 +312,10 @@
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
 
-  const noticeList = ref([]);
-
   const route = useRoute();
   const router = useRouter();
+
+  const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
 
   watch(route, (currentRoute) => {
     routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
@@ -350,15 +349,6 @@
     .then((data) => {
       isEnableBKNotice.value = data.ENABLE_BK_NOTICE;
       isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
-      if (isEnableBKNotice.value) {
-        NoticeService.fetchAnnouncement()
-          .then((data) => {
-            noticeList.value = data.map((item, index) => ({
-              id: index,
-              ...item,
-            }));
-          });
-      }
     });
 
   /**
