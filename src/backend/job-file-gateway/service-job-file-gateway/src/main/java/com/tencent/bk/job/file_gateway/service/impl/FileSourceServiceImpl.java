@@ -185,7 +185,7 @@ public class FileSourceServiceImpl implements FileSourceService {
         instance = @AuditInstanceRecord(
             resourceType = ResourceTypeId.FILE_SOURCE,
             instanceIds = "#fileSource?.id",
-            instanceNames = "$fileSource?.alias"
+            instanceNames = "$?.alias"
         ),
         content = EventContentConstants.EDIT_FILE_SOURCE
     )
