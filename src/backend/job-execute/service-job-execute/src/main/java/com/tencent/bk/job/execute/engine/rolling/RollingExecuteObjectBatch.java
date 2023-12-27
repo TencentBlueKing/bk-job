@@ -22,31 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.execute.service.TaskInstanceExecuteObjectService;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import lombok.Data;
 
-@Service
-public class TaskInstanceExecuteObjectServiceImpl implements TaskInstanceExecuteObjectService {
-//    @Override
-//    public void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects) {
-//
-//    }
-//
-//    @Override
-//    public List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId) {
-//        return null;
-//    }
-//
-//    @Override
-//    public ExecuteObject getExecuteObjectById(long executeObjectId) {
-//        return null;
-//    }
-//
-//    @Override
-//    public ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType,
-//                                          String resourceId) {
-//        return null;
-//    }
+import java.util.List;
+
+/**
+ * 执行对象滚动分批
+ */
+@Data
+public class RollingExecuteObjectBatch {
+    private RollingExprPart rollingExprPart;
+    private int batch;
+    private List<ExecuteObject> executeObjects;
 }

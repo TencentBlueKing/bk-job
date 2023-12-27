@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -275,7 +275,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         return builder.build();
     }
 
-    private List<Agent> buildTargetAgents() {
+    protected List<Agent> buildTargetAgents() {
         AccountDTO account = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
         return gseClient.fillAgentAuthInfo(
@@ -677,7 +677,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         int errorMsgLength = errorMsg.length();
 
         List<ServiceExecuteObjectScriptLogDTO> scriptLogs = new ArrayList<>(targetExecuteObjectTaskMap.size());
-        for (ExecuteObjectTaskDetail executeObjectTask : targetExecuteObjectTaskMap.values()) {
+        for (ExecuteObjectTask executeObjectTask : targetExecuteObjectTaskMap.values()) {
             ExecuteObject executeObject = executeObjectTask.getExecuteObject();
             // 日志输出
             ServiceExecuteObjectScriptLogDTO scriptLog = logService.buildSystemScriptLog(

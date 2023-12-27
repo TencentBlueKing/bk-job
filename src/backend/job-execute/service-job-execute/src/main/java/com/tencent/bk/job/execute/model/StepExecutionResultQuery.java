@@ -102,7 +102,7 @@ public class StepExecutionResultQuery {
      */
     private Order order;
 
-    private Set<Long> matchHostIds;
+    private Set<ExecuteObjectCompositeKey> matchExecuteObjectCompositeKeys;
 
     public boolean hasIpCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);

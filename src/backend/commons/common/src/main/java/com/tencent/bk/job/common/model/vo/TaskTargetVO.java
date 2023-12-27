@@ -33,11 +33,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @since 1/11/2019 12:08
- */
 @Data
-@ApiModel("执行目标信息")
+@ApiModel("执行目标")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class TaskTargetVO {
@@ -45,22 +42,24 @@ public class TaskTargetVO {
     @ApiModelProperty(value = "全局变量名")
     private String variable;
 
-    @ApiModelProperty(value = "主机节点列表")
+    @ApiModelProperty(value = "主机节点信息")
     private TaskHostNodeVO hostNodeInfo;
 
-    @ApiModelProperty(value = "容器节点列表")
+    @ApiModelProperty(value = "容器节点信息")
     private TaskContainerNodeVO containerNodeInfo;
 
-    public void validate(boolean isCreate) throws InvalidParamException {
+    public void validate() throws InvalidParamException {
         if (StringUtils.isNoneBlank(variable)) {
             hostNodeInfo = null;
+            containerNodeInfo = null;
             return;
         }
-        if (hostNodeInfo != null) {
-            hostNodeInfo.validate(isCreate);
-        } else {
-            log.warn("Empty target info!");
+        if (hostNodeInfo == null && containerNodeInfo == null) {
+            log.warn("TaskTarget is empty!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
+        }
+        if (hostNodeInfo != null) {
+            hostNodeInfo.validate();
         }
     }
 

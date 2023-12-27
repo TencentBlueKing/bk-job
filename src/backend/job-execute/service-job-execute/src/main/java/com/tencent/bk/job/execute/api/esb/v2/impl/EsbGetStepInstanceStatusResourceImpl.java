@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
@@ -156,11 +156,11 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
         for (ResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getExecuteObjectTasks();
+            List<ExecuteObjectTask> agentTasks = resultGroup.getExecuteObjectTasks();
             standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
-                for (ExecuteObjectTaskDetail agentTask : agentTasks) {
+                for (ExecuteObjectTask agentTask : agentTasks) {
                     ips.add(new EsbIpDTO(agentTask.getHostId(), agentTask.getBkCloudId(), agentTask.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);

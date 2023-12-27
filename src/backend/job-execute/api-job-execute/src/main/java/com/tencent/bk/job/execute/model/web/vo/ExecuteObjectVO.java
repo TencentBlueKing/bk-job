@@ -52,6 +52,11 @@ public class ExecuteObjectVO {
     private ExecuteObjectTypeEnum type;
 
     /**
+     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
+     */
+    private Long executeObjectResourceId;
+
+    /**
      * 容器
      */
     private ContainerVO container;

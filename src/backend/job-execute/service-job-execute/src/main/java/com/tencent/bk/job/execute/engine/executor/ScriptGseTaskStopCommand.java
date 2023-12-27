@@ -25,11 +25,11 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -69,16 +69,16 @@ public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
     @Override
     public void execute() {
         log.info("Stop gse script task, gseTask:" + gseTaskInfo);
-        List<ExecuteObjectTaskDetail> executeObjectTasks =
+        List<ExecuteObjectTask> executeObjectTasks =
             executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
-        List<String> terminateAgentIds = executeObjectTasks.stream()
-            .map(ExecuteObjectTask::getAgentId)
+        List<Agent> terminateAgents = executeObjectTasks.stream()
+            .map(executeObjectTask -> executeObjectTask.getExecuteObject().toGseAgent())
             .distinct()
             .collect(Collectors.toList());
 
 
         TerminateGseTaskRequest request = new TerminateGseTaskRequest(gseTask.getGseTaskId(),
-            terminateAgentIds, gseV2Task);
+            terminateAgents, gseV2Task);
         GseTaskResponse gseTaskResponse = gseClient.terminateGseScriptTask(request);
         if (GseTaskResponse.ERROR_CODE_SUCCESS != gseTaskResponse.getErrorCode()) {
             log.error("Terminate gse task failed! gseTask: {}", gseTaskInfo);

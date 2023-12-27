@@ -92,7 +92,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
+    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_script_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + " host_id, agent_id, gse_task_id, status, start_time, end_time, total_time, error_code, exit_code, tag,"
             + " log_offset)"
@@ -122,7 +122,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }

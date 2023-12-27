@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
@@ -170,11 +171,13 @@ public class ResultHandleResumeListener {
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                   GseTaskDTO gseTask,
                                   String requestId) {
-        Map<String, ExecuteObjectTask> agentTaskMap = new HashMap<>();
-        List<ExecuteObjectTask> agentTasks = scriptAgentTaskService.listTasksByGseTaskId(gseTask.getId());
-        agentTasks.stream()
-            .filter(agentTask -> !agentTask.isAgentIdEmpty())
-            .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> executeObjectTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> executeObjectTasks
+            = scriptAgentTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        executeObjectTasks.stream()
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .forEach(executeObjectTask -> executeObjectTaskMap.put(
+                executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
             taskInstanceService,
@@ -191,10 +194,10 @@ public class ResultHandleResumeListener {
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
-            agentTaskMap,
+            executeObjectTaskMap,
             gseTask,
             requestId,
-            agentTasks);
+            executeObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -209,16 +212,19 @@ public class ResultHandleResumeListener {
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());
 
-        Map<String, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
-        Map<String, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
-        List<ExecuteObjectTask> agentTasks = fileAgentTaskService.listTasksByGseTaskId(gseTask.getId());
-        agentTasks.stream()
-            .filter(agentTask -> !agentTask.isAgentIdEmpty())
-            .forEach(agentTask -> {
-                if (agentTask.isTarget()) {
-                    targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> executeObjectTasks
+            = fileAgentTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        executeObjectTasks.stream()
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .forEach(executeObjectTask -> {
+                if (executeObjectTask.isTarget()) {
+                    targetAgentTaskMap.put(
+                        executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask);
                 } else {
-                    sourceAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+                    sourceAgentTaskMap.put(
+                        executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask);
                 }
             });
 
@@ -242,7 +248,7 @@ public class ResultHandleResumeListener {
             gseTask,
             srcAndDestMap,
             requestId,
-            agentTasks);
+            executeObjectTasks);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

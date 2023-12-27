@@ -38,7 +38,7 @@ import java.util.List;
 public class ContainerCheckReq {
 
     @ApiModelProperty(value = "容器Uid列表", required = true)
-    private List<String> containerUidList = new ArrayList<>();
+    private List<String> uidList = new ArrayList<>();
 
 }
 

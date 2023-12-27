@@ -50,7 +50,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -146,10 +145,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                  Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> executeObjectTaskMap,
+                                  Map<ExecuteObjectGseKey, ExecuteObjectTask> executeObjectTaskMap,
                                   GseTaskDTO gseTask,
                                   String requestId,
-                                  List<ExecuteObjectTaskDetail> executeObjectTasks) {
+                                  List<ExecuteObjectTask> executeObjectTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -171,13 +170,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         initLogPullProcess(executeObjectTaskMap.values());
     }
 
-    private void initLogPullProcess(Collection<ExecuteObjectTaskDetail> executeObjectTasks) {
-        executeObjectTasks.forEach(executeObjectTaskDetail -> {
+    private void initLogPullProcess(Collection<ExecuteObjectTask> executeObjectTasks) {
+        executeObjectTasks.forEach(ExecuteObjectTask -> {
             ExecuteObjectGseKey executeObjectGseKey =
-                executeObjectTaskDetail.getExecuteObject().toExecuteObjectGseKey();
+                ExecuteObjectTask.getExecuteObject().toExecuteObjectGseKey();
             LogPullProgress process = new LogPullProgress();
             process.setExecuteObjectGseKey(executeObjectGseKey);
-            process.setByteOffset(executeObjectTaskDetail.getScriptLogOffset());
+            process.setByteOffset(ExecuteObjectTask.getScriptLogOffset());
             process.setAtomicTaskId(0);
             logPullProgressMap.put(executeObjectGseKey, process);
         });

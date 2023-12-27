@@ -42,7 +42,7 @@ public class ResultGroupDTO extends ResultGroupBaseDTO {
     /**
      * 执行对象任务
      */
-    private List<ExecuteObjectTaskDetail> executeObjectTasks;
+    private List<ExecuteObjectTask> executeObjectTasks;
 
     public ResultGroupDTO(Integer status, String tag) {
         super(status, tag);

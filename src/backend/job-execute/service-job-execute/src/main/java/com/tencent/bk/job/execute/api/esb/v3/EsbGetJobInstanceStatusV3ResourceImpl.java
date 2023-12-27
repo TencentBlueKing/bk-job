@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
@@ -144,12 +144,12 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<ExecuteObjectTaskDetail> agentTaskList = null;
+                List<ExecuteObjectTask> agentTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptAgentTaskService.listTaskDetail(stepInstance,
+                    agentTaskList = scriptAgentTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileAgentTaskService.listTaskDetail(stepInstance,
+                    agentTaskList = fileAgentTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                     if (CollectionUtils.isNotEmpty(agentTaskList)) {
                         // 如果是文件分发任务，只返回目标Agent结果
@@ -159,7 +159,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                     }
                 }
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (ExecuteObjectTaskDetail agentTask : agentTaskList) {
+                    for (ExecuteObjectTask agentTask : agentTaskList) {
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
                         stepIpResult.setHostId(agentTask.getHostId());
                         stepIpResult.setCloudAreaId(agentTask.getBkCloudId());

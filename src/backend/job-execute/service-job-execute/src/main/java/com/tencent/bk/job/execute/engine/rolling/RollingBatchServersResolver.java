@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -55,11 +55,11 @@ public class RollingBatchServersResolver {
     /**
      * Constructor
      *
-     * @param servers     滚动执行的主机
-     * @param rollingExpr 滚动表达式
+     * @param executeObjects 滚动执行的执行对象
+     * @param rollingExpr    滚动表达式
      */
-    public RollingBatchServersResolver(List<HostDTO> servers, String rollingExpr) {
-        this.context = new RollingServerBatchContext(servers);
+    public RollingBatchServersResolver(List<ExecuteObject> executeObjects, String rollingExpr) {
+        this.context = new RollingServerBatchContext(executeObjects);
         this.rollingExpr = rollingExpr;
     }
 
@@ -68,11 +68,11 @@ public class RollingBatchServersResolver {
      *
      * @return 服务器分批情况
      */
-    public List<RollingServerBatch> resolve() {
+    public List<RollingExecuteObjectBatch> resolve() {
         RollingExpr rollingExpr = new RollingExpr(this.rollingExpr);
-        while (context.hasRemainedServer()) {
-            if (context.getServerBatches().size() > MAX_ALLOWED_ROLLING_BATCH_SIZE) {
-                log.warn("Batch {} size greater than {}", context.getServerBatches().size(),
+        while (context.hasRemainedExecuteObject()) {
+            if (context.getExecuteObjectBatches().size() > MAX_ALLOWED_ROLLING_BATCH_SIZE) {
+                log.warn("Batch {} size greater than {}", context.getExecuteObjectBatches().size(),
                     MAX_ALLOWED_ROLLING_BATCH_SIZE);
                 throw new FailedPreconditionException(ErrorCode.EXCEED_MAX_ALLOWED_BATCH_SIZE,
                     new Integer[]{MAX_ALLOWED_ROLLING_BATCH_SIZE});
@@ -81,16 +81,16 @@ public class RollingBatchServersResolver {
             context.increaseBatchCount();
 
             RollingExprPart rollingExprPart = rollingExpr.nextRollingExprPart(context.getBatchCount());
-            List<HostDTO> serversOnBatch = rollingExprPart.compute(context);
-            context.removeResolvedServers(serversOnBatch);
-            RollingServerBatch rollingServerBatch = new RollingServerBatch();
-            rollingServerBatch.setBatch(context.getBatchCount());
-            rollingServerBatch.setServers(serversOnBatch);
-            rollingServerBatch.setRollingExprPart(rollingExprPart);
-            context.addServerBatch(rollingServerBatch);
+            List<ExecuteObject> executeObjectsOnBatch = rollingExprPart.compute(context);
+            context.removeResolvedServers(executeObjectsOnBatch);
+            RollingExecuteObjectBatch rollingExecuteObjectBatch = new RollingExecuteObjectBatch();
+            rollingExecuteObjectBatch.setBatch(context.getBatchCount());
+            rollingExecuteObjectBatch. setExecuteObjects(executeObjectsOnBatch);
+            rollingExecuteObjectBatch.setRollingExprPart(rollingExprPart);
+            context.addExecuteObjectBatch(rollingExecuteObjectBatch);
         }
 
-        return context.getServerBatches();
+        return context.getExecuteObjectBatches();
     }
 
 }

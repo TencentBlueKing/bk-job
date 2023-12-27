@@ -56,7 +56,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -95,7 +94,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     /**
      * 文件源-GSE任务与JOB执行对象任务的映射关系
      */
-    private final Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> sourceExecuteObjectTaskMap;
+    private final Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceExecuteObjectTaskMap;
     /**
      * 任务包含的源服务器
      */
@@ -179,12 +178,12 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> targetExecuteObjectTaskMap,
-                                Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> sourceExecuteObjectTaskMap,
+                                Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTaskMap,
+                                Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceExecuteObjectTaskMap,
                                 GseTaskDTO gseTask,
                                 Map<JobFile, FileDest> srcDestFileMap,
                                 String requestId,
-                                List<ExecuteObjectTaskDetail> executeObjectTasks) {
+                                List<ExecuteObjectTask> executeObjectTasks) {
         super(taskInstanceService,
             gseTaskService,
             logService,
@@ -502,16 +501,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             srcFile, executeObjectTask);
     }
 
-    private ExecuteObject findExecuteObject(Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> executeObjectTaskMap,
+    private ExecuteObject findExecuteObject(Map<ExecuteObjectGseKey, ExecuteObjectTask> executeObjectTaskMap,
                                             ExecuteObjectGseKey executeObjectGseKey) {
-        ExecuteObjectTaskDetail executeObjectTask = executeObjectTaskMap.get(executeObjectGseKey);
+        ExecuteObjectTask executeObjectTask = executeObjectTaskMap.get(executeObjectGseKey);
         if (executeObjectGseKey == null) {
             return null;
         }
         return executeObjectTask.getExecuteObject();
     }
 
-    private ExecuteObjectTaskDetail getExecuteObjectTask(boolean isDownloadResult,
+    private ExecuteObjectTask getExecuteObjectTask(boolean isDownloadResult,
                                                          ExecuteObjectGseKey executeObjectGseKey) {
         if (isDownloadResult) {
             return targetExecuteObjectTasks.get(executeObjectGseKey);

@@ -54,7 +54,6 @@ import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -75,7 +74,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.ArrayList;
@@ -106,7 +104,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     /**
      * 文件源-GSE任务与JOB执行对象任务的映射关系
      */
-    protected Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> sourceExecuteObjectTaskMap = new HashMap<>();
+    protected Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceExecuteObjectTaskMap = new HashMap<>();
     /**
      * 源文件与目标文件路径映射关系
      */
@@ -282,26 +280,32 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 }
             }
         }
-        List<ExecuteObjectTaskDetail> executeObjectTasks = new ArrayList<>();
+        List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
         boolean isSupportExecuteObject = stepInstance.isSupportExecuteObject();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
-            ExecuteObjectTaskDetail executeObjectTask;
-            if (isSupportExecuteObject) {
-
-            } else {
-
-            }
-
-            new ExecuteObjectTaskDetail(stepInstanceId, executeCount, batch, Exe);
+            ExecuteObjectTask executeObjectTask = new ExecuteObjectTask();
+            executeObjectTask.setStepInstanceId(stepInstanceId);
+            executeObjectTask.setExecuteCount(executeCount);
+            executeObjectTask.setBatch(batch);
             executeObjectTask.setActualExecuteCount(executeCount);
             executeObjectTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             executeObjectTask.setGseTaskId(gseTask.getId());
-            if (StringUtils.isNotEmpty(sourceHost.getAgentId())) {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
-                sourceExecuteObjectTaskMap.put(sourceHost.getAgentId(), executeObjectTask);
-            } else {
+
+            if (sourceExecuteObject.isAgentIdEmpty()) {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
+            } else {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
+                sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
             }
+
+            executeObjectTask.setExecuteObject(sourceExecuteObject);
+            if (isSupportExecuteObject) {
+                executeObjectTask.setExecuteObjectId(sourceExecuteObject.getId());
+            } else {
+                executeObjectTask.setHostId(sourceExecuteObject.getHost().getHostId());
+                executeObjectTask.setAgentId(sourceExecuteObject.getHost().getAgentId());
+            }
+
             executeObjectTasks.add(executeObjectTask);
         }
         fileExecuteObjectTaskService.batchSaveTasks(executeObjectTasks);

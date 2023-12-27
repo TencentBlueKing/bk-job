@@ -91,12 +91,12 @@ class PlusIncrementRollingExprPartTest {
         remainingServers.add(new HostDTO(0L, "127.0.0.3"));
         remainingServers.add(new HostDTO(0L, "127.0.0.4"));
         remainingServers.add(new HostDTO(0L, "127.0.0.5"));
-        context.setRemainedServers(remainingServers);
+        context.setRemainedExecuteObjects(remainingServers);
 
-        RollingServerBatch preRollingServerBatch = new RollingServerBatch();
-        preRollingServerBatch.setBatch(1);
-        preRollingServerBatch.setServers(Collections.singletonList(new HostDTO(0L, "127.0.0.1")));
-        context.addServerBatch(preRollingServerBatch);
+        RollingExecuteObjectBatch preRollingExecuteObjectBatch = new RollingExecuteObjectBatch();
+        preRollingExecuteObjectBatch.setBatch(1);
+        preRollingExecuteObjectBatch.setServers(Collections.singletonList(new HostDTO(0L, "127.0.0.1")));
+        context.addExecuteObjectBatch(preRollingExecuteObjectBatch);
         context.setBatchCount(1);
 
         PlusIncrementRollingExprPart plusIncrementRollingExprPart =

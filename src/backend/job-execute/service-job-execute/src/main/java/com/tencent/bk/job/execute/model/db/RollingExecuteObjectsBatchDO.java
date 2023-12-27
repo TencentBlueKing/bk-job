@@ -24,33 +24,59 @@
 
 package com.tencent.bk.job.execute.model.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 滚动执行-主机分批 DO
+ * 滚动执行-执行对象分批 DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
 @PersistenceObject
-public class RollingHostsBatchDO {
+public class RollingExecuteObjectsBatchDO {
     /**
      * 滚动执行批次
      */
     private Integer batch;
     /**
-     * 该批次的目标服务器
+     * 该批次的执行目标
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除。使用 executeObjects 替换")
     private List<HostDTO> hosts;
 
-    public RollingHostsBatchDO(Integer batch, List<HostDTO> hosts) {
+    private List<ExecuteObject> executeObjects;
+
+    public RollingExecuteObjectsBatchDO(Integer batch, List<ExecuteObject> executeObjects) {
         this.batch = batch;
-        this.hosts = hosts;
+        this.executeObjects = executeObjects;
     }
+
+    /**
+     * 获取包装过的执行对象列表
+     */
+    @JsonIgnore
+    public List<ExecuteObject> getDecorateExecuteObjects() {
+        if (executeObjects != null) {
+            return executeObjects;
+        } else if (hosts != null) {
+            return hosts.stream().map(ExecuteObject::new).collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
 }

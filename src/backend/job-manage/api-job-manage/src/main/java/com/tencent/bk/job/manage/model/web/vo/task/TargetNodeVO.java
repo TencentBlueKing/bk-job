@@ -47,7 +47,7 @@ public class TargetNodeVO {
     @ApiModelProperty(value = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
     private String type;
 
-    public void validate(boolean isCreate) throws InvalidParamException {
+    public void validate() throws InvalidParamException {
         if (id == null || id <= 0) {
             log.warn("Invalid target node id, id: {}", id);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

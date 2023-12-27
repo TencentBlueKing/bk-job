@@ -129,7 +129,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
         ListContainerByTopologyNodesReq req) {
 
         ContainerIdWithMeta containerIdWithMeta = new ContainerIdWithMeta();
-        containerIdWithMeta.setContainerId(1L);
+        containerIdWithMeta.setId(1L);
 
         PageData<ContainerIdWithMeta> result = new PageData<>();
         result.setData(Collections.singletonList(containerIdWithMeta));

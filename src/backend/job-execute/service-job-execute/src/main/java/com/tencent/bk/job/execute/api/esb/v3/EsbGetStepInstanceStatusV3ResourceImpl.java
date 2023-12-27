@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
@@ -85,11 +85,11 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         List<EsbStepInstanceStatusV3DTO.HostResult> stepHostResults = new ArrayList<>();
         List<ResultGroupDTO> resultGroups = executionResult.getResultGroups();
         for (ResultGroupDTO resultGroup : resultGroups) {
-            List<ExecuteObjectTaskDetail> agentTaskList = resultGroup.getExecuteObjectTasks();
+            List<ExecuteObjectTask> agentTaskList = resultGroup.getExecuteObjectTasks();
             if (CollectionUtils.isEmpty(agentTaskList)) {
                 continue;
             }
-            for (ExecuteObjectTaskDetail agentTask : agentTaskList) {
+            for (ExecuteObjectTask agentTask : agentTaskList) {
                 EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
                 stepHostResult.setHostId(agentTask.getHostId());
                 stepHostResult.setIp(agentTask.getIp());

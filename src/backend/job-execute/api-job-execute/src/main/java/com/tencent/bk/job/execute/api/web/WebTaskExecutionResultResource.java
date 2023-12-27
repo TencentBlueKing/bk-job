@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -144,11 +146,14 @@ public interface WebTaskExecutionResultResource {
             Long taskInstanceId
     );
 
-    @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
+    @ApiOperation(value = "获取作业步骤执行信息（废弃）", produces = "application/json")
     @GetMapping(value = {
         "/step-execution-result/{stepInstanceId}/{executeCount}",
         "/step-execution-result/{stepInstanceId}"
     })
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "发布完成后可以删除")
     Response<StepExecutionDetailVO> getStepExecutionResult(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -191,6 +196,58 @@ public interface WebTaskExecutionResultResource {
         @RequestParam(value = "order", required = false)
             Integer order
     );
+
+    @ApiOperation(value = "获取作业步骤执行信息", produces = "application/json")
+    @GetMapping(value = {
+        "/step-execution-result/{stepInstanceId}/{executeCount}",
+        "/step-execution-result/{stepInstanceId}"
+    })
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "发布完成后可以删除")
+    Response<StepExecutionDetailVO> getStepExecutionResult(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
+        @PathVariable(value = "executeCount", required = false) Integer executeCount,
+        @ApiParam(value = "滚动执行批次。如果不传表示返回最新批次，传入0表示返回全部批次", name = "batch")
+        @RequestParam(value = "batch", required = false) Integer batch,
+        @ApiParam(value = "任务执行结果", name = "resultType")
+        @RequestParam(value = "resultType", required = false)
+            Integer resultType,
+        @ApiParam(value = "用户脚本输出的结果分组tag", name = "tag")
+        @RequestParam(value = "tag", required = false)
+            String tag,
+        @ApiParam(value = "结果分组下返回的ip最大数", name = "maxIpsPerResultGroup")
+        @RequestParam(value = "maxIpsPerResultGroup", required = false)
+            Integer maxIpsPerResultGroup,
+        @ApiParam(value = "日志搜索关键词", name = "keyword", required = true)
+        @RequestParam(value = "keyword", required = false)
+            String keyword,
+        @ApiParam(value = "过滤ip,支持模糊匹配", name = "searchIp")
+        @RequestParam(value = "searchIp", required = false)
+            String searchIp,
+        @ApiParam(value = "排序字段，当前支持totalTime|cloudAreaId|exitCode", name = "orderField")
+        @RequestParam(value = "orderField", required = false)
+            String orderField,
+        @ApiParam(value = "排序顺序,0:降序;1:升序", name = "order")
+        @RequestParam(value = "order", required = false)
+            Integer order
+    );
+
 
     @ApiOperation(value = "获取快速作业的步骤执行信息", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/taskInstanceId/{taskInstanceId}"})

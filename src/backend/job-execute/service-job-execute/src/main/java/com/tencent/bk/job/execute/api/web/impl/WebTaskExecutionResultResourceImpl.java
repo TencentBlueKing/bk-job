@@ -58,7 +58,7 @@ import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
@@ -573,7 +573,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
             List<AgentTaskExecutionVO> agentTaskExecutionVOS = new ArrayList<>();
             if (resultGroup.getExecuteObjectTasks() != null) {
-                for (ExecuteObjectTaskDetail agentTask : resultGroup.getExecuteObjectTasks()) {
+                for (ExecuteObjectTask agentTask : resultGroup.getExecuteObjectTasks()) {
                     AgentTaskExecutionVO agentTaskVO = new AgentTaskExecutionVO();
                     agentTaskVO.setHostId(agentTask.getHostId());
                     agentTaskVO.setAgentId(AgentUtils.displayAsRealAgentId(agentTask.getAgentId()));
@@ -950,7 +950,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                         Integer resultType,
                                                         String tag,
                                                         String keyword) {
-        List<HostDTO> hosts = taskResultService.getHostsByResultType(username, appResourceScope.getAppId(),
+        List<HostDTO> hosts = taskResultService.getExecuteObjectsByResultType(username, appResourceScope.getAppId(),
             stepInstanceId, executeCount, batch, resultType, tag, keyword);
         return Response.buildSuccessResp(hosts);
     }

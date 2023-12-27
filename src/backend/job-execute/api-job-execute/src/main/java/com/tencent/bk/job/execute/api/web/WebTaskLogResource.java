@@ -71,12 +71,12 @@ public interface WebTaskLogResource {
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "hostId", name = "hostId")
-        @RequestParam(value = "hostId", required = false)
-            Long hostId,
-        @ApiParam(value = "ip", name = "ip")
-        @RequestParam(value = "ip", required = false)
-            String cloudIp,
+        @ApiParam(value = "执行对象类型", name = "executeObjectType")
+        @RequestParam(value = "executeObjectType", required = false)
+            Integer executeObjectType,
+        @ApiParam(value = "执行对象资源 ID", name = "executeObjectResourceId")
+        @RequestParam(value = "executeObjectResourceId", required = false)
+            Long executeObjectResourceId,
         @ApiParam(value = "重新打包", name = "repackage")
         @RequestParam(value = "repackage", required = false)
             Boolean repackage
@@ -101,11 +101,11 @@ public interface WebTaskLogResource {
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "hostId", name = "hostId")
-        @RequestParam(value = "hostId", required = false)
-            Long hostId,
-        @ApiParam(value = "ip", name = "ip")
-        @RequestParam(value = "ip", required = false)
-            String cloudIp
+        @ApiParam(value = "执行对象类型", name = "executeObjectType")
+        @RequestParam(value = "executeObjectType", required = false)
+            Integer executeObjectType,
+        @ApiParam(value = "执行对象资源 ID", name = "executeObjectResourceId")
+        @RequestParam(value = "executeObjectResourceId", required = false)
+            Long executeObjectResourceId
     );
 }

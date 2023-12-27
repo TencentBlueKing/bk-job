@@ -40,14 +40,14 @@ public interface ScriptExecuteObjectTaskDAO {
      *
      * @param tasks 任务
      */
-    void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks);
+    void batchSaveTasks(Collection<ExecuteObjectTask> tasks);
 
     /**
      * 批量更新任务
      *
      * @param tasks 任务
      */
-    void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks);
+    void batchUpdateTasks(Collection<ExecuteObjectTask> tasks);
 
     /**
      * 获取步骤成功执行的任务数量

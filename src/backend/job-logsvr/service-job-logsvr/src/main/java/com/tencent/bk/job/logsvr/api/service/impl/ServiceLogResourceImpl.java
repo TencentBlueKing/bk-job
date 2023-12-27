@@ -141,11 +141,11 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setCloudIpv6(taskExecuteObjectLog.getIpv6());
         if (StringUtils.isNotEmpty(taskExecuteObjectLog.getScriptContent())) {
             result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
-                taskExecuteObjectLog.getExecuteObjectId(),
                 taskExecuteObjectLog.getHostId(),
                 taskExecuteObjectLog.getIp(),
                 taskExecuteObjectLog.getIpv6(),
-                taskExecuteObjectLog.getScriptContent())
+                taskExecuteObjectLog.getScriptContent(),
+                0)
             );
         }
         if (CollectionUtils.isNotEmpty(taskExecuteObjectLog.getFileTaskLogs())) {

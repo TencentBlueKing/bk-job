@@ -1,6 +1,6 @@
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,17 +19,17 @@ import java.util.Set;
 @ToString
 public class RollingServerBatchContext {
     /**
-     * 需要分批的服务器
+     * 需要分批的执行对象
      */
-    private List<HostDTO> servers;
+    private List<ExecuteObject> executeObjects;
     /**
-     * 未分批的服务器
+     * 未分批的执行对象
      */
-    private List<HostDTO> remainedServers;
+    private List<ExecuteObject> remainedExecuteObjects;
     /**
-     * 需要分批的服务器数量
+     * 需要分批的执行对象数量
      */
-    private int totalServersSize;
+    private int totalExecuteObjectSize;
     /**
      * 分批数量
      */
@@ -37,18 +37,18 @@ public class RollingServerBatchContext {
     /**
      * 分批结果
      */
-    private List<RollingServerBatch> serverBatches;
+    private List<RollingExecuteObjectBatch> executeObjectBatches;
 
     /**
      * Constructor
      *
-     * @param servers 所有参与滚动的主机
+     * @param executeObjects 所有参与滚动的执行对象
      */
-    public RollingServerBatchContext(List<HostDTO> servers) {
-        this.servers = servers;
-        this.remainedServers = new ArrayList<>(this.servers);
-        this.totalServersSize = servers.size();
-        this.serverBatches = new ArrayList<>();
+    public RollingServerBatchContext(List<ExecuteObject> executeObjects) {
+        this.executeObjects = executeObjects;
+        this.remainedExecuteObjects = new ArrayList<>(this.executeObjects);
+        this.totalExecuteObjectSize = executeObjects.size();
+        this.executeObjectBatches = new ArrayList<>();
     }
 
     /**
@@ -59,32 +59,32 @@ public class RollingServerBatchContext {
     }
 
     /**
-     * 是否还有剩余服务器没有被分批
+     * 是否还有剩余执行对象没有被分批
      */
-    public boolean hasRemainedServer() {
-        return this.remainedServers.size() > 0;
+    public boolean hasRemainedExecuteObject() {
+        return this.remainedExecuteObjects.size() > 0;
     }
 
     /**
-     * 移除已经解析过的主机
+     * 移除已经解析过的执行对象
      *
-     * @param resolvedServers 已经解析(分批)过的主机
+     * @param resolvedExecuteObjects 已经解析(分批)过的执行对象
      */
-    public void removeResolvedServers(Collection<HostDTO> resolvedServers) {
-        if (resolvedServers instanceof Set) {
-            this.remainedServers.removeAll(resolvedServers);
+    public void removeResolvedServers(Collection<ExecuteObject> resolvedExecuteObjects) {
+        if (resolvedExecuteObjects instanceof Set) {
+            this.remainedExecuteObjects.removeAll(resolvedExecuteObjects);
         } else {
             // 非 Set 集合，List.removeAll() 的实现有性能瓶颈
-            this.remainedServers.removeAll(new HashSet<>(resolvedServers));
+            this.remainedExecuteObjects.removeAll(new HashSet<>(resolvedExecuteObjects));
         }
     }
 
     /**
      * 新增一批滚动主机
      *
-     * @param rollingServerBatch 一个滚动批次的主机
+     * @param rollingExecuteObjectBatch 一个滚动批次的主机
      */
-    public void addServerBatch(RollingServerBatch rollingServerBatch) {
-        this.serverBatches.add(rollingServerBatch);
+    public void addExecuteObjectBatch(RollingExecuteObjectBatch rollingExecuteObjectBatch) {
+        this.executeObjectBatches.add(rollingExecuteObjectBatch);
     }
 }

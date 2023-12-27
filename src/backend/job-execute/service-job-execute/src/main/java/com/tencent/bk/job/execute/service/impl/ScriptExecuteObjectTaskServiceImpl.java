@@ -6,7 +6,6 @@ import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -54,7 +53,7 @@ public class ScriptExecuteObjectTaskServiceImpl
     }
 
     @Override
-    public void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks) {
+    public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
@@ -84,11 +83,12 @@ public class ScriptExecuteObjectTaskServiceImpl
             // 兼容老版本数据
             executeObjectTasks = scriptAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch);
         }
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
         return executeObjectTasks;
     }
 
     @Override
-    public List<ExecuteObjectTaskDetail> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
+    public List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObject()) {
@@ -97,7 +97,8 @@ public class ScriptExecuteObjectTaskServiceImpl
             // 兼容老版本数据
             executeObjectTasks = scriptAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
         }
-        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
+        return executeObjectTasks;
     }
 
     @Override
@@ -122,6 +123,7 @@ public class ScriptExecuteObjectTaskServiceImpl
             executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
                 batch, hostId);
         }
+        fillExecuteObjectForExecuteObjectTask(stepInstance, executeObjectTask);
         return executeObjectTask;
     }
 
@@ -135,8 +137,8 @@ public class ScriptExecuteObjectTaskServiceImpl
             return resultGroups;
         }
 
-        List<ExecuteObjectTaskDetail> agentTaskDetailList = convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
-        resultGroups = groupTasks(agentTaskDetailList);
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
+        resultGroups = groupTasks(executeObjectTasks);
 
         return resultGroups.stream().sorted().collect(Collectors.toList());
     }
@@ -158,11 +160,11 @@ public class ScriptExecuteObjectTaskServiceImpl
     }
 
     @Override
-    public List<ExecuteObjectTaskDetail> listTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag) {
+    public List<ExecuteObjectTask> listTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag) {
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObject()) {
@@ -174,19 +176,19 @@ public class ScriptExecuteObjectTaskServiceImpl
                 stepInstance.getId(), executeCount, batch, status, tag);
         }
 
-        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
+        return executeObjectTasks;
     }
 
 
-    @Override
-    public List<ExecuteObjectTaskDetail> listTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                                     Integer executeCount,
-                                                                     Integer batch,
-                                                                     Integer status,
-                                                                     String tag,
-                                                                     Integer limit,
-                                                                     String orderField,
-                                                                     Order order) {
+    public List<ExecuteObjectTask> listTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                         Integer executeCount,
+                                                         Integer batch,
+                                                         Integer status,
+                                                         String tag,
+                                                         Integer limit,
+                                                         String orderField,
+                                                         Order order) {
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObject()) {
@@ -198,15 +200,8 @@ public class ScriptExecuteObjectTaskServiceImpl
                 batch, status, tag, limit, orderField, order);
         }
 
-        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
-    }
-
-    @Override
-    public List<ExecuteObjectTaskDetail> listTaskDetail(StepInstanceBaseDTO stepInstance,
-                                                        Integer executeCount,
-                                                        Integer batch) {
-        List<ExecuteObjectTask> executeObjectTasks = listTasks(stepInstance, executeCount, batch);
-        return convertToExecuteObjectDetailList(stepInstance, executeObjectTasks);
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
+        return executeObjectTasks;
     }
 
     private boolean isStepInstanceRecordExist(long stepInstanceId) {

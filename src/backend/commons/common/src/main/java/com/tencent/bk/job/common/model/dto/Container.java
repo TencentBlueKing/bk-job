@@ -49,7 +49,7 @@ public class Container implements Cloneable {
      * 容器在 cmdb 注册的 ID
      */
     @JsonProperty("id")
-    private String id;
+    private Long id;
 
     /**
      * 容器 UID
@@ -100,9 +100,9 @@ public class Container implements Cloneable {
     @SuppressWarnings("all")
     public Container clone() {
         Container clone = new Container();
+        clone.setId(id);
         clone.setHostId(hostId);
         clone.setAgentId(agentId);
-        clone.setId(id);
         clone.setContainerId(containerId);
         clone.setPodLabels(podLabels);
         clone.setClusterId(clusterId);

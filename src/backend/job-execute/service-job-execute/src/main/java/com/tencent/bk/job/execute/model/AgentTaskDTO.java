@@ -25,15 +25,13 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * GSE Agent 任务
@@ -43,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 @ToString
 @NoArgsConstructor
 @Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x")
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public class AgentTaskDTO {
     /**
      * 步骤实例ID
@@ -73,13 +71,6 @@ public class AgentTaskDTO {
      * Agent ID
      */
     private String agentId;
-    /**
-     * 服务器云区域+IP
-     */
-    @Deprecated
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续AgentTask仅包含hostId,不再存储具体的IP数据",
-        deprecatedVersion = "3.7.x")
-    private String cloudIp;
     /**
      * 任务状态
      */
@@ -151,7 +142,6 @@ public class AgentTaskDTO {
         this.fileTaskMode = agentTask.getFileTaskMode();
         this.hostId = agentTask.getHostId();
         this.agentId = agentTask.getAgentId();
-        this.cloudIp = agentTask.getCloudIp();
         this.status = agentTask.getStatus();
         this.startTime = agentTask.getStartTime();
         this.endTime = agentTask.getEndTime();
@@ -242,27 +232,10 @@ public class AgentTaskDTO {
         return !(fileTaskMode != null && fileTaskMode == FileTaskModeEnum.UPLOAD);
     }
 
-    public HostDTO getHost() {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setAgentId(agentId);
-        if (StringUtils.isNotEmpty(cloudIp)) {
-            String[] ipProps = cloudIp.split(IpUtils.COLON);
-            host.setBkCloudId(Long.valueOf(ipProps[0]));
-            host.setIp(ipProps[1]);
-        }
-
-        return host;
-    }
-
     /**
      * 任务是否执行成功
      */
     public boolean isSuccess() {
         return ExecuteObjectTaskStatusEnum.isSuccess(status);
-    }
-
-    public boolean isAgentIdEmpty() {
-        return StringUtils.isEmpty(agentId);
     }
 }

@@ -22,47 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.web.vo;
 
-public interface TaskInstanceExecuteObjectService {
-//    /**
-//     * 批量保存执行对象
-//     *
-//     * @param executeObjects 执行对象
-//     */
-//    void batchSaveExecuteObjects(Collection<ExecuteObject> executeObjects);
-//
-//    /**
-//     * 根据作业实例ID获取执行对象
-//     *
-//     * @param jobInstanceId 作业实例ID
-//     * @return 执行对象
-//     */
-//    List<ExecuteObject> listExecuteObjectsByJobInstanceId(long jobInstanceId);
-//
-//    /**
-//     * 根据执行对象ID批量查询执行对象
-//     *
-//     * @param executeObjectIds 执行对象ID集合
-//     * @return 执行对象
-//     */
-//    List<ExecuteObject> listExecuteObjectsByIds(Collection<Long> executeObjectIds);
-//
-//
-//    /**
-//     * 根据执行对象ID查询执行对象
-//     *
-//     * @param executeObjectId 执行对象ID
-//     * @return 执行对象
-//     */
-//    ExecuteObject getExecuteObjectById(long executeObjectId);
-//
-//    /**
-//     * 根据执行对象ID查询执行对象
-//     *
-//     * @param executeObjectType 执行对象类型
-//     * @param resourceId        执行对象资源ID
-//     * @return 执行对象
-//     */
-//    ExecuteObject getExecuteObject(ExecuteObjectTypeEnum executeObjectType, String resourceId);
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@ApiModel("执行结果分组")
+public class ExecutionResultGroupV2VO {
+    @ApiModelProperty("执行结果")
+    private Integer resultType;
+    @ApiModelProperty("执行结果描述")
+    private String resultTypeDesc;
+    @ApiModelProperty("用户通过job_success/job_fail自定义的结果分类tag")
+    private String tag;
+    @ApiModelProperty("执行对象对应的任务执行情况")
+    private List<ExecuteObjectTaskVO> tasks;
+    @ApiModelProperty("结果分组下的执行对象任务数")
+    private int taskSize;
+
 }

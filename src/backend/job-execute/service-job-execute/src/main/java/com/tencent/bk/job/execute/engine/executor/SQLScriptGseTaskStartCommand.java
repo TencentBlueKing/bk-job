@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
-import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -175,11 +174,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         builder.addScriptFile(scriptFilePath, publicScriptName, publicScriptContent);
         builder.addScriptFile(scriptFilePath, sqlScriptFileName, sqlScriptContent);
 
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-
-        List<Agent> agentList = gseClient.buildAgents(targetExecuteObjectTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
+        List<Agent> agentList = buildTargetAgents();
 
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),
             timeout);

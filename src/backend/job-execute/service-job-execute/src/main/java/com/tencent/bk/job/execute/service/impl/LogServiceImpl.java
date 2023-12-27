@@ -425,19 +425,45 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<HostDTO> getHostsByContentKeyword(long stepInstanceId, int executeCount, Integer batch,
-                                                  String keyword) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+    public List<ExecuteObjectCompositeKey> getExecuteObjectsCompositeKeysByContentKeyword(
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        String keyword
+    ) {
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
-        InternalResponse<List<HostDTO>> resp = logResource.questHostsByLogKeyword(taskCreateDateStr,
-            stepInstanceId, executeCount, batch, keyword);
-
-        if (!resp.isSuccess()) {
-            log.error("Search ips by keyword error, stepInstanceId={}, executeCount={}, keyword={}", stepInstanceId,
-                executeCount, keyword);
-            throw new InternalException(resp.getCode());
+        long stepInstanceId = stepInstance.getId();
+        if (stepInstance.isSupportExecuteObject()) {
+            InternalResponse<List<String>> resp = logResource.queryExecuteObjectsByLogKeyword(taskCreateDateStr,
+                stepInstanceId, executeCount, batch, keyword);
+            if (!resp.isSuccess()) {
+                log.error("Search execute object by keyword error, stepInstanceId={}, executeCount={}, keyword={}",
+                    stepInstanceId, executeCount, keyword);
+                throw new InternalException(resp.getCode());
+            }
+            List<String> matchExecuteObjectIds = resp.getData();
+            if (CollectionUtils.isEmpty(matchExecuteObjectIds)) {
+                return Collections.emptyList();
+            }
+            return matchExecuteObjectIds.stream()
+                .map(ExecuteObjectCompositeKey::ofExecuteObjectId)
+                .collect(Collectors.toList());
+        } else {
+            InternalResponse<List<HostDTO>> resp = logResource.questHostsByLogKeyword(taskCreateDateStr,
+                stepInstanceId, executeCount, batch, keyword);
+            if (!resp.isSuccess()) {
+                log.error("Search host by keyword error, stepInstanceId={}, executeCount={}, keyword={}",
+                    stepInstanceId, executeCount, keyword);
+                throw new InternalException(resp.getCode());
+            }
+            List<HostDTO> matchHosts = resp.getData();
+            if (CollectionUtils.isEmpty(matchHosts)) {
+                return Collections.emptyList();
+            }
+            return matchHosts.stream()
+                .map(host -> ExecuteObjectCompositeKey.ofHostId(host.getHostId()))
+                .collect(Collectors.toList());
         }
-        return resp.getData();
     }
 
     public void writeFileLogsWithTimestamp(long jobCreateTime,

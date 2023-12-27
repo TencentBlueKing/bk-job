@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,6 +66,10 @@ public class ExecuteObjectTask {
      * 执行对象 ID
      */
     private String executeObjectId;
+    /**
+     * 执行对象
+     */
+    private ExecuteObject executeObject;
     /**
      * 主机 ID
      */
@@ -150,6 +155,7 @@ public class ExecuteObjectTask {
         this.batch = executeObjectTask.getBatch();
         this.fileTaskMode = executeObjectTask.getFileTaskMode();
         this.executeObjectId = executeObjectTask.getExecuteObjectId();
+        this.executeObject = executeObjectTask.getExecuteObject();
         this.hostId = executeObjectTask.getHostId();
         this.agentId = executeObjectTask.getAgentId();
         this.status = executeObjectTask.getStatus();

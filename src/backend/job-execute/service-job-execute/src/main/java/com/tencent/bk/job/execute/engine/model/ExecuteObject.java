@@ -67,6 +67,11 @@ public class ExecuteObject implements Cloneable {
     private ExecuteObjectTypeEnum type;
 
     /**
+     * 执行对象资源 ID（主机 ID/容器 ID)
+     */
+    private Long resourceId;
+
+    /**
      * 容器
      */
     private Container container;
@@ -82,19 +87,16 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     private ExecuteObjectGseKey executeObjectGseKey;
 
-    /**
-     * 执行对象对应的组合KEY
-     */
-    private ExecuteObjectCompositeKey executeObjectCompositeKey;
-
     public ExecuteObject(Container container) {
         this.type = ExecuteObjectTypeEnum.CONTAINER;
         this.container = container;
+        this.resourceId = container.getId();
     }
 
     public ExecuteObject(HostDTO host) {
         this.type = ExecuteObjectTypeEnum.HOST;
         this.host = host;
+        this.resourceId = host.getHostId();
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -107,19 +109,14 @@ public class ExecuteObject implements Cloneable {
         ExecuteObject clone = new ExecuteObject();
         clone.setId(id);
         clone.setType(type);
+        clone.setResourceId(resourceId);
         if (host != null) {
             clone.setHost(host.clone());
         }
         if (container != null) {
-            clone.setContainer(container);
+            clone.setContainer(container.clone());
         }
         return clone;
-    }
-
-    @JsonIgnore
-    public boolean isExecuteObjectFeatureEnabled() {
-        // 如果执行对象的特性生效，那么这里的 ID 不为空
-        return StringUtils.isNotEmpty(id);
     }
 
     @JsonIgnore
@@ -169,11 +166,45 @@ public class ExecuteObject implements Cloneable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExecuteObject that = (ExecuteObject) o;
-        return getExecuteObjectGseKey().equals(that.getExecuteObjectGseKey());
+        if (id != null) {
+            // 优先使用 ID 计算
+            return id.equals(that.getId());
+        } else if (type != null && resourceId != null) {
+            return type == that.getType() && resourceId.equals(that.getResourceId());
+        } else {
+            return false;
+        }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getExecuteObjectGseKey());
+        return Objects.hash(type.getValue(), resourceId);
+    }
+
+    /**
+     * 获取可读性的执行对象名称
+     */
+    @JsonIgnore
+    public String getExecuteObjectName() {
+        if (isHost()) {
+            return host.getPrimaryIp();
+        } else if (isContainer()) {
+            return container.getContainerId();
+        } else {
+            return null;
+        }
+    }
+
+    public ExecuteObjectCompositeKey toExecuteObjectCompositeKey(
+        ExecuteObjectCompositeKey.CompositeKeyType compositeKeyType) {
+        switch (compositeKeyType) {
+            case EXECUTE_OBJECT_ID:
+                return ExecuteObjectCompositeKey.ofExecuteObjectId(id);
+            case RESOURCE_ID:
+                return ExecuteObjectCompositeKey.ofExecuteObjectResource(type, resourceId);
+            case HOST_CLOUD_IP:
+                return ExecuteObjectCompositeKey.ofHostIp(host.toCloudIp());
+        }
+        return null;
     }
 }

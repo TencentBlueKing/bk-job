@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
@@ -183,15 +182,18 @@ public interface LogService {
     );
 
     /**
-     * 根据关键字获取对应的ip
+     * 根据日志关键字获取对应的执行对象KEY
      *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          滚动执行批次;非滚动步骤传入null
-     * @param keyword        关键字
-     * @return ips
+     * @param stepInstance 步骤实例
+     * @param executeCount 执行次数
+     * @param batch        滚动执行批次;非滚动步骤传入null
+     * @param keyword      关键字
+     * @return 执行对象列表¬
      */
-    List<HostDTO> getHostsByContentKeyword(long stepInstanceId, int executeCount, Integer batch, String keyword);
+    List<ExecuteObjectCompositeKey> getExecuteObjectsCompositeKeysByContentKeyword(StepInstanceBaseDTO stepInstance,
+                                                                                   int executeCount,
+                                                                                   Integer batch,
+                                                                                   String keyword);
 
     /**
      * 写文件日志日志 - 指定时间

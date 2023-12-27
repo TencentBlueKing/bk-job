@@ -40,10 +40,6 @@ public class ExecuteObjectCompositeKey {
      * 执行对象复合 KEY 的类型
      */
     private CompositeKeyType compositeKeyType;
-    /**
-     * 执行对象类型
-     */
-    private ExecuteObjectTypeEnum executeObjectType;
 
 
     /**
@@ -52,6 +48,10 @@ public class ExecuteObjectCompositeKey {
     private String executeObjectId;
 
 
+    /**
+     * 执行对象类型
+     */
+    private ExecuteObjectTypeEnum executeObjectType;
     /**
      * 执行对象对应资源的 ID
      */
@@ -75,15 +75,30 @@ public class ExecuteObjectCompositeKey {
     }
 
 
-    public static ExecuteObjectCompositeKey of(ExecuteObjectTypeEnum executeObjectType, String executeObjectId) {
+    public static ExecuteObjectCompositeKey ofExecuteObjectId(String executeObjectId) {
         ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
         key.setCompositeKeyType(CompositeKeyType.EXECUTE_OBJECT_ID);
-        key.setExecuteObjectType(executeObjectType);
         key.setExecuteObjectId(executeObjectId);
         return key;
     }
 
-    public static ExecuteObjectCompositeKey ofHost(Long hostId) {
+    public static ExecuteObjectCompositeKey ofExecuteObjectResource(
+        ExecuteObjectTypeEnum executeObjectType, Long executeObjectResourceId) {
+        ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
+        key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
+        key.setExecuteObjectType(executeObjectType);
+        switch (executeObjectType) {
+            case HOST:
+                key.setHostId(executeObjectResourceId);
+                break;
+            case CONTAINER:
+                key.setContainerId(executeObjectResourceId);
+                break;
+        }
+        return key;
+    }
+
+    public static ExecuteObjectCompositeKey ofHostId(Long hostId) {
         ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
         key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
         key.setResourceId(hostId);
@@ -92,7 +107,7 @@ public class ExecuteObjectCompositeKey {
         return key;
     }
 
-    public static ExecuteObjectCompositeKey ofHost(String cloudIp) {
+    public static ExecuteObjectCompositeKey ofHostIp(String cloudIp) {
         ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
         key.setCompositeKeyType(CompositeKeyType.HOST_CLOUD_IP);
         key.setExecuteObjectType(ExecuteObjectTypeEnum.HOST);
@@ -100,7 +115,7 @@ public class ExecuteObjectCompositeKey {
         return key;
     }
 
-    public static ExecuteObjectCompositeKey ofContainer(Long containerId) {
+    public static ExecuteObjectCompositeKey ofContainerId(Long containerId) {
         ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
         key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
         key.setResourceId(containerId);
@@ -135,7 +150,7 @@ public class ExecuteObjectCompositeKey {
             case EXECUTE_OBJECT_ID:
                 return Objects.hash(compositeKeyType, executeObjectId);
             case RESOURCE_ID:
-                return Objects.hash(compositeKeyType, resourceId);
+                return Objects.hash(compositeKeyType, executeObjectType.getValue(), resourceId);
             case HOST_CLOUD_IP:
                 return Objects.hash(compositeKeyType, cloudIp);
             default:
@@ -143,7 +158,7 @@ public class ExecuteObjectCompositeKey {
         }
     }
 
-    private enum CompositeKeyType {
+    public enum CompositeKeyType {
         EXECUTE_OBJECT_ID(1),
         RESOURCE_ID(2),
         HOST_CLOUD_IP(3);

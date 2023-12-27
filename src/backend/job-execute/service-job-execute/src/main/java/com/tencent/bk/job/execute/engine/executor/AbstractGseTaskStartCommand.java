@@ -41,7 +41,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
@@ -92,7 +91,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     /**
      * GSE任务与JOB执行对象任务的映射关系
      */
-    protected Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> targetExecuteObjectTaskMap = new HashMap<>();
+    protected Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTaskMap = new HashMap<>();
     /**
      * 全局参数分析结果
      */
@@ -108,7 +107,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     /**
      * 执行对象任务列表
      */
-    protected List<ExecuteObjectTaskDetail> executeObjectTasks;
+    protected List<ExecuteObjectTask> executeObjectTasks;
 
 
     AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
@@ -246,7 +245,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                     executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
     }
 
-    private void updateUninstalledExecuteObjectTasks(Collection<ExecuteObjectTaskDetail> executeObjectTasks) {
+    private void updateUninstalledExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
         List<ExecuteObjectTask> invalidExecuteObjectTasks = executeObjectTasks.stream()
             .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty())
             .collect(Collectors.toList());

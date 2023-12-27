@@ -39,7 +39,8 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
@@ -132,22 +133,22 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
                 new EsbStepInstanceResultAndLog.StepInstResultDTO();
             stepInstResult.setIpStatus(resultGroup.getStatus());
             stepInstResult.setTag(resultGroup.getTag());
-            List<ExecuteObjectTaskDetail> agentTasks = resultGroup.getExecuteObjectTasks();
-            addLogContent(stepInstance, agentTasks);
+            List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
+            addLogContent(stepInstance, executeObjectTasks);
             List<EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO> esbGseAgentTaskList =
-                Lists.newArrayListWithCapacity(agentTasks.size());
-            for (ExecuteObjectTaskDetail agentTask : agentTasks) {
+                Lists.newArrayListWithCapacity(executeObjectTasks.size());
+            for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
                 EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO esbGseAgentTaskDTO =
                     new EsbStepInstanceResultAndLog.EsbGseAgentTaskDTO();
-                esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(agentTask.getScriptLogContent()));
-                esbGseAgentTaskDTO.setExecuteCount(agentTask.getExecuteCount());
-                esbGseAgentTaskDTO.setEndTime(agentTask.getEndTime());
-                esbGseAgentTaskDTO.setStartTime(agentTask.getStartTime());
-                esbGseAgentTaskDTO.setErrCode(agentTask.getErrorCode());
-                esbGseAgentTaskDTO.setExitCode(agentTask.getExitCode());
-                esbGseAgentTaskDTO.setTotalTime(agentTask.getTotalTime());
-                esbGseAgentTaskDTO.setCloudAreaId(agentTask.getBkCloudId());
-                esbGseAgentTaskDTO.setIp(agentTask.getIp());
+                esbGseAgentTaskDTO.setLogContent(Utils.htmlEncode(executeObjectTask.getScriptLogContent()));
+                esbGseAgentTaskDTO.setExecuteCount(executeObjectTask.getExecuteCount());
+                esbGseAgentTaskDTO.setEndTime(executeObjectTask.getEndTime());
+                esbGseAgentTaskDTO.setStartTime(executeObjectTask.getStartTime());
+                esbGseAgentTaskDTO.setErrCode(executeObjectTask.getErrorCode());
+                esbGseAgentTaskDTO.setExitCode(executeObjectTask.getExitCode());
+                esbGseAgentTaskDTO.setTotalTime(executeObjectTask.getTotalTime());
+                esbGseAgentTaskDTO.setCloudAreaId(executeObjectTask.getExecuteObject().getHost().getBkCloudId());
+                esbGseAgentTaskDTO.setIp(executeObjectTask.getExecuteObject().getHost().getIp());
                 esbGseAgentTaskList.add(esbGseAgentTaskDTO);
             }
             stepInstResult.setIpLogs(esbGseAgentTaskList);
@@ -165,20 +166,20 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
         return ValidateResult.pass();
     }
 
-    private void addLogContent(StepInstanceBaseDTO stepInstance, List<ExecuteObjectTaskDetail> agentTasks) {
+    private void addLogContent(StepInstanceBaseDTO stepInstance, List<ExecuteObjectTask> executeObjectTasks) {
         long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
 
-        for (ExecuteObjectTaskDetail agentTask : agentTasks) {
+        for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
             if (stepInstance.isScriptStep()) {
-                ScriptExecuteObjectLogContent scriptExecuteObjectLogContent = logService.getScriptExecuteObjectLogContent(stepInstanceId,
-                    executeCount,
-                    null, agentTask.getHost());
-                agentTask.setScriptLogContent(scriptExecuteObjectLogContent == null ? "" : scriptExecuteObjectLogContent.getContent());
+                ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
+                    logService.getScriptExecuteObjectLogContent(stepInstance, executeCount,
+                        null, ExecuteObjectCompositeKey.ofHost());
+                executeObjectTask.setScriptLogContent(scriptExecuteObjectLogContent == null ? "" : scriptExecuteObjectLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
                 FileExecuteObjectLogContent fileExecuteObjectLogContent = logService.getFileExecuteObjectLogContent(stepInstanceId, executeCount,
-                    null, agentTask.getHost(), FileDistModeEnum.DOWNLOAD.getValue());
-                agentTask.setScriptLogContent(fileExecuteObjectLogContent == null ? "" : fileExecuteObjectLogContent.getContent());
+                    null, executeObjectTask.getHost(), FileDistModeEnum.DOWNLOAD.getValue());
+                executeObjectTask.setScriptLogContent(fileExecuteObjectLogContent == null ? "" : fileExecuteObjectLogContent.getContent());
             }
         }
     }

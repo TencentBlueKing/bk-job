@@ -27,17 +27,17 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
-import com.tencent.bk.job.execute.engine.rolling.RollingServerBatch;
+import com.tencent.bk.job.execute.engine.rolling.RollingExecuteObjectBatch;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
-import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
+import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
 import com.tencent.bk.job.execute.model.db.StepRollingConfigDO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +62,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public List<HostDTO> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch) {
+    public List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch) {
         long rollingConfigId = stepInstance.getRollingConfigId();
         long stepInstanceId = stepInstance.getId();
 
@@ -71,9 +71,9 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
             if (batch == null || batch == 0) {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
-                return stepInstance.getTargetExecuteObjects().getIpList();
+                return stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects();
             } else {
-                return rollingConfig.getConfigDetail().getHostsBatchList()
+                return rollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList()
                     .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
                     .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getHosts();
             }
@@ -100,15 +100,16 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
 
         RollingBatchServersResolver resolver =
-            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetExecuteObjects().getIpList(),
+            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetExecuteObjects().getDecorateExecuteObjects(),
                 rollingConfig.getExpr());
-        List<RollingServerBatch> serversBatchList = resolver.resolve();
+        List<RollingExecuteObjectBatch> serversBatchList = resolver.resolve();
         rollingConfigDetailDO.setHostsBatchList(
             serversBatchList.stream()
                 .map(rollingServerBatch ->
-                    new RollingHostsBatchDO(rollingServerBatch.getBatch(), rollingServerBatch.getServers()))
+                    new RollingExecuteObjectsBatchDO(rollingServerBatch.getBatch(),
+                        rollingServerBatch.getExecuteObjects()))
                 .collect(Collectors.toList()));
-        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getHostsBatchList().size());
+        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getDecorateExecuteObjectsBatchList().size());
         taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
 
         rollingConfigDetailDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));

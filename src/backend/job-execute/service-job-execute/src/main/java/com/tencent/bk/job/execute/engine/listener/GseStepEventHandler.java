@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.RollingHostsBatchDO;
+import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -289,8 +289,8 @@ public class GseStepEventHandler implements StepEventHandler {
             // 如果是第一批次的执行，需要提前初始化所有批次的执行对象任务（作业详情查询主机任务列表需要)
             List<ExecuteObjectTask> agentTasks = new ArrayList<>();
             if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
-                List<RollingHostsBatchDO> serverBatchList =
-                    rollingConfig.getConfigDetail().getHostsBatchList();
+                List<RollingExecuteObjectsBatchDO> serverBatchList =
+                    rollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList();
                 serverBatchList.forEach(serverBatch -> {
                     agentTasks.addAll(
                         buildInitialGseAgentTasks(
@@ -313,10 +313,10 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             // 滚动执行步骤除了第一批次，后续的批次仅更新 AgentTask 的 actualExecuteCount、gse_task_id
             if (stepInstance.isScriptStep()) {
-                scriptAgentTaskService.updateTaskFields(stepInstanceId, executeCount, batch, executeCount,
+                scriptAgentTaskService.updateTaskFields(stepInstance, executeCount, batch, executeCount,
                     gseTaskId);
             } else if (stepInstance.isFileStep()) {
-                fileAgentTaskService.updateTaskFields(stepInstanceId, executeCount, batch, executeCount,
+                fileAgentTaskService.updateTaskFields(stepInstance, executeCount, batch, executeCount,
                     gseTaskId);
             }
         }
@@ -562,9 +562,9 @@ public class GseStepEventHandler implements StepEventHandler {
     private List<ExecuteObjectTask> listTargetAgentTasks(StepInstanceBaseDTO stepInstance, int executeCount) {
         List<ExecuteObjectTask> agentTasks = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            agentTasks = scriptAgentTaskService.listTasks(stepInstance.getId(), executeCount, null);
+            agentTasks = scriptAgentTaskService.listTasks(stepInstance, executeCount, null);
         } else if (stepInstance.isFileStep()) {
-            agentTasks = fileAgentTaskService.listTasks(stepInstance.getId(), executeCount, null,
+            agentTasks = fileAgentTaskService.listTasks(stepInstance, executeCount, null,
                 FileTaskModeEnum.DOWNLOAD);
         }
         return agentTasks;

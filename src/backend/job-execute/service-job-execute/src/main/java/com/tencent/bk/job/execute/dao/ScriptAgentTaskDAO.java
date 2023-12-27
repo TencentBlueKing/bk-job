@@ -44,14 +44,14 @@ public interface ScriptAgentTaskDAO {
      *
      * @param agentTasks Agent任务
      */
-    void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks);
+    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks);
+    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量

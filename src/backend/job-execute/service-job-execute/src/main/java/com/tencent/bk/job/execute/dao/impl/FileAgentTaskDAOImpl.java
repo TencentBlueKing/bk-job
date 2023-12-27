@@ -90,7 +90,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchSaveAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
+    public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_file_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + "mode, host_id, agent_id ,gse_task_id,status, start_time, end_time, total_time, error_code)"
             + " values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -117,7 +117,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
-    public void batchUpdateAgentTasks(Collection<? extends ExecuteObjectTask> agentTasks) {
+    public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }

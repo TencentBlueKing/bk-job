@@ -25,8 +25,6 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -35,12 +33,9 @@ import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("步骤执行详情-废弃")
+@ApiModel("步骤执行详情")
 @Data
-@Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-    explain = "使用 StepExecuteDetailV2VO 参数替换。发布完成后可以删除")
-public class StepExecutionDetailVO {
+public class StepExecutionDetailV2VO {
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
     @ApiModelProperty("执行次数,默认为0")
@@ -63,8 +58,8 @@ public class StepExecutionDetailVO {
     private Integer status;
     @ApiModelProperty("步骤状态描述")
     private String statusDesc;
-    @ApiModelProperty("Agent作业执行结果分组")
-    private List<ExecutionResultGroupVO> resultGroups;
+    @ApiModelProperty("任务执行结果分组")
+    private List<ExecutionResultGroupV2VO> resultGroups;
     @ApiModelProperty("是否是作业中最后一个步骤")
     private Boolean isLastStep;
     @ApiModelProperty("步骤类型，1-脚本，2-文件，3-人工确认")

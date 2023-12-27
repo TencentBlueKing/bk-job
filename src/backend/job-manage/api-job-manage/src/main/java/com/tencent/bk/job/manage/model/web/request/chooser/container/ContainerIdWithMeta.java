@@ -34,7 +34,7 @@ import java.util.Map;
 @ApiModel("容器ID及元数据")
 public class ContainerIdWithMeta {
     @ApiModelProperty(value = "容器资源 ID", required = true)
-    private Long containerId;
+    private Long id;
 
     @ApiModelProperty(value = "容器元数据；Job不支持")
     Map<String, Object> meta;

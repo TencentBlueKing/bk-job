@@ -45,7 +45,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -134,11 +133,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 执行对象任务列表
      */
-    protected List<ExecuteObjectTaskDetail> executeObjectTasks;
+    protected List<ExecuteObjectTask> executeObjectTasks;
     /**
      * GSE任务与JOB执行对象任务的映射关系
      */
-    protected Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> targetExecuteObjectTasks;
+    protected Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTasks;
     /**
      * 全局参数分析结果
      */
@@ -226,10 +225,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<ExecuteObjectGseKey, ExecuteObjectTaskDetail> targetExecuteObjectTasks,
+                                       Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTasks,
                                        GseTaskDTO gseTask,
                                        String requestId,
-                                       List<ExecuteObjectTaskDetail> executeObjectTasks) {
+                                       List<ExecuteObjectTask> executeObjectTasks) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -603,7 +602,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      *
      * @param executeObjectTasks 执行对象任务列表
      */
-    protected void batchSaveChangedGseAgentTasks(Collection<ExecuteObjectTaskDetail> executeObjectTasks) {
+    protected void batchSaveChangedGseAgentTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
         if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
             List<ExecuteObjectTask> changedGseAgentTasks =
                 executeObjectTasks.stream().filter(ExecuteObjectTask::isChanged).collect(Collectors.toList());

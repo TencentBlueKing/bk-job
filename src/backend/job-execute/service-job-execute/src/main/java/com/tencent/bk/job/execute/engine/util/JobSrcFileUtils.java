@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.engine.util;
 
 import com.google.common.collect.Sets;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
@@ -66,7 +66,8 @@ public class JobSrcFileUtils {
             // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
             String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir,
                 srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" :
-                    srcFile.getHost().getBkCloudId() + "_" + srcFile.getHost().getPrimaryIp());
+                    srcFile.getExecuteObject().getHost().getBkCloudId() + "_"
+                        + srcFile.getExecuteObject().getHost().getPrimaryIp());
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
@@ -122,27 +123,28 @@ public class JobSrcFileUtils {
                 // 远程服务器文件分发
                 Long accountId = fileSource.getAccountId();
                 String accountAlias = fileSource.getAccountAlias();
+                boolean isSupportExecuteObject = stepInstance.isSupportExecuteObject();
                 // 远程文件
-                List<HostDTO> sourceHosts = fileSource.getServers().getIpList();
                 for (FileDetailDTO file : files) {
                     String filePath = StringUtils.isNotEmpty(file.getResolvedFilePath()) ? file.getResolvedFilePath()
                         : file.getFilePath();
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(filePath);
                     String dir = fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    for (HostDTO sourceHost : sourceHosts) {
+                    List<ExecuteObject> sourceExecuteObjects = fileSource.getServers().getDecorateExecuteObjects();
+                    for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
                         // 第三方源文件的displayName不同
                         if (isThirdFile) {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceHost,
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceExecuteObject,
                                 file.getThirdFilePathWithFileSourceName(),
                                 file.getThirdFilePathWithFileSourceName(),
                                 dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
                         } else {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceHost, filePath, filePath, dir,
-                                fileName, stepInstance.getAppId(), accountId, accountAlias));
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceExecuteObject,
+                                filePath, filePath, dir, fileName, stepInstance.getAppId(), accountId,
+                                accountAlias));
                         }
                     }
-
                 }
             } else if (fileSource.getFileType() == TaskFileTypeEnum.LOCAL.getType()) {
                 // 本地文件
@@ -152,10 +154,10 @@ public class JobSrcFileUtils {
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
                     ExecuteObjectsDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isNotEmpty(servers.getIpList())) {
-                        List<HostDTO> ipList = servers.getIpList();
-                        for (HostDTO hostDTO : ipList) {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, hostDTO, file.getFilePath(), dir,
+                    if (servers != null && CollectionUtils.isNotEmpty(servers.getDecorateExecuteObjects())) {
+                        List<ExecuteObject> executeObjects = servers.getDecorateExecuteObjects();
+                        for (ExecuteObject executeObject : executeObjects) {
+                            sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,
                                 fileName, "root", null,
                                 FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                         }
@@ -168,9 +170,9 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<HostDTO> ipList = fileSource.getServers().getIpList();
-                    for (HostDTO hostDTO : ipList) {
-                        sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, hostDTO, file.getFilePath(), dir,
+                    List<ExecuteObject> executeObjects = fileSource.getServers().getDecorateExecuteObjects();
+                    for (ExecuteObject executeObject : executeObjects) {
+                        sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, executeObject, file.getFilePath(), dir,
                             fileName, "root", null,
                             FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
                     }

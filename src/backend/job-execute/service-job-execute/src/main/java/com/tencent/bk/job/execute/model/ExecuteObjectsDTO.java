@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
@@ -34,6 +35,7 @@ import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.vo.TaskContainerNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -356,6 +358,72 @@ public class ExecuteObjectsDTO implements Cloneable {
             }
         } else {
             throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
+        }
+    }
+
+    public static ExecuteObjectsDTO fromTaskTargetVO(TaskTargetVO target) {
+
+        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+
+        // 处理主机
+        if (target.getHostNodeInfo() != null) {
+            TaskHostNodeVO hostNode = target.getHostNodeInfo();
+            if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
+                List<HostDTO> hostList = new ArrayList<>();
+                hostNode.getHostList().forEach(host -> {
+                    HostDTO targetHost = new HostDTO();
+                    if (host.getHostId() != null) {
+                        targetHost.setHostId(host.getHostId());
+                    }
+                    hostList.add(targetHost);
+                });
+                executeObjectsDTO.setStaticIpList(hostList);
+            }
+            if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
+                List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
+                hostNode.getDynamicGroupIdList().forEach(
+                    groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
+                executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
+            }
+            if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
+                List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
+                hostNode.getNodeList().forEach(
+                    topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(),
+                        topoNode.getObjectId())));
+                executeObjectsDTO.setTopoNodes(topoNodes);
+            }
+        }
+
+        // 处理容器
+        if (target.getContainerNodeInfo() != null) {
+            TaskContainerNodeVO containerNodeInfo = target.getContainerNodeInfo();
+            if (CollectionUtils.isNotEmpty(containerNodeInfo.getContainerList())) {
+                List<Container> containerList = new ArrayList<>();
+                containerNodeInfo.getContainerList().forEach(container -> {
+                    Container targetContainer = new Container();
+                    if (container.getId() != null) {
+                        targetContainer.setId(container.getId());
+                    }
+                    containerList.add(targetContainer);
+                });
+                executeObjectsDTO.setStaticContainerList(containerList);
+            }
+        }
+
+        return executeObjectsDTO;
+    }
+
+    /**
+     * 获取包装过的执行对象列表
+     */
+    @JsonIgnore
+    public List<ExecuteObject> getDecorateExecuteObjects() {
+        if (executeObjects != null) {
+            return executeObjects;
+        } else if (ipList != null) {
+            return ipList.stream().map(ExecuteObject::new).collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
         }
     }
 }

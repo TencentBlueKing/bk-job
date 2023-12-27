@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
-import com.tencent.bk.job.execute.model.ExecuteObjectTaskDetail;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -44,14 +43,14 @@ public interface ExecuteObjectTaskService {
      *
      * @param tasks 任务列表
      */
-    void batchSaveTasks(Collection<? extends ExecuteObjectTask> tasks);
+    void batchSaveTasks(Collection<ExecuteObjectTask> tasks);
 
     /**
      * 批量更新执行对象任务
      *
      * @param tasks 执行对象任务
      */
-    void batchUpdateTasks(Collection<? extends ExecuteObjectTask> tasks);
+    void batchUpdateTasks(Collection<ExecuteObjectTask> tasks);
 
     /**
      * 获取执行成功的执行对象任务数量
@@ -70,7 +69,7 @@ public interface ExecuteObjectTaskService {
      * @param gseTaskId    GSE任务ID
      * @return 执行对象任务
      */
-    List<ExecuteObjectTaskDetail> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId);
+    List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId);
 
     /**
      * 获取执行对象任务
@@ -120,14 +119,14 @@ public interface ExecuteObjectTaskService {
      * @param order        排序方式
      * @return 执行对象任务
      */
-    List<ExecuteObjectTaskDetail> listTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag,
-                                                              Integer limit,
-                                                              String orderField,
-                                                              Order order);
+    List<ExecuteObjectTask> listTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  Integer status,
+                                                  String tag,
+                                                  Integer limit,
+                                                  String orderField,
+                                                  Order order);
 
     /**
      * 根据结果分组获取执行对象任务详情 - 包含主机详情
@@ -139,23 +138,11 @@ public interface ExecuteObjectTaskService {
      * @param tag          用户自定义分组标签
      * @return 执行对象任务
      */
-    List<ExecuteObjectTaskDetail> listTaskDetailByResultGroup(StepInstanceBaseDTO stepInstance,
-                                                              Integer executeCount,
-                                                              Integer batch,
-                                                              Integer status,
-                                                              String tag);
-
-    /**
-     * 获取执行对象任务详情 - 包含主机详情
-     *
-     * @param stepInstance 步骤实例
-     * @param executeCount 执行次数
-     * @param batch        滚动执行批次；传入null或者0将忽略该参数
-     * @return 执行对象任务
-     */
-    List<ExecuteObjectTaskDetail> listTaskDetail(StepInstanceBaseDTO stepInstance,
-                                                 Integer executeCount,
-                                                 Integer batch);
+    List<ExecuteObjectTask> listTaskByResultGroup(StepInstanceBaseDTO stepInstance,
+                                                  Integer executeCount,
+                                                  Integer batch,
+                                                  Integer status,
+                                                  String tag);
 
 
     /**
