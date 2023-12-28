@@ -147,7 +147,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             .tag(tag)
             .logKeyword(keyword)
             .searchIp(searchIp)
-            .maxAgentTasksForResultGroup(maxHostNumPerGroup)
+            .maxTasksForResultGroup(maxHostNumPerGroup)
             .fetchAllGroupData(status == null)
             .build();
 

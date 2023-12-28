@@ -48,9 +48,8 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent对应的主机ID")
     private Long hostId;
 
-    @ApiModelProperty("云区域+ipv4，废弃字段，ipv6版本发布后删除")
-    @Deprecated
-    private String ip;
+    @ApiModelProperty("Agent ID")
+    private String agentId;
 
     @ApiModelProperty("Agent ipv4")
     private String ipv4;
@@ -58,10 +57,10 @@ public class AgentTaskExecutionVO {
     @ApiModelProperty("Agent ipv6")
     private String ipv6;
 
-    @ApiModelProperty("执行对象任务执行状态")
+    @ApiModelProperty("Agent任务执行状态")
     private Integer status;
 
-    @ApiModelProperty("执行对象任务执行状态描述")
+    @ApiModelProperty("Agent任务执行状态描述")
     private String statusDesc;
 
     @ApiModelProperty("开始时间")

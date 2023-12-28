@@ -22,48 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.vo;
+package com.tencent.bk.job.execute.model.web.vo;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
-import java.util.Map;
-
-/**
- * 容器
- */
-@Getter
-@Setter
-@ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("容器")
-public class ContainerVO {
-
-    @ApiModelProperty("容器资源 ID, 容器在 cmdb 中注册资源的 ID")
-    private Long id;
-
-    @ApiModelProperty(value = "容器 ID", example = "docker://8812391923...")
-    private String uid;
-
-    @ApiModelProperty("容器名称")
-    private String name;
-
-    @ApiModelProperty("Pod名称")
-    private String podName;
-
-    @ApiModelProperty("所属 pod labels")
-    private Map<String, String> podLabels;
-
-    @ApiModelProperty("所属 Node hostId")
-    private Long nodeHostId;
-
-    @ApiModelProperty("所属 Node Ip")
-    private String nodeIp;
-
-    @ApiModelProperty("所属 Node GSE agent 状态")
-    private String nodeAgentStatus;
+@ApiModel("脚本任务-执行对象执行日志")
+@Data
+public class ExecuteObjectScriptLogVO {
+    @ApiModelProperty("执行对象")
+    ExecuteObjectVO executeObject;
+    @ApiModelProperty("日志内容")
+    private String logContent;
+    @ApiModelProperty(name = "finished", value = "日志是否拉取完成")
+    private boolean finished;
 }

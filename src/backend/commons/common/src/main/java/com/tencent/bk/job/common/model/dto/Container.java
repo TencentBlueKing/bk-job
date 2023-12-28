@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.model.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -123,5 +124,15 @@ public class Container implements Cloneable {
             .add("podName='" + podName + "'")
             .add("podLabels=" + podLabels)
             .toString();
+    }
+
+    public ContainerVO toContainerVO() {
+        ContainerVO vo = new ContainerVO();
+        vo.setId(id);
+        vo.setUid(containerId);
+        vo.setNodeHostId(hostId);
+        vo.setPodName(podName);
+        vo.setPodLabels(podLabels);
+        return vo;
     }
 }

@@ -48,13 +48,13 @@ import javax.servlet.http.HttpServletResponse;
  * 作业执行日志API-前端调用
  */
 @Api(tags = {"job-execute:web:Task_Execution_Log"})
-@RequestMapping("/web/execution")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebTaskLogResource {
 
     @ApiOperation(value = "请求下载执行日志文件", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}/log-file")
+    @GetMapping("/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/requestDownloadLogFile")
     Response<LogExportJobInfoVO> requestDownloadLogFile(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -68,6 +68,9 @@ public interface WebTaskLogResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "作业实例 ID", name = "taskInstanceId", required = true)
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
@@ -83,7 +86,7 @@ public interface WebTaskLogResource {
     );
 
     @ApiOperation(value = "下载执行日志文件", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}/step-execution-result/{stepInstanceId}/log-file/download")
+    @GetMapping("/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/downloadLogFile")
     ResponseEntity<StreamingResponseBody> downloadLogFile(
         HttpServletResponse response,
         @ApiParam("用户名，网关自动传入")
@@ -98,6 +101,9 @@ public interface WebTaskLogResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "作业实例 ID", name = "taskInstanceId", required = true)
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
         @ApiParam(value = "步骤实例 ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,

@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -32,6 +34,9 @@ import java.util.List;
 
 @ApiModel("文件任务Agent执行日志")
 @Data
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+    explain = "使用 ExecuteObjectFileLogVO 替换。发布完成后可以删除")
 public class IpFileLogContentVO {
     @ApiModelProperty(name = "isIncludingLogContent", value = "是否包含日志内容")
     private boolean includingLogContent;

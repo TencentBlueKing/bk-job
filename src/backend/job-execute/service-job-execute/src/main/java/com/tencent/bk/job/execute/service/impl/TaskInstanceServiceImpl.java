@@ -232,6 +232,19 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
+    public StepInstanceBaseDTO getBaseStepInstance(long appId,
+                                                   long taskInstanceId,
+                                                   long stepInstanceId) throws NotFoundException {
+        StepInstanceBaseDTO stepInstance = getBaseStepInstance(appId, stepInstanceId);
+        if (!stepInstance.getTaskInstanceId().equals(taskInstanceId)) {
+            log.warn("Step instance is not exist, taskInstanceId={}, stepInstanceId: {}",
+                taskInstanceId, stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        return stepInstance;
+    }
+
+    @Override
     public StepInstanceDTO getStepInstanceDetail(long stepInstanceId) throws NotFoundException {
         StepInstanceBaseDTO stepInstanceBase = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
         if (stepInstanceBase == null) {
@@ -251,6 +264,17 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         return stepInstance;
+    }
+
+    @Override
+    public StepInstanceDTO getStepInstanceDetail(long appId,
+                                                 long taskInstanceId,
+                                                 long stepInstanceId) throws NotFoundException {
+        StepInstanceDTO stepInstance = getStepInstanceDetail(appId, stepInstanceId);
+        if (!stepInstance.getTaskInstanceId().equals(taskInstanceId)) {
+            log.warn("StepInstance:{} is not belong to taskInstance:{}", stepInstanceId, taskInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
     }
 
     @Override

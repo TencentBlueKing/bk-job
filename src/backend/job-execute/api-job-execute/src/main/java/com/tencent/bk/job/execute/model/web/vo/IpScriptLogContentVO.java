@@ -24,12 +24,17 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @ApiModel("Agent作业执行日志")
 @Data
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+    explain = "使用 ExecuteObjectScriptLogVO 参数替换。发布完成后可以删除")
 public class IpScriptLogContentVO {
     @ApiModelProperty("ip")
     private String displayIp;

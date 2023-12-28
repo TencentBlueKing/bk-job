@@ -25,8 +25,6 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -34,20 +32,13 @@ import lombok.Data;
 @ApiModel("文件分发执行详情")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Deprecated
-@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-    explain = "使用 FileDistributionDetailV2VO 替换。发布完成后可以删除")
-public class FileDistributionDetailVO implements Comparable<FileDistributionDetailVO> {
+public class FileDistributionDetailV2VO implements Comparable<FileDistributionDetailV2VO> {
     @ApiModelProperty(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;
-    @ApiModelProperty(name = "destIp", value = "下载目标IPv4")
-    private String destIp;
-    @ApiModelProperty(name = "destIpv6", value = "下载目标IPv6")
-    private String destIpv6;
-    @ApiModelProperty(name = "srcIp", value = "上传源IPv4")
-    private String srcIp;
-    @ApiModelProperty(name = "srcIpv6", value = "上传源IPv6")
-    private String srcIpv6;
+    @ApiModelProperty(name = "srcExecuteObject", value = "文件源执行对象")
+    private ExecuteObjectVO srcExecuteObject;
+    @ApiModelProperty(name = "destExecuteObject", value = "目标执行对象")
+    private ExecuteObjectVO destExecuteObject;
     @ApiModelProperty("文件名称")
     private String fileName;
     @ApiModelProperty("文件大小")
@@ -66,7 +57,7 @@ public class FileDistributionDetailVO implements Comparable<FileDistributionDeta
     private String logContent;
 
     @Override
-    public int compareTo(FileDistributionDetailVO other) {
+    public int compareTo(FileDistributionDetailV2VO other) {
         if (other == null) {
             return 1;
         }
@@ -78,8 +69,8 @@ public class FileDistributionDetailVO implements Comparable<FileDistributionDeta
         if (compareFileNameResult != 0) {
             return compareFileNameResult;
         }
-        return compareString(this.srcIp != null ? this.srcIp : this.srcIpv6,
-            other.getSrcIp() != null ? other.getSrcIp() : other.getSrcIpv6());
+        return this.srcExecuteObject.getExecuteObjectResourceId()
+            .compareTo(other.getSrcExecuteObject().getExecuteObjectResourceId());
     }
 
 

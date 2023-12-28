@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectVO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -206,5 +207,18 @@ public class ExecuteObject implements Cloneable {
                 return ExecuteObjectCompositeKey.ofHostIp(host.toCloudIp());
         }
         return null;
+    }
+
+    public ExecuteObjectVO toExecuteObjectVO() {
+        ExecuteObjectVO vo = new ExecuteObjectVO();
+        vo.setType(type);
+        vo.setExecuteObjectResourceId(resourceId);
+        if (host != null) {
+            vo.setHost(host.toHostInfoVO());
+        }
+        if (container != null) {
+            vo.setContainer(container.toContainerVO());
+        }
+        return vo;
     }
 }

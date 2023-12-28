@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -115,10 +117,12 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<LogExportJobInfoVO> requestDownloadLogFile(String username,
                                                                AppResourceScope appResourceScope,
                                                                String scopeType,
                                                                String scopeId,
+                                                               Long taskInstanceId,
                                                                Long stepInstanceId,
                                                                Integer executeObjectType,
                                                                Long executeObjectResourceId,
@@ -252,11 +256,13 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public ResponseEntity<StreamingResponseBody> downloadLogFile(HttpServletResponse response,
                                                                  String username,
                                                                  AppResourceScope appResourceScope,
                                                                  String scopeType,
                                                                  String scopeId,
+                                                                 Long taskInstanceId,
                                                                  Long stepInstanceId,
                                                                  Integer executeObjectType,
                                                                  Long executeObjectResourceId) {

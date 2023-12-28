@@ -148,7 +148,7 @@ public interface LogService {
      * @param taskIds        文件任务ID列表
      * @return 日志内容
      */
-    List<ServiceFileTaskLogDTO> getFileLogContentByTaskIds(long stepInstanceId,
+    List<FileExecuteObjectLogContent> getFileLogContentByTaskIds(long stepInstanceId,
                                                            int executeCount,
                                                            Integer batch,
                                                            List<String> taskIds);
@@ -161,9 +161,9 @@ public interface LogService {
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @return 日志内容
      */
-    List<ServiceFileTaskLogDTO> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
-                                                                          int executeCount,
-                                                                          Integer batch);
+    List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
+                                                                                int executeCount,
+                                                                                Integer batch);
 
     /**
      * 获取文件任务文件源日志

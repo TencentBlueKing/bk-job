@@ -28,13 +28,15 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-@ApiModel("文件任务执行日志")
+import java.util.List;
+
+@ApiModel("文件任务-执行对象执行日志")
 @Data
-public class FileLogContentVO {
-    @ApiModelProperty("ip")
-    private String displayIp;
-    @ApiModelProperty("文件名称")
-    private String fileName;
-    @ApiModelProperty("日志内容")
-    private String logContent;
+public class ExecuteObjectFileLogVO {
+    @ApiModelProperty(name = "isIncludingLogContent", value = "是否包含日志内容")
+    private boolean includingLogContent;
+    @ApiModelProperty("文件分发执行详情")
+    private List<FileDistributionDetailV2VO> fileDistributionDetails;
+    @ApiModelProperty(name = "finished", value = "日志是否拉取完成")
+    private boolean finished;
 }

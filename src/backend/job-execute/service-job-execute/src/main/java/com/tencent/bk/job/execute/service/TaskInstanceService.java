@@ -99,6 +99,17 @@ public interface TaskInstanceService {
     /**
      * 获取步骤基本信息
      *
+     * @param appId          业务 ID
+     * @param taskInstanceId 作业实例ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤基本信息
+     */
+    StepInstanceBaseDTO getBaseStepInstance(long appId, long taskInstanceId, long stepInstanceId)
+        throws NotFoundException;
+
+    /**
+     * 获取步骤基本信息
+     *
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
@@ -112,6 +123,17 @@ public interface TaskInstanceService {
      * @return 步骤基本信息
      */
     StepInstanceDTO getStepInstanceDetail(long appId, long stepInstanceId) throws NotFoundException;
+
+    /**
+     * 获取步骤基本信息
+     *
+     * @param appId          业务 ID
+     * @param taskInstanceId 作业实例ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 步骤基本信息
+     */
+    StepInstanceDTO getStepInstanceDetail(long appId, long taskInstanceId, long stepInstanceId)
+        throws NotFoundException;
 
     /**
      * 获取作业的第一个步骤实例

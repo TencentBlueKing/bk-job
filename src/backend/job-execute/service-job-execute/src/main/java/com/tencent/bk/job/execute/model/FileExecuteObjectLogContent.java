@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 
 /**
- * 文件日志内容
+ * 执行对象对应的文件日志内容
  */
 @Data
 @NoArgsConstructor
@@ -57,7 +56,7 @@ public class FileExecuteObjectLogContent {
     /**
      * 文件任务
      */
-    private List<ServiceFileTaskLogDTO> fileTaskLogs;
+    private List<AtomicFileTaskLog> fileTaskLogs;
     /**
      * 日志是否拉取完成
      */
@@ -66,7 +65,7 @@ public class FileExecuteObjectLogContent {
     public FileExecuteObjectLogContent(long stepInstanceId,
                                        int executeCount,
                                        ExecuteObject executeObject,
-                                       List<ServiceFileTaskLogDTO> fileTaskLogs,
+                                       List<AtomicFileTaskLog> fileTaskLogs,
                                        boolean finished) {
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
@@ -83,9 +82,7 @@ public class FileExecuteObjectLogContent {
         if (this.fileTaskLogs == null) {
             return null;
         }
-        fileTaskLogs.forEach(fileTaskLog -> {
-            builder.append(fileTaskLog.getContent());
-        });
+        fileTaskLogs.forEach(fileTaskLog -> builder.append(fileTaskLog.getContent()));
         return builder.toString();
     }
 }

@@ -88,7 +88,7 @@ public class StepExecutionResultQuery {
     /**
      * 执行结果分组下返回的最大任务数
      */
-    private Integer maxAgentTasksForResultGroup;
+    private Integer maxTasksForResultGroup;
     /**
      * 是否获取所有分组下的所有主机执行数据（默认为false，只获取第一个分组中的数据）
      */

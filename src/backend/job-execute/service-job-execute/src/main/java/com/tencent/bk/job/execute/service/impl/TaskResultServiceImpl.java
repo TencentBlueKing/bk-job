@@ -451,7 +451,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             if (stepInstance.getStatus() == RunStatusEnum.BLANK) {
                 // 步骤未启动，AgentTask数据还未在DB初始化，构造初始任务结果
                 return buildNotStartStepExecutionResult(stepInstance, queryExecuteCount, query.getBatch(),
-                    query.getMaxAgentTasksForResultGroup(), query.getSearchIp());
+                    query.getMaxTasksForResultGroup(), query.getSearchIp());
             }
 
             StepExecutionDetailDTO stepExecutionDetail;
@@ -606,10 +606,10 @@ public class TaskResultServiceImpl implements TaskResultService {
                 }
 
                 // 截断
-                if (query.getMaxAgentTasksForResultGroup() != null) {
+                if (query.getMaxTasksForResultGroup() != null) {
                     resultGroup.setExecuteObjectTasks(
                         getLimitedSizedList(resultGroup.getExecuteObjectTasks(),
-                            query.getMaxAgentTasksForResultGroup()));
+                            query.getMaxTasksForResultGroup()));
                 }
             });
     }
@@ -719,17 +719,17 @@ public class TaskResultServiceImpl implements TaskResultService {
             .collect(Collectors.toList());
         if (status != null) {
             List<ExecuteObjectTask> tasks = listExecuteObjectTaskByResultGroup(stepInstance, queryExecuteCount,
-                query.getBatch(), status, tag, query.getMaxAgentTasksForResultGroup(), query.getOrderField(),
+                query.getBatch(), status, tag, query.getMaxTasksForResultGroup(), query.getOrderField(),
                 query.getOrder());
             if (CollectionUtils.isNotEmpty(tasks)) {
                 setAgentTasksForSpecifiedResultType(resultGroups, status, tag, tasks);
             } else {
                 setAgentTasksForAnyResultType(resultGroups, stepInstance, queryExecuteCount,
-                    query.getBatch(), query.getMaxAgentTasksForResultGroup(), query.isFetchAllGroupData());
+                    query.getBatch(), query.getMaxTasksForResultGroup(), query.isFetchAllGroupData());
             }
         } else {
             setAgentTasksForAnyResultType(resultGroups, stepInstance, queryExecuteCount,
-                query.getBatch(), query.getMaxAgentTasksForResultGroup(), query.isFetchAllGroupData());
+                query.getBatch(), query.getMaxTasksForResultGroup(), query.isFetchAllGroupData());
         }
         watch.stop();
 
