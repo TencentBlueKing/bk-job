@@ -24,15 +24,16 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -54,6 +55,8 @@ public class SendNotifyTask implements Runnable {
     private final String title;
     private final String content;
 
+    private Set<String> validReceivers;
+
     public void bindService(WatchableSendMsgService watchableSendMsgService,
                             EsbUserInfoDAO esbUserInfoDAO) {
         this.watchableSendMsgService = watchableSendMsgService;
@@ -62,8 +65,13 @@ public class SendNotifyTask implements Runnable {
 
     @Override
     public void run() {
-        if (CollectionUtils.isEmpty(receivers)) {
-            logInvalidReceivers();
+        pickValidReceivers();
+        Collection<String> removedReceivers = CollectionUtils.subtract(receivers, validReceivers);
+        if (CollectionUtils.isNotEmpty(removedReceivers)) {
+            log.info("Invalid user removed:{}, ignore to send notify to them", removedReceivers);
+        }
+        if (CollectionUtils.isEmpty(validReceivers)) {
+            logValidReceiversEmpty();
             return;
         }
         try {
@@ -78,8 +86,13 @@ public class SendNotifyTask implements Runnable {
         }
     }
 
-    private void logInvalidReceivers() {
-        log.warn("receivers is null or empty, skip, msgType={},title={}", msgType, title);
+    private void pickValidReceivers() {
+        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
+        validReceivers = new HashSet<>(existUserNameList);
+    }
+
+    private void logValidReceiversEmpty() {
+        log.info("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
     private boolean sendMsgWithRetry() {
@@ -93,47 +106,67 @@ public class SendNotifyTask implements Runnable {
                     createTimeMillis,
                     msgType,
                     sender,
-                    receivers,
+                    validReceivers,
                     title,
                     content
                 );
                 result = true;
             } catch (Exception e) {
-                log.error("Fail to sendMsg", e);
+                if (count < NOTIFY_MAX_RETRY_COUNT) {
+                    long sleepMills = count * 1000;
+                    String msg = MessageFormatter.format(
+                        "Fail to sendMsg, sleep {}ms and retry {}",
+                        sleepMills,
+                        count
+                    ).getMessage();
+                    log.warn(msg, e);
+                    ThreadUtils.sleep(sleepMills);
+                } else {
+                    log.error("Fail to sendMsg", e);
+                }
             }
         }
         return result;
     }
 
     private void logSendSuccess() {
-        log.info("Success to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+        log.info("Success to send notify:({},{},{})", String.join(",", validReceivers), msgType, title);
     }
 
     private void handleSendFail(Exception e) {
-        List<EsbUserInfoDTO> validUsers = esbUserInfoDAO.listEsbUserInfo(receivers);
-        if (validUsers.isEmpty()) {
-            // 收信人已全部离职/某些渠道不支持平台用户
-            logIgnoreToSend();
-            return;
-        }
-        FormattingTuple msg = MessageFormatter.arrayFormat(
-            "Fail to send notify:({},{},{},{})",
-            new Object[]{
-                String.join(",", receivers),
-                msgType,
-                title,
-                content
-            }
-        );
-        if (e != null) {
-            log.error(msg.getMessage(), e);
+        int titleMaxLength = 32;
+        int contentMaxLength = 200;
+        String msg;
+        if (log.isDebugEnabled()) {
+            msg = MessageFormatter.arrayFormat(
+                "Fail to send notify:({},{},{},{})",
+                new Object[]{
+                    String.join(",", validReceivers),
+                    msgType,
+                    title,
+                    content
+                }
+            ).getMessage();
+            log.debug(msg, e);
         } else {
-            log.error(msg.getMessage());
+            msg = MessageFormatter.arrayFormat(
+                "Fail to send notify:({},{},{},{})",
+                new Object[]{
+                    String.join(",", validReceivers),
+                    msgType,
+                    buildLogContent(title, titleMaxLength),
+                    buildLogContent(content, contentMaxLength)
+                }
+            ).getMessage();
+            log.error(msg, e);
         }
     }
 
-    private void logIgnoreToSend() {
-        log.info("Ignore to send notify:({},{},{})", String.join(",", receivers), msgType, title);
+    private String buildLogContent(String content, int maxLength) {
+        if (content != null && content.length() > maxLength) {
+            return content.substring(0, maxLength) + "...";
+        }
+        return content;
     }
 
 }

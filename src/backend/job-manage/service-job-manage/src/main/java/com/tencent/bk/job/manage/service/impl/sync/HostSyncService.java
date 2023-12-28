@@ -40,11 +40,12 @@ import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
@@ -182,7 +183,10 @@ public class HostSyncService {
         if (!localHostIds.contains(hostProp.getHostId())) {
             return false;
         }
-        Long lastTime = TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime());
+        Long lastTime = null;
+        if (StringUtils.isNotBlank(hostProp.getLastTime())) {
+            lastTime = TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime());
+        }
         if (lastTime == null || lastTime < 0) {
             lastTime = cmdbHostsFetchTimeMills;
             log.warn(
@@ -233,9 +237,13 @@ public class HostSyncService {
             if (hostProp != null) {
                 hostPropList.add(hostProp);
                 cmdbHostIds.add(hostProp.getHostId());
+                Long lastTimeMills = null;
+                if (StringUtils.isNotBlank(hostProp.getLastTime())) {
+                    lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime());
+                }
                 BasicHostDTO cmdbBasicHost = new BasicHostDTO(
                     hostProp.getHostId(),
-                    TimeUtil.parseIsoZonedTimeToMillis(hostProp.getLastTime())
+                    lastTimeMills
                 );
                 cmdbBasicHosts.add(cmdbBasicHost);
             }
@@ -304,8 +312,8 @@ public class HostSyncService {
 
         // 刷新主机数据
         Pair<Integer, Integer> refreshHostResult = refreshHosts(insertHostList, updateHostList, watch);
-        int insertedHostNum = refreshHostResult.getFirst();
-        int updatedHostNum = refreshHostResult.getSecond();
+        int insertedHostNum = refreshHostResult.getLeft();
+        int updatedHostNum = refreshHostResult.getRight();
 
         logRefreshResult(
             bizId,
@@ -656,12 +664,16 @@ public class HostSyncService {
     }
 
     private HostTopoDTO buildHostTopo(Long bizId, HostProp host, ModuleProp moduleProp) {
+        Long lastTimeMills = null;
+        if (StringUtils.isNotBlank(moduleProp.getLastTime())) {
+            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(moduleProp.getLastTime());
+        }
         return new HostTopoDTO(
             host.getHostId(),
             bizId,
             moduleProp.getSetId(),
             moduleProp.getModuleId(),
-            TimeUtil.parseIsoZonedTimeToMillis(moduleProp.getLastTime())
+            lastTimeMills
         );
     }
 
@@ -694,7 +706,8 @@ public class HostSyncService {
 
     private int tryToInsertOneHost(ApplicationHostDTO hostDTO) {
         try {
-            return hostService.createOrUpdateHostBeforeLastTime(hostDTO);
+            Pair<Boolean, Integer> pair = hostService.createOrUpdateHostBeforeLastTime(hostDTO);
+            return pair.getRight();
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format("Fail to insert host={}", hostDTO);
             log.error(msg.getMessage(), e);

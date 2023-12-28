@@ -25,11 +25,16 @@
 package com.tencent.bk.job.common.util.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -38,10 +43,11 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 @Slf4j
 public class BaseHttpHelper implements HttpHelper {
@@ -51,10 +57,6 @@ public class BaseHttpHelper implements HttpHelper {
 
     public BaseHttpHelper(CloseableHttpClient httpClient) {
         this.httpClient = httpClient;
-    }
-
-    CloseableHttpClient getHttpClient() {
-        return httpClient;
     }
 
     @Override
@@ -67,7 +69,7 @@ public class BaseHttpHelper implements HttpHelper {
             get.setHeaders(header);
         }
         try {
-            return Pair.of(get, getHttpClient().execute(get));
+            return Pair.of(get, httpClient.execute(get));
         } catch (IOException e) {
             log.error("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
@@ -79,169 +81,124 @@ public class BaseHttpHelper implements HttpHelper {
     }
 
     @Override
-    public Pair<Integer, String> get(boolean keepAlive, String url, Header[] header) {
-        HttpGet get = new HttpGet(url);
-        if (keepAlive) {
-            get.setHeader("Connection", "Keep-Alive");
+    public HttpResponse request(HttpRequest request) {
+        HttpMethodEnum method = request.getMethod();
+        HttpContext httpContext = buildHttpContext(request);
+        HttpRequestBase httpClientRequest;
+        switch (method) {
+            case GET:
+                httpClientRequest = buildHttpGet(request);
+                break;
+            case POST:
+                httpClientRequest = buildHttpPost(request);
+                break;
+            case PUT:
+                httpClientRequest = buildHttpPut(request);
+                break;
+            case DELETE:
+                httpClientRequest = buildHttpDelete(request);
+                break;
+            default:
+                log.warn("Unsupported http method : {}", method);
+                throw new NotImplementedException(ErrorCode.API_ERROR);
         }
-        if (header != null && header.length > 0) {
-            get.setHeaders(header);
-        }
-        int httpStatusCode = -1;
-        String respStr = null;
-        try (CloseableHttpResponse response = getHttpClient().execute(get)) {
-            httpStatusCode = response.getStatusLine().getStatusCode();
-            HttpEntity entity = response.getEntity();
-            respStr = EntityUtils.toString(entity, CHARSET);
-            return Pair.of(httpStatusCode, respStr);
-        } catch (IOException e) {
-            log.error("Get request fail", e);
-            throw new InternalException(e, ErrorCode.API_ERROR);
-        } finally {
-            get.releaseConnection();
-            if (log.isDebugEnabled()) {
-                log.debug(
-                    "get:keepAlive={},url={},httpStatusCode={},respStr={}",
-                    keepAlive,
-                    url,
-                    httpStatusCode,
-                    respStr
-                );
-            }
+        return execute(httpClientRequest, httpContext);
+    }
+
+    private HttpGet buildHttpGet(HttpRequest request) {
+        HttpGet get = new HttpGet(request.getUrl());
+        setCommonHttpClientRequest(request, get);
+
+        return get;
+    }
+
+    private void setCommonHttpClientRequest(HttpRequest request, HttpRequestBase httpClientRequest) {
+        setConnectionKeepAlive(request, httpClientRequest);
+        if (request.getHeaders() != null && request.getHeaders().length > 0) {
+            httpClientRequest.setHeaders(request.getHeaders());
         }
     }
 
-    @Override
-    public Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers) {
-        HttpPost post = new HttpPost(url);
-        // 设置为长连接，服务端判断有此参数就不关闭连接。
-        post.setHeader("Connection", "Keep-Alive");
-        post.setHeaders(headers);
-        post.setEntity(requestEntity);
-        int httpStatusCode = -1;
-        String respStr = null;
-        try (CloseableHttpResponse httpResponse = getHttpClient().execute(post)) {
-            httpStatusCode = httpResponse.getStatusLine().getStatusCode();
-            if (httpStatusCode != HttpStatus.SC_OK) {
-                String message = httpResponse.getStatusLine().getReasonPhrase();
-                HttpEntity entity = httpResponse.getEntity();
-                if (entity != null && entity.getContent() != null) {
-                    respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
-                }
-                log.warn(
-                    "Post request fail, httpStatusCode={}, errorReason={}, body={}, url={}",
-                    httpStatusCode,
-                    message,
-                    respStr,
-                    url
-                );
-                throw new InternalException(message, ErrorCode.API_ERROR);
-            }
-            HttpEntity entity = httpResponse.getEntity();
-            return Pair.of(httpStatusCode, EntityUtils.toByteArray(entity));
-        } catch (IOException e) {
-            log.error("Post request fail", e);
-            throw new InternalException(e, ErrorCode.API_ERROR);
-        } finally {
-            post.releaseConnection();
-            if (log.isDebugEnabled()) {
-                log.debug(
-                    "post:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
-                    url,
-                    headers,
-                    requestEntity,
-                    httpStatusCode,
-                    respStr
-                );
-            }
-        }
+    private HttpPost buildHttpPost(HttpRequest request) {
+        HttpPost post = new HttpPost(request.getUrl());
+        setCommonHttpClientRequest(request, post);
+        setEntity(post, request);
+        return post;
     }
 
-    @Override
-    public Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers) {
-        HttpPut put = new HttpPut(url);
-        // 设置为长连接，服务端判断有此参数就不关闭连接。
-        put.setHeader("Connection", "Keep-Alive");
-        put.setHeaders(headers);
-        put.setEntity(requestEntity);
-        int httpStatusCode = -1;
-        String respStr = null;
-        try (CloseableHttpResponse httpResponse = getHttpClient().execute(put)) {
-            httpStatusCode = httpResponse.getStatusLine().getStatusCode();
-            HttpEntity entity = httpResponse.getEntity();
-            respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
-            if (httpStatusCode != HttpStatus.SC_OK) {
-                String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.warn(
-                    "Put request fail, httpStatusCode={}, errorReason={}, respStr={}",
-                    httpStatusCode,
-                    message,
-                    respStr
-                );
-                throw new InternalException(message, ErrorCode.API_ERROR);
-            }
-            return Pair.of(httpStatusCode, respStr);
-        } catch (IOException e) {
-            log.error("Put request fail", e);
-            throw new InternalException(e, ErrorCode.API_ERROR);
-        } finally {
-            put.releaseConnection();
-            if (log.isDebugEnabled()) {
-                log.debug(
-                    "put:url={},headers={},requestEntity={},httpStatusCode={},respStr={}",
-                    url,
-                    headers,
-                    requestEntity,
-                    httpStatusCode,
-                    respStr
-                );
-            }
-        }
+    private HttpPut buildHttpPut(HttpRequest request) {
+        HttpPut put = new HttpPut(request.getUrl());
+        setCommonHttpClientRequest(request, put);
+        setEntity(put, request);
+        return put;
     }
 
-    @Override
-    public Pair<Integer, String> delete(String url, String content, Header... headers) {
-        FakeHttpDelete delete = new FakeHttpDelete(url);
-        if (content != null) {
-            HttpEntity requestEntity;
+    private FakeHttpDelete buildHttpDelete(HttpRequest request) {
+        FakeHttpDelete delete = new FakeHttpDelete(request.getUrl());
+        setCommonHttpClientRequest(request, delete);
+        setEntity(delete, request);
+        return delete;
+    }
+
+    private void setEntity(HttpEntityEnclosingRequest request, HttpRequest httpRequest) {
+        if (httpRequest.getHttpEntity() != null) {
+            request.setEntity(httpRequest.getHttpEntity());
+        } else if (StringUtils.isNotBlank(httpRequest.getStringEntity())) {
             try {
-                requestEntity = new ByteArrayEntity(content.getBytes(CHARSET));
-            } catch (UnsupportedEncodingException e) {
-                log.error("Fail to get ByteArrayEntity", e);
-                throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+                request.setEntity(new ByteArrayEntity(httpRequest.getStringEntity().getBytes(CHARSET)));
+            } catch (IOException e) {
+                throw new InternalException(e, ErrorCode.API_ERROR);
             }
-            delete.setEntity(requestEntity);
         }
-        delete.setHeaders(headers);
+    }
+
+    private HttpContext buildHttpContext(HttpRequest request) {
+        HttpCoreContext httpContext = HttpCoreContext.create();
+        httpContext.setAttribute(HttpContextAttributeNames.RETRY_MODE, request.getRetryMode().getValue());
+        return httpContext;
+    }
+
+    private void setConnectionKeepAlive(HttpRequest request, HttpRequestBase httpRequestBase) {
+        if (request.isKeepAlive()) {
+            // 设置为长连接，服务端判断有此参数就不关闭连接。
+            httpRequestBase.setHeader("Connection", "Keep-Alive");
+        }
+    }
+
+    private HttpResponse execute(HttpRequestBase httpClientRequest, HttpContext context) {
         int httpStatusCode = -1;
         String respStr = null;
-        try (CloseableHttpResponse httpResponse = getHttpClient().execute(delete)) {
+        try (CloseableHttpResponse httpResponse = httpClient.execute(httpClientRequest, context)) {
             httpStatusCode = httpResponse.getStatusLine().getStatusCode();
-            if (httpStatusCode != HttpStatus.SC_OK) {
-                String message = httpResponse.getStatusLine().getReasonPhrase();
-                log.info("Delete request fail, url={}, httpStatusCode={}, errorReason={}", url, httpStatusCode,
-                    message);
-                throw new InternalException(String.format("url=%s,httpStatusCode=%s" +
-                    "，message=%s", url, httpStatusCode, message), ErrorCode.API_ERROR);
-            }
             HttpEntity entity = httpResponse.getEntity();
-            byte[] respBytes = EntityUtils.toByteArray(entity);
-            if (respBytes == null) {
-                return null;
+            if (entity != null && entity.getContent() != null) {
+                respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
             }
-            respStr = new String(respBytes, CHARSET);
-            return Pair.of(httpStatusCode, respStr);
+            // 状态码>=400判定为失败
+            if (httpStatusCode >= HttpStatus.SC_BAD_REQUEST) {
+                String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
+                log.warn(
+                    "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={},",
+                    httpClientRequest.getMethod(),
+                    httpClientRequest.getURI().getPath(),
+                    httpStatusCode,
+                    reasonPhrase,
+                    respStr
+                );
+                throw new HttpStatusException(httpClientRequest.getURI().toString(), httpStatusCode, reasonPhrase);
+            } else {
+                return new HttpResponse(httpStatusCode, respStr);
+            }
         } catch (IOException e) {
-            log.error("Delete request fail", e);
+            log.error("Request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
-            delete.releaseConnection();
+            httpClientRequest.releaseConnection();
             if (log.isDebugEnabled()) {
                 log.debug(
-                    "delete:url={},headers={},body={},httpStatusCode={},respStr={}",
-                    url,
-                    headers,
-                    content,
+                    "Request done, method: {}, url={}, httpStatusCode={}, respStr={}",
+                    httpClientRequest.getMethod(),
+                    httpClientRequest.getURI().getPath(),
                     httpStatusCode,
                     respStr
                 );

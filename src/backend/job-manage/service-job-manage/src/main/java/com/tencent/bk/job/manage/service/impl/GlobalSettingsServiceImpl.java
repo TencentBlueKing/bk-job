@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -126,6 +127,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final MessageI18nService i18nService;
     private final JobManageConfig jobManageConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
+    private final BkNoticeProperties bkNoticeProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
@@ -142,6 +144,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      MessageI18nService i18nService,
                                      JobManageConfig jobManageConfig,
                                      LocalFileConfigForManage localFileConfigForManage,
+                                     BkNoticeProperties bkNoticeProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
                                      BuildProperties buildProperties) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
@@ -154,6 +157,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.i18nService = i18nService;
         this.jobManageConfig = jobManageConfig;
         this.localFileConfigForManage = localFileConfigForManage;
+        this.bkNoticeProperties = bkNoticeProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
     }
@@ -670,12 +674,26 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         );
     }
 
+    private void addEnableBkNoticeConfig(Map<String, Object> configMap) {
+        configMap.put(
+            GlobalSettingKeys.KEY_ENABLE_BK_NOTICE,
+            bkNoticeProperties.isEnabled() && bkNoticeRegisteredSuccess()
+        );
+    }
+
+    private boolean bkNoticeRegisteredSuccess() {
+        GlobalSettingDTO globalSettingDTO =
+            globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS);
+        return globalSettingDTO != null && "true".equals(globalSettingDTO.getValue().toLowerCase());
+    }
+
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
         addFileUploadConfig(configMap);
         addEnableFeatureFileManageConfig(configMap);
         addEnableUploadToArtifactoryConfig(configMap);
+        addEnableBkNoticeConfig(configMap);
         return configMap;
     }
 

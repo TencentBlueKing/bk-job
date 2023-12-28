@@ -83,9 +83,27 @@ public class EsbStepInstanceStatusV3DTO {
     @JsonProperty("total_time")
     private Long totalTime;
 
-    @JsonProperty("step_host_result_list")
+    @JsonProperty("step_result_group_list")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<HostResult> stepHostResultList;
+    private List<StepResultGroup> stepResultGroupList;
+
+    @Setter
+    @Getter
+    public static class StepResultGroup {
+        @JsonProperty("result_type")
+        private Integer resultType;
+
+        @JsonProperty("result_type_desc")
+        private String resultTypeDesc;
+
+        private String tag;
+
+        @JsonProperty("host_size")
+        private Integer hostSize;
+
+        @JsonProperty("host_result_list")
+        private List<HostResult> hostResultList;
+    }
 
     @Setter
     @Getter
@@ -97,8 +115,14 @@ public class EsbStepInstanceStatusV3DTO {
 
         private String ipv6;
 
+        @JsonProperty("bk_agent_id")
+        private String agentId;
+
         @JsonProperty("bk_cloud_id")
         private Long cloudAreaId;
+
+        @JsonProperty("bk_cloud_name")
+        private String cloudAreaName;
 
         private Integer status;
 
@@ -106,9 +130,6 @@ public class EsbStepInstanceStatusV3DTO {
         private String statusDesc;
 
         private String tag;
-
-        @JsonProperty("group_key")
-        private String groupKey;
 
         @JsonProperty("exit_code")
         private Integer exitCode;

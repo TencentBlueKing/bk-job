@@ -49,11 +49,11 @@
       </div>
     </div>
     <scroll-faker
-      v-if="!isLoading"
       ref="scroll"
       class="dashboard-container"
-      style="height: calc(100vh - 161px);">
+      :style="`height: calc(100vh - ${scrollOffsetTop}px);`">
       <div
+        v-if="!isLoading"
         ref="content"
         class="dashboard-wraper">
         <div class="section-block">
@@ -116,7 +116,7 @@
 
   import StatisticsService from '@service/statistics';
 
-  import { prettyDateFormat } from '@utils/assist';
+  import { getOffset, prettyDateFormat  } from '@utils/assist';
 
   import AccountDashboard from './components/account';
   import AppDashboard from './components/app';
@@ -144,6 +144,7 @@
         isLoading: true,
         date: prettyDateFormat(Date.now()),
         dateInfo: {},
+        scrollOffsetTop: 0,
       };
     },
     computed: {
@@ -153,6 +154,9 @@
     },
     created() {
       this.fetchDateInfo();
+    },
+    mounted() {
+      this.scrollOffsetTop = getOffset(this.$refs.scroll.$el).top;
     },
     methods: {
       fetchDateInfo() {

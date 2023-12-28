@@ -80,7 +80,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     }
 
     @Override
-    protected void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
+    public void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
         log.info("Handle BizSetRelationEvent: {}", event);
 
         String eventType = event.getEventType();

@@ -38,6 +38,16 @@ import java.util.List;
 public interface ScopeHostService {
 
     /**
+     * 根据 资源范围 过滤出在该资源范围下的hostIds
+     *
+     * @param appResourceScope 资源范围
+     * @param hostIds          主机ID集合
+     * @return 主机ID列表
+     */
+    List<Long> filterScopeHostIds(AppResourceScope appResourceScope,
+                                  Collection<Long> hostIds);
+
+    /**
      * 根据 HostId 列表查询主机信息
      *
      * @param appResourceScope 资源范围

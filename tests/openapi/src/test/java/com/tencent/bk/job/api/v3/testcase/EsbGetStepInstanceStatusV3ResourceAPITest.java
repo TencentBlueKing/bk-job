@@ -28,7 +28,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
     }
 
     @Nested
-    class GetStepInstanceDetailTest {
+    class GetStepInstanceStatusTest {
         @Test
         @DisplayName("测试正常获取脚本步骤状态")
         void testGetScriptStepInstanceStatus() {
@@ -50,7 +50,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .body("data.execute_count", equalTo(0))
                 .body("data.type", equalTo(1))
                 .body("data.status", notNullValue())
-                .body("data.step_host_result_list", hasSize(1));
+                .body("data.step_result_group_list", hasSize(1));
         }
 
         @Test
@@ -73,7 +73,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .body("data.execute_count", equalTo(0))
                 .body("data.type", equalTo(2))
                 .body("data.status", notNullValue())
-                .body("data.step_host_result_list", hasSize(1));
+                .body("data.step_result_group_list", hasSize(1));
         }
 
         @Test

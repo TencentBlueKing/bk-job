@@ -6,6 +6,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.MissingParameterException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
@@ -93,6 +94,9 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     private Integer checkUpdateParamAndGetId(EsbCreateOrUpdateFileSourceV3Req req) {
         Long appId = req.getAppId();
         String code = req.getCode();
+        if (StringUtils.isBlank(code)) {
+            throw new MissingParameterException(ErrorCode.FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY);
+        }
         Integer id = fileSourceService.getFileSourceIdByCode(appId, code);
         if (id == null) {
             throw new FailedPreconditionException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});

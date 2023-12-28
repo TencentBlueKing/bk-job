@@ -117,10 +117,7 @@
 
   .jb-view-skeleton {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 20px;
-    left: 0;
+    inset: 0 0 20px;
     z-index: 1001;
     width: 100%;
     min-height: calc(100vh - 104px);

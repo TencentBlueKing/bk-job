@@ -29,7 +29,6 @@ import io.micrometer.core.instrument.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 
@@ -55,99 +54,14 @@ public class WatchableHttpHelper implements HttpHelper {
     }
 
     @Override
-    public Pair<Integer, String> get(boolean keepAlive, String url, Header[] header) {
+    public HttpResponse request(HttpRequest request) {
         String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
         String httpStatus = null;
         try {
-            Pair<Integer, String> pair = httpHelper.get(keepAlive, url, header);
-            if (pair != null) {
-                httpStatus = "" + pair.getLeft();
-            } else {
-                httpStatus = "null";
-            }
-            return pair;
-        } catch (Throwable t) {
-            httpStatus = "error";
-            throw t;
-        } finally {
-            long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
-            httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
-                meterRegistry.timer(httpMetricName, httpMetricTags)
-                    .record(end - start, TimeUnit.NANOSECONDS);
-            }
-        }
-    }
-
-    @Override
-    public Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers) {
-        String httpMetricName = HttpMetricUtil.getHttpMetricName();
-        long start = System.nanoTime();
-        String httpStatus = null;
-        try {
-            Pair<Integer, byte[]> pair = httpHelper.post(url, requestEntity, headers);
-            if (pair != null) {
-                httpStatus = "" + pair.getLeft();
-            } else {
-                httpStatus = "null";
-            }
-            return pair;
-        } catch (Throwable t) {
-            httpStatus = "error";
-            throw t;
-        } finally {
-            long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
-            httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
-                meterRegistry.timer(httpMetricName, httpMetricTags)
-                    .record(end - start, TimeUnit.NANOSECONDS);
-            }
-        }
-    }
-
-    @Override
-    public Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers) {
-        String httpMetricName = HttpMetricUtil.getHttpMetricName();
-        long start = System.nanoTime();
-        String httpStatus = null;
-        try {
-            Pair<Integer, String> pair = httpHelper.put(url, requestEntity, headers);
-            if (pair != null) {
-                httpStatus = "" + pair.getLeft();
-            } else {
-                httpStatus = "null";
-            }
-            return pair;
-        } catch (Throwable t) {
-            httpStatus = "error";
-            throw t;
-        } finally {
-            long end = System.nanoTime();
-            AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
-            httpMetricTags.add(Tag.of("http_status", httpStatus));
-            if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
-                meterRegistry.timer(httpMetricName, httpMetricTags)
-                    .record(end - start, TimeUnit.NANOSECONDS);
-            }
-        }
-    }
-
-    @Override
-    public Pair<Integer, String> delete(String url, String content, Header... headers) {
-        String httpMetricName = HttpMetricUtil.getHttpMetricName();
-        long start = System.nanoTime();
-        String httpStatus = null;
-        try {
-            Pair<Integer, String> pair = httpHelper.delete(url, content, headers);
-            if (pair != null) {
-                httpStatus = "" + pair.getLeft();
-            } else {
-                httpStatus = "null";
-            }
-            return pair;
+            HttpResponse response = httpHelper.request(request);
+            httpStatus = "" + response.getStatusCode();
+            return response;
         } catch (Throwable t) {
             httpStatus = "error";
             throw t;

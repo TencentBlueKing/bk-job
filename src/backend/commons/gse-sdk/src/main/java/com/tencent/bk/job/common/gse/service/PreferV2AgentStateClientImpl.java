@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.gse.service;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
+import com.tencent.bk.job.common.gse.util.AgentStateUtil;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,9 @@ public class PreferV2AgentStateClientImpl extends AbstractAgentStateClientImpl {
     @Override
     public AgentState getAgentState(HostAgentStateQuery hostAgentStateQuery) {
         String finalAgentId = getEffectiveAgentId(hostAgentStateQuery);
+        if (StringUtils.isBlank(finalAgentId)) {
+            return null;
+        }
         return getAgentState(finalAgentId);
     }
 
@@ -93,6 +97,6 @@ public class PreferV2AgentStateClientImpl extends AbstractAgentStateClientImpl {
     @Override
     public Map<String, Boolean> batchGetAgentAliveStatus(List<HostAgentStateQuery> hostAgentStateQueryList) {
         Map<String, AgentState> agentStateMap = batchGetAgentState(hostAgentStateQueryList);
-        return batchGetAgentAliveStatus(agentStateMap);
+        return AgentStateUtil.batchGetAgentAliveStatus(agentStateMap);
     }
 }

@@ -28,12 +28,14 @@
 <template>
   <div
     id="templateOperation"
+    ref="root"
     class="template-operation-page">
     <resize-layout
       ref="resizeLayout"
       class="push-file-content"
       right-fixed
-      :right-width="366">
+      :right-width="366"
+      :style="layoutStyle">
       <smart-action offset-target="bk-form-content">
         <jb-form
           ref="templateOperateRef"
@@ -124,6 +126,7 @@
 
   import {
     checkIllegalHostFromVariableStep,
+    getOffset,
     removeIllegalHostFromStep,
     removeIllegalHostFromVariable,
   } from '@utils/assist';
@@ -166,6 +169,7 @@
         planList: [],
         isSubmiting: false,
         execLoading: false,
+        layoutStyle: {},
       };
     },
     computed: {
@@ -183,6 +187,11 @@
         },
         deep: true,
       },
+    },
+    mounted() {
+      this.layoutStyle = {
+        height: `calc(100vh - ${getOffset(this.$refs.root).top}px)`,
+      };
     },
     created() {
       this.taskId = this.$route.params.id || 0;
@@ -746,13 +755,10 @@
 
   .template-operation-page {
     .push-file-content {
-      height: calc(100vh - 104px);
-
       .jb-resize-layout-right {
         background: #fff;
 
         .variable-use-guide {
-          height: calc(100vh - 104px);
           padding-bottom: 52px;
         }
       }
