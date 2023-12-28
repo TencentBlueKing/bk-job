@@ -364,11 +364,6 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         return extract(record);
     }
 
-    @Override
-    public boolean isStepInstanceRecordExist(long stepInstanceId) {
-        return CTX.fetchExists(T_GSE_SCRIPT_AGENT_TASK, T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
-    }
-
 
     @Override
     public void updateAgentTaskFields(long stepInstanceId,

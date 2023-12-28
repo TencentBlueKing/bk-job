@@ -1,6 +1,5 @@
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -43,12 +42,9 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
                 task -> task.setExecuteObject(executeObjectMap.get(task.getExecuteObjectId())));
         } else {
             // 兼容老版本不支持执行对象的数据
-            Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
-            tasks.forEach(task -> {
-                HostDTO host = hosts.get(task.getHostId());
-                ExecuteObject executeObject = new ExecuteObject(host);
-                task.setExecuteObject(executeObject);
-            });
+            Map<Long, ExecuteObject> hostExecuteObjects = stepInstanceService.computeStepExecuteObjects(
+                stepInstance, executeObject -> executeObject.getHost().getHostId());
+            tasks.forEach(task -> task.setExecuteObject(hostExecuteObjects.get(task.getHostId())));
         }
     }
 

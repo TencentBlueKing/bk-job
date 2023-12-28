@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,362 +43,364 @@ class RollingExecuteObjectBatchResolverTest {
     @Test
     @DisplayName("计算滚动批次 - 一个子表达式，按百分比分批")
     void resolveForSinglePercentExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        servers.add(new HostDTO(0L, "127.0.0.16"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "25%");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(4);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1"),
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4")
-        );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("25%");
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "25%");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(4);
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6"),
-            new HostDTO(0L, "127.0.0.7"),
-            new HostDTO(0L, "127.0.0.8")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L)),
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("25%");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("25%");
 
-        assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
-        assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10"),
-            new HostDTO(0L, "127.0.0.11"),
-            new HostDTO(0L, "127.0.0.12")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L)),
+            new ExecuteObject(HostDTO.fromHostId(7L)),
+            new ExecuteObject(HostDTO.fromHostId(8L))
         );
-        assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("25%");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("25%");
 
-        assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
-        assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15"),
-            new HostDTO(0L, "127.0.0.16")
+        assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
+        assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L)),
+            new ExecuteObject(HostDTO.fromHostId(11L)),
+            new ExecuteObject(HostDTO.fromHostId(12L))
         );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("25%");
+        assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("25%");
+
+        assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
+        assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L)),
+            new ExecuteObject(HostDTO.fromHostId(16L))
+        );
+        assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("25%");
     }
 
     @Test
     @DisplayName("计算滚动批次 - 多个子表达式，按百分比分批")
     void resolveForMultiPercentExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        servers.add(new HostDTO(0L, "127.0.0.16"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "10% 30%");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(4);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "10% 30%");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(4);
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1"),
-            new HostDTO(0L, "127.0.0.2")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L)),
+            new ExecuteObject(HostDTO.fromHostId(2L))
         );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10%");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10%");
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6"),
-            new HostDTO(0L, "127.0.0.7")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L)),
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L)),
+            new ExecuteObject(HostDTO.fromHostId(7L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
-        assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
-        assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.8"),
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10"),
-            new HostDTO(0L, "127.0.0.11"),
-            new HostDTO(0L, "127.0.0.12")
+        assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
+        assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(8L)),
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L)),
+            new ExecuteObject(HostDTO.fromHostId(11L)),
+            new ExecuteObject(HostDTO.fromHostId(12L))
         );
-        assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
-        assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
-        assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15"),
-            new HostDTO(0L, "127.0.0.16")
+        assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
+        assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L)),
+            new ExecuteObject(HostDTO.fromHostId(16L))
         );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
     }
 
     @Test
     @DisplayName("计算滚动批次 - 一个子表达式，按数量分批")
     void resolveForSingleQuantityExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        servers.add(new HostDTO(0L, "127.0.0.16"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "10");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(2);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "10");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(2);
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1"),
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6"),
-            new HostDTO(0L, "127.0.0.7"),
-            new HostDTO(0L, "127.0.0.8"),
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L)),
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L)),
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L)),
+            new ExecuteObject(HostDTO.fromHostId(7L)),
+            new ExecuteObject(HostDTO.fromHostId(8L)),
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L))
         );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10");
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.11"),
-            new HostDTO(0L, "127.0.0.12"),
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15"),
-            new HostDTO(0L, "127.0.0.16")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(11L)),
+            new ExecuteObject(HostDTO.fromHostId(12L)),
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L)),
+            new ExecuteObject(HostDTO.fromHostId(16L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("10");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("10");
     }
 
     @Test
     @DisplayName("计算滚动批次 - 多个子表达式，按数量分批")
     void resolveForMultiQuantityExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        servers.add(new HostDTO(0L, "127.0.0.16"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 5");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(4);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 5");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(4);
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L))
         );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L)),
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("5");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("5");
 
-        assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
-        assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.7"),
-            new HostDTO(0L, "127.0.0.8"),
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10"),
-            new HostDTO(0L, "127.0.0.11")
+        assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
+        assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(7L)),
+            new ExecuteObject(HostDTO.fromHostId(8L)),
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L)),
+            new ExecuteObject(HostDTO.fromHostId(11L))
         );
-        assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("5");
+        assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("5");
 
-        assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
-        assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.12"),
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15"),
-            new HostDTO(0L, "127.0.0.16")
+        assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
+        assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(12L)),
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L)),
+            new ExecuteObject(HostDTO.fromHostId(16L))
         );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("5");
+        assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("5");
     }
 
     @Test
     @DisplayName("计算滚动批次 - 混合表达式，按数量和百分比分批")
     void resolveForMixedExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 30%");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(4);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 30%");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(4);
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L))
         );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L)),
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
-        assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
-        assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.7"),
-            new HostDTO(0L, "127.0.0.8"),
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10"),
-            new HostDTO(0L, "127.0.0.11")
+        assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
+        assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(7L)),
+            new ExecuteObject(HostDTO.fromHostId(8L)),
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L)),
+            new ExecuteObject(HostDTO.fromHostId(11L))
         );
-        assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
-        assertThat(serverBatchList.get(3).getBatch()).isEqualTo(4);
-        assertThat(serverBatchList.get(3).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.12"),
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15")
+        assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
+        assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(12L)),
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L))
 
         );
-        assertThat(serverBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
     }
 
 
     @Test
     @DisplayName("计算滚动批次 - 最后一批包含所有")
     void resolveForAllRemainedExpr() {
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        servers.add(new HostDTO(0L, "127.0.0.2"));
-        servers.add(new HostDTO(0L, "127.0.0.3"));
-        servers.add(new HostDTO(0L, "127.0.0.4"));
-        servers.add(new HostDTO(0L, "127.0.0.5"));
-        servers.add(new HostDTO(0L, "127.0.0.6"));
-        servers.add(new HostDTO(0L, "127.0.0.7"));
-        servers.add(new HostDTO(0L, "127.0.0.8"));
-        servers.add(new HostDTO(0L, "127.0.0.9"));
-        servers.add(new HostDTO(0L, "127.0.0.10"));
-        servers.add(new HostDTO(0L, "127.0.0.11"));
-        servers.add(new HostDTO(0L, "127.0.0.12"));
-        servers.add(new HostDTO(0L, "127.0.0.13"));
-        servers.add(new HostDTO(0L, "127.0.0.14"));
-        servers.add(new HostDTO(0L, "127.0.0.15"));
-        servers.add(new HostDTO(0L, "127.0.0.16"));
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1 30% 100%");
-        List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-        assertThat(serverBatchList).hasSize(3);
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 30% " +
+            "100%");
+        List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+        assertThat(executeObjectBatchList).hasSize(3);
 
-        assertThat(serverBatchList.get(0).getBatch()).isEqualTo(1);
-        assertThat(serverBatchList.get(0).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.1")
+        assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
+        assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(1L))
         );
-        assertThat(serverBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
+        assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
-        assertThat(serverBatchList.get(1).getBatch()).isEqualTo(2);
-        assertThat(serverBatchList.get(1).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5"),
-            new HostDTO(0L, "127.0.0.6")
+        assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
+        assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L)),
+            new ExecuteObject(HostDTO.fromHostId(5L)),
+            new ExecuteObject(HostDTO.fromHostId(6L))
         );
-        assertThat(serverBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
+        assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
-        assertThat(serverBatchList.get(2).getBatch()).isEqualTo(3);
-        assertThat(serverBatchList.get(2).getServers()).containsSequence(
-            new HostDTO(0L, "127.0.0.7"),
-            new HostDTO(0L, "127.0.0.8"),
-            new HostDTO(0L, "127.0.0.9"),
-            new HostDTO(0L, "127.0.0.10"),
-            new HostDTO(0L, "127.0.0.11"),
-            new HostDTO(0L, "127.0.0.12"),
-            new HostDTO(0L, "127.0.0.13"),
-            new HostDTO(0L, "127.0.0.14"),
-            new HostDTO(0L, "127.0.0.15"),
-            new HostDTO(0L, "127.0.0.16")
+        assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
+        assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(7L)),
+            new ExecuteObject(HostDTO.fromHostId(8L)),
+            new ExecuteObject(HostDTO.fromHostId(9L)),
+            new ExecuteObject(HostDTO.fromHostId(10L)),
+            new ExecuteObject(HostDTO.fromHostId(11L)),
+            new ExecuteObject(HostDTO.fromHostId(12L)),
+            new ExecuteObject(HostDTO.fromHostId(13L)),
+            new ExecuteObject(HostDTO.fromHostId(14L)),
+            new ExecuteObject(HostDTO.fromHostId(15L)),
+            new ExecuteObject(HostDTO.fromHostId(16L))
         );
-        assertThat(serverBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("100%");
+        assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("100%");
     }
 
     @Test
     @DisplayName("计算滚动批次 - 超过最大允许批次 500")
     void resolveExceedMaxBatchSize() {
-        List<HostDTO> servers = new ArrayList<>();
+        List<ExecuteObject> executeObjects = new ArrayList<>();
         for (int i = 1; i <= 1000; i++) {
-            servers.add(HostDTO.fromHostId((long) i));
+            executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
         }
-        RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1");
+        RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1");
         assertThatExceptionOfType(FailedPreconditionException.class).isThrownBy(
             context::resolve
         );
@@ -411,50 +414,50 @@ class RollingExecuteObjectBatchResolverTest {
         @DisplayName("计算滚动批次 - 按数量分批，性能测试")
         @Timeout(1)
         void resolveQuantityExpr() {
-            List<HostDTO> servers = new ArrayList<>();
+            List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                servers.add(HostDTO.fromHostId((long) i));
+                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
             }
-            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "500");
-            List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-            assertThat(serverBatchList).hasSize(100);
+            RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "500");
+            List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+            assertThat(executeObjectBatchList).hasSize(100);
         }
 
         @Test
         @DisplayName("计算滚动批次 - 按比例分批，性能测试")
         @Timeout(1)
         void resolvePercentExpr() {
-            List<HostDTO> servers = new ArrayList<>();
+            List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                servers.add(HostDTO.fromHostId((long) i));
+                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
             }
-            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "1%");
-            List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-            assertThat(serverBatchList).hasSize(100);
+            RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1%");
+            List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+            assertThat(executeObjectBatchList).hasSize(100);
         }
 
         @Test
         @DisplayName("计算滚动批次 - 按加法递增分批，性能测试")
         @Timeout(1)
         void resolvePlusIncrementRollingExpr() {
-            List<HostDTO> servers = new ArrayList<>();
+            List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                servers.add(HostDTO.fromHostId((long) i));
+                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
             }
-            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "+10");
-            List<RollingExecuteObjectBatch> serverBatchList = context.resolve();
-            assertThat(serverBatchList).hasSize(100);
+            RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "+10");
+            List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
+            assertThat(executeObjectBatchList).hasSize(100);
         }
 
         @Test
         @DisplayName("计算滚动批次 - 按指数递增分批，性能测试")
         @Timeout(1)
         void resolveExponentIncrRollingExpr() {
-            List<HostDTO> servers = new ArrayList<>();
+            List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                servers.add(HostDTO.fromHostId((long) i));
+                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
             }
-            RollingBatchServersResolver context = new RollingBatchServersResolver(servers, "*2");
+            RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "*2");
             context.resolve();
         }
     }

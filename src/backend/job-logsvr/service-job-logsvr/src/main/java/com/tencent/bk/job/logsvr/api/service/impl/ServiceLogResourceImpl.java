@@ -286,6 +286,26 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     }
 
     @Override
+    public InternalResponse<List<ServiceFileTaskLogDTO>> listTaskFileLogsByTaskIds(String jobCreateDate,
+                                                                                   Long stepInstanceId,
+                                                                                   Integer executeCount,
+                                                                                   Integer batch,
+                                                                                   List<String> taskIds) {
+        List<ServiceFileTaskLogDTO> fileTaskLogs = new ArrayList<>();
+
+        if (CollectionUtils.isEmpty(taskIds)) {
+            return InternalResponse.buildSuccessResp(fileTaskLogs);
+        }
+        List<FileTaskLogDoc> fileTaskLogDocs = logService.getFileLogsByTaskIds(jobCreateDate, stepInstanceId,
+            executeCount, batch, taskIds);
+        if (CollectionUtils.isEmpty(fileTaskLogDocs)) {
+            return InternalResponse.buildSuccessResp(fileTaskLogs);
+        }
+        return InternalResponse.buildSuccessResp(
+            fileTaskLogDocs.stream().map(FileTaskLogDoc::toServiceFileTaskLogDTO).collect(Collectors.toList()));
+    }
+
+    @Override
     public InternalResponse<ServiceExecuteObjectLogsDTO> listFileHostLogs(ServiceFileLogQueryRequest request) {
         FileLogQuery query = FileLogQuery.builder()
             .stepInstanceId(request.getStepInstanceId())

@@ -275,6 +275,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
             log.warn("StepInstance:{} is not belong to taskInstance:{}", stepInstanceId, taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
+        return stepInstance;
     }
 
     @Override

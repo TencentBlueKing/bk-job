@@ -90,9 +90,9 @@ public class ResultHandleResumeListener {
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
 
     private final StepInstanceService stepInstanceService;
     private final GseClient gseClient;
@@ -108,8 +108,8 @@ public class ResultHandleResumeListener {
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                      ScriptExecuteObjectTaskService scriptAgentTaskService,
-                                      FileExecuteObjectTaskService fileAgentTaskService,
+                                      ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                      FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
                                       GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
@@ -122,8 +122,8 @@ public class ResultHandleResumeListener {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
     }
@@ -173,7 +173,7 @@ public class ResultHandleResumeListener {
                                   String requestId) {
         Map<ExecuteObjectGseKey, ExecuteObjectTask> executeObjectTaskMap = new HashMap<>();
         List<ExecuteObjectTask> executeObjectTasks
-            = scriptAgentTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+            = scriptExecuteObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
         executeObjectTasks.stream()
             .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
             .forEach(executeObjectTask -> executeObjectTaskMap.put(
@@ -188,7 +188,7 @@ public class ResultHandleResumeListener {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
-            scriptAgentTaskService,
+            scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
             taskInstance,
@@ -215,7 +215,7 @@ public class ResultHandleResumeListener {
         Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
         Map<ExecuteObjectGseKey, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
         List<ExecuteObjectTask> executeObjectTasks
-            = fileAgentTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+            = fileExecuteObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
         executeObjectTasks.stream()
             .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
             .forEach(executeObjectTask -> {
@@ -237,7 +237,7 @@ public class ResultHandleResumeListener {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
-            fileAgentTaskService,
+            fileExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
             taskInstance,

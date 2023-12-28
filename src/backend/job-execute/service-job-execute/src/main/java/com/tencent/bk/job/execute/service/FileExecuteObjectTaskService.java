@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
 import java.util.List;
@@ -59,7 +58,7 @@ public interface FileExecuteObjectTaskService extends ExecuteObjectTaskService {
      * @param executeObjectCompositeKey 执行对象复合 KEY
      * @return 执行对象任务
      */
-    ExecuteObjectTask getTaskByExecuteObjectCompositeKey(StepInstanceDTO stepInstance,
+    ExecuteObjectTask getTaskByExecuteObjectCompositeKey(StepInstanceBaseDTO stepInstance,
                                                          Integer executeCount,
                                                          Integer batch,
                                                          FileTaskModeEnum fileTaskMode,

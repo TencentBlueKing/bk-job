@@ -52,17 +52,17 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
     private final TaskInstanceService taskInstanceService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
     public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
-                                        ScriptExecuteObjectTaskService scriptAgentTaskService,
-                                        FileExecuteObjectTaskService fileAgentTaskService) {
+                                        ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                        FileExecuteObjectTaskService fileExecuteObjectTaskService) {
         this.taskInstanceService = taskInstanceService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         init();
     }
 
@@ -125,9 +125,9 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         TaskStepTypeEnum stepType = stepInstance.getStepType();
         List<ExecuteObjectTask> agentTasks = null;
         if (stepType == TaskStepTypeEnum.SCRIPT) {
-            agentTasks = scriptAgentTaskService.listTasks(stepInstance, stepInstance.getExecuteCount(), null);
+            agentTasks = scriptExecuteObjectTaskService.listTasks(stepInstance, stepInstance.getExecuteCount(), null);
         } else if (stepType == TaskStepTypeEnum.FILE) {
-            agentTasks = fileAgentTaskService.listTasks(stepInstance, stepInstance.getExecuteCount(), null);
+            agentTasks = fileExecuteObjectTaskService.listTasks(stepInstance, stepInstance.getExecuteCount(), null);
             if (CollectionUtils.isNotEmpty(agentTasks)) {
                 agentTasks = agentTasks.stream()
                     .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)

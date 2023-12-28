@@ -70,7 +70,7 @@ public class QuantityRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<ExecuteObject> compute(RollingServerBatchContext context) throws RollingExprParseException {
+    public List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException {
         List<ExecuteObject> candidateExecuteObjects = context.getRemainedExecuteObjects();
         return new ArrayList<>(candidateExecuteObjects.subList(
             0, Math.min(this.quantity, candidateExecuteObjects.size())));

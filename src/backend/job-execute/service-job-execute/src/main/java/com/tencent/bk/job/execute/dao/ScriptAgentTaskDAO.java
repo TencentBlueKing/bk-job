@@ -142,13 +142,6 @@ public interface ScriptAgentTaskDAO {
     ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId);
 
     /**
-     * 判断步骤实例的Agent Task 记录是否存在
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    boolean isStepInstanceRecordExist(long stepInstanceId);
-
-    /**
      * 部分更新AgentTask的字段
      *
      * @param stepInstanceId     条件 - 步骤实例ID

@@ -82,8 +82,8 @@ public class GseTaskManager implements SmartLifecycle {
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final AccountService accountService;
     private final LogService logService;
@@ -152,15 +152,15 @@ public class GseTaskManager implements SmartLifecycle {
                           ExecuteMonitor executeMonitor,
                           JobExecuteConfig jobExecuteConfig,
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                          ScriptExecuteObjectTaskService scriptAgentTaskService,
-                          FileExecuteObjectTaskService fileAgentTaskService,
+                          ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                          FileExecuteObjectTaskService fileExecuteObjectTaskService,
                           StepInstanceService stepInstanceService,
                           GseClient gseClient) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.accountService = accountService;
         this.logService = logService;
@@ -320,7 +320,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskInstanceService,
                 stepInstanceService,
                 gseTaskService,
-                scriptAgentTaskService,
+                scriptExecuteObjectTaskService,
                 accountService,
                 taskInstanceVariableService,
                 stepInstanceVariableValueService,
@@ -347,7 +347,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskInstanceService,
                 stepInstanceService,
                 gseTaskService,
-                scriptAgentTaskService,
+                scriptExecuteObjectTaskService,
                 accountService,
                 taskInstanceVariableService,
                 stepInstanceVariableValueService,
@@ -373,7 +373,7 @@ public class GseTaskManager implements SmartLifecycle {
                 resultHandleManager,
                 taskInstanceService,
                 gseTaskService,
-                fileAgentTaskService,
+                fileExecuteObjectTaskService,
                 accountService,
                 taskInstanceVariableService,
                 stepInstanceVariableValueService,
@@ -464,7 +464,7 @@ public class GseTaskManager implements SmartLifecycle {
                 agentService,
                 accountService,
                 gseTaskService,
-                scriptAgentTaskService,
+                scriptExecuteObjectTaskService,
                 tracer,
                 gseClient,
                 taskInstance,
@@ -477,7 +477,7 @@ public class GseTaskManager implements SmartLifecycle {
                 agentService,
                 accountService,
                 gseTaskService,
-                fileAgentTaskService,
+                fileExecuteObjectTaskService,
                 tracer,
                 gseClient,
                 taskInstance,

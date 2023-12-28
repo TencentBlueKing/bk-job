@@ -130,6 +130,12 @@ public class HostDTO implements Cloneable {
         this.ip = ip;
     }
 
+    public HostDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public static HostDTO fromHostId(Long hostId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
@@ -154,15 +160,6 @@ public class HostDTO implements Cloneable {
             host.setBkCloudId(Long.valueOf(ipProps[0]));
             host.setIp(ipProps[1]);
         }
-        return host;
-    }
-
-    @Deprecated
-    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setBkCloudId(bkCloudId);
-        host.setIp(ip);
         return host;
     }
 

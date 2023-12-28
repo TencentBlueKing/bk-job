@@ -86,7 +86,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -105,7 +105,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      TaskInstanceService taskInstanceService,
                                      StepInstanceService stepInstanceService,
                                      GseTaskService gseTaskService,
-                                     ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                     ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                      AccountService accountService,
                                      TaskInstanceVariableService taskInstanceVariableService,
                                      StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -127,7 +127,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
-            scriptAgentTaskService,
+            scriptExecuteObjectTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
@@ -146,7 +146,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             stepInstance,
             gseTask,
             stepInstanceService);
-        this.scriptAgentTaskService = scriptAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
     }
@@ -654,7 +654,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 taskExecuteMQEventDispatcher,
                 resultHandleTaskKeepaliveManager,
                 taskEvictPolicyExecutor,
-                scriptAgentTaskService,
+                scriptExecuteObjectTaskService,
                 stepInstanceService,
                 gseClient,
                 taskInstance,
@@ -696,7 +696,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
         logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
-        scriptAgentTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
+        scriptExecuteObjectTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
     }
 
     @Override

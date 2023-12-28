@@ -121,12 +121,12 @@ public class ExecuteObject implements Cloneable {
     }
 
     @JsonIgnore
-    public boolean isHost() {
+    public boolean isHostExecuteObject() {
         return type == ExecuteObjectTypeEnum.HOST;
     }
 
     @JsonIgnore
-    public boolean isContainer() {
+    public boolean isContainerExecuteObject() {
         return type == ExecuteObjectTypeEnum.CONTAINER;
     }
 
@@ -134,7 +134,7 @@ public class ExecuteObject implements Cloneable {
         if (executeObjectGseKey != null) {
             return executeObjectGseKey;
         }
-        if (isHost()) {
+        if (isHostExecuteObject()) {
             executeObjectGseKey = ExecuteObjectGseKey.ofHost(host.getAgentId());
         } else {
             executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getAgentId(), container.getContainerId());
@@ -144,7 +144,7 @@ public class ExecuteObject implements Cloneable {
 
     @JsonIgnore
     public boolean isAgentIdEmpty() {
-        if (isHost()) {
+        if (isHostExecuteObject()) {
             return StringUtils.isNotEmpty(getHost().getAgentId());
         } else {
             return StringUtils.isNotEmpty(getContainer().getAgentId());
@@ -153,7 +153,7 @@ public class ExecuteObject implements Cloneable {
 
     public Agent toGseAgent() {
         Agent agent = new Agent();
-        if (isHost()) {
+        if (isHostExecuteObject()) {
             agent.setAgentId(host.getAgentId());
         } else {
             agent.setAgentId(container.getAgentId());
@@ -187,9 +187,9 @@ public class ExecuteObject implements Cloneable {
      */
     @JsonIgnore
     public String getExecuteObjectName() {
-        if (isHost()) {
+        if (isHostExecuteObject()) {
             return host.getPrimaryIp();
-        } else if (isContainer()) {
+        } else if (isContainerExecuteObject()) {
             return container.getContainerId();
         } else {
             return null;

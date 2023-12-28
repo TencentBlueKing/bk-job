@@ -2214,7 +2214,7 @@ variableValueMap);
             List<HostDTO> staticIpList = new ArrayList<>();
             for (ServiceHostInfoDTO hostInfo : hostList) {
                 staticIpList.add(
-                    HostDTO.fromHostIdOrCloudIp(hostInfo.getHostId(), hostInfo.getCloudAreaId(), hostInfo.getIp()));
+                    new HostDTO(hostInfo.getHostId(), hostInfo.getCloudAreaId(), hostInfo.getIp()));
             }
             servers.setStaticIpList(staticIpList);
         }

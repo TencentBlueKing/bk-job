@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -52,9 +51,8 @@ import java.util.List;
  * 执行日志服务
  */
 @Api(tags = {"Log"})
-@SmartFeignClient(value = "job-logsvr", contextId = "logResource")
+@SmartFeignClient(value = "job-logsvr", contextId = "logResource", path = "/service/log")
 @InternalAPI
-@RequestMapping("/service/log")
 public interface ServiceLogResource {
 
     /**
@@ -183,6 +181,9 @@ public interface ServiceLogResource {
     @ApiOperation("获取文件任务对应的执行日志")
     @PostMapping(
         "/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "返回的协议内容有问题，发布完成后可删除")
     InternalResponse<ServiceExecuteObjectLogDTO> listFileLogsByTaskIds(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -192,7 +193,23 @@ public interface ServiceLogResource {
         @PathVariable("executeCount") Integer executeCount,
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch,
-        @ApiParam("文件任务ID列表，多个任务ID以;分隔")
+        @ApiParam("文件任务ID列表")
+        @RequestBody List<String> taskIds
+    );
+
+    @ApiOperation("根据任务 ID 批量获取文件任务对应的执行日志")
+    @PostMapping(
+        "/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/listTaskFileLogsByTaskIds")
+    InternalResponse<List<ServiceFileTaskLogDTO>> listTaskFileLogsByTaskIds(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch,
+        @ApiParam("文件任务ID列表")
         @RequestBody List<String> taskIds
     );
 

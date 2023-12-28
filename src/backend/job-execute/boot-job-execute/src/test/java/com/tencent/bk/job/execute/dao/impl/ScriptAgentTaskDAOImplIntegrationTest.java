@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,8 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         long stepInstanceId = 1L;
         int executeCount = 0;
         int batch = 1;
-        AgentTaskDTO agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch, hostId);
+        ExecuteObjectTask agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch,
+            hostId);
 
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
@@ -84,8 +85,8 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("批量新增Agent任务")
     public void testBatchSaveAgentTasks() {
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
-        AgentTaskDTO agentTask1 = new AgentTaskDTO();
+        List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
+        ExecuteObjectTask agentTask1 = new ExecuteObjectTask();
         agentTask1.setStepInstanceId(100L);
         agentTask1.setExecuteCount(1);
         agentTask1.setActualExecuteCount(1);
@@ -102,7 +103,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask1.setExitCode(1);
         agentTaskList.add(agentTask1);
 
-        AgentTaskDTO agentTask2 = new AgentTaskDTO();
+        ExecuteObjectTask agentTask2 = new ExecuteObjectTask();
         agentTask2.setStepInstanceId(100L);
         agentTask2.setExecuteCount(1);
         agentTask2.setActualExecuteCount(1);
@@ -123,7 +124,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         scriptAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 101L);
+        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(1L);
         assertThat(agentTask1Return.getActualExecuteCount()).isEqualTo(1L);
@@ -140,7 +141,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 102L);
+        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 102L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(1L);
         assertThat(agentTask2Return.getActualExecuteCount()).isEqualTo(1L);
@@ -160,8 +161,8 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("批量更新Agent任务")
     public void testBatchUpdateAgentTasks() {
-        List<AgentTaskDTO> agentTaskList = new ArrayList<>();
-        AgentTaskDTO agentTask1 = new AgentTaskDTO();
+        List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
+        ExecuteObjectTask agentTask1 = new ExecuteObjectTask();
         agentTask1.setStepInstanceId(1L);
         agentTask1.setExecuteCount(0);
         agentTask1.setBatch(3);
@@ -177,7 +178,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask1.setExitCode(1);
         agentTaskList.add(agentTask1);
 
-        AgentTaskDTO agentTask2 = new AgentTaskDTO();
+        ExecuteObjectTask agentTask2 = new ExecuteObjectTask();
         agentTask2.setStepInstanceId(1L);
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(3);
@@ -197,7 +198,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         scriptAgentTaskDAO.batchUpdateAgentTasks(agentTaskList);
 
-        AgentTaskDTO agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 103L);
+        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 103L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(3);
@@ -213,7 +214,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        AgentTaskDTO agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 104L);
+        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 104L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(3);
@@ -268,7 +269,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
     @Test
     public void testListAgentTaskByResultGroup() {
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(1L, 0, 1, 9, "succ");
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(1L, 0, 1, 9, "succ");
         assertThat(agentTasks.size()).isEqualTo(1);
         assertThat(agentTasks.get(0).getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);

@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
@@ -39,7 +38,6 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceLogResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
@@ -63,21 +61,21 @@ import java.util.List;
 public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
-                                            ScriptExecuteObjectTaskService scriptAgentTaskService,
-                                            FileExecuteObjectTaskService fileAgentTaskService,
+                                            ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                            FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                             LogService logService,
                                             TaskInstanceAccessProcessor taskInstanceAccessProcessor,
                                             AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.logService = logService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
@@ -118,10 +116,10 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     private List<EsbStepInstanceResultAndLog.StepInstResultDTO> buildStepInstResult(StepInstanceBaseDTO stepInstance) {
         List<ResultGroupDTO> resultGroups = Collections.emptyList();
         if (stepInstance.isScriptStep()) {
-            resultGroups = scriptAgentTaskService.listAndGroupTasks(stepInstance,
+            resultGroups = scriptExecuteObjectTaskService.listAndGroupTasks(stepInstance,
                 stepInstance.getExecuteCount(), null);
         } else if (stepInstance.isFileStep()) {
-            resultGroups = fileAgentTaskService.listAndGroupTasks(stepInstance,
+            resultGroups = fileExecuteObjectTaskService.listAndGroupTasks(stepInstance,
                 stepInstance.getExecuteCount(), null);
         }
 
@@ -167,19 +165,20 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     }
 
     private void addLogContent(StepInstanceBaseDTO stepInstance, List<ExecuteObjectTask> executeObjectTasks) {
-        long stepInstanceId = stepInstance.getId();
         int executeCount = stepInstance.getExecuteCount();
 
         for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
             if (stepInstance.isScriptStep()) {
                 ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
                     logService.getScriptExecuteObjectLogContent(stepInstance, executeCount,
-                        null, ExecuteObjectCompositeKey.ofHost());
-                executeObjectTask.setScriptLogContent(scriptExecuteObjectLogContent == null ? "" : scriptExecuteObjectLogContent.getContent());
+                        null, executeObjectTask);
+                executeObjectTask.setScriptLogContent(
+                    scriptExecuteObjectLogContent == null ? "" : scriptExecuteObjectLogContent.getContent());
             } else if (stepInstance.isFileStep()) {
-                FileExecuteObjectLogContent fileExecuteObjectLogContent = logService.getFileExecuteObjectLogContent(stepInstanceId, executeCount,
-                    null, executeObjectTask.getHost(), FileDistModeEnum.DOWNLOAD.getValue());
-                executeObjectTask.setScriptLogContent(fileExecuteObjectLogContent == null ? "" : fileExecuteObjectLogContent.getContent());
+                FileExecuteObjectLogContent fileExecuteObjectLogContent = logService.getFileExecuteObjectLogContent(
+                    stepInstance, executeCount, null, executeObjectTask);
+                executeObjectTask.setScriptLogContent(
+                    fileExecuteObjectLogContent == null ? "" : fileExecuteObjectLogContent.getContent());
             }
         }
     }

@@ -106,7 +106,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
@@ -132,6 +131,7 @@ import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
 
+@SuppressWarnings("Duplicates")
 @RestController
 @Slf4j
 public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResultResource {
@@ -706,13 +706,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         taskInstanceAccessProcessor.processBeforeAccess(username,
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
-        List<ExecuteVariableVO> taskVariableVOS = getStepVariableByHost(stepInstance, hostId, ip);
+        List<ExecuteVariableVO> taskVariableVOS = getStepVariableByExecuteObject(stepInstance,
+            ExecuteObjectTypeEnum.HOST, hostId);
         return Response.buildSuccessResp(taskVariableVOS);
     }
 
-    private List<ExecuteVariableVO> getStepVariableByHost(StepInstanceBaseDTO stepInstance,
-                                                          Long hostId,
-                                                          String ip) {
+    private List<ExecuteVariableVO> getStepVariableByExecuteObject(StepInstanceBaseDTO stepInstance,
+                                                                   ExecuteObjectTypeEnum executeObjectType,
+                                                                   Long executeObjectResourceId) {
         List<TaskVariableDTO> taskVars =
             taskInstanceVariableService.getByTaskInstanceId(stepInstance.getTaskInstanceId());
         if (taskVars == null || taskVars.isEmpty()) {
@@ -733,7 +734,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         }
 
         if (CollectionUtils.isNotEmpty(changeableVars)) {
-            appendStepChangeableVars(taskVariableVOS, stepInstance, changeableVars, hostId, ip);
+            appendStepChangeableVars(taskVariableVOS, stepInstance, changeableVars,
+                executeObjectType, executeObjectResourceId);
         }
 
         return taskVariableVOS;
@@ -742,8 +744,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private void appendStepChangeableVars(List<ExecuteVariableVO> taskVariableVOS,
                                           StepInstanceBaseDTO stepInstance,
                                           List<TaskVariableDTO> changeableVars,
-                                          Long hostId,
-                                          String ip) {
+                                          ExecuteObjectTypeEnum executeObjectType,
+                                          Long executeObjectResourceId) {
         long stepInstanceId = stepInstance.getId();
 
         StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
@@ -760,7 +762,11 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         }
 
         // 命名空间变量
-        appendNamespaceVars(taskVariableVOS, changeableVars, inputStepInstanceValues, taskVariablesMap, hostId, ip);
+        if (executeObjectType == ExecuteObjectTypeEnum.HOST) {
+            // 当前只有主机支持命名空间变量
+            appendNamespaceVars(taskVariableVOS, changeableVars, inputStepInstanceValues,
+                taskVariablesMap, executeObjectResourceId);
+        }
 
         // 全局变量(除命名空间变量)
         appendGlobalChangeableVars(taskVariableVOS, inputStepInstanceValues, taskVariablesMap);
@@ -770,30 +776,17 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                      List<TaskVariableDTO> changeableVars,
                                      StepInstanceVariableValuesDTO inputStepInstanceValues,
                                      Map<String, TaskVariableDTO> taskVariablesMap,
-                                     Long hostId,
-                                     String ip) {
+                                     Long hostId) {
         Map<String, VariableValueDTO> hostVariables = new HashMap<>();
         if (inputStepInstanceValues.getNamespaceParamsMap() != null
             && !inputStepInstanceValues.getNamespaceParamsMap().isEmpty()) {
-            // 命名空间变量的数据，之前的版本不包含hostId,只包含ip；需要兼容hostId/ip查询
-            boolean isFilterByHostId = inputStepInstanceValues.getNamespaceParams().get(0).getHostId() != null;
             // Map<varName,varValue>
-            if (isFilterByHostId) {
-                inputStepInstanceValues.getNamespaceParamsMap()
-                    .forEach((host, hostVars) -> {
-                        if (host.getHostId() != null && host.getHostId().equals(hostId)) {
-                            hostVars.forEach(hostVariables::put);
-                        }
-                    });
-            } else {
-                // 兼容历史数据，命名空间变量只有ip的场景
-                inputStepInstanceValues.getNamespaceParamsMap()
-                    .forEach((host, hostVars) -> {
-                        if (host.toCloudIp() != null && host.toCloudIp().equals(ip)) {
-                            hostVars.forEach(hostVariables::put);
-                        }
-                    });
-            }
+            inputStepInstanceValues.getNamespaceParamsMap()
+                .forEach((host, hostVars) -> {
+                    if (host.getHostId() != null && host.getHostId().equals(hostId)) {
+                        hostVars.forEach(hostVariables::put);
+                    }
+                });
         }
         changeableVars
             .stream()
@@ -850,7 +843,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<IpFileLogContentVO> getFileLogContentByHost(String username,
                                                                 AppResourceScope appResourceScope,
@@ -868,45 +860,44 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         IpFileLogContentVO result = new IpFileLogContentVO();
         List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
-        result.setFileDistributionDetails(fileDistDetailVOS);
 
         if ("download".equals(mode)) {
             FileExecuteObjectLogContent downloadLog = logService.getFileExecuteObjectLogContent(stepInstance,
                 executeCount, batch, ExecuteObjectCompositeKey.ofHostId(hostId), FileDistModeEnum.DOWNLOAD.getValue());
             // downloadLog为null说明步骤还未下发至GSE就被终止
             if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
-                downloadLog.getFileTaskLogs().forEach(fileLog -> {
-                    if (fileLog.getMode().equals(FileDistModeEnum.UPLOAD.getValue())) {
-                        return;
-                    }
-                    fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog));
-                });
+                fileDistDetailVOS =
+                    downloadLog.getFileTaskLogs().stream()
+                        .map(this::convertToFileDistributionDetailVO)
+                        .collect(Collectors.toList());
                 result.setFinished(downloadLog.isFinished());
             }
-            Collections.sort(fileDistDetailVOS);
         } else {
             List<FileExecuteObjectLogContent> executeObjectLogContents =
                 logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
                     executeCount, batch);
             if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
-                executeObjectLogContents.stream().flatMap(
-                    executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                    .map(this::convertToFileDistributionDetailV2VO)
-                    .collect(Collectors.toList());
-                executeObjectLogContents.forEach(executeObjectLogContent -> {
-                    executeObjectLogContent.getFileTaskLogs()
-                    fileDistDetailVOS.add();
-                });
-                Collections.sort(fileDistDetailVOS);
-                result.setFinished(executeObjectLogContents.stream().noneMatch(fileLog ->
-                    (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
-                        || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
-                        || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
-                        || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
+                fileDistDetailVOS =
+                    executeObjectLogContents.stream()
+                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                        .map(this::convertToFileDistributionDetailVO)
+                        .collect(Collectors.toList());
+                result.setFinished(
+                    executeObjectLogContents.stream()
+                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                        .noneMatch(fileLog ->
+                            (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
+                                || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
+                                || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
+                                || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
             }
         }
+        Collections.sort(fileDistDetailVOS);
+        result.setFileDistributionDetails(fileDistDetailVOS);
+
         boolean includingLogContent = !removeFileLogContentIfResultIsLarge(fileDistDetailVOS);
         result.setIncludingLogContent(includingLogContent);
+
         return Response.buildSuccessResp(result);
     }
 
@@ -924,6 +915,26 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private long calculateFileLogContentLength(List<FileDistributionDetailVO> fileDistDetailVOS) {
         long length = 0;
         for (FileDistributionDetailVO fileDistributionDetailVO : fileDistDetailVOS) {
+            length += (StringUtils.isEmpty(fileDistributionDetailVO.getLogContent()) ?
+                0 : fileDistributionDetailVO.getLogContent().getBytes(StandardCharsets.UTF_8).length);
+        }
+        return length;
+    }
+
+    private boolean removeFileLogContentIfLarge(List<FileDistributionDetailV2VO> fileDistDetailVOS) {
+        // 超过128K
+        boolean removeFileLogContent = sumFileLogContentLength(fileDistDetailVOS) > 131072L;
+        if (removeFileLogContent) {
+            fileDistDetailVOS.forEach(fileDistributionDetailVO -> {
+                fileDistributionDetailVO.setLogContent(null);
+            });
+        }
+        return removeFileLogContent;
+    }
+
+    private long sumFileLogContentLength(List<FileDistributionDetailV2VO> fileDistDetailVOS) {
+        long length = 0;
+        for (FileDistributionDetailV2VO fileDistributionDetailVO : fileDistDetailVOS) {
             length += (StringUtils.isEmpty(fileDistributionDetailVO.getLogContent()) ?
                 0 : fileDistributionDetailVO.getLogContent().getBytes(StandardCharsets.UTF_8).length);
         }
@@ -992,15 +1003,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                    List<String> taskIds) {
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
 
-        List<ServiceFileTaskLogDTO> fileTaskLogs = logService.getFileLogContentByTaskIds(stepInstanceId, executeCount,
+        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId, executeCount,
             batch, taskIds);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return Response.buildSuccessResp(null);
         }
         List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
-        fileTaskLogs.forEach(fileLog -> {
-            fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog));
-        });
+        fileTaskLogs.forEach(fileLog -> fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog)));
         return Response.buildSuccessResp(fileDistDetailVOS);
     }
 
@@ -1151,7 +1160,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
         ExecuteObjectFileLogVO result = new ExecuteObjectFileLogVO();
         List<FileDistributionDetailV2VO> fileDistDetailVOS = new ArrayList<>();
-        result.setFileDistributionDetails(fileDistDetailVOS);
 
         FileDistModeEnum fileDistMode = FileDistModeEnum.getFileDistMode(mode);
         switch (fileDistMode) {
@@ -1161,44 +1169,45 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                         stepInstance,
                         executeCount,
                         batch,
-                        ExecuteObjectCompositeKey.ofExecuteObjectResource(ExecuteObjectTypeEnum.valOf(executeObjectType),
-                            executeObjectResourceId),
+                        ExecuteObjectCompositeKey.ofExecuteObjectResource(
+                            ExecuteObjectTypeEnum.valOf(executeObjectType), executeObjectResourceId),
                         FileDistModeEnum.DOWNLOAD.getValue());
                 // downloadLog为null说明步骤还未下发至GSE就被终止
                 if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
-                    downloadLog.getFileTaskLogs().forEach(fileLog -> {
-                        if (fileLog.getMode().equals(FileDistModeEnum.UPLOAD.getValue())) {
-                            return;
-                        }
-                        fileDistDetailVOS.add(convertToFileDistributionDetailV2VO(fileLog));
-                    });
+                    fileDistDetailVOS =
+                        downloadLog.getFileTaskLogs().stream()
+                            .map(this::convertToFileDistributionDetailV2VO)
+                            .collect(Collectors.toList());
                     result.setFinished(downloadLog.isFinished());
                 }
-                Collections.sort(fileDistDetailVOS);
                 break;
             case UPLOAD:
                 List<FileExecuteObjectLogContent> executeObjectLogContents =
                     logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
                         executeCount, batch);
-                executeObjectLogContents.stream().
                 if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
-                    fileTaskLogs.forEach(fileTaskLog -> {
-                        if (fileTaskLog.getMode().equals(FileDistModeEnum.DOWNLOAD.getValue())) {
-                            return;
-                        }
-                        fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileTaskLog));
-                    });
-                    Collections.sort(fileDistDetailVOS);
-                    result.setFinished(fileTaskLogs.stream().noneMatch(fileLog ->
-                        (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
-                            || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
-                            || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
-                            || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
+                    fileDistDetailVOS =
+                        executeObjectLogContents.stream()
+                            .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                            .map(this::convertToFileDistributionDetailV2VO)
+                            .collect(Collectors.toList());
+                    result.setFinished(
+                        executeObjectLogContents.stream()
+                            .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                            .noneMatch(fileLog ->
+                                (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
+                                    || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
+                                    || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
+                                    || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
                 }
                 break;
         }
-        boolean includingLogContent = !removeFileLogContentIfResultIsLarge(fileDistDetailVOS);
+        Collections.sort(fileDistDetailVOS);
+        result.setFileDistributionDetails(fileDistDetailVOS);
+
+        boolean includingLogContent = !removeFileLogContentIfLarge(fileDistDetailVOS);
         result.setIncludingLogContent(includingLogContent);
+
         return Response.buildSuccessResp(result);
     }
 
@@ -1213,7 +1222,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                      Integer executeCount,
                                                                                      Integer batch,
                                                                                      List<String> taskIds) {
-        return null;
+        auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
+
+        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId, executeCount,
+            batch, taskIds);
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
+            return Response.buildSuccessResp(null);
+        }
+        List<FileDistributionDetailV2VO> fileDistDetailVOS = new ArrayList<>();
+        fileTaskLogs.forEach(fileLog -> fileDistDetailVOS.add(convertToFileDistributionDetailV2VO(fileLog)));
+        return Response.buildSuccessResp(fileDistDetailVOS);
     }
 
     @Override
@@ -1226,7 +1244,19 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                             Long stepInstanceId,
                                                                             Integer executeObjectType,
                                                                             Long executeObjectResourceId) {
-        return null;
+        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(
+            appResourceScope.getAppId(), stepInstanceId);
+        if (!stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
+            || !stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
+
+        taskInstanceAccessProcessor.processBeforeAccess(username,
+            appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
+
+        List<ExecuteVariableVO> taskVariableVOS = getStepVariableByExecuteObject(stepInstance,
+            ExecuteObjectTypeEnum.valOf(executeObjectType), executeObjectResourceId);
+        return Response.buildSuccessResp(taskVariableVOS);
     }
 
     @Override

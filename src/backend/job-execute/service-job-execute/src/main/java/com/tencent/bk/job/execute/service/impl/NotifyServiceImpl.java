@@ -91,8 +91,8 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
@@ -102,8 +102,8 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             ScriptExecuteObjectTaskService scriptAgentTaskService,
-                             FileExecuteObjectTaskService fileAgentTaskService,
+                             ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                             FileExecuteObjectTaskService fileExecuteObjectTaskService,
                              TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.jobCommonConfig = jobCommonConfig;
         this.notificationResource = notificationResource;
@@ -111,8 +111,8 @@ public class NotifyServiceImpl implements NotifyService {
         this.applicationService = applicationService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
@@ -268,10 +268,10 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptAgentTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = fileAgentTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));

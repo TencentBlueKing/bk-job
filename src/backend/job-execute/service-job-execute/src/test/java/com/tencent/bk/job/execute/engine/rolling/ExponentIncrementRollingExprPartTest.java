@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -64,41 +65,43 @@ class ExponentIncrementRollingExprPartTest {
         RollingExprPart rollingExprPart = ROLLING_EXPR_PART.parseExpr("*2");
         assertThat(rollingExprPart).isNotNull();
         assertThat(rollingExprPart).isInstanceOf(ExponentIncrementRollingExprPart.class);
-        ExponentIncrementRollingExprPart exponentIncrementRollingExprPart = (ExponentIncrementRollingExprPart) rollingExprPart;
+        ExponentIncrementRollingExprPart exponentIncrementRollingExprPart =
+            (ExponentIncrementRollingExprPart) rollingExprPart;
         assertThat(exponentIncrementRollingExprPart.getExpr()).isEqualTo("*2");
         assertThat(exponentIncrementRollingExprPart.getExponent()).isEqualTo(2);
     }
 
     @Test
     void compute() {
-        List<HostDTO> rollingServers = new ArrayList<>();
-        rollingServers.add(new HostDTO(0L, "127.0.0.1"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.2"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.3"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.4"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.5"));
-        RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
+        List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
+        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
+        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
-        List<HostDTO> remainingServers = new ArrayList<>();
-        remainingServers.add(new HostDTO(0L, "127.0.0.2"));
-        remainingServers.add(new HostDTO(0L, "127.0.0.3"));
-        remainingServers.add(new HostDTO(0L, "127.0.0.4"));
-        remainingServers.add(new HostDTO(0L, "127.0.0.5"));
-        context.setRemainedExecuteObjects(remainingServers);
+        List<ExecuteObject> remainingExecuteObjects = new ArrayList<>();
+        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
+        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
+        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        context.setRemainedExecuteObjects(remainingExecuteObjects);
 
         RollingExecuteObjectBatch preRollingExecuteObjectBatch = new RollingExecuteObjectBatch();
         preRollingExecuteObjectBatch.setBatch(1);
-        preRollingExecuteObjectBatch.setServers(Collections.singletonList(new HostDTO(0L, "127.0.0.1")));
+        preRollingExecuteObjectBatch.setExecuteObjects(
+            Collections.singletonList(new ExecuteObject(HostDTO.fromHostId(1L))));
         context.addExecuteObjectBatch(preRollingExecuteObjectBatch);
         context.setBatchCount(1);
 
         ExponentIncrementRollingExprPart exponentIncrementRollingExprPart =
             (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*3");
-        List<HostDTO> serversOnBatch = exponentIncrementRollingExprPart.compute(context);
-        assertThat(serversOnBatch).containsSequence(
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4")
+        List<ExecuteObject> executeObjectsOnBatch = exponentIncrementRollingExprPart.compute(context);
+        assertThat(executeObjectsOnBatch).containsSequence(
+            new ExecuteObject(HostDTO.fromHostId(2L)),
+            new ExecuteObject(HostDTO.fromHostId(3L)),
+            new ExecuteObject(HostDTO.fromHostId(4L))
         );
     }
 }

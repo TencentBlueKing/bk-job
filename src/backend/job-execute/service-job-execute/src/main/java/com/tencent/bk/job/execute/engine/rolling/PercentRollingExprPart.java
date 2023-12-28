@@ -69,7 +69,7 @@ public class PercentRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<ExecuteObject> compute(RollingServerBatchContext context) throws RollingExprParseException {
+    public List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException {
         List<ExecuteObject> candidateExecuteObjects = context.getRemainedExecuteObjects();
         int total = context.getTotalExecuteObjectSize();
         // 批次大小，需要向上取整

@@ -103,8 +103,8 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final LogService logService;
     private final TaskOperationLogService operationLogService;
     private final RollingConfigService rollingConfigService;
@@ -116,8 +116,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
                                  FileSourceTaskLogDAO fileSourceTaskLogDAO,
-                                 ScriptExecuteObjectTaskService scriptAgentTaskService,
-                                 FileExecuteObjectTaskService fileAgentTaskService,
+                                 ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                  LogService logService,
                                  TaskOperationLogService operationLogService,
                                  RollingConfigService rollingConfigService,
@@ -127,8 +127,8 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.logService = logService;
         this.operationLogService = operationLogService;
         this.rollingConfigService = rollingConfigService;
@@ -549,9 +549,9 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                         Integer batch) {
         List<ResultGroupDTO> resultGroups = null;
         if (stepInstance.isScriptStep()) {
-            resultGroups = scriptAgentTaskService.listAndGroupTasks(stepInstance, executeCount, batch);
+            resultGroups = scriptExecuteObjectTaskService.listAndGroupTasks(stepInstance, executeCount, batch);
         } else if (stepInstance.isFileStep()) {
-            resultGroups = fileAgentTaskService.listAndGroupTasks(stepInstance, executeCount, batch);
+            resultGroups = fileExecuteObjectTaskService.listAndGroupTasks(stepInstance, executeCount, batch);
         }
         return resultGroups;
     }
@@ -561,9 +561,9 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                       Integer batch) {
         List<ResultGroupBaseDTO> resultGroups = null;
         if (stepInstance.isScriptStep()) {
-            resultGroups = scriptAgentTaskService.listResultGroups(stepInstance, executeCount, batch);
+            resultGroups = scriptExecuteObjectTaskService.listResultGroups(stepInstance, executeCount, batch);
         } else if (stepInstance.isFileStep()) {
-            resultGroups = fileAgentTaskService.listResultGroups(stepInstance, executeCount, batch);
+            resultGroups = fileExecuteObjectTaskService.listResultGroups(stepInstance, executeCount, batch);
         }
         return resultGroups;
     }
@@ -743,9 +743,9 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                           Integer batch) {
         List<ResultGroupBaseDTO> resultGroups = null;
         if (stepInstance.isScriptStep()) {
-            resultGroups = scriptAgentTaskService.listResultGroups(stepInstance, executeCount, batch);
+            resultGroups = scriptExecuteObjectTaskService.listResultGroups(stepInstance, executeCount, batch);
         } else if (stepInstance.isFileStep()) {
-            resultGroups = fileAgentTaskService.listResultGroups(stepInstance, executeCount, batch);
+            resultGroups = fileExecuteObjectTaskService.listResultGroups(stepInstance, executeCount, batch);
         }
         return resultGroups;
     }
@@ -760,10 +760,10 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                        Order order) {
         List<ExecuteObjectTask> tasks = null;
         if (stepInstance.isScriptStep()) {
-            tasks = scriptAgentTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
+            tasks = scriptExecuteObjectTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag, maxAgentTasksForResultGroup, orderField, order);
         } else if (stepInstance.isFileStep()) {
-            tasks = fileAgentTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
+            tasks = fileExecuteObjectTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag, maxAgentTasksForResultGroup, orderField, order);
         }
         return tasks;
@@ -776,10 +776,10 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                        String tag) {
         List<ExecuteObjectTask> tasks = null;
         if (stepInstance.isScriptStep()) {
-            tasks = scriptAgentTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
+            tasks = scriptExecuteObjectTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag);
         } else if (stepInstance.isFileStep()) {
-            tasks = fileAgentTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
+            tasks = fileExecuteObjectTaskService.listTaskByResultGroup(stepInstance, queryExecuteCount,
                 batch, status, tag);
         }
         return tasks;
@@ -856,7 +856,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private boolean isMatchByIp(ExecuteObject executeObject, String searchIp) {
         boolean isMatch = false;
-        if (!executeObject.isHost()) {
+        if (!executeObject.isHostExecuteObject()) {
             return false;
         }
         HostDTO host = executeObject.getHost();

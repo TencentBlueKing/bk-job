@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 主机计算滚动分批上下文
+ * 执行对象计算滚动分批上下文
  */
 @Getter
 @Setter
 @ToString
-public class RollingServerBatchContext {
+public class RollingExecuteObjectBatchContext {
     /**
      * 需要分批的执行对象
      */
@@ -44,7 +44,7 @@ public class RollingServerBatchContext {
      *
      * @param executeObjects 所有参与滚动的执行对象
      */
-    public RollingServerBatchContext(List<ExecuteObject> executeObjects) {
+    public RollingExecuteObjectBatchContext(List<ExecuteObject> executeObjects) {
         this.executeObjects = executeObjects;
         this.remainedExecuteObjects = new ArrayList<>(this.executeObjects);
         this.totalExecuteObjectSize = executeObjects.size();

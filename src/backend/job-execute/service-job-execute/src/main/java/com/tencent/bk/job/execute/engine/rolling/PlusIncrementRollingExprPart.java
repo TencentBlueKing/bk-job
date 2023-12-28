@@ -76,7 +76,7 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<ExecuteObject> compute(RollingServerBatchContext context) throws RollingExprParseException {
+    public List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException {
         List<ExecuteObject> candidateExecuteObjects = context.getRemainedExecuteObjects();
         // 上一批次的执行对象
         RollingExecuteObjectBatch preBatch = CollectionUtils.isEmpty(context.getExecuteObjectBatches()) ?

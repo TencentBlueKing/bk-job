@@ -614,7 +614,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val hostId = (Long) record.get(KEY_HOST_ID);
                 val cloudId = (Long) record.get(KEY_CLOUD_AREA_ID);
                 val ip = (String) record.get(KEY_IP);
-                return HostDTO.fromHostIdOrCloudIp(hostId, cloudId, ip);
+                return new HostDTO(hostId, cloudId, ip);
             });
         } catch (Exception e) {
             log.error("error query={}", query.getSQL(ParamType.INLINED));

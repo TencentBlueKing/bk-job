@@ -269,7 +269,7 @@ public class ExecuteObjectsDTO implements Cloneable {
             // 兼容使用 hostId 的方式
             if (CollectionUtils.isNotEmpty(executeObjects)) {
                 return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHost()
+                    .filter(executeObject -> executeObject.isHostExecuteObject()
                         && executeObjectCompositeKey.getHostId().equals(executeObject.getHost().getHostId()))
                     .findFirst()
                     .orElse(null);
@@ -284,7 +284,7 @@ public class ExecuteObjectsDTO implements Cloneable {
             // 兼容使用 云区域+ip 的方式
             if (CollectionUtils.isNotEmpty(executeObjects)) {
                 return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHost()
+                    .filter(executeObject -> executeObject.isHostExecuteObject()
                         && executeObjectCompositeKey.getCloudIp().equals(executeObject.getHost().toCloudIp()))
                     .findFirst()
                     .orElse(null);
@@ -324,7 +324,7 @@ public class ExecuteObjectsDTO implements Cloneable {
                     .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(executeObjects)) {
                 return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHost()
+                    .filter(executeObject -> executeObject.isHostExecuteObject()
                         && hostIds.contains(executeObject.getHost().getHostId()))
                     .collect(Collectors.toList());
             } else {
@@ -344,7 +344,7 @@ public class ExecuteObjectsDTO implements Cloneable {
                     .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(executeObjects)) {
                 return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHost()
+                    .filter(executeObject -> executeObject.isHostExecuteObject()
                         && cloudIps.contains(executeObject.getHost().toCloudIp()))
                     .collect(Collectors.toList());
             } else {

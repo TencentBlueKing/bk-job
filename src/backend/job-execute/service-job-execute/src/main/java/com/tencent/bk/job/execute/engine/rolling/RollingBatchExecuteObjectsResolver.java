@@ -32,10 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * 服务器滚动分批Resolver
+ * 执行对象滚动分批Resolver
  */
 @Slf4j
-public class RollingBatchServersResolver {
+public class RollingBatchExecuteObjectsResolver {
 
     /**
      * 允许的最大滚动批次
@@ -50,7 +50,7 @@ public class RollingBatchServersResolver {
     /**
      * 滚动表达式解析上下文
      */
-    private final RollingServerBatchContext context;
+    private final RollingExecuteObjectBatchContext context;
 
     /**
      * Constructor
@@ -58,8 +58,8 @@ public class RollingBatchServersResolver {
      * @param executeObjects 滚动执行的执行对象
      * @param rollingExpr    滚动表达式
      */
-    public RollingBatchServersResolver(List<ExecuteObject> executeObjects, String rollingExpr) {
-        this.context = new RollingServerBatchContext(executeObjects);
+    public RollingBatchExecuteObjectsResolver(List<ExecuteObject> executeObjects, String rollingExpr) {
+        this.context = new RollingExecuteObjectBatchContext(executeObjects);
         this.rollingExpr = rollingExpr;
     }
 

@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.engine.rolling.RollingBatchServersResolver;
+import com.tencent.bk.job.execute.engine.rolling.RollingBatchExecuteObjectsResolver;
 import com.tencent.bk.job.execute.engine.rolling.RollingExecuteObjectBatch;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
@@ -73,12 +73,17 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
                 return stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects();
             } else {
-                return rollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList()
-                    .stream().filter(serverBatch -> serverBatch.getBatch().equals(batch))
-                    .findFirst().orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR)).getHosts();
+                return rollingConfig
+                    .getConfigDetail()
+                    .getDecorateExecuteObjectsBatchList()
+                    .stream()
+                    .filter(serverBatch -> serverBatch.getBatch().equals(batch))
+                    .findFirst()
+                    .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR))
+                    .getDecorateExecuteObjects();
             }
         } else {
-            return stepInstance.getTargetExecuteObjects().getIpList();
+            return stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects();
         }
     }
 
@@ -99,8 +104,8 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfigDetailDO.setMode(rollingConfig.getMode());
         rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
 
-        RollingBatchServersResolver resolver =
-            new RollingBatchServersResolver(fastTask.getStepInstance().getTargetExecuteObjects().getDecorateExecuteObjects(),
+        RollingBatchExecuteObjectsResolver resolver =
+            new RollingBatchExecuteObjectsResolver(fastTask.getStepInstance().getTargetExecuteObjects().getDecorateExecuteObjects(),
                 rollingConfig.getExpr());
         List<RollingExecuteObjectBatch> serversBatchList = resolver.resolve();
         rollingConfigDetailDO.setHostsBatchList(
@@ -117,7 +122,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         stepRollingConfigs.put(stepInstance.getId(), new StepRollingConfigDO(true));
         rollingConfigDetailDO.setStepRollingConfigs(stepRollingConfigs);
 
-        Long rollingConfigId= rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
+        Long rollingConfigId = rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
         taskInstanceRollingConfig.setId(rollingConfigId);
         return taskInstanceRollingConfig;
     }

@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -91,10 +92,11 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             }
             for (ExecuteObjectTask agentTask : agentTaskList) {
                 EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
+                ExecuteObject executeObject = agentTask.getExecuteObject();
                 stepHostResult.setHostId(agentTask.getHostId());
-                stepHostResult.setIp(agentTask.getIp());
-                stepHostResult.setIpv6(agentTask.getIpv6());
-                stepHostResult.setCloudAreaId(agentTask.getBkCloudId());
+                stepHostResult.setIp(executeObject.getHost().getIp());
+                stepHostResult.setIpv6(executeObject.getHost().getIpv6());
+                stepHostResult.setCloudAreaId(executeObject.getHost().getBkCloudId());
                 stepHostResult.setStatus(agentTask.getStatus().getValue());
                 stepHostResult.setStatusDesc(messageI18nService.getI18n(agentTask.getStatus().getI18nKey()));
                 stepHostResult.setTag(agentTask.getTag());

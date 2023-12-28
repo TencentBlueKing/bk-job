@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
@@ -74,26 +75,27 @@ public class RollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getMode()).isEqualTo(RollingModeEnum.PAUSE_IF_FAIL.getValue());
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getName()).isEqualTo("config1");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs()).hasSize(4);
-        Map<Long, StepRollingConfigDO> stepRollingConfigs = savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs();
+        Map<Long, StepRollingConfigDO> stepRollingConfigs =
+            savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs();
         assertThat(stepRollingConfigs.get(100L).isBatch()).isEqualTo(true);
         assertThat(stepRollingConfigs.get(101L).isBatch()).isEqualTo(false);
         assertThat(stepRollingConfigs.get(102L).isBatch()).isEqualTo(true);
         assertThat(stepRollingConfigs.get(103L).isBatch()).isEqualTo(true);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList()).hasSize(3);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getBatch()).isEqualTo(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getHosts()).hasSize(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getHosts().get(0).getBkCloudId()).isEqualTo(0L);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getHosts().get(0).getIp()).isEqualTo("127.0.0.1");
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects()).hasSize(1);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects().get(0).getHost().getBkCloudId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects().get(0).getHost().getIp()).isEqualTo("127.0.0.1");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getBatch()).isEqualTo(2);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getHosts()).hasSize(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getHosts().get(0).getBkCloudId()).isEqualTo(0L);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getHosts().get(0).getIp()).isEqualTo("127.0.0.2");
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getDecorateExecuteObjects()).hasSize(1);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getDecorateExecuteObjects().get(0).getHost().getBkCloudId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(1).getDecorateExecuteObjects().get(0).getHost().getIp()).isEqualTo("127.0.0.2");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getBatch()).isEqualTo(3);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getHosts()).hasSize(2);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getHosts().get(0).getBkCloudId()).isEqualTo(0L);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getHosts().get(0).getIp()).isEqualTo("127.0.0.3");
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getHosts().get(1).getBkCloudId()).isEqualTo(0L);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getHosts().get(1).getIp()).isEqualTo("127.0.0.4");
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getDecorateExecuteObjects()).hasSize(2);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getDecorateExecuteObjects().get(0).getHost().getBkCloudId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getDecorateExecuteObjects().get(0).getHost().getIp()).isEqualTo("127.0.0.3");
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getDecorateExecuteObjects().get(1).getHost().getBkCloudId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(2).getDecorateExecuteObjects().get(1).getHost().getIp()).isEqualTo("127.0.0.4");
     }
 
     @Test
@@ -118,12 +120,12 @@ public class RollingConfigDAOImplIntegrationTest {
         stepRollingConfigs.put(1002L, new StepRollingConfigDO(true));
         stepRollingConfigs.put(1003L, new StepRollingConfigDO(true));
         rollingConfig.setStepRollingConfigs(stepRollingConfigs);
-        List<RollingExecuteObjectsBatchDO> hostsBatchList = new ArrayList<>();
-        List<HostDTO> servers = new ArrayList<>();
-        servers.add(new HostDTO(0L, "127.0.0.1"));
-        RollingExecuteObjectsBatchDO hostBatch1 = new RollingExecuteObjectsBatchDO(1, servers);
-        hostsBatchList.add(hostBatch1);
-        rollingConfig.setHostsBatchList(hostsBatchList);
+        List<RollingExecuteObjectsBatchDO> executeObjectsBatchList = new ArrayList<>();
+        List<ExecuteObject> executeObjects = new ArrayList<>();
+        executeObjects.add(new ExecuteObject(new HostDTO(1L, 0L, "127.0.0.1")));
+        RollingExecuteObjectsBatchDO hostBatch1 = new RollingExecuteObjectsBatchDO(1, executeObjects);
+        executeObjectsBatchList.add(hostBatch1);
+        rollingConfig.setExecuteObjectsBatchList(executeObjectsBatchList);
         taskInstanceRollingConfig.setConfigDetail(rollingConfig);
 
         long rollingConfigId = rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
@@ -140,15 +142,17 @@ public class RollingConfigDAOImplIntegrationTest {
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getMode()).isEqualTo(RollingModeEnum.PAUSE_IF_FAIL.getValue());
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getName()).isEqualTo("default");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs()).hasSize(4);
-        Map<Long, StepRollingConfigDO> savedStepRollingConfigs = savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs();
+        Map<Long, StepRollingConfigDO> savedStepRollingConfigs =
+            savedTaskInstanceRollingConfig.getConfigDetail().getStepRollingConfigs();
         assertThat(savedStepRollingConfigs.get(1000L).isBatch()).isEqualTo(true);
         assertThat(savedStepRollingConfigs.get(1001L).isBatch()).isEqualTo(false);
         assertThat(savedStepRollingConfigs.get(1002L).isBatch()).isEqualTo(true);
         assertThat(savedStepRollingConfigs.get(1003L).isBatch()).isEqualTo(true);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList()).hasSize(1);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getBatch()).isEqualTo(1);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getHosts().get(0).getBkCloudId()).isEqualTo(0L);
-        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getHosts().get(0).getIp()).isEqualTo("127.0.0.1");
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects().get(0).getHost().getHostId()).isEqualTo(1L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects().get(0).getHost().getBkCloudId()).isEqualTo(0L);
+        assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList().get(0).getDecorateExecuteObjects().get(0).getHost().getIp()).isEqualTo("127.0.0.1");
     }
 }
 

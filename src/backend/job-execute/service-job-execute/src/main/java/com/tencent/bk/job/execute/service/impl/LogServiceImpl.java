@@ -33,6 +33,7 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
@@ -65,10 +66,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@SuppressWarnings("Duplicates")
 public class LogServiceImpl implements LogService {
     private final ServiceLogResource logResource;
     private final TaskInstanceService taskInstanceService;
@@ -174,38 +177,10 @@ public class LogServiceImpl implements LogService {
         Integer batch,
         ExecuteObjectCompositeKey executeObjectCompositeKey
     ) {
-
-        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
-        int actualExecuteCount = executeCount;
         ExecuteObjectTask executeObjectTask =
             scriptExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(stepInstance,
                 executeCount, batch, executeObjectCompositeKey);
-        if (executeObjectTask == null) {
-            return null;
-        }
-
-        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
-            actualExecuteCount = executeObjectTask.getActualExecuteCount();
-        }
-
-        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
-        long stepInstanceId = stepInstance.getId();
-        InternalResponse<ServiceExecuteObjectLogDTO> resp;
-        if (stepInstance.isSupportExecuteObject()) {
-            resp = logResource.getScriptLogByExecuteObjectId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getExecuteObjectId(), batch);
-        } else {
-            // 兼容hostId查询
-            resp = logResource.getScriptHostLogByHostId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getHostId(), batch);
-        }
-        if (!resp.isSuccess()) {
-            log.error("Get script log content by execute object error, stepInstanceId={}, executeCount={}, batch={}" +
-                "executeObject={}", stepInstanceId, actualExecuteCount, batch, executeObjectCompositeKey);
-            throw new InternalException(resp.getCode());
-        }
-        return convertToScriptExecuteObjectLogContent(executeObjectCompositeKey, stepInstance, executeCount,
-            resp.getData(), executeObjectTask);
+        return getScriptExecuteObjectLogContent(stepInstance, executeCount, batch, executeObjectTask);
     }
 
     private String buildTaskCreateDateStr(StepInstanceBaseDTO stepInstance) {
@@ -214,7 +189,6 @@ public class LogServiceImpl implements LogService {
     }
 
     private ScriptExecuteObjectLogContent convertToScriptExecuteObjectLogContent(
-        ExecuteObjectCompositeKey executeObjectCompositeKey,
         StepInstanceBaseDTO stepInstance,
         int executeCount,
         ServiceExecuteObjectLogDTO executeObjectLog,
@@ -223,14 +197,40 @@ public class LogServiceImpl implements LogService {
         if (executeObjectLog == null) {
             return null;
         }
-        ExecuteObject executeObject =
-            stepInstance.getTargetExecuteObjects().findExecuteObjectByCompositeKey(executeObjectCompositeKey);
         // 日志是否拉取完成
         boolean isFinished = executeObjectTask.getStatus().isFinished();
         String scriptContent = executeObjectLog.getScriptLog() != null ?
             executeObjectLog.getScriptLog().getContent() : "";
-        return new ScriptExecuteObjectLogContent(stepInstance.getId(), executeCount, executeObject, scriptContent,
-            isFinished);
+        return new ScriptExecuteObjectLogContent(stepInstance.getId(), executeCount,
+            executeObjectTask.getExecuteObject(), scriptContent, isFinished);
+    }
+
+    @Override
+    public ScriptExecuteObjectLogContent getScriptExecuteObjectLogContent(StepInstanceBaseDTO stepInstance,
+                                                                          int executeCount,
+                                                                          Integer batch,
+                                                                          ExecuteObjectTask executeObjectTask) {
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
+        long stepInstanceId = stepInstance.getId();
+        InternalResponse<ServiceExecuteObjectLogDTO> resp;
+
+        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
+        int actualExecuteCount = executeCount;
+        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
+            actualExecuteCount = executeObjectTask.getActualExecuteCount();
+        }
+
+        ExecuteObject executeObject = executeObjectTask.getExecuteObject();
+        if (stepInstance.isSupportExecuteObject()) {
+            resp = logResource.getScriptLogByExecuteObjectId(taskCreateDateStr,
+                stepInstanceId, actualExecuteCount, executeObject.getId(), batch);
+        } else {
+            // 兼容hostId查询
+            resp = logResource.getScriptHostLogByHostId(taskCreateDateStr,
+                stepInstanceId, actualExecuteCount, executeObject.getHost().getHostId(), batch);
+        }
+
+        return convertToScriptExecuteObjectLogContent(stepInstance, executeCount, resp.getData(), executeObjectTask);
     }
 
     @Override
@@ -296,45 +296,15 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public FileExecuteObjectLogContent getFileExecuteObjectLogContent(
-        StepInstanceDTO stepInstance,
+        StepInstanceBaseDTO stepInstance,
         int executeCount,
         Integer batch,
         ExecuteObjectCompositeKey executeObjectCompositeKey,
         Integer mode
     ) {
-        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
-        int actualExecuteCount = executeCount;
         ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(
             stepInstance, executeCount, batch, FileTaskModeEnum.getFileTaskMode(mode), executeObjectCompositeKey);
-        if (executeObjectTask == null) {
-            return null;
-        }
-        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
-            actualExecuteCount = executeObjectTask.getActualExecuteCount();
-        }
-
-        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
-        long stepInstanceId = stepInstance.getId();
-        InternalResponse<ServiceExecuteObjectLogDTO> resp;
-        if (stepInstance.isSupportExecuteObject()) {
-            resp = logResource.getFileLogByExecuteObjectId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getExecuteObjectId(), mode, batch);
-        } else {
-            // 兼容hostId查询
-            resp = logResource.getFileHostLogByHostId(taskCreateDateStr,
-                stepInstanceId, actualExecuteCount, executeObjectCompositeKey.getHostId(), mode, batch);
-        }
-
-        if (!resp.isSuccess()) {
-            log.error("Get file log content by execute object error, stepInstanceId={}, executeCount={}, batch={}" +
-                "executeObject={}", stepInstanceId, actualExecuteCount, batch, executeObjectCompositeKey);
-            throw new InternalException(resp.getCode());
-        }
-        List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
-        ExecuteObjectTaskStatusEnum executeObjectTaskStatus = executeObjectTask.getStatus();
-        boolean isFinished = executeObjectTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
-        ExecuteObject executeObject = stepInstance.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
-        return new FileExecuteObjectLogContent(stepInstanceId, executeCount, executeObject, fileTaskLogs, isFinished);
+        return getFileExecuteObjectLogContent(stepInstance, executeCount, batch, executeObjectTask);
     }
 
     private boolean isAllFileTasksFinished(List<ServiceFileTaskLogDTO> fileTaskLogs) {
@@ -354,23 +324,101 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<FileExecuteObjectLogContent> getFileLogContentByTaskIds(long stepInstanceId,
-                                                                        int executeCount,
-                                                                        Integer batch,
-                                                                        List<String> taskIds) {
+    public FileExecuteObjectLogContent getFileExecuteObjectLogContent(StepInstanceBaseDTO stepInstance,
+                                                                      int executeCount,
+                                                                      Integer batch,
+                                                                      ExecuteObjectTask executeObjectTask) {
+        // 如果存在重试，那么该任务可能是之前已经执行过的，查询日志的时候需要获取到对应的executeCount
+        int actualExecuteCount = executeCount;
+        if (executeCount > 0 && executeObjectTask.getActualExecuteCount() != null) {
+            actualExecuteCount = executeObjectTask.getActualExecuteCount();
+        }
+
+        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
+        long stepInstanceId = stepInstance.getId();
+        InternalResponse<ServiceExecuteObjectLogDTO> resp;
+        ExecuteObject executeObject = executeObjectTask.getExecuteObject();
+        if (stepInstance.isSupportExecuteObject()) {
+            resp = logResource.getFileLogByExecuteObjectId(taskCreateDateStr, stepInstanceId, actualExecuteCount,
+                executeObject.getId(), executeObjectTask.getFileTaskMode().getValue(), batch);
+        } else {
+            // 兼容hostId查询
+            resp = logResource.getFileHostLogByHostId(taskCreateDateStr, stepInstanceId, actualExecuteCount,
+                executeObject.getHost().getHostId(), executeObjectTask.getFileTaskMode().getValue(), batch);
+        }
+
+        List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
+        ExecuteObjectTaskStatusEnum executeObjectTaskStatus = executeObjectTask.getStatus();
+        boolean isFinished = executeObjectTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
+        return new FileExecuteObjectLogContent(stepInstanceId, executeCount, executeObject,
+            batchConvertToAtomicFileTaskLog(stepInstance, fileTaskLogs), isFinished);
+    }
+
+    @Override
+    public List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long stepInstanceId,
+                                                                 int executeCount,
+                                                                 Integer batch,
+                                                                 List<String> taskIds) {
         StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
-        InternalResponse<ServiceExecuteObjectLogDTO> resp = logResource.listFileLogsByTaskIds(
+        InternalResponse<List<ServiceFileTaskLogDTO>> resp = logResource.listTaskFileLogsByTaskIds(
             taskCreateDateStr, stepInstanceId, executeCount, batch, taskIds);
         if (!resp.isSuccess()) {
             log.error("Get file log content by ids error, stepInstanceId={}, executeCount={}, batch={}, taskIds={}",
                 stepInstanceId, executeCount, batch, taskIds);
             throw new InternalException(resp.getCode());
         }
-        if (resp.getData() == null) {
+        List<ServiceFileTaskLogDTO> fileTaskLogs = resp.getData();
+        return batchConvertToAtomicFileTaskLog(stepInstance, fileTaskLogs);
+    }
+
+    private List<AtomicFileTaskLog> batchConvertToAtomicFileTaskLog(
+        StepInstanceBaseDTO stepInstance,
+        List<ServiceFileTaskLogDTO> fileTaskLogs
+    ) {
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return Collections.emptyList();
         }
-        return batchConvertToFileExecuteObjectLogContent(stepInstance, resp.getData().getFileTaskLogs());
+
+        if (stepInstance.isSupportExecuteObject()) {
+            Map<String, ExecuteObject> executeObjectMap =
+                stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
+            return batchConvertToAtomicFileTaskLog(
+                executeObjectMap,
+                fileTaskLogs,
+                ServiceFileTaskLogDTO::getSrcExecuteObjectId,
+                ServiceFileTaskLogDTO::getDestExecuteObjectId);
+        } else {
+            // 兼容老版本不支持执行对象的数据
+            Map<Long, ExecuteObject> hostExecuteObjects = stepInstanceService.computeStepExecuteObjects(
+                stepInstance, executeObject -> executeObject.getHost().getHostId());
+            return batchConvertToAtomicFileTaskLog(
+                hostExecuteObjects,
+                fileTaskLogs,
+                ServiceFileTaskLogDTO::getSrcHostId,
+                ServiceFileTaskLogDTO::getDestHostId);
+        }
+    }
+
+    private <K> List<AtomicFileTaskLog> batchConvertToAtomicFileTaskLog(
+        Map<K, ExecuteObject> executeObjectMap,
+        List<ServiceFileTaskLogDTO> fileTaskLogs,
+        Function<ServiceFileTaskLogDTO, K> srcKeyExtractor,
+        Function<ServiceFileTaskLogDTO, K> destKeyExtractor
+    ) {
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
+            return Collections.emptyList();
+        }
+
+        return fileTaskLogs.stream()
+            .map(fileTaskLog ->
+                AtomicFileTaskLog.fromServiceExecuteObjectLogDTO(
+                    fileTaskLog,
+                    fileTaskLogParam -> srcKeyExtractor.apply(fileTaskLogParam) == null ?
+                        null : executeObjectMap.get(srcKeyExtractor.apply(fileTaskLogParam)),
+                    fileTaskLogParam -> destKeyExtractor.apply(fileTaskLogParam) == null ?
+                        null : executeObjectMap.get(destKeyExtractor.apply(fileTaskLogParam))))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -407,37 +455,50 @@ public class LogServiceImpl implements LogService {
         if (stepInstance.isSupportExecuteObject()) {
             Map<String, ExecuteObject> executeObjectMap =
                 stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
+
             return executeObjectLogs.stream()
-                .map(executeObjectLog ->
-                    convertToFileExecuteObjectLogContent(executeObjectLog,
-                        executeObjectMap.get(executeObjectLog.getExecuteObjectId())))
+                .map(executeObjectLog -> {
+                    FileExecuteObjectLogContent executeObjectLogContent = new FileExecuteObjectLogContent();
+                    executeObjectLogContent.setStepInstanceId(executeObjectLog.getStepInstanceId());
+                    executeObjectLogContent.setExecuteCount(executeObjectLog.getExecuteCount());
+                    executeObjectLogContent.setFileTaskLogs(
+                        batchConvertToAtomicFileTaskLog(
+                            executeObjectMap,
+                            executeObjectLog.getFileTaskLogs(),
+                            ServiceFileTaskLogDTO::getSrcExecuteObjectId,
+                            ServiceFileTaskLogDTO::getDestExecuteObjectId));
+                    executeObjectLogContent.setExecuteObject(
+                        executeObjectMap.get(executeObjectLog.getExecuteObjectId()));
+                    return executeObjectLogContent;
+                })
                 .collect(Collectors.toList());
         } else {
             // 兼容老版本不支持执行对象的数据
-            Map<Long, HostDTO> hosts = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getHostId);
+            Map<Long, ExecuteObject> hostExecuteObjects = stepInstanceService.computeStepExecuteObjects(
+                stepInstance, executeObject -> executeObject.getHost().getHostId());
             return executeObjectLogs.stream()
-                .map(executeObjectLog ->
-                    convertToFileExecuteObjectLogContent(executeObjectLog,
-                        new ExecuteObject(hosts.get(executeObjectLog.getHostId()))))
+                .map(executeObjectLog -> {
+                    FileExecuteObjectLogContent executeObjectLogContent = new FileExecuteObjectLogContent();
+                    executeObjectLogContent.setStepInstanceId(executeObjectLog.getStepInstanceId());
+                    executeObjectLogContent.setExecuteCount(executeObjectLog.getExecuteCount());
+                    executeObjectLogContent.setFileTaskLogs(
+                        batchConvertToAtomicFileTaskLog(
+                            hostExecuteObjects,
+                            executeObjectLog.getFileTaskLogs(),
+                            ServiceFileTaskLogDTO::getSrcHostId,
+                            ServiceFileTaskLogDTO::getDestHostId));
+                    executeObjectLogContent.setExecuteObject(
+                        hostExecuteObjects.get(executeObjectLog.getHostId()));
+                    return executeObjectLogContent;
+                })
                 .collect(Collectors.toList());
         }
     }
 
-    private FileExecuteObjectLogContent convertToFileExecuteObjectLogContent(
-        ServiceExecuteObjectLogDTO executeObjectLog,
-        ExecuteObject executeObject
-    ) {
-        FileExecuteObjectLogContent executeObjectLogContent = new FileExecuteObjectLogContent();
-        executeObjectLogContent.setStepInstanceId(executeObjectLog.getStepInstanceId());
-        executeObjectLogContent.setExecuteCount(executeObjectLog.getExecuteCount());
-        executeObjectLogContent.setFileTaskLogs(executeObjectLog.getFileTaskLogs());
-        executeObjectLogContent.setExecuteObject(executeObject);
-        return executeObjectLogContent;
-    }
 
     @Override
     public List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
-        StepInstanceDTO stepInstance,
+        StepInstanceBaseDTO stepInstance,
         int executeCount,
         Integer batch,
         List<ExecuteObjectCompositeKey> executeObjectCompositeKeys

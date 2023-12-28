@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -59,17 +60,17 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
-    private final ScriptExecuteObjectTaskService scriptAgentTaskService;
-    private final FileExecuteObjectTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
-                                                 ScriptExecuteObjectTaskService scriptAgentTaskService,
-                                                 FileExecuteObjectTaskService fileAgentTaskService,
+                                                 ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                                  AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.appScopeMappingService = appScopeMappingService;
     }
 
@@ -146,10 +147,10 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
                 List<ExecuteObjectTask> agentTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptAgentTaskService.listTasks(stepInstance,
+                    agentTaskList = scriptExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileAgentTaskService.listTasks(stepInstance,
+                    agentTaskList = fileExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                     if (CollectionUtils.isNotEmpty(agentTaskList)) {
                         // 如果是文件分发任务，只返回目标Agent结果
@@ -160,10 +161,11 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                 }
                 if (CollectionUtils.isNotEmpty(agentTaskList)) {
                     for (ExecuteObjectTask agentTask : agentTaskList) {
+                        ExecuteObject executeObject = agentTask.getExecuteObject();
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setHostId(agentTask.getHostId());
-                        stepIpResult.setCloudAreaId(agentTask.getBkCloudId());
-                        stepIpResult.setIp(agentTask.getIp());
+                        stepIpResult.setHostId(executeObject.getHost().getHostId());
+                        stepIpResult.setCloudAreaId(executeObject.getHost().getBkCloudId());
+                        stepIpResult.setIp(executeObject.getHost().getIp());
                         stepIpResult.setExitCode(agentTask.getExitCode());
                         stepIpResult.setErrorCode(agentTask.getErrorCode());
                         stepIpResult.setStartTime(agentTask.getStartTime());

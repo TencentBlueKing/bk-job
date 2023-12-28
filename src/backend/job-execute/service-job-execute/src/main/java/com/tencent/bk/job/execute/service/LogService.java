@@ -27,7 +27,9 @@ package com.tencent.bk.job.execute.service;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -90,7 +92,7 @@ public interface LogService {
 
 
     /**
-     * 获取脚本执行日志
+     * 根据执行对象获取脚本执行日志
      *
      * @param stepInstance 步骤实例
      * @param executeCount 执行次数
@@ -102,6 +104,20 @@ public interface LogService {
                                                                    int executeCount,
                                                                    Integer batch,
                                                                    ExecuteObjectCompositeKey key);
+
+    /**
+     * 根据执行对象任务获取脚本执行日志
+     *
+     * @param stepInstance      步骤实例
+     * @param executeCount      执行次数
+     * @param batch             滚动执行批次;非滚动步骤传入null
+     * @param executeObjectTask 执行对象任务
+     * @return 日志内容
+     */
+    ScriptExecuteObjectLogContent getScriptExecuteObjectLogContent(StepInstanceBaseDTO stepInstance,
+                                                                   int executeCount,
+                                                                   Integer batch,
+                                                                   ExecuteObjectTask executeObjectTask);
 
     /**
      * 批量获取脚本执行日志
@@ -122,7 +138,7 @@ public interface LogService {
     );
 
     /**
-     * 获取脚本执行日志
+     * 根据执行对象获取脚本执行日志
      *
      * @param stepInstance              步骤实例
      * @param executeCount              执行次数
@@ -132,7 +148,7 @@ public interface LogService {
      * @return 日志内容
      */
     FileExecuteObjectLogContent getFileExecuteObjectLogContent(
-        StepInstanceDTO stepInstance,
+        StepInstanceBaseDTO stepInstance,
         int executeCount,
         Integer batch,
         ExecuteObjectCompositeKey executeObjectCompositeKey,
@@ -140,7 +156,23 @@ public interface LogService {
     );
 
     /**
-     * 获取脚本执行日志
+     * 根据执行对象任务获取脚本执行日志
+     *
+     * @param stepInstance      步骤实例
+     * @param executeCount      执行次数
+     * @param batch             滚动执行批次;非滚动步骤传入null
+     * @param executeObjectTask 执行对象任务
+     * @return 日志内容
+     */
+    FileExecuteObjectLogContent getFileExecuteObjectLogContent(
+        StepInstanceBaseDTO stepInstance,
+        int executeCount,
+        Integer batch,
+        ExecuteObjectTask executeObjectTask
+    );
+
+    /**
+     * 根据文件任务ID批量获取文件任务执行日志
      *
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
@@ -148,10 +180,10 @@ public interface LogService {
      * @param taskIds        文件任务ID列表
      * @return 日志内容
      */
-    List<FileExecuteObjectLogContent> getFileLogContentByTaskIds(long stepInstanceId,
-                                                           int executeCount,
-                                                           Integer batch,
-                                                           List<String> taskIds);
+    List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long stepInstanceId,
+                                                          int executeCount,
+                                                          Integer batch,
+                                                          List<String> taskIds);
 
     /**
      * 获取文件任务文件源日志
@@ -175,7 +207,7 @@ public interface LogService {
      * @return 日志内容
      */
     List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
-        StepInstanceDTO stepInstance,
+        StepInstanceBaseDTO stepInstance,
         int executeCount,
         Integer batch,
         List<ExecuteObjectCompositeKey> executeObjectCompositeKeys

@@ -139,7 +139,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                  ScriptExecuteObjectTaskService scriptAgentTaskService,
+                                  ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
@@ -157,7 +157,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
-            scriptAgentTaskService,
+            scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
             taskInstance,
@@ -568,7 +568,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             HostVariableValuesDTO hostVariableValues = new HostVariableValuesDTO();
             List<VariableValueDTO> paramValues = toVariableValuesList(entry.getValue());
             ExecuteObject executeObject = findExecuteObject((entry.getKey()));
-            if (!executeObject.isHost()) {
+            if (!executeObject.isHostExecuteObject()) {
                 continue;
             }
             HostDTO host = executeObject.getHost();
