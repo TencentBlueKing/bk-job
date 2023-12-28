@@ -71,6 +71,12 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
     protected static final String SEARCH_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/search_dynamic_group/";
     protected static final String EXECUTE_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/execute_dynamic_group/";
     protected static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
+
+    // 容器相关 API
+    protected static final String LIST_KUBE_CONTAINER_BY_TOPO = "/api/c/compapi/v2/cc/list_kube_container_by_topo/";
+    protected static final String GET_BIZ_KUBE_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_kube_cache_topo/";
+
+    // 业务集相关 API
     protected static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
     protected static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
 
@@ -102,7 +108,8 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
         interfaceNameMap.put(EXECUTE_DYNAMIC_GROUP, "execute_dynamic_group");
         interfaceNameMap.put(GET_BIZ_BRIEF_CACHE_TOPO, "get_biz_brief_cache_topo");
         interfaceNameMap.put(SEARCH_BUSINESS_SET, "list_business_set");
-        interfaceNameMap.put(SEARCH_BIZ_IN_BUSINESS_SET, "list_business_in_business_set");
+        interfaceNameMap.put(LIST_KUBE_CONTAINER_BY_TOPO, "list_kube_container_by_topo");
+        interfaceNameMap.put(GET_BIZ_KUBE_CACHE_TOPO, "get_biz_kube_cache_topo");
     }
 
     protected BaseCmdbApiClient(FlowController flowController,

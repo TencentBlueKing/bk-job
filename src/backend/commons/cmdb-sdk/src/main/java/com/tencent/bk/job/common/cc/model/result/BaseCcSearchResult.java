@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.common.cc.model.result;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import lombok.Data;
 
-/**
- * @date 2019/2/28
- */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+import java.util.List;
+
+@Data
+public abstract class BaseCcSearchResult<T> {
+    private int count;
+    private List<T> info;
 }

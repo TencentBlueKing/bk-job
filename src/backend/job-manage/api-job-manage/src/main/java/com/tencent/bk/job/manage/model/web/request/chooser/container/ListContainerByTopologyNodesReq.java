@@ -57,8 +57,8 @@ public class ListContainerByTopologyNodesReq {
     private Map<String, String> podLabels;
 
     @ApiModelProperty(value = "数据起始位置")
-    private Long start;
+    private Integer start;
 
     @ApiModelProperty(value = "拉取数量")
-    private Long pageSize;
+    private Integer pageSize;
 }

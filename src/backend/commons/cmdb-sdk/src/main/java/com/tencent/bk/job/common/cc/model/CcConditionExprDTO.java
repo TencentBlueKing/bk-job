@@ -31,8 +31,6 @@ import lombok.ToString;
 /**
  * CC的Condition表达式
  *
- * @description
- * @date 2019/3/4
  */
 @Getter
 @Setter

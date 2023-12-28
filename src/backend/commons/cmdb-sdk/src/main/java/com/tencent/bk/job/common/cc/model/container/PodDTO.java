@@ -22,12 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.container;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import lombok.Data;
+
+import java.util.Map;
 
 /**
- * @date 2019/2/28
+ * 容器 Pod
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Data
+public class PodDTO {
+    private Long id;
+
+    private Map<String, String> labels;
+
+    private String name;
 }

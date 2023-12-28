@@ -46,23 +46,28 @@ import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
 import com.tencent.bk.job.common.cc.model.req.FindModuleHostRelationReq;
 import com.tencent.bk.job.common.cc.model.req.GetAppReq;
 import com.tencent.bk.job.common.cc.model.req.GetBizInstTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetBizInternalModuleReq;
+import com.tencent.bk.job.common.cc.model.req.GetBizKubeCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetBriefCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
 import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
+import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
 import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
@@ -85,9 +90,11 @@ import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -128,7 +135,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CMDB接口调用客户端
+ * CMDB API 调用客户端
  */
 @Slf4j
 public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
@@ -1377,6 +1384,54 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             } catch (Exception e) {
                 log.error("FindModuleHostRelationTask fail:", e);
             }
+        }
+    }
+
+    /**
+     * 根据业务 ID 查询容器拓扑（缓存)
+     *
+     * @param bizId 业务 ID
+     * @return 容器拓扑
+     */
+    public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
+        GetBizKubeCacheTopoReq req = makeCmdbBaseReq(GetBizKubeCacheTopoReq.class);
+        req.setBizId(bizId);
+
+        EsbResp<KubeTopologyDTO> esbResp = requestCmdbApi(
+            HttpMethodEnum.GET,
+            GET_BIZ_KUBE_CACHE_TOPO,
+            req.toUrlParams(),
+            null,
+            new TypeReference<EsbResp<KubeTopologyDTO>>() {
+            });
+        return esbResp.getData();
+    }
+
+    /**
+     * 根据容器拓扑获取container信息
+     *
+     * @param req 请求
+     * @return 容器列表（分页）
+     */
+    public PageData<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        setSupplierAccount(req);
+        EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
+            HttpMethodEnum.POST,
+            LIST_KUBE_CONTAINER_BY_TOPO,
+            null,
+            req,
+            new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+            });
+        BaseCcSearchResult<ContainerDetailDTO> result = esbResp.getData();
+        return new PageData<>(req.getPage().getStart(), req.getPage().getLimit(),
+            (long) result.getCount(), result.getInfo());
+    }
+
+    private void setSupplierAccount(EsbReq esbReq) {
+        if (StringUtils.isEmpty(cmdbSupplierAccount)) {
+            esbReq.setBkSupplierAccount("0");
+        } else {
+            esbReq.setBkSupplierAccount(cmdbSupplierAccount);
         }
     }
 }

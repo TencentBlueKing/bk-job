@@ -22,12 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.container;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * @date 2019/2/28
+ * CMDB 容器详细信息
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Data
+public class ContainerDetailDTO {
+    /**
+     * 容器基础信息
+     */
+    @JsonProperty("container")
+    private ContainerDTO container;
+
+    /**
+     * 容器所在 Pod 信息
+     */
+    private PodDTO pod;
+
+    /**
+     * 容器所在拓扑节点信息
+     */
+    private ContainerTopoDTO topo;
 }

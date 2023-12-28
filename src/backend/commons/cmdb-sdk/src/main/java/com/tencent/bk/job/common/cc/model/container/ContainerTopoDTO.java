@@ -22,12 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.container;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * @date 2019/2/28
+ * 容器所在的拓扑节点信息
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Data
+public class ContainerTopoDTO {
+    @JsonProperty("bk_biz_id")
+    private Long bizId;
+
+    @JsonProperty("bk_cluster_id")
+    private Long clusterId;
+
+    @JsonProperty("bk_namespace_id")
+    private Long namespaceId;
+
+    @JsonProperty("bk_workload_id")
+    private Long workloadId;
+
+    @JsonProperty("workload_type")
+    private String workloadType;
+
+    /**
+     * 容器所在 node 的主机 ID
+     */
+    @JsonProperty("bk_host_id")
+    private Long hostId;
+
+
 }

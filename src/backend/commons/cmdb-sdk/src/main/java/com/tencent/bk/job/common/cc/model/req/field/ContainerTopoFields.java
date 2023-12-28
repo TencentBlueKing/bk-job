@@ -22,12 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.req.field;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * @date 2019/2/28
+ * CMDB 容器所在的拓扑节点 - 标准字段
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+public class ContainerTopoFields {
+    public static final String BK_BIZ_ID = "bk_biz_id";
+    public static final String BK_CLUSTER_ID = "bk_cluster_id";
+    public static final String BK_NAMESPACE_ID = "bk_namespace_id";
+    public static final String BK_WORKLOAD_ID = "bk_workload_id";
+    public static final String WORKLOAD_TYPE = "workload_type";
+    public static final String BK_HOST_ID = "bk_host_id";
+
+    public static List<String> FIELDS = Arrays.asList(BK_BIZ_ID, BK_CLUSTER_ID, BK_NAMESPACE_ID,
+        BK_WORKLOAD_ID, WORKLOAD_TYPE, BK_HOST_ID);
 }

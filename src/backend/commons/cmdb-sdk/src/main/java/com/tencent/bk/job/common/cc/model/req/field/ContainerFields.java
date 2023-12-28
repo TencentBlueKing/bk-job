@@ -22,12 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.req.field;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * @date 2019/2/28
+ * CMDB 容器 - 标准字段
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+public class ContainerFields {
+    public static final String ID = "id";
+    public static final String CONTAINER_UID = "container_uid";
+    public static final String NAME = "name";
+
+    public static List<String> FIELDS = Arrays.asList(ID, CONTAINER_UID, NAME);
 }

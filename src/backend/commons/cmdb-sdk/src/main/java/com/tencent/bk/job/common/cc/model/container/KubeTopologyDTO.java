@@ -22,17 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.container;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
 
 /**
- * @since 19/12/2019 15:16
+ * CMDB 容器拓扑
  */
 @Data
-public abstract class AbstractCcSearchResult<T> {
-    private int count;
-    private List<T> info;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class KubeTopologyDTO {
+
+    @JsonProperty("biz")
+    private KubeBizDTO biz;
+
+    @JsonProperty("nds")
+    private List<KubeNode> nds;
 }

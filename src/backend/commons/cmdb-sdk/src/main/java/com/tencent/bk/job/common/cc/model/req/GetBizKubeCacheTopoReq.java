@@ -22,12 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.req;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @date 2019/2/28
+ * CMDB API 请求 - 根据业务ID,查询该业务的全量容器拓扑树信息
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Getter
+@Setter
+public class GetBizKubeCacheTopoReq extends EsbReq {
+    @JsonProperty("bk_biz_id")
+    private long bizId;
 }

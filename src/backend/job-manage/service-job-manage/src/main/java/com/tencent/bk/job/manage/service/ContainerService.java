@@ -22,12 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.model.query.ContainerQuery;
 
 /**
- * @date 2019/2/28
+ * 容器服务
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+public interface ContainerService {
+
+
+    /**
+     * 根据业务 ID 查询容器拓扑（缓存)
+     *
+     * @param bizId 业务 ID
+     * @return 容器拓扑
+     */
+    KubeTopologyDTO getBizKubeCacheTopo(long bizId);
+
+    /**
+     * 根据容器拓扑获取container信息
+     *
+     * @param query 查询条件
+     * @return 容器列表（分页）
+     */
+    PageData<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query);
 }

@@ -24,18 +24,31 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNode;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
+import com.tencent.bk.job.manage.model.query.ContainerQuery;
 import com.tencent.bk.job.manage.model.web.request.chooser.ListTopologyTreesReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerCheckReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDetailReq;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
+import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.ContainerService;
+import com.tencent.bk.job.manage.service.host.HostService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -43,58 +56,89 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
 public class WebContainerResourceImpl implements WebContainerResource {
+
+    private final ContainerService containerService;
+    private final ApplicationService applicationService;
+    private final MessageI18nService i18nService;
+    private final HostService hostService;
+
+    @Autowired
+    public WebContainerResourceImpl(ContainerService containerService,
+                                    ApplicationService applicationService,
+                                    MessageI18nService i18nService,
+                                    HostService hostService) {
+        this.containerService = containerService;
+        this.applicationService = applicationService;
+        this.i18nService = i18nService;
+        this.hostService = hostService;
+    }
+
     @Override
     public Response<List<ContainerTopologyNodeVO>> listTopologyTrees(String username,
                                                                      AppResourceScope appResourceScope,
                                                                      String scopeType,
                                                                      String scopeId,
                                                                      ListTopologyTreesReq req) {
-        List<ContainerTopologyNodeVO> workloads = new ArrayList<>();
-        ContainerTopologyNodeVO workload = new ContainerTopologyNodeVO();
-        workload.setInstanceId(1L);
-        workload.setInstanceName("bk-job-execute");
-        workload.setObjectId("deployment");
-        workload.setObjectName("deployment");
-        workload.setCount(1);
-        workloads.add(workload);
+        if (appResourceScope.isBizSet()) {
+            // 业务集暂时不支持容器拓扑
+            return Response.buildSuccessResp(buildTreeForBizSet(scopeType, scopeId));
+        }
 
-        List<ContainerTopologyNodeVO> namespaces = new ArrayList<>();
-        ContainerTopologyNodeVO namespace = new ContainerTopologyNodeVO();
-        namespace.setInstanceId(1L);
-        namespace.setInstanceName("bk-job-dev");
-        namespace.setObjectId("namespace");
-        namespace.setObjectName("namespace");
-        namespace.setCount(1);
-        namespace.setChild(workloads);
-        namespaces.add(namespace);
+        KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(Long.parseLong(scopeId));
 
-        List<ContainerTopologyNodeVO> clusters = new ArrayList<>();
-        ContainerTopologyNodeVO cluster = new ContainerTopologyNodeVO();
-        cluster.setInstanceId(1L);
-        cluster.setInstanceName("BCS-K8S-12312");
-        cluster.setObjectId("cluster");
-        cluster.setObjectName("cluster");
-        cluster.setCount(1);
-        cluster.setChild(namespaces);
-        clusters.add(cluster);
+        ContainerTopologyNodeVO topoVO = new ContainerTopologyNodeVO();
+        topoVO.setInstanceId(topo.getBiz().getId());
+        topoVO.setInstanceName(topo.getBiz().getName());
+        topoVO.setObjectId("biz");
+        topoVO.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        topoVO.setCount(topo.getBiz().getCount());
 
-        ContainerTopologyNodeVO topo = new ContainerTopologyNodeVO();
-        topo.setInstanceId(2L);
-        topo.setInstanceName("蓝鲸");
-        topo.setObjectId("biz");
-        topo.setObjectName("业务");
-        topo.setCount(1);
-        topo.setChild(clusters);
+        if (CollectionUtils.isNotEmpty(topo.getNds())) {
+            List<ContainerTopologyNodeVO> clusters = new ArrayList<>();
+            for (KubeNode node : topo.getNds()) {
+                clusters.add(convertToContainerTopologyNodeVO(node));
+            }
+            topoVO.setChild(clusters);
+        }
 
         return Response.buildSuccessResp(
             Collections.singletonList(
-                topo
+                topoVO
             )
         );
+    }
+
+    public ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNode node) {
+        ContainerTopologyNodeVO nodeVO = new ContainerTopologyNodeVO();
+        nodeVO.setObjectId(node.getKind());
+        nodeVO.setObjectName(node.getKind());
+        nodeVO.setInstanceId(node.getId());
+        nodeVO.setInstanceName(node.getName());
+        nodeVO.setCount(node.getCount());
+        List<ContainerTopologyNodeVO> children = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(node.getNodes())) {
+            for (KubeNode childNode : node.getNodes()) {
+                children.add(convertToContainerTopologyNodeVO(childNode));
+            }
+        }
+        nodeVO.setChild(children);
+        return nodeVO;
+    }
+
+    private List<ContainerTopologyNodeVO> buildTreeForBizSet(String scopeType, String scopeId) {
+        ContainerTopologyNodeVO topo = new ContainerTopologyNodeVO();
+        ApplicationDTO bizSetApp = applicationService.getAppByScope(scopeType, scopeId);
+        topo.setInstanceId(bizSetApp.getId());
+        topo.setInstanceName(bizSetApp.getName());
+        topo.setObjectId("biz_set");
+        topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        topo.setCount(0);
+        return Collections.singletonList(topo);
     }
 
     @Override
@@ -103,21 +147,41 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                                         String scopeType,
                                                                         String scopeId,
                                                                         ListContainerByTopologyNodesReq req) {
-        ContainerVO containerVO = new ContainerVO();
-        containerVO.setId(1L);
-        containerVO.setName("job-execute");
-        containerVO.setPodName("bk-job-execute-6c5c88cdb9-pwthx");
-        containerVO.setUid("docker://076f9622ff3f2f6e0822dc1ae7b0c26c8e451110f75aec0908349bd923dfce5c");
-        Map<String, String> podLabels = new HashMap<>();
-        podLabels.put("app.kubernetes.io/component", "job-execute");
-        podLabels.put("app.kubernetes.io/instance", "bk-job");
-        containerVO.setPodLabels(podLabels);
+        ContainerQuery containerQuery =
+            ContainerQuery.builder()
+                .bizId(Long.parseLong(scopeId))
+                .containerUID(req.getContainerUid())
+                .containerName(req.getName())
+                .podName(req.getPodName())
+                .baseSearchCondition(BaseSearchCondition.pageCondition(req.getStart(), req.getPageSize()))
+                .build();
 
-        PageData<ContainerVO> result = new PageData<>();
-        result.setData(Collections.singletonList(containerVO));
-        result.setStart(0);
-        result.setTotal(1L);
-        return Response.buildSuccessResp(result);
+
+        PageData<ContainerDetailDTO> pageData = containerService.listKubeContainerByTopo(containerQuery);
+        PageData<ContainerVO> containerVOPageData =
+            PageData.from(pageData, container -> {
+                ContainerVO containerVO = new ContainerVO();
+                containerVO.setId(container.getContainer().getId());
+                containerVO.setUid(container.getContainer().getContainerUID());
+                containerVO.setName(container.getContainer().getName());
+                containerVO.setPodName(container.getPod().getName());
+                containerVO.setPodLabels(container.getPod().getLabels());
+                containerVO.setNodeHostId(container.getTopo().getHostId());
+                return containerVO;
+            });
+        List<Long> hostIds = containerVOPageData.getData().stream()
+            .map(ContainerVO::getNodeHostId).collect(Collectors.toList());
+        Map<Long, ApplicationHostDTO> hostMap = hostService.listHostsByHostIds(hostIds);
+
+        containerVOPageData.getData().forEach(containerVO -> {
+            Long nodeHostId = containerVO.getNodeHostId();
+            ApplicationHostDTO nodeHost = hostMap.get(nodeHostId);
+            if (nodeHost != null) {
+                containerVO.setNodeIp(nodeHost.getPrimaryIp());
+            }
+        });
+
+        return Response.buildSuccessResp(containerVOPageData);
     }
 
     @Override
@@ -145,15 +209,17 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        ContainerCheckReq req) {
-        ContainerVO containerVO = new ContainerVO();
-        containerVO.setId(1L);
-        containerVO.setName("job-execute");
-        containerVO.setPodName("bk-job-execute-6c5c88cdb9-pwthx");
-        containerVO.setUid("docker://076f9622ff3f2f6e0822dc1ae7b0c26c8e451110f75aec0908349bd923dfce5c");
-        Map<String, String> podLabels = new HashMap<>();
-        podLabels.put("app.kubernetes.io/component", "job-execute");
-        podLabels.put("app.kubernetes.io/instance", "bk-job");
-        containerVO.setPodLabels(podLabels);
+        ContainerQuery containerQuery =
+            ContainerQuery.builder()
+                .bizId(Long.parseLong(scopeId))
+                .containerUID(req.getContainerUid())
+                .containerName(req.getName())
+                .podName(req.getPodName())
+                .baseSearchCondition(BaseSearchCondition.pageCondition(req.getStart(), req.getPageSize()))
+                .build();
+
+
+        PageData<ContainerDetailDTO> pageData = containerService.listKubeContainerByTopo(containerQuery);
         return Response.buildSuccessResp(Collections.singletonList(containerVO));
     }
 

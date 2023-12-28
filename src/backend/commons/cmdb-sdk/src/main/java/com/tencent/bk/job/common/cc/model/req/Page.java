@@ -24,24 +24,38 @@
 
 package com.tencent.bk.job.common.cc.model.req;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @Description
- * @Date 2020/1/13
- * @Version 1.0
+ * cmdb 请求分页信息
  */
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Page {
+    /**
+     * 记录开始位置
+     */
     private Integer start;
 
+    /**
+     * 每页限制条数
+     */
     private Integer limit;
+
+    /**
+     * 排序字段
+     */
+    private String sort;
+
+    public Page(Integer start, Integer limit) {
+        this.start = start;
+        this.limit = limit;
+    }
 }

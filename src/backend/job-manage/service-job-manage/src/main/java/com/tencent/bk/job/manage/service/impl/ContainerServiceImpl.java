@@ -22,12 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.model.query.ContainerQuery;
+import com.tencent.bk.job.manage.service.ContainerService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-/**
- * @date 2019/2/28
- */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Service
+@Slf4j
+public class ContainerServiceImpl implements ContainerService {
+
+    private final BizCmdbClient bizCmdbClient;
+
+    @Autowired
+    public ContainerServiceImpl(BizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
+
+
+    @Override
+    public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
+        return bizCmdbClient.getBizKubeCacheTopo(bizId);
+    }
+
+    @Override
+    public PageData<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query) {
+        return bizCmdbClient.listKubeContainerByTopo(query.toListKubeContainerByTopoReq());
+    }
 }

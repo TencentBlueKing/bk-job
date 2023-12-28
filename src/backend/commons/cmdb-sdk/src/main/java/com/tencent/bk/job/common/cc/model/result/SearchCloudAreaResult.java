@@ -29,5 +29,5 @@ import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 /**
  * @since 19/12/2019 10:38
  */
-public class SearchCloudAreaResult extends AbstractCcSearchResult<CcCloudAreaInfoDTO> {
+public class SearchCloudAreaResult extends BaseCcSearchResult<CcCloudAreaInfoDTO> {
 }

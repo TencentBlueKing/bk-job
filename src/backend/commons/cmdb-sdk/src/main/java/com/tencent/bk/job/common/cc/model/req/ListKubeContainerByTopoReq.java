@@ -22,12 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.cc.model.req;
 
-import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
+import com.tencent.bk.job.common.esb.model.EsbReq;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
 
 /**
- * @date 2019/2/28
+ * CMDB API 请求 - 根据容器拓扑获取container信息
  */
-public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ListKubeContainerByTopoReq extends EsbReq {
+    @JsonProperty("bk_biz_id")
+    private Long bizId;
+
+    @JsonProperty("bk_cluster_id")
+    private Long clusterId;
+
+    @JsonProperty("bk_namespace_id")
+    private Long namespaceId;
+
+    @JsonProperty("bk_workload_id")
+    private Long workloadId;
+
+    @JsonProperty("container_filter")
+    private PropertyFilterDTO containerFilter;
+
+    @JsonProperty("pod_filter")
+    private PropertyFilterDTO podFilter;
+
+    @JsonProperty("container_fields")
+    private List<String> containerFields;
+
+    @JsonProperty("pod_fields")
+    private List<String> podFields;
+
+    @JsonProperty("page")
+    private Page page;
+
 }
