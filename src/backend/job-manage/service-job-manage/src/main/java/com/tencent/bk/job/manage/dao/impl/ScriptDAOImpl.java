@@ -357,6 +357,7 @@ public class ScriptDAOImpl implements ScriptDAO {
     private List<Condition> buildScriptVersionConditionList(ScriptQuery scriptQuery,
                                                             BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildScriptConditionList(scriptQuery, baseSearchCondition);
+        conditions.add(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(String.valueOf(0))));
         if (scriptQuery.getStatus() != null) {
             conditions.add(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(scriptQuery.getStatus())));
         }
