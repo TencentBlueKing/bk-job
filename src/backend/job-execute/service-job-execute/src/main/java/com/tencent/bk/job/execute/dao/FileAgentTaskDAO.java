@@ -142,12 +142,6 @@ public interface FileAgentTaskDAO {
     ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
                                       FileTaskModeEnum mode, long hostId);
 
-    /**
-     * 判断步骤实例的Agent Task 记录是否存在
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    boolean isStepInstanceRecordExist(long stepInstanceId);
 
     /**
      * 批量更新AgentTask的字段

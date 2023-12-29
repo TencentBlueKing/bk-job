@@ -164,13 +164,13 @@ public enum ExecuteObjectTaskStatusEnum {
         this.status = status;
     }
 
-    public static ExecuteObjectTaskStatusEnum valueOf(Integer status) {
+    public static ExecuteObjectTaskStatusEnum valOf(Integer status) {
         if (status == null) {
             return null;
         }
-        for (ExecuteObjectTaskStatusEnum agentTaskStatus : values()) {
-            if (agentTaskStatus.status == status) {
-                return agentTaskStatus;
+        for (ExecuteObjectTaskStatusEnum executeObjectTaskStatus : values()) {
+            if (executeObjectTaskStatus.status == status) {
+                return executeObjectTaskStatus;
             }
         }
         return UNKNOWN_ERROR;

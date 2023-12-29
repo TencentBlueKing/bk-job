@@ -552,7 +552,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ExecutionResultGroupVO executionResultGroupVO = new ExecutionResultGroupVO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
             executionResultGroupVO.setAgentTaskSize(resultGroup.getTotal());
 
@@ -615,7 +615,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             ExecutionResultGroupV2VO executionResultGroupVO = new ExecutionResultGroupV2VO();
             executionResultGroupVO.setResultType(resultGroup.getStatus());
             executionResultGroupVO.setResultTypeDesc(
-                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valOf(resultGroup.getStatus()).getI18nKey()));
             executionResultGroupVO.setTag(resultGroup.getTag());
             executionResultGroupVO.setTaskSize(resultGroup.getTotal());
 

@@ -94,7 +94,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             EsbStepInstanceStatusV3DTO.StepResultGroup stepResultGroup =
                 new EsbStepInstanceStatusV3DTO.StepResultGroup();
             stepResultGroup.setResultType(resultGroup.getStatus());
-            ExecuteObjectTaskStatusEnum taskStatusEnum = ExecuteObjectTaskStatusEnum.valueOf(resultGroup.getStatus());
+            ExecuteObjectTaskStatusEnum taskStatusEnum = ExecuteObjectTaskStatusEnum.valOf(resultGroup.getStatus());
             if (taskStatusEnum != null) {
                 stepResultGroup.setResultTypeDesc(messageI18nService.getI18n(taskStatusEnum.getI18nKey()));
             }

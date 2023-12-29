@@ -65,6 +65,8 @@ import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
+import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
+import com.tencent.bk.job.common.cc.model.req.field.PodFields;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
 import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
@@ -1415,6 +1417,9 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
      */
     public PageData<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
+        req.setContainerFields(ContainerFields.FIELDS);
+        req.setPodFields(PodFields.FIELDS);
+
         EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
             HttpMethodEnum.POST,
             LIST_KUBE_CONTAINER_BY_TOPO,

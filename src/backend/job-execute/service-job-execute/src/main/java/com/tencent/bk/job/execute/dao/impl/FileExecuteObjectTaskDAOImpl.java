@@ -24,39 +24,168 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.tables.GseFileExecuteObjTask;
+import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitPercentStep;
+import org.jooq.SelectSeekStep1;
+import org.jooq.TableField;
+import org.jooq.UpdateConditionStep;
+import org.jooq.UpdateSetMoreStep;
+import org.jooq.UpdateSetStep;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import static com.tencent.bk.job.common.constant.Order.DESCENDING;
+import static org.jooq.impl.DSL.count;
 
 @Repository
 public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
 
+    private static final GseFileExecuteObjTask T = GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        T.TASK_INSTANCE_ID,
+        T.STEP_INSTANCE_ID,
+        T.EXECUTE_COUNT,
+        T.ACTUAL_EXECUTE_COUNT,
+        T.BATCH,
+        T.MODE,
+        T.EXECUTE_OBJ_TYPE,
+        T.EXECUTE_OBJ_ID,
+        T.GSE_TASK_ID,
+        T.STATUS,
+        T.START_TIME,
+        T.END_TIME,
+        T.TOTAL_TIME,
+        T.ERROR_CODE
+    };
+
+    private final DSLContext CTX;
+
+    public static final String BATCH_INSERT_SQL =
+        "insert into gse_file_execute_obj_task (task_instance_id,step_instance_id,execute_count,actual_execute_count, "
+            + "batch,mode,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,total_time,error_code)"
+            + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    public static final String BATCH_UPDATE_SQL = "update gse_file_execute_obj_task set gse_task_id = ?, status = ?,"
+        + "start_time = ?, end_time = ? , total_time = ?, error_code = ?"
+        + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and execute_obj_id = ?";
+
+    @Autowired
+    public FileExecuteObjectTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+        this.CTX = CTX;
+    }
+
     @Override
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
-
+        Object[][] params = new Object[tasks.size()][14];
+        int batchCount = 0;
+        for (ExecuteObjectTask task : tasks) {
+            Object[] param = new Object[14];
+            param[0] = task.getTaskInstanceId();
+            param[1] = task.getStepInstanceId();
+            param[2] = task.getExecuteCount();
+            param[3] = task.getActualExecuteCount();
+            param[4] = task.getBatch();
+            param[5] = task.getFileTaskMode().getValue();
+            param[6] = task.getExecuteObjectType().getValue();
+            param[7] = task.getExecuteObjectId();
+            param[8] = task.getGseTaskId();
+            param[9] = task.getStatus().getValue();
+            param[10] = task.getStartTime();
+            param[11] = task.getEndTime();
+            param[12] = task.getTotalTime();
+            param[13] = task.getErrorCode();
+            params[batchCount++] = param;
+        }
+        CTX.batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
     public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
-
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
+        }
+        Object[][] params = new Object[tasks.size()][11];
+        int batchCount = 0;
+        for (ExecuteObjectTask task : tasks) {
+            Object[] param = new Object[11];
+            param[0] = task.getGseTaskId();
+            param[1] = task.getStatus().getValue();
+            param[2] = task.getStartTime();
+            param[3] = task.getEndTime();
+            param[4] = task.getTotalTime();
+            param[5] = task.getErrorCode();
+            param[6] = task.getStepInstanceId();
+            param[7] = task.getExecuteCount();
+            param[8] = task.getBatch();
+            param[9] = task.getFileTaskMode().getValue();
+            param[10] = task.getExecuteObjectId();
+            params[batchCount++] = param;
+        }
+        CTX.batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
     public int getSuccessTaskCount(long stepInstanceId, int executeCount) {
-        return 0;
+        Integer count = CTX.selectCount()
+            .from(T)
+            .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
+                ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
+            .and(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(T.EXECUTE_COUNT.eq((short) executeCount))
+            .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()))
+            .fetchOne(0, Integer.class);
+        return count == null ? 0 : count;
     }
 
     @Override
     public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId,
                                                      int executeCount,
                                                      Integer batch) {
-        return null;
+        SelectConditionStep<?> selectConditionStep =
+            CTX.select(T.STATUS, count().as("ip_count"))
+                .from(T)
+                .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T.EXECUTE_COUNT.eq((short) executeCount))
+                .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+
+        Result<?> result = selectConditionStep.groupBy(T.STATUS)
+            .orderBy(T.STATUS.asc())
+            .fetch();
+
+        List<ResultGroupBaseDTO> resultGroups = new ArrayList<>();
+        result.forEach(record -> {
+            ResultGroupBaseDTO resultGroup = new ResultGroupBaseDTO();
+            resultGroup.setStatus(record.get(T.STATUS));
+            resultGroup.setTag("");
+            Object ipCount = record.get("ip_count");
+            resultGroup.setTotal(ipCount == null ? 0 : (int) ipCount);
+            resultGroups.add(resultGroup);
+        });
+        return resultGroups;
     }
 
     @Override
@@ -64,7 +193,22 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                          Integer executeCount,
                                                          Integer batch,
                                                          Integer status) {
-        return null;
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+            .from(T)
+            .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
+            .and(T.STATUS.eq(status))
+            .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+        Result<?> result = selectConditionStep.fetch();
+
+        List<ExecuteObjectTask> tasks = new ArrayList<>();
+        if (result.size() > 0) {
+            result.forEach(record -> tasks.add(extract(record)));
+        }
+        return tasks;
     }
 
     @Override
@@ -75,7 +219,63 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                          Integer limit,
                                                          String orderField,
                                                          Order order) {
-        return null;
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.STEP_INSTANCE_ID.eq(stepInstanceId));
+        conditions.add(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
+        conditions.add(T.STATUS.eq(status));
+        conditions.add(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
+
+        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
+            .from(T)
+            .where(conditions);
+
+        if (batch != null && batch > 0) {
+            select.and(T.BATCH.eq(batch.shortValue()));
+        }
+
+        SelectSeekStep1<Record, ?> selectSeekStep = null;
+        OrderField<?> orderFieldEntity = buildOrderField(orderField, order);
+        if (orderFieldEntity != null) {
+            selectSeekStep = select.orderBy(orderFieldEntity);
+        }
+
+        SelectLimitPercentStep<Record> selectLimitPercentStep = null;
+        if (limit != null && limit > 0) {
+            if (selectSeekStep != null) {
+                selectLimitPercentStep = selectSeekStep.limit(limit);
+            } else {
+                selectLimitPercentStep = select.limit(limit);
+            }
+        }
+
+        List<ExecuteObjectTask> tasks = new ArrayList<>();
+        Result<Record> result;
+        if (selectLimitPercentStep != null) {
+            result = selectLimitPercentStep.fetch();
+        } else if (selectSeekStep != null) {
+            result = selectSeekStep.fetch();
+        } else {
+            result = select.fetch();
+        }
+
+        if (result.size() > 0) {
+            result.into(record -> tasks.add(extract(record)));
+        }
+        return tasks;
+    }
+
+    private OrderField<?> buildOrderField(String field, Order order) {
+        OrderField<?> orderField = null;
+        if (StringUtils.isNotBlank(field)) {
+            if (field.equals(T.TOTAL_TIME.getName())) {
+                if (order == DESCENDING) {
+                    orderField = T.TOTAL_TIME.desc();
+                } else {
+                    orderField = T.TOTAL_TIME.asc();
+                }
+            }
+        }
+        return orderField;
     }
 
     @Override
@@ -83,12 +283,66 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                              Integer executeCount,
                                              Integer batch,
                                              FileTaskModeEnum fileTaskMode) {
-        return null;
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+            .from(T)
+            .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
+        if (batch != null && batch > 0) {
+            selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+        if (fileTaskMode != null) {
+            selectConditionStep.and(T.MODE.eq(fileTaskMode.getValue().byteValue()));
+        }
+        Result<?> result = selectConditionStep.fetch();
+        List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
+        if (result.size() != 0) {
+            result.map(record -> {
+                executeObjectList.add(extract(record));
+                return null;
+            });
+        }
+        return executeObjectList;
+    }
+
+    private ExecuteObjectTask extract(Record record) {
+        if (record == null) {
+            return null;
+        }
+        ExecuteObjectTask executeObject = new ExecuteObjectTask();
+        executeObject.setTaskInstanceId(record.get(T.TASK_INSTANCE_ID));
+        executeObject.setStepInstanceId(record.get(T.STEP_INSTANCE_ID));
+        executeObject.setExecuteCount(record.get(T.EXECUTE_COUNT));
+        Short actualExecuteCount = record.get(T.ACTUAL_EXECUTE_COUNT);
+        executeObject.setActualExecuteCount(actualExecuteCount != null ? actualExecuteCount.intValue() : null);
+        executeObject.setBatch(record.get(T.BATCH));
+        executeObject.setFileTaskMode(FileTaskModeEnum.getFileTaskMode(record.get(T.MODE).intValue()));
+        executeObject.setExecuteObjectType(ExecuteObjectTypeEnum.valOf(record.get(T.EXECUTE_OBJ_TYPE).intValue()));
+        executeObject.setExecuteObjectId(record.get(T.EXECUTE_OBJ_ID));
+        executeObject.setGseTaskId(record.get(T.GSE_TASK_ID));
+        executeObject.setStatus(ExecuteObjectTaskStatusEnum.valOf(record.get(T.STATUS)));
+        executeObject.setStartTime(record.get(T.START_TIME));
+        executeObject.setEndTime(record.get(T.END_TIME));
+        executeObject.setTotalTime(record.get(T.TOTAL_TIME));
+        executeObject.setErrorCode(record.get(T.ERROR_CODE));
+        return executeObject;
     }
 
     @Override
     public List<ExecuteObjectTask> listTasksByGseTaskId(Long gseTaskId) {
-        return null;
+        if (gseTaskId == null || gseTaskId <= 0) {
+            return Collections.emptyList();
+        }
+
+        List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
+
+        Result<?> result = CTX.select(ALL_FIELDS)
+            .from(T)
+            .where(T.GSE_TASK_ID.eq(gseTaskId))
+            .fetch();
+        if (result.size() > 0) {
+            result.forEach(record -> executeObjectList.add(extract(record)));
+        }
+        return executeObjectList;
     }
 
     @Override
@@ -97,12 +351,20 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                       Integer batch,
                                                       FileTaskModeEnum mode,
                                                       String executeObjectId) {
-        return null;
+        Record record = CTX.select(ALL_FIELDS)
+            .from(T)
+            .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
+            .and(T.BATCH.eq(batch == null ? 0 : batch.shortValue()))
+            .and(T.MODE.eq(mode.getValue().byteValue()))
+            .and(T.EXECUTE_OBJ_ID.eq(executeObjectId))
+            .fetchOne();
+        return extract(record);
     }
 
     @Override
     public boolean isStepInstanceRecordExist(long stepInstanceId) {
-        return false;
+        return CTX.fetchExists(T, T.STEP_INSTANCE_ID.eq(stepInstanceId));
     }
 
     @Override
@@ -111,6 +373,32 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
+        UpdateSetStep<GseFileExecuteObjTaskRecord> updateSetStep = CTX.update(T);
+        boolean needUpdate = false;
+        if (actualExecuteCount != null) {
+            updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,
+                actualExecuteCount.shortValue());
+            needUpdate = true;
+        }
+        if (gseTaskId != null) {
+            updateSetStep = updateSetStep.set(T.GSE_TASK_ID, gseTaskId);
+            needUpdate = true;
+        }
 
+        if (!needUpdate) {
+            return;
+        }
+
+        UpdateSetMoreStep<GseFileExecuteObjTaskRecord> updateSetMoreStep =
+            (UpdateSetMoreStep<GseFileExecuteObjTaskRecord>) updateSetStep;
+
+        UpdateConditionStep<GseFileExecuteObjTaskRecord> updateConditionStep =
+            updateSetMoreStep
+                .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T.EXECUTE_COUNT.eq((short) executeCount));
+        if (batch != null) {
+            updateConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+        updateConditionStep.execute();
     }
 }

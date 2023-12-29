@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
@@ -42,6 +43,10 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class ExecuteObjectTask {
+    /**
+     * 作业实例ID
+     */
+    private long taskInstanceId;
     /**
      * 步骤实例ID
      */
@@ -66,6 +71,10 @@ public class ExecuteObjectTask {
      * 执行对象 ID
      */
     private String executeObjectId;
+    /**
+     * 执行对象类型
+     */
+    private ExecuteObjectTypeEnum executeObjectType;
     /**
      * 执行对象
      */
@@ -129,31 +138,44 @@ public class ExecuteObjectTask {
      */
     private volatile boolean changed;
 
-    public ExecuteObjectTask(long stepInstanceId, int executeCount, int batch, String executeObjectId) {
+    public ExecuteObjectTask(long taskInstanceId,
+                             long stepInstanceId,
+                             int executeCount,
+                             int batch,
+                             ExecuteObjectTypeEnum executeObjectType,
+                             String executeObjectId) {
+        this.taskInstanceId = taskInstanceId;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+        this.executeObjectType = executeObjectType;
         this.executeObjectId = executeObjectId;
     }
 
-    public ExecuteObjectTask(long stepInstanceId,
+    public ExecuteObjectTask(long taskInstanceId,
+                             long stepInstanceId,
                              int executeCount,
                              int batch,
                              FileTaskModeEnum fileTaskMode,
+                             ExecuteObjectTypeEnum executeObjectType,
                              String executeObjectId) {
+        this.taskInstanceId = taskInstanceId;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
         this.fileTaskMode = fileTaskMode;
+        this.executeObjectType = executeObjectType;
         this.executeObjectId = executeObjectId;
     }
 
     public ExecuteObjectTask(ExecuteObjectTask executeObjectTask) {
+        this.taskInstanceId = executeObjectTask.getTaskInstanceId();
         this.stepInstanceId = executeObjectTask.getStepInstanceId();
         this.executeCount = executeObjectTask.getExecuteCount();
         this.actualExecuteCount = executeObjectTask.getActualExecuteCount();
         this.batch = executeObjectTask.getBatch();
         this.fileTaskMode = executeObjectTask.getFileTaskMode();
+        this.executeObjectType = executeObjectTask.getExecuteObjectType();
         this.executeObjectId = executeObjectTask.getExecuteObjectId();
         this.executeObject = executeObjectTask.getExecuteObject();
         this.hostId = executeObjectTask.getHostId();

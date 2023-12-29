@@ -323,7 +323,7 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
         agentTask.setHostId(record.get(T_GSE_SCRIPT_AGENT_TASK.HOST_ID));
         agentTask.setAgentId(record.get(T_GSE_SCRIPT_AGENT_TASK.AGENT_ID));
         agentTask.setGseTaskId(record.get(T_GSE_SCRIPT_AGENT_TASK.GSE_TASK_ID));
-        agentTask.setStatus(ExecuteObjectTaskStatusEnum.valueOf(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS)));
+        agentTask.setStatus(ExecuteObjectTaskStatusEnum.valOf(record.get(T_GSE_SCRIPT_AGENT_TASK.STATUS)));
         agentTask.setStartTime(record.get(T_GSE_SCRIPT_AGENT_TASK.START_TIME));
         agentTask.setEndTime(record.get(T_GSE_SCRIPT_AGENT_TASK.END_TIME));
         agentTask.setTotalTime(record.get(T_GSE_SCRIPT_AGENT_TASK.TOTAL_TIME));
