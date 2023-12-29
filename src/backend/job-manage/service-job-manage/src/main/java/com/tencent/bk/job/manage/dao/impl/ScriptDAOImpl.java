@@ -310,7 +310,6 @@ public class ScriptDAOImpl implements ScriptDAO {
         if (scriptQuery != null) {
             if (StringUtils.isNotBlank(scriptQuery.getId())) {
                 conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getId()));
-                return conditions;
             } else if (CollectionUtils.isNotEmpty(scriptQuery.getIds())) {
                 if (scriptQuery.getIds().size() == 1) {
                     conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getIds().get(0)));
@@ -358,7 +357,6 @@ public class ScriptDAOImpl implements ScriptDAO {
     private List<Condition> buildScriptVersionConditionList(ScriptQuery scriptQuery,
                                                             BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildScriptConditionList(scriptQuery, baseSearchCondition);
-        conditions.add(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(String.valueOf(0))));
         if (scriptQuery.getStatus() != null) {
             conditions.add(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(scriptQuery.getStatus())));
         }
