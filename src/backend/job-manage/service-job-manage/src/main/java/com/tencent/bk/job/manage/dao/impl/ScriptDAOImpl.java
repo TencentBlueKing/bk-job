@@ -311,7 +311,6 @@ public class ScriptDAOImpl implements ScriptDAO {
         if (scriptQuery != null) {
             if (StringUtils.isNotBlank(scriptQuery.getId())) {
                 conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getId()));
-                return conditions;
             } else if (CollectionUtils.isNotEmpty(scriptQuery.getIds())) {
                 if (scriptQuery.getIds().size() == 1) {
                     conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getIds().get(0)));
