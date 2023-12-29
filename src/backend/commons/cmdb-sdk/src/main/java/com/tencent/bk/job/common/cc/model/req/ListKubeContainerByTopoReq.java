@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.cc.model.req;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,8 +44,8 @@ public class ListKubeContainerByTopoReq extends EsbReq {
     @JsonProperty("bk_biz_id")
     private Long bizId;
 
-    @JsonProperty("bk_cluster_id")
-    private Long clusterId;
+    @JsonProperty("bk_nodes")
+    private List<KubeNodeID> nodeIdList;
 
     @JsonProperty("bk_namespace_id")
     private Long namespaceId;

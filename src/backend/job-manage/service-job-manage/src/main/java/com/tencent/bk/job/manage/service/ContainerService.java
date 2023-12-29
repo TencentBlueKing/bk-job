@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 
+import java.util.List;
+
 /**
  * 容器服务
  */
@@ -44,10 +46,19 @@ public interface ContainerService {
     KubeTopologyDTO getBizKubeCacheTopo(long bizId);
 
     /**
+     * 根据容器拓扑获取container信息(分页）
+     *
+     * @param query 查询条件
+     * @return 容器列表（分页）
+     */
+    PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ContainerQuery query);
+
+    /**
      * 根据容器拓扑获取container信息
      *
      * @param query 查询条件
      * @return 容器列表（分页）
      */
-    PageData<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query);
+    List<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query);
+
 }

@@ -58,4 +58,10 @@ public class Page {
         this.start = start;
         this.limit = limit;
     }
+
+    public Page(Integer start, Integer limit, String sort) {
+        this.start = start;
+        this.limit = limit;
+        this.sort = sort;
+    }
 }

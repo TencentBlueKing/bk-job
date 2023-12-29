@@ -22,24 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.container;
+package com.tencent.bk.job.manage.model.mapper;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 
-import java.util.List;
+public class ContainerMapper {
 
-/**
- * CMDB 容器拓扑
- */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class KubeTopologyDTO {
-
-    @JsonProperty("biz")
-    private KubeBizDTO biz;
-
-    @JsonProperty("nds")
-    private List<KubeNodeDTO> nodes;
+    public static ContainerVO toContainerVO(ContainerDetailDTO container) {
+        ContainerVO containerVO = new ContainerVO();
+        containerVO.setId(container.getContainer().getId());
+        containerVO.setUid(container.getContainer().getContainerUID());
+        containerVO.setName(container.getContainer().getName());
+        containerVO.setPodName(container.getPod().getName());
+        containerVO.setPodLabels(container.getPod().getLabels());
+        containerVO.setNodeHostId(container.getTopo().getHostId());
+        return containerVO;
+    }
 }

@@ -31,42 +31,67 @@ import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
 import com.tencent.bk.job.common.cc.model.req.field.PodFields;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import lombok.Builder;
+import com.tencent.bk.job.manage.model.dto.KubeTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 容器查询
  */
 @Getter
 @ToString
-@NoArgsConstructor
-@Builder
 public class ContainerQuery {
-    private Long bizId;
+    private final Long bizId;
 
-    private Long clusterId;
+    private final List<Long> ids;
 
-    private Long namespaceId;
+    private final List<KubeTopoNode> nodes;
 
-    private Long workloadId;
+    private final List<String> containerUIDs;
 
-    private String containerUID;
+    private final List<String> containerNames;
 
-    private String containerName;
+    private final List<String> podNames;
 
-    private String podName;
+    private final BaseSearchCondition baseSearchCondition;
 
-    private BaseSearchCondition baseSearchCondition;
+    private ContainerQuery(Builder builder) {
+        bizId = builder.bizId;
+        this.ids = builder.ids;
+        nodes = builder.nodes;
+        containerUIDs = builder.containerUIDs;
+        containerNames = builder.containerNames;
+        podNames = builder.podNames;
+        baseSearchCondition = builder.baseSearchCondition;
+    }
+
+    public static ContainerQuery fromListContainerByTopologyNodesReq(Long bizId,
+                                                                     ListContainerByTopologyNodesReq req) {
+        return ContainerQuery.builder()
+            .bizId(bizId)
+            .containerUIDs(req.getContainerUIDList())
+            .containerNames(req.getContainerNameList())
+            .podNames(req.getPodNameList())
+            .nodes(CollectionUtils.isNotEmpty(req.getNodeList()) ?
+                req.getNodeList().stream()
+                    .map(nodeVO -> new KubeTopoNode(nodeVO.getObjectId(), nodeVO.getInstanceId()))
+                    .collect(Collectors.toList())
+                : null)
+            .baseSearchCondition(BaseSearchCondition.pageCondition(req.getStart(), req.getPageSize()))
+            .build();
+    }
+
 
     public ListKubeContainerByTopoReq toListKubeContainerByTopoReq() {
         ListKubeContainerByTopoReq req = new ListKubeContainerByTopoReq();
         req.setBizId(bizId);
-        req.setClusterId(clusterId);
-        req.setNamespaceId(namespaceId);
-        req.setWorkloadId(workloadId);
+
+        setKubeNodeCondition(req);
 
         setContainerFilterIfNecessary(req);
 
@@ -77,41 +102,43 @@ public class ContainerQuery {
         return req;
     }
 
+    private void setKubeNodeCondition(ListKubeContainerByTopoReq req) {
+        if (CollectionUtils.isNotEmpty(nodes)) {
+            req.setNodeIdList(nodes.stream().map(KubeTopoNode::toKubeNodeID).collect(Collectors.toList()));
+        }
+    }
+
     private void setContainerFilterIfNecessary(ListKubeContainerByTopoReq req) {
-        if (StringUtils.isNotEmpty(containerUID) || StringUtils.isNotEmpty(containerName)) {
+        if (isExistContainerPropCondition()) {
             PropertyFilterDTO containerFilter = new PropertyFilterDTO();
             containerFilter.setCondition("AND");
 
-            if (StringUtils.isNotEmpty(containerUID)) {
-                BaseRuleDTO rule = new BaseRuleDTO();
-                rule.setField(ContainerFields.CONTAINER_UID);
-                rule.setOperator("equal");
-                rule.setValue(containerUID);
-                containerFilter.addRule(rule);
+            if (CollectionUtils.isNotEmpty(ids)) {
+                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.ID, ids));
             }
 
-            if (StringUtils.isNotEmpty(containerName)) {
-                BaseRuleDTO rule = new BaseRuleDTO();
-                rule.setField(ContainerFields.NAME);
-                rule.setOperator("equal");
-                rule.setValue(containerName);
-                containerFilter.addRule(rule);
+            if (CollectionUtils.isNotEmpty(containerUIDs)) {
+                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.CONTAINER_UID, containerUIDs));
+            }
+
+            if (CollectionUtils.isNotEmpty(containerNames)) {
+                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.NAME, containerNames));
             }
             req.setContainerFilter(containerFilter);
         }
     }
 
+    private boolean isExistContainerPropCondition() {
+        return CollectionUtils.isNotEmpty(ids)
+            || CollectionUtils.isNotEmpty(containerUIDs)
+            || CollectionUtils.isNotEmpty(containerNames);
+    }
+
     private void setPodFilterIfNecessary(ListKubeContainerByTopoReq req) {
-        if (StringUtils.isNotEmpty(podName)) {
+        if (CollectionUtils.isNotEmpty(podNames)) {
             PropertyFilterDTO podFilter = new PropertyFilterDTO();
             podFilter.setCondition("AND");
-
-            BaseRuleDTO rule = new BaseRuleDTO();
-            rule.setField(PodFields.NAME);
-            rule.setOperator("equal");
-            rule.setValue(podName);
-            podFilter.addRule(rule);
-
+            podFilter.addRule(BaseRuleDTO.in(PodFields.NAME, podNames));
             req.setPodFilter(podFilter);
         }
     }
@@ -126,4 +153,64 @@ public class ContainerQuery {
         }
     }
 
+    public static Builder builder() {
+        return Builder.builder();
+    }
+
+
+    public static final class Builder {
+        private Long bizId;
+        private List<Long> ids;
+        private List<KubeTopoNode> nodes;
+        private List<String> containerUIDs;
+        private List<String> containerNames;
+        private List<String> podNames;
+        private BaseSearchCondition baseSearchCondition;
+
+        private Builder() {
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public Builder bizId(Long bizId) {
+            this.bizId = bizId;
+            return this;
+        }
+
+        public Builder ids(List<Long> ids) {
+            this.ids = ids;
+            return this;
+        }
+
+        public Builder nodes(List<KubeTopoNode> nodes) {
+            this.nodes = nodes;
+            return this;
+        }
+
+        public Builder containerUIDs(List<String> containerUIDs) {
+            this.containerUIDs = containerUIDs;
+            return this;
+        }
+
+        public Builder containerNames(List<String> containerNames) {
+            this.containerNames = containerNames;
+            return this;
+        }
+
+        public Builder podNames(List<String> podNames) {
+            this.podNames = podNames;
+            return this;
+        }
+
+        public Builder baseSearchCondition(BaseSearchCondition baseSearchCondition) {
+            this.baseSearchCondition = baseSearchCondition;
+            return this;
+        }
+
+        public ContainerQuery build() {
+            return new ContainerQuery(this);
+        }
+    }
 }

@@ -22,56 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.container;
+package com.tencent.bk.job.manage.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
 import lombok.Data;
-
-import java.util.List;
-import java.util.Objects;
+import lombok.NoArgsConstructor;
 
 /**
- * 容器拓扑节点信息
+ * 容器拓扑节点
  */
+@NoArgsConstructor
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class KubeNode {
+public class KubeTopoNode {
     /**
      * 节点的资源类型
      */
     private String kind;
     /**
-     * 节点 ID
+     * 拓扑节点 ID
      */
     private Long id;
-    /**
-     * 节点名称
-     */
-    @JsonProperty("nm")
-    private String name;
-    /**
-     * 该节点下的Container数量
-     */
-    @JsonProperty("cnt")
-    private Integer count;
-    /**
-     * 节点下的子节点信息
-     */
-    @JsonProperty("nds")
-    private List<KubeNode> nodes;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        KubeNode kubeNode = (KubeNode) o;
-        return kind.equals(kubeNode.kind) &&
-            id.equals(kubeNode.id);
+    public KubeTopoNode(String kind, Long id) {
+        this.kind = kind;
+        this.id = id;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(kind, id);
+    public KubeNodeID toKubeNodeID() {
+        return new KubeNodeID(kind, id);
     }
 }

@@ -28,10 +28,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @description
- * @date 2019/3/4
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

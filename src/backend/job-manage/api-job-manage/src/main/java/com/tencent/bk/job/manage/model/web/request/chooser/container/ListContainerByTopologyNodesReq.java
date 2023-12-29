@@ -44,14 +44,14 @@ public class ListContainerByTopologyNodesReq {
     @ApiModelProperty(value = "拓扑节点列表", required = true)
     private List<ContainerTopologyNodeVO> nodeList;
 
-    @ApiModelProperty(value = "筛选条件：容器ID")
-    private String containerUid;
+    @ApiModelProperty(value = "筛选条件：容器ID列表")
+    private List<String> containerUIDList;
 
-    @ApiModelProperty(value = "筛选条件：容器名称")
-    private String name;
+    @ApiModelProperty(value = "筛选条件：容器名称列表")
+    private List<String> containerNameList;
 
-    @ApiModelProperty(value = "筛选条件：Pod名称")
-    private String podName;
+    @ApiModelProperty(value = "筛选条件：Pod名称列表")
+    private List<String> podNameList;
 
     @ApiModelProperty(value = "筛选条件：Pod label")
     private Map<String, String> podLabels;

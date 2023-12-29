@@ -53,14 +53,14 @@ import java.util.List;
  * 容器管理 WEB API
  */
 @Api(tags = "job-manage:web:Container_Management")
-@RequestMapping("/web")
+@RequestMapping("/web/scope/{scopeType}/{scopeId}/")
 @RestController
 @WebAPI
 public interface WebContainerResource {
 
     // 容器选择器标准接口-1
     @ApiOperation(value = "获取容器拓扑树（含各节点容器数）", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/container"})
+    @PostMapping(value = {"/topology/container"})
     Response<List<ContainerTopologyNodeVO>> listTopologyTrees(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -81,7 +81,7 @@ public interface WebContainerResource {
 
     // 容器选择器标准接口-2
     @ApiOperation(value = "容器选择器根据拓扑节点集合获取容器列表", produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/containers/nodes"})
+    @PostMapping(value = {"/topology/containers/nodes"})
     Response<PageData<ContainerVO>> listContainerByTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -103,7 +103,7 @@ public interface WebContainerResource {
     // 容器选择器标准接口-3
     @ApiOperation(value = "容器选择器根据拓扑节点集合获取容器资源ID列表，用于跨页全选容器功能"
         , produces = "application/json")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/containerIds/nodes"})
+    @PostMapping(value = {"/topology/containerIds/nodes"})
     Response<PageData<ContainerIdWithMeta>> listContainerIdByTopologyNodes(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -125,7 +125,7 @@ public interface WebContainerResource {
 
     // 容器选择器标准接口-4
     @ApiOperation(value = "根据用户选择/输入的容器信息获取容器")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/container/check"})
+    @PostMapping(value = {"/container/check"})
     Response<List<ContainerVO>> checkContainers(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -146,7 +146,7 @@ public interface WebContainerResource {
 
     // 容器选择器标准接口-5
     @ApiOperation(value = "根据容器资源 ID批量查询容器详情信息")
-    @PostMapping(value = {"/scope/{scopeType}/{scopeId}/containers/details"})
+    @PostMapping(value = {"/containers/details"})
     Response<List<ContainerVO>> getContainerDetails(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

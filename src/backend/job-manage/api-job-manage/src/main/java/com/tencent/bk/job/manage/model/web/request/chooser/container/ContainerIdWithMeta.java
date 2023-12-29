@@ -27,15 +27,21 @@ package com.tencent.bk.job.manage.model.web.request.chooser.container;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 @Data
 @ApiModel("容器ID及元数据")
+@NoArgsConstructor
 public class ContainerIdWithMeta {
     @ApiModelProperty(value = "容器资源 ID", required = true)
     private Long id;
 
     @ApiModelProperty(value = "容器元数据；Job不支持")
     Map<String, Object> meta;
+
+    public ContainerIdWithMeta(Long id) {
+        this.id = id;
+    }
 }

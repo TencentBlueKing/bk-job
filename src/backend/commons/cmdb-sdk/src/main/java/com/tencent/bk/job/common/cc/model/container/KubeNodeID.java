@@ -25,21 +25,43 @@
 package com.tencent.bk.job.common.cc.model.container;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Objects;
 
 /**
- * CMDB 容器拓扑
+ * 容器拓扑节点ID
  */
 @Data
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class KubeTopologyDTO {
+public class KubeNodeID {
+    /**
+     * 节点的资源类型
+     */
+    private String kind;
+    /**
+     * 节点 ID
+     */
+    private Long id;
 
-    @JsonProperty("biz")
-    private KubeBizDTO biz;
+    public KubeNodeID(String kind, Long id) {
+        this.kind = kind;
+        this.id = id;
+    }
 
-    @JsonProperty("nds")
-    private List<KubeNodeDTO> nodes;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KubeNodeID kubeNode = (KubeNodeID) o;
+        return kind.equals(kubeNode.kind) &&
+            id.equals(kubeNode.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(kind, id);
+    }
 }

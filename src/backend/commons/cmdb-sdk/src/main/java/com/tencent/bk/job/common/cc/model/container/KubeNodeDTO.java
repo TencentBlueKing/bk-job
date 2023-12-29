@@ -29,17 +29,49 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
- * CMDB 容器拓扑
+ * 容器拓扑节点信息
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class KubeTopologyDTO {
-
-    @JsonProperty("biz")
-    private KubeBizDTO biz;
-
+public class KubeNodeDTO {
+    /**
+     * 节点的资源类型
+     */
+    private String kind;
+    /**
+     * 节点 ID
+     */
+    private Long id;
+    /**
+     * 节点名称
+     */
+    @JsonProperty("nm")
+    private String name;
+    /**
+     * 该节点下的Container数量
+     */
+    @JsonProperty("cnt")
+    private Integer count;
+    /**
+     * 节点下的子节点信息
+     */
     @JsonProperty("nds")
     private List<KubeNodeDTO> nodes;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KubeNodeDTO kubeNode = (KubeNodeDTO) o;
+        return kind.equals(kubeNode.kind) &&
+            id.equals(kubeNode.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(kind, id);
+    }
 }
