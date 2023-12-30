@@ -221,4 +221,11 @@ public class ExecuteObject implements Cloneable {
         }
         return vo;
     }
+
+    /**
+     * 判断是否支持执行对象特性
+     */
+    public boolean isSupportExecuteObjectFeature() {
+        return id != null;
+    }
 }

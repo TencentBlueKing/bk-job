@@ -30,16 +30,12 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 /**
  * GSE 执行对象任务
  */
-@Getter
-@Setter
 @ToString
 @NoArgsConstructor
 public class ExecuteObjectTask {
@@ -276,5 +272,173 @@ public class ExecuteObjectTask {
      */
     public boolean isSuccess() {
         return ExecuteObjectTaskStatusEnum.isSuccess(status);
+    }
+
+    public long getTaskInstanceId() {
+        return taskInstanceId;
+    }
+
+    public void setTaskInstanceId(long taskInstanceId) {
+        this.taskInstanceId = taskInstanceId;
+    }
+
+    public long getStepInstanceId() {
+        return stepInstanceId;
+    }
+
+    public void setStepInstanceId(long stepInstanceId) {
+        this.stepInstanceId = stepInstanceId;
+    }
+
+    public int getExecuteCount() {
+        return executeCount;
+    }
+
+    public void setExecuteCount(int executeCount) {
+        this.executeCount = executeCount;
+    }
+
+    public Integer getActualExecuteCount() {
+        return actualExecuteCount;
+    }
+
+    public void setActualExecuteCount(Integer actualExecuteCount) {
+        this.actualExecuteCount = actualExecuteCount;
+    }
+
+    public int getBatch() {
+        return batch;
+    }
+
+    public void setBatch(int batch) {
+        this.batch = batch;
+    }
+
+    public Long getGseTaskId() {
+        return gseTaskId;
+    }
+
+    public void setGseTaskId(Long gseTaskId) {
+        this.gseTaskId = gseTaskId;
+    }
+
+    public String getExecuteObjectId() {
+        return executeObjectId;
+    }
+
+    public void setExecuteObjectId(String executeObjectId) {
+        this.executeObjectId = executeObjectId;
+    }
+
+    public ExecuteObjectTypeEnum getExecuteObjectType() {
+        return executeObjectType;
+    }
+
+    public void setExecuteObjectType(ExecuteObjectTypeEnum executeObjectType) {
+        this.executeObjectType = executeObjectType;
+    }
+
+    public ExecuteObject getExecuteObject() {
+        return executeObject;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
+    public Long getHostId() {
+        return hostId;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
+    public void setHostId(Long hostId) {
+        this.hostId = hostId;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
+    public String getAgentId() {
+        return agentId;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除")
+    public void setAgentId(String agentId) {
+        this.agentId = agentId;
+    }
+
+    public ExecuteObjectTaskStatusEnum getStatus() {
+        return status;
+    }
+
+    public Long getStartTime() {
+        return startTime;
+    }
+
+    public Long getEndTime() {
+        return endTime;
+    }
+
+    public Long getTotalTime() {
+        return totalTime;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
+    }
+
+    public Integer getExitCode() {
+        return exitCode;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    public int getScriptLogOffset() {
+        return scriptLogOffset;
+    }
+
+    public String getScriptLogContent() {
+        return scriptLogContent;
+    }
+
+    public void setScriptLogContent(String scriptLogContent) {
+        this.scriptLogContent = scriptLogContent;
+    }
+
+    public FileTaskModeEnum getFileTaskMode() {
+        return fileTaskMode;
+    }
+
+    public void setFileTaskMode(FileTaskModeEnum fileTaskMode) {
+        this.fileTaskMode = fileTaskMode;
+    }
+
+    public boolean isChanged() {
+        return changed;
+    }
+
+    public void setChanged(boolean changed) {
+        this.changed = changed;
+    }
+
+    public void setExecuteObject(ExecuteObject executeObject) {
+        if (executeObject != null) {
+            executeObjectType = executeObject.getType();
+            executeObjectId = executeObject.getId();
+            if (executeObject.isHostExecuteObject()) {
+                // 兼容老数据，发布完成后可删除
+                hostId = executeObject.getHost().getHostId();
+                agentId = executeObject.getHost().getAgentId();
+            }
+        }
     }
 }

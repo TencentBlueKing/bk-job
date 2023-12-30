@@ -105,15 +105,17 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
 
         RollingBatchExecuteObjectsResolver resolver =
-            new RollingBatchExecuteObjectsResolver(fastTask.getStepInstance().getTargetExecuteObjects().getDecorateExecuteObjects(),
+            new RollingBatchExecuteObjectsResolver(
+                fastTask.getStepInstance().getTargetExecuteObjects().getDecorateExecuteObjects(),
                 rollingConfig.getExpr());
-        List<RollingExecuteObjectBatch> serversBatchList = resolver.resolve();
-        rollingConfigDetailDO.setHostsBatchList(
-            serversBatchList.stream()
-                .map(rollingServerBatch ->
-                    new RollingExecuteObjectsBatchDO(rollingServerBatch.getBatch(),
-                        rollingServerBatch.getExecuteObjects()))
+        List<RollingExecuteObjectBatch> executeObjectsBatchList = resolver.resolve();
+        rollingConfigDetailDO.setExecuteObjectsBatchList(
+            executeObjectsBatchList.stream()
+                .map(rollingExecuteObjectBatch ->
+                    new RollingExecuteObjectsBatchDO(rollingExecuteObjectBatch.getBatch(),
+                        rollingExecuteObjectBatch.getExecuteObjects()))
                 .collect(Collectors.toList()));
+
         rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getDecorateExecuteObjectsBatchList().size());
         taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
 

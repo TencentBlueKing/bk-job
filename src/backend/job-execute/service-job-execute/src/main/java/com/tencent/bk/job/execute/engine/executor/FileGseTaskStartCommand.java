@@ -299,12 +299,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
 
             executeObjectTask.setExecuteObject(sourceExecuteObject);
-            if (isSupportExecuteObject) {
-                executeObjectTask.setExecuteObjectId(sourceExecuteObject.getId());
-            } else {
-                executeObjectTask.setHostId(sourceExecuteObject.getHost().getHostId());
-                executeObjectTask.setAgentId(sourceExecuteObject.getHost().getAgentId());
-            }
 
             executeObjectTasks.add(executeObjectTask);
         }

@@ -62,7 +62,13 @@ public class RollingExecuteObjectsBatchDO {
 
     public RollingExecuteObjectsBatchDO(Integer batch, List<ExecuteObject> executeObjects) {
         this.batch = batch;
-        this.executeObjects = executeObjects;
+        boolean isSupportExecuteObject = executeObjects.get(0).isSupportExecuteObjectFeature();
+        if (isSupportExecuteObject) {
+            this.executeObjects = executeObjects;
+        } else {
+            // 执行对象发布兼容
+            this.hosts = executeObjects.stream().map(ExecuteObject::getHost).collect(Collectors.toList());
+        }
     }
 
     /**
