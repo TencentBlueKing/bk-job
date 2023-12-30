@@ -145,9 +145,9 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     public boolean isAgentIdEmpty() {
         if (isHostExecuteObject()) {
-            return StringUtils.isNotEmpty(getHost().getAgentId());
+            return StringUtils.isEmpty(getHost().getAgentId());
         } else {
-            return StringUtils.isNotEmpty(getContainer().getAgentId());
+            return StringUtils.isEmpty(getContainer().getAgentId());
         }
     }
 

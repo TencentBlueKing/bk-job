@@ -295,7 +295,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
             watch.stop();
 
-            //检查主机
+            //检查执行对象
             watch.start("checkExecuteObject");
             checkExecuteObject(Collections.singletonList(stepInstance), hosts, hostAllowActions);
             watch.stop();
