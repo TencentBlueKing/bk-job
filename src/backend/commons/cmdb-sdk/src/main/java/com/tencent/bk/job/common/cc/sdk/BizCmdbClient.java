@@ -105,6 +105,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -1438,5 +1439,41 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         } else {
             esbReq.setBkSupplierAccount(cmdbSupplierAccount);
         }
+    }
+
+    /**
+     * 根据容器ID批量查询容器
+     *
+     * @param bizId        CMDB 业务 ID
+     * @param containerIds 容器 ID 集合
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
+        ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
+
+        // 查询条件
+        req.setBizId(bizId);
+        PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+        containerFilter.setCondition("AND");
+        containerFilter.addRule(BaseRuleDTO.in(ContainerFields.ID, containerIds));
+        req.setContainerFilter(containerFilter);
+
+        // 返回参数设置
+        req.setContainerFields(ContainerFields.FIELDS);
+        req.setPodFields(PodFields.FIELDS);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> listPageContainersByIds(req, page),
+            pageData -> pageData.getTotal().intValue(),
+            PageData::getData,
+            container -> container
+        );
+    }
+
+    private PageData<ContainerDetailDTO> listPageContainersByIds(ListKubeContainerByTopoReq req,
+                                                                 PageDTO page) {
+        req.setPage(new Page(page.getStart(), page.getLimit()));
+        return listKubeContainerByTopo(req);
     }
 }

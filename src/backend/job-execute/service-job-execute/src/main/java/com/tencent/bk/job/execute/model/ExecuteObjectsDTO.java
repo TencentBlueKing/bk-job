@@ -426,4 +426,14 @@ public class ExecuteObjectsDTO implements Cloneable {
             return Collections.emptyList();
         }
     }
+
+    /**
+     * 提取所有包含的容器执行对象
+     *
+     * @return 容器执行对象列表
+     */
+    public List<Container> extractContainers() {
+        // 当前只支持静态选择容器
+        return staticContainerList;
+    }
 }

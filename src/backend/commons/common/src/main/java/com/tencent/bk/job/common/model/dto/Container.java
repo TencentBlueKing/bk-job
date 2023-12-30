@@ -34,7 +34,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Objects;
 
 /**
  * 作业执行对象-容器模型
@@ -58,19 +58,22 @@ public class Container implements Cloneable {
     @JsonProperty("containerId")
     private String containerId;
 
+    /**
+     * 容器名称
+     */
+    private String name;
 
     /**
      * 容器所在 Node 对应的主机ID
      */
-    @JsonProperty("hostId")
-    private Long hostId;
+    @JsonProperty("nodeHostId")
+    private Long nodeHostId;
 
     /**
      * 容器所在 Node 对应的 Agent ID
      */
-    @JsonProperty("agentId")
-    private String agentId;
-
+    @JsonProperty("nodeAgentId")
+    private String nodeAgentId;
 
     /**
      * 容器所在集群 ID
@@ -96,43 +99,54 @@ public class Container implements Cloneable {
     @JsonProperty("podLabels")
     private Map<String, String> podLabels;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Container container = (Container) o;
+        return id.equals(container.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
     @Override
     @SuppressWarnings("all")
     public Container clone() {
         Container clone = new Container();
         clone.setId(id);
-        clone.setHostId(hostId);
-        clone.setAgentId(agentId);
+        clone.setNodeHostId(nodeHostId);
+        clone.setNodeAgentId(nodeAgentId);
         clone.setContainerId(containerId);
         clone.setPodLabels(podLabels);
         clone.setClusterId(clusterId);
         clone.setNamespace(namespace);
         clone.setPodName(podName);
+        clone.setName(name);
         return clone;
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", Container.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("containerId='" + containerId + "'")
-            .add("hostId=" + hostId)
-            .add("agentId='" + agentId + "'")
-            .add("clusterId='" + clusterId + "'")
-            .add("namespace='" + namespace + "'")
-            .add("podName='" + podName + "'")
-            .add("podLabels=" + podLabels)
-            .toString();
     }
 
     public ContainerVO toContainerVO() {
         ContainerVO vo = new ContainerVO();
         vo.setId(id);
+        vo.setName(name);
         vo.setUid(containerId);
-        vo.setNodeHostId(hostId);
+        vo.setNodeHostId(nodeHostId);
         vo.setPodName(podName);
         vo.setPodLabels(podLabels);
         return vo;
+    }
+
+    public void updatePropsByContainer(Container container) {
+        this.containerId = container.getContainerId();
+        this.nodeHostId = container.getNodeHostId();
+        this.nodeAgentId = container.getNodeAgentId();
+        this.clusterId = container.getClusterId();
+        this.namespace = container.getNamespace();
+        this.podName = container.getPodName();
+        this.podLabels = container.getPodLabels();
+        this.name = container.getName();
     }
 }

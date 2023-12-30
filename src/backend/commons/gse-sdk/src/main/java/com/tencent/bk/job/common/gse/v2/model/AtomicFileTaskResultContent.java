@@ -245,7 +245,7 @@ public class AtomicFileTaskResultContent {
             // bk_container_id 不为空，说明是容器执行对象
             sourceExecuteObjectGseKey = ExecuteObjectGseKey.ofContainer(sourceAgentId, sourceContainerId);
         } else {
-            sourceExecuteObjectGseKey = ExecuteObjectGseKey.ofHost(destAgentId);
+            sourceExecuteObjectGseKey = ExecuteObjectGseKey.ofHost(sourceAgentId);
         }
         return sourceExecuteObjectGseKey;
     }

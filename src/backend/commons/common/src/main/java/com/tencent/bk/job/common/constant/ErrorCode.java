@@ -338,6 +338,8 @@ public class ErrorCode {
     public static final int STEP_TARGET_HOST_EMPTY = 1244028;
     // 步骤：{} 的源文件主机为空
     public static final int STEP_SOURCE_HOST_EMPTY = 1244029;
+    // 执行对象不存在。无效的{0}个执行对象：[{1}]
+    public static final int EXECUTE_OBJECT_NOT_EXIST = 1244030;
     // 作业执行 end
 
     // 定时作业 start

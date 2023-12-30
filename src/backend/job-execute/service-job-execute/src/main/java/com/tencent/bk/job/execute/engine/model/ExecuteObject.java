@@ -137,7 +137,7 @@ public class ExecuteObject implements Cloneable {
         if (isHostExecuteObject()) {
             executeObjectGseKey = ExecuteObjectGseKey.ofHost(host.getAgentId());
         } else {
-            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getAgentId(), container.getContainerId());
+            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getNodeAgentId(), container.getContainerId());
         }
         return executeObjectGseKey;
     }
@@ -147,7 +147,7 @@ public class ExecuteObject implements Cloneable {
         if (isHostExecuteObject()) {
             return StringUtils.isEmpty(getHost().getAgentId());
         } else {
-            return StringUtils.isEmpty(getContainer().getAgentId());
+            return StringUtils.isEmpty(getContainer().getNodeAgentId());
         }
     }
 
@@ -156,7 +156,7 @@ public class ExecuteObject implements Cloneable {
         if (isHostExecuteObject()) {
             agent.setAgentId(host.getAgentId());
         } else {
-            agent.setAgentId(container.getAgentId());
+            agent.setAgentId(container.getNodeAgentId());
             agent.setContainerId(container.getContainerId());
         }
         return agent;

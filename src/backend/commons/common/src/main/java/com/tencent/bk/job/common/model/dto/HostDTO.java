@@ -130,6 +130,10 @@ public class HostDTO implements Cloneable {
         this.ip = ip;
     }
 
+    public HostDTO(Long hostId) {
+        this.hostId = hostId;
+    }
+
     public HostDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
         this.bkCloudId = bkCloudId;
@@ -292,6 +296,9 @@ public class HostDTO implements Cloneable {
     }
 
     public void updateByHost(HostDTO host) {
+        if (host == null) {
+            return;
+        }
         this.hostId = host.getHostId();
         this.agentId = host.getAgentId();
         this.bkCloudId = host.getBkCloudId();

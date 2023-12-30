@@ -27,12 +27,15 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -252,5 +255,22 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         } else {
             throw new InternalException("Not support method invoke for step", ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    public List<Container> extractStaticContainerList() {
+        List<Container> containers = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(targetExecuteObjects.getStaticContainerList())) {
+            containers.addAll(targetExecuteObjects.getStaticContainerList());
+        }
+        if (isFileStep()) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                ExecuteObjectsDTO executeObjectsDTO = fileSource.getServers();
+                if (executeObjectsDTO != null
+                    && CollectionUtils.isNotEmpty(executeObjectsDTO.getStaticContainerList())) {
+                    containers.addAll(executeObjectsDTO.getStaticContainerList());
+                }
+            }
+        }
+        return containers;
     }
 }
