@@ -431,6 +431,7 @@ public class ExecuteObjectTask {
     }
 
     public void setExecuteObject(ExecuteObject executeObject) {
+        this.executeObject = executeObject;
         if (executeObject != null) {
             executeObjectType = executeObject.getType();
             executeObjectId = executeObject.getId();
