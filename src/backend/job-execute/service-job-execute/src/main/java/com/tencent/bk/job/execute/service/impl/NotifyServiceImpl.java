@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.NotifyDTO;
@@ -407,9 +406,9 @@ public class NotifyServiceImpl implements NotifyService {
         Long taskPlanId = taskInstance.getPlanId();
         taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
         if (taskPlanId == -1L) {
-            if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())) {
+            if (stepInstance.isScriptStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());
-            } else if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+            } else if (stepInstance.isFileStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.FILE.getType());
             } else {
                 log.warn("notify resourceType not supported yet:{}, use Job", stepInstance.getExecuteType());

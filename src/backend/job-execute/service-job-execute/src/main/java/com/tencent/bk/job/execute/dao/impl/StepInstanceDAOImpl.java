@@ -146,7 +146,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             stepInstance.getStartTime(),
             stepInstance.getEndTime(),
             stepInstance.getTotalTime(),
-            stepInstance.getTargetExecuteObjects() == null ? null : JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
+            stepInstance.getTargetExecuteObjects() == null ? null :
+                JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
             stepInstance.getCreateTime(),
             stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
             stepInstance.getStepNum(),

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
@@ -92,7 +91,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         Map<String, VariableValueDTO> globalVarValueMap = initGlobalVarMap(globalVars);
 
         stepInstanceList.forEach(stepInstance -> {
-            if (!StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue().equals(stepInstance.getExecuteType())) {
+            if (!stepInstance.isScriptStep()) {
                 return;
             }
             StepInstanceVariableValuesDTO resultStepInstanceVariableValues = new StepInstanceVariableValuesDTO();

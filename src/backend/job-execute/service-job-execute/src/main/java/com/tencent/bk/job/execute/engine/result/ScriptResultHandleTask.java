@@ -393,7 +393,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                     ExecuteObjectGseKey executeObjectGseKey,
                                     boolean isUserScriptResult,
                                     long currentTime) {
-        boolean isShellScript = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()));
+        boolean isShellScript = stepInstance.getScriptType() == ScriptTypeEnum.SHELL;
         if (executeObjectTask.getStartTime() == null) {
             executeObjectTask.setStartTime(currentTime);
         }
@@ -522,7 +522,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     private void saveStepInstanceVariables() {
-        boolean mayBeReassigned = (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue()))
+        boolean mayBeReassigned = (stepInstance.getScriptType() == ScriptTypeEnum.SHELL)
             && (taskVariablesAnalyzeResult.isExistChangeableGlobalVar()
             || taskVariablesAnalyzeResult.isExistNamespaceVar());
 

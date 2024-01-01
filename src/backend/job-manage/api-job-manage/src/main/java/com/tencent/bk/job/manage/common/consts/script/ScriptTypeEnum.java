@@ -26,9 +26,6 @@ package com.tencent.bk.job.manage.common.consts.script;
 
 import lombok.Getter;
 
-/**
- * @date 2019/09/19
- */
 @Getter
 public enum ScriptTypeEnum {
     /**

@@ -296,7 +296,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         // 查看步骤执行结果预处理，包括鉴权、审计等
         taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
 
-        if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() == StepExecuteTypeEnum.MANUAL_CONFIRM) {
             log.warn("Manual confirm step does not support get-step-detail operation");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }

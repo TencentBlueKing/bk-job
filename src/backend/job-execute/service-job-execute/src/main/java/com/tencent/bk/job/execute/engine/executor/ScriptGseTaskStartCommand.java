@@ -181,7 +181,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     protected ExecuteScriptRequest buildScriptRequest() {
         ExecuteScriptRequest request;
         // shell 脚本需要支持全局变量传参，需要特殊的处理逻辑
-        if (stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())
+        if (stepInstance.getScriptType() == ScriptTypeEnum.SHELL
             && taskInstance.isPlanInstance()) {
             // 执行方案脚本执行步骤，需要处理变量
             request = buildShellScriptRequestForPlan();

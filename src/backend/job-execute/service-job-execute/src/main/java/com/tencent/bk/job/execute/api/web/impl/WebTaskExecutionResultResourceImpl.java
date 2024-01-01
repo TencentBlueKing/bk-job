@@ -53,7 +53,6 @@ import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTotalTimeTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
@@ -698,8 +697,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                    String ip) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(
             appResourceScope.getAppId(), stepInstanceId);
-        if (!stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-            || !stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
+        if (!stepInstance.isScriptStep() || stepInstance.getScriptType() != ScriptTypeEnum.SHELL) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
 
@@ -1246,8 +1244,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                             Long executeObjectResourceId) {
         StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(
             appResourceScope.getAppId(), stepInstanceId);
-        if (!stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-            || !stepInstance.getScriptType().equals(ScriptTypeEnum.SHELL.getValue())) {
+        if (!stepInstance.isScriptStep() || stepInstance.getScriptType() != ScriptTypeEnum.SHELL) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
 

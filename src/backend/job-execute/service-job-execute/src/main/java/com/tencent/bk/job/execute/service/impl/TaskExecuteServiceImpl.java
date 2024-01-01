@@ -504,7 +504,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,
                                         Long appId) throws ServiceException {
-        if (stepInstance.getExecuteType().equals(EXECUTE_SQL.getValue())) {
+        if (stepInstance.getExecuteType() == EXECUTE_SQL) {
             checkAndSetDbAccountInfo(stepInstance);
         } else {
             checkAndSetOsAccountInfo(stepInstance, appId);
@@ -596,8 +596,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkAndSetScript(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
-        if (stepInstance.getExecuteType().equals(EXECUTE_SCRIPT.getValue())
-            || stepInstance.getExecuteType().equals(EXECUTE_SQL.getValue())) {
+        if (stepInstance.isScriptStep()) {
             boolean isScriptSpecifiedById = false;
             Long scriptVersionId = stepInstance.getScriptVersionId();
             if (scriptVersionId != null && scriptVersionId > 0) {
@@ -709,9 +708,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Long appId = taskInstance.getAppId();
         String username = taskInstance.getOperator();
         Long accountId = null;
-        if (StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue().equals(stepInstance.getExecuteType())) {
+        if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
-        } else if (StepExecuteTypeEnum.EXECUTE_SQL.getValue().equals(stepInstance.getExecuteType())) {
+        } else if (StepExecuteTypeEnum.EXECUTE_SQL == stepInstance.getExecuteType()) {
             accountId = stepInstance.getDbAccountId();
         }
         if (accountId == null) {
@@ -1198,7 +1197,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private boolean isStepContainsExecuteObject(StepInstanceBaseDTO stepInstance) {
         // 判断步骤是否包含执行对象
-        return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
+        return stepInstance.isScriptStep() || stepInstance.isFileStep();
     }
 
     private void fillTaskInstanceHostDetail(TaskInstanceDTO taskInstance,
@@ -1285,7 +1284,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+        if (stepInstance.getExecuteType() == SEND_FILE) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
                 for (FileSourceDTO fileSource : fileSourceList) {
@@ -1332,7 +1331,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (stepInstance.getTargetExecuteObjects() != null) {
                 hosts.addAll(stepInstance.getTargetExecuteObjects().extractHosts());
             }
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
+            if (stepInstance.getExecuteType() == SEND_FILE) {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
@@ -2451,7 +2450,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 stepInstance.getId(), StepOperationEnum.CONFIRM_TERMINATE.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2476,7 +2475,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 stepInstance.getId(), StepOperationEnum.CONFIRM_RESTART.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-restart");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2539,7 +2538,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void confirmContinue(StepInstanceDTO stepInstance, String operator, String reason) {
         // 只有"人工确认等待"，可以进行"确认继续"操作
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm-step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
