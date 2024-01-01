@@ -342,6 +342,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
             acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList);
+            boolean isSupportExecuteObjectFeature = isSupportExecuteObjectFeature(taskInstance);
+            stepInstanceList.forEach(stepInstance ->
+                stepInstance.buildStepFinalExecuteObjects(isSupportExecuteObjectFeature));
             checkExecuteObjectExist(taskInstanceExecuteObjects);
             watch.stop();
 
@@ -370,6 +373,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
         }
+    }
+
+    private boolean isSupportExecuteObjectFeature(TaskInstanceDTO taskInstance) {
+        FeatureExecutionContext featureExecutionContext =
+            FeatureExecutionContext.builder()
+                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
+                    appScopeMappingService.getScopeByAppId(taskInstance.getAppId()));
+
+        return FeatureToggle.checkFeature(
+            FeatureIdConstants.FEATURE_EXECUTE_OBJECT,
+            featureExecutionContext
+        );
     }
 
     private void saveTaskInstance(StopWatch watch,
@@ -1032,7 +1047,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             TaskStepTypeEnum stepType = stepInstance.getStepType();
             // 检查目标主机
-            stepInstance.getTargetExecuteObjects().getMergedExecuteObjects().stream()
+            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly().stream()
                 .filter(ExecuteObject::isHostExecuteObject)
                 .forEach(executeObject -> {
                     if (isHostUnAccessible(stepType, executeObject.getHost(), notInAppHostMap, whileHostAllowActions)) {
@@ -1066,10 +1081,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 远程文件分发需要校验文件源主机;其他类型不需要
             if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
                 ExecuteObjectsDTO servers = fileSource.getServers();
-                if (servers == null || CollectionUtils.isEmpty(servers.getMergedExecuteObjects())) {
+                if (servers == null || CollectionUtils.isEmpty(servers.getExecuteObjectsCompatibly())) {
                     continue;
                 }
-                servers.getMergedExecuteObjects().stream()
+                servers.getExecuteObjectsCompatibly().stream()
                     .filter(ExecuteObject::isHostExecuteObject)
                     .forEach(executeObject -> {
                         if (isHostUnAccessible(stepType, executeObject.getHost(),
@@ -1173,8 +1188,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!isStepContainsExecuteObject(stepInstance)) {
             return;
         }
-        ExecuteObjectsDTO targetServers = stepInstance.getTargetExecuteObjects();
-        if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
+        ExecuteObjectsDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
+        if (targetExecuteObjects == null
+            || CollectionUtils.isEmpty(targetExecuteObjects.getExecuteObjectsCompatibly())) {
             log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
             throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
                 new String[]{stepInstance.getName()});
@@ -1185,7 +1201,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 // 远程文件分发需要判断文件源主机是否为空
                 if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
                     ExecuteObjectsDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
+                    if (servers != null && CollectionUtils.isEmpty(servers.getExecuteObjectsCompatibly())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
                         throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
                             new String[]{stepInstance.getName()});
@@ -1234,7 +1250,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    fillServersDetail(variable.getTargetServers(), hostMap);
+                    fillHostsDetail(variable.getTargetServers(), hostMap);
                 }
             });
         }
@@ -1280,7 +1296,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        fillServersDetail(stepInstance.getTargetExecuteObjects(), hostMap);
+        fillHostsDetail(stepInstance.getTargetExecuteObjects(), hostMap);
     }
 
     private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
@@ -1288,22 +1304,22 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
                 for (FileSourceDTO fileSource : fileSourceList) {
-                    fillServersDetail(fileSource.getServers(), hostMap);
+                    fillHostsDetail(fileSource.getServers(), hostMap);
                 }
             }
         }
     }
 
-    private void fillServersDetail(ExecuteObjectsDTO servers, Map<String, HostDTO> hostMap) {
-        if (servers != null) {
-            fillHostsDetail(servers.getStaticIpList(), hostMap);
-            if (CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
-                servers.getDynamicServerGroups().forEach(group -> fillHostsDetail(group.getIpList(), hostMap));
+    private void fillHostsDetail(ExecuteObjectsDTO executeObjectsDTO, Map<String, HostDTO> hostMap) {
+        if (executeObjectsDTO != null) {
+            fillHostsDetail(executeObjectsDTO.getStaticIpList(), hostMap);
+            if (CollectionUtils.isNotEmpty(executeObjectsDTO.getDynamicServerGroups())) {
+                executeObjectsDTO.getDynamicServerGroups()
+                    .forEach(group -> fillHostsDetail(group.getIpList(), hostMap));
             }
-            if (CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
-                servers.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
+            if (CollectionUtils.isNotEmpty(executeObjectsDTO.getTopoNodes())) {
+                executeObjectsDTO.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
             }
-            servers.setIpList(servers.extractHosts());
         }
     }
 
@@ -1404,7 +1420,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             String operator = stepInstance.getOperator();
             if (stepInstance.isFileStep()) {
-                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
                 int totalSourceFileSize = 0;
                 for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
                     int sourceServerSize = 1;
@@ -1429,7 +1445,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
-                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
                 if (targetServerSize > 10000) {
                     TASK_MONITOR_LOGGER.info("LargeTask|type:script|taskName:{}|appCode:{}|appId:{}|operator:{}"
                             + "|targetServerSize:{}",

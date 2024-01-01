@@ -204,7 +204,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
             // 设置配置文件所在机器IP信息
-            fileSourceDTO.setServers(agentService.getLocalServersDTO());
+            fileSourceDTO.setServers(agentService.getLocalHostExecuteObjectDTO());
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;

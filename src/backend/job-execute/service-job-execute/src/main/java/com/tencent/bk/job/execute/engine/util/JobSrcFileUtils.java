@@ -123,7 +123,7 @@ public class JobSrcFileUtils {
                 // 远程服务器文件分发
                 Long accountId = fileSource.getAccountId();
                 String accountAlias = fileSource.getAccountAlias();
-                boolean isSupportExecuteObject = stepInstance.isSupportExecuteObject();
+                boolean isSupportExecuteObject = stepInstance.isSupportExecuteObjectFeature();
                 // 远程文件
                 for (FileDetailDTO file : files) {
                     String filePath = StringUtils.isNotEmpty(file.getResolvedFilePath()) ? file.getResolvedFilePath()
@@ -131,7 +131,7 @@ public class JobSrcFileUtils {
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(filePath);
                     String dir = fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<ExecuteObject> sourceExecuteObjects = fileSource.getServers().getMergedExecuteObjects();
+                    List<ExecuteObject> sourceExecuteObjects = fileSource.getServers().getExecuteObjectsCompatibly();
                     for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
                         // 第三方源文件的displayName不同
                         if (isThirdFile) {
@@ -154,8 +154,8 @@ public class JobSrcFileUtils {
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
                     ExecuteObjectsDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isNotEmpty(servers.getMergedExecuteObjects())) {
-                        List<ExecuteObject> executeObjects = servers.getMergedExecuteObjects();
+                    if (servers != null && CollectionUtils.isNotEmpty(servers.getExecuteObjectsCompatibly())) {
+                        List<ExecuteObject> executeObjects = servers.getExecuteObjectsCompatibly();
                         for (ExecuteObject executeObject : executeObjects) {
                             sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,
                                 fileName, "root", null,
@@ -170,7 +170,7 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<ExecuteObject> executeObjects = fileSource.getServers().getMergedExecuteObjects();
+                    List<ExecuteObject> executeObjects = fileSource.getServers().getExecuteObjectsCompatibly();
                     for (ExecuteObject executeObject : executeObjects) {
                         sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, executeObject, file.getFilePath(), dir,
                             fileName, "root", null,

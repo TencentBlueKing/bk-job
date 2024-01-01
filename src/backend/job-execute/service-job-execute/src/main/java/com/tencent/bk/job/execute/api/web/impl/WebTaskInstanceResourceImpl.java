@@ -297,7 +297,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         vo.setRequired(variable.isRequired() ? 1 : 0);
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
             ExecuteObjectsDTO servers = variable.getTargetServers();
-            if (servers != null && servers.getIpList() != null) {
+            if (servers != null && servers.getExecuteObjectsCompatibly() != null) {
                 TaskTargetVO taskTargetVO = servers.convertToTaskTargetVO();
                 vo.setTargetValue(taskTargetVO);
             }

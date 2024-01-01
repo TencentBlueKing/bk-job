@@ -74,24 +74,24 @@ class ExponentIncrementRollingExprPartTest {
     @Test
     void compute() {
         List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
         RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
         List<ExecuteObject> remainingExecuteObjects = new ArrayList<>();
-        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        remainingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        remainingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        remainingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        remainingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        remainingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
         context.setRemainedExecuteObjects(remainingExecuteObjects);
 
         RollingExecuteObjectBatch preRollingExecuteObjectBatch = new RollingExecuteObjectBatch();
         preRollingExecuteObjectBatch.setBatch(1);
         preRollingExecuteObjectBatch.setExecuteObjects(
-            Collections.singletonList(new ExecuteObject(HostDTO.fromHostId(1L))));
+            Collections.singletonList(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))));
         context.addExecuteObjectBatch(preRollingExecuteObjectBatch);
         context.setBatchCount(1);
 
@@ -99,9 +99,9 @@ class ExponentIncrementRollingExprPartTest {
             (ExponentIncrementRollingExprPart) ROLLING_EXPR_PART.parseExpr("*3");
         List<ExecuteObject> executeObjectsOnBatch = exponentIncrementRollingExprPart.compute(context);
         assertThat(executeObjectsOnBatch).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L))
         );
     }
 }

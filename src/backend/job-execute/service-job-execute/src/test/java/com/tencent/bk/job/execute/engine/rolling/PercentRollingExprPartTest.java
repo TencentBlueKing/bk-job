@@ -80,9 +80,9 @@ class PercentRollingExprPartTest {
         @DisplayName("验证100%表达式")
         void compute() {
             List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("100%");
@@ -90,9 +90,9 @@ class PercentRollingExprPartTest {
             List<ExecuteObject> executeObjectsOnBatch = percentRollingExprPart.compute(context);
             assertThat(executeObjectsOnBatch).hasSize(3);
             assertThat(executeObjectsOnBatch).containsSequence(
-                new ExecuteObject(HostDTO.fromHostId(1L)),
-                new ExecuteObject(HostDTO.fromHostId(2L)),
-                new ExecuteObject(HostDTO.fromHostId(3L))
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L))
             );
         }
 
@@ -100,11 +100,11 @@ class PercentRollingExprPartTest {
         @DisplayName("验证批次计算向上取整")
         void testCeil() {
             List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-            rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
             RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
             PercentRollingExprPart percentRollingExprPart =
@@ -112,7 +112,7 @@ class PercentRollingExprPartTest {
             List<ExecuteObject> executeObjectsOnBatch = percentRollingExprPart.compute(context);
             assertThat(executeObjectsOnBatch).hasSize(1);
             assertThat(executeObjectsOnBatch).containsSequence(
-                new ExecuteObject(HostDTO.fromHostId(1L))
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
             );
 
             percentRollingExprPart =
@@ -120,7 +120,7 @@ class PercentRollingExprPartTest {
             executeObjectsOnBatch = percentRollingExprPart.compute(context);
             assertThat(executeObjectsOnBatch).hasSize(1);
             assertThat(executeObjectsOnBatch).containsSequence(
-                new ExecuteObject(HostDTO.fromHostId(1L))
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
             );
 
             percentRollingExprPart =
@@ -128,8 +128,8 @@ class PercentRollingExprPartTest {
             executeObjectsOnBatch = percentRollingExprPart.compute(context);
             assertThat(executeObjectsOnBatch).hasSize(2);
             assertThat(executeObjectsOnBatch).containsSequence(
-                new ExecuteObject(HostDTO.fromHostId(1L)),
-                new ExecuteObject(HostDTO.fromHostId(2L))
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L))
             );
         }
     }

@@ -77,7 +77,7 @@ public class ScriptExecuteObjectTaskServiceImpl
     public List<ExecuteObjectTask> listTasks(StepInstanceBaseDTO stepInstance, Integer executeCount, Integer batch) {
         List<ExecuteObjectTask> executeObjectTasks;
         long stepInstanceId = stepInstance.getId();
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasks(stepInstanceId, executeCount, batch);
         } else {
             // 兼容老版本数据
@@ -91,7 +91,7 @@ public class ScriptExecuteObjectTaskServiceImpl
     public List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByGseTaskId(gseTaskId);
         } else {
             // 兼容老版本数据
@@ -114,7 +114,7 @@ public class ScriptExecuteObjectTaskServiceImpl
 
         long stepInstanceId = stepInstance.getId();
         ExecuteObjectTask executeObjectTask;
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
                 batch, executeObject.getId());
         } else {
@@ -150,7 +150,7 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ResultGroupBaseDTO> resultGroups;
         long stepInstanceId = stepInstance.getId();
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
         } else {
             // 兼容历史数据
@@ -167,7 +167,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                          String tag) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
                 executeCount, batch, status, tag);
         } else {
@@ -191,7 +191,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                          Order order) {
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
                 executeCount, batch, status, tag, limit, orderField, order);
         } else {
@@ -214,7 +214,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             scriptExecuteObjectTaskDAO.updateTaskFields(stepInstance.getId(), executeCount, batch,
                 actualExecuteCount, gseTaskId);
         } else {

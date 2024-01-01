@@ -72,14 +72,14 @@ public class RollingExecuteObjectsBatchDO {
     }
 
     /**
-     * 获取合并之后的执行对象列表
+     * 获取所有执行对象列表(兼容当前版本+历史版本数据）
      */
     @JsonIgnore
-    public List<ExecuteObject> getMergedExecuteObjects() {
+    public List<ExecuteObject> getExecuteObjectsCompatibly() {
         if (executeObjects != null) {
             return executeObjects;
         } else if (hosts != null) {
-            return hosts.stream().map(ExecuteObject::new).collect(Collectors.toList());
+            return hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject).collect(Collectors.toList());
         } else {
             return Collections.emptyList();
         }

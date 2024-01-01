@@ -97,13 +97,13 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public ExecuteObjectsDTO getLocalServersDTO() {
+    public ExecuteObjectsDTO getLocalHostExecuteObjectDTO() {
         List<HostDTO> hostDTOList = new ArrayList<>();
         hostDTOList.add(getLocalAgentHost());
-        ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
-        servers.setStaticIpList(hostDTOList);
-        servers.setIpList(hostDTOList);
-        return servers;
+        ExecuteObjectsDTO executeObjects = new ExecuteObjectsDTO();
+        executeObjects.setStaticIpList(hostDTOList);
+        executeObjects.buildMergedExecuteObjects(true);
+        return executeObjects;
     }
 
     private HostDTO getAgentBindHost() {

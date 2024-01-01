@@ -71,19 +71,19 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
             if (batch == null || batch == 0) {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
-                return stepInstance.getTargetExecuteObjects().getMergedExecuteObjects();
+                return stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly();
             } else {
                 return rollingConfig
                     .getConfigDetail()
-                    .getMergedExecuteObjectsBatchList()
+                    .getExecuteObjectsBatchListCompatibly()
                     .stream()
                     .filter(serverBatch -> serverBatch.getBatch().equals(batch))
                     .findFirst()
                     .orElseThrow(() -> new InternalException(ErrorCode.INTERNAL_ERROR))
-                    .getMergedExecuteObjects();
+                    .getExecuteObjectsCompatibly();
             }
         } else {
-            return stepInstance.getTargetExecuteObjects().getMergedExecuteObjects();
+            return stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly();
         }
     }
 
@@ -106,7 +106,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
         RollingBatchExecuteObjectsResolver resolver =
             new RollingBatchExecuteObjectsResolver(
-                fastTask.getStepInstance().getTargetExecuteObjects().getMergedExecuteObjects(),
+                fastTask.getStepInstance().getTargetExecuteObjects().getExecuteObjectsCompatibly(),
                 rollingConfig.getExpr());
         List<RollingExecuteObjectBatch> executeObjectsBatchList = resolver.resolve();
         rollingConfigDetailDO.setExecuteObjectsBatchList(
@@ -116,7 +116,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
                         rollingExecuteObjectBatch.getExecuteObjects()))
                 .collect(Collectors.toList()));
 
-        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getMergedExecuteObjectsBatchList().size());
+        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getExecuteObjectsBatchListCompatibly().size());
         taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
 
         rollingConfigDetailDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));

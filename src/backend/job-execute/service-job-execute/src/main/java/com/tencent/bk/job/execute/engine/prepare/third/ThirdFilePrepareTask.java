@@ -74,7 +74,6 @@ import org.slf4j.helpers.MessageFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -285,7 +284,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         boolean allSuccess = statePair.getLeft();
         boolean stopped = statePair.getRight();
         if (allSuccess) {
-            onSuccess(taskStatusList);
+            onSuccess(stepInstance, taskStatusList);
         } else if (stopped) {
             resultHandler.onStopped(this);
         } else {
@@ -321,7 +320,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         return Pair.of(allSuccess, stopped);
     }
 
-    private void onSuccess(List<FileSourceTaskStatusDTO> fileSourceTaskStatusList) {
+    private void onSuccess(StepInstanceDTO stepInstance, List<FileSourceTaskStatusDTO> fileSourceTaskStatusList) {
         Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
@@ -348,7 +347,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 fileSourceDTO.setAccountId(accountDTO.getId());
                 fileSourceDTO.setLocalUpload(false);
 
-                ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
+                ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
                 HostDTO hostDTO = parseFileWorkerHostWithCache(
                     fileSourceTaskStatusDTO.getCloudId(),
                     fileSourceTaskStatusDTO.getIpProtocol(),
@@ -376,15 +375,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                     sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
-                servers.addStaticHosts(hostDTOList);
-                if (servers.getIpList() == null) {
-                    servers.setIpList(hostDTOList);
-                } else {
-                    servers.getIpList().addAll(hostDTOList);
-                    // 去重
-                    servers.setIpList(new ArrayList<>(new HashSet<>(servers.getIpList())));
-                }
-                fileSourceDTO.setServers(servers);
+                executeObjectsDTO.addStaticHosts(hostDTOList);
+                executeObjectsDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
+                fileSourceDTO.setServers(executeObjectsDTO);
                 Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
                 log.debug(
                     "[{}]: filePathMap={}",

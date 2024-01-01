@@ -295,7 +295,7 @@ public class LogExportServiceImpl implements LogExportService {
                                                 LogBatchQuery query,
                                                 List<ExecuteObject> executeObjects) {
         List<ExecuteObjectCompositeKey> keys;
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             keys = executeObjects.stream()
                 .map(executeObject -> ExecuteObjectCompositeKey.ofExecuteObjectId(executeObject.getId()))
                 .collect(Collectors.toList());

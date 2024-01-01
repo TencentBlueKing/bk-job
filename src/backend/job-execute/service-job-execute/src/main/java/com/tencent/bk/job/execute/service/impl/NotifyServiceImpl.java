@@ -260,7 +260,7 @@ public class NotifyServiceImpl implements NotifyService {
             if (taskInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.total_duration", "" + taskInstanceDTO.getTotalTime() / 1000.0);
             }
-            int totalTargetIpCount = stepInstanceDTO.getTargetExecuteObjects().getIpList().size();
+            int totalTargetIpCount = stepInstanceDTO.getTargetExecuteObjectCount();
             if (executeStatus == ExecuteStatusEnum.SUCCESS) {
                 variablesMap.put("task.step.success_cnt", "" + totalTargetIpCount);
                 variablesMap.put("task.step.failed_cnt", "" + 0);

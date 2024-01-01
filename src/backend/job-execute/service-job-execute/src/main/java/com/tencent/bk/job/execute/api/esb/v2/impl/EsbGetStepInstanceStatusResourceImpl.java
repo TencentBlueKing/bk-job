@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -116,7 +117,13 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         stepInst.setId(stepInstance.getId());
         stepInst.setEndTime(stepInstance.getEndTime());
         stepInst.setStartTime(stepInstance.getStartTime());
-        stepInst.setIpList(convertToIpListStr(stepInstance.getTargetExecuteObjects().getIpList()));
+        stepInst.setIpList(
+            convertToIpListStr(
+                stepInstance.getTargetExecuteObjects()
+                    .getExecuteObjectsCompatibly()
+                    .stream()
+                    .map(ExecuteObject::getHost)
+                    .collect(Collectors.toList())));
         stepInst.setName(stepInstance.getName());
         stepInst.setOperator(stepInstance.getOperator());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());

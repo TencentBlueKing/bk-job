@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
@@ -37,7 +38,9 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 步骤实例
@@ -90,7 +93,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
 
     /**
      * 执行脚本的类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)
-     *
      */
     private ScriptTypeEnum scriptType;
     /**
@@ -272,5 +274,39 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
             }
         }
         return containers;
+    }
+
+    public Set<HostDTO> extractAllHosts() {
+        Set<HostDTO> hosts = new HashSet<>(targetExecuteObjects.getHostsCompatibly());
+
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            fileSourceList.forEach(fileSource -> {
+                if (fileSource.getServers() != null) {
+                    List<HostDTO> fileSourceHosts = fileSource.getServers().getHostsCompatibly();
+                    if (CollectionUtils.isNotEmpty(fileSourceHosts)) {
+                        hosts.addAll(fileSourceHosts);
+                    }
+                }
+            });
+        }
+        return hosts;
+    }
+
+    /**
+     * 步骤包含的执行对象 ExecuteObjectsDTO 的最终处理
+     *
+     * @param isSupportExecuteObjectFeature 是否执行执行对象特性
+     */
+    public void buildStepFinalExecuteObjects(boolean isSupportExecuteObjectFeature) {
+        if (targetExecuteObjects != null) {
+            targetExecuteObjects.buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+        }
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            fileSourceList.forEach(fileSource -> {
+                if (fileSource.getServers() != null) {
+                    fileSource.getServers().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+                }
+            });
+        }
     }
 }

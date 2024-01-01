@@ -78,7 +78,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                                                                Function<? super ExecuteObject, K> keyMapper) {
 
         Map<K, ExecuteObject> executeObjects = new HashMap<>();
-        stepInstance.getTargetExecuteObjects().getMergedExecuteObjects()
+        stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()
             .forEach(executeObject -> {
                 K key = keyMapper.apply(executeObject);
                 if (key != null) {
@@ -99,8 +99,8 @@ public class StepInstanceServiceImpl implements StepInstanceService {
                 fileSourceList.forEach(
                     fileSource -> {
                         if (fileSource.getServers() != null
-                            && CollectionUtils.isNotEmpty(fileSource.getServers().getExecuteObjects())) {
-                            fileSource.getServers().getMergedExecuteObjects()
+                            && CollectionUtils.isNotEmpty(fileSource.getServers().getExecuteObjectsCompatibly())) {
+                            fileSource.getServers().getExecuteObjectsCompatibly()
                                 .forEach(executeObject -> {
                                     K key = keyMapper.apply(executeObject);
                                     if (key != null) {

@@ -7,6 +7,7 @@ import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 /**
  * 执行对象任务公共实现 Service
  */
+@Slf4j
 public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObjectTaskService {
     protected final StepInstanceService stepInstanceService;
 
@@ -35,16 +37,29 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
             return;
         }
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             Map<String, ExecuteObject> executeObjectMap =
                 stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
-            tasks.forEach(
-                task -> task.setExecuteObject(executeObjectMap.get(task.getExecuteObjectId())));
+            tasks.forEach(task -> {
+                ExecuteObject executeObject = executeObjectMap.get(task.getExecuteObjectId());
+                if (executeObject == null) {
+                    log.error("Can not find execute object for execute object task! stepInstanceId: {}, " +
+                        "executeObjectId: {}", stepInstance.getId(), task.getExecuteObjectId());
+                }
+                task.setExecuteObject(executeObject);
+            });
         } else {
             // 兼容老版本不支持执行对象的数据
             Map<Long, ExecuteObject> hostExecuteObjects = stepInstanceService.computeStepExecuteObjects(
                 stepInstance, executeObject -> executeObject.getHost().getHostId());
-            tasks.forEach(task -> task.setExecuteObject(hostExecuteObjects.get(task.getHostId())));
+            tasks.forEach(task -> {
+                ExecuteObject hostExecuteObject = hostExecuteObjects.get(task.getHostId());
+                if (hostExecuteObject == null) {
+                    log.error("Can not find host for execute object task! stepInstanceId: {}, " +
+                        "hostId: {}", stepInstance.getId(), task.getHostId());
+                }
+                task.setExecuteObject(hostExecuteObject);
+            });
         }
     }
 
@@ -53,7 +68,7 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
         ExecuteObjectTask task
     ) {
         ExecuteObject executeObject;
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObject = stepInstance.findExecuteObjectByCompositeKey(
                 ExecuteObjectCompositeKey.ofExecuteObjectId(task.getExecuteObjectId()));
         } else {

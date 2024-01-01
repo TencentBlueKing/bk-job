@@ -72,11 +72,11 @@ class QuantityRollingExprPartTest {
     @Test
     void compute() {
         List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        rollingExecuteObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
         RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
         QuantityRollingExprPart quantityRollingExprPart =
@@ -84,8 +84,8 @@ class QuantityRollingExprPartTest {
         List<ExecuteObject> executeObjectsOnBatch = quantityRollingExprPart.compute(context);
         assertThat(executeObjectsOnBatch).hasSize(2);
         assertThat(executeObjectsOnBatch).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L)),
-            new ExecuteObject(HostDTO.fromHostId(2L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L))
         );
 
         quantityRollingExprPart =
@@ -93,11 +93,11 @@ class QuantityRollingExprPartTest {
         executeObjectsOnBatch = quantityRollingExprPart.compute(context);
         assertThat(executeObjectsOnBatch).hasSize(5);
         assertThat(executeObjectsOnBatch).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L)),
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L))
         );
     }
 }

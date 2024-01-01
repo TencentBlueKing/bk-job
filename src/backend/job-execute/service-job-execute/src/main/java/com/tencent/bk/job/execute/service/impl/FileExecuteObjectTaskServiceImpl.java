@@ -89,7 +89,7 @@ public class FileExecuteObjectTaskServiceImpl
     public List<ExecuteObjectTask> listTasksByGseTaskId(StepInstanceBaseDTO stepInstance, Long gseTaskId) {
         StepInstanceDTO fileStepInstance = castToStepInstanceDTO(stepInstance);
         List<ExecuteObjectTask> executeObjectTasks;
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTasksByGseTaskId(gseTaskId);
         } else {
             // 兼容老版本数据
@@ -116,7 +116,7 @@ public class FileExecuteObjectTaskServiceImpl
 
         long stepInstanceId = fileStepInstance.getId();
         ExecuteObjectTask executeObjectTask;
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
                 batch, fileTaskMode, executeObject.getId());
         } else {
@@ -164,7 +164,7 @@ public class FileExecuteObjectTaskServiceImpl
         List<ResultGroupBaseDTO> resultGroups;
         long stepInstanceId = fileStepInstance.getId();
 
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             resultGroups = fileExecuteObjectTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
         } else {
             // 兼容历史数据
@@ -182,7 +182,7 @@ public class FileExecuteObjectTaskServiceImpl
         StepInstanceDTO fileStepInstance = castToStepInstanceDTO(stepInstance);
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(fileStepInstance.getId(),
                 executeCount, batch, status);
         } else {
@@ -208,7 +208,7 @@ public class FileExecuteObjectTaskServiceImpl
         StepInstanceDTO fileStepInstance = castToStepInstanceDTO(stepInstance);
         List<ExecuteObjectTask> executeObjectTasks;
 
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(fileStepInstance.getId(),
                 executeCount, batch, status, limit, orderField, order);
         } else {
@@ -232,7 +232,7 @@ public class FileExecuteObjectTaskServiceImpl
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
         StepInstanceDTO fileStepInstance = castToStepInstanceDTO(stepInstance);
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             fileExecuteObjectTaskDAO.updateTaskFields(fileStepInstance.getId(), executeCount, batch,
                 actualExecuteCount, gseTaskId);
         } else {
@@ -250,7 +250,7 @@ public class FileExecuteObjectTaskServiceImpl
         StepInstanceDTO fileStepInstance = castToStepInstanceDTO(stepInstance);
         List<ExecuteObjectTask> executeObjectTasks;
         long stepInstanceId = fileStepInstance.getId();
-        if (fileStepInstance.isSupportExecuteObject()) {
+        if (fileStepInstance.isSupportExecuteObjectFeature()) {
             executeObjectTasks = fileExecuteObjectTaskDAO.listTasks(stepInstanceId, executeCount, batch, fileTaskMode);
         } else {
             // 兼容老版本数据

@@ -113,10 +113,10 @@ public class RollingConfigDetailDO {
     }
 
     /**
-     * 获取合并后的执行对象滚动批次
+     * 获取执行对象滚动批次(兼容当前版本+历史版本)
      */
     @JsonIgnore
-    public List<RollingExecuteObjectsBatchDO> getMergedExecuteObjectsBatchList() {
+    public List<RollingExecuteObjectsBatchDO> getExecuteObjectsBatchListCompatibly() {
         if (executeObjectsBatchList != null) {
             return executeObjectsBatchList;
         } else if (hostsBatchList != null) {

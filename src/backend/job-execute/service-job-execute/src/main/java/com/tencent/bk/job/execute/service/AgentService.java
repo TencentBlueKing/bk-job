@@ -39,5 +39,5 @@ public interface AgentService {
     /**
      * 获取本地主机的Agent
      */
-    ExecuteObjectsDTO getLocalServersDTO();
+    ExecuteObjectsDTO getLocalHostExecuteObjectDTO();
 }

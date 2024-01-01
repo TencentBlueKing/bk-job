@@ -91,7 +91,7 @@ public class JobLastHostsVariableResolver implements VariableResolver {
         Set<HostDTO> hosts = null;
         switch (variableName) {
             case JobBuildInVariables.JOB_LAST_ALL:
-                hosts = extractAllHosts(preStepInstance);
+                hosts = preStepInstance.extractAllHosts();
                 break;
             case JobBuildInVariables.JOB_LAST_SUCCESS: {
                 List<ExecuteObjectTask> executeObjectTasks = listAgentTasks(preStepInstance);
@@ -135,22 +135,5 @@ public class JobLastHostsVariableResolver implements VariableResolver {
             }
         }
         return agentTasks;
-    }
-
-
-    private Set<HostDTO> extractAllHosts(StepInstanceDTO stepInstance) {
-        Set<HostDTO> hosts = new HashSet<>();
-        if (CollectionUtils.isNotEmpty(stepInstance.getTargetExecuteObjects().getIpList())) {
-            hosts.addAll(stepInstance.getTargetExecuteObjects().getIpList());
-        }
-        if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
-            stepInstance.getFileSourceList().forEach(fileSource -> {
-                if (fileSource.getServers() != null
-                    && CollectionUtils.isNotEmpty(fileSource.getServers().getIpList())) {
-                    hosts.addAll(fileSource.getServers().getIpList());
-                }
-            });
-        }
-        return hosts;
     }
 }

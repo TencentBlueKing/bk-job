@@ -27,7 +27,9 @@ package com.tencent.bk.job.execute.engine.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
@@ -88,16 +90,26 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     private ExecuteObjectGseKey executeObjectGseKey;
 
-    public ExecuteObject(Container container) {
-        this.type = ExecuteObjectTypeEnum.CONTAINER;
-        this.container = container;
-        this.resourceId = container.getId();
-    }
+//    public ExecuteObject(Container container) {
+//        this.type = ExecuteObjectTypeEnum.CONTAINER;
+//        this.container = container;
+//        this.resourceId = container.getId();
+//    }
+//
+//    public ExecuteObject(HostDTO host) {
+//        this.type = ExecuteObjectTypeEnum.HOST;
+//        this.host = host;
+//        this.resourceId = host.getHostId();
+//    }
 
-    public ExecuteObject(HostDTO host) {
-        this.type = ExecuteObjectTypeEnum.HOST;
-        this.host = host;
-        this.resourceId = host.getHostId();
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "数据失效后该构造方法可以删除")
+    public static ExecuteObject buildCompatibleExecuteObject(HostDTO host) {
+        ExecuteObject executeObject = new ExecuteObject();
+        executeObject.setType(ExecuteObjectTypeEnum.HOST);
+        executeObject.setResourceId(host.getHostId());
+        executeObject.setHost(host);
+        return executeObject;
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -137,7 +149,8 @@ public class ExecuteObject implements Cloneable {
         if (isHostExecuteObject()) {
             executeObjectGseKey = ExecuteObjectGseKey.ofHost(host.getAgentId());
         } else {
-            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getNodeAgentId(), container.getContainerId());
+            executeObjectGseKey = ExecuteObjectGseKey.ofContainer(container.getNodeAgentId(),
+                container.getContainerId());
         }
         return executeObjectGseKey;
     }

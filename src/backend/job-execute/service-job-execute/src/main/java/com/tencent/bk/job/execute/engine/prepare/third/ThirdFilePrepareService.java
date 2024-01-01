@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -106,7 +107,9 @@ public class ThirdFilePrepareService {
      * @param taskInfoDTO   文件源文件下载任务信息
      * @param fileSourceDTO 分发源文件数据
      */
-    private void setTaskInfoIntoThirdFileSource(TaskInfoDTO taskInfoDTO, FileSourceDTO fileSourceDTO) {
+    private void setTaskInfoIntoThirdFileSource(StepInstanceBaseDTO stepInstance,
+                                                TaskInfoDTO taskInfoDTO,
+                                                FileSourceDTO fileSourceDTO) {
         String fileSourceTaskId = taskInfoDTO.getTaskId();
         if (fileSourceDTO.getServers() == null) {
             fileSourceDTO.setServers(new ExecuteObjectsDTO());
@@ -114,7 +117,7 @@ public class ThirdFilePrepareService {
         List<HostDTO> hostDTOList = new ArrayList<>();
         hostDTOList.add(new HostDTO(taskInfoDTO.getCloudId(), taskInfoDTO.getIp()));
         fileSourceDTO.getServers().setStaticIpList(hostDTOList);
-        fileSourceDTO.getServers().setIpList(hostDTOList);
+        fileSourceDTO.getServers().buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
         fileSourceDTO.setFileSourceTaskId(fileSourceTaskId);
         fileSourceDTO.getFiles().forEach(fileDetailDTO -> {
             // 含文件源名称的文件路径
@@ -130,7 +133,8 @@ public class ThirdFilePrepareService {
      * @param batchTaskInfoDTO    文件源批量任务信息
      * @param thirdFileSourceList 第三方文件源列表
      */
-    private void setBatchTaskInfoIntoThirdFileSource(BatchTaskInfoDTO batchTaskInfoDTO,
+    private void setBatchTaskInfoIntoThirdFileSource(StepInstanceDTO stepInstance,
+                                                     BatchTaskInfoDTO batchTaskInfoDTO,
                                                      List<FileSourceDTO> thirdFileSourceList) {
         List<TaskInfoDTO> taskInfoList = batchTaskInfoDTO.getTaskInfoList();
         for (int i = 0; i < taskInfoList.size(); i++) {
@@ -138,7 +142,7 @@ public class ThirdFilePrepareService {
             FileSourceDTO fileSourceDTO = thirdFileSourceList.get(i);
             Integer fileSourceId = fileSourceDTO.getFileSourceId();
             if (fileSourceId != null && fileSourceId > 0) {
-                setTaskInfoIntoThirdFileSource(taskInfoDTO, fileSourceDTO);
+                setTaskInfoIntoThirdFileSource(stepInstance, taskInfoDTO, fileSourceDTO);
             }
         }
     }
@@ -216,7 +220,7 @@ public class ThirdFilePrepareService {
             batchTaskInfoDTO.getTaskInfoList()
         );
         // 填充任务信息到分发源文件数据
-        setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
+        setBatchTaskInfoIntoThirdFileSource(stepInstance, batchTaskInfoDTO, thirdFileSourceList);
         log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         // 放进文件源下载任务进度表中
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);

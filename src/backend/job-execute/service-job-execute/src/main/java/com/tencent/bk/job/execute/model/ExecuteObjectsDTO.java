@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskContainerNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
@@ -99,6 +100,7 @@ public class ExecuteObjectsDTO implements Cloneable {
         executeObjectsDTO.setDynamicServerGroups(Collections.emptyList());
         executeObjectsDTO.setStaticIpList(Collections.emptyList());
         executeObjectsDTO.setTopoNodes(Collections.emptyList());
+        executeObjectsDTO.setStaticContainerList(Collections.emptyList());
         return executeObjectsDTO;
     }
 
@@ -228,22 +230,46 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     public TaskTargetVO convertToTaskTargetVO() {
-        TaskTargetVO targetServer = new TaskTargetVO();
-        targetServer.setVariable(variable);
-        TaskHostNodeVO taskHostNodeVO = new TaskHostNodeVO();
-        if (CollectionUtils.isNotEmpty(ipList)) {
-            List<HostInfoVO> hostVOs = new ArrayList<>();
-            ipList.forEach(host -> {
-                HostInfoVO hostInfoVO = host.toHostInfoVO();
-                hostInfoVO.setAgentId(AgentUtils.displayAsRealAgentId(host.getAgentId()));
-                hostVOs.add(hostInfoVO);
-            });
-            taskHostNodeVO.setHostList(hostVOs);
-            targetServer.setHostNodeInfo(taskHostNodeVO);
+        TaskTargetVO target = new TaskTargetVO();
+        target.setVariable(variable);
+
+        List<ExecuteObject> executeObjects = getExecuteObjectsCompatibly();
+        if (CollectionUtils.isNotEmpty(executeObjects)) {
+            // 主机
+            List<HostInfoVO> hostInfoVOS = executeObjects.stream()
+                .filter(ExecuteObject::isHostExecuteObject)
+                .map(ExecuteObject::getHost)
+                .map(host -> {
+                    HostInfoVO hostInfoVO = host.toHostInfoVO();
+                    hostInfoVO.setAgentId(AgentUtils.displayAsRealAgentId(host.getAgentId()));
+                    return hostInfoVO;
+                })
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(hostInfoVOS)) {
+                TaskHostNodeVO taskHostNodeVO = new TaskHostNodeVO();
+                taskHostNodeVO.setHostList(hostInfoVOS);
+                target.setHostNodeInfo(taskHostNodeVO);
+            }
+
+            // 容器
+            List<ContainerVO> containerVOs = executeObjects.stream()
+                .filter(ExecuteObject::isContainerExecuteObject)
+                .map(ExecuteObject::getContainer)
+                .map(Container::toContainerVO)
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(containerVOs)) {
+                TaskContainerNodeVO taskContainerNodeVO = new TaskContainerNodeVO();
+                taskContainerNodeVO.setContainerList(containerVOs);
+                target.setContainerNodeInfo(taskContainerNodeVO);
+            }
         }
-        return targetServer;
+
+        return target;
     }
 
+    /**
+     * 转换为 EsbServerV3DTO
+     */
     public EsbServerV3DTO toEsbServerV3DTO() {
         EsbServerV3DTO esbServerV3DTO = new EsbServerV3DTO();
         esbServerV3DTO.setVariable(variable);
@@ -290,7 +316,7 @@ public class ExecuteObjectsDTO implements Cloneable {
                     .filter(host -> executeObjectCompositeKey.getHostId().equals(host.getHostId()))
                     .findFirst()
                     .orElse(null);
-                return matchHost == null ? null : new ExecuteObject(matchHost);
+                return matchHost == null ? null : ExecuteObject.buildCompatibleExecuteObject(matchHost);
             }
         } else if (executeObjectCompositeKey.getCloudIp() != null) {
             // 兼容使用 云区域+ip 的方式
@@ -305,7 +331,7 @@ public class ExecuteObjectsDTO implements Cloneable {
                     .filter(host -> executeObjectCompositeKey.getCloudIp().equals(host.toCloudIp()))
                     .findFirst()
                     .orElse(null);
-                return matchHost == null ? null : new ExecuteObject(matchHost);
+                return matchHost == null ? null : ExecuteObject.buildCompatibleExecuteObject(matchHost);
             }
         } else {
             throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
@@ -346,7 +372,8 @@ public class ExecuteObjectsDTO implements Cloneable {
                 if (CollectionUtils.isEmpty(matchHosts)) {
                     return Collections.emptyList();
                 }
-                return matchHosts.stream().map(ExecuteObject::new).collect(Collectors.toList());
+                return matchHosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                    .collect(Collectors.toList());
             }
         } else if (anyKey.getCloudIp() != null) {
             // 兼容使用 云区域+ip 的方式
@@ -366,13 +393,17 @@ public class ExecuteObjectsDTO implements Cloneable {
                 if (CollectionUtils.isEmpty(matchHosts)) {
                     return Collections.emptyList();
                 }
-                return matchHosts.stream().map(ExecuteObject::new).collect(Collectors.toList());
+                return matchHosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                    .collect(Collectors.toList());
             }
         } else {
             throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
         }
     }
 
+    /**
+     * 转换TaskTargetVO 为 ExecuteObjectsDTO
+     */
     public static ExecuteObjectsDTO fromTaskTargetVO(TaskTargetVO target) {
 
         ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
@@ -426,16 +457,57 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     /**
-     * 获取合并之后的所有执行对象列表
+     * 获取所有执行对象列表(兼容当前版本+历史版本数据）
      */
     @JsonIgnore
-    public List<ExecuteObject> getMergedExecuteObjects() {
+    public List<ExecuteObject> getExecuteObjectsCompatibly() {
         if (executeObjects != null) {
             return executeObjects;
         } else if (ipList != null) {
-            return ipList.stream().map(ExecuteObject::new).collect(Collectors.toList());
+            return ipList.stream().map(ExecuteObject::buildCompatibleExecuteObject).collect(Collectors.toList());
         } else {
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * 获取所有主机执行对象列表(兼容当前版本+历史版本数据）
+     */
+    @JsonIgnore
+    public List<HostDTO> getHostsCompatibly() {
+        if (executeObjects != null) {
+            return executeObjects.stream().filter(ExecuteObject::isHostExecuteObject)
+                .map(ExecuteObject::getHost).collect(Collectors.toList());
+        } else if (ipList != null) {
+            return ipList;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+
+    /**
+     * 合并所有的执行对象
+     *
+     * @param isSupportExecuteObjectFeature 是否支持执行对象特性
+     */
+    public void buildMergedExecuteObjects(boolean isSupportExecuteObjectFeature) {
+        if (isSupportExecuteObjectFeature) {
+            // 支持执行对象，写入 executeObjects 字段
+            List<ExecuteObject> executeObjects = new ArrayList<>();
+            List<HostDTO> hosts = extractHosts();
+            if (CollectionUtils.isNotEmpty(hosts)) {
+                executeObjects.addAll(hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                    .collect(Collectors.toList()));
+            }
+            if (CollectionUtils.isNotEmpty(staticContainerList)) {
+                executeObjects.addAll(hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                    .collect(Collectors.toList()));
+            }
+            this.executeObjects = executeObjects;
+        } else {
+            // 兼容方式，写入 ipList 字段
+            this.ipList = extractHosts();
         }
     }
 }

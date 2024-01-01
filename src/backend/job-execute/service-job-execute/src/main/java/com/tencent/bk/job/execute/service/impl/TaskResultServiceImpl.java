@@ -237,19 +237,19 @@ public class TaskResultServiceImpl implements TaskResultService {
             if (resultGroup == null) {
                 continue;
             }
-            List<ExecuteObjectTask> agentTaskExecutionDetailList = resultGroup.getExecuteObjectTasks();
-            if (agentTaskExecutionDetailList == null) {
+            List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
+            if (executeObjectTasks == null) {
                 continue;
             }
-            for (ExecuteObjectTask agentTaskDetail : agentTaskExecutionDetailList) {
-                if (agentTaskDetail == null) {
+            for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
+                if (executeObjectTask == null) {
                     continue;
                 }
-                agentTaskDetail.setStartTime(fileSourceTaskLog.getStartTime());
-                if (agentTaskDetail.getEndTime() == null || agentTaskDetail.getEndTime() == 0) {
-                    agentTaskDetail.setEndTime(stepExecutionDetail.getEndTime());
+                executeObjectTask.setStartTime(fileSourceTaskLog.getStartTime());
+                if (executeObjectTask.getEndTime() == null || executeObjectTask.getEndTime() == 0) {
+                    executeObjectTask.setEndTime(stepExecutionDetail.getEndTime());
                 }
-                agentTaskDetail.calculateTotalTime();
+                executeObjectTask.calculateTotalTime();
             }
         }
     }
@@ -423,7 +423,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (stepInstance.isRollingStep()) {
             executeObjects = rollingConfigService.getRollingServers(stepInstance, batch);
         } else {
-            executeObjects = stepInstance.getTargetExecuteObjects().getMergedExecuteObjects();
+            executeObjects = stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly();
         }
 
         return executeObjects;
@@ -456,7 +456,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             StepExecutionDetailDTO stepExecutionDetail;
             // 如果步骤的目标服务器数量<100,或者通过IP匹配的方式过滤执行对象任务，为了提升性能，直接全量从DB查询数据，在内存进行处理
-            if ((stepInstance.getTargetServerTotalCount() <= 100) || query.hasIpCondition()) {
+            if ((stepInstance.getTargetExecuteObjectCount() <= 100) || query.hasIpCondition()) {
                 stepExecutionDetail = loadAllTasksFromDBAndBuildExecutionResultInMemory(watch, stepInstance, query);
             } else {
                 stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, query);
@@ -516,7 +516,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             }
 
             watch.start("loadAllTasksFromDbAndGroup");
-            List<ResultGroupDTO> resultGroups = listAndGroupAgentTasks(stepInstance,
+            List<ResultGroupDTO> resultGroups = listAndGroupExecuteObjectTasks(stepInstance,
                 query.getExecuteCount(), query.getBatch());
 
             if (CollectionUtils.isNotEmpty(query.getMatchExecuteObjectCompositeKeys())) {
@@ -530,7 +530,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
 
             watch.start("sortAndLimitTasks");
-            sortAgentTasksAndLimitSize(resultGroups, query);
+            sortExecuteObjectTasksAndLimitSize(resultGroups, query);
             watch.stop();
 
             executeDetail.setResultGroups(resultGroups);
@@ -544,9 +544,9 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     }
 
-    private List<ResultGroupDTO> listAndGroupAgentTasks(StepInstanceBaseDTO stepInstance,
-                                                        int executeCount,
-                                                        Integer batch) {
+    private List<ResultGroupDTO> listAndGroupExecuteObjectTasks(StepInstanceBaseDTO stepInstance,
+                                                                int executeCount,
+                                                                Integer batch) {
         List<ResultGroupDTO> resultGroups = null;
         if (stepInstance.isScriptStep()) {
             resultGroups = scriptExecuteObjectTaskService.listAndGroupTasks(stepInstance, executeCount, batch);
@@ -569,22 +569,22 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
 
-    private void sortAgentTasksAndLimitSize(List<ResultGroupDTO> resultGroups,
-                                            StepExecutionResultQuery query) {
+    private void sortExecuteObjectTasksAndLimitSize(List<ResultGroupDTO> resultGroups,
+                                                    StepExecutionResultQuery query) {
         resultGroups.stream()
             .filter(resultGroup -> CollectionUtils.isNotEmpty(resultGroup.getExecuteObjectTasks()))
             .forEach(resultGroup -> {
                 // 排序
                 if (StringUtils.isNotEmpty(query.getOrderField())) {
-                    List<ExecuteObjectTask> agentTasks = resultGroup.getExecuteObjectTasks();
+                    List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
                     if (StepExecutionResultQuery.ORDER_FIELD_TOTAL_TIME.equals(query.getOrderField())) {
-                        agentTasks.sort(Comparator.comparingLong(task -> task.getTotalTime() == null ? 0L :
+                        executeObjectTasks.sort(Comparator.comparingLong(task -> task.getTotalTime() == null ? 0L :
                             task.getTotalTime()));
                         if (query.getOrder() == DESCENDING) {
-                            Collections.reverse(agentTasks);
+                            Collections.reverse(executeObjectTasks);
                         }
                     } else if (StepExecutionResultQuery.ORDER_FIELD_EXIT_CODE.equals(query.getOrderField())) {
-                        agentTasks.sort((o1, o2) -> {
+                        executeObjectTasks.sort((o1, o2) -> {
                             if (o1.getExitCode() != null && o2.getExitCode() != null) {
                                 if (o1.getExitCode().equals(o2.getExitCode())) {
                                     return 0;
@@ -600,7 +600,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                             }
                         });
                         if (query.getOrder() == DESCENDING) {
-                            Collections.reverse(agentTasks);
+                            Collections.reverse(executeObjectTasks);
                         }
                     }
                 }
@@ -837,13 +837,13 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<ExecuteObjectCompositeKey> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
         List<ExecuteObject> matchExecuteObjects =
-            stepInstance.getTargetExecuteObjects().getMergedExecuteObjects().stream()
+            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly().stream()
                 .filter(executeObject -> isMatchByIp(executeObject, searchIp))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(matchExecuteObjects)) {
             return null;
         }
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             return matchExecuteObjects.stream()
                 .map(executeObject -> ExecuteObjectCompositeKey.ofExecuteObjectId(executeObject.getId()))
                 .collect(Collectors.toList());

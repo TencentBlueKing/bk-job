@@ -117,7 +117,7 @@ public class LogServiceImpl implements LogService {
                                                            int offset) {
 
         int length = content.getBytes(StandardCharsets.UTF_8).length;
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceExecuteObjectScriptLogDTO(
                 executeObject.getId(), content, offset + length);
         } else {
@@ -221,7 +221,7 @@ public class LogServiceImpl implements LogService {
         }
 
         ExecuteObject executeObject = executeObjectTask.getExecuteObject();
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             resp = logResource.getScriptLogByExecuteObjectId(taskCreateDateStr,
                 stepInstanceId, actualExecuteCount, executeObject.getId(), batch);
         } else {
@@ -249,7 +249,7 @@ public class LogServiceImpl implements LogService {
 
         List<ExecuteObject> queryExecuteObjects =
             stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             List<String> executeObjectId = queryExecuteObjects.stream()
                 .map(ExecuteObject::getId).collect(Collectors.toList());
             query.setExecuteObjectIds(executeObjectId);
@@ -272,7 +272,7 @@ public class LogServiceImpl implements LogService {
             return Collections.emptyList();
         }
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             Map<String, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
                 .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject));
             return resp.getData().stream().map(logDTO -> {
@@ -338,7 +338,7 @@ public class LogServiceImpl implements LogService {
         long stepInstanceId = stepInstance.getId();
         InternalResponse<ServiceExecuteObjectLogDTO> resp;
         ExecuteObject executeObject = executeObjectTask.getExecuteObject();
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             resp = logResource.getFileLogByExecuteObjectId(taskCreateDateStr, stepInstanceId, actualExecuteCount,
                 executeObject.getId(), executeObjectTask.getFileTaskMode().getValue(), batch);
         } else {
@@ -380,7 +380,7 @@ public class LogServiceImpl implements LogService {
             return Collections.emptyList();
         }
 
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             Map<String, ExecuteObject> executeObjectMap =
                 stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
             return batchConvertToAtomicFileTaskLog(
@@ -452,7 +452,7 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(executeObjectLogs)) {
             return Collections.emptyList();
         }
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             Map<String, ExecuteObject> executeObjectMap =
                 stepInstanceService.computeStepExecuteObjects(stepInstance, ExecuteObject::getId);
 
@@ -515,7 +515,7 @@ public class LogServiceImpl implements LogService {
 
         List<ExecuteObject> queryExecuteObjects =
             stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             List<String> executeObjectId = queryExecuteObjects.stream()
                 .map(ExecuteObject::getId).collect(Collectors.toList());
             request.setExecuteObjectIds(executeObjectId);
@@ -544,7 +544,7 @@ public class LogServiceImpl implements LogService {
     ) {
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         long stepInstanceId = stepInstance.getId();
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             InternalResponse<List<String>> resp = logResource.queryExecuteObjectsByLogKeyword(taskCreateDateStr,
                 stepInstanceId, executeCount, batch, keyword);
             if (!resp.isSuccess()) {
@@ -624,7 +624,7 @@ public class LogServiceImpl implements LogService {
                                                                   String speed,
                                                                   String process,
                                                                   String content) {
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.UPLOAD.getValue(),
                 null,
@@ -674,7 +674,7 @@ public class LogServiceImpl implements LogService {
                                                                     String speed,
                                                                     String process,
                                                                     String content) {
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.DOWNLOAD.getValue(),
                 targetExecuteObject.getId(),

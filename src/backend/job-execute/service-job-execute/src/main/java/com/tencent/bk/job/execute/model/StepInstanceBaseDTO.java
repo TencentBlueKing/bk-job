@@ -181,9 +181,9 @@ public class StepInstanceBaseDTO {
         return getStepType() == TaskStepTypeEnum.SCRIPT;
     }
 
-    public int getTargetServerTotalCount() {
-        if (this.targetExecuteObjects != null && this.targetExecuteObjects.getIpList() != null) {
-            return this.targetExecuteObjects.getIpList().size();
+    public int getTargetExecuteObjectCount() {
+        if (this.targetExecuteObjects != null && this.targetExecuteObjects.getExecuteObjectsCompatibly() != null) {
+            return this.targetExecuteObjects.getExecuteObjectsCompatibly().size();
         } else {
             return 0;
         }
@@ -215,15 +215,23 @@ public class StepInstanceBaseDTO {
      */
     public boolean isTargetGseV2Agent() {
         // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
-        boolean isTargetGseV1Agent = this.targetExecuteObjects.getIpList().stream()
-            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
+        boolean isTargetGseV1Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
+            .anyMatch(executeObject -> {
+                if (executeObject.isHostExecuteObject()) {
+                    return AgentUtils.isGseV1AgentId(executeObject.getHost().getAgentId());
+                } else if (executeObject.isContainerExecuteObject()) {
+                    // 只有 GSE V2 agent 才支持容器执行特性，这里这里必然是 true
+                    return true;
+                }
+                return false;
+            });
         return !isTargetGseV1Agent;
     }
 
     /**
-     * 通过执行目标判断是否支持"执行对象"
+     * 通过执行目标判断是否支持"执行对象特性"
      */
-    public boolean isSupportExecuteObject() {
+    public boolean isSupportExecuteObjectFeature() {
         if (supportExecuteObject == null) {
             supportExecuteObject = CollectionUtils.isNotEmpty(targetExecuteObjects.getExecuteObjects());
         }

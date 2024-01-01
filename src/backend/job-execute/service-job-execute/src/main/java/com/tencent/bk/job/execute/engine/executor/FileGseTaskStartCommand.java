@@ -281,7 +281,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
         }
         List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
-        boolean isSupportExecuteObject = stepInstance.isSupportExecuteObject();
+        boolean isSupportExecuteObject = stepInstance.isSupportExecuteObjectFeature();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
             ExecuteObjectTask executeObjectTask = new ExecuteObjectTask();
             executeObjectTask.setStepInstanceId(stepInstanceId);
@@ -448,7 +448,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectLogDTO.setStepInstanceId(stepInstanceId);
             executeObjectLogDTO.setExecuteCount(executeCount);
         }
-        if (stepInstance.isSupportExecuteObject()) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
             executeObjectLogDTO.setExecuteObjectId(executeObject.getId());
         } else {
             executeObjectLogDTO.setHostId(executeObject.getHost().getHostId());

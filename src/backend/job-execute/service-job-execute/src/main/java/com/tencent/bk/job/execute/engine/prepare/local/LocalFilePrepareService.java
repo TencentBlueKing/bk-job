@@ -123,7 +123,7 @@ public class LocalFilePrepareService {
         boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
-                ExecuteObjectsDTO localHost = agentService.getLocalServersDTO();
+                ExecuteObjectsDTO localHost = agentService.getLocalHostExecuteObjectDTO();
                 if (!isGseV2Task) {
                     // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
                     localHost.getIpList().forEach(host -> host.setAgentId(host.toCloudIp()));

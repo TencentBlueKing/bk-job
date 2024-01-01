@@ -44,22 +44,22 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 一个子表达式，按百分比分批")
     void resolveForSinglePercentExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L)));
 
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "25%");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
@@ -67,37 +67,37 @@ class RollingExecuteObjectBatchResolverTest {
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L)),
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("25%");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L)),
-            new ExecuteObject(HostDTO.fromHostId(7L)),
-            new ExecuteObject(HostDTO.fromHostId(8L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("25%");
 
         assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L)),
-            new ExecuteObject(HostDTO.fromHostId(11L)),
-            new ExecuteObject(HostDTO.fromHostId(12L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L))
         );
         assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("25%");
 
         assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L)),
-            new ExecuteObject(HostDTO.fromHostId(16L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L))
         );
         assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("25%");
     }
@@ -106,59 +106,59 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 多个子表达式，按百分比分批")
     void resolveForMultiPercentExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L)));
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "10% 30%");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
         assertThat(executeObjectBatchList).hasSize(4);
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L)),
-            new ExecuteObject(HostDTO.fromHostId(2L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10%");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L)),
-            new ExecuteObject(HostDTO.fromHostId(7L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(8L)),
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L)),
-            new ExecuteObject(HostDTO.fromHostId(11L)),
-            new ExecuteObject(HostDTO.fromHostId(12L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L))
         );
         assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L)),
-            new ExecuteObject(HostDTO.fromHostId(16L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L))
         );
         assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
     }
@@ -167,49 +167,49 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 一个子表达式，按数量分批")
     void resolveForSingleQuantityExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L)));
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "10");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
         assertThat(executeObjectBatchList).hasSize(2);
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L)),
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L)),
-            new ExecuteObject(HostDTO.fromHostId(7L)),
-            new ExecuteObject(HostDTO.fromHostId(8L)),
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("10");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(11L)),
-            new ExecuteObject(HostDTO.fromHostId(12L)),
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L)),
-            new ExecuteObject(HostDTO.fromHostId(16L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("10");
     }
@@ -218,59 +218,59 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 多个子表达式，按数量分批")
     void resolveForMultiQuantityExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L)));
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 5");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
         assertThat(executeObjectBatchList).hasSize(4);
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("5");
 
         assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(7L)),
-            new ExecuteObject(HostDTO.fromHostId(8L)),
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L)),
-            new ExecuteObject(HostDTO.fromHostId(11L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L))
         );
         assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("5");
 
         assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(12L)),
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L)),
-            new ExecuteObject(HostDTO.fromHostId(16L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L))
         );
         assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("5");
     }
@@ -279,57 +279,57 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 混合表达式，按数量和百分比分批")
     void resolveForMixedExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 30%");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
         assertThat(executeObjectBatchList).hasSize(4);
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(7L)),
-            new ExecuteObject(HostDTO.fromHostId(8L)),
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L)),
-            new ExecuteObject(HostDTO.fromHostId(11L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L))
         );
         assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(executeObjectBatchList.get(3).getBatch()).isEqualTo(4);
         assertThat(executeObjectBatchList.get(3).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(12L)),
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L))
 
         );
         assertThat(executeObjectBatchList.get(3).getRollingExprPart().getExpr()).isEqualTo("30%");
@@ -340,22 +340,22 @@ class RollingExecuteObjectBatchResolverTest {
     @DisplayName("计算滚动批次 - 最后一批包含所有")
     void resolveForAllRemainedExpr() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(1L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(2L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(3L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(4L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(5L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(6L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(7L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(8L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(9L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(10L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(11L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(12L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(13L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(14L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(15L)));
-        executeObjects.add(new ExecuteObject(HostDTO.fromHostId(16L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)));
+        executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L)));
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1 30% " +
             "100%");
         List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
@@ -363,32 +363,32 @@ class RollingExecuteObjectBatchResolverTest {
 
         assertThat(executeObjectBatchList.get(0).getBatch()).isEqualTo(1);
         assertThat(executeObjectBatchList.get(0).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(1L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
         );
         assertThat(executeObjectBatchList.get(0).getRollingExprPart().getExpr()).isEqualTo("1");
 
         assertThat(executeObjectBatchList.get(1).getBatch()).isEqualTo(2);
         assertThat(executeObjectBatchList.get(1).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(2L)),
-            new ExecuteObject(HostDTO.fromHostId(3L)),
-            new ExecuteObject(HostDTO.fromHostId(4L)),
-            new ExecuteObject(HostDTO.fromHostId(5L)),
-            new ExecuteObject(HostDTO.fromHostId(6L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(6L))
         );
         assertThat(executeObjectBatchList.get(1).getRollingExprPart().getExpr()).isEqualTo("30%");
 
         assertThat(executeObjectBatchList.get(2).getBatch()).isEqualTo(3);
         assertThat(executeObjectBatchList.get(2).getExecuteObjects()).containsSequence(
-            new ExecuteObject(HostDTO.fromHostId(7L)),
-            new ExecuteObject(HostDTO.fromHostId(8L)),
-            new ExecuteObject(HostDTO.fromHostId(9L)),
-            new ExecuteObject(HostDTO.fromHostId(10L)),
-            new ExecuteObject(HostDTO.fromHostId(11L)),
-            new ExecuteObject(HostDTO.fromHostId(12L)),
-            new ExecuteObject(HostDTO.fromHostId(13L)),
-            new ExecuteObject(HostDTO.fromHostId(14L)),
-            new ExecuteObject(HostDTO.fromHostId(15L)),
-            new ExecuteObject(HostDTO.fromHostId(16L))
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(7L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(8L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(9L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(10L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(11L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(12L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(13L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(14L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(15L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(16L))
         );
         assertThat(executeObjectBatchList.get(2).getRollingExprPart().getExpr()).isEqualTo("100%");
     }
@@ -398,7 +398,7 @@ class RollingExecuteObjectBatchResolverTest {
     void resolveExceedMaxBatchSize() {
         List<ExecuteObject> executeObjects = new ArrayList<>();
         for (int i = 1; i <= 1000; i++) {
-            executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
+            executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId((long) i)));
         }
         RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1");
         assertThatExceptionOfType(FailedPreconditionException.class).isThrownBy(
@@ -416,7 +416,7 @@ class RollingExecuteObjectBatchResolverTest {
         void resolveQuantityExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
+                executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId((long) i)));
             }
             RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "500");
             List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
@@ -429,7 +429,7 @@ class RollingExecuteObjectBatchResolverTest {
         void resolvePercentExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
+                executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId((long) i)));
             }
             RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "1%");
             List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
@@ -442,7 +442,7 @@ class RollingExecuteObjectBatchResolverTest {
         void resolvePlusIncrementRollingExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
+                executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId((long) i)));
             }
             RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "+10");
             List<RollingExecuteObjectBatch> executeObjectBatchList = context.resolve();
@@ -455,7 +455,7 @@ class RollingExecuteObjectBatchResolverTest {
         void resolveExponentIncrRollingExpr() {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             for (int i = 1; i <= 50000; i++) {
-                executeObjects.add(new ExecuteObject(HostDTO.fromHostId((long) i)));
+                executeObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId((long) i)));
             }
             RollingBatchExecuteObjectsResolver context = new RollingBatchExecuteObjectsResolver(executeObjects, "*2");
             context.resolve();
