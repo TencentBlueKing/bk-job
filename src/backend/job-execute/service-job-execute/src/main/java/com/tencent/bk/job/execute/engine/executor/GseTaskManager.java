@@ -58,7 +58,6 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -313,8 +312,8 @@ public class GseTaskManager implements SmartLifecycle {
                                                                 TaskInstanceDTO taskInstance,
                                                                 GseTaskDTO gseTask) {
         AbstractGseTaskStartCommand gseTaskStartCommand = null;
-        int executeType = stepInstance.getExecuteType();
-        if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue()) {
+        StepExecuteTypeEnum executeType = stepInstance.getExecuteType();
+        if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT) {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
@@ -341,7 +340,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTask
             );
             scriptTaskCounter.incrementAndGet();
-        } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL.getValue()) {
+        } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,
@@ -368,7 +367,7 @@ public class GseTaskManager implements SmartLifecycle {
                 gseTask
             );
             scriptTaskCounter.incrementAndGet();
-        } else if (executeType == TaskStepTypeEnum.FILE.getValue()) {
+        } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
             gseTaskStartCommand = new FileGseTaskStartCommand(
                 resultHandleManager,
                 taskInstanceService,

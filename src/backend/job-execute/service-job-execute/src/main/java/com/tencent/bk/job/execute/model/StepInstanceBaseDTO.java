@@ -75,7 +75,7 @@ public class StepInstanceBaseDTO {
      *
      * @see StepExecuteTypeEnum
      */
-    protected Integer executeType;
+    protected StepExecuteTypeEnum executeType;
     /**
      * 步骤类型
      */
@@ -147,12 +147,12 @@ public class StepInstanceBaseDTO {
     public TaskStepTypeEnum getStepType() {
         if (this.stepType == null) {
             if (executeType != null) {
-                if (executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-                    || executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue())) {
+                if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT
+                    || executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
                     this.stepType = TaskStepTypeEnum.SCRIPT;
-                } else if (executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+                } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
                     this.stepType = TaskStepTypeEnum.FILE;
-                } else if (executeType.equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+                } else if (executeType == StepExecuteTypeEnum.MANUAL_CONFIRM) {
                     this.stepType = TaskStepTypeEnum.APPROVAL;
                 }
             }

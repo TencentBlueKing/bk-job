@@ -195,7 +195,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private ExecuteStepVO convertToStepVO(StepInstanceDTO stepInstance) {
         ExecuteStepVO stepVO = new ExecuteStepVO();
         stepVO.setName(stepInstance.getName());
-        StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
+        StepExecuteTypeEnum stepType = stepInstance.getExecuteType();
         if (stepType == StepExecuteTypeEnum.EXECUTE_SCRIPT || stepType == StepExecuteTypeEnum.EXECUTE_SQL) {
             stepVO.setType(TaskStepTypeEnum.SCRIPT.getValue());
             ExecuteScriptStepVO scriptStepVO = new ExecuteScriptStepVO();
@@ -219,7 +219,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 scriptStepVO.setSecureParam(0);
             }
             scriptStepVO.setTimeout(stepInstance.getTimeout());
-            scriptStepVO.setScriptLanguage(stepInstance.getScriptType());
+            scriptStepVO.setScriptLanguage(stepInstance.getScriptType().getValue());
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());
             scriptStepVO.setScriptId(stepInstance.getScriptId());
             scriptStepVO.setScriptVersionId(stepInstance.getScriptVersionId());

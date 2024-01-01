@@ -343,7 +343,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptLanguage() != null
             && request.getScriptLanguage() > 0
-            && ScriptTypeEnum.valueOf(request.getScriptLanguage()) == null) {
+            && ScriptTypeEnum.valOf(request.getScriptLanguage()) == null) {
             log.warn("Param [type]:[{}] is illegal!", request.getScriptLanguage());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
         }

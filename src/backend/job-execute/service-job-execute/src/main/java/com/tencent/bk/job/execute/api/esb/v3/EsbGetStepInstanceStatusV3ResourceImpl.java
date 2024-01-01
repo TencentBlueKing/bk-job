@@ -77,7 +77,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         stepInst.setId(stepInstance.getId());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());
         stepInst.setName(stepInstance.getName());
-        stepInst.setType(stepInstance.getExecuteType());
+        stepInst.setType(stepInstance.getExecuteType().getValue());
         stepInst.setStatus(stepInstance.getStatus().getValue());
         stepInst.setCreateTime(stepInstance.getCreateTime());
         stepInst.setStartTime(stepInstance.getStartTime());

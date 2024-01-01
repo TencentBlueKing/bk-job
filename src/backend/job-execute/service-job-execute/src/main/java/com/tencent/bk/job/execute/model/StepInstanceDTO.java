@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -90,9 +91,8 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     /**
      * 执行脚本的类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)
      *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
      */
-    private Integer scriptType;
+    private ScriptTypeEnum scriptType;
     /**
      * 执行脚本的执行参数
      */

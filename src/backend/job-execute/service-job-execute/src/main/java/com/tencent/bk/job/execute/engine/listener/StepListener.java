@@ -70,7 +70,7 @@ public class StepListener {
     }
 
     private void dispatchEvent(StepEvent stepEvent, StepInstanceDTO stepInstance) {
-        StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
+        StepExecuteTypeEnum stepType = stepInstance.getExecuteType();
 
         switch (stepType) {
             case EXECUTE_SCRIPT:

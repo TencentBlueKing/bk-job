@@ -167,8 +167,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
-        String publicScriptName = this.scriptFileNamePrefix
-            + ScriptTypeEnum.getExtByValue(ScriptTypeEnum.SHELL.getValue());
+        String publicScriptName = this.scriptFileNamePrefix + ScriptTypeEnum.SHELL.getExt();
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         builder.addScriptFile(scriptFilePath, publicScriptName, publicScriptContent);

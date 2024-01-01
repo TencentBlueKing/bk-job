@@ -214,7 +214,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setAccountId(account.getId());
         stepInstance.setAccount(account.getAccount());
         stepInstance.setStepId(-1L);
-        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileSourceList(convertFileSource(request.getAppId(), request.getFileSources()));
         stepInstance.setAppId(request.getAppId());

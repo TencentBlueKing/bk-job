@@ -194,7 +194,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     protected String buildScriptFileName(StepInstanceDTO stepInstance) {
-        return this.scriptFileNamePrefix + ScriptTypeEnum.getExtByValue(stepInstance.getScriptType());
+        return this.scriptFileNamePrefix + stepInstance.getScriptType().getExt();
     }
 
     private ExecuteScriptRequest buildShellScriptRequestForPlan() {

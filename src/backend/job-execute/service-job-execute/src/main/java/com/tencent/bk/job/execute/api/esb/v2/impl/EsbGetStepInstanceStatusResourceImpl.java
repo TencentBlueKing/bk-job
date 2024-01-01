@@ -124,7 +124,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         stepInst.setStepId(stepInstance.getStepId());
         stepInst.setTaskInstanceId(stepInstance.getTaskInstanceId());
         stepInst.setTotalTime(stepInstance.getTotalTime());
-        stepInst.setType(stepInstance.getExecuteType());
+        stepInst.setType(stepInstance.getExecuteType().getValue());
 
         return stepInst;
     }

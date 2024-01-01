@@ -115,7 +115,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 scriptStepInfo.setScriptId(stepInstance.getScriptId());
                 scriptStepInfo.setScriptVersionId(stepInstance.getScriptVersionId());
                 scriptStepInfo.setContent(stepInstance.getScriptContent());
-                scriptStepInfo.setLanguage(stepInstance.getScriptType());
+                scriptStepInfo.setLanguage(stepInstance.getScriptType().getValue());
                 if (stepInstance.isSecureParam()) {
                     scriptStepInfo.setSecureParam(1);
                     scriptStepInfo.setScriptParam("******");

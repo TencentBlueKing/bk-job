@@ -138,7 +138,7 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
             stepInst.setCreateTime(stepInstance.getCreateTime());
             stepInst.setEndTime(stepInstance.getEndTime());
             stepInst.setStartTime(stepInstance.getStartTime());
-            stepInst.setType(stepInstance.getExecuteType());
+            stepInst.setType(stepInstance.getExecuteType().getValue());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
             stepInst.setStatus(stepInstance.getStatus().getValue());
             stepInst.setTotalTime(stepInstance.getTotalTime());

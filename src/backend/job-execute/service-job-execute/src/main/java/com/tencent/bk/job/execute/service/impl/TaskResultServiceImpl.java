@@ -204,14 +204,14 @@ public class TaskResultServiceImpl implements TaskResultService {
         stepExecution.setName(stepInstance.getName());
         stepExecution.setExecuteCount(stepInstance.getExecuteCount());
         stepExecution.setStatus(stepInstance.getStatus().getValue());
-        stepExecution.setType(StepTypeExecuteTypeConverter.convertToStepType(stepInstance.getExecuteType()));
+        stepExecution.setType(StepTypeExecuteTypeConverter.convertToStepType(stepInstance.getExecuteType()).getValue());
         stepExecution.setStartTime(stepInstance.getStartTime());
         stepExecution.setEndTime(stepInstance.getEndTime());
         stepExecution.setOperator(stepInstance.getOperator());
         stepExecution.setTotalTime(TaskCostCalculator.calculate(stepInstance.getStartTime(),
             stepInstance.getEndTime(), stepInstance.getTotalTime()));
         stepExecution.setLastStep(stepInstance.isLastStep());
-        if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() == StepExecuteTypeEnum.MANUAL_CONFIRM) {
             ConfirmStepInstanceDTO confirmStepInstance = stepInstanceDAO.getConfirmStepInstance(stepInstance.getId());
             if (confirmStepInstance != null) {
                 stepExecution.setConfirmMessage(confirmStepInstance.getConfirmMessage());

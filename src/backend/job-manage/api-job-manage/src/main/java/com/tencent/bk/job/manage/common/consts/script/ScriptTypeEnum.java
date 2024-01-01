@@ -60,7 +60,7 @@ public enum ScriptTypeEnum {
         return "";
     }
 
-    public static ScriptTypeEnum valueOf(Integer type) {
+    public static ScriptTypeEnum valOf(Integer type) {
         for (ScriptTypeEnum scriptTypeEnum : values()) {
             if (scriptTypeEnum.value.equals(type)) {
                 return scriptTypeEnum;
@@ -73,7 +73,7 @@ public enum ScriptTypeEnum {
         if (type == null) {
             return false;
         }
-        return valueOf(type) != null;
+        return valOf(type) != null;
     }
 
     public static ScriptTypeEnum getTypeByExt(String ext) {
@@ -91,15 +91,6 @@ public enum ScriptTypeEnum {
             return SQL;
         } else {
             return null;
-        }
-    }
-
-    public static String getExtByValue(int value) {
-        ScriptTypeEnum scriptType = valueOf(value);
-        if (scriptType != null) {
-            return scriptType.getExt();
-        } else {
-            return "";
         }
     }
 

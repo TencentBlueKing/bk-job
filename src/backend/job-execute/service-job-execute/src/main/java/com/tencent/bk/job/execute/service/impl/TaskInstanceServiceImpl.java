@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -156,12 +156,12 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         long stepInstanceId = stepInstanceDAO.addStepInstanceBase(stepInstance);
         if (stepInstanceId > 0) {
             stepInstance.setId(stepInstanceId);
-            Integer stepType = stepInstance.getExecuteType();
-            if (stepType.equals(EXECUTE_SQL.getValue()) || stepType.equals(EXECUTE_SCRIPT.getValue())) {
+            StepExecuteTypeEnum executeType = stepInstance.getExecuteType();
+            if (executeType == EXECUTE_SQL || executeType == EXECUTE_SCRIPT) {
                 stepInstanceDAO.addScriptStepInstance(stepInstance);
-            } else if (stepType.equals(SEND_FILE.getValue())) {
+            } else if (executeType == SEND_FILE) {
                 stepInstanceDAO.addFileStepInstance(stepInstance);
-            } else if (stepType.equals(MANUAL_CONFIRM.getValue())) {
+            } else if (executeType == MANUAL_CONFIRM) {
                 stepInstanceDAO.addConfirmStepInstance(stepInstance);
             }
         }
@@ -193,12 +193,12 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private void fillStepInstanceDetail(StepInstanceDTO stepInstance) {
         long stepInstanceId = stepInstance.getId();
-        Integer stepType = StepTypeExecuteTypeConverter.convertToStepType(stepInstance.getExecuteType());
-        if (stepType.equals(TaskStepTypeEnum.SCRIPT.getValue())) {
+        TaskStepTypeEnum stepType = stepInstance.getStepType();
+        if (stepType == TaskStepTypeEnum.SCRIPT) {
             stepInstance.fillScriptStepInfo(stepInstanceDAO.getScriptStepInstance(stepInstanceId));
-        } else if (stepType.equals(TaskStepTypeEnum.FILE.getValue())) {
+        } else if (stepType == TaskStepTypeEnum.FILE) {
             stepInstance.fillFileStepInfo(stepInstanceDAO.getFileStepInstance(stepInstanceId));
-        } else if (stepType.equals(TaskStepTypeEnum.APPROVAL.getValue())) {
+        } else if (stepType == TaskStepTypeEnum.APPROVAL) {
             stepInstance.fillConfirmStepInfo(stepInstanceDAO.getConfirmStepInstance(stepInstanceId));
         }
     }

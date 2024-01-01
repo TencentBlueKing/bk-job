@@ -71,6 +71,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -618,7 +619,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 }
                 stepInstance.setScriptContent(script.getContent());
                 stepInstance.setScriptName(script.getName());
-                stepInstance.setScriptType(script.getType());
+                stepInstance.setScriptType(ScriptTypeEnum.valOf(script.getType()));
                 if (script.isPublicScript()) {
                     stepInstance.setScriptSource(ScriptSourceEnum.QUOTED_PUBLIC.getValue());
                 } else {
@@ -662,9 +663,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!stepInstance.isScriptStep()) {
             return;
         }
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(stepInstance.getScriptType());
+
         String content = stepInstance.getScriptContent();
-        List<ServiceScriptCheckResultItemDTO> checkResultItems = dangerousScriptCheckService.check(scriptType, content);
+        List<ServiceScriptCheckResultItemDTO> checkResultItems =
+            dangerousScriptCheckService.check(stepInstance.getScriptType(), content);
         if (CollectionUtils.isNotEmpty(checkResultItems)) {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
@@ -940,7 +942,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
             stepInstances.forEach(stepInstance -> {
                 setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
-                if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
+                if (stepInstance.isFileStep()) {
                     List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
                     for (FileSourceDTO fileSource : fileSources) {
                         ExecuteObjectsDTO servers = fileSource.getServers();
@@ -973,7 +975,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
             stepInstances.forEach(stepInstance -> {
                 setHostsForTopoNode(stepInstance.getTargetExecuteObjects(), topoNodeHosts);
-                if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
+                if (stepInstance.isFileStep()) {
                     List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
                     for (FileSourceDTO fileSource : fileSources) {
                         ExecuteObjectsDTO servers = fileSource.getServers();
@@ -1128,7 +1130,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                                   Set<DynamicServerGroupDTO> groups,
                                                   Set<DynamicServerTopoNodeDTO> topoNodes) {
         extractDynamicGroupsAndTopoNodes(stepInstance.getTargetExecuteObjects(), groups, topoNodes);
-        if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
+        if (stepInstance.isFileStep()) {
             List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
             for (FileSourceDTO fileSource : fileSources) {
                 ExecuteObjectsDTO servers = fileSource.getServers();
@@ -1792,7 +1794,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
         switch (stepType) {
             case SCRIPT:
-                ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(step.getScriptStepInfo().getType());
+                ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(step.getScriptStepInfo().getType());
                 if (scriptType == ScriptTypeEnum.SQL) {
                     executeType = EXECUTE_SQL;
                 } else {
@@ -1807,20 +1809,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 break;
         }
         return executeType;
-    }
-
-    private TaskStepTypeEnum getTaskStepTypeFromExecuteType(StepExecuteTypeEnum executeType) throws ServiceException {
-        TaskStepTypeEnum stepType;
-        if (executeType == EXECUTE_SCRIPT || executeType == EXECUTE_SQL) {
-            stepType = TaskStepTypeEnum.SCRIPT;
-        } else if (executeType == SEND_FILE) {
-            stepType = TaskStepTypeEnum.FILE;
-        } else if (executeType == MANUAL_CONFIRM) {
-            stepType = TaskStepTypeEnum.APPROVAL;
-        } else {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-        return stepType;
     }
 
     private TaskInstanceDTO buildTaskInstanceForTask(TaskExecuteParam executeParam, ServiceTaskPlanDTO taskPlan) {
@@ -1853,7 +1841,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setStepId(stepId);
         stepInstance.setName(stepName);
-        stepInstance.setExecuteType(stepType.getValue());
+        stepInstance.setExecuteType(stepType);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setOperator(operator);
         stepInstance.setAppId(appId);
@@ -1886,10 +1874,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (StepInstanceDTO originStepInstance : originTaskInstance.getStepInstances()) {
-            StepExecuteTypeEnum executeType = StepExecuteTypeEnum.valueOf(originStepInstance.getExecuteType());
+            StepExecuteTypeEnum executeType = originStepInstance.getExecuteType();
             StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator,
                 originStepInstance.getStepId(), originStepInstance.getName(), executeType);
-            TaskStepTypeEnum stepType = getTaskStepTypeFromExecuteType(executeType);
+            TaskStepTypeEnum stepType = StepTypeExecuteTypeConverter.convertToStepType(executeType);
             switch (stepType) {
                 case SCRIPT:
                     parseScriptStepInstanceFromStepInstance(stepInstance, originStepInstance, finalVariableValueMap);
@@ -2080,7 +2068,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setTimeout(1000);
         }
         stepInstance.setSecureParam(scriptStepInfo.getSecureParam() != null && scriptStepInfo.getSecureParam());
-        stepInstance.setScriptType(scriptStepInfo.getType());
+        stepInstance.setScriptType(ScriptTypeEnum.valOf(scriptStepInfo.getType()));
         stepInstance.setScriptSource(scriptStepInfo.getScriptSource());
 
         ServiceAccountDTO accountInfo = scriptStepInfo.getAccount();
@@ -2089,7 +2077,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(scriptStepInfo.getType());
+        ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(scriptStepInfo.getType());
         stepInstance.setAccountId(accountInfo.getId());
         if (scriptType == ScriptTypeEnum.SQL) {
             stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
@@ -2203,7 +2191,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setScriptType(originStepInstance.getScriptType());
         stepInstance.setScriptSource(originStepInstance.getScriptSource());
 
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(originStepInstance.getScriptType());
+        ScriptTypeEnum scriptType = originStepInstance.getScriptType();
         stepInstance.setAccountId(originStepInstance.getAccountId());
         if (scriptType == ScriptTypeEnum.SQL) {
             stepInstance.setAccountId(originStepInstance.getAccountId());

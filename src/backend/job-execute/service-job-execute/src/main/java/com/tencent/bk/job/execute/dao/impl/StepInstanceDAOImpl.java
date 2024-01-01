@@ -139,7 +139,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             stepInstance.getTaskInstanceId(),
             stepInstance.getAppId(),
             stepInstance.getName(),
-            JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
+            stepInstance.getExecuteType().getValue().byteValue(),
             stepInstance.getOperator(),
             stepInstance.getStatus().getValue().byteValue(),
             stepInstance.getExecuteCount(),
@@ -186,7 +186,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         ).values(
             stepInstance.getId(),
             stepInstance.getScriptContent(),
-            JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
+            stepInstance.getScriptType().getValue().byteValue(),
             sensitiveParamCryptoService.encryptParamIfNeeded(
                 stepInstance.isSecureParam(), stepInstance.getScriptParam()),
             sensitiveParamCryptoService.encryptParamIfNeeded(
@@ -286,7 +286,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
-        stepInstance.setScriptType(JooqDataTypeUtil.toInteger(record.get(t.SCRIPT_TYPE)));
+        stepInstance.setScriptType(ScriptTypeEnum.valOf(record.get(t.SCRIPT_TYPE).intValue()));
         stepInstance.setSecureParam(record.get(t.IS_SECURE_PARAM).intValue() == 1);
         String encryptedScriptParam = record.get(t.SCRIPT_PARAM);
 
@@ -435,7 +435,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStepId(record.get(t.STEP_ID));
         stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setName(record.get(t.NAME));
-        stepInstance.setExecuteType(JooqDataTypeUtil.toInteger(record.get(t.TYPE)));
+        stepInstance.setExecuteType(StepExecuteTypeEnum.valOf(JooqDataTypeUtil.toInteger(record.get(t.TYPE))));
         stepInstance.setOperator(record.get(t.OPERATOR));
         stepInstance.setStatus(RunStatusEnum.valueOf(record.get(t.STATUS)));
         stepInstance.setExecuteCount(record.get(t.EXECUTE_COUNT));

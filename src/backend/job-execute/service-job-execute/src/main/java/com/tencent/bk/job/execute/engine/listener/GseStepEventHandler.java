@@ -55,7 +55,6 @@ import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -618,11 +617,9 @@ public class GseStepEventHandler implements StepEventHandler {
      * 清理执行完的步骤
      */
     private void clearStep(StepInstanceDTO stepInstance) {
-        log.info("Clear step, stepInstanceId={}", stepInstance.getId());
-
-        int executeType = stepInstance.getExecuteType();
         // 当前仅有文件分发类步骤需要清理中间文件
-        if (TaskStepTypeEnum.FILE.getValue() == executeType) {
+        if (stepInstance.isFileStep()) {
+            log.info("Clear file step, stepInstanceId={}", stepInstance.getId());
             filePrepareService.clearPreparedTmpFile(stepInstance.getId());
         }
     }

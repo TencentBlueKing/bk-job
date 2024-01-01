@@ -319,16 +319,16 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setTargetExecuteObjects(ExecuteObjectsDTO.fromTaskTargetVO(request.getTaskTarget()));
         if (request.getScriptLanguage().equals(ScriptTypeEnum.SQL.getValue())) {
             stepInstance.setDbAccountId(request.getAccount());
-            stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
+            stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL);
         } else {
             stepInstance.setAccountId(request.getAccount());
-            stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+            stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         }
         stepInstance.setOperator(userName);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
         stepInstance.setScriptSource(request.getScriptSource());
-        stepInstance.setScriptType(request.getScriptLanguage());
+        stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptLanguage()));
         stepInstance.setScriptContent(request.getContent());
         stepInstance.setScriptId(request.getScriptId());
         stepInstance.setScriptVersionId(request.getScriptVersionId());
@@ -470,7 +470,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setTargetExecuteObjects(ExecuteObjectsDTO.fromTaskTargetVO(fileDestination.getServer()));
         stepInstance.setFileTargetPath(fileDestination.getPath());
         stepInstance.setStepId(-1L);
-        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileSourceList(convertFileSource(request.getFileSourceList()));
         stepInstance.setAppId(appId);
         stepInstance.setOperator(userName);
