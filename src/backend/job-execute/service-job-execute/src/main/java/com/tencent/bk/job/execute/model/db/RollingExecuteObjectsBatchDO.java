@@ -72,10 +72,10 @@ public class RollingExecuteObjectsBatchDO {
     }
 
     /**
-     * 获取包装过的执行对象列表
+     * 获取合并之后的执行对象列表
      */
     @JsonIgnore
-    public List<ExecuteObject> getDecorateExecuteObjects() {
+    public List<ExecuteObject> getMergedExecuteObjects() {
         if (executeObjects != null) {
             return executeObjects;
         } else if (hosts != null) {

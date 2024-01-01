@@ -103,37 +103,37 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     public ExecuteObjectsDTO clone() {
-        ExecuteObjectsDTO cloneExecuteObjectsDTO = new ExecuteObjectsDTO();
-        cloneExecuteObjectsDTO.setVariable(variable);
+        ExecuteObjectsDTO clone = new ExecuteObjectsDTO();
+        clone.setVariable(variable);
         if (CollectionUtils.isNotEmpty(staticIpList)) {
             List<HostDTO> cloneStaticIpList = new ArrayList<>(staticIpList.size());
             staticIpList.forEach(staticIp -> cloneStaticIpList.add(staticIp.clone()));
-            cloneExecuteObjectsDTO.setStaticIpList(cloneStaticIpList);
+            clone.setStaticIpList(cloneStaticIpList);
         }
         if (CollectionUtils.isNotEmpty(dynamicServerGroups)) {
             List<DynamicServerGroupDTO> cloneServerGroups = new ArrayList<>(dynamicServerGroups.size());
             dynamicServerGroups.forEach(serverGroup -> cloneServerGroups.add(serverGroup.clone()));
-            cloneExecuteObjectsDTO.setDynamicServerGroups(cloneServerGroups);
+            clone.setDynamicServerGroups(cloneServerGroups);
         }
         if (CollectionUtils.isNotEmpty(topoNodes)) {
-            cloneExecuteObjectsDTO.setTopoNodes(topoNodes);
+            clone.setTopoNodes(topoNodes);
         }
         if (CollectionUtils.isNotEmpty(staticContainerList)) {
             List<Container> cloneContainerList = new ArrayList<>(staticContainerList.size());
             staticContainerList.forEach(container -> cloneContainerList.add(container.clone()));
-            cloneExecuteObjectsDTO.setStaticContainerList(cloneContainerList);
+            clone.setStaticContainerList(cloneContainerList);
         }
         if (CollectionUtils.isNotEmpty(ipList)) {
             List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
-            cloneExecuteObjectsDTO.setIpList(cloneIpList);
+            clone.setIpList(cloneIpList);
         }
         if (CollectionUtils.isNotEmpty(executeObjects)) {
             List<ExecuteObject> cloneExecuteObjectList = new ArrayList<>(executeObjects.size());
             executeObjects.forEach(executeObject -> cloneExecuteObjectList.add(executeObject.clone()));
-            cloneExecuteObjectsDTO.setExecuteObjects(cloneExecuteObjectList);
+            clone.setExecuteObjects(cloneExecuteObjectList);
         }
-        return cloneExecuteObjectsDTO;
+        return clone;
     }
 
     public ExecuteObjectsDTO merge(ExecuteObjectsDTO executeObjects) {
@@ -173,6 +173,17 @@ public class ExecuteObjectsDTO implements Cloneable {
                 });
             }
         }
+        if (executeObjects.getStaticContainerList() != null) {
+            if (this.staticContainerList == null) {
+                this.staticContainerList = new ArrayList<>(executeObjects.getStaticContainerList());
+            } else {
+                executeObjects.getStaticContainerList().forEach(container -> {
+                    if (!this.staticContainerList.contains(container)) {
+                        this.staticContainerList.add(container);
+                    }
+                });
+            }
+        }
         return this;
     }
 
@@ -189,7 +200,8 @@ public class ExecuteObjectsDTO implements Cloneable {
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
-            && CollectionUtils.isEmpty(this.dynamicServerGroups);
+            && CollectionUtils.isEmpty(this.dynamicServerGroups)
+            && CollectionUtils.isEmpty(this.staticContainerList);
     }
 
     /**
@@ -414,10 +426,10 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     /**
-     * 获取包装过的执行对象列表
+     * 获取合并之后的所有执行对象列表
      */
     @JsonIgnore
-    public List<ExecuteObject> getDecorateExecuteObjects() {
+    public List<ExecuteObject> getMergedExecuteObjects() {
         if (executeObjects != null) {
             return executeObjects;
         } else if (ipList != null) {
@@ -425,15 +437,5 @@ public class ExecuteObjectsDTO implements Cloneable {
         } else {
             return Collections.emptyList();
         }
-    }
-
-    /**
-     * 提取所有包含的容器执行对象
-     *
-     * @return 容器执行对象列表
-     */
-    public List<Container> extractContainers() {
-        // 当前只支持静态选择容器
-        return staticContainerList;
     }
 }

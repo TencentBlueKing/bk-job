@@ -131,7 +131,7 @@ public class JobSrcFileUtils {
                     Pair<String, String> fileNameAndPath = FilePathUtils.parseDirAndFileName(filePath);
                     String dir = fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<ExecuteObject> sourceExecuteObjects = fileSource.getServers().getDecorateExecuteObjects();
+                    List<ExecuteObject> sourceExecuteObjects = fileSource.getServers().getMergedExecuteObjects();
                     for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
                         // 第三方源文件的displayName不同
                         if (isThirdFile) {
@@ -154,8 +154,8 @@ public class JobSrcFileUtils {
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
                     ExecuteObjectsDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isNotEmpty(servers.getDecorateExecuteObjects())) {
-                        List<ExecuteObject> executeObjects = servers.getDecorateExecuteObjects();
+                    if (servers != null && CollectionUtils.isNotEmpty(servers.getMergedExecuteObjects())) {
+                        List<ExecuteObject> executeObjects = servers.getMergedExecuteObjects();
                         for (ExecuteObject executeObject : executeObjects) {
                             sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,
                                 fileName, "root", null,
@@ -170,7 +170,7 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    List<ExecuteObject> executeObjects = fileSource.getServers().getDecorateExecuteObjects();
+                    List<ExecuteObject> executeObjects = fileSource.getServers().getMergedExecuteObjects();
                     for (ExecuteObject executeObject : executeObjects) {
                         sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, executeObject, file.getFilePath(), dir,
                             fileName, "root", null,

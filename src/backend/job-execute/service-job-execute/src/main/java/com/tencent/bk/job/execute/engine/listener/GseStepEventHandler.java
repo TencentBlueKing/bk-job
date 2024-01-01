@@ -267,7 +267,7 @@ public class GseStepEventHandler implements StepEventHandler {
             // 普通步骤，启动的时候需要初始化所有ExecuteObjectTask
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>(
                 buildInitialExecuteObjectTasks(stepInstanceId, executeCount, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects()));
+                    gseTaskId, stepInstance.getTargetExecuteObjects().getMergedExecuteObjects()));
             saveExecuteObjectTasks(stepInstance, executeObjectTasks);
         }
     }
@@ -290,7 +290,7 @@ public class GseStepEventHandler implements StepEventHandler {
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
             if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
                 List<RollingExecuteObjectsBatchDO> executeObjectsBatchList =
-                    rollingConfig.getConfigDetail().getDecorateExecuteObjectsBatchList();
+                    rollingConfig.getConfigDetail().getMergedExecuteObjectsBatchList();
                 executeObjectsBatchList.forEach(executeObjectsBatch -> {
                     executeObjectTasks.addAll(
                         buildInitialExecuteObjectTasks(
@@ -299,7 +299,7 @@ public class GseStepEventHandler implements StepEventHandler {
                             executeObjectsBatch.getBatch() == 1 ? executeCount : null,
                             executeObjectsBatch.getBatch(),
                             executeObjectsBatch.getBatch() == 1 ? gseTaskId : 0,
-                            executeObjectsBatch.getDecorateExecuteObjects()
+                            executeObjectsBatch.getMergedExecuteObjects()
                         )
                     );
                 });

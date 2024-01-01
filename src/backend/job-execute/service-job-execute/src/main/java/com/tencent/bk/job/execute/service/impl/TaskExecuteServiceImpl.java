@@ -290,28 +290,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
             watch.stop();
 
-            // 获取执行对象
-            watch.start("acquireAndSetExecuteObjects");
-            TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
-            acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, Collections.singletonList(stepInstance), null);
-            acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, Collections.singletonList(stepInstance));
-            checkExecuteObjectExist(taskInstanceExecuteObjects);
-            watch.stop();
-
-            // 如果包含主机执行对象，需要获取主机白名单
-            if (taskInstanceExecuteObjects.isContainsAnyHost()) {
-                watch.start("getHostAllowedActions");
-                taskInstanceExecuteObjects.setWhiteHostAllowActions(
-                    getHostAllowedActions(
-                        taskInstance.getAppId(),
-                        ListUtil.union(taskInstanceExecuteObjects.getValidHosts(),
-                            taskInstanceExecuteObjects.getNotInAppHosts())));
-                watch.stop();
-            }
-
-            //检查执行对象是否可用
-            watch.start("checkExecuteObject");
-            checkExecuteObjectAccessible(Collections.singletonList(stepInstance), taskInstanceExecuteObjects);
+            // 处理执行对象
+            watch.start("processExecuteObjects");
+            TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+                processExecuteObjects(taskInstance, Collections.singletonList(stepInstance), null);
             watch.stop();
 
             // 检查步骤
@@ -321,7 +303,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects);
+            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
             watch.stop();
 
             // 保存作业
@@ -344,6 +326,47 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             if (watch.getTotalTimeMillis() > 1000) {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
+            }
+        }
+    }
+
+    private TaskInstanceExecuteObjects processExecuteObjects(TaskInstanceDTO taskInstance,
+                                                             List<StepInstanceDTO> stepInstanceList,
+                                                             Collection<TaskVariableDTO> variables) {
+
+        StopWatch watch = new StopWatch("processExecuteObjects");
+        try {
+            // 获取执行对象
+            watch.start("acquireAndSetExecuteObjects");
+            TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
+            acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
+            acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList);
+            checkExecuteObjectExist(taskInstanceExecuteObjects);
+            watch.stop();
+
+            // 如果包含主机执行对象，需要获取主机白名单
+            if (taskInstanceExecuteObjects.isContainsAnyHost()) {
+                watch.start("getHostAllowedActions");
+                taskInstanceExecuteObjects.setWhiteHostAllowActions(
+                    getHostAllowedActions(
+                        taskInstance.getAppId(),
+                        ListUtil.union(taskInstanceExecuteObjects.getValidHosts(),
+                            taskInstanceExecuteObjects.getNotInAppHosts())));
+                watch.stop();
+            }
+
+            //检查执行对象是否可用
+            watch.start("checkExecuteObjectAccessible");
+            checkExecuteObjectAccessible(stepInstanceList, taskInstanceExecuteObjects);
+            watch.stop();
+
+            return taskInstanceExecuteObjects;
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
         }
     }
@@ -697,9 +720,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             new AppResourceScope(appId), accountId);
 
         AuthResult serverAuthResult;
-        ExecuteObjectsDTO servers = stepInstance.getTargetExecuteObjects().clone();
-        filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, servers, whiteHostAllowActions);
-        if (servers.isEmpty()) {
+        ExecuteObjectsDTO executeObjects = stepInstance.getTargetExecuteObjects().clone();
+        filterHostsDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, executeObjects, whiteHostAllowActions);
+        if (executeObjects.isEmpty()) {
             // 如果主机为空，无需对主机进行鉴权
             return accountAuthResult;
         }
@@ -707,17 +730,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                username, new AppResourceScope(appId), servers);
+                username, new AppResourceScope(appId), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
-
             serverAuthResult = executeAuthService.authExecuteAppScript(
                 username, new AppResourceScope(appId), stepInstance.getScriptId(),
-                stepInstance.getScriptName(), servers);
+                stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
-
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId()
-                , stepInstance.getScriptName(), servers);
+                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                stepInstance.getScriptName(), executeObjects);
         } else {
             serverAuthResult = AuthResult.fail();
         }
@@ -725,17 +746,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
 
-    /*
+    /**
      * 过滤掉主机白名单的机器
      */
-    private void filterServerDoNotRequireAuth(ActionScopeEnum action,
-                                              ExecuteObjectsDTO servers,
-                                              Map<Long, List<String>> whiteHostAllowActions) {
+    private void filterHostsDoNotRequireAuth(ActionScopeEnum action,
+                                             ExecuteObjectsDTO executeObjects,
+                                             Map<Long, List<String>> whiteHostAllowActions) {
         if (whiteHostAllowActions == null || whiteHostAllowActions.isEmpty()) {
             return;
         }
-        if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
-            servers.setStaticIpList(servers.getStaticIpList().stream()
+        if (CollectionUtils.isNotEmpty(executeObjects.getStaticIpList())) {
+            executeObjects.setStaticIpList(executeObjects.getStaticIpList().stream()
                 .filter(host -> {
                     List<String> allowedActions = whiteHostAllowActions.get(host.getHostId());
                     boolean skipAuth = allowedActions != null && allowedActions.contains(action.name());
@@ -769,7 +790,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
                 && fileSource.getServers() != null)
             .forEach(fileSource -> servers.merge(fileSource.getServers()));
-        filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, servers, whiteHostAllowActions);
+        filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, servers, whiteHostAllowActions);
         if (servers.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
             return accountAuthResult;
@@ -1010,7 +1031,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
             TaskStepTypeEnum stepType = stepInstance.getStepType();
             // 检查目标主机
-            stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects().stream()
+            stepInstance.getTargetExecuteObjects().getMergedExecuteObjects().stream()
                 .filter(ExecuteObject::isHostExecuteObject)
                 .forEach(executeObject -> {
                     if (isHostUnAccessible(stepType, executeObject.getHost(), notInAppHostMap, whileHostAllowActions)) {
@@ -1044,10 +1065,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 远程文件分发需要校验文件源主机;其他类型不需要
             if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
                 ExecuteObjectsDTO servers = fileSource.getServers();
-                if (servers == null || CollectionUtils.isEmpty(servers.getDecorateExecuteObjects())) {
+                if (servers == null || CollectionUtils.isEmpty(servers.getMergedExecuteObjects())) {
                     continue;
                 }
-                servers.getDecorateExecuteObjects().stream()
+                servers.getMergedExecuteObjects().stream()
                     .filter(ExecuteObject::isHostExecuteObject)
                     .forEach(executeObject -> {
                         if (isHostUnAccessible(stepType, executeObject.getHost(),
@@ -1502,29 +1523,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
             watch.stop();
 
-            // 获取执行对象
-            watch.start("acquireAndSetExecuteObjects");
-            TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
-            acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList,
-                finalVariableValueMap.values());
-            acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList);
-            checkExecuteObjectExist(taskInstanceExecuteObjects);
-            watch.stop();
-
-            // 如果包含主机执行对象，需要获取主机白名单
-            if (taskInstanceExecuteObjects.isContainsAnyHost()) {
-                watch.start("getHostAllowedActions");
-                taskInstanceExecuteObjects.setWhiteHostAllowActions(
-                    getHostAllowedActions(
-                        taskInstance.getAppId(),
-                        ListUtil.union(taskInstanceExecuteObjects.getValidHosts(),
-                            taskInstanceExecuteObjects.getNotInAppHosts())));
-                watch.stop();
-            }
-
-            //检查执行对象是否可用
-            watch.start("checkExecuteObject");
-            checkExecuteObjectAccessible(stepInstanceList, taskInstanceExecuteObjects);
+            // 处理执行对象
+            watch.start("processExecuteObjects");
+            TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+                processExecuteObjects(taskInstance, stepInstanceList, finalVariableValueMap.values());
             watch.stop();
 
             // 检查步骤
@@ -1535,7 +1537,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
-                    hostAllowActions);
+                    taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
             }
 
@@ -1725,14 +1727,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         accountIds.add(stepInstance.getAccountId());
         if (stepInstance.isFileStep()) {
             ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
-            filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepTargetServers,
+            filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepTargetServers,
                 whiteHostAllowActions);
             authServers.merge(stepTargetServers);
             if (!CollectionUtils.isEmpty(stepInstance.getFileSourceList())) {
                 stepInstance.getFileSourceList().stream().filter(fileSource -> !fileSource.isLocalUpload())
                     .forEach(fileSource -> {
                             ExecuteObjectsDTO stepFileSourceServers = fileSource.getServers().clone();
-                            filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
+                            filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
                                 whiteHostAllowActions);
                             authServers.merge(stepFileSourceServers);
                             if (fileSource.getAccountId() != null) {
@@ -1743,7 +1745,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         } else if (stepInstance.isScriptStep()) {
             ExecuteObjectsDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
-            filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, stepTargetServers, whiteHostAllowActions);
+            filterHostsDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, stepTargetServers, whiteHostAllowActions);
             authServers.merge(stepTargetServers);
         }
         return Pair.of(authServers, accountIds);
@@ -1905,23 +1907,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查高危脚本
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
-        // 获取并设置执行对象
-        TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
-        // 获取主机列表
-        acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance,
-            stepInstanceList, finalVariableValueMap.values());
-
-        // 获取主机白名单
-        Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInstance.getAppId(),
-            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-
-        // 检查主机合法性
-        checkExecuteObject(stepInstanceList, hosts, hostAllowActions);
+        // 处理执行对象
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+            processExecuteObjects(taskInstance, stepInstanceList, finalVariableValueMap.values());
 
         // 检查步骤
         checkStepInstance(taskInstance, stepInstanceList);
 
-        authRedoJob(operator, appId, originTaskInstance, hostAllowActions);
+        authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
@@ -2733,27 +2726,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public void authExecuteJobPlan(TaskExecuteParam executeParam) throws ServiceException {
         StopWatch watch = new StopWatch("authJobPlan");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
+        TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
+        List<StepInstanceDTO> stepInstanceList = taskInstance.getStepInstances();
 
-        watch.start("acquireAndSetHosts");
-        ServiceListAppHostResultDTO hosts =
-            acquireAndSetHosts(taskInfo.getTaskInstance(), taskInfo.getStepInstances(),
-                taskInfo.getVariables() != null ? taskInfo.getVariables().values() : null);
-        watch.stop();
-
-        // 获取主机白名单
-        watch.start("getHostAllowedActions");
-        Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInfo.getTaskInstance().getAppId(),
-            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-        watch.stop();
-
-        // 检查主机合法性
-        watch.start("checkHost");
-        checkExecuteObject(taskInfo.getStepInstances(), hosts, hostAllowActions);
-        watch.stop();
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+            processExecuteObjects(taskInstance, stepInstanceList, taskInfo.getVariables().values());
 
         watch.start("auth-execute-job");
         authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), taskInfo.getJobPlan(),
-            taskInfo.getStepInstances(), hostAllowActions);
+            taskInfo.getStepInstances(), taskInstanceExecuteObjects.getWhiteHostAllowActions());
         watch.stop();
 
         if (watch.getTotalTimeMillis() > 500) {

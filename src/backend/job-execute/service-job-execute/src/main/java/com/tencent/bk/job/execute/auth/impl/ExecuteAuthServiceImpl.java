@@ -88,9 +88,11 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
-    public AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers) {
+    public AuthResult authFastExecuteScript(String username,
+                                            AppResourceScope appResourceScope,
+                                            ExecuteObjectsDTO executeObjects) {
 
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeObjects);
 
         log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}", username,
             appResourceScope, hostInstanceList);
@@ -104,7 +106,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         AuthResult authResult = AuthResult.fail();
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, servers);
+            appResourceScope, executeObjects);
         authResult.addRequiredPermissions(ActionId.QUICK_EXECUTE_SCRIPT, hostResources);
         log.debug("Auth execute script, authResult:{}", authResult);
         return authResult;
@@ -319,13 +321,13 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<InstanceDTO> buildHostInstances(AppResourceScope appResourceScope,
-                                                 ExecuteObjectsDTO servers) {
+                                                 ExecuteObjectsDTO executeObjects) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
         // 静态IP
-        if (!CollectionUtils.isEmpty(servers.getStaticIpList())) {
+        if (!CollectionUtils.isEmpty(executeObjects.getStaticIpList())) {
             switch (appResourceScope.getType()) {
                 case BIZ:
-                    hostInstanceList.addAll(buildBizStaticHostInstances(appResourceScope, servers));
+                    hostInstanceList.addAll(buildBizStaticHostInstances(appResourceScope, executeObjects));
                     break;
                 case BIZ_SET:
                     InstanceDTO hostInstance = new InstanceDTO();
@@ -341,13 +343,13 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             }
         }
         // 动态topo节点
-        if (!CollectionUtils.isEmpty(servers.getTopoNodes())) {
+        if (!CollectionUtils.isEmpty(executeObjects.getTopoNodes())) {
             // CMDB未提供权限中心使用的topo视图，暂时使用“业务”这个topo节点进行鉴权，不细化到集群、模块
             hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope));
         }
         // 动态分组
-        if (!CollectionUtils.isEmpty(servers.getDynamicServerGroups())) {
-            servers.getDynamicServerGroups().forEach(serverGroup -> {
+        if (!CollectionUtils.isEmpty(executeObjects.getDynamicServerGroups())) {
+            executeObjects.getDynamicServerGroups().forEach(serverGroup -> {
                 InstanceDTO serverGroupInstance = new InstanceDTO();
                 serverGroupInstance.setType(ResourceTypeEnum.HOST.getId());
                 serverGroupInstance.setSystem(SystemId.CMDB);

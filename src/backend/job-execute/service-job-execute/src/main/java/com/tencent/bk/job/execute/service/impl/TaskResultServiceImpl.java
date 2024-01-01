@@ -423,7 +423,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         if (stepInstance.isRollingStep()) {
             executeObjects = rollingConfigService.getRollingServers(stepInstance, batch);
         } else {
-            executeObjects = stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects();
+            executeObjects = stepInstance.getTargetExecuteObjects().getMergedExecuteObjects();
         }
 
         return executeObjects;
@@ -837,7 +837,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
     private List<ExecuteObjectCompositeKey> fuzzySearchHostsByIp(StepInstanceBaseDTO stepInstance, String searchIp) {
         List<ExecuteObject> matchExecuteObjects =
-            stepInstance.getTargetExecuteObjects().getDecorateExecuteObjects().stream()
+            stepInstance.getTargetExecuteObjects().getMergedExecuteObjects().stream()
                 .filter(executeObject -> isMatchByIp(executeObject, searchIp))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(matchExecuteObjects)) {
