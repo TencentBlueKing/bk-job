@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_BK_LOGIN_API;
 
 @Slf4j
-public class StandardLoginClient extends AbstractBkApiClient implements ILoginClient {
+public class StandardLoginClient extends BkApiClient implements ILoginClient {
 
     // 用户认证失败，即用户登录态无效
     private static final Integer ESB_CODE_USER_NOT_LOGIN = 1302100;

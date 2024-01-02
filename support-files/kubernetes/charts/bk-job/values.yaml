@@ -427,6 +427,8 @@ bkNodemanUrl: "http://nodeman.example.com"
 bkGseApiGatewayUrl: "http://bkapi.example.com"
 # 蓝鲸消息通知中心 API Gateway url
 bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+# 蓝鲸 CMDB API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url

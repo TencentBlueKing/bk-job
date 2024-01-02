@@ -30,19 +30,23 @@ import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -55,7 +59,7 @@ import java.util.Map;
  * CMDB API 基础实现
  */
 @Slf4j
-public class BaseCmdbApiClient extends AbstractBkApiClient {
+public class BaseCmdbApiClient {
     protected static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
     protected static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
     protected static final String LIST_BIZ_HOSTS = "/api/c/compapi/v2/cc/list_biz_hosts/";
@@ -73,8 +77,8 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
     protected static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
 
     // 容器相关 API
-    protected static final String LIST_KUBE_CONTAINER_BY_TOPO = "/api/c/compapi/v2/cc/list_kube_container_by_topo/";
-    protected static final String GET_BIZ_KUBE_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_kube_cache_topo/";
+    protected static final String LIST_KUBE_CONTAINER_BY_TOPO = "/api/v3/findmany/kube/container/by_topo";
+    protected static final String GET_BIZ_KUBE_CACHE_TOPO = "/api/v3/cache/find/biz/kube/topo";
 
     // 业务集相关 API
     protected static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
@@ -90,6 +94,14 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
      */
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
+    /**
+     * CMDB ESB API 客户端
+     */
+    protected BkApiClient esbCmdbApiClient;
+    /**
+     * CMDB 蓝鲸网关 API 客户端
+     */
+    protected BkApiClient apiGwCmdbApiClient;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -115,13 +127,21 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
     protected BaseCmdbApiClient(FlowController flowController,
                                 AppProperties appProperties,
                                 EsbProperties esbProperties,
+                                BkApiGatewayProperties bkApiGatewayProperties,
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
                                 String lang) {
-        super(meterRegistry,
+        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
+        this.esbCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            httpHelper,
+            lang
+        );
+        this.apiGwCmdbApiClient = new BkApiClient(meterRegistry,
+            CmdbMetricNames.CMDB_API_PREFIX,
+            bkApiGatewayProperties.getCmdb().getUrl(),
+            httpHelper,
             lang
         );
         this.globalFlowController = flowController;
@@ -131,18 +151,22 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
             appProperties.getCode(), appProperties.getSecret(), "admin");
     }
 
+
     protected <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {
         return EsbReq.buildRequest(reqClass, cmdbSupplierAccount);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
+    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
+                                            HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, queryParams, reqBody, typeReference, null);
+        return requestCmdbApi(apiGwType, method, uri, queryParams, reqBody, typeReference, null);
     }
-    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
+
+    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
+                                            HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
@@ -176,7 +200,7 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
                 .body(reqBody)
                 .authorization(cmdbBkApiAuthorization)
                 .build();
-            return doRequest(requestInfo, typeReference, httpHelper);
+            return getApiClientByApiGwType(apiGwType).doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
                 + queryParams + "|body="
@@ -185,6 +209,18 @@ public class BaseCmdbApiClient extends AbstractBkApiClient {
             throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    private BkApiClient getApiClientByApiGwType(ApiGwType apiGwType) {
+        switch (apiGwType) {
+            case ESB:
+                return esbCmdbApiClient;
+            case BK_APIGW:
+                return apiGwCmdbApiClient;
+            default:
+                log.error("BkApiClient for type: {} not found", apiGwType.name());
+                throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
     }
 }

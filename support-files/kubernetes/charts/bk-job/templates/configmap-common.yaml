@@ -41,6 +41,8 @@ data:
         url: {{ .Values.bkGseApiGatewayUrl }}
       bkNotice:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
+      cmdb:
+        url: {{ .Values.bkCmdbApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:

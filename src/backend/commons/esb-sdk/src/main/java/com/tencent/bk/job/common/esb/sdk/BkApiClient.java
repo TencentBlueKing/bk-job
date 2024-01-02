@@ -59,7 +59,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 /**
  * 蓝鲸API（组件 API（ESB）、网关 API（蓝鲸 ApiGateway)）调用客户端
  */
-public abstract class AbstractBkApiClient {
+public class BkApiClient {
 
     private String lang;
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -79,21 +79,21 @@ public abstract class AbstractBkApiClient {
      * @param baseAccessUrl     API 服务访问地址
      * @param defaultHttpHelper http 请求处理客户端
      */
-    public AbstractBkApiClient(MeterRegistry meterRegistry,
-                               String metricName,
-                               String baseAccessUrl,
-                               HttpHelper defaultHttpHelper) {
+    public BkApiClient(MeterRegistry meterRegistry,
+                       String metricName,
+                       String baseAccessUrl,
+                       HttpHelper defaultHttpHelper) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
         this.baseAccessUrl = baseAccessUrl;
         this.defaultHttpHelper = defaultHttpHelper;
     }
 
-    public AbstractBkApiClient(MeterRegistry meterRegistry,
-                               String metricName,
-                               String baseAccessUrl,
-                               HttpHelper defaultHttpHelper,
-                               String lang) {
+    public BkApiClient(MeterRegistry meterRegistry,
+                       String metricName,
+                       String baseAccessUrl,
+                       HttpHelper defaultHttpHelper,
+                       String lang) {
         this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper);
         this.lang = lang;
     }

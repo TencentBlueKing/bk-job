@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -51,7 +51,7 @@ import org.apache.http.HttpStatus;
 import java.util.List;
 
 @SuppressWarnings("SameParameterValue")
-public class BkNoticeClient extends AbstractBkApiClient implements IBkNoticeClient {
+public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
 
     private static final String URI_REGISTER_APPLICATION = "/apigw/v1/register/";
     private static final String URI_GET_CURRENT_ANNOUNCEMENTS = "/apigw/v1/announcement/get_current_announcements/";

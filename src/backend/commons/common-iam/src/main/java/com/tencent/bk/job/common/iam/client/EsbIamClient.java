@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
 import com.tencent.bk.job.common.iam.dto.BatchAuthByPathReq;
@@ -64,7 +64,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.IAM_API;
  * IAM API 调用客户端
  */
 @Slf4j
-public class EsbIamClient extends AbstractBkApiClient implements IIamClient {
+public class EsbIamClient extends BkApiClient implements IIamClient {
 
     private static final String API_GET_APPLY_URL = "/api/c/compapi/v2/iam/application/";
     private static final String API_REGISTER_RESOURCE_URL =

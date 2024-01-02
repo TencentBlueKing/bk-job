@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
 import com.tencent.bk.job.common.gse.IGseClient;
@@ -61,7 +61,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-public class GseV2ApiClient extends AbstractBkApiClient implements IGseClient {
+public class GseV2ApiClient extends BkApiClient implements IGseClient {
 
     private static final String URI_LIST_AGENT_STATE = "/api/v2/cluster/list_agent_state";
     private static final String URI_ASYNC_EXECUTE_SCRIPT = "/api/v2/task/extensions/async_execute_script";

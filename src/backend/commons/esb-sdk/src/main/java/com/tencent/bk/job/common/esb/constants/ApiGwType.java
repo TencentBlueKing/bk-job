@@ -22,32 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.esb.constants;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
-
-
-    private ApiGwConfig gse;
-
-    private ApiGwConfig bkNotice;
-
-    private ApiGwConfig cmdb;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
-    }
+/**
+ * 蓝鲸 API 网关类型
+ */
+public enum ApiGwType {
+    /**
+     * ESB
+     */
+    ESB,
+    /**
+     * 蓝鲸网关，用于替换 ESB
+     */
+    BK_APIGW;
 }
