@@ -38,4 +38,12 @@ public class GetDayFromHourPropertyDefiner extends PropertyDefinerBase {
         int days = new Double(Math.ceil(hours / 24.0)).intValue();
         return String.valueOf(days);
     }
+
+    public int getHours() {
+        return hours;
+    }
+
+    public void setHours(int hours) {
+        this.hours = hours;
+    }
 }
