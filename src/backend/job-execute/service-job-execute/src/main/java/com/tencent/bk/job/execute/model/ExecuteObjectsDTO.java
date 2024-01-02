@@ -199,6 +199,7 @@ public class ExecuteObjectsDTO implements Cloneable {
     /**
      * 执行对象是否为空
      */
+    @JsonIgnore
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(this.staticIpList)
             && CollectionUtils.isEmpty(this.topoNodes)
@@ -497,11 +498,11 @@ public class ExecuteObjectsDTO implements Cloneable {
             List<ExecuteObject> executeObjects = new ArrayList<>();
             List<HostDTO> hosts = extractHosts();
             if (CollectionUtils.isNotEmpty(hosts)) {
-                executeObjects.addAll(hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                executeObjects.addAll(hosts.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(staticContainerList)) {
-                executeObjects.addAll(hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
+                executeObjects.addAll(hosts.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
             this.executeObjects = executeObjects;

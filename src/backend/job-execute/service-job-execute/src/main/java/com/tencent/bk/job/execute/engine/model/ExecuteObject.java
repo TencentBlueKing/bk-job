@@ -90,17 +90,23 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     private ExecuteObjectGseKey executeObjectGseKey;
 
-//    public ExecuteObject(Container container) {
-//        this.type = ExecuteObjectTypeEnum.CONTAINER;
-//        this.container = container;
-//        this.resourceId = container.getId();
-//    }
-//
-//    public ExecuteObject(HostDTO host) {
-//        this.type = ExecuteObjectTypeEnum.HOST;
-//        this.host = host;
-//        this.resourceId = host.getHostId();
-//    }
+    public ExecuteObject(Container container) {
+        this.container = container;
+        this.type = ExecuteObjectTypeEnum.CONTAINER;
+        this.resourceId = container.getId();
+        this.id = buildExecuteObjectId(ExecuteObjectTypeEnum.CONTAINER, container.getId());
+    }
+
+    public ExecuteObject(HostDTO host) {
+        this.host = host;
+        this.type = ExecuteObjectTypeEnum.HOST;
+        this.resourceId = host.getHostId();
+        this.id = buildExecuteObjectId(ExecuteObjectTypeEnum.HOST, host.getHostId());
+    }
+
+    private String buildExecuteObjectId(ExecuteObjectTypeEnum executeObjectType, Long executeObjectResoruceId) {
+        return executeObjectType.getValue() + ":" + executeObjectResoruceId;
+    }
 
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
         explain = "数据失效后该构造方法可以删除")
@@ -238,6 +244,7 @@ public class ExecuteObject implements Cloneable {
     /**
      * 判断是否支持执行对象特性
      */
+    @JsonIgnore
     public boolean isSupportExecuteObjectFeature() {
         return id != null;
     }

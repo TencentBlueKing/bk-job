@@ -423,7 +423,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     }
 
     @Override
-    public InternalResponse<List<HostDTO>> questHostsByLogKeyword(String jobCreateDate,
+    public InternalResponse<List<HostDTO>> queryHostsByLogKeyword(String jobCreateDate,
                                                                   Long stepInstanceId,
                                                                   Integer executeCount,
                                                                   Integer batch,

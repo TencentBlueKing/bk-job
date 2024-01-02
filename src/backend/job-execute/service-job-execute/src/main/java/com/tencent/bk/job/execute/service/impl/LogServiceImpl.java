@@ -428,6 +428,7 @@ public class LogServiceImpl implements LogService {
         request.setExecuteCount(executeCount);
         request.setBatch(batch);
         request.setJobCreateDate(taskCreateDateStr);
+        request.setMode(FileTaskModeEnum.UPLOAD.getValue());
         InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listFileExecuteObjectLogs(
             taskCreateDateStr, stepInstanceId, executeCount, request);
         if (!resp.isSuccess()) {
@@ -556,7 +557,7 @@ public class LogServiceImpl implements LogService {
                 .map(ExecuteObjectCompositeKey::ofExecuteObjectId)
                 .collect(Collectors.toList());
         } else {
-            InternalResponse<List<HostDTO>> resp = logResource.questHostsByLogKeyword(taskCreateDateStr,
+            InternalResponse<List<HostDTO>> resp = logResource.queryHostsByLogKeyword(taskCreateDateStr,
                 stepInstanceId, executeCount, batch, keyword);
             if (!resp.isSuccess()) {
                 log.error("Search host by keyword error, stepInstanceId={}, executeCount={}, keyword={}",

@@ -247,7 +247,7 @@ public interface ServiceLogResource {
     @Deprecated
     @ApiOperation("根据脚本任务日志关键字获取对应的ip")
     @GetMapping("/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<HostDTO>> questHostsByLogKeyword(
+    InternalResponse<List<HostDTO>> queryHostsByLogKeyword(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
