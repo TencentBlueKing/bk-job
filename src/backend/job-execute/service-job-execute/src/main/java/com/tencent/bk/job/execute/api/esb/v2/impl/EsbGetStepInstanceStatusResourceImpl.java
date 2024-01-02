@@ -163,12 +163,13 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
         for (ResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<ExecuteObjectTask> agentTasks = resultGroup.getExecuteObjectTasks();
-            standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
-            if (CollectionUtils.isNotEmpty(agentTasks)) {
+            List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
+            standardStepAnalyseResult.put("count",
+                CollectionUtils.isEmpty(executeObjectTasks) ? 0 : executeObjectTasks.size());
+            if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
-                for (ExecuteObjectTask agentTask : agentTasks) {
-                    HostDTO host = agentTask.getExecuteObject().getHost();
+                for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
+                    HostDTO host = executeObjectTask.getExecuteObject().getHost();
                     ips.add(new EsbIpDTO(host.getHostId(), host.getBkCloudId(), host.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);

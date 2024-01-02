@@ -316,10 +316,11 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         watch.stop();
 
         watch.start("saveGseAgentTasks");
-        batchSaveChangedGseAgentTasks(targetExecuteObjectTasks.values());
+        batchSaveChangedExecuteObjectTasks(targetExecuteObjectTasks.values());
         watch.stop();
 
-        log.info("[{}] Analyse gse task result -> notFinishedTargetAgentIds={}, analyseFinishedTargetAgentIds={}",
+        log.info("[{}] Analyse gse task result -> notFinishedTargetExecuteObjectGseKeys={}" +
+                ", analyseFinishedTargetExecuteObjectGseKeys={}",
             this.gseTaskInfo, this.notFinishedTargetExecuteObjectGseKeys,
             this.analyseFinishedTargetExecuteObjectGseKeys);
 
@@ -336,15 +337,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         return rst;
     }
 
-    private boolean shouldAnalyse(ScriptExecuteObjectTaskResult agentTaskResult) {
-        ExecuteObjectGseKey executeObjectGseKey = agentTaskResult.getExecuteObjectGseKey();
+    private boolean shouldAnalyse(ScriptExecuteObjectTaskResult executeObjectTaskResult) {
+        ExecuteObjectGseKey executeObjectGseKey = executeObjectTaskResult.getExecuteObjectGseKey();
         // 该Agent已经日志分析结束，不要再分析
         if (this.analyseFinishedTargetExecuteObjectGseKeys.contains(executeObjectGseKey)) {
             return false;
         }
         if (!this.targetExecuteObjectGseKeys.contains(executeObjectGseKey)) {
             log.warn("[{}] Unexpected target executeObjectGseKey {}. result: {}", gseTaskInfo, executeObjectGseKey,
-                JsonUtils.toJson(agentTaskResult));
+                JsonUtils.toJson(executeObjectTaskResult));
             return false;
         }
         return true;
@@ -645,7 +646,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
      */
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
-        if (isAllTargetAgentTasksDone()) {
+        if (isAllTargetExecuteObjectTasksDone()) {
             rst = analyseFinishedExecuteResult();
         } else {
             rst = GseTaskExecuteResult.RUNNING;
@@ -654,8 +655,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     @Override
-    protected void saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
-        super.saveFailInfoForUnfinishedAgentTask(status, errorMsg);
+    protected void saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
+        super.saveFailInfoForUnfinishedExecuteObjectTask(status, errorMsg);
         long endTime = System.currentTimeMillis();
         if (StringUtils.isNotEmpty(errorMsg)) {
             List<ServiceExecuteObjectScriptLogDTO> scriptLogs =

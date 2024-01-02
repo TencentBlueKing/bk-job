@@ -438,15 +438,15 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private void saveStatusWhenSkip() {
-        List<ExecuteObjectTask> notFinishedGseAgentTasks =
+        List<ExecuteObjectTask> notFinishedExecuteObjectTasks =
             targetExecuteObjectTasks.values().stream().filter(not(ExecuteObjectTask::isFinished)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
-            notFinishedGseAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(ExecuteObjectTaskStatusEnum.UNKNOWN);
-                agentTask.setEndTime(System.currentTimeMillis());
+        if (CollectionUtils.isNotEmpty(notFinishedExecuteObjectTasks)) {
+            notFinishedExecuteObjectTasks.forEach(executeObjectTask -> {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.UNKNOWN);
+                executeObjectTask.setEndTime(System.currentTimeMillis());
             });
         }
-        executeObjectTaskService.batchUpdateTasks(notFinishedGseAgentTasks);
+        executeObjectTaskService.batchUpdateTasks(notFinishedExecuteObjectTasks);
     }
 
     /*
@@ -467,7 +467,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", gseTaskInfo,
                 runDuration, stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
+            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             isTimeout = true;
@@ -489,7 +489,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", gseTaskInfo);
                 this.executeResult = GseTaskExecuteResult.FAILED;
-                saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result log " +
+                saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result " +
+                    "log " +
                     "always empty.");
                 finishGseTask(GseTaskExecuteResult.FAILED, true);
                 isAbnormal = true;
@@ -505,7 +506,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
                 gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
+            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 gseLogBatchPullResult.getErrorMsg());
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             return false;
@@ -598,31 +599,31 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 批量更新AgentTask并重置changed标志
+     * 批量更新执行对象任务并重置changed标志
      *
      * @param executeObjectTasks 执行对象任务列表
      */
-    protected void batchSaveChangedGseAgentTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
+    protected void batchSaveChangedExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
         if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
-            List<ExecuteObjectTask> changedGseAgentTasks =
+            List<ExecuteObjectTask> changedTasks =
                 executeObjectTasks.stream().filter(ExecuteObjectTask::isChanged).collect(Collectors.toList());
-            executeObjectTaskService.batchUpdateTasks(changedGseAgentTasks);
-            changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
+            executeObjectTaskService.batchUpdateTasks(changedTasks);
+            changedTasks.forEach(executeObjectTask -> executeObjectTask.setChanged(false));
         }
     }
 
-    protected void saveFailInfoForUnfinishedAgentTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
             gseTaskInfo, notFinishedTargetExecuteObjectGseKeys);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
         for (ExecuteObjectGseKey executeObjectGseKey : notFinishedTargetExecuteObjectGseKeys) {
-            ExecuteObjectTask agentTask = targetExecuteObjectTasks.get(executeObjectGseKey);
-            agentTask.setStartTime(startTime);
-            agentTask.setEndTime(System.currentTimeMillis());
-            agentTask.setStatus(status);
+            ExecuteObjectTask executeObjectTask = targetExecuteObjectTasks.get(executeObjectGseKey);
+            executeObjectTask.setStartTime(startTime);
+            executeObjectTask.setEndTime(System.currentTimeMillis());
+            executeObjectTask.setStatus(status);
         }
-        batchSaveChangedGseAgentTasks(targetExecuteObjectTasks.values());
+        batchSaveChangedExecuteObjectTasks(targetExecuteObjectTasks.values());
     }
 
     @Override
@@ -675,16 +676,16 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 是否所有目标Agent上的任务都完成
+     * 是否所有目标上的执行对象任务都完成
      */
-    protected boolean isAllTargetAgentTasksDone() {
+    protected boolean isAllTargetExecuteObjectTasksDone() {
         return this.analyseFinishedTargetExecuteObjectGseKeys.size() == this.targetExecuteObjectGseKeys.size();
     }
 
     /**
-     * 是否所有目标Agent上的任务都执行成功
+     * 是否所有目标上的执行对象任务都执行成功
      */
-    protected boolean isAllTargetAgentTasksSuccess() {
+    protected boolean isAllTargetExecuteObjectTasksSuccess() {
         return this.targetExecuteObjectGseKeys.size() == this.successTargetExecuteObjectGseKeys.size();
     }
 
@@ -693,7 +694,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected GseTaskExecuteResult analyseFinishedExecuteResult() {
         GseTaskExecuteResult rst;
-        if (isAllTargetAgentTasksSuccess()) {
+        if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
             if (hasInvalidHost) {
                 log.info("Gse task contains invalid host, set execute result fail");

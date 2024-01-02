@@ -40,7 +40,7 @@ import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEn
 
 public class Consts {
     /**
-     * GSE 错误码与 AgentTask 执行结果的映射关系
+     * GSE 错误码与执行对象任务结果的映射关系
      */
     public static final Map<Integer, ExecuteObjectTaskStatusEnum> GSE_ERROR_CODE_2_STATUS_MAP;
     /**

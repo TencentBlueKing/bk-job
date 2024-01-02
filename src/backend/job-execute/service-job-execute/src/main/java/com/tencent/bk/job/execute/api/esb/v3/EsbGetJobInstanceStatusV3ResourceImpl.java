@@ -149,34 +149,35 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<ExecuteObjectTask> agentTaskList = null;
+                List<ExecuteObjectTask> executeObjectTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptExecuteObjectTaskService.listTasks(stepInstance,
+                    executeObjectTaskList = scriptExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileExecuteObjectTaskService.listTasks(stepInstance,
+                    executeObjectTaskList = fileExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
-                    if (CollectionUtils.isNotEmpty(agentTaskList)) {
+                    if (CollectionUtils.isNotEmpty(executeObjectTaskList)) {
                         // 如果是文件分发任务，只返回目标Agent结果
-                        agentTaskList = agentTaskList.stream()
-                            .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                        executeObjectTaskList = executeObjectTaskList.stream()
+                            .filter(executeObjectTask ->
+                                executeObjectTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
                             .collect(Collectors.toList());
                     }
                 }
-                if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (ExecuteObjectTask agentTask : agentTaskList) {
-                        ExecuteObject executeObject = agentTask.getExecuteObject();
+                if (CollectionUtils.isNotEmpty(executeObjectTaskList)) {
+                    for (ExecuteObjectTask executeObjectTask : executeObjectTaskList) {
+                        ExecuteObject executeObject = executeObjectTask.getExecuteObject();
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
                         stepIpResult.setHostId(executeObject.getHost().getHostId());
                         stepIpResult.setCloudAreaId(executeObject.getHost().getBkCloudId());
                         stepIpResult.setIp(executeObject.getHost().getIp());
-                        stepIpResult.setExitCode(agentTask.getExitCode());
-                        stepIpResult.setErrorCode(agentTask.getErrorCode());
-                        stepIpResult.setStartTime(agentTask.getStartTime());
-                        stepIpResult.setEndTime(agentTask.getEndTime());
-                        stepIpResult.setTotalTime(agentTask.getTotalTime());
-                        stepIpResult.setTag(agentTask.getTag());
-                        stepIpResult.setStatus(agentTask.getStatus().getValue());
+                        stepIpResult.setExitCode(executeObjectTask.getExitCode());
+                        stepIpResult.setErrorCode(executeObjectTask.getErrorCode());
+                        stepIpResult.setStartTime(executeObjectTask.getStartTime());
+                        stepIpResult.setEndTime(executeObjectTask.getEndTime());
+                        stepIpResult.setTotalTime(executeObjectTask.getTotalTime());
+                        stepIpResult.setTag(executeObjectTask.getTag());
+                        stepIpResult.setStatus(executeObjectTask.getStatus().getValue());
                         stepIpResults.add(stepIpResult);
                     }
                 }

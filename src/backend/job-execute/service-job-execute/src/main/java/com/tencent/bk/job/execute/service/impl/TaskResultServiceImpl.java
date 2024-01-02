@@ -306,15 +306,15 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
     }
 
-    private void setAgentTasksForSpecifiedResultType(List<ResultGroupDTO> resultGroups,
-                                                     Integer status,
-                                                     String tag,
-                                                     List<ExecuteObjectTask> agentTasksForResultType) {
+    private void setExecuteObjectTasksForSpecifiedResultType(List<ResultGroupDTO> resultGroups,
+                                                             Integer status,
+                                                             String tag,
+                                                             List<ExecuteObjectTask> executeObjectTasksForResultType) {
         for (ResultGroupDTO resultGroup : resultGroups) {
             if (status.equals(resultGroup.getStatus()) && (
                 (StringUtils.isEmpty(tag) ? StringUtils.isEmpty(resultGroup.getTag()) :
                     tag.equals(resultGroup.getTag())))) {
-                resultGroup.setExecuteObjectTasks(agentTasksForResultType);
+                resultGroup.setExecuteObjectTasks(executeObjectTasksForResultType);
             }
         }
     }
@@ -343,12 +343,12 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                  Integer status,
                                                  String tag,
                                                  Integer maxAgentTasksForResultGroup) {
-        List<ExecuteObjectTask> agentTasks = listExecuteObjectTaskByResultGroup(stepInstance,
+        List<ExecuteObjectTask> executeObjectTasks = listExecuteObjectTaskByResultGroup(stepInstance,
             executeCount, batch, status, tag, maxAgentTasksForResultGroup, null, null);
-        if (CollectionUtils.isEmpty(agentTasks)) {
+        if (CollectionUtils.isEmpty(executeObjectTasks)) {
             return false;
         }
-        resultGroup.setExecuteObjectTasks(agentTasks);
+        resultGroup.setExecuteObjectTasks(executeObjectTasks);
         return true;
     }
 
@@ -726,7 +726,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 query.getBatch(), status, tag, query.getMaxTasksForResultGroup(), query.getOrderField(),
                 query.getOrder());
             if (CollectionUtils.isNotEmpty(tasks)) {
-                setAgentTasksForSpecifiedResultType(resultGroups, status, tag, tasks);
+                setExecuteObjectTasksForSpecifiedResultType(resultGroups, status, tag, tasks);
             } else {
                 setAgentTasksForAnyResultType(resultGroups, stepInstance, queryExecuteCount,
                     query.getBatch(), query.getMaxTasksForResultGroup(), query.isFetchAllGroupData());

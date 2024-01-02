@@ -207,10 +207,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
         initSrcFilesMap(srcDestFileMap.keySet());
         initFileTaskNumMap();
-        initSourceAgentIds();
+        initSourceExecuteObjectGseKeys();
 
-        log.info("InitFileResultHandleTask|stepInstanceId: {}|fileSourceAgentIds: {}|targetAgentIds: {}|"
-                + "fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+        log.info("InitFileResultHandleTask|stepInstanceId: {}|sourceExecuteObjectGseKeys: {}"
+                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
             stepInstance.getId(), sourceExecuteObjectGseKeys, targetExecuteObjectGseKeys, fileUploadTaskNumMap,
             fileDownloadTaskNumMap);
     }
@@ -243,7 +243,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         }
     }
 
-    private void initSourceAgentIds() {
+    private void initSourceExecuteObjectGseKeys() {
         sourceExecuteObjectTaskMap.values().forEach(executeObjectTask -> {
             this.notFinishedSourceExecuteObjectGseKeys.add(
                 executeObjectTask.getExecuteObject().toExecuteObjectGseKey());
@@ -310,15 +310,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         watch.stop();
 
         // 保存任务执行结果
-        watch.start("saveAgentTasks");
-        batchSaveChangedGseAgentTasks(targetExecuteObjectTasks.values());
-        batchSaveChangedGseAgentTasks(sourceExecuteObjectTaskMap.values());
+        watch.start("saveExecuteObjectTasks");
+        batchSaveChangedExecuteObjectTasks(targetExecuteObjectTasks.values());
+        batchSaveChangedExecuteObjectTasks(sourceExecuteObjectTaskMap.values());
         watch.stop();
 
-        log.info("[{}] Analyse gse task result -> " +
-                "notFinishedTargetAgentIds={}, notFinishedSourceAgentIds={}, " +
-                "analyseFinishedTargetAgentIds={}, analyseFinishedSourceAgentIds={}, finishedDownloadFileMap={}, " +
-                "successDownloadFileMap={}, finishedUploadFileMap={}, successUploadFileMap={}",
+        log.info("[{}] Analyse gse task result -> "
+                + "notFinishedTargetExecuteObjectGseKeys={}, notFinishedSourceExecuteObjectGseKeys={}, "
+                + "analyseFinishedTargetExecuteObjectGseKeys={}, analyseFinishedSourceExecuteObjectGseKeys={}"
+                + ", finishedDownloadFileMap={}, successDownloadFileMap={}, finishedUploadFileMap={},"
+                + " successUploadFileMap={}",
             this.gseTaskInfo,
             this.notFinishedTargetExecuteObjectGseKeys,
             this.notFinishedSourceExecuteObjectGseKeys,
@@ -397,15 +398,15 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                    JobAtomicFileTaskResult result,
                                    Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
                                    boolean isDownloadResult) {
-        ExecuteObjectTask agentTask = result.getExecuteObjectTask();
-        if (agentTask.getStartTime() == null) {
-            agentTask.setStartTime(System.currentTimeMillis());
+        ExecuteObjectTask executeObjectTask = result.getExecuteObjectTask();
+        if (executeObjectTask.getStartTime() == null) {
+            executeObjectTask.setStartTime(System.currentTimeMillis());
         }
-        agentTask.setErrorCode(result.getResult().getErrorCode());
+        executeObjectTask.setErrorCode(result.getResult().getErrorCode());
         GSECode.AtomicErrorCode errorCode = GSECode.AtomicErrorCode.getErrorCode(result.getResult().getErrorCode());
         switch (errorCode) {
             case RUNNING:
-                analyseRunningFileResult(result, executionLogs, agentTask);
+                analyseRunningFileResult(result, executionLogs, executeObjectTask);
                 break;
             case FINISHED:
                 analyseSuccessFileResult(executeObjectGseKey, result, executionLogs, isDownloadResult);
@@ -421,10 +422,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseRunningFileResult(JobAtomicFileTaskResult result,
                                           Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
-                                          ExecuteObjectTask agentTask) {
+                                          ExecuteObjectTask executeObjectTask) {
         parseExecutionLog(result, executionLogs);
-        agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
-        agentTask.setStartTime(result.getResult().getContent().getStartTime());
+        executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
+        executeObjectTask.setStartTime(result.getResult().getContent().getStartTime());
     }
 
     private void analyseSuccessFileResult(ExecuteObjectGseKey executeObjectGseKey,
@@ -440,8 +441,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             addFinishedFile(true, false,
                 content.getSourceExecuteObjectGseKey(), content.getTaskId());
         }
-        // 分析日志，更新successAgentIds、notStartedAgentIds等状态集合
-        analyseAgentTaskResult(GSECode.AtomicErrorCode.FINISHED.getValue(), executeObjectGseKey,
+        // 分析执行对象任务结果
+        analyseExecuteObjectTaskResult(GSECode.AtomicErrorCode.FINISHED.getValue(), executeObjectGseKey,
             content.getStartTime(), content.getEndTime(), isDownloadResult);
     }
 
@@ -458,7 +459,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             addFinishedFile(false, false,
                 content.getSourceExecuteObjectGseKey(), content.getTaskId());
         }
-        analyseAgentTaskResult(GSECode.AtomicErrorCode.TERMINATE.getValue(), executeObjectGseKey,
+        analyseExecuteObjectTaskResult(GSECode.AtomicErrorCode.TERMINATE.getValue(), executeObjectGseKey,
             content.getStartTime(), content.getEndTime(), isDownloadResult);
         this.isTerminatedSuccess = true;
     }
@@ -511,7 +512,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private ExecuteObjectTask getExecuteObjectTask(boolean isDownloadResult,
-                                                         ExecuteObjectGseKey executeObjectGseKey) {
+                                                   ExecuteObjectGseKey executeObjectGseKey) {
         if (isDownloadResult) {
             return targetExecuteObjectTasks.get(executeObjectGseKey);
         } else {
@@ -527,9 +528,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private GseTaskExecuteResult analyseExecuteResult() {
         GseTaskExecuteResult rst;
         // 目标下载全部完成
-        if (isAllTargetAgentTasksDone()) {
+        if (isAllTargetExecuteObjectTasksDone()) {
             // 源上传全部完成
-            if (isAllSourceAgentTasksDone()) {
+            if (isAllSourceExecuteObjectTasksDone()) {
                 rst = analyseFinishedExecuteResult();
                 log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed " +
                         "tasks",
@@ -559,8 +560,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return rst;
     }
 
-    private boolean isAllSourceAgentTasksDone() {
-        return this.notFinishedSourceExecuteObjectGseKeys.isEmpty() && this.notFinishedTargetExecuteObjectGseKeys.isEmpty();
+    private boolean isAllSourceExecuteObjectTasksDone() {
+        return this.notFinishedSourceExecuteObjectGseKeys.isEmpty()
+            && this.notFinishedTargetExecuteObjectGseKeys.isEmpty();
     }
 
     private boolean shouldAnalyse(AtomicFileTaskResult result) {
@@ -657,7 +659,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 errorMsg
             )
         );
-        analyseAgentTaskResult(errorCode, destExecuteObjectGseKey, getTimeOrDefault(startTime),
+        analyseExecuteObjectTaskResult(errorCode, destExecuteObjectGseKey, getTimeOrDefault(startTime),
             getTimeOrDefault(endTime), true);
     }
 
@@ -693,7 +695,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 null,
                 buildErrorLogContent(result.getResult()))
         );
-        analyseAgentTaskResult(result.getResult().getErrorCode(), sourceExecuteObjectGseKey, startTime, endTime, false);
+        analyseExecuteObjectTaskResult(result.getResult().getErrorCode(), sourceExecuteObjectGseKey, startTime,
+            endTime, false);
 
         // 源失败了，会影响所有目标IP对应的agent上的download任务
         for (ExecuteObjectGseKey targetExecuteObjectGseKey : this.targetExecuteObjectGseKeys) {
@@ -726,43 +729,43 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
 
     /**
-     * 根据errorCode、fileNum、successNum更新successAgentIds状态集合与agentTask状态
+     * 分析并设置执行对象任务的状态
      *
      * @param errorCode           GSE错误码
      * @param executeObjectGseKey executeObjectGseKey
      * @param fileNum             文件总数
      * @param successNum          成功分发的文件总数
      * @param isDownload          是否为下载结果
-     * @param agentTask           执行对象任务
+     * @param executeObjectTask   执行对象任务
      */
-    private void analyseAgentStatus(int errorCode,
-                                    ExecuteObjectGseKey executeObjectGseKey,
-                                    int fileNum,
-                                    int successNum,
-                                    boolean isDownload,
-                                    ExecuteObjectTask agentTask) {
+    private void analyseExecuteObjectTaskStatus(int errorCode,
+                                                ExecuteObjectGseKey executeObjectGseKey,
+                                                int fileNum,
+                                                int successNum,
+                                                boolean isDownload,
+                                                ExecuteObjectTask executeObjectTask) {
         // 文件任务成功数=任务总数
         if (successNum >= fileNum) {
             if (hasInvalidSourceExecuteObject) {
                 // 如果包含了非法的源文件主机，即使GSE任务（已过滤非法主机)执行成功，那么对于这个主机来说，整体上任务状态是失败
-                agentTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
             } else {
-                agentTask.setStatus(ExecuteObjectTaskStatusEnum.SUCCESS);
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUCCESS);
                 if (isDownload) {
                     this.successTargetExecuteObjectGseKeys.add(executeObjectGseKey);
                 }
             }
         } else {
-            ExecuteObjectTaskStatusEnum agentTaskStatus = ExecuteObjectTaskStatusEnum.FAILED;
+            ExecuteObjectTaskStatusEnum executeObjectTaskStatus = ExecuteObjectTaskStatusEnum.FAILED;
             if (errorCode != 0) {
-                agentTaskStatus = GseUtils.getStatusByGseErrorCode(errorCode);
+                executeObjectTaskStatus = GseUtils.getStatusByGseErrorCode(errorCode);
             }
-            agentTask.setStatus(agentTaskStatus);
+            executeObjectTask.setStatus(executeObjectTaskStatus);
         }
     }
 
     /**
-     * 分析日志，更新successAgentIds、notStartedAgentIds等状态集合，用于判定最终整体任务状态
+     * 分析并判定最终整体任务状态
      *
      * @param errorCode           GSE错误码
      * @param executeObjectGseKey executeObjectGseKey
@@ -770,11 +773,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * @param endTime             任务终止时间
      * @param isDownloadResult    是否为下载结果
      */
-    private void analyseAgentTaskResult(int errorCode,
-                                        ExecuteObjectGseKey executeObjectGseKey,
-                                        long startTime,
-                                        long endTime,
-                                        boolean isDownloadResult) {
+    private void analyseExecuteObjectTaskResult(int errorCode,
+                                                ExecuteObjectGseKey executeObjectGseKey,
+                                                long startTime,
+                                                long endTime,
+                                                boolean isDownloadResult) {
         int finishedNum;
         int fileNum;
         int successNum;
@@ -794,19 +797,20 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 0 : this.fileUploadTaskNumMap.get(executeObjectGseKey);
         }
 
-        ExecuteObjectTask agentTask = getExecuteObjectTask(isDownloadResult, executeObjectGseKey);
+        ExecuteObjectTask executeObjectTask = getExecuteObjectTask(isDownloadResult, executeObjectGseKey);
         if (finishedNum >= fileNum) {
             log.info("[{}] Analyse Agent task finished! executeObjectGseKey: {}, finishedTaskNum: {}, " +
                 "expectedTaskNum: {}", gseTaskInfo, executeObjectGseKey, finishedNum, fileNum);
-            // 更新AgentTask结果
+            // 更新执行对象任务结果
             if (isDownloadResult) {
-                dealTargetExecuteObjectFinish(executeObjectGseKey, startTime, endTime, agentTask);
+                dealTargetExecuteObjectFinish(executeObjectGseKey, startTime, endTime, executeObjectTask);
             } else {
-                dealUploadAgentFinished(executeObjectGseKey, startTime, endTime, agentTask);
+                dealUploadAgentFinished(executeObjectGseKey, startTime, endTime, executeObjectTask);
             }
-            analyseAgentStatus(errorCode, executeObjectGseKey, fileNum, successNum, isDownloadResult, agentTask);
+            analyseExecuteObjectTaskStatus(errorCode, executeObjectGseKey, fileNum, successNum, isDownloadResult,
+                executeObjectTask);
         } else {
-            agentTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
+            executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
         }
     }
 

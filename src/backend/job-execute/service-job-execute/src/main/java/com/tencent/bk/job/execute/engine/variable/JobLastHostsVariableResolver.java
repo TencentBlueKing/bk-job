@@ -104,9 +104,9 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                 break;
             }
             case JobBuildInVariables.JOB_LAST_FAIL: {
-                List<ExecuteObjectTask> agentTasks = listAgentTasks(preStepInstance);
-                if (CollectionUtils.isNotEmpty(agentTasks)) {
-                    hosts = agentTasks.stream()
+                List<ExecuteObjectTask> executeObjectTasks = listAgentTasks(preStepInstance);
+                if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
+                    hosts = executeObjectTasks.stream()
                         .filter(not(ExecuteObjectTask::isSuccess))
                         .map(task -> task.getExecuteObject().getHost())
                         .collect(Collectors.toSet());

@@ -131,7 +131,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
                 if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
                     // 如果是文件分发任务，只返回目标Agent结果
                     executeObjectTasks = executeObjectTasks.stream()
-                        .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                        .filter(executeObjectTask -> executeObjectTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
                         .collect(Collectors.toList());
                 }
             }
