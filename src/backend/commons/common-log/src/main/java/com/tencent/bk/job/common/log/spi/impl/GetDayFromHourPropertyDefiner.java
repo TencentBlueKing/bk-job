@@ -22,22 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":commons:common-log")
-    api project(":commons:common-i18n")
-    api project(":commons:common-otel")
-    api project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    api "org.springframework.boot:spring-boot-starter-web"
-    api "ch.qos.logback:logback-core"
-    api "ch.qos.logback:logback-classic"
-    api "org.slf4j:slf4j-api"
-    api "org.apache.commons:commons-collections4"
-    api 'org.apache.httpcomponents:httpclient'
-    api group: 'org.apache.thrift', name: 'libthrift'
-    api "commons-io:commons-io"
-    api "commons-codec:commons-codec"
-    api 'io.springfox:springfox-boot-starter'
-    api 'net.coobird:thumbnailator:0.4.14'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.apache.commons:commons-lang3'
+package com.tencent.bk.job.common.log.spi.impl;
+
+import ch.qos.logback.core.PropertyDefinerBase;
+
+/**
+ * 根据参数传入的小时数换算为对应的天数，不足1天按1天算
+ */
+public class GetDayFromHourPropertyDefiner extends PropertyDefinerBase {
+
+    int hours;
+
+    @Override
+    public String getPropertyValue() {
+        int days = new Double(Math.ceil(hours / 24.0)).intValue();
+        return String.valueOf(days);
+    }
 }

@@ -17,7 +17,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${SCHEDULE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>24</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>24GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
@@ -31,7 +31,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${TASK_MONITOR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>3</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>

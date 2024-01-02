@@ -16,7 +16,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ARCHIVE_ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>168</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
         </rollingPolicy>
         <encoder>

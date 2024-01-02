@@ -10,12 +10,18 @@
     <property name="FILE_WORKER_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/worker.log"/>
     <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/error.log"/>
 
+    <springProperty name="LOG_KEEP_HOURS" source="logKeepHours" defaultValue="168"/>
+
+    <define name="LOG_KEEP_DAYS" class="com.tencent.bk.job.common.log.spi.impl.GetDayFromHourPropertyDefiner">
+        <hours>${LOG_KEEP_HOURS}</hours>
+    </define>
+
     <appender name="file-worker-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${FILE_WORKER_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${FILE_WORKER_LOG_FILE}-%d{yyyyMMdd_HH}.%i.log</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>120</maxHistory>
+            <maxHistory>${LOG_KEEP_HOURS}</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>
@@ -28,7 +34,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>120</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>
         </rollingPolicy>
         <encoder>

@@ -18,7 +18,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -31,7 +31,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ESB_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -44,7 +44,7 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${IAM_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
