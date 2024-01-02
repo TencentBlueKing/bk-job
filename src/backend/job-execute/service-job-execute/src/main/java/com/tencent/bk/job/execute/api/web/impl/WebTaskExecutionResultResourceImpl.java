@@ -852,7 +852,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                 String scopeId,
                                                                 Long stepInstanceId,
                                                                 Integer executeCount,
-                                                                String ip,
                                                                 Long hostId,
                                                                 String mode,
                                                                 Integer batch) {

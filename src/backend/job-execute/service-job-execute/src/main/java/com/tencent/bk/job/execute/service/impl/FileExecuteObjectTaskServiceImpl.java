@@ -130,7 +130,8 @@ public class FileExecuteObjectTaskServiceImpl
                                                   int executeCount,
                                                   Integer batch) {
         List<ResultGroupDTO> resultGroups = new ArrayList<>();
-        List<ExecuteObjectTask> executeObjectTasks = listTasks(stepInstance, executeCount, batch);
+        List<ExecuteObjectTask> executeObjectTasks = listTasks(stepInstance, executeCount,
+            batch, FileTaskModeEnum.DOWNLOAD);
         if (CollectionUtils.isEmpty(executeObjectTasks)) {
             return resultGroups;
         }

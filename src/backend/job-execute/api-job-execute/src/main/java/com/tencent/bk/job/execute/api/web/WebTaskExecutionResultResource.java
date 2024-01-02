@@ -342,9 +342,7 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
         @PathVariable("executeCount")
             Integer executeCount,
-        @ApiParam(value = "主机ip(云区域ID:ip)，兼容历史版本数据，后续会删除；建议使用hostId", name = "ip")
-        @PathVariable(value = "ip", required = false) String ip,
-        @ApiParam(value = "主机ID,优先级比ip参数高", name = "hostId")
+        @ApiParam(value = "主机ID", name = "hostId")
         @PathVariable(value = "hostId", required = false) Long hostId,
         @ApiParam(value = "文件任务上传下载标识,upload-上传,download-下载", name = "mode", required = true)
         @RequestParam(value = "mode")

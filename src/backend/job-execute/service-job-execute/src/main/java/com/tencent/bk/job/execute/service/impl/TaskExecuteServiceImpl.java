@@ -381,10 +381,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()));
 
-        return FeatureToggle.checkFeature(
+        boolean featureEnabled = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_EXECUTE_OBJECT,
             featureExecutionContext
         );
+        log.info("Check feature: {}, result: {}", FeatureIdConstants.FEATURE_EXECUTE_OBJECT, featureEnabled);
+        return featureEnabled;
     }
 
     private void saveTaskInstance(StopWatch watch,
@@ -849,7 +851,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstanceExecuteObjects.setNotExistContainerIds(notExistContainerIds);
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsExecuteObject(stepInstance)) {
+            if (isStepDoNotContainsExecuteObject(stepInstance)) {
                 continue;
             }
             if (CollectionUtils.isNotEmpty(stepInstance.getTargetExecuteObjects().getStaticContainerList())) {
@@ -1042,7 +1044,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 非法的主机
         Set<HostDTO> invalidHosts = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsExecuteObject(stepInstance)) {
+            if (isStepDoNotContainsExecuteObject(stepInstance)) {
                 continue;
             }
             TaskStepTypeEnum stepType = stepInstance.getStepType();
@@ -1185,7 +1187,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void checkStepInstanceHostNonEmpty(StepInstanceDTO stepInstance) {
-        if (!isStepContainsExecuteObject(stepInstance)) {
+        if (isStepDoNotContainsExecuteObject(stepInstance)) {
             return;
         }
         ExecuteObjectsDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
@@ -1211,9 +1213,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private boolean isStepContainsExecuteObject(StepInstanceBaseDTO stepInstance) {
+    private boolean isStepDoNotContainsExecuteObject(StepInstanceBaseDTO stepInstance) {
         // 判断步骤是否包含执行对象
-        return stepInstance.isScriptStep() || stepInstance.isFileStep();
+        return !stepInstance.isScriptStep() && !stepInstance.isFileStep();
     }
 
     private void fillTaskInstanceHostDetail(TaskInstanceDTO taskInstance,
@@ -1238,7 +1240,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsExecuteObject(stepInstance)) {
+            if (isStepDoNotContainsExecuteObject(stepInstance)) {
                 continue;
             }
             // 目标主机设置主机详情
@@ -1341,7 +1343,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                       Collection<TaskVariableDTO> variables) {
         Set<HostDTO> hosts = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsExecuteObject(stepInstance)) {
+            if (isStepDoNotContainsExecuteObject(stepInstance)) {
                 continue;
             }
             if (stepInstance.getTargetExecuteObjects() != null) {
@@ -1426,7 +1428,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     int sourceServerSize = 1;
                     Integer fileType = fileSource.getFileType();
                     if (fileType == TaskFileTypeEnum.SERVER.getType() && fileSource.getServers() != null) {
-                        sourceServerSize = CollectionUtils.size(fileSource.getServers().getIpList());
+                        sourceServerSize = CollectionUtils.size(fileSource.getServers().getExecuteObjectsCompatibly());
                     }
                     int sourceFileSize = CollectionUtils.size(fileSource.getFiles());
                     totalSourceFileSize += sourceServerSize * sourceFileSize;

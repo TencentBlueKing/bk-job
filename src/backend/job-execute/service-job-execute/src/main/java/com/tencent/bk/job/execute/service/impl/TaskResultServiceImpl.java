@@ -717,7 +717,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             queryExecuteCount, query.getBatch());
         watch.stop();
 
-        watch.start("setAgentTasks");
+        watch.start("setExecuteObjectTasks");
         List<ResultGroupDTO> resultGroups = baseResultGroups.stream()
             .map(ResultGroupDTO::new)
             .collect(Collectors.toList());
