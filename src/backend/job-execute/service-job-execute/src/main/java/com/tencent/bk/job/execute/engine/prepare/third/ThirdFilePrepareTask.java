@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
@@ -98,13 +98,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
     volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
     private ServiceFileSourceTaskResource fileSourceTaskResource;
-    private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private HostService hostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final ThirdFilePrepareTaskResultHandler resultHandler;
+    private StepInstanceService stepInstanceService;
     private int pullTimes = 0;
     private long logStart = 0L;
 
@@ -118,18 +118,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         List<FileSourceDTO> fileSourceList,
         String batchTaskId,
         boolean isForRetry,
-        ThirdFilePrepareTaskResultHandler resultHandler
-    ) {
+        ThirdFilePrepareTaskResultHandler resultHandler) {
         this.stepInstance = stepInstance;
         this.fileSourceList = fileSourceList;
         this.batchTaskId = batchTaskId;
         this.isForRetry = isForRetry;
         this.resultHandler = resultHandler;
+
     }
 
     public void initDependentService(
         ServiceFileSourceTaskResource fileSourceTaskResource,
-        TaskInstanceService taskInstanceService,
+        StepInstanceService stepInstanceService,
         AccountService accountService,
         HostService hostService,
         LogService logService,
@@ -137,12 +137,12 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
-        this.taskInstanceService = taskInstanceService;
         this.accountService = accountService;
         this.hostService = hostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -338,7 +338,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         stepInstance.getUniqueKey(),
                         stepInstance.getAppId()
                     );
-                    taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+                    stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
                     taskExecuteMQEventDispatcher.dispatchJobEvent(
                         JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                             EventSource.buildStepEventSource(stepInstance.getId())));
@@ -394,7 +394,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
         }
         //更新StepInstance
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
 

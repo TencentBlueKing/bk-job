@@ -48,7 +48,7 @@ import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,15 +65,15 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceStatusResource {
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
-                                                TaskInstanceService taskInstanceService,
+                                                StepInstanceService stepInstanceService,
                                                 TaskResultService taskResultService) {
         this.i18nService = i18nService;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskResultService = taskResultService;
     }
 
@@ -100,7 +100,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         resultData.setIsFinished(stepExecutionDetail.isFinished());
         resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             log.warn("Get step instance status by taskInstanceId:{}, stepInstanceId:{}, stepInstance is null!",
                 request.getTaskInstanceId(), request.getStepInstanceId());

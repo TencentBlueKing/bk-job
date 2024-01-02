@@ -42,7 +42,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 public class ThirdFilePrepareService {
     private final ResultHandleManager resultHandleManager;
     private final ServiceFileSourceTaskResource fileSourceTaskResource;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
     private final HostService hostService;
@@ -85,7 +85,7 @@ public class ThirdFilePrepareService {
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
                                    ServiceFileSourceTaskResource fileSourceTaskResource,
-                                   TaskInstanceService taskInstanceService,
+                                   StepInstanceService stepInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                    AccountService accountService,
                                    HostService hostService,
@@ -93,7 +93,7 @@ public class ThirdFilePrepareService {
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.accountService = accountService;
         this.hostService = hostService;
@@ -226,7 +226,7 @@ public class ThirdFilePrepareService {
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
         fileSourceTaskLogDAO.insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         // 异步轮询文件下载任务
         ThirdFilePrepareTask task = asyncWatchThirdFilePulling(
             stepInstance,
@@ -281,7 +281,7 @@ public class ThirdFilePrepareService {
     }
 
     public void clearPreparedTmpFile(long stepInstanceId) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
         // 找出所有第三方文件源的TaskId进行清理
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         List<String> fileSourceTaskIdList = findFileSourceTaskIds(stepInstanceId, fileSourceList);
@@ -357,10 +357,9 @@ public class ThirdFilePrepareService {
                 fileSourceList,
                 batchTaskId,
                 isForRetry,
-                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
-            );
+                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler));
         batchResultHandleTask.initDependentService(
-            fileSourceTaskResource, taskInstanceService, accountService,
+            fileSourceTaskResource, stepInstanceService, accountService,
             hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO
         );
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);

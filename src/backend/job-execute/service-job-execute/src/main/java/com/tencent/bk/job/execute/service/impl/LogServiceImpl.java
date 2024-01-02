@@ -44,7 +44,6 @@ import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.api.ServiceLogResource;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
@@ -74,19 +73,16 @@ import java.util.stream.Collectors;
 @SuppressWarnings("Duplicates")
 public class LogServiceImpl implements LogService {
     private final ServiceLogResource logResource;
-    private final TaskInstanceService taskInstanceService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceService stepInstanceService;
 
     @Autowired
     public LogServiceImpl(ServiceLogResource logResource,
-                          TaskInstanceService taskInstanceService,
                           ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                           FileExecuteObjectTaskService fileExecuteObjectTaskService,
                           StepInstanceService stepInstanceService) {
         this.logResource = logResource;
-        this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
@@ -248,7 +244,7 @@ public class LogServiceImpl implements LogService {
         query.setBatch(batch);
 
         List<ExecuteObject> queryExecuteObjects =
-            stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
+            stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
         if (stepInstance.isSupportExecuteObjectFeature()) {
             List<String> executeObjectId = queryExecuteObjects.stream()
                 .map(ExecuteObject::getId).collect(Collectors.toList());
@@ -359,7 +355,7 @@ public class LogServiceImpl implements LogService {
                                                                  int executeCount,
                                                                  Integer batch,
                                                                  List<String> taskIds) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<List<ServiceFileTaskLogDTO>> resp = logResource.listTaskFileLogsByTaskIds(
             taskCreateDateStr, stepInstanceId, executeCount, batch, taskIds);
@@ -425,7 +421,7 @@ public class LogServiceImpl implements LogService {
     public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
                                                                                        int executeCount,
                                                                                        Integer batch) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
         request.setStepInstanceId(stepInstance.getId());
@@ -514,7 +510,7 @@ public class LogServiceImpl implements LogService {
         request.setJobCreateDate(taskCreateDateStr);
 
         List<ExecuteObject> queryExecuteObjects =
-            stepInstance.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
+            stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
         if (stepInstance.isSupportExecuteObjectFeature()) {
             List<String> executeObjectId = queryExecuteObjects.stream()
                 .map(ExecuteObject::getId).collect(Collectors.toList());

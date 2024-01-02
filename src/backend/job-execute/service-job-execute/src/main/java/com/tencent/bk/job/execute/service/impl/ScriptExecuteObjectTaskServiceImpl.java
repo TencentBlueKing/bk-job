@@ -107,7 +107,7 @@ public class ScriptExecuteObjectTaskServiceImpl
                                                                 Integer batch,
                                                                 ExecuteObjectCompositeKey executeObjectCompositeKey) {
         ExecuteObject executeObject =
-            stepInstance.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
+            stepInstanceService.findExecuteObjectByCompositeKey(stepInstance, executeObjectCompositeKey);
         if (executeObject == null) {
             return null;
         }

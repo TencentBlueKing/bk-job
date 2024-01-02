@@ -35,7 +35,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,7 @@ public class LocalFilePrepareService {
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final AgentService agentService;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor localFileDownloadExecutor;
@@ -66,7 +66,7 @@ public class LocalFilePrepareService {
                                    ArtifactoryConfig artifactoryConfig,
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    AgentService agentService,
-                                   TaskInstanceService taskInstanceService,
+                                   StepInstanceService stepInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFileDownloadExecutor") ThreadPoolExecutor localFileDownloadExecutor,
                                    @Qualifier("localFileWatchExecutor") ThreadPoolExecutor localFileWatchExecutor) {
@@ -74,7 +74,7 @@ public class LocalFilePrepareService {
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.agentService = agentService;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.localFileDownloadExecutor = localFileDownloadExecutor;
         this.localFileWatchExecutor = localFileWatchExecutor;
@@ -135,7 +135,7 @@ public class LocalFilePrepareService {
             }
         });
         // 更新本地文件任务内容
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
     }
 
     public void clearPreparedTmpFile(long stepInstanceId) {

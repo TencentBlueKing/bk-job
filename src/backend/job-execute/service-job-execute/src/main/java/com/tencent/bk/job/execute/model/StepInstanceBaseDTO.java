@@ -27,15 +27,12 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -237,14 +234,5 @@ public class StepInstanceBaseDTO {
         }
         return supportExecuteObject;
 
-    }
-
-    public ExecuteObject findExecuteObjectByCompositeKey(ExecuteObjectCompositeKey executeObjectCompositeKey) {
-        return targetExecuteObjects.findExecuteObjectByCompositeKey(executeObjectCompositeKey);
-    }
-
-    public List<ExecuteObject> findExecuteObjectByCompositeKeys(
-        Collection<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
-        return targetExecuteObjects.findExecuteObjectByCompositeKeys(executeObjectCompositeKeys);
     }
 }

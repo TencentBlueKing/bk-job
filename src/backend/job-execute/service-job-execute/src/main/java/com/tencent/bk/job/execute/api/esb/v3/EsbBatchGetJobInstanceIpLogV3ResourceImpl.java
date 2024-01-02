@@ -48,8 +48,8 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogsV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbScriptHostLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpLogV3Request;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
@@ -68,15 +68,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJobInstanceIpLogV3Resource {
 
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
-                                                     TaskInstanceService taskInstanceService,
+                                                     StepInstanceService stepInstanceService,
                                                      TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.logService = logService;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
     }
 
@@ -97,7 +97,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }

@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,6 +60,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private final CountDownLatch latch;
     private final List<FilePrepareTaskResult> resultList;
     private final FilePrepareTaskResultHandler filePrepareTaskResultHandler;
+    private final StepInstanceService stepInstanceService;
     private final long startTimeMills;
 
     public FilePrepareControlTask(
@@ -68,8 +70,8 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
         StepInstanceDTO stepInstance,
         CountDownLatch latch,
         List<FilePrepareTaskResult> resultList,
-        FilePrepareTaskResultHandler filePrepareTaskResultHandler
-    ) {
+        FilePrepareTaskResultHandler filePrepareTaskResultHandler,
+        StepInstanceService stepInstanceService) {
         this.filePrepareService = filePrepareService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -77,6 +79,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
         this.latch = latch;
         this.resultList = resultList;
         this.filePrepareTaskResultHandler = filePrepareTaskResultHandler;
+        this.stepInstanceService = stepInstanceService;
         this.startTimeMills = System.currentTimeMillis();
     }
 
@@ -127,7 +130,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private boolean needToStop(StepInstanceDTO stepInstance) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 刷新步骤状态
-        stepInstance = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
+        stepInstance = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
         // 如果任务处于“终止中”状态，触发任务终止
         if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
             // 已经发送过停止命令的就不再重复发送了

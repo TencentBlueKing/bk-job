@@ -951,4 +951,20 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
+
+    @Override
+    public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
+        Result result = CTX.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
+            .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
+            .fetch();
+        List<Long> stepInstanceIdList = new ArrayList<>();
+        result.into(record -> {
+            Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);
+            if (stepInstanceId != null) {
+                stepInstanceIdList.add(stepInstanceId);
+            }
+        });
+        return stepInstanceIdList;
+    }
 }

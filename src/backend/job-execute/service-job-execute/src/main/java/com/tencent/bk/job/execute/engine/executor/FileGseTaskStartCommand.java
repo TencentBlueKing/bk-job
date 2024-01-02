@@ -203,7 +203,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             // 解析源文件路径中的全局变量
             resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
 
-            taskInstanceService.updateResolvedSourceFile(stepInstance.getId(),
+            stepInstanceService.updateResolvedSourceFile(stepInstance.getId(),
                 stepInstance.getFileSourceList());
         }
     }
@@ -264,7 +264,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);
         if (!resolvedTargetPath.equals(stepInstance.getFileTargetPath())) {
-            taskInstanceService.updateResolvedTargetPath(stepInstance.getId(), resolvedTargetPath);
+            stepInstanceService.updateResolvedTargetPath(stepInstance.getId(), resolvedTargetPath);
         }
     }
 

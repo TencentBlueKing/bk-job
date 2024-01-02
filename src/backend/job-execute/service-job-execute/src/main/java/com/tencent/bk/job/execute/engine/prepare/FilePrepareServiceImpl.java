@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.engine.prepare.third.ThirdFilePrepareService;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -56,18 +57,21 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     private final TaskInstanceService taskInstanceService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ResultHandleManager resultHandleManager;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public FilePrepareServiceImpl(LocalFilePrepareService localFilePrepareService,
                                   ThirdFilePrepareService thirdFilePrepareService,
                                   TaskInstanceService taskInstanceService,
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                  ResultHandleManager resultHandleManager) {
+                                  ResultHandleManager resultHandleManager,
+                                  StepInstanceService stepInstanceService) {
         this.localFilePrepareService = localFilePrepareService;
         this.thirdFilePrepareService = thirdFilePrepareService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleManager = resultHandleManager;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -142,7 +146,7 @@ public class FilePrepareServiceImpl implements FilePrepareService {
         }
         // 文件准备任务结果处理
         FilePrepareTaskResultHandler filePrepareTaskResultHandler = new DefaultFilePrepareTaskResultHandler(
-            taskInstanceService,
+            stepInstanceService,
             taskExecuteMQEventDispatcher
         );
         FilePrepareControlTask filePrepareControlTask =
@@ -152,8 +156,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
                 taskExecuteMQEventDispatcher, stepInstance,
                 latch,
                 resultList,
-                filePrepareTaskResultHandler
-            );
+                filePrepareTaskResultHandler,
+                stepInstanceService);
         resultHandleManager.handleDeliveredTask(filePrepareControlTask);
     }
 

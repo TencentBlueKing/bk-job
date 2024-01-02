@@ -69,6 +69,7 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
@@ -110,6 +111,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final RollingConfigService rollingConfigService;
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
@@ -122,7 +124,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  TaskOperationLogService operationLogService,
                                  RollingConfigService rollingConfigService,
                                  StepInstanceRollingTaskService stepInstanceRollingTaskService,
-                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                 StepInstanceService stepInstanceService) {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
@@ -134,6 +137,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.rollingConfigService = rollingConfigService;
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -437,7 +441,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             Long stepInstanceId = query.getStepInstanceId();
 
             watch.start("getAndCheckStepInstance");
-            StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+            StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
             preProcessViewStepExecutionResult(username, appId, stepInstance);
 
             int queryExecuteCount = query.getExecuteCount() == null ? stepInstance.getExecuteCount() :
@@ -941,7 +945,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                              Integer resultType,
                                                              String tag,
                                                              String keyword) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
         preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
@@ -994,7 +998,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                                                                  Long appId,
                                                                  Long stepInstanceId,
                                                                  Integer batch) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
         preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         // 步骤没有重试执行过

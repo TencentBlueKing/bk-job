@@ -30,7 +30,7 @@ import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -51,16 +51,16 @@ import static com.tencent.bk.job.common.util.function.LambdasUtil.not;
 @Service
 @Slf4j
 public class JobLastHostsVariableResolver implements VariableResolver {
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final Set<String> BUILD_IN_VARIABLES = new HashSet<>();
 
     @Autowired
-    public JobLastHostsVariableResolver(TaskInstanceService taskInstanceService,
+    public JobLastHostsVariableResolver(StepInstanceService stepInstanceService,
                                         ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                         FileExecuteObjectTaskService fileExecuteObjectTaskService) {
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         init();
@@ -80,7 +80,7 @@ public class JobLastHostsVariableResolver implements VariableResolver {
     public String resolve(VariableResolveContext context, String variableName) {
         long taskInstanceId = context.getTaskInstanceId();
         long stepInstanceId = context.getStepInstanceId();
-        StepInstanceDTO preStepInstance = taskInstanceService.getPreExecutableStepInstance(taskInstanceId,
+        StepInstanceDTO preStepInstance = stepInstanceService.getPreExecutableStepInstance(taskInstanceId,
             stepInstanceId);
         if (preStepInstance == null) {
             log.info("Resolve value from latest executable step instance, but no pre step exist! taskInstanceId: {}, " +

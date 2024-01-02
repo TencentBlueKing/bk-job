@@ -140,7 +140,7 @@ public class ResultHandleResumeListener {
             : UUID.randomUUID().toString();
 
         try {
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
             if (!checkIsTaskResumeable(stepInstance, gseTask)) {

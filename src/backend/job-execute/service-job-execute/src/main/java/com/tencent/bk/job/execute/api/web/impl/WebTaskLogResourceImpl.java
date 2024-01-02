@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.web.vo.LogExportJobInfoVO;
 import com.tencent.bk.job.execute.service.LogExportService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,20 +71,20 @@ import java.time.LocalDateTime;
 @Slf4j
 public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final String logFileDir;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final LogExportService logExportService;
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
 
     @Autowired
-    public WebTaskLogResourceImpl(TaskInstanceService taskInstanceService,
+    public WebTaskLogResourceImpl(StepInstanceService stepInstanceService,
                                   StorageConfig storageConfig,
                                   LogExportService logExportService,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                   ArtifactoryConfig artifactoryConfig,
                                   LogExportConfig logExportConfig) {
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageConfig.getJobStorageRootPath(),
             FileDirTypeConf.JOB_INSTANCE_PATH);
@@ -133,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             repackage = false;
         }
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
@@ -268,7 +268,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  Long executeObjectResourceId) {
         Long appId = appResourceScope.getAppId();
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             log.info("StepInstance: {} is not in app: {}", stepInstance.getId(), appResourceScope.getAppId());
             return ResponseEntity.notFound().build();

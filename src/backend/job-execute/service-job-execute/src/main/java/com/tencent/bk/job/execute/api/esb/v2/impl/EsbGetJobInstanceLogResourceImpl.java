@@ -48,6 +48,7 @@ import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceLogReque
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -66,19 +67,22 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceLogResourceImpl(TaskInstanceService taskInstanceService,
                                             ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                             FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                             LogService logService,
                                             TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                            AppScopeMappingService appScopeMappingService) {
+                                            AppScopeMappingService appScopeMappingService,
+                                            StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.logService = logService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -99,7 +103,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstanceList =
-            taskInstanceService.listStepInstanceByTaskInstanceId(request.getTaskInstanceId());
+            stepInstanceService.listStepInstanceByTaskInstanceId(request.getTaskInstanceId());
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();

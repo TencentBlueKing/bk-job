@@ -34,8 +34,8 @@ import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.VariableValueDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,15 +55,15 @@ import java.util.stream.Collectors;
 public class StepInstanceVariableValueServiceImpl implements StepInstanceVariableValueService {
 
     private final StepInstanceVariableDAO stepInstanceVariableDAO;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
 
     @Autowired
     public StepInstanceVariableValueServiceImpl(StepInstanceVariableDAO stepInstanceVariableDAO,
-                                                TaskInstanceService taskInstanceService,
+                                                StepInstanceService stepInstanceService,
                                                 TaskInstanceVariableService taskInstanceVariableService) {
         this.stepInstanceVariableDAO = stepInstanceVariableDAO;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
     }
 
@@ -76,7 +76,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
     public List<StepInstanceVariableValuesDTO> computeOutputVariableValuesForAllStep(long taskInstanceId) {
         List<StepInstanceVariableValuesDTO> resultStepInstanceVariableValuesList = new ArrayList<>();
         List<StepInstanceBaseDTO> stepInstanceList =
-            taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+            stepInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (CollectionUtils.isEmpty(stepInstanceList)) {
             log.info("Step instance is empty! taskInstanceId: {}", taskInstanceId);
             return resultStepInstanceVariableValuesList;

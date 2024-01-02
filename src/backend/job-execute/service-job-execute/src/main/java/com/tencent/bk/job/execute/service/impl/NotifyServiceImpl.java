@@ -41,6 +41,7 @@ import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
@@ -93,6 +94,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public NotifyServiceImpl(JobCommonConfig jobCommonConfig,
@@ -103,7 +105,8 @@ public class NotifyServiceImpl implements NotifyService {
                              MessageI18nService i18nService,
                              ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                              FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                             TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
+                             TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                             StepInstanceService stepInstanceService) {
         this.jobCommonConfig = jobCommonConfig;
         this.notificationResource = notificationResource;
         this.userResource = userResource;
@@ -113,6 +116,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.stepInstanceService = stepInstanceService;
     }
 
     private static void loadNotifyTemplate() {
@@ -248,11 +252,11 @@ public class NotifyServiceImpl implements NotifyService {
         TaskInstanceDTO taskInstanceDTO = taskInstanceService.getTaskInstance(taskNotifyDTO.getTaskInstanceId());
         variablesMap.put("task.start_time", DateUtils.formatUnixTimestampWithZone(taskInstanceDTO.getStartTime(),
             ChronoUnit.MILLIS));
-        List<Long> stepIdList = taskInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
+        List<Long> stepIdList = stepInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
         long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
-        StepInstanceDTO stepInstanceDTO = taskInstanceService.getStepInstanceDetail(currentStepId);
+        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
             if (stepInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.step.duration", "" + stepInstanceDTO.getTotalTime() / 1000.0);
@@ -379,7 +383,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
                                                StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
+        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
         if (stepInstanceDetail == null) {
             log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
             return;

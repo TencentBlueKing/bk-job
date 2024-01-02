@@ -47,6 +47,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -67,15 +68,18 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final AppScopeMappingService appScopeMappingService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
                                                ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                                FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                               AppScopeMappingService appScopeMappingService) {
+                                               AppScopeMappingService appScopeMappingService,
+                                               StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.appScopeMappingService = appScopeMappingService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
-        List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+        List<StepInstanceBaseDTO> stepInstances = stepInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
             log.warn("Get job instance status by taskInstanceId:{}, stepInstanceList is empty!", taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);

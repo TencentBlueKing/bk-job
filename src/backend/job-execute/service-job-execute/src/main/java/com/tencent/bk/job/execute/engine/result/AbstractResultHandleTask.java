@@ -433,7 +433,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private boolean shouldSkipStep() {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 

@@ -47,8 +47,8 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbFileLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
 import com.tencent.bk.job.execute.service.LogService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -64,17 +64,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIpLogV3Resource {
 
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobInstanceIpLogV3ResourceImpl(LogService logService,
-                                                TaskInstanceService taskInstanceService,
+                                                StepInstanceService stepInstanceService,
                                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor,
                                                 AppScopeMappingService appScopeMappingService) {
         this.logService = logService;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
     }
@@ -96,7 +96,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }

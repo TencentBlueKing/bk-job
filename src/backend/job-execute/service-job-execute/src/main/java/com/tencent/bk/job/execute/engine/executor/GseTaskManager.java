@@ -209,7 +209,7 @@ public class GseTaskManager implements SmartLifecycle {
             watch.stop();
 
             watch.start("loadTaskAndCheck");
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
             // 如果任务应当被驱逐，直接置为被丢弃状态
@@ -431,7 +431,7 @@ public class GseTaskManager implements SmartLifecycle {
         GseTaskCommand stopCommand;
         try {
             watch.start("loadTaskAndCheck");
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
             watch.stop();
 

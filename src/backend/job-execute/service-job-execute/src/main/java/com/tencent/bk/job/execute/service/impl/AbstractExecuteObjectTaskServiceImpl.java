@@ -1,7 +1,6 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -12,6 +11,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,19 +63,9 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
         }
     }
 
-    protected final void fillExecuteObjectForExecuteObjectTask(
-        StepInstanceBaseDTO stepInstance,
-        ExecuteObjectTask task
-    ) {
-        ExecuteObject executeObject;
-        if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObject = stepInstance.findExecuteObjectByCompositeKey(
-                ExecuteObjectCompositeKey.ofExecuteObjectId(task.getExecuteObjectId()));
-        } else {
-            executeObject = stepInstance.findExecuteObjectByCompositeKey(
-                ExecuteObjectCompositeKey.ofHostId(task.getHostId()));
-        }
-        task.setExecuteObject(executeObject);
+    protected final void fillExecuteObjectForExecuteObjectTask(StepInstanceBaseDTO stepInstance,
+                                                               ExecuteObjectTask task) {
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, Collections.singletonList(task));
     }
 
     protected final List<ResultGroupDTO> groupTasks(List<ExecuteObjectTask> tasks) {

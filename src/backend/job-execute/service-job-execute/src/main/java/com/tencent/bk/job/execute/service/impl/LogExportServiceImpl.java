@@ -44,7 +44,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -76,7 +76,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final LogService logService;
     private final ExecutorService logExportExecutor;
     private final StringRedisTemplate redisTemplate;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
@@ -85,7 +85,7 @@ public class LogExportServiceImpl implements LogExportService {
     @Autowired
     public LogExportServiceImpl(LogService logService,
                                 StringRedisTemplate redisTemplate,
-                                TaskInstanceService taskInstanceService,
+                                StepInstanceService stepInstanceService,
                                 @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                 ArtifactoryConfig artifactoryConfig,
                                 LogExportConfig logExportConfig,
@@ -93,7 +93,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
         this.logService = logService;
         this.redisTemplate = redisTemplate;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.artifactoryConfig = artifactoryConfig;
         this.logExportConfig = logExportConfig;
@@ -204,7 +204,7 @@ public class LogExportServiceImpl implements LogExportService {
                            int executeCount,
                            String logFileDir,
                            String logFileName) {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         File logFile = new File(logFileDir + logFileName);
 
         StopWatch watch = new StopWatch("exportJobLog");
