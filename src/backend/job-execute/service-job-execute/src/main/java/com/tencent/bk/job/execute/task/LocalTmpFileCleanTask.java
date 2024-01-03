@@ -79,15 +79,28 @@ public class LocalTmpFileCleanTask {
         String localFileDirPath = PathUtil.joinFilePath(
             fileDistributeConfig.getJobDistributeRootPath(), Consts.LOCAL_FILE_DIR_NAME
         );
-        Iterator<File> fileIterator = FileUtils.iterateFiles(
-            new File(localFileDirPath),
-            new AgeFileFilter(thresholdDate),
-            TrueFileFilter.TRUE
-        );
-        while (fileIterator.hasNext()) {
-            File aFile = fileIterator.next();
-            log.info("Delete local tmp file {}", aFile.getPath());
-            FileUtils.deleteQuietly(aFile);
+
+        File localFileDir = new File(localFileDirPath);
+        if (!localFileDir.exists() || !localFileDir.isDirectory()) {
+            log.warn("Local tmp file directory does not exist or is not a directory: {}", localFileDirPath);
+            log.info("cleanLocalTmpFile finished");
+            return;
+        }
+
+        File[] files = localFileDir.listFiles();
+        if (files != null && files.length > 0) {
+            Iterator<File> fileIterator = FileUtils.iterateFiles(
+                localFileDir,
+                new AgeFileFilter(thresholdDate),
+                TrueFileFilter.TRUE
+            );
+            while (fileIterator.hasNext()) {
+                File aFile = fileIterator.next();
+                log.info("Delete local tmp file {}", aFile.getPath());
+                FileUtils.deleteQuietly(aFile);
+            }
+        } else {
+            log.warn("Local tmp file directory is empty: {}", localFileDirPath);
         }
         log.info("cleanLocalTmpFile finished");
     }
