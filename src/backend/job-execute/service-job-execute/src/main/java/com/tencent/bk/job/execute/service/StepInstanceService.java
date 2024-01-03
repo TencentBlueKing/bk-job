@@ -105,7 +105,15 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例 ID
      * @return 步骤实例列表
      */
-    List<StepInstanceBaseDTO> listStepInstanceByTaskInstanceId(long taskInstanceId);
+    List<StepInstanceBaseDTO> listBaseStepInstanceByTaskInstanceId(long taskInstanceId);
+
+    /**
+     * 获取作业实例下的所有步骤实例(详细)
+     *
+     * @param taskInstanceId 作业实例 ID
+     * @return 步骤实例列表
+     */
+    List<StepInstanceDTO> listStepInstanceByTaskInstanceId(long taskInstanceId);
 
     /**
      * 获取步骤基本信息
@@ -298,4 +306,13 @@ public interface StepInstanceService {
         StepInstanceBaseDTO stepInstance,
         Collection<ExecuteObjectCompositeKey> executeObjectCompositeKeys
     );
+
+    /**
+     * 根据 appId,stepInstanceId 获取所属任务实例ID
+     *
+     * @param appId          Job业务ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 任务实例ID
+     */
+    Long getStepTaskInstanceId(long appId, long stepInstanceId);
 }

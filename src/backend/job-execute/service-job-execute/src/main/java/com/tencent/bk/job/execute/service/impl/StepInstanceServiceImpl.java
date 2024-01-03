@@ -46,12 +46,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SCRIPT;
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.EXECUTE_SQL;
@@ -120,8 +122,22 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public List<StepInstanceBaseDTO> listStepInstanceByTaskInstanceId(long taskInstanceId) {
+    public List<StepInstanceBaseDTO> listBaseStepInstanceByTaskInstanceId(long taskInstanceId) {
         return stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstanceId);
+    }
+
+    @Override
+    public List<StepInstanceDTO> listStepInstanceByTaskInstanceId(long taskInstanceId) {
+        List<StepInstanceBaseDTO> stepInstanceList = listBaseStepInstanceByTaskInstanceId(taskInstanceId);
+        if (CollectionUtils.isEmpty(stepInstanceList)) {
+            return Collections.emptyList();
+        }
+        return stepInstanceList.stream()
+            .map(baseStepInstance -> {
+                StepInstanceDTO stepInstance = new StepInstanceDTO(baseStepInstance);
+                fillStepInstanceDetail(stepInstance);
+                return stepInstance;
+            }).collect(Collectors.toList());
     }
 
     @Override
@@ -408,5 +424,10 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         } else {
             throw new InternalException("Not support method invoke for step", ErrorCode.INTERNAL_ERROR);
         }
+    }
+
+    @Override
+    public Long getStepTaskInstanceId(long appId, long stepInstanceId) {
+        return stepInstanceDAO.getTaskInstanceId(appId, stepInstanceId);
     }
 }

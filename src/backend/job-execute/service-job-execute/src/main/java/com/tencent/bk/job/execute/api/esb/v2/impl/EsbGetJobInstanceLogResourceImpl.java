@@ -103,7 +103,7 @@ public class EsbGetJobInstanceLogResourceImpl implements EsbGetJobInstanceLogRes
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstanceList =
-            stepInstanceService.listStepInstanceByTaskInstanceId(request.getTaskInstanceId());
+            stepInstanceService.listBaseStepInstanceByTaskInstanceId(request.getTaskInstanceId());
         List<EsbStepInstanceResultAndLog> stepInstResultAndLogList = Lists.newArrayList();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
             EsbStepInstanceResultAndLog stepInstResultAndLog = new EsbStepInstanceResultAndLog();

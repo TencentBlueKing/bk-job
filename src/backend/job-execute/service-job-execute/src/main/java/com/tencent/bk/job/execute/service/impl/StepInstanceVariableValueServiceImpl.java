@@ -76,7 +76,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
     public List<StepInstanceVariableValuesDTO> computeOutputVariableValuesForAllStep(long taskInstanceId) {
         List<StepInstanceVariableValuesDTO> resultStepInstanceVariableValuesList = new ArrayList<>();
         List<StepInstanceBaseDTO> stepInstanceList =
-            stepInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+            stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);
         if (CollectionUtils.isEmpty(stepInstanceList)) {
             log.info("Step instance is empty! taskInstanceId: {}", taskInstanceId);
             return resultStepInstanceVariableValuesList;

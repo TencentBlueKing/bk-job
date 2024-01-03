@@ -3,8 +3,8 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceValidateService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -12,16 +12,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class StepInstanceValidateServiceImpl implements StepInstanceValidateService {
 
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
 
-    public StepInstanceValidateServiceImpl(TaskInstanceService taskInstanceService) {
-        this.taskInstanceService = taskInstanceService;
+    public StepInstanceValidateServiceImpl(StepInstanceService stepInstanceService) {
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
     public ValidateResult checkStepInstance(long appId, Long taskInstanceId, Long stepInstanceId) {
         // 检查taskInstanceId与stepInstanceId关联关系的正确性
-        Long realTaskInstanceId = taskInstanceService.getTaskInstanceId(appId, stepInstanceId);
+        Long realTaskInstanceId = stepInstanceService.getStepTaskInstanceId(appId, stepInstanceId);
         if (realTaskInstanceId == null) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         } else if (!realTaskInstanceId.equals(taskInstanceId)) {

@@ -31,12 +31,21 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * 执行对象KEY, 用于跟 GSE 交互
+ * 执行对象 GSE KEY, 用于跟 GSE 交互
  */
 @Getter
 public class ExecuteObjectGseKey {
+    /**
+     * GSE Agent ID
+     */
     private String agentId;
+    /**
+     * 容器 ID（比如 docker id）
+     */
     private String containerId;
+    /**
+     *  完整的唯一 KEY
+     */
     private String key;
 
     private ExecuteObjectGseKey() {

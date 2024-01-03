@@ -299,43 +299,29 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     public ExecuteObject findExecuteObjectByCompositeKey(ExecuteObjectCompositeKey executeObjectCompositeKey) {
-        if (executeObjectCompositeKey.getExecuteObjectId() != null) {
-            return executeObjects.stream()
-                .filter(executeObject -> executeObjectCompositeKey.getExecuteObjectId().equals(executeObject.getId()))
-                .findFirst()
-                .orElse(null);
-        } else if (executeObjectCompositeKey.getHostId() != null) {
-            // 兼容使用 hostId 的方式
-            if (CollectionUtils.isNotEmpty(executeObjects)) {
-                return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHostExecuteObject()
-                        && executeObjectCompositeKey.getHostId().equals(executeObject.getHost().getHostId()))
+        ExecuteObjectCompositeKey.CompositeKeyType compositeKeyType = executeObjectCompositeKey.getCompositeKeyType();
+        switch (compositeKeyType) {
+            case EXECUTE_OBJECT_ID:
+                return getExecuteObjectsCompatibly().stream()
+                    .filter(executeObject -> executeObjectCompositeKey.getExecuteObjectId().equals(executeObject.getId()))
                     .findFirst()
                     .orElse(null);
-            } else {
-                HostDTO matchHost = ipList.stream()
-                    .filter(host -> executeObjectCompositeKey.getHostId().equals(host.getHostId()))
+            case RESOURCE_ID:
+                return getExecuteObjectsCompatibly().stream()
+                    .filter(executeObject ->
+                        executeObject.getType() == executeObjectCompositeKey.getExecuteObjectType()
+                            && executeObject.getResourceId().equals(executeObjectCompositeKey.getResourceId()))
                     .findFirst()
                     .orElse(null);
-                return matchHost == null ? null : ExecuteObject.buildCompatibleExecuteObject(matchHost);
-            }
-        } else if (executeObjectCompositeKey.getCloudIp() != null) {
-            // 兼容使用 云区域+ip 的方式
-            if (CollectionUtils.isNotEmpty(executeObjects)) {
-                return executeObjects.stream()
+            case HOST_CLOUD_IP:
+                // 兼容使用 云区域+ip 的方式
+                return getExecuteObjectsCompatibly().stream()
                     .filter(executeObject -> executeObject.isHostExecuteObject()
                         && executeObjectCompositeKey.getCloudIp().equals(executeObject.getHost().toCloudIp()))
                     .findFirst()
                     .orElse(null);
-            } else {
-                HostDTO matchHost = ipList.stream()
-                    .filter(host -> executeObjectCompositeKey.getCloudIp().equals(host.toCloudIp()))
-                    .findFirst()
-                    .orElse(null);
-                return matchHost == null ? null : ExecuteObject.buildCompatibleExecuteObject(matchHost);
-            }
-        } else {
-            throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
+            default:
+                throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
         }
     }
 
@@ -347,58 +333,34 @@ public class ExecuteObjectsDTO implements Cloneable {
         ExecuteObjectCompositeKey anyKey = executeObjectCompositeKeys.stream().findFirst().orElse(null);
         Objects.requireNonNull(anyKey);
 
-        if (anyKey.getExecuteObjectId() != null) {
-            List<String> executeObjectIds =
-                executeObjectCompositeKeys.stream()
-                    .map(ExecuteObjectCompositeKey::getExecuteObjectId)
+        ExecuteObjectCompositeKey.CompositeKeyType compositeKeyType = anyKey.getCompositeKeyType();
+        switch (compositeKeyType) {
+            case EXECUTE_OBJECT_ID:
+                List<String> executeObjectIds =
+                    executeObjectCompositeKeys.stream()
+                        .map(ExecuteObjectCompositeKey::getExecuteObjectId)
+                        .collect(Collectors.toList());
+                return getExecuteObjectsCompatibly().stream()
+                    .filter(executeObject -> executeObjectIds.contains(executeObject.getId()))
                     .collect(Collectors.toList());
-            return executeObjects.stream()
-                .filter(executeObject -> executeObjectIds.contains(executeObject.getId()))
-                .collect(Collectors.toList());
-        } else if (anyKey.getHostId() != null) {
-            // 兼容使用 hostId 的方式
-            List<Long> hostIds =
-                executeObjectCompositeKeys.stream()
-                    .map(ExecuteObjectCompositeKey::getHostId)
+            case RESOURCE_ID:
+                return getExecuteObjectsCompatibly().stream()
+                    .filter(executeObject ->
+                        executeObjectCompositeKeys.contains(
+                            executeObject.toExecuteObjectCompositeKey(
+                                ExecuteObjectCompositeKey.CompositeKeyType.RESOURCE_ID)))
                     .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(executeObjects)) {
-                return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHostExecuteObject()
-                        && hostIds.contains(executeObject.getHost().getHostId()))
+            case HOST_CLOUD_IP:
+                // 兼容使用 管控区域+ip 的方式
+                return getExecuteObjectsCompatibly().stream()
+                    .filter(executeObject ->
+                        executeObject.isHostExecuteObject() &&
+                            executeObjectCompositeKeys.contains(
+                                executeObject.toExecuteObjectCompositeKey(
+                                    ExecuteObjectCompositeKey.CompositeKeyType.HOST_CLOUD_IP)))
                     .collect(Collectors.toList());
-            } else {
-                List<HostDTO> matchHosts = ipList.stream()
-                    .filter(host -> hostIds.contains(host.getHostId()))
-                    .collect(Collectors.toList());
-                if (CollectionUtils.isEmpty(matchHosts)) {
-                    return Collections.emptyList();
-                }
-                return matchHosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
-                    .collect(Collectors.toList());
-            }
-        } else if (anyKey.getCloudIp() != null) {
-            // 兼容使用 云区域+ip 的方式
-            List<String> cloudIps =
-                executeObjectCompositeKeys.stream()
-                    .map(ExecuteObjectCompositeKey::getCloudIp)
-                    .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(executeObjects)) {
-                return executeObjects.stream()
-                    .filter(executeObject -> executeObject.isHostExecuteObject()
-                        && cloudIps.contains(executeObject.getHost().toCloudIp()))
-                    .collect(Collectors.toList());
-            } else {
-                List<HostDTO> matchHosts = ipList.stream()
-                    .filter(host -> cloudIps.contains(host.toCloudIp()))
-                    .collect(Collectors.toList());
-                if (CollectionUtils.isEmpty(matchHosts)) {
-                    return Collections.emptyList();
-                }
-                return matchHosts.stream().map(ExecuteObject::buildCompatibleExecuteObject)
-                    .collect(Collectors.toList());
-            }
-        } else {
-            throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
+            default:
+                throw new IllegalArgumentException("InvalidExecuteObjectCompositeKey");
         }
     }
 

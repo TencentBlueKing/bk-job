@@ -36,22 +36,16 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -60,19 +54,19 @@ import java.util.List;
 public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final ApplicationService applicationService;
-    private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ExecuteAuthService executeAuthService;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
-                                   StepInstanceDAO stepInstanceDAO,
                                    TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService,
-                                   ExecuteAuthService executeAuthService) {
+                                   ExecuteAuthService executeAuthService,
+                                   StepInstanceService stepInstanceService) {
         this.applicationService = applicationService;
-        this.stepInstanceDAO = stepInstanceDAO;
+        this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.executeAuthService = executeAuthService;
@@ -151,31 +145,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     private void fillStepAndVariable(TaskInstanceDTO taskInstance) {
-        List<StepInstanceBaseDTO> baseStepInstanceList =
-            stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstance.getId());
-        if (CollectionUtils.isNotEmpty(baseStepInstanceList)) {
-            List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
-            for (StepInstanceBaseDTO baseStepInstance : baseStepInstanceList) {
-                StepInstanceDTO stepInstance = new StepInstanceDTO(baseStepInstance);
-                fillStepInstanceDetail(stepInstance);
-                stepInstanceList.add(stepInstance);
-            }
-            taskInstance.setStepInstances(stepInstanceList);
-        }
-        List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstance.getId());
-        taskInstance.setVariables(taskVariables);
-    }
-
-    private void fillStepInstanceDetail(StepInstanceDTO stepInstance) {
-        long stepInstanceId = stepInstance.getId();
-        TaskStepTypeEnum stepType = stepInstance.getStepType();
-        if (stepType == TaskStepTypeEnum.SCRIPT) {
-            stepInstance.fillScriptStepInfo(stepInstanceDAO.getScriptStepInstance(stepInstanceId));
-        } else if (stepType == TaskStepTypeEnum.FILE) {
-            stepInstance.fillFileStepInfo(stepInstanceDAO.getFileStepInstance(stepInstanceId));
-        } else if (stepType == TaskStepTypeEnum.APPROVAL) {
-            stepInstance.fillConfirmStepInfo(stepInstanceDAO.getConfirmStepInstance(stepInstanceId));
-        }
+        taskInstance.setStepInstances(stepInstanceService.listStepInstanceByTaskInstanceId(taskInstance.getId()));
+        taskInstance.setVariables(taskInstanceVariableService.getByTaskInstanceId(taskInstance.getId()));
     }
 
     @Override
@@ -236,10 +207,5 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public void saveTaskInstanceHosts(long taskInstanceId,
                                       Collection<HostDTO> hosts) {
         taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
-    }
-
-    @Override
-    public Long getTaskInstanceId(long appId, long stepInstanceId) {
-        return stepInstanceDAO.getTaskInstanceId(appId, stepInstanceId);
     }
 }

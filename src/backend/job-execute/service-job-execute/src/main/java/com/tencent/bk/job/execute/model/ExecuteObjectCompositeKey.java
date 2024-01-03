@@ -49,17 +49,9 @@ public class ExecuteObjectCompositeKey {
      */
     private ExecuteObjectTypeEnum executeObjectType;
     /**
-     * 执行对象对应资源的 ID
+     * 执行对象对应资源的 ID(比如主机 ID/容器 ID)
      */
     private Long resourceId;
-    /**
-     * 主机 ID
-     */
-    private Long hostId;
-    /**
-     * 容器 ID
-     */
-    private Long containerId;
     /**
      * 管控区域+ipv4 方式标识主机
      */
@@ -83,14 +75,6 @@ public class ExecuteObjectCompositeKey {
         key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
         key.setExecuteObjectType(executeObjectType);
         key.setResourceId(executeObjectResourceId);
-        switch (executeObjectType) {
-            case HOST:
-                key.setHostId(executeObjectResourceId);
-                break;
-            case CONTAINER:
-                key.setContainerId(executeObjectResourceId);
-                break;
-        }
         return key;
     }
 
