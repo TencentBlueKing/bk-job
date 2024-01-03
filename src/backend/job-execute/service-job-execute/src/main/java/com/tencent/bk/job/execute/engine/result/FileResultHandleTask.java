@@ -532,8 +532,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             // 源上传全部完成
             if (isAllSourceExecuteObjectTasksDone()) {
                 rst = analyseFinishedExecuteResult();
-                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target ip have completed " +
-                        "tasks",
+                log.info("[{}] AnalyseExecuteResult-> Result: finished. All source and target execute object " +
+                        "have completed tasks",
                     this.stepInstanceId);
             } else {
                 // 场景：下载任务已全部结束，但是GSE未更新上传任务的状态。如果超过15s没有结束上传任务，那么任务结束
@@ -681,7 +681,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         JobFile srcFile = result.getSrcFile();
         Long startTime = getTimeOrDefault(content.getStartTime());
         Long endTime = getTimeOrDefault(content.getEndTime());
-        // 记录源IP单个文件上传任务的结束状态
+        // 记录源执行对象单个文件上传任务的结束状态
         addFinishedFile(false, false, sourceExecuteObjectGseKey, content.getTaskId());
 
         // 增加一条上传源失败的上传日志
@@ -698,7 +698,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         analyseExecuteObjectTaskResult(result.getResult().getErrorCode(), sourceExecuteObjectGseKey, startTime,
             endTime, false);
 
-        // 源失败了，会影响所有目标IP对应的agent上的download任务
+        // 源失败了，会影响所有目标执行对象对应的agent上的download任务
         for (ExecuteObjectGseKey targetExecuteObjectGseKey : this.targetExecuteObjectGseKeys) {
             FileDest fileDest = srcDestFileMap.get(srcFile);
             dealDownloadTaskFail(

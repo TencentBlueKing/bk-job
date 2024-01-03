@@ -202,9 +202,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected boolean gseV2Task;
     /**
-     * 是否包含非法主机
+     * 是否包含非法执行对象
      */
-    protected boolean hasInvalidHost;
+    protected boolean hasInvalidExecuteObject;
     /**
      * GSE 任务信息，用于日志输出
      */
@@ -265,7 +265,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
 
-        this.hasInvalidHost =
+        this.hasInvalidExecuteObject =
             executeObjectTasks.stream().anyMatch(
                 executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty());
     }
@@ -696,8 +696,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         GseTaskExecuteResult rst;
         if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
-            if (hasInvalidHost) {
-                log.info("Gse task contains invalid host, set execute result fail");
+            if (hasInvalidExecuteObject) {
+                log.info("Gse task contains invalid execute object, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
                 rst = GseTaskExecuteResult.SUCCESS;

@@ -136,6 +136,11 @@ public class StepInstanceBaseDTO {
     private Boolean supportExecuteObject;
 
     /**
+     * 目标执行对象是否使用 GSE V2 Agent
+     */
+    private Boolean targetGseV2Agent;
+
+    /**
      * 获取步骤类型
      *
      * @return 步骤类型
@@ -207,6 +212,9 @@ public class StepInstanceBaseDTO {
      * 执行目标是否是 GSE V2 Agent
      */
     public boolean isTargetGseV2Agent() {
+        if (targetGseV2Agent != null) {
+            return targetGseV2Agent;
+        }
         // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
         boolean isTargetGseV1Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
             .anyMatch(executeObject -> {
@@ -218,7 +226,8 @@ public class StepInstanceBaseDTO {
                 }
                 return false;
             });
-        return !isTargetGseV1Agent;
+        this.targetGseV2Agent = !isTargetGseV1Agent;
+        return this.targetGseV2Agent;
     }
 
     /**

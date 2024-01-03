@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Getter;
 
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * 执行对象 GSE KEY, 用于跟 GSE 交互
@@ -44,7 +43,7 @@ public class ExecuteObjectGseKey {
      */
     private String containerId;
     /**
-     *  完整的唯一 KEY
+     * 完整的唯一 KEY
      */
     private String key;
 
@@ -53,6 +52,7 @@ public class ExecuteObjectGseKey {
 
     public static ExecuteObjectGseKey ofHost(String agentId) {
         ExecuteObjectGseKey executeObjectGseKey = new ExecuteObjectGseKey();
+        // agentId 指定主机对象
         executeObjectGseKey.agentId = agentId;
         executeObjectGseKey.key = ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId;
         return executeObjectGseKey;
@@ -60,9 +60,10 @@ public class ExecuteObjectGseKey {
 
     public static ExecuteObjectGseKey ofContainer(String agentId, String containerId) {
         ExecuteObjectGseKey executeObjectGseKey = new ExecuteObjectGseKey();
+        // agentId+containerId 唯一指定容器对象
         executeObjectGseKey.agentId = agentId;
         executeObjectGseKey.containerId = containerId;
-        executeObjectGseKey.key = ExecuteObjectTypeEnum.HOST.getValue() + ":" + agentId;
+        executeObjectGseKey.key = ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + agentId + ":" + containerId;
         return executeObjectGseKey;
     }
 
@@ -81,8 +82,6 @@ public class ExecuteObjectGseKey {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ExecuteObjectGseKey.class.getSimpleName() + "[", "]")
-            .add("key='" + key + "'")
-            .toString();
+        return key;
     }
 }

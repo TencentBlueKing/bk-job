@@ -101,6 +101,7 @@ import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -137,6 +138,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -186,6 +188,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final WhiteHostCache whiteHostCache;
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final ContainerService containerService;
+    private final ApplicationService applicationService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -210,7 +213,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   AppScopeMappingService appScopeMappingService,
                                   WhiteHostCache whiteHostCache,
                                   ServiceTaskTemplateResource taskTemplateResource,
-                                  ContainerService containerService) {
+                                  ContainerService containerService,
+                                  ApplicationService applicationService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -231,6 +235,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.whiteHostCache = whiteHostCache;
         this.taskTemplateResource = taskTemplateResource;
         this.containerService = containerService;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -337,6 +342,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         StopWatch watch = new StopWatch("processExecuteObjects");
         try {
+            long appId = taskInstance.getAppId();
             // 获取执行对象
             watch.start("acquireAndSetExecuteObjects");
             TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
@@ -353,7 +359,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 watch.start("getHostAllowedActions");
                 taskInstanceExecuteObjects.setWhiteHostAllowActions(
                     getHostAllowedActions(
-                        taskInstance.getAppId(),
+                        appId,
                         ListUtil.union(taskInstanceExecuteObjects.getValidHosts(),
                             taskInstanceExecuteObjects.getNotInAppHosts())));
                 watch.stop();
@@ -361,7 +367,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             //检查执行对象是否可用
             watch.start("checkExecuteObjectAccessible");
-            checkExecuteObjectAccessible(stepInstanceList, taskInstanceExecuteObjects);
+            checkExecuteObjectAccessible(appId, stepInstanceList, taskInstanceExecuteObjects);
             watch.stop();
 
             return taskInstanceExecuteObjects;
@@ -1028,10 +1034,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     /**
      * 判断执行对象是否可以被当前作业使用
      *
+     * @param appId                      业务 ID
      * @param stepInstanceList           作业步骤列表
      * @param taskInstanceExecuteObjects 作业实例中包含的执行对象
      */
-    private void checkExecuteObjectAccessible(List<StepInstanceDTO> stepInstanceList,
+    private void checkExecuteObjectAccessible(long appId,
+                                              List<StepInstanceDTO> stepInstanceList,
                                               TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (CollectionUtils.isEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
             return;
@@ -1063,8 +1071,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         if (CollectionUtils.isNotEmpty(invalidHosts)) {
             // 检查是否在白名单配置
-            log.warn("Found hosts not in target app!");
-            throwHostInvalidException(invalidHosts);
+            log.warn("Found hosts not in target app: {}!", appId);
+            throwHostInvalidException(appId, invalidHosts);
         }
     }
 
@@ -1194,8 +1202,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ExecuteObjectsDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
         if (targetExecuteObjects == null
             || CollectionUtils.isEmpty(targetExecuteObjects.getExecuteObjectsCompatibly())) {
-            log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
-            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
+            log.warn("Empty target execute object! stepInstanceName: {}", stepInstance.getName());
+            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_EXECUTE_OBJECT_EMPTY,
                 new String[]{stepInstance.getName()});
         }
         if (stepInstance.isFileStep()) {
@@ -1206,7 +1214,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     ExecuteObjectsDTO servers = fileSource.getServers();
                     if (servers != null && CollectionUtils.isEmpty(servers.getExecuteObjectsCompatibly())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
-                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
+                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_EXECUTE_OBJECT_EMPTY,
                             new String[]{stepInstance.getName()});
                     }
                 }
@@ -1391,11 +1399,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void throwHostInvalidException(Collection<HostDTO> invalidHosts) {
+    private void throwHostInvalidException(Long appId, Collection<HostDTO> invalidHosts) {
+        ServiceApplicationDTO application = applicationService.getAppById(appId);
+        String appName = application.getName();
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
         log.warn("The following hosts are invalid, hosts={}", invalidHosts);
-        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{invalidHosts.size(), hostListStr});
+        throw new FailedPreconditionException(ErrorCode.HOST_INVALID,
+            new Object[]{appName, invalidHosts.size(), hostListStr});
     }
 
     private String printHostIdOrIp(HostDTO host) {
@@ -1408,7 +1419,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void checkStepInstance(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
-        // 检查步骤引用的主机不为空
+        // 检查步骤引用的执行对象不为空
         stepInstanceList.forEach(this::checkStepInstanceHostNonEmpty);
         // 检查步骤的GSE原子任务上限
         checkStepInstanceAtomicTasksLimit(taskInstance, stepInstanceList);

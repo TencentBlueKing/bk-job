@@ -315,7 +315,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         saveScriptLogContent(scriptLogs);
         watch.stop();
 
-        watch.start("saveGseAgentTasks");
+        watch.start("saveChangedExecuteObjectTasks");
         batchSaveChangedExecuteObjectTasks(targetExecuteObjectTasks.values());
         watch.stop();
 

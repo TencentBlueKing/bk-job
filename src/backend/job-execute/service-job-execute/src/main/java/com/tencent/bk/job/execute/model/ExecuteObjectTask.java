@@ -34,7 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 /**
- * GSE 执行对象任务
+ * JOB执行对象任务
  */
 @ToString
 @NoArgsConstructor
@@ -162,32 +162,6 @@ public class ExecuteObjectTask {
         this.fileTaskMode = fileTaskMode;
         this.executeObjectType = executeObjectType;
         this.executeObjectId = executeObjectId;
-    }
-
-    public ExecuteObjectTask(ExecuteObjectTask executeObjectTask) {
-        this.taskInstanceId = executeObjectTask.getTaskInstanceId();
-        this.stepInstanceId = executeObjectTask.getStepInstanceId();
-        this.executeCount = executeObjectTask.getExecuteCount();
-        this.actualExecuteCount = executeObjectTask.getActualExecuteCount();
-        this.batch = executeObjectTask.getBatch();
-        this.fileTaskMode = executeObjectTask.getFileTaskMode();
-        this.executeObjectType = executeObjectTask.getExecuteObjectType();
-        this.executeObjectId = executeObjectTask.getExecuteObjectId();
-        this.executeObject = executeObjectTask.getExecuteObject();
-        this.hostId = executeObjectTask.getHostId();
-        this.agentId = executeObjectTask.getAgentId();
-        this.status = executeObjectTask.getStatus();
-        this.startTime = executeObjectTask.getStartTime();
-        this.endTime = executeObjectTask.getEndTime();
-        this.totalTime = executeObjectTask.getTotalTime();
-        this.errorCode = executeObjectTask.getErrorCode();
-        this.exitCode = executeObjectTask.getExitCode();
-        this.tag = executeObjectTask.getTag();
-        this.scriptLogOffset = executeObjectTask.getScriptLogOffset();
-        this.scriptLogContent = executeObjectTask.getScriptLogContent();
-        this.fileTaskMode = executeObjectTask.getFileTaskMode();
-        this.gseTaskId = executeObjectTask.getGseTaskId();
-        this.changed = executeObjectTask.isChanged();
     }
 
     public void setStatus(ExecuteObjectTaskStatusEnum status) {

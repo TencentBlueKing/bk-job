@@ -478,7 +478,7 @@ public class ExecuteObjectsDTO implements Cloneable {
                     .collect(Collectors.toList()));
             }
             if (CollectionUtils.isNotEmpty(staticContainerList)) {
-                executeObjects.addAll(hosts.stream().map(ExecuteObject::new)
+                executeObjects.addAll(staticContainerList.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
             this.executeObjects = executeObjects;
