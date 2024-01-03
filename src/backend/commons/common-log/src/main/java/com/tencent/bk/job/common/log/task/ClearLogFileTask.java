@@ -1,0 +1,88 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.common.log.task;
+
+import ch.qos.logback.classic.LoggerContext;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
+import com.tencent.bk.job.common.util.file.FileUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
+
+@Slf4j
+public class ClearLogFileTask {
+
+    private volatile boolean checkVolumeRunning = false;
+
+    /**
+     * 最大容量字符串，单位支持B/KB/MB/GB/TB/PB
+     */
+    private final String maxSizeStr;
+
+    public ClearLogFileTask(String maxSizeStr) {
+        this.maxSizeStr = maxSizeStr;
+    }
+
+    /**
+     * 检查磁盘容量并清理最旧的文件
+     */
+    public void checkVolumeAndClear() {
+        if (StringUtils.isBlank(maxSizeStr)) {
+            log.info("maxSizeStr is blank, ignore checkVolumeAndClear");
+        }
+        try {
+            // 上一次清理任务还未跑完则不清理
+            if (checkVolumeRunning) {
+                log.info("last checkVolumeAndClear task still running, skip");
+                return;
+            }
+            checkVolumeRunning = true;
+            int count = doCheckVolumeAndClear();
+            log.info("{} log file cleared", count);
+        } catch (Exception e) {
+            log.warn("Exception when checkVolumeAndClear", e);
+        } finally {
+            checkVolumeRunning = false;
+        }
+    }
+
+    private int doCheckVolumeAndClear() {
+        return FileUtil.checkVolumeAndClearOldestFiles(computeMaxSizeBytes(), getAppLogDirPath());
+    }
+
+    private long computeMaxSizeBytes() {
+        Long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
+        if (maxSizeBytes == null) {
+            log.error("Cannot parse maxSizeBytes from maxSizeStr {}, use Long.MAX_VALUE", maxSizeStr);
+            return Long.MAX_VALUE;
+        }
+        return maxSizeBytes;
+    }
+
+    private String getAppLogDirPath() {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        return loggerContext.getProperty("APP_LOG_DIR");
+    }
+}
