@@ -87,6 +87,16 @@ public interface BizHostService {
                                                      Collection<Long> hostIds);
 
     /**
+     * 根据 bizIds 过滤出在这些业务下的hostIds
+     *
+     * @param bizIds  业务 ID集合
+     * @param hostIds 主机 ID集合
+     * @return 主机ID列表
+     */
+    List<Long> filterHostIdsByBiz(Collection<Long> bizIds,
+                                  Collection<Long> hostIds);
+
+    /**
      * 根据 bizId、ip集合查询主机信息
      *
      * @param bizIds 业务 ID集合

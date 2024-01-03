@@ -137,6 +137,6 @@ public class EsbResp<T> {
 
     @JsonIgnore
     public boolean isSuccess() {
-        return this.code == ErrorCode.RESULT_OK;
+        return (this.result != null && this.result) || (this.code != null && this.code == ErrorCode.RESULT_OK);
     }
 }

@@ -29,15 +29,16 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.paas.model.EsbUserDto;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -60,7 +61,8 @@ public class StandardLoginClient extends AbstractBkApiClient implements ILoginCl
     private final AppProperties appProperties;
 
     public StandardLoginClient(EsbProperties esbProperties, AppProperties appProperties, MeterRegistry meterRegistry) {
-        super(meterRegistry, ESB_BK_LOGIN_API, esbProperties.getService().getUrl());
+        super(meterRegistry, ESB_BK_LOGIN_API, esbProperties.getService().getUrl(),
+            HttpHelperFactory.getDefaultHttpHelper());
         this.appProperties = appProperties;
     }
 
@@ -78,7 +80,7 @@ public class StandardLoginClient extends AbstractBkApiClient implements ILoginCl
                 Tag.of("api_name", API_GET_USER_INFO)
             );
             EsbResp<EsbUserDto> esbResp = doRequest(
-                ApiRequestInfo.builder()
+                OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_USER_INFO)
                     .addQueryParam("bk_token", bkToken)

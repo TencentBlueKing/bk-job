@@ -7,7 +7,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/execute_job_plan/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/fast_execute_script/
   name: fast_execute_script
   label: 快速执行脚本
@@ -27,7 +27,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/fast_execute_sql/
   dest_http_method: POST  
-  
+
 - path: /v2/jobv3/fast_transfer_file/
   name: fast_transfer_file
   label: 快速分发文件
@@ -37,7 +37,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/fast_transfer_file/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/push_config_file/
   name: push_config_file
   label: 分发配置文件
@@ -58,7 +58,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/operate_step_instance/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/operate_job_instance/
   name: operate_job_instance
   label: 作业实例操作
@@ -68,7 +68,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/operate_job_instance/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_job_instance_status/
   name: get_job_instance_status
   label: 根据作业实例 ID 查询作业执行状态
@@ -78,7 +78,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/get_job_instance_status/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_job_instance_ip_log/
   name: get_job_instance_ip_log
   label: 根据作业实例ID查询作业执行日志
@@ -98,7 +98,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/batch_get_job_instance_ip_log/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_job_instance_list/
   name: get_job_instance_list
   label: 查询作业实例列表(执行历史)
@@ -108,7 +108,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-execute/get_job_instance_list/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_job_instance_global_var_value/
   name: get_job_instance_global_var_value
   label: 获取作业实例全局变量值
@@ -138,7 +138,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/get_job_plan_list/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_job_plan_detail/
   name: get_job_plan_detail
   label: 查询执行方案详情
@@ -148,7 +148,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/get_job_plan_detail/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_account_list/
   name: get_account_list
   label: 查询业务下的执行账号
@@ -158,7 +158,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/get_account_list/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_public_script_list/
   name: get_public_script_list
   label: 查询公共脚本列表
@@ -228,7 +228,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-crontab/get_cron_list/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/get_cron_detail/
   name: get_cron_detail
   label: 查询定时作业详情
@@ -238,7 +238,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-crontab/get_cron_detail/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/save_cron/
   name: save_cron
   label: 新建或保存定时作业
@@ -248,7 +248,7 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-crontab/save_cron/
   dest_http_method: POST
-  
+
 - path: /v2/jobv3/update_cron_status/
   name: update_cron_status
   label: 更新定时作业状态，如启动或暂停
@@ -258,7 +258,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-crontab/update_cron_status/
   dest_http_method: POST
-  
 
 - path: /v2/jobv3/create_credential/
   name: create_credential
@@ -324,7 +323,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/create_public_script/
   dest_http_method: POST
-  
 
 - path: /v2/jobv3/update_public_script_basic/
   name: update_public_script_basic
@@ -335,7 +333,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_public_script_basic/
   dest_http_method: POST
-   
 
 - path: /v2/jobv3/delete_public_script_version/
   name: delete_public_script_version
@@ -346,7 +343,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_public_script_version/
   dest_http_method: POST
-     
 
 - path: /v2/jobv3/create_public_script_version/
   name: create_public_script_version
@@ -357,7 +353,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/create_public_script_version/
   dest_http_method: POST
-      
 
 - path: /v2/jobv3/update_public_script_version/
   name: update_public_script_version
@@ -368,7 +363,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_public_script_version/
   dest_http_method: POST
-       
 
 - path: /v2/jobv3/publish_public_script_version/
   name: publish_public_script_version
@@ -379,7 +373,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/publish_public_script_version/
   dest_http_method: POST
-         
 
 - path: /v2/jobv3/disable_public_script_version/
   name: disable_public_script_version
@@ -390,7 +383,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/disable_public_script_version/
   dest_http_method: POST
-       
 
 - path: /v2/jobv3/delete_public_script/
   name: delete_public_script
@@ -401,7 +393,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_public_script/
   dest_http_method: POST
- 
 
 - path: /v2/jobv3/create_script/
   name: create_script
@@ -412,7 +403,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/create_script/
   dest_http_method: POST
-  
 
 - path: /v2/jobv3/update_script_basic/
   name: update_script_basic
@@ -423,7 +413,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_script_basic/
   dest_http_method: POST
-   
 
 - path: /v2/jobv3/delete_script_version/
   name: delete_script_version
@@ -434,7 +423,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/delete_script_version/
   dest_http_method: POST
-     
 
 - path: /v2/jobv3/create_script_version/
   name: create_script_version
@@ -445,7 +433,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/create_script_version/
   dest_http_method: POST
-      
 
 - path: /v2/jobv3/update_script_version/
   name: update_script_version
@@ -456,7 +443,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_script_version/
   dest_http_method: POST
-       
 
 - path: /v2/jobv3/publish_script_version/
   name: publish_script_version
@@ -467,7 +453,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/publish_script_version/
   dest_http_method: POST
-         
 
 - path: /v2/jobv3/disable_script_version/
   name: disable_script_version
@@ -478,7 +463,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/disable_script_version/
   dest_http_method: POST
-       
 
 - path: /v2/jobv3/delete_script/
   name: delete_script
@@ -490,7 +474,6 @@
   dest_path: /api/job/v3/job-manage/delete_script/
   dest_http_method: POST
 
-
 - path: /v2/jobv3/create_account/
   name: create_account
   label: 创建账号
@@ -500,7 +483,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/create_account/
   dest_http_method: POST
-
 
 - path: /v2/jobv3/delete_account/
   name: delete_account
@@ -512,7 +494,6 @@
   dest_path: /api/job/v3/job-manage/delete_account/
   dest_http_method: POST
 
-
 - path: /v2/jobv3/create_dangerous_rule/
   name: create_dangerous_rule
   label: 创建高危语句规则
@@ -523,7 +504,6 @@
   dest_path: /api/job/v3/job-manage/create_dangerous_rule/
   dest_http_method: POST
 
-
 - path: /v2/jobv3/update_dangerous_rule/
   name: update_dangerous_rule
   label: 修改高危语句规则
@@ -533,7 +513,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/update_dangerous_rule/
   dest_http_method: POST
-
 
 - path: /v2/jobv3/delete_dangerous_rule/
   name: delete_dangerous_rule
@@ -555,7 +534,6 @@
   dest_path: /api/job/v3/job-manage/get_dangerous_rule_list/
   dest_http_method: POST
 
-
 - path: /v2/jobv3/enable_dangerous_rule/
   name: enable_dangerous_rule
   label: 启用高危语句规则
@@ -566,7 +544,6 @@
   dest_path: /api/job/v3/job-manage/enable_dangerous_rule/
   dest_http_method: POST
 
-
 - path: /v2/jobv3/disable_dangerous_rule/
   name: disable_dangerous_rule
   label: 停用高危语句规则
@@ -576,7 +553,6 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/disable_dangerous_rule/
   dest_http_method: POST
-
 
 - path: /v2/jobv3/check_script/
   name: check_script

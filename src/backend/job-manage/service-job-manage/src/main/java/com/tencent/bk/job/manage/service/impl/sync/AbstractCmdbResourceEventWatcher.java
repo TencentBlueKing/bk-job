@@ -274,7 +274,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      *
      * @param event cmdb事件
      */
-    protected abstract void handleEvent(ResourceEvent<E> event);
+    public abstract void handleEvent(ResourceEvent<E> event);
 
     /**
      * 获取CMDB事件指标标签

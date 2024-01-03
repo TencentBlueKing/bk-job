@@ -54,4 +54,8 @@ public class GlobalSettingKeys {
     public static final String KEY_IS_BIZSET_MIGRATED_TO_CMDB = "IS_BIZSET_MIGRATED_TO_CMDB";
     // 助手信息
     public static final String KEY_BK_HELPER = "BK_HELPER";
+    // 是否对接消息通知中心
+    public static final String KEY_ENABLE_BK_NOTICE = "ENABLE_BK_NOTICE";
+    // 消息通知中心是否注册成功
+    public static final String KEY_BK_NOTICE_REGISTERED_SUCCESS = "BK_NOTICE_REGISTERED_SUCCESS";
 }

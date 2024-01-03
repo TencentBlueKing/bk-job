@@ -39,6 +39,8 @@ data:
     bkApiGateway:
       gse:
         url: {{ .Values.bkGseApiGatewayUrl }}
+      bkNotice:
+        url: {{ .Values.bkNoticeApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:
@@ -88,6 +90,8 @@ data:
         {{- else }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
+    bkNotice:
+      enabled: {{ .Values.bkNotice.enabled }}
     job:
       security:
         service:

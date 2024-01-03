@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 主机拓扑
@@ -61,12 +62,16 @@ public class HostTopoDTO {
     private Long lastTime;
 
     public static HostTopoDTO fromHostRelationEvent(HostRelationEventDetail eventDetail) {
+        Long lastTimeMills = null;
+        if (StringUtils.isNotBlank(eventDetail.getLastTime())) {
+            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime());
+        }
         return new HostTopoDTO(
             eventDetail.getHostId(),
             eventDetail.getBizId(),
             eventDetail.getSetId(),
             eventDetail.getModuleId(),
-            TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime())
+            lastTimeMills
         );
     }
 }

@@ -22,35 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.gse.service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import lombok.Data;
+import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
+import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @since 17/11/2020 16:41
- */
-@Data
-public class EsbStepV3DTO {
-    @JsonPropertyDescription("Step id")
-    private Long id;
+import java.util.concurrent.ThreadPoolExecutor;
 
-    @JsonPropertyDescription("Step name")
-    private String name;
+@Slf4j
+public class GseV2AgentStateClientImpl extends SingleChannelAgentStateClientImpl {
 
-    @JsonPropertyDescription("Step type")
-    private Integer type;
+    public GseV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
+                                     GseV2ApiClient gseV2ApiClient,
+                                     ThreadPoolExecutor threadPoolExecutor) {
+        super(agentStateQueryConfig, gseV2ApiClient, threadPoolExecutor);
+    }
 
-    @JsonProperty("script_info")
-    @JsonPropertyDescription("Script step info")
-    private EsbScriptStepV3DTO scriptInfo;
-
-    @JsonProperty("file_info")
-    @JsonPropertyDescription("File step info")
-    private EsbFileStepV3DTO fileInfo;
-
-    @JsonProperty("approval_info")
-    @JsonPropertyDescription("Approval step info")
-    private EsbApprovalStepV3DTO approvalInfo;
+    @Override
+    public String getEffectiveAgentId(HostAgentStateQuery hostAgentStateQuery) {
+        return hostAgentStateQuery.getAgentId();
+    }
 }

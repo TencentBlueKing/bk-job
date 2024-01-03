@@ -22,43 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.api.v3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
-/**
- * 用户、角色信息
- *
- * @since 17/11/2020 21:51
- */
 @Data
-public class EsbUserRoleInfoV3DTO {
-    /**
-     * 用户名列表
-     */
-    @JsonProperty("user_list")
-    @JsonPropertyDescription("User list")
-    private List<String> userList;
+@EqualsAndHashCode
+public class EsbQueryAgentInfoV3Resp {
 
-    /**
-     * 角色 ID 列表
-     */
-    @JsonProperty("role_list")
-    @JsonPropertyDescription("Job role list ")
-    private List<String> roleList;
-
-    public static EsbUserRoleInfoV3DTO fromUserRoleInfo(UserRoleInfoDTO approvalUser) {
-        if (approvalUser == null) {
-            return null;
-        }
-        EsbUserRoleInfoV3DTO esbUserRoleInfo = new EsbUserRoleInfoV3DTO();
-        esbUserRoleInfo.setUserList(approvalUser.getUserList());
-        esbUserRoleInfo.setRoleList(approvalUser.getRoleList());
-        return esbUserRoleInfo;
-    }
+    @JsonPropertyDescription("Agent info list")
+    @JsonProperty(value = "agent_info_list")
+    private List<EsbAgentInfoV3DTO> agentInfoList;
 }

@@ -26,6 +26,8 @@ dependencies {
     api project(':commons:common')
     api project(':commons:common-i18n')
     api project(':commons:common-iam')
+    api project(':commons:cmdb-sdk')
+    api project(':commons:notice-sdk')
     api project(':job-execute:api-job-execute')
     api(project(":commons:common-api"))
     implementation "org.springframework:spring-web"

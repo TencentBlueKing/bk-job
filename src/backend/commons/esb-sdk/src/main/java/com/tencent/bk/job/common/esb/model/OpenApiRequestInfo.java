@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.model;
 
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.util.http.RetryModeEnum;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,8 +34,13 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Open API 请求封装
+ *
+ * @param <T>
+ */
 @Data
-public class ApiRequestInfo<T> {
+public class OpenApiRequestInfo<T> {
     private final HttpMethodEnum method;
     private final String uri;
     /**
@@ -47,14 +53,24 @@ public class ApiRequestInfo<T> {
     private Map<String, String> queryParamsMap;
     private final T body;
     private final BkApiAuthorization authorization;
+    /**
+     * 请求重试模式
+     */
+    private final RetryModeEnum retryMode;
+    /**
+     * 请求是否幂等
+     */
+    private final Boolean idempotent;
 
-    public ApiRequestInfo(Builder<T> builder) {
+    public OpenApiRequestInfo(Builder<T> builder) {
         this.method = builder.method;
         this.uri = builder.uri;
         this.queryParams = builder.queryParams;
         this.queryParamsMap = builder.queryParamsMap;
         this.body = builder.body;
         this.authorization = builder.authorization;
+        this.retryMode = builder.retryMode;
+        this.idempotent = builder.idempotent;
     }
 
     public static <T> Builder<T> builder() {
@@ -68,6 +84,8 @@ public class ApiRequestInfo<T> {
         private Map<String, String> queryParamsMap;
         private T body;
         private BkApiAuthorization authorization;
+        private RetryModeEnum retryMode = RetryModeEnum.SAFE_GUARANTEED;
+        private Boolean idempotent;
 
         public Builder<T> method(HttpMethodEnum method) {
             this.method = method;
@@ -117,8 +135,18 @@ public class ApiRequestInfo<T> {
             return this;
         }
 
-        public ApiRequestInfo<T> build() {
-            return new ApiRequestInfo<>(this);
+        public Builder<T> setRetryMode(RetryModeEnum retryMode) {
+            this.retryMode = retryMode;
+            return this;
+        }
+
+        public Builder<T> setIdempotent(Boolean idempotent) {
+            this.idempotent = idempotent;
+            return this;
+        }
+
+        public OpenApiRequestInfo<T> build() {
+            return new OpenApiRequestInfo<>(this);
         }
     }
 
@@ -158,6 +186,4 @@ public class ApiRequestInfo<T> {
             throw new RuntimeException("encode failed");
         }
     }
-
-
 }

@@ -30,10 +30,10 @@ import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -66,7 +67,8 @@ public class CmsiApiClient extends AbstractBkApiClient {
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry) {
-        super(meterRegistry, ESB_CMSI_API, esbProperties.getService().getUrl());
+        super(meterRegistry, ESB_CMSI_API, esbProperties.getService().getUrl(),
+            HttpHelperFactory.getDefaultHttpHelper());
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -78,7 +80,7 @@ public class CmsiApiClient extends AbstractBkApiClient {
                 Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
             );
             EsbResp<List<EsbNotifyChannelDTO>> esbResp = doRequest(
-                ApiRequestInfo.builder()
+                OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_NOTIFY_CHANNEL_LIST)
                     .authorization(authorization)
@@ -107,7 +109,7 @@ public class CmsiApiClient extends AbstractBkApiClient {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
             EsbResp<Object> esbResp = doRequest(
-                ApiRequestInfo.builder()
+                OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.POST)
                     .uri(uri)
                     .body(req)

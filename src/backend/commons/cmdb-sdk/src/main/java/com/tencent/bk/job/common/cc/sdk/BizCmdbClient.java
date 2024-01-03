@@ -97,6 +97,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -614,6 +615,13 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         hostDTO.setAgentId(ccHostInfo.getAgentId());
         hostDTO.setBizId(bizId);
         hostDTO.setHostName(ccHostInfo.getHostName());
+        hostDTO.setOsType(ccHostInfo.getOsType());
+        hostDTO.setCloudVendorId(ccHostInfo.getCloudVendorId());
+        Long lastTimeMills = null;
+        if (StringUtils.isNotBlank(ccHostInfo.getLastTime())) {
+            lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(ccHostInfo.getLastTime());
+        }
+        hostDTO.setLastTime(lastTimeMills);
         return hostDTO;
     }
 

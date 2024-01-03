@@ -22,54 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
+package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * @since 17/11/2020 20:37
+ * 用户、角色信息
+ *
+ * @since 17/11/2020 21:51
  */
 @Data
-public class EsbScriptStepV3DTO {
-    @JsonProperty("script_type")
-    @JsonPropertyDescription("Script type")
-    private Integer type;
+public class EsbUserRoleInfoV3DTO {
+    /**
+     * 用户名列表
+     */
+    @JsonProperty("user_list")
+    @JsonPropertyDescription("User list")
+    private List<String> userList;
 
-    @JsonProperty("script_id")
-    @JsonPropertyDescription("Script id")
-    private String scriptId;
+    /**
+     * 角色 ID 列表
+     */
+    @JsonProperty("role_list")
+    @JsonPropertyDescription("Job role list ")
+    private List<String> roleList;
 
-    @JsonProperty("script_version_id")
-    @JsonPropertyDescription("Script version id")
-    private Long scriptVersionId;
-
-    @JsonProperty("script_content")
-    @JsonPropertyDescription("Script content")
-    private String content;
-
-    @JsonProperty("script_language")
-    @JsonPropertyDescription("Script language")
-    private Integer language;
-
-    @JsonProperty("script_param")
-    @JsonPropertyDescription("Script params")
-    private String scriptParam;
-
-    @JsonProperty("script_timeout")
-    @JsonPropertyDescription("Timeout")
-    private Long scriptTimeout;
-
-    @JsonPropertyDescription("Account")
-    private EsbAccountV3BasicDTO account;
-
-    @JsonPropertyDescription("Hosts")
-    private EsbServerV3DTO server;
-
-    @JsonProperty("is_param_sensitive")
-    @JsonPropertyDescription("Is script params sensitive")
-    private Integer secureParam;
+    public static EsbUserRoleInfoV3DTO fromUserRoleInfo(UserRoleInfoDTO approvalUser) {
+        if (approvalUser == null) {
+            return null;
+        }
+        EsbUserRoleInfoV3DTO esbUserRoleInfo = new EsbUserRoleInfoV3DTO();
+        esbUserRoleInfo.setUserList(approvalUser.getUserList());
+        esbUserRoleInfo.setRoleList(approvalUser.getRoleList());
+        return esbUserRoleInfo;
+    }
 }

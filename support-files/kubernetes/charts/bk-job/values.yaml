@@ -425,6 +425,8 @@ bkRepoUrl: "http://bkrepo.example.com"
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
 bkGseApiGatewayUrl: "http://bkapi.example.com"
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -568,6 +570,11 @@ login:
     apiUrl: "http://login.example.com/api/"
     # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
     tokenName: "bk_token"
+
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
 
 ## Job Common Config
 job:

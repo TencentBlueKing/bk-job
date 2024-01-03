@@ -31,15 +31,16 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
-import com.tencent.bk.job.common.esb.model.ApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
 import com.tencent.bk.job.common.paas.model.GetUserListReq;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -66,7 +67,12 @@ public class UserMgrApiClient extends AbstractBkApiClient {
     public UserMgrApiClient(EsbProperties esbProperties,
                             AppProperties appProperties,
                             MeterRegistry meterRegistry) {
-        super(meterRegistry, ESB_USER_MANAGE_API, esbProperties.getService().getUrl(), EsbLang.EN);
+        super(meterRegistry,
+            ESB_USER_MANAGE_API,
+            esbProperties.getService().getUrl(),
+            HttpHelperFactory.getRetryableHttpHelper(),
+            EsbLang.EN
+        );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -82,7 +88,7 @@ public class UserMgrApiClient extends AbstractBkApiClient {
                 Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_USER_LIST)
             );
             EsbResp<List<EsbListUsersResult>> esbResp = doRequest(
-                ApiRequestInfo.builder()
+                OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_USER_LIST)
                     .queryParams(req.toUrlParams())

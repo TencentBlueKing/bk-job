@@ -22,47 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.esb.v3.response;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import lombok.Data;
-
-import java.util.List;
+package com.tencent.bk.job.common.i18n.locale;
 
 /**
- * 人工确认步骤
- *
- * @since 17/11/2020 20:38
+ * 蓝鲸公共协议涉及的常量
  */
-@Data
-public class EsbApprovalStepV3DTO {
+public class BkConsts {
 
-    /**
-     * 确认类型
-     */
-    @JsonProperty("approval_type")
-    @JsonPropertyDescription("Approval type")
-    private Integer approvalType;
+    // 国际化语言Header取值
+    public static final String HEADER_VALUE_LANG_ZH = "zh";
+    public static final String HEADER_VALUE_LANG_ZH_CN = "zh-cn";
+    public static final String HEADER_VALUE_LANG_EN = "en";
+    public static final String HEADER_VALUE_LANG_EN_US = "en-us";
 
-    /**
-     * 确认角色
-     */
-    @JsonPropertyDescription("Approval user info")
-    @JsonProperty("approval_user")
-    private EsbUserRoleInfoV3DTO approvalUser;
-
-    /**
-     * 确认消息
-     */
-    @JsonPropertyDescription("Approval message")
-    @JsonProperty("approval_message")
-    private String approvalMessage;
-
-    /**
-     * 通知渠道列表
-     */
-    @JsonPropertyDescription("Notify channel")
-    @JsonProperty("notify_channel")
-    private List<String> notifyChannel;
 }
