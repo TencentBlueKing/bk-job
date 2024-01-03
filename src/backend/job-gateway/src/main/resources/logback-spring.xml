@@ -19,6 +19,7 @@
             <fileNamePattern>${ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -32,6 +33,7 @@
             <fileNamePattern>${ESB_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -45,6 +47,7 @@
             <fileNamePattern>${IAM_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>

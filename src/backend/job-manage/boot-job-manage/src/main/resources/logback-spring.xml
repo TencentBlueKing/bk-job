@@ -19,6 +19,7 @@
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>${LOG_KEEP_HOURS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -34,6 +35,7 @@
             <maxFileSize>1GB</maxFileSize>
             <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
