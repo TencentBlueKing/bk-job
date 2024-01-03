@@ -104,7 +104,10 @@ public class StepExecutionResultQuery {
 
     private Set<ExecuteObjectCompositeKey> matchExecuteObjectCompositeKeys;
 
-    public boolean hasIpCondition() {
+    /**
+     * 是否包含按照执行对象过滤的条件。如果查询条件包含日志关键字、主机 ip 等，需要先根据条件查询到匹配的执行对象
+     */
+    public boolean hasExecuteObjectFilterCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);
     }
 

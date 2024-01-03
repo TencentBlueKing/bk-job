@@ -275,26 +275,6 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
     }
 
-    @Override
-    public StepExecutionDetailDTO getFastTaskStepExecutionResult(String username, Long appId, Long taskInstanceId,
-                                                                 StepExecutionResultQuery query) {
-        taskInstanceAccessProcessor.processBeforeAccess(username, appId, taskInstanceId);
-
-        List<StepInstanceBaseDTO> stepInstanceList =
-            stepInstanceDAO.listStepInstanceBaseByTaskInstanceId(taskInstanceId);
-        StepInstanceBaseDTO stepInstance = stepInstanceList.get(0);
-        if (stepInstance == null) {
-            log.warn("Step instance is not exist, taskInstanceId={}", taskInstanceId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        if (!stepInstance.getAppId().equals(appId)) {
-            log.warn("Step instance is not in application, stepInstanceId={}, appId={}", stepInstance.getId(), appId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-
-        return getStepExecutionResult(username, appId, query);
-    }
-
     private void preProcessViewStepExecutionResult(String username, Long appId, StepInstanceBaseDTO stepInstance)
         throws NotFoundException, PermissionDeniedException {
         // 查看步骤执行结果预处理，包括鉴权、审计等
@@ -460,7 +440,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
             StepExecutionDetailDTO stepExecutionDetail;
             // 如果步骤的目标服务器数量<100,或者通过IP匹配的方式过滤执行对象任务，为了提升性能，直接全量从DB查询数据，在内存进行处理
-            if ((stepInstance.getTargetExecuteObjectCount() <= 100) || query.hasIpCondition()) {
+            if ((stepInstance.getTargetExecuteObjectCount() <= 100) || query.hasExecuteObjectFilterCondition()) {
                 stepExecutionDetail = loadAllTasksFromDBAndBuildExecutionResultInMemory(watch, stepInstance, query);
             } else {
                 stepExecutionDetail = filterAndSortExecutionResultInDB(watch, stepInstance, query);
@@ -506,8 +486,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             StepExecutionDetailDTO executeDetail = new StepExecutionDetailDTO(stepInstance);
             executeDetail.setExecuteCount(query.getExecuteCount());
 
-            if (query.hasIpCondition()) {
-                watch.start("getMatchIps");
+            if (query.hasExecuteObjectFilterCondition()) {
+                watch.start("getMatchExecuteObjectCompositeKeys");
                 Set<ExecuteObjectCompositeKey> matchKeys = getMatchExecuteObjectCompositeKeys(stepInstance, query);
                 if (CollectionUtils.isEmpty(matchKeys)) {
                     watch.stop();

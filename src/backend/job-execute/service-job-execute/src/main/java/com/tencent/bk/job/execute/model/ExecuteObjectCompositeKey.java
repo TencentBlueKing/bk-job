@@ -40,14 +40,10 @@ public class ExecuteObjectCompositeKey {
      * 执行对象复合 KEY 的类型
      */
     private CompositeKeyType compositeKeyType;
-
-
     /**
      * 执行对象 ID
      */
     private String executeObjectId;
-
-
     /**
      * 执行对象类型
      */
@@ -64,12 +60,11 @@ public class ExecuteObjectCompositeKey {
      * 容器 ID
      */
     private Long containerId;
-
-
     /**
      * 管控区域+ipv4 方式标识主机
      */
     private String cloudIp;
+
 
     private ExecuteObjectCompositeKey() {
     }
@@ -87,6 +82,7 @@ public class ExecuteObjectCompositeKey {
         ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
         key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
         key.setExecuteObjectType(executeObjectType);
+        key.setResourceId(executeObjectResourceId);
         switch (executeObjectType) {
             case HOST:
                 key.setHostId(executeObjectResourceId);
@@ -99,12 +95,7 @@ public class ExecuteObjectCompositeKey {
     }
 
     public static ExecuteObjectCompositeKey ofHostId(Long hostId) {
-        ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
-        key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
-        key.setResourceId(hostId);
-        key.setExecuteObjectType(ExecuteObjectTypeEnum.HOST);
-        key.setHostId(hostId);
-        return key;
+        return ofExecuteObjectResource(ExecuteObjectTypeEnum.HOST, hostId);
     }
 
     public static ExecuteObjectCompositeKey ofHostIp(String cloudIp) {
@@ -116,12 +107,7 @@ public class ExecuteObjectCompositeKey {
     }
 
     public static ExecuteObjectCompositeKey ofContainerId(Long containerId) {
-        ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
-        key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
-        key.setResourceId(containerId);
-        key.setExecuteObjectType(ExecuteObjectTypeEnum.CONTAINER);
-        key.setContainerId(containerId);
-        return key;
+        return ofExecuteObjectResource(ExecuteObjectTypeEnum.CONTAINER, containerId);
     }
 
     @Override
@@ -159,8 +145,17 @@ public class ExecuteObjectCompositeKey {
     }
 
     public enum CompositeKeyType {
+        /**
+         * 执行对象ID 作为 KEY
+         */
         EXECUTE_OBJECT_ID(1),
+        /**
+         * 执行对象 <资源类型+资源ID> 作为 KEY
+         */
         RESOURCE_ID(2),
+        /**
+         * 主机类型的执行对象，使用<管控区域+ipv4> 作为 KEY
+         */
         HOST_CLOUD_IP(3);
 
         private final int value;

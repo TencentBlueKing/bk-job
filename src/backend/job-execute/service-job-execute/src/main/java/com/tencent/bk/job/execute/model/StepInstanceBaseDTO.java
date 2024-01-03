@@ -179,11 +179,7 @@ public class StepInstanceBaseDTO {
     }
 
     public int getTargetExecuteObjectCount() {
-        if (this.targetExecuteObjects != null && this.targetExecuteObjects.getExecuteObjectsCompatibly() != null) {
-            return this.targetExecuteObjects.getExecuteObjectsCompatibly().size();
-        } else {
-            return 0;
-        }
+        return targetExecuteObjects.getExecuteObjectsCountCompatibly();
     }
 
     /**

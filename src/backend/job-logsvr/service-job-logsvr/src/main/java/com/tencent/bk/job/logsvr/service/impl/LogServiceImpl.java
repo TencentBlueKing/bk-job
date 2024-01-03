@@ -579,6 +579,16 @@ public class LogServiceImpl implements LogService {
                                                      int executeCount,
                                                      Integer batch,
                                                      String keyword) {
-        return null;
+        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
+        Query query = buildQueryForKeywordSearch(stepInstanceId, executeCount, batch, keyword);
+        query.fields().include(ScriptTaskLogDocField.EXECUTE_OBJECT_ID);
+        List<ScriptTaskLogDoc> logs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);
+        if (logs.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return logs.stream()
+            .map(ScriptTaskLogDoc::getExecuteObjectId)
+            .distinct()
+            .collect(Collectors.toList());
     }
 }

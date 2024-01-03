@@ -472,6 +472,20 @@ public class ExecuteObjectsDTO implements Cloneable {
     }
 
     /**
+     * 计算所有执行对象数量(兼容当前版本+历史版本数据）
+     */
+    @JsonIgnore
+    public int getExecuteObjectsCountCompatibly() {
+        if (executeObjects != null) {
+            return executeObjects.size();
+        } else if (ipList != null) {
+            return ipList.size();
+        } else {
+            return 0;
+        }
+    }
+
+    /**
      * 获取所有主机执行对象列表(兼容当前版本+历史版本数据）
      */
     @JsonIgnore

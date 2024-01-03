@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -64,17 +63,6 @@ public interface TaskResultService {
      */
     TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId, Long taskInstanceId);
 
-    /**
-     * 获取步骤执行详情
-     *
-     * @param username       用户名
-     * @param appId          业务ID
-     * @param taskInstanceId 作业实例ID
-     * @param query          查询条件
-     * @return 步骤执行详情
-     */
-    StepExecutionDetailDTO getFastTaskStepExecutionResult(String username, Long appId, Long taskInstanceId,
-                                                          StepExecutionResultQuery query);
 
     /**
      * 获取步骤执行详情
@@ -84,8 +72,7 @@ public interface TaskResultService {
      * @param query    查询条件
      * @return 执行详情
      */
-    StepExecutionDetailDTO getStepExecutionResult(String username, Long appId, StepExecutionResultQuery query)
-        throws ServiceException;
+    StepExecutionDetailDTO getStepExecutionResult(String username, Long appId, StepExecutionResultQuery query);
 
     /**
      * 获取定时任务执行结果统计
