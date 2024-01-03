@@ -60,7 +60,9 @@
               "bk_host_id": 1,
               "bk_cloud_id": 0,
               "ip": "192.168.1.1",
-              "ipv6": null
+              "ipv6": null,
+              "bk_agent_id": "020000000052540079809816967513755991",
+              "alive": 1
             }],
             "topo_node_list": [{
               "node_type": "set",
@@ -88,7 +90,9 @@
                     "bk_host_id": 1,
                     "bk_cloud_id": 0,
                     "ip": "192.168.1.1",
-                    "ipv6": null
+                    "ipv6": null,
+                    "bk_agent_id": "020000000052540079809816967513755991",
+                    "alive": 1
                   }],
                   "topo_node_list": [{
                     "node_type": "set",
@@ -118,7 +122,9 @@
                 "bk_host_id": 1,
                 "bk_cloud_id": 0,
                 "ip": "192.168.1.1",
-                "ipv6": null
+                "ipv6": null,
+                "bk_agent_id": "020000000052540079809816967513755991",
+                "alive": 1
               }],
               "topo_node_list": [{
                 "node_type": "set",
