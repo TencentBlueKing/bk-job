@@ -161,7 +161,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
 
     private void fillNodesHostInfo(Collection<ContainerVO> containerVOs) {
         List<Long> hostIds = containerVOs.stream()
-            .map(ContainerVO::getNodeHostId).collect(Collectors.toList());
+            .map(ContainerVO::getNodeHostId).distinct().collect(Collectors.toList());
         Map<Long, ApplicationHostDTO> hostMap = hostService.listHostsByHostIds(hostIds);
 
         containerVOs.forEach(containerVO -> {

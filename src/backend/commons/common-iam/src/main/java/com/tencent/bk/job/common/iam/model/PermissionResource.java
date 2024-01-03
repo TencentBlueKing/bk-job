@@ -44,7 +44,7 @@ public class PermissionResource {
      */
     private ResourceTypeEnum resourceType;
     /**
-     * 子资源类型。比如cmdb主机，具有静态主机、动态topo、动态分组三种子类型。可取值：host/topo/dynamic_group
+     * 子资源类型。比如cmdb主机，具有静态主机、动态topo、动态分组三种子类型
      */
     private String subResourceType;
     /**

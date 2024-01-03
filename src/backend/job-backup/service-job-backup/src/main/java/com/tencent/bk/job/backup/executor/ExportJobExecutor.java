@@ -522,7 +522,8 @@ public class ExportJobExecutor {
         Map<Long,
             TaskVariableVO> needProcessVariableList = variableList.stream()
             .filter(taskVariableVO -> taskVariableVO.getType().equals(TaskVariableTypeEnum.CIPHER.getType()))
-            .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO));
+            .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO,
+                (oldValue, newValue) -> newValue));
 
         if (MapUtils.isEmpty(needProcessVariableList)) {
             return;

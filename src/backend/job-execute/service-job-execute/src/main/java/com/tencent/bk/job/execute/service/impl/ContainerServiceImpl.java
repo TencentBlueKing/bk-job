@@ -78,7 +78,7 @@ public class ContainerServiceImpl implements ContainerService {
                     .collect(Collectors.toList()),
                 false);
         Map<Long, HostDTO> hostMap = hostResult.getValidHosts().stream()
-            .collect(Collectors.toMap(HostDTO::getHostId, host -> host));
+            .collect(Collectors.toMap(HostDTO::getHostId, host -> host, (oldValue, newValue) -> newValue));
 
         containers.forEach(container -> {
             HostDTO nodeHost = hostMap.get(container.getNodeHostId());

@@ -270,7 +270,8 @@ public class LogServiceImpl implements LogService {
 
         if (stepInstance.isSupportExecuteObjectFeature()) {
             Map<String, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
-                .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject));
+                .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject,
+                    (oldValue, newValue) -> newValue));
             return resp.getData().stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ?
                     logDTO.getScriptLog().getContent() : "";
@@ -280,7 +281,8 @@ public class LogServiceImpl implements LogService {
         } else {
             Map<Long, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
                 .collect(Collectors.toMap(
-                    executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject));
+                    executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject,
+                    (oldValue, newValue) -> newValue));
             return resp.getData().stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ?
                     logDTO.getScriptLog().getContent() : "";

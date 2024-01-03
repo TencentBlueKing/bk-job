@@ -221,13 +221,18 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
-                                      Long planId, String planName, ExecuteObjectsDTO servers) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+    public AuthResult authExecutePlan(String username,
+                                      AppResourceScope appResourceScope,
+                                      Long templateId,
+                                      Long planId,
+                                      String planName,
+                                      ExecuteObjectsDTO executeObjects) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeObjects);
 
         InstanceDTO planInstance = buildExecutableInstance(
             appResourceScope,
-            ResourceTypeEnum.PLAN, planId.toString(),
+            ResourceTypeEnum.PLAN,
+            planId.toString(),
             buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.TEMPLATE, templateId.toString()));
 
         log.debug("Auth execute plan, username:{}, appResourceScope:{}, planId:{}, planInstance:{}, hostInstances:{}",
@@ -253,7 +258,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         authResult.addRequiredPermission(ActionId.LAUNCH_JOB_PLAN, planResource);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, servers);
+            appResourceScope, executeObjects);
         authResult.addRequiredPermissions(ActionId.LAUNCH_JOB_PLAN, hostResources);
         log.debug("Auth execute plan, authResult:{}", authResult);
         return authResult;
@@ -360,6 +365,15 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 );
                 hostInstanceList.add(serverGroupInstance);
             });
+        }
+        // 静态容器
+        if (!CollectionUtils.isEmpty(executeObjects.getStaticContainerList())) {
+            // 静态容器按照业务鉴权
+            InstanceDTO hostInstance = new InstanceDTO();
+            hostInstance.setType(ResourceTypeEnum.HOST.getId());
+            hostInstance.setSystem(SystemId.CMDB);
+            hostInstance.setPath(buildAppScopePath(appResourceScope));
+            hostInstanceList.add(hostInstance);
         }
         return hostInstanceList;
     }

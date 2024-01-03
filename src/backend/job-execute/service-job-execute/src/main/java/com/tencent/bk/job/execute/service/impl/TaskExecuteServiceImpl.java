@@ -741,7 +741,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         ExecuteObjectsDTO executeObjects = stepInstance.getTargetExecuteObjects().clone();
         filterHostsDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, executeObjects, whiteHostAllowActions);
         if (executeObjects.isEmpty()) {
-            // 如果主机为空，无需对主机进行鉴权
+            // 如果执行对象为空，无需进一步鉴权
             return accountAuthResult;
         }
         ScriptSourceEnum scriptSource = ScriptSourceEnum.getScriptSourceEnum(stepInstance.getScriptSource());
@@ -841,7 +841,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance.getAppId(), queryContainerIds);
 
         fillTaskInstanceContainerDetail(taskInstanceExecuteObjects, stepInstances,
-            containers.stream().collect(Collectors.toMap(Container::getId, container -> container)));
+            containers.stream().collect(
+                Collectors.toMap(Container::getId, container -> container, (oldValue, newValue) -> newValue)));
     }
 
     private void fillTaskInstanceContainerDetail(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -1039,7 +1040,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         log.info("Contains hosts not in app, check white host config. notInAppHosts: {}, whileHostAllowActions: {}",
             taskInstanceExecuteObjects.getNotInAppHosts(), whileHostAllowActions);
         Map<Long, HostDTO> notInAppHostMap = taskInstanceExecuteObjects.getNotInAppHosts().stream()
-            .collect(Collectors.toMap(HostDTO::getHostId, host -> host));
+            .collect(Collectors.toMap(HostDTO::getHostId, host -> host, (host1, host2) -> host2));
 
         // 非法的主机
         Set<HostDTO> invalidHosts = new HashSet<>();

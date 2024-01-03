@@ -483,7 +483,8 @@ public class HostServiceImpl implements HostService {
 
         Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
             .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
-            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId,
+                ApplicationHostDTO::getAgentId, (oldValue, newValue) -> newValue));
         hosts.forEach(host -> {
             if (StringUtils.isEmpty(host.getAgentId())) {
                 host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
@@ -759,7 +760,8 @@ public class HostServiceImpl implements HostService {
     public Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds) {
         Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(hostIds),
             new ListHostByHostIdsStrategy());
-        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host));
+        return result.getRight().stream()
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host, (host1, host2) -> host2));
     }
 
     /**
@@ -784,6 +786,7 @@ public class HostServiceImpl implements HostService {
     public Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
         Pair<List<String>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(cloudIps),
             new ListHostByIpsStrategy());
-        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getCloudIp, host -> host));
+        return result.getRight().stream().collect(
+            Collectors.toMap(ApplicationHostDTO::getCloudIp, host -> host, (oldValue, newValue) -> newValue));
     }
 }

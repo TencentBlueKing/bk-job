@@ -800,7 +800,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 stepExecutionDetail.getExecuteCount())
                 .stream()
                 .collect(Collectors.toMap(StepInstanceRollingTaskDTO::getBatch,
-                    stepInstanceRollingTask -> stepInstanceRollingTask));
+                    stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
 
         // 如果滚动任务还未调度，那么需要在结果中补充
         int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
