@@ -29,7 +29,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public abstract class BaseCcSearchResult<T> {
+public class BaseCcSearchResult<T> {
     private int count;
     private List<T> info;
 }
