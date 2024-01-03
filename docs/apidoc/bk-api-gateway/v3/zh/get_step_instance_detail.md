@@ -203,6 +203,8 @@
 | bk_cloud_id | long      |  否        | 管控区域ID  |
 | ip          | string    |  否        | IP        |
 | ipv6        | string    |  否        | IPv6      |
+| bk_agent_id | string    |  否        | Agent ID  |
+| alive       | int       |  否        | Agent是否正常，取值为：1-正常，0-异常 |
 
 ##### topo_node
 

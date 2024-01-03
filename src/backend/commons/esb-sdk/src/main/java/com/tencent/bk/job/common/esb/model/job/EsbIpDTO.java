@@ -64,6 +64,14 @@ public class EsbIpDTO {
     @JsonPropertyDescription("ipv6")
     private String ipv6;
 
+    @JsonProperty("bk_agent_id")
+    @JsonPropertyDescription("Agent Id")
+    private String agentId;
+
+    @JsonProperty("alive")
+    @JsonPropertyDescription("Agent是否正常")
+    private Integer alive;
+
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
         this.bkCloudId = bkCloudId;
@@ -90,6 +98,8 @@ public class EsbIpDTO {
         esbIp.setIp(host.getIp());
         esbIp.setIpv6(host.getIpv6());
         esbIp.setHostId(host.getHostId());
+        esbIp.setAgentId(host.getAgentId());
+        esbIp.setAlive(host.getAlive());
         return esbIp;
     }
 
