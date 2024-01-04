@@ -98,11 +98,11 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.FlowController;
@@ -652,7 +652,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         String orderField = "bk_biz_id";
         while (!isLastPage) {
             GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
-            PageDTO page = new PageDTO(start, limit, orderField);
+            Page page = new Page(start, limit, orderField);
             req.setPage(page);
             EsbResp<SearchAppResult> esbResp = requestCmdbApi(
                 ApiGwType.ESB,
@@ -863,7 +863,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         int start = 0;
         while (!isLastPage) {
             GetCloudAreaInfoReq req = makeCmdbBaseReq(GetCloudAreaInfoReq.class);
-            PageDTO page = new PageDTO(start, limit, null);
+            Page page = new Page(start, limit, null);
             req.setPage(page);
             if (fieldConditions != null && !fieldConditions.isEmpty()) {
                 req.setCondition(fieldConditions);
@@ -949,7 +949,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         int start = 0;
         boolean isLastPage = false;
         while (!isLastPage) {
-            PageDTO page = new PageDTO(start, limit, "");
+            Page page = new Page(start, limit, "");
             req.setPage(page);
             EsbResp<ListBizHostResult> esbResp = requestCmdbApi(
                 ApiGwType.ESB,
@@ -1072,7 +1072,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         int total;
         List<ApplicationHostDTO> hosts = new ArrayList<>();
         do {
-            PageDTO page = new PageDTO(start, limit, "");
+            Page page = new Page(start, limit, "");
             req.setPage(page);
             EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(
                 ApiGwType.ESB,
@@ -1434,34 +1434,42 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     }
 
     /**
-     * 根据容器拓扑获取container信息
+     * 根据容器拓扑获取container信息(分页)
      *
      * @param req 请求
      * @return 容器列表（分页）
      */
-    public PageData<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+    public PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        return listPageKubeContainerByTopo(req, true);
+    }
+
+    private PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req,
+                                                                     boolean withCount) {
         setSupplierAccount(req);
         req.setContainerFields(ContainerFields.FIELDS);
         req.setPodFields(PodFields.FIELDS);
 
         Page originPage = req.getPage();
-        // 设置为查询总数量的分页条件
-        req.setPage(Page.buildQueryCountPage());
+        long count = 0;
+        if (withCount) {
+            // 设置为查询总数量的分页条件
+            req.setPage(Page.buildQueryCountPage());
 
-        // 查询总数量
-        EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
-            ApiGwType.BK_APIGW,
-            HttpMethodEnum.POST,
-            LIST_KUBE_CONTAINER_BY_TOPO,
-            null,
-            req,
-            new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
-            });
-        long count = esbResp.getData().getCount();
+            // 查询总数量
+            EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
+                ApiGwType.BK_APIGW,
+                HttpMethodEnum.POST,
+                LIST_KUBE_CONTAINER_BY_TOPO,
+                null,
+                req,
+                new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+                });
+            count = esbResp.getData().getCount();
+        }
 
         // 查询数据
         req.setPage(originPage);
-        esbResp = requestCmdbApi(
+        EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
             ApiGwType.BK_APIGW,
             HttpMethodEnum.POST,
             LIST_KUBE_CONTAINER_BY_TOPO,
@@ -1472,6 +1480,29 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         BaseCcSearchResult<ContainerDetailDTO> result = esbResp.getData();
         return new PageData<>(originPage.getStart(), originPage.getLimit(), count, result.getInfo());
     }
+
+    /**
+     * 根据容器拓扑获取container信息
+     *
+     * @param req 请求
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        setSupplierAccount(req);
+        req.setContainerFields(ContainerFields.FIELDS);
+        req.setPodFields(PodFields.FIELDS);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPageKubeContainerByTopo(req, false);
+            },
+            PageData::getData,
+            container -> container
+        );
+    }
+
 
     private void setSupplierAccount(EsbReq esbReq) {
         if (StringUtils.isEmpty(cmdbSupplierAccount)) {
@@ -1511,8 +1542,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     }
 
     private PageData<ContainerDetailDTO> listPageContainersByIds(ListKubeContainerByTopoReq req,
-                                                                 PageDTO page) {
-        req.setPage(new Page(page.getStart(), page.getLimit()));
-        return listKubeContainerByTopo(req);
+                                                                 PageCondition pageCondition) {
+        req.setPage(new Page(pageCondition.getStart(), pageCondition.getLength()));
+        return listPageKubeContainerByTopo(req);
     }
 }

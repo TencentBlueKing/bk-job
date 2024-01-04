@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.PageDTO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -250,14 +250,14 @@ public class PageUtil {
      * @return 全量对象列表
      */
     public static <T1, T2, R> List<T2> queryAllWithLoopPageQuery(int pageLimit,
-                                                                 Function<PageDTO, R> pageQuery,
+                                                                 Function<PageCondition, R> pageQuery,
                                                                  Function<R, Collection<T1>> extractElementsFunction,
                                                                  Function<T1, T2> elementConverter) {
         int start = 0;
         List<T2> elements = new ArrayList<>();
         while (true) {
-            PageDTO page = new PageDTO(start, pageLimit, "");
-            R result = pageQuery.apply(page);
+            PageCondition pageCondition = PageCondition.build(start, pageLimit);
+            R result = pageQuery.apply(pageCondition);
 
             Collection<T1> originElements = extractElementsFunction.apply(result);
             if (CollectionUtils.isEmpty(originElements)) {

@@ -185,7 +185,14 @@ public class WebContainerResourceImpl implements WebContainerResource {
         ContainerQuery containerQuery =
             ContainerQuery.fromListContainerByTopologyNodesReq(Long.parseLong(scopeId), req);
 
-        PageData<ContainerDetailDTO> pageData = containerService.listPageKubeContainerByTopo(containerQuery);
+        PageData<ContainerDetailDTO> pageData;
+        if (containerQuery.getPageCondition() != null) {
+            pageData = containerService.listPageKubeContainerByTopo(containerQuery);
+        } else {
+            List<ContainerDetailDTO> containerList = containerService.listKubeContainerByTopo(containerQuery);
+            pageData = new PageData<>(0, Integer.MAX_VALUE,
+                containerList == null ? 0L : containerList.size(), containerList);
+        }
 
         PageData<ContainerIdWithMeta> containerIdPageData =
             PageData.from(pageData, container -> new ContainerIdWithMeta(container.getContainer().getId()));

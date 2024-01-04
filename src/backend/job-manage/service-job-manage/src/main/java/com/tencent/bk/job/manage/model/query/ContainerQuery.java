@@ -31,7 +31,8 @@ import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
 import com.tencent.bk.job.common.cc.model.req.field.PodFields;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.OrderCondition;
+import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.manage.model.dto.KubeTopoNode;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import lombok.Getter;
@@ -59,7 +60,10 @@ public class ContainerQuery {
 
     private final List<String> podNames;
 
-    private final BaseSearchCondition baseSearchCondition;
+    private final PageCondition pageCondition;
+
+    private final OrderCondition orderCondition;
+
 
     private ContainerQuery(Builder builder) {
         bizId = builder.bizId;
@@ -68,11 +72,17 @@ public class ContainerQuery {
         containerUIDs = builder.containerUIDs;
         containerNames = builder.containerNames;
         podNames = builder.podNames;
-        baseSearchCondition = builder.baseSearchCondition;
+        pageCondition = builder.pageCondition;
+        orderCondition = builder.orderCondition;
     }
 
     public static ContainerQuery fromListContainerByTopologyNodesReq(Long bizId,
                                                                      ListContainerByTopologyNodesReq req) {
+        PageCondition pageCondition = null;
+        if (req.getStart() != null && req.getPageSize() != null) {
+            pageCondition = PageCondition.build(req.getStart(), req.getPageSize());
+        }
+
         return ContainerQuery.builder()
             .bizId(bizId)
             .containerUIDs(req.getContainerUIDList())
@@ -84,7 +94,7 @@ public class ContainerQuery {
                     .map(nodeVO -> new KubeTopoNode(nodeVO.getObjectId(), nodeVO.getInstanceId()))
                     .collect(Collectors.toList())
                 : null)
-            .baseSearchCondition(BaseSearchCondition.pageCondition(req.getStart(), req.getPageSize()))
+            .pageCondition(pageCondition)
             .build();
     }
 
@@ -146,10 +156,10 @@ public class ContainerQuery {
     }
 
     private void setPageIfNecessary(ListKubeContainerByTopoReq req) {
-        if (baseSearchCondition != null) {
+        if (pageCondition != null) {
             Page page = new Page();
-            page.setStart(baseSearchCondition.getStartOrDefault(0));
-            page.setLimit(baseSearchCondition.getLengthOrDefault(10));
+            page.setStart(pageCondition.getStart());
+            page.setLimit(pageCondition.getLength());
             page.setSort(ContainerFields.ID);
             req.setPage(page);
         }
@@ -167,7 +177,8 @@ public class ContainerQuery {
         private List<String> containerUIDs;
         private List<String> containerNames;
         private List<String> podNames;
-        private BaseSearchCondition baseSearchCondition;
+        private PageCondition pageCondition;
+        private OrderCondition orderCondition;
 
         private Builder() {
         }
@@ -206,8 +217,13 @@ public class ContainerQuery {
             return this;
         }
 
-        public Builder baseSearchCondition(BaseSearchCondition baseSearchCondition) {
-            this.baseSearchCondition = baseSearchCondition;
+        public Builder pageCondition(PageCondition pageCondition) {
+            this.pageCondition = pageCondition;
+            return this;
+        }
+
+        public Builder orderCondition(OrderCondition orderCondition) {
+            this.orderCondition = orderCondition;
             return this;
         }
 

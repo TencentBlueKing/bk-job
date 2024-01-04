@@ -22,29 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * @since 19/12/2019 15:54
+ * 查询基础类
  */
 @Getter
 @Setter
 @ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class AbstractCcReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
-    private Map<String, Object> condition;
-    private Page page;
-    private List<String> fields;
+@NoArgsConstructor
+public class SearchCondition implements Cloneable {
+    private PageCondition pageCondition;
+    private OrderCondition orderCondition;
+
+    public SearchCondition(PageCondition pageCondition, OrderCondition orderCondition) {
+        this.pageCondition = pageCondition;
+        this.orderCondition = orderCondition;
+    }
+
+    public static SearchCondition build(PageCondition pageCondition, OrderCondition orderCondition) {
+        return new SearchCondition(pageCondition, orderCondition);
+    }
 }

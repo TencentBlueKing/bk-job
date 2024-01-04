@@ -27,11 +27,8 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
-import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.PageDTO;
-import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 import com.tencent.bk.job.manage.service.ContainerService;
 import lombok.extern.slf4j.Slf4j;
@@ -59,24 +56,12 @@ public class ContainerServiceImpl implements ContainerService {
 
     @Override
     public PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ContainerQuery query) {
-        return bizCmdbClient.listKubeContainerByTopo(query.toListKubeContainerByTopoReq());
+        return bizCmdbClient.listPageKubeContainerByTopo(query.toListKubeContainerByTopoReq());
     }
 
     @Override
     public List<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query) {
         ListKubeContainerByTopoReq req = query.toListKubeContainerByTopoReq();
-        return PageUtil.queryAllWithLoopPageQuery(
-            500,
-            page -> listPageKubeContainerByTopoReq(req, page),
-            PageData::getData,
-            container -> container
-        );
-    }
-
-    private PageData<ContainerDetailDTO> listPageKubeContainerByTopoReq(ListKubeContainerByTopoReq req, PageDTO page) {
-        req.setPage(new Page(page.getStart(), page.getLimit()));
         return bizCmdbClient.listKubeContainerByTopo(req);
     }
-
-
 }

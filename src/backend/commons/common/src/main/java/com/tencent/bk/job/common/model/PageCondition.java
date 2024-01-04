@@ -22,17 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+/**
+ * 分页查询条件
+ */
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
-@AllArgsConstructor
-public class PageDTO {
-    private Integer start;
-    private Integer limit = 200;
-    private String sort;
+public class PageCondition implements Cloneable {
+    /**
+     * 分页起始
+     */
+    private int start = 0;
+    /**
+     * 分页大小
+     */
+    private int length = 20;
+
+    /**
+     * 分页-是否计算总数；默认计算。分页计算总数可能会影响 API 性能, 必要场景才可使用
+     */
+    private boolean countPageTotal = true;
+
+    public static PageCondition build(int start, int length) {
+        PageCondition pageCondition = new PageCondition();
+        pageCondition.setStart(start);
+        pageCondition.setLength(length);
+        pageCondition.setCountPageTotal(true);
+        return pageCondition;
+    }
+
+    public static PageCondition build(int start, int length, boolean countPageTotal) {
+        PageCondition pageCondition = new PageCondition();
+        pageCondition.setStart(start);
+        pageCondition.setLength(length);
+        pageCondition.setCountPageTotal(countPageTotal);
+        return pageCondition;
+    }
+
+    public PageCondition clone() {
+        PageCondition pageCondition = new PageCondition();
+        pageCondition.setStart(start);
+        pageCondition.setLength(length);
+        pageCondition.setCountPageTotal(countPageTotal);
+        return pageCondition;
+    }
+
 }

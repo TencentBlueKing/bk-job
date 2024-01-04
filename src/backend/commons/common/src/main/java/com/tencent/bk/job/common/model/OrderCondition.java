@@ -22,29 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbReq;
+import com.tencent.bk.job.common.constant.Order;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * @since 19/12/2019 15:54
+ * 查询排序设置
  */
 @Getter
 @Setter
 @ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class AbstractCcReq extends EsbReq {
-    @JsonProperty("bk_biz_id")
-    private Long bizId;
-    private Map<String, Object> condition;
-    private Page page;
-    private List<String> fields;
+@NoArgsConstructor
+public class OrderCondition implements Cloneable {
+
+    /**
+     * 排序
+     */
+    private Order order;
+
+    /**
+     * 排序的字段
+     */
+    private String orderField;
+
+    private OrderCondition(Order order, String orderField) {
+        this.order = order;
+        this.orderField = orderField;
+    }
+
+    public static OrderCondition build(Order order, String orderField) {
+        return new OrderCondition(order, orderField);
+    }
 }
