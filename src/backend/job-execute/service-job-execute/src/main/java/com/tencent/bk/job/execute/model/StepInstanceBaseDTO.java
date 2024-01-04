@@ -216,7 +216,7 @@ public class StepInstanceBaseDTO {
             return targetGseV2Agent;
         }
         // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
-        boolean isTargetGseV1Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
+        this.targetGseV2Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
             .anyMatch(executeObject -> {
                 if (executeObject.isHostExecuteObject()) {
                     return AgentUtils.isGseV1AgentId(executeObject.getHost().getAgentId());
@@ -226,7 +226,6 @@ public class StepInstanceBaseDTO {
                 }
                 return false;
             });
-        this.targetGseV2Agent = !isTargetGseV1Agent;
         return this.targetGseV2Agent;
     }
 
