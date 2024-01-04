@@ -429,13 +429,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Set<String> findJobResourceOwners(Integer resourceType, String resourceIdStr) {
         Set<String> userSet = new HashSet<>();
-        if (resourceType == ResourceTypeEnum.SCRIPT.getType()) {
-            userSet.add(scriptDAO.getScriptByScriptId(resourceIdStr).getLastModifyUser());
-        } else if (resourceType == ResourceTypeEnum.JOB.getType()) {
+        if (resourceType == ResourceTypeEnum.JOB.getType()) {
             long resourceId = Long.parseLong(resourceIdStr);
             userSet.add(taskPlanDAO.getTaskPlanById(resourceId).getLastModifyUser());
         } else {
-            log.warn("Unknown resourceType:{}", resourceType);
+            // 没有资源的任务不通知"资源所属者"
         }
         return userSet;
     }
