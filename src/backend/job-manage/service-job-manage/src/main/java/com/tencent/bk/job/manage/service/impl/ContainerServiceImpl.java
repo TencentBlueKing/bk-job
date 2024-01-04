@@ -68,7 +68,6 @@ public class ContainerServiceImpl implements ContainerService {
         return PageUtil.queryAllWithLoopPageQuery(
             500,
             page -> listPageKubeContainerByTopoReq(req, page),
-            pageData -> pageData.getTotal().intValue(),
             PageData::getData,
             container -> container
         );

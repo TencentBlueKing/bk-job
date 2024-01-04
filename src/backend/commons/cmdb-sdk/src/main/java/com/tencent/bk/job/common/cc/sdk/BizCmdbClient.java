@@ -1489,7 +1489,6 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         return PageUtil.queryAllWithLoopPageQuery(
             500,
             page -> listPageContainersByIds(req, page),
-            pageData -> pageData.getTotal().intValue(),
             PageData::getData,
             container -> container
         );

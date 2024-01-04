@@ -44,14 +44,11 @@ public class ListKubeContainerByTopoReq extends EsbReq {
     @JsonProperty("bk_biz_id")
     private Long bizId;
 
-    @JsonProperty("bk_nodes")
+    /**
+     * 容器拓扑节点信息，数组限制条件为200
+     */
+    @JsonProperty("bk_kube_nodes")
     private List<KubeNodeID> nodeIdList;
-
-    @JsonProperty("bk_namespace_id")
-    private Long namespaceId;
-
-    @JsonProperty("bk_workload_id")
-    private Long workloadId;
 
     @JsonProperty("container_filter")
     private PropertyFilterDTO containerFilter;

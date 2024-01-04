@@ -242,7 +242,6 @@ public class PageUtil {
      *
      * @param pageLimit               每页限制大小
      * @param pageQuery               查询操作
-     * @param extractCountFunction    从分页查询结果提取总数
      * @param extractElementsFunction 从分页查询结果提取返回的对象列表
      * @param elementConverter        分页查询对象转换为最终对象
      * @param <T1>                    分页查询返回的对象
@@ -252,18 +251,17 @@ public class PageUtil {
      */
     public static <T1, T2, R> List<T2> queryAllWithLoopPageQuery(int pageLimit,
                                                                  Function<PageDTO, R> pageQuery,
-                                                                 Function<R, Integer> extractCountFunction,
                                                                  Function<R, Collection<T1>> extractElementsFunction,
                                                                  Function<T1, T2> elementConverter) {
         int start = 0;
-        int total;
         List<T2> elements = new ArrayList<>();
-        do {
+        while (true) {
             PageDTO page = new PageDTO(start, pageLimit, "");
             R result = pageQuery.apply(page);
 
             Collection<T1> originElements = extractElementsFunction.apply(result);
             if (CollectionUtils.isEmpty(originElements)) {
+                // 如果本次没有获取到数据记录，说明数据已经全部拉取完成
                 break;
             }
             elements.addAll(originElements.stream()
@@ -271,10 +269,11 @@ public class PageUtil {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
-            total = extractCountFunction.apply(result);
-            start += pageLimit;
-        } while (start < total);
-
+            if (originElements.size() < pageLimit) {
+                // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
+                break;
+            }
+        }
         return elements;
     }
 }
