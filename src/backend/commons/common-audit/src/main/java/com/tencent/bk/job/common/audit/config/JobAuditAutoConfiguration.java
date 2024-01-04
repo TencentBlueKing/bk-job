@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.audit.config;
 import com.tencent.bk.audit.AuditRequestProvider;
 import com.tencent.bk.audit.config.AuditAutoConfiguration;
 import com.tencent.bk.audit.config.AuditProperties;
+import com.tencent.bk.job.common.audit.AddResourceScopeAuditPostFilter;
 import com.tencent.bk.job.common.audit.JobAuditExceptionResolver;
 import com.tencent.bk.job.common.audit.JobAuditRequestProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -55,5 +56,10 @@ public class JobAuditAutoConfiguration {
     public JobAuditExceptionResolver auditExceptionResolver() {
         log.info("Init JobAuditExceptionResolver");
         return new JobAuditExceptionResolver();
+    }
+
+    @Bean
+    public AddResourceScopeAuditPostFilter addResourceScopeAuditPostFilter() {
+        return new AddResourceScopeAuditPostFilter();
     }
 }
