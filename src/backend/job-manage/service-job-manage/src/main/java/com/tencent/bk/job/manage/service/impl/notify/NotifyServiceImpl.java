@@ -433,8 +433,7 @@ public class NotifyServiceImpl implements NotifyService {
             long resourceId = Long.parseLong(resourceIdStr);
             userSet.add(taskPlanDAO.getTaskPlanById(resourceId).getLastModifyUser());
         } else {
-            log.warn("Unknown resourceType:{}, Resource owner only supports resource type {}",
-                resourceType, ResourceTypeEnum.JOB.getType());
+            // 没有资源的任务不通知"资源所属者"
         }
         return userSet;
     }
