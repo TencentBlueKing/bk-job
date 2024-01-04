@@ -62,7 +62,7 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
 public class BkApiClient {
 
     private String lang;
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private Logger log = LoggerFactory.getLogger(this.getClass());
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
@@ -105,6 +105,15 @@ public class BkApiClient {
      */
     public void setJsonMapper(JsonMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
+    }
+
+    /**
+     * 配置自定义的日志 logger
+     *
+     * @param logger logger
+     */
+    public void setLogger(Logger logger) {
+        this.log = logger;
     }
 
     public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,

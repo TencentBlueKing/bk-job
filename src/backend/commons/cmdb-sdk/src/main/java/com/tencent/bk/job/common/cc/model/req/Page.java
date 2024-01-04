@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.cc.model.req;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -53,6 +54,11 @@ public class Page {
      * 排序字段
      */
     private String sort;
+    /**
+     * 是否获取查询对象数量的标记。如果此标记为true那么表示此次请求是获取数量，此时其余字段必须为初始化值，start为0，limit为:0，sort为""
+     */
+    @JsonProperty("enable_count")
+    private boolean enableCount;
 
     public Page(Integer start, Integer limit) {
         this.start = start;
@@ -63,5 +69,14 @@ public class Page {
         this.start = start;
         this.limit = limit;
         this.sort = sort;
+    }
+
+    /**
+     * 构造查询记录总数的分页条件
+     */
+    public static Page buildQueryCountPage() {
+        Page page = new Page(0, 0, "");
+        page.setEnableCount(true);
+        return page;
     }
 }

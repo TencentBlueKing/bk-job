@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
 import com.tencent.bk.job.common.cc.model.req.field.PodFields;
+import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.manage.model.dto.KubeTopoNode;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
@@ -62,7 +63,7 @@ public class ContainerQuery {
 
     private ContainerQuery(Builder builder) {
         bizId = builder.bizId;
-        this.ids = builder.ids;
+        ids = builder.ids;
         nodes = builder.nodes;
         containerUIDs = builder.containerUIDs;
         containerNames = builder.containerNames;
@@ -79,6 +80,7 @@ public class ContainerQuery {
             .podNames(req.getPodNameList())
             .nodes(CollectionUtils.isNotEmpty(req.getNodeList()) ?
                 req.getNodeList().stream()
+                    .filter(node -> !CcNodeTypeEnum.BIZ.getType().equals(node.getObjectId()))
                     .map(nodeVO -> new KubeTopoNode(nodeVO.getObjectId(), nodeVO.getInstanceId()))
                     .collect(Collectors.toList())
                 : null)

@@ -51,6 +51,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -138,12 +139,14 @@ public class BaseCmdbApiClient {
             httpHelper,
             lang
         );
+        this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.apiGwCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
             httpHelper,
             lang
         );
+        this.apiGwCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.globalFlowController = flowController;
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();

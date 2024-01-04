@@ -1444,6 +1444,11 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setContainerFields(ContainerFields.FIELDS);
         req.setPodFields(PodFields.FIELDS);
 
+        Page originPage = req.getPage();
+        // 设置为查询总数量的分页条件
+        req.setPage(Page.buildQueryCountPage());
+
+        // 查询总数量
         EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
             ApiGwType.BK_APIGW,
             HttpMethodEnum.POST,
@@ -1452,9 +1457,20 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req,
             new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
             });
+        long count = esbResp.getData().getCount();
+
+        // 查询数据
+        req.setPage(originPage);
+        esbResp = requestCmdbApi(
+            ApiGwType.BK_APIGW,
+            HttpMethodEnum.POST,
+            LIST_KUBE_CONTAINER_BY_TOPO,
+            null,
+            req,
+            new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+            });
         BaseCcSearchResult<ContainerDetailDTO> result = esbResp.getData();
-        return new PageData<>(req.getPage().getStart(), req.getPage().getLimit(),
-            (long) result.getCount(), result.getInfo());
+        return new PageData<>(originPage.getStart(), originPage.getLimit(), count, result.getInfo());
     }
 
     private void setSupplierAccount(EsbReq esbReq) {
