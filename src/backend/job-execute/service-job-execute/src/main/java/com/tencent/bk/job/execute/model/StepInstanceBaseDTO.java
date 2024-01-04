@@ -219,7 +219,7 @@ public class StepInstanceBaseDTO {
         this.targetGseV2Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
             .anyMatch(executeObject -> {
                 if (executeObject.isHostExecuteObject()) {
-                    return AgentUtils.isGseV1AgentId(executeObject.getHost().getAgentId());
+                    return AgentUtils.isGseV2AgentId(executeObject.getHost().getAgentId());
                 } else if (executeObject.isContainerExecuteObject()) {
                     // 只有 GSE V2 agent 才支持容器执行特性，这里这里必然是 true
                     return true;
