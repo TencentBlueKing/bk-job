@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @since 6/11/2019 10:27
+ * Job http 请求上下文工具类
  */
 @Slf4j
 public class JobContextUtil {

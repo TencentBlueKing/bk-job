@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.context;
 
 /**
- * @since 6/11/2019 10:26
+ * Job http 请求上下文托管（ThreadLocal方式)
  */
 public class JobContextThreadLocal {
 

@@ -22,49 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.context;
+package com.tencent.bk.job.common.audit;
 
+import com.tencent.bk.audit.filter.AuditPostFilter;
+import com.tencent.bk.audit.model.AuditEvent;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.micrometer.core.instrument.Tag;
-import lombok.Data;
-import org.apache.commons.lang3.tuple.Pair;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.time.ZoneId;
-import java.util.AbstractList;
-import java.util.List;
-import java.util.Map;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Job http 请求上下文
+ * 审计事件增加 scopeType, scopeId
  */
-@Data
-public class JobContext {
+@Slf4j
+public class AddResourceScopeAuditPostFilter implements AuditPostFilter {
 
-    private Long startTime;
-
-    private String username;
-
-    private AppResourceScope appResourceScope;
-
-    private String requestId;
-
-    private String userLang;
-
-    private List<String> debugMessage;
-
-    private ZoneId timeZone;
-
-    private Boolean allowMigration = false;
-
-    private HttpServletRequest request;
-
-    private HttpServletResponse response;
-
-    private Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap;
-
-    private String httpMetricName;
-
-    private AbstractList<Tag> httpMetricTags;
+    @Override
+    public AuditEvent map(AuditEvent auditEvent) {
+        if (auditEvent == null) {
+            return null;
+        }
+        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+        if (appResourceScope != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Add resource scope for audit event, resourceScope: {}", appResourceScope);
+            }
+            auditEvent.setScopeType(appResourceScope.getType().getValue());
+            auditEvent.setScopeId(appResourceScope.getId());
+        }
+        return auditEvent;
+    }
 }
