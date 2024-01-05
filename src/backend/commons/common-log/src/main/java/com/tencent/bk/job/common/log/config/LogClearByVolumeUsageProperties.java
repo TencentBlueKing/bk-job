@@ -29,12 +29,12 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 日志清理配置
+ * 根据磁盘使用量清理日志相关配置
  */
-@ConfigurationProperties(prefix = "log.clear")
+@ConfigurationProperties(prefix = "log.clear-by-volume-usage")
 @Getter
 @Setter
-public class LogClearProperties {
+public class LogClearByVolumeUsageProperties {
 
     /**
      * 是否开启日志清理

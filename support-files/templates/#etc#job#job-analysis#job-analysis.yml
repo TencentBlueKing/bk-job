@@ -72,4 +72,12 @@ feign:
         connectTimeout: 5000
         readTimeout: 300000
 
-
+log:
+  # 当前服务后台日志保留的小时数，默认168小时（7天）
+  keep-hours: 168
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clear-by-volume-usage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 当前服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件），默认200GB
+    max-volume: 200GB

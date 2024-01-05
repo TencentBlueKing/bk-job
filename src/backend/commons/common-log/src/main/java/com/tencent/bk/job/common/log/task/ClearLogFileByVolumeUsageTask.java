@@ -31,17 +31,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 根据磁盘使用量清理过期日志文件任务
+ */
 @Slf4j
-public class ClearLogFileTask {
+public class ClearLogFileByVolumeUsageTask {
 
-    private volatile boolean checkVolumeRunning = false;
+    private volatile boolean clearTaskRunning = false;
 
     /**
      * 最大容量字符串，单位支持B/KB/MB/GB/TB/PB
      */
     private final String maxSizeStr;
 
-    public ClearLogFileTask(String maxSizeStr) {
+    public ClearLogFileByVolumeUsageTask(String maxSizeStr) {
         this.maxSizeStr = maxSizeStr;
     }
 
@@ -66,17 +69,17 @@ public class ClearLogFileTask {
         }
         try {
             // 上一次清理任务还未跑完则不清理
-            if (checkVolumeRunning) {
+            if (clearTaskRunning) {
                 log.info("Last checkVolumeAndClear task still running, skip");
                 return;
             }
-            checkVolumeRunning = true;
+            clearTaskRunning = true;
             int count = doCheckVolumeAndClear(maxSizeBytes, appLogDirPath);
             log.info("{} log file cleared", count);
         } catch (Exception e) {
             log.warn("Exception when checkVolumeAndClear", e);
         } finally {
-            checkVolumeRunning = false;
+            clearTaskRunning = false;
         }
     }
 

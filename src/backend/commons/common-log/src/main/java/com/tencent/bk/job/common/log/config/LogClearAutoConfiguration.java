@@ -31,12 +31,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "log.clear.enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(LogClearProperties.class)
+@ConditionalOnProperty(name = "log.clear-by-volume-usage.enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(LogClearByVolumeUsageProperties.class)
 public class LogClearAutoConfiguration {
 
     @Bean
-    public LogClearScheduledTasks logClearScheduledTasks(LogClearProperties logClearProperties) {
-        return new LogClearScheduledTasks(logClearProperties);
+    public LogClearScheduledTasks logClearScheduledTasks(
+        LogClearByVolumeUsageProperties logClearByVolumeUsageProperties) {
+        return new LogClearScheduledTasks(logClearByVolumeUsageProperties);
     }
 }

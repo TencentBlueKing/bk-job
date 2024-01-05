@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.log.spi.impl;
 
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.PropertyDefinerBase;
 
 /**
@@ -35,7 +36,16 @@ public class GetDayFromHourPropertyDefiner extends PropertyDefinerBase {
 
     @Override
     public String getPropertyValue() {
+        // 无限期存储
+        if (hours == CoreConstants.UNBOUND_HISTORY) {
+            return String.valueOf(CoreConstants.UNBOUND_HISTORY);
+        }
         int days = new Double(Math.ceil(hours / 24.0)).intValue();
+        // 不足1天按1天算
+        int minHistory = 1;
+        if (days <= 0) {
+            return String.valueOf(minHistory);
+        }
         return String.valueOf(days);
     }
 

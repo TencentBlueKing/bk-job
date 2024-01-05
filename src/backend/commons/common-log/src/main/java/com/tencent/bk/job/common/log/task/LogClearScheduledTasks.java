@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.log.task;
 
-import com.tencent.bk.job.common.log.config.LogClearProperties;
+import com.tencent.bk.job.common.log.config.LogClearByVolumeUsageProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,30 +35,32 @@ public class LogClearScheduledTasks {
 
     private static final Logger logger = LoggerFactory.getLogger(LogClearScheduledTasks.class);
 
-    private final ClearLogFileTask clearLogFileTask;
+    private final ClearLogFileByVolumeUsageTask clearLogFileByVolumeUsageTask;
 
-    public LogClearScheduledTasks(LogClearProperties logClearProperties) {
-        if (logClearProperties.isEnabled()) {
-            this.clearLogFileTask = new ClearLogFileTask(logClearProperties.getMaxVolume());
+    public LogClearScheduledTasks(LogClearByVolumeUsageProperties logClearByVolumeUsageProperties) {
+        if (logClearByVolumeUsageProperties.isEnabled()) {
+            this.clearLogFileByVolumeUsageTask = new ClearLogFileByVolumeUsageTask(
+                logClearByVolumeUsageProperties.getMaxVolume()
+            );
         } else {
-            this.clearLogFileTask = null;
+            this.clearLogFileByVolumeUsageTask = null;
         }
     }
 
     /**
-     * 清理：每20分钟清理一次日志文件
+     * 清理：每20分钟根据磁盘使用量清理一次日志文件
      */
     @Scheduled(cron = "50 0/20 * * * ?")
-    public void clearLogFile() {
-        if (clearLogFileTask == null) {
-            log.debug("ClearLogFileTask not enabled, ignore clearLogFile");
+    public void clearLogFileByVolumeUsage() {
+        if (clearLogFileByVolumeUsageTask == null) {
+            log.debug("clearLogFileByVolumeUsage not enabled, ignore clearLogFile");
             return;
         }
-        logger.info(Thread.currentThread().getId() + ":clearLogFile start");
+        logger.info("clearLogFileByVolumeUsage start");
         try {
-            clearLogFileTask.checkVolumeAndClear();
+            clearLogFileByVolumeUsageTask.checkVolumeAndClear();
         } catch (Exception e) {
-            logger.error("clearLogFile fail", e);
+            logger.error("clearLogFileByVolumeUsage fail", e);
         }
     }
 
