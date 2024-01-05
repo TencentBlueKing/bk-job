@@ -265,8 +265,9 @@ public class GseStepEventHandler implements StepEventHandler {
         } else {
             // 普通步骤，启动的时候需要初始化所有ExecuteObjectTask
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>(
-                buildInitialExecuteObjectTasks(stepInstanceId, executeCount, executeCount, batch,
-                    gseTaskId, stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()));
+                buildInitialExecuteObjectTasks(stepInstance.getTaskInstanceId(), stepInstanceId, executeCount,
+                    executeCount, batch, gseTaskId,
+                    stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()));
             saveExecuteObjectTasks(stepInstance, executeObjectTasks);
         }
     }
@@ -293,6 +294,7 @@ public class GseStepEventHandler implements StepEventHandler {
                 executeObjectsBatchList.forEach(executeObjectsBatch -> {
                     executeObjectTasks.addAll(
                         buildInitialExecuteObjectTasks(
+                            stepInstance.getTaskInstanceId(),
                             stepInstanceId,
                             executeCount,
                             executeObjectsBatch.getBatch() == 1 ? executeCount : null,
@@ -310,7 +312,7 @@ public class GseStepEventHandler implements StepEventHandler {
                     ErrorCode.NOT_SUPPORT_FEATURE);
             }
         } else {
-            // 滚动执行步骤除了第一批次，后续的批次仅更新 ExecuteObjectTask 的 actualExecuteCount、gse_task_id
+            // 滚动执行步骤除了第一批次，后续的批次仅更新 ExecuteObjectTask 的 actualExecuteCount、gseTaskId
             if (stepInstance.isScriptStep()) {
                 scriptExecuteObjectTaskService.updateTaskFields(stepInstance, executeCount, batch, executeCount,
                     gseTaskId);
@@ -321,7 +323,8 @@ public class GseStepEventHandler implements StepEventHandler {
         }
     }
 
-    private List<ExecuteObjectTask> buildInitialExecuteObjectTasks(long stepInstanceId,
+    private List<ExecuteObjectTask> buildInitialExecuteObjectTasks(long taskInstanceId,
+                                                                   long stepInstanceId,
                                                                    int executeCount,
                                                                    Integer actualExecuteCount,
                                                                    int batch,
@@ -329,7 +332,13 @@ public class GseStepEventHandler implements StepEventHandler {
                                                                    List<ExecuteObject> executeObjects) {
         return executeObjects.stream()
             .map(executeObject -> {
-                ExecuteObjectTask executeObjectTask = new ExecuteObjectTask();
+                ExecuteObjectTask executeObjectTask = new ExecuteObjectTask(
+                    taskInstanceId,
+                    stepInstanceId,
+                    executeCount,
+                    batch,
+                    executeObject
+                );
                 executeObjectTask.setStepInstanceId(stepInstanceId);
                 executeObjectTask.setExecuteCount(executeCount);
                 executeObjectTask.setActualExecuteCount(actualExecuteCount);

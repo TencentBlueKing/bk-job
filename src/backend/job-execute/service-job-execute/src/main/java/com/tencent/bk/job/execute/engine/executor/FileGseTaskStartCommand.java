@@ -283,10 +283,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
         List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
-            ExecuteObjectTask executeObjectTask = new ExecuteObjectTask();
-            executeObjectTask.setStepInstanceId(stepInstanceId);
-            executeObjectTask.setExecuteCount(executeCount);
-            executeObjectTask.setBatch(batch);
+            ExecuteObjectTask executeObjectTask = new ExecuteObjectTask(
+                taskInstanceId,
+                stepInstanceId,
+                executeCount,
+                batch,
+                sourceExecuteObject
+            );
             executeObjectTask.setActualExecuteCount(executeCount);
             executeObjectTask.setFileTaskMode(FileTaskModeEnum.UPLOAD);
             executeObjectTask.setGseTaskId(gseTask.getId());
@@ -297,8 +300,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                 sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
             }
-
-            executeObjectTask.setExecuteObject(sourceExecuteObject);
 
             executeObjectTasks.add(executeObjectTask);
         }

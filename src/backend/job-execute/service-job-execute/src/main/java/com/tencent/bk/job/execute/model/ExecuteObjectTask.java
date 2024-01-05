@@ -152,6 +152,18 @@ public class ExecuteObjectTask {
                              long stepInstanceId,
                              int executeCount,
                              int batch,
+                             ExecuteObject executeObject) {
+        this.taskInstanceId = taskInstanceId;
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        setExecuteObject(executeObject);
+    }
+
+    public ExecuteObjectTask(long taskInstanceId,
+                             long stepInstanceId,
+                             int executeCount,
+                             int batch,
                              FileTaskModeEnum fileTaskMode,
                              ExecuteObjectTypeEnum executeObjectType,
                              String executeObjectId) {
@@ -162,6 +174,20 @@ public class ExecuteObjectTask {
         this.fileTaskMode = fileTaskMode;
         this.executeObjectType = executeObjectType;
         this.executeObjectId = executeObjectId;
+    }
+
+    public ExecuteObjectTask(long taskInstanceId,
+                             long stepInstanceId,
+                             int executeCount,
+                             int batch,
+                             FileTaskModeEnum fileTaskMode,
+                             ExecuteObject executeObject) {
+        this.taskInstanceId = taskInstanceId;
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        this.fileTaskMode = fileTaskMode;
+        setExecuteObject(executeObject);
     }
 
     public void setStatus(ExecuteObjectTaskStatusEnum status) {
