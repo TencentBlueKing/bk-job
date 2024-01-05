@@ -53,6 +53,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -623,15 +624,40 @@ public class LogServiceImpl implements LogService {
                                                                   String speed,
                                                                   String process,
                                                                   String content) {
+        return buildUploadServiceFileTaskLogDTO(
+            stepInstance,
+            srcFile.getFileType(),
+            srcFile.getStandardFilePath(),
+            srcFile.getDisplayFilePath(),
+            srcFile.getExecuteObject(),
+            status,
+            size,
+            speed,
+            process,
+            content
+        );
+    }
+
+    @Override
+    public ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                                  TaskFileTypeEnum fileType,
+                                                                  String srcFilePath,
+                                                                  String displaySrcFilePath,
+                                                                  ExecuteObject executeObject,
+                                                                  FileDistStatusEnum status,
+                                                                  String size,
+                                                                  String speed,
+                                                                  String process,
+                                                                  String content) {
         if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.UPLOAD.getValue(),
                 null,
                 null,
-                srcFile.getExecuteObject().getId(),
-                srcFile.getFileType().getType(),
-                srcFile.getStandardFilePath(),
-                srcFile.getDisplayFilePath(),
+                executeObject.getId(),
+                fileType.getType(),
+                srcFilePath,
+                displaySrcFilePath,
                 size,
                 status.getValue(),
                 status.getName(),
@@ -640,7 +666,7 @@ public class LogServiceImpl implements LogService {
                 content
             );
         } else {
-            HostDTO sourceHost = srcFile.getExecuteObject().getHost();
+            HostDTO sourceHost = executeObject.getHost();
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.UPLOAD.getValue(),
                 null,
@@ -650,9 +676,9 @@ public class LogServiceImpl implements LogService {
                 sourceHost.getHostId(),
                 sourceHost.toCloudIp(),
                 sourceHost.toCloudIpv6(),
-                srcFile.getFileType().getType(),
-                srcFile.getStandardFilePath(),
-                srcFile.getDisplayFilePath(),
+                fileType.getType(),
+                srcFilePath,
+                displaySrcFilePath,
                 size,
                 status.getValue(),
                 status.getName(),

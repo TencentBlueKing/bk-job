@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 
 import java.util.List;
 import java.util.Map;
@@ -261,6 +262,31 @@ public interface LogService {
      */
     ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
                                                            JobFile srcFile,
+                                                           FileDistStatusEnum status,
+                                                           String size,
+                                                           String speed,
+                                                           String process,
+                                                           String content);
+
+    /**
+     * 构造上传文件任务日志
+     *
+     * @param stepInstance       步骤实例
+     * @param fileType           源文件类型
+     * @param srcFilePath        源文件路径
+     * @param displaySrcFilePath 展示给用户的源文件路径
+     * @param executeObject      上传源执行对象
+     * @param status             任务状态
+     * @param size               源文件大小
+     * @param speed              上传速度
+     * @param process            进度
+     * @param content            日志内容
+     */
+    ServiceFileTaskLogDTO buildUploadServiceFileTaskLogDTO(StepInstanceDTO stepInstance,
+                                                           TaskFileTypeEnum fileType,
+                                                           String srcFilePath,
+                                                           String displaySrcFilePath,
+                                                           ExecuteObject executeObject,
                                                            FileDistStatusEnum status,
                                                            String size,
                                                            String speed,

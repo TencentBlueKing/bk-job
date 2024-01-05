@@ -177,14 +177,14 @@ public class JobFile {
      * @return 文件KEY
      */
     public String getUniqueKey() {
-        if (!StringUtils.isEmpty(this.uniqueKey)) {
+        if (StringUtils.isNotEmpty(this.uniqueKey)) {
             return this.uniqueKey;
         }
         StringBuilder sb = new StringBuilder();
         sb.append(fileType.name()).append(":");
         if (fileType == TaskFileTypeEnum.SERVER) {
             // 远程文件分发，需要源执行对象信息才能唯一确定一个源文件
-            sb.append(executeObject.toExecuteObjectGseKey()).append(":");
+            sb.append(executeObject.toResourceIdCompositeKey()).append(":");
         }
         sb.append(getStandardFilePath());
         this.uniqueKey = sb.toString();

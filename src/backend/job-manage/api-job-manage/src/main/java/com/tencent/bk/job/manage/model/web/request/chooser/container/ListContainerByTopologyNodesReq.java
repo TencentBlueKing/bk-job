@@ -45,7 +45,7 @@ public class ListContainerByTopologyNodesReq {
     private List<ContainerTopologyNodeVO> nodeList;
 
     @ApiModelProperty(value = "筛选条件：容器ID列表")
-    private List<String> containerUIDList;
+    private List<String> containerUidList;
 
     @ApiModelProperty(value = "筛选条件：容器名称列表")
     private List<String> containerNameList;

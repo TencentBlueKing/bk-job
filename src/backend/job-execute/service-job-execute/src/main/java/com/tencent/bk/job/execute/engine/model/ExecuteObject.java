@@ -215,6 +215,10 @@ public class ExecuteObject implements Cloneable {
         }
     }
 
+    public ExecuteObjectCompositeKey toResourceIdCompositeKey() {
+        return ExecuteObjectCompositeKey.ofExecuteObjectResource(type, resourceId);
+    }
+
     public ExecuteObjectCompositeKey toExecuteObjectCompositeKey(
         ExecuteObjectCompositeKey.CompositeKeyType compositeKeyType) {
         switch (compositeKeyType) {
