@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -94,16 +93,6 @@ public class AgentServiceImpl implements AgentService {
             log.warn("Fail to load agentHost from cache, try to load directly", e);
             return getAgentBindHost();
         }
-    }
-
-    @Override
-    public ExecuteObjectsDTO getLocalHostExecuteObjectDTO() {
-        List<HostDTO> hostDTOList = new ArrayList<>();
-        hostDTOList.add(getLocalAgentHost());
-        ExecuteObjectsDTO executeObjects = new ExecuteObjectsDTO();
-        executeObjects.setStaticIpList(hostDTOList);
-        executeObjects.buildMergedExecuteObjects(true);
-        return executeObjects;
     }
 
     private HostDTO getAgentBindHost() {
@@ -236,16 +225,6 @@ public class AgentServiceImpl implements AgentService {
             return choosedHost;
         }
         return aliveHosts.get(0);
-    }
-
-    private HostDTO toHostDTO(ServiceHostDTO host) {
-        HostDTO result = new HostDTO();
-        result.setHostId(host.getHostId());
-        result.setBkCloudId(host.getCloudAreaId());
-        result.setIp(host.getIp());
-        result.setIpv6(host.getIpv6());
-        result.setAgentId(host.getAgentId());
-        return result;
     }
 
     private Map<String, String> getMachineIP() {
