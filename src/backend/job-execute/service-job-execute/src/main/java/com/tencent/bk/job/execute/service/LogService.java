@@ -39,6 +39,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 日志服务
@@ -288,5 +289,18 @@ public interface LogService {
                                                              String speed,
                                                              String process,
                                                              String content);
+
+    /**
+     * 增加文件任务日志，并且按照执行对象的维度对文件任务日志进行分组
+     *
+     * @param stepInstance      步骤实例
+     * @param executeObjectLogs 执行对象日志列表
+     * @param executeObject     文件任务对应的执行对象
+     * @param fileTaskLog       单个文件任务日志
+     */
+    void addFileTaskLog(StepInstanceBaseDTO stepInstance,
+                        Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executeObjectLogs,
+                        ExecuteObject executeObject,
+                        ServiceFileTaskLogDTO fileTaskLog);
 
 }

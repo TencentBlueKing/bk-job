@@ -123,7 +123,6 @@ public class JobSrcFileUtils {
                 // 远程服务器文件分发
                 Long accountId = fileSource.getAccountId();
                 String accountAlias = fileSource.getAccountAlias();
-                boolean isSupportExecuteObject = stepInstance.isSupportExecuteObjectFeature();
                 // 远程文件
                 for (FileDetailDTO file : files) {
                     String filePath = StringUtils.isNotEmpty(file.getResolvedFilePath()) ? file.getResolvedFilePath()

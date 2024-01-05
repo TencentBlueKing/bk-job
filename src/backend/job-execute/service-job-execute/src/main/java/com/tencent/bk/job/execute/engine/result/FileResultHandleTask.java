@@ -55,6 +55,7 @@ import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
+import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -67,7 +68,6 @@ import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
 import lombok.Setter;
@@ -281,8 +281,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             log.info("Analyse gse task result, result is empty!");
             return analyseExecuteResult();
         }
-        // 执行日志, Map<hostKey, 日志>
-        Map<Long, ServiceExecuteObjectLogDTO> executionLogs = new HashMap<>();
+        // 执行日志Map,按照执行对象分组
+        Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs = new HashMap<>();
 
         StopWatch watch = new StopWatch("analyse-gse-file-task");
         watch.start("analyse");
@@ -396,7 +396,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseFileResult(ExecuteObjectGseKey executeObjectGseKey,
                                    JobAtomicFileTaskResult result,
-                                   Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+                                   Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                    boolean isDownloadResult) {
         ExecuteObjectTask executeObjectTask = result.getExecuteObjectTask();
         if (executeObjectTask.getStartTime() == null) {
@@ -421,7 +421,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void analyseRunningFileResult(JobAtomicFileTaskResult result,
-                                          Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+                                          Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                           ExecuteObjectTask executeObjectTask) {
         parseExecutionLog(result, executionLogs);
         executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.RUNNING);
@@ -430,7 +430,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseSuccessFileResult(ExecuteObjectGseKey executeObjectGseKey,
                                           JobAtomicFileTaskResult result,
-                                          Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+                                          Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                           boolean isDownloadResult) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         parseExecutionLog(result, executionLogs);
@@ -448,7 +448,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void analyseTerminatedFileResult(ExecuteObjectGseKey executeObjectGseKey,
                                              JobAtomicFileTaskResult result,
-                                             Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+                                             Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                              boolean isDownloadResult) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         parseExecutionLog(result, executionLogs);
@@ -604,7 +604,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void analyseFailedFileResult(JobAtomicFileTaskResult result,
-                                         Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+                                         Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                          boolean isDownloadResult) {
         if (isDownloadResult) {
             dealDownloadTaskFail(result.getResult(), executionLogs);
@@ -614,14 +614,14 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     }
 
     private void dealDownloadTaskFail(AtomicFileTaskResult result,
-                                      Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
+                                      Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getContent();
         dealDownloadTaskFail(executionLogs, content.getSourceExecuteObjectGseKey(), content.getStandardSourceFilePath(),
             content.getDestExecuteObjectGseKey(), content.getStandardDestFilePath(), result.getErrorCode(),
             buildErrorLogContent(result), content.getStartTime(), content.getEndTime());
     }
 
-    private void dealDownloadTaskFail(Map<Long, ServiceExecuteObjectLogDTO> executionLogs,
+    private void dealDownloadTaskFail(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs,
                                       ExecuteObjectGseKey sourceExecuteObjectGseKey,
                                       String sourceFilePath,
                                       ExecuteObjectGseKey destExecuteObjectGseKey,
@@ -645,8 +645,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 destExecuteObjectGseKey,
                 destFilePath)
         );
-        // 每个目标IP增加一条下载失败的日志到日志总Map中
-        addFileTaskLog(executionLogs,
+        // 每个目标执行对象增加一条下载失败的日志到日志总Map中
+        logService.addFileTaskLog(
+            stepInstance,
+            executionLogs,
+            targetExecuteObject,
             logService.buildDownloadServiceFileTaskLogDTO(
                 stepInstance,
                 srcFile,
@@ -669,13 +672,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
 
     /**
-     * 根据copyFileRsp内容填充executionLogs与affectIps
+     * 处理下载失败任务
      *
-     * @param result        GSE响应内容
+     * @param result        任务结果
      * @param executionLogs 执行日志总Map
      */
     private void dealUploadTaskFail(JobAtomicFileTaskResult result,
-                                    Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
+                                    Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         ExecuteObjectGseKey sourceExecuteObjectGseKey = content.getSourceExecuteObjectGseKey();
         JobFile srcFile = result.getSrcFile();
@@ -685,7 +688,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         addFinishedFile(false, false, sourceExecuteObjectGseKey, content.getTaskId());
 
         // 增加一条上传源失败的上传日志
-        addFileTaskLog(executionLogs,
+        logService.addFileTaskLog(
+            stepInstance,
+            executionLogs,
+            srcFile.getExecuteObject(),
             logService.buildUploadServiceFileTaskLogDTO(
                 stepInstance,
                 srcFile,
@@ -846,7 +852,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      * 从执行结果生成执行日志
      */
     private void parseExecutionLog(JobAtomicFileTaskResult result,
-                                   Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
+                                   Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         AtomicFileTaskResultContent content = result.getResult().getContent();
         Integer mode = content.getMode();
         JobFile srcFile = result.getSrcFile();
@@ -879,14 +885,19 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         String logContentStr = buildFileLogContent(displayFilePath, fileSize, content.getStatus(),
             content.getStatusInfo(), speed, progressText, result.getResult().getErrorMsg());
 
-
         if (isDownloadResult) {
-            addFileTaskLog(executionLogs,
+            logService.addFileTaskLog(
+                stepInstance,
+                executionLogs,
+                result.getTargetExecuteObject(),
                 logService.buildDownloadServiceFileTaskLogDTO(
                     stepInstance, srcFile, result.getTargetExecuteObject(), content.getStandardDestFilePath(), status,
                     fileSize, speed, progressText, logContentStr));
         } else {
-            addFileTaskLog(executionLogs,
+            logService.addFileTaskLog(
+                stepInstance,
+                executionLogs,
+                result.getSourceExecuteObject(),
                 logService.buildUploadServiceFileTaskLogDTO(
                     stepInstance, srcFile, status, fileSize, speed, progressText, logContentStr));
         }
@@ -954,25 +965,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return formatter.format(speed);
     }
 
-
-    private void addFileTaskLog(Map<Long, ServiceExecuteObjectLogDTO> hostLogs, ServiceFileTaskLogDTO fileTaskLog) {
-        boolean isDownloadResult = isDownloadResult(fileTaskLog.getMode());
-        Long hostId = isDownloadResult ? fileTaskLog.getDestHostId() : fileTaskLog.getSrcHostId();
-        String cloudIp = isDownloadResult ? fileTaskLog.getDestIp() : fileTaskLog.getSrcIp();
-        ServiceExecuteObjectLogDTO hostLog = hostLogs.get(hostId);
-        if (hostLog == null) {
-            hostLog = new ServiceExecuteObjectLogDTO();
-            hostLog.setStepInstanceId(stepInstanceId);
-            hostLog.setHostId(hostId);
-            hostLog.setCloudIp(cloudIp);
-            hostLog.setBatch(stepInstance.getBatch());
-            hostLog.setExecuteCount(stepInstance.getExecuteCount());
-            hostLogs.put(hostId, hostLog);
-        }
-        hostLog.addFileTaskLog(fileTaskLog);
-    }
-
-    private void writeFileTaskLogContent(Map<Long, ServiceExecuteObjectLogDTO> executionLogs) {
+    private void writeFileTaskLogContent(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
             logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
         }

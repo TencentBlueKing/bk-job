@@ -106,6 +106,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                 taskExecuteObjectLog.setFileTaskLogs(fileTaskLogDocs);
             }
         } else {
+            // 兼容历史版本使用 hostId的方式
             taskExecuteObjectLog.setHostId(log.getHostId());
             taskExecuteObjectLog.setIp(log.getCloudIp());
             taskExecuteObjectLog.setIpv6(log.getCloudIpv6());

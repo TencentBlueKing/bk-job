@@ -577,10 +577,10 @@ public class LogServiceImpl implements LogService {
     }
 
     public void writeFileLogsWithTimestamp(long jobCreateTime,
-                                           List<ServiceExecuteObjectLogDTO> hostFileLogs,
+                                           List<ServiceExecuteObjectLogDTO> executeObjectFileLogs,
                                            Long logTimeInMillSeconds) {
 
-        if (CollectionUtils.isEmpty(hostFileLogs)) {
+        if (CollectionUtils.isEmpty(executeObjectFileLogs)) {
             return;
         }
 
@@ -598,14 +598,14 @@ public class LogServiceImpl implements LogService {
                 "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
         }
         logDateTime += "] ";
-        for (ServiceExecuteObjectLogDTO hostFileLog : hostFileLogs) {
-            for (ServiceFileTaskLogDTO fileTaskLog : hostFileLog.getFileTaskLogs()) {
+        for (ServiceExecuteObjectLogDTO executeObjectFileLog : executeObjectFileLogs) {
+            for (ServiceFileTaskLogDTO fileTaskLog : executeObjectFileLog.getFileTaskLogs()) {
                 if (StringUtils.isBlank(fileTaskLog.getContent())) {
                     continue;
                 }
                 fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n");
             }
-            request.setLogs(hostFileLogs);
+            request.setLogs(executeObjectFileLogs);
         }
         logResource.saveLogs(request);
     }
@@ -712,5 +712,31 @@ public class LogServiceImpl implements LogService {
                 content
             );
         }
+    }
+
+    @Override
+    public void addFileTaskLog(StepInstanceBaseDTO stepInstance,
+                               Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executeObjectLogs,
+                               ExecuteObject executeObject,
+                               ServiceFileTaskLogDTO fileTaskLog) {
+
+        ExecuteObjectCompositeKey executeObjectCompositeKey =
+            executeObject.toExecuteObjectCompositeKey(ExecuteObjectCompositeKey.CompositeKeyType.RESOURCE_ID);
+        ServiceExecuteObjectLogDTO executeObjectLogDTO = executeObjectLogs.get(executeObjectCompositeKey);
+        if (executeObjectLogDTO == null) {
+            executeObjectLogDTO = new ServiceExecuteObjectLogDTO();
+            executeObjectLogDTO.setStepInstanceId(stepInstance.getId());
+            executeObjectLogDTO.setExecuteCount(stepInstance.getExecuteCount());
+            executeObjectLogDTO.setBatch(stepInstance.getBatch());
+            if (stepInstance.isSupportExecuteObjectFeature()) {
+                executeObjectLogDTO.setExecuteObjectId(executeObject.getId());
+            } else {
+                executeObjectLogDTO.setHostId(executeObject.getHost().getHostId());
+                executeObjectLogDTO.setCloudIp(executeObject.getHost().toCloudIp());
+            }
+            executeObjectLogs.put(executeObjectCompositeKey, executeObjectLogDTO);
+        }
+
+        executeObjectLogDTO.addFileTaskLog(fileTaskLog);
     }
 }

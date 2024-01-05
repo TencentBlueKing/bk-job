@@ -36,7 +36,7 @@ public enum TaskFileTypeEnum {
     SERVER(1),
 
     /**
-     * 本地文件
+     * Job本地文件
      */
     LOCAL(2),
 
