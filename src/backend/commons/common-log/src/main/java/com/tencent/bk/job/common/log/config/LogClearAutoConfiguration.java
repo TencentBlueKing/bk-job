@@ -24,17 +24,19 @@
 
 package com.tencent.bk.job.common.log.config;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import com.tencent.bk.job.common.log.task.LogClearScheduledTasks;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Data
-@Component
-public class LogClearConfig {
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(name = "log.clear.enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(LogClearProperties.class)
+public class LogClearAutoConfiguration {
 
-    @Value("${log.clear.enabled:true}")
-    private boolean clearEnabled;
-
-    @Value("${log.clear.max-volume:200GB}")
-    private String clearMaxVolume;
+    @Bean
+    public LogClearScheduledTasks logClearScheduledTasks(LogClearProperties logClearProperties) {
+        return new LogClearScheduledTasks(logClearProperties);
+    }
 }

@@ -24,37 +24,31 @@
 
 package com.tencent.bk.job.common.log.task;
 
-import com.tencent.bk.job.common.log.config.LogClearConfig;
+import com.tencent.bk.job.common.log.config.LogClearProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
-@EnableScheduling
-public class LogScheduledTasks {
+public class LogClearScheduledTasks {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogScheduledTasks.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogClearScheduledTasks.class);
 
     private final ClearLogFileTask clearLogFileTask;
 
-    @Autowired
-    public LogScheduledTasks(LogClearConfig logClearConfig) {
-        if (logClearConfig.isClearEnabled()) {
-            this.clearLogFileTask = new ClearLogFileTask(logClearConfig.getClearMaxVolume());
+    public LogClearScheduledTasks(LogClearProperties logClearProperties) {
+        if (logClearProperties.isEnabled()) {
+            this.clearLogFileTask = new ClearLogFileTask(logClearProperties.getMaxVolume());
         } else {
             this.clearLogFileTask = null;
         }
     }
 
     /**
-     * 清理：每小时清理一次日志文件
+     * 清理：每20分钟清理一次日志文件
      */
-    @Scheduled(cron = "0 20 * * * *")
+    @Scheduled(cron = "50 0/20 * * * ?")
     public void clearLogFile() {
         if (clearLogFileTask == null) {
             log.debug("ClearLogFileTask not enabled, ignore clearLogFile");

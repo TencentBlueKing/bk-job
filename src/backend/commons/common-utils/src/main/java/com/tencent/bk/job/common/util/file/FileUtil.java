@@ -373,7 +373,7 @@ public class FileUtil {
      */
     public static void showVolumeUsage(String path, long maxSizeBytes, long currentSize) {
         log.info(
-            "{},currentSize={},maxSizeBytes={}",
+            "VolumeUsage: path={},currentSize={},maxSize={}",
             path,
             FileSizeUtil.getFileSizeStr(currentSize),
             FileSizeUtil.getFileSizeStr(maxSizeBytes)
@@ -388,6 +388,9 @@ public class FileUtil {
      * @return 被成功清理的文件数量
      */
     public static int checkVolumeAndClearOldestFiles(long maxSizeBytes, String targetDirPath) {
+        if (null == targetDirPath) {
+            throw new IllegalArgumentException("TargetDirPath cannot be null");
+        }
         File targetDirFile = new File(targetDirPath);
         if (!targetDirFile.exists() && log.isDebugEnabled()) {
             log.debug("TargetDir({}) not exists yet, ignore clear", targetDirPath);
@@ -416,16 +419,16 @@ public class FileUtil {
                 fileList.sort(Comparator.comparingLong(File::lastModified));
             }
             if (fileList.isEmpty()) {
-                log.warn("volume still overlimit after clear, deleteFailedFilePathSet={}", deleteFailedFilePathSet);
+                log.warn("Volume still overlimit after clear, deleteFailedFilePathSet={}", deleteFailedFilePathSet);
                 return count;
             }
             File oldestFile = fileList.remove(0);
             if (deleteFileAndRecordIfFail(oldestFile, deleteFailedFilePathSet)) {
                 count += 1;
-                log.info("delete file {} because of volume overlimit", oldestFile.getAbsolutePath());
+                log.info("Delete file {} because of volume overlimit", oldestFile.getAbsolutePath());
+                currentSize = FileUtils.sizeOfDirectory(targetDirFile);
+                showVolumeUsage(targetDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
             }
-            currentSize = FileUtils.sizeOfDirectory(targetDirFile);
-            showVolumeUsage(targetDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
         }
         if (log.isDebugEnabled()) {
             log.debug("{} files deleted because of volume overlimit", count);

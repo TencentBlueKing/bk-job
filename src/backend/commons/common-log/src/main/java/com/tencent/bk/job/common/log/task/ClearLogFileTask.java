@@ -51,15 +51,27 @@ public class ClearLogFileTask {
     public void checkVolumeAndClear() {
         if (StringUtils.isBlank(maxSizeStr)) {
             log.info("maxSizeStr is blank, ignore checkVolumeAndClear");
+            return;
+        }
+        Long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
+        if (maxSizeBytes == null || maxSizeBytes <= 0) {
+            log.error("Cannot parse valid maxSizeBytes from maxSizeStr {}, ignore checkVolumeAndClear", maxSizeStr);
+            return;
+        }
+        // 获取当前服务的日志根路径
+        String appLogDirPath = getAppLogDirPath();
+        if (StringUtils.isBlank(appLogDirPath)) {
+            log.error("Cannot find valid appLogDirPath, ignore checkVolumeAndClear");
+            return;
         }
         try {
             // 上一次清理任务还未跑完则不清理
             if (checkVolumeRunning) {
-                log.info("last checkVolumeAndClear task still running, skip");
+                log.info("Last checkVolumeAndClear task still running, skip");
                 return;
             }
             checkVolumeRunning = true;
-            int count = doCheckVolumeAndClear();
+            int count = doCheckVolumeAndClear(maxSizeBytes, appLogDirPath);
             log.info("{} log file cleared", count);
         } catch (Exception e) {
             log.warn("Exception when checkVolumeAndClear", e);
@@ -68,21 +80,13 @@ public class ClearLogFileTask {
         }
     }
 
-    private int doCheckVolumeAndClear() {
-        return FileUtil.checkVolumeAndClearOldestFiles(computeMaxSizeBytes(), getAppLogDirPath());
-    }
-
-    private long computeMaxSizeBytes() {
-        Long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
-        if (maxSizeBytes == null) {
-            log.error("Cannot parse maxSizeBytes from maxSizeStr {}, use Long.MAX_VALUE", maxSizeStr);
-            return Long.MAX_VALUE;
-        }
-        return maxSizeBytes;
+    private int doCheckVolumeAndClear(long maxSizeBytes, String appLogDirPath) {
+        return FileUtil.checkVolumeAndClearOldestFiles(maxSizeBytes, appLogDirPath);
     }
 
     private String getAppLogDirPath() {
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        return loggerContext.getProperty("APP_LOG_DIR");
+        String propertyNameAppLogDir = "APP_LOG_DIR";
+        return loggerContext.getProperty(propertyNameAppLogDir);
     }
 }
