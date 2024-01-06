@@ -107,7 +107,7 @@ public class TaskHostNodeVO {
         }
         List<DynamicGroupIdWithMeta> dynamicGroupList = new ArrayList<>();
         for (String id : dynamicGroupIdList) {
-            dynamicGroupList.add(new DynamicGroupIdWithMeta(id, null));
+            dynamicGroupList.add(new DynamicGroupIdWithMeta(id));
         }
         this.dynamicGroupList = dynamicGroupList;
     }

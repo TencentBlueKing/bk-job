@@ -90,7 +90,7 @@ public class TaskTargetDTO {
         if (StringUtils.isNotBlank(taskTargetVO.getVariable())) {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
-        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getHostNodeInfo()));
+        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getExecuteObjectsInfoCompatibly()));
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }

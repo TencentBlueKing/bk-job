@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.model.vo.TaskContainerNodeVO;
+import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -235,6 +235,7 @@ public class ExecuteObjectsDTO implements Cloneable {
         target.setVariable(variable);
 
         List<ExecuteObject> executeObjects = getExecuteObjectsCompatibly();
+        TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
         if (CollectionUtils.isNotEmpty(executeObjects)) {
             // 主机
             List<HostInfoVO> hostInfoVOS = executeObjects.stream()
@@ -247,8 +248,10 @@ public class ExecuteObjectsDTO implements Cloneable {
                 })
                 .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(hostInfoVOS)) {
+                taskExecuteObjectsInfoVO.setHostList(hostInfoVOS);
                 TaskHostNodeVO taskHostNodeVO = new TaskHostNodeVO();
                 taskHostNodeVO.setHostList(hostInfoVOS);
+                // 发布兼容
                 target.setHostNodeInfo(taskHostNodeVO);
             }
 
@@ -258,12 +261,9 @@ public class ExecuteObjectsDTO implements Cloneable {
                 .map(ExecuteObject::getContainer)
                 .map(Container::toContainerVO)
                 .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(containerVOs)) {
-                TaskContainerNodeVO taskContainerNodeVO = new TaskContainerNodeVO();
-                taskContainerNodeVO.setContainerList(containerVOs);
-                target.setContainerNodeInfo(taskContainerNodeVO);
-            }
+            taskExecuteObjectsInfoVO.setContainerList(containerVOs);
         }
+        target.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
 
         return target;
     }
@@ -370,50 +370,50 @@ public class ExecuteObjectsDTO implements Cloneable {
     public static ExecuteObjectsDTO fromTaskTargetVO(TaskTargetVO target) {
 
         ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+        executeObjectsDTO.setVariable(target.getVariable());
+        if (target.getExecuteObjectsInfoCompatibly() == null) {
+            return executeObjectsDTO;
+        }
+
+        TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = target.getExecuteObjectsInfoCompatibly();
 
         // 处理主机
-        if (target.getHostNodeInfo() != null) {
-            TaskHostNodeVO hostNode = target.getHostNodeInfo();
-            if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
-                List<HostDTO> hostList = new ArrayList<>();
-                hostNode.getHostList().forEach(host -> {
-                    HostDTO targetHost = new HostDTO();
-                    if (host.getHostId() != null) {
-                        targetHost.setHostId(host.getHostId());
-                    }
-                    hostList.add(targetHost);
-                });
-                executeObjectsDTO.setStaticIpList(hostList);
-            }
-            if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
-                List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
-                hostNode.getDynamicGroupIdList().forEach(
-                    groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-                executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
-            }
-            if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
-                List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
-                hostNode.getNodeList().forEach(
-                    topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(),
-                        topoNode.getObjectId())));
-                executeObjectsDTO.setTopoNodes(topoNodes);
-            }
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getHostList())) {
+            List<HostDTO> hostList = new ArrayList<>();
+            taskExecuteObjectsInfoVO.getHostList().forEach(host -> {
+                HostDTO targetHost = new HostDTO();
+                if (host.getHostId() != null) {
+                    targetHost.setHostId(host.getHostId());
+                }
+                hostList.add(targetHost);
+            });
+            executeObjectsDTO.setStaticIpList(hostList);
+        }
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getDynamicGroupList())) {
+            List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
+            taskExecuteObjectsInfoVO.getDynamicGroupList().forEach(
+                group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
+            executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
+        }
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getNodeList())) {
+            List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
+            taskExecuteObjectsInfoVO.getNodeList().forEach(
+                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(),
+                    topoNode.getObjectId())));
+            executeObjectsDTO.setTopoNodes(topoNodes);
         }
 
         // 处理容器
-        if (target.getContainerNodeInfo() != null) {
-            TaskContainerNodeVO containerNodeInfo = target.getContainerNodeInfo();
-            if (CollectionUtils.isNotEmpty(containerNodeInfo.getContainerList())) {
-                List<Container> containerList = new ArrayList<>();
-                containerNodeInfo.getContainerList().forEach(container -> {
-                    Container targetContainer = new Container();
-                    if (container.getId() != null) {
-                        targetContainer.setId(container.getId());
-                    }
-                    containerList.add(targetContainer);
-                });
-                executeObjectsDTO.setStaticContainerList(containerList);
-            }
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getContainerList())) {
+            List<Container> containerList = new ArrayList<>();
+            taskExecuteObjectsInfoVO.getContainerList().forEach(container -> {
+                Container targetContainer = new Container();
+                if (container.getId() != null) {
+                    targetContainer.setId(container.getId());
+                }
+                containerList.add(targetContainer);
+            });
+            executeObjectsDTO.setStaticContainerList(containerList);
         }
 
         return executeObjectsDTO;

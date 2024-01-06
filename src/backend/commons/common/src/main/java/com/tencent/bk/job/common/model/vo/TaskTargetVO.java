@@ -25,6 +25,8 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import io.swagger.annotations.ApiModel;
@@ -42,24 +44,43 @@ public class TaskTargetVO {
     @ApiModelProperty(value = "全局变量名")
     private String variable;
 
-    @ApiModelProperty(value = "主机节点信息")
+    @ApiModelProperty(value = "主机节点信息, 版本升级之后作废")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "兼容 API， 发布完成后前端使用 executeObjectsInfo 参数，该参数可删除")
     private TaskHostNodeVO hostNodeInfo;
 
-    @ApiModelProperty(value = "容器节点信息")
-    private TaskContainerNodeVO containerNodeInfo;
+    @ApiModelProperty(value = "任务执行对象信息")
+    private TaskExecuteObjectsInfoVO executeObjectsInfo;
 
     public void validate() throws InvalidParamException {
         if (StringUtils.isNoneBlank(variable)) {
             hostNodeInfo = null;
-            containerNodeInfo = null;
+            executeObjectsInfo = null;
             return;
         }
-        if (hostNodeInfo == null && containerNodeInfo == null) {
+
+        if (executeObjectsInfo != null) {
+            executeObjectsInfo.validate();
+        } else if (hostNodeInfo != null) {
+            hostNodeInfo.validate();
+        } else {
             log.warn("TaskTarget is empty!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        if (hostNodeInfo != null) {
-            hostNodeInfo.validate();
+    }
+
+    public TaskExecuteObjectsInfoVO getExecuteObjectsInfoCompatibly() {
+        if (executeObjectsInfo != null) {
+            return executeObjectsInfo;
+        } else if (hostNodeInfo != null) {
+            TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
+            taskExecuteObjectsInfoVO.setHostList(hostNodeInfo.getHostList());
+            taskExecuteObjectsInfoVO.setNodeList(hostNodeInfo.getNodeList());
+            taskExecuteObjectsInfoVO.setDynamicGroupList(hostNodeInfo.getDynamicGroupList());
+            return taskExecuteObjectsInfoVO;
+        } else {
+            return null;
         }
     }
 

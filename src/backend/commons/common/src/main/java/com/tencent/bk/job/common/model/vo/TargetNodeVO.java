@@ -33,9 +33,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @since 12/12/2019 15:07
- */
 @Slf4j
 @Data
 @ApiModel("目标节点信息")
