@@ -8,7 +8,7 @@ Default job logback configuration provided for import
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
-    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(%5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.30t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}}){faint} %clr(%5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} %5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="AUDIT_EVENT_LOG_PATTERN" value="%m%n"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>

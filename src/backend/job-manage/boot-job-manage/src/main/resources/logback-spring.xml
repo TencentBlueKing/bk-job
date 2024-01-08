@@ -69,6 +69,7 @@
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
@@ -80,6 +81,7 @@
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
