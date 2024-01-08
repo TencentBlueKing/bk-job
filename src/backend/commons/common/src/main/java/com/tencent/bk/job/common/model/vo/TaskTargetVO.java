@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
@@ -70,6 +71,8 @@ public class TaskTargetVO {
         }
     }
 
+    @JsonIgnore
+    @ApiModelProperty(hidden = true)
     public TaskExecuteObjectsInfoVO getExecuteObjectsInfoCompatibly() {
         if (executeObjectsInfo != null) {
             return executeObjectsInfo;
