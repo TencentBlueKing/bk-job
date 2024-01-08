@@ -211,7 +211,7 @@
         this.hidePopper();
       },
 
-      handleTagClick(event) {
+      handleTagClick() {
         if (this.isEditing) {
           return;
         }
@@ -316,7 +316,7 @@
         }
       },
       // 提交 tag 的值
-      handleSubmit(values) {
+      handleSubmit() {
         const value = {
           ...this.data,
           values: this.menu.checked,
@@ -342,7 +342,7 @@
         }
       },
 
-      renderKey(h) {
+      renderKey() {
         const {
           displayKey,
           explainCode,
@@ -355,19 +355,21 @@
       },
 
       renderValue(h) {
-        const renderContent = (h) => {
+        const renderContent = () => {
           if (this.isEditing) {
             return (
-                        <div style={this.textareaStyles}>
-                            <div style="min-height: 22px; white-space: normal; word-break: break-all; visibility: hidden;">{this.localValue}</div>
-                            <textarea
-                                ref="textarea"
-                                class="tag-value-edit"
-                                spellcheck="false"
-                                value={this.localValue}
-                                onKeydown={this.handleKeydown}
-                                onInput={this.handleTagInput} />
-                        </div>
+              <div style={this.textareaStyles}>
+                <div style="min-height: 22px; white-space: normal; word-break: break-all; visibility: hidden;">
+                  {this.localValue}
+                </div>
+                <textarea
+                  ref="textarea"
+                  class="tag-value-edit"
+                  spellcheck="false"
+                  value={this.localValue}
+                  onKeydown={this.handleKeydown}
+                  onInput={this.handleTagInput} />
+              </div>
             );
           }
           return (
@@ -375,21 +377,21 @@
           );
         };
         return (
-                <div ref="valueBox" class="tag-value" onClick={this.handleWraperClick}>
-                    <div style="position: absolute; top: -9999px; left: -9999px;">
-                        <pre ref="realContent" style="display: block; visibility: hidden; font: inherit;">{this.localValue}</pre>
-                    </div>
-                    {renderContent(h)}
-                </div>
+          <div ref="valueBox" class="tag-value" onClick={this.handleWraperClick}>
+            <div style="position: absolute; top: -9999px; left: -9999px;">
+              <pre ref="realContent" style="display: block; visibility: hidden; font: inherit;">{this.localValue}</pre>
+            </div>
+            {renderContent(h)}
+          </div>
         );
       },
 
-      renderClear(h) {
+      renderClear() {
         if (this.searchSelect.readonly || this.isEditing) {
           return null;
         }
         return (
-                <i class="tag-clear bk-icon icon-close" onClick={this.handleRemove} />
+          <i class="tag-clear bk-icon icon-close" onClick={this.handleRemove} />
         );
       },
 
@@ -401,13 +403,13 @@
         focused: this.isEditing,
       };
       return (
-            <div class={classes}>
-                <div class="search-tag">
-                    {this.renderKey(h)}
-                    {this.renderValue(h)}
-                </div>
-                {this.renderClear(h)}
-            </div>
+        <div class={classes}>
+          <div class="search-tag">
+            {this.renderKey(h)}
+            {this.renderValue(h)}
+          </div>
+          {this.renderClear(h)}
+        </div>
       );
     },
   };

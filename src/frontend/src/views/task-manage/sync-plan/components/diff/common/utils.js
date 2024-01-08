@@ -45,7 +45,7 @@ export const ipStatistics = (hostNodeList) => {
   return stack.join('，');
 };
 
-export const findStep = (target, id, type) => {
+export const findStep = (target, id) => {
   const step = _.find(target, _ => _.realId === id);
   if (step) {
     return step;

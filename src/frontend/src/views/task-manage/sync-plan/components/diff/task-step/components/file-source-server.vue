@@ -31,11 +31,11 @@
     :pre-host="realPreHost" />
 </template>
 <script>
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import IpDetail from '../../common/ip-detail';
 
-  const generatorHost = () => new TaskHostNodeModel({});
+  const generatorHost = () => new ExecuteTargetModel({});
 
   export default {
     name: 'SyncPlanFileSourceServer',
@@ -53,12 +53,12 @@
       },
     },
     created() {
-      if (!this.preHost || !this.preHost.hostNodeInfo) {
+      if (!this.preHost || !this.preHost.executeObjectsInfo) {
         this.realPreHost = generatorHost();
       } else {
         this.realPreHost = this.preHost;
       }
-      if (!this.lastHost || !this.lastHost.hostNodeInfo) {
+      if (!this.lastHost || !this.lastHost.executeObjectsInfo) {
         this.realLastHost = generatorHost();
       } else {
         this.realLastHost = this.lastHost;

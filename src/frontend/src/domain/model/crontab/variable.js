@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 export default class CrontabVariable {
   constructor(payload) {
@@ -38,8 +38,8 @@ export default class CrontabVariable {
 
   initTargetValue(targetValue) {
     if (!_.isObject(targetValue)) {
-      return new TaskHostNodeModel({});
+      return new ExecuteTargetModel({});
     }
-    return new TaskHostNodeModel(targetValue);
+    return new ExecuteTargetModel(targetValue);
   }
 }

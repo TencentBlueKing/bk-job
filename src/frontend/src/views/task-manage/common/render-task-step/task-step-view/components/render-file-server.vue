@@ -49,7 +49,7 @@
           <ip-selector
             readonly
             show-view
-            :value="hostNodeInfo" />
+            :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
       <template #footer>
@@ -61,7 +61,7 @@
   </div>
 </template>
 <script>
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import ScrollFaker from '@components/scroll-faker';
 
@@ -77,16 +77,16 @@
       },
     },
     data() {
-      const { hostNodeInfo } = new TaskHostNodeModel({});
+      const { executeObjectsInfo } = new ExecuteTargetModel({});
       return {
         isShowDetail: false,
-        hostNodeInfo,
+        executeObjectsInfo,
       };
     },
 
     methods: {
       handlerView() {
-        this.hostNodeInfo = this.data.host.hostNodeInfo;
+        this.executeObjectsInfo = this.data.host.executeObjectsInfo;
         this.isShowDetail = true;
       },
       handleClose() {

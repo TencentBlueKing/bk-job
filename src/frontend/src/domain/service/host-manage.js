@@ -25,8 +25,7 @@
 
 /* eslint-disable no-param-reassign */
 
-import * as IpSelectrAdapter from '@components/ip-selector/adapter';
-
+import * as IpSelectrAdapter from '@blueking/ip-selector/dist/adapter';
 import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
 import NodeInfoVO from '@domain/variable-object/node-info';
 
@@ -124,5 +123,25 @@ export default {
   fetchHostInfoByHostId(params) {
     return HostManageSource.getHostInfoByHostId(params)
       .then(({ data }) => IpSelectrAdapter.hostsDetails(data));
+  },
+  fetchTopologyContainerWithCount(params) {
+    return  HostManageSource.getAllContainerWithCount(params)
+      .then(({ data }) => IpSelectrAdapter.topologyContainerCount(data));
+  },
+  fetchTopologyContainerContainer(params) {
+    return  HostManageSource.getTopologyContainer(params)
+      .then(({ data }) => IpSelectrAdapter.topolopyContainersNodes(data));
+  },
+  fetchTopologyContainerContainerIdList(params) {
+    return  HostManageSource.getAllContainerIdList(params)
+      .then(({ data }) => IpSelectrAdapter.topolopyContainerIdsNodes(data));
+  },
+  fetchContainerInfoById(params) {
+    return  HostManageSource.getContainerInfoById(params)
+      .then(({ data }) => IpSelectrAdapter.containerDetail(data));
+  },
+  fetchInputParseContainerList(params) {
+    return  HostManageSource.getInputParseContainerList(params)
+      .then(({ data }) => IpSelectrAdapter.containerCheck(data));
   },
 };

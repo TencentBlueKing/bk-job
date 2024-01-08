@@ -65,7 +65,7 @@
     },
     watch: {
       formData: {
-        handler(formData) {
+        handler() {
           if (this.formData.endTime) {
             this.isEndTime = true;
           }

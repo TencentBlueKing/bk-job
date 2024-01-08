@@ -130,7 +130,7 @@
                 </td>
                 <td>
                   <server-host-agent
-                    :host-list="row.host.hostNodeInfo.hostList"
+                    :host-list="row.host.executeObjectsInfo.hostList"
                     :title="$t('template.服务器文件-服务器列表')" />
                 </td>
                 <td>{{ findAccountAlias(row.account) }}</td>

@@ -106,7 +106,7 @@
 
     created() {
       // 自定义路由切换确认框
-      this.$route.meta.leavaConfirm = () => new Promise((resolve, reject) => {
+      this.$route.meta.leavaConfirm = () => new Promise((resolve) => {
         if (!window.changeFlag) {
           resolve();
           return;

@@ -48,11 +48,11 @@
       </div>
       <ip-selector
         ref="ipSelector"
-        :original-value="originalHostNodeInfo"
+        :original-value="originalExecuteObjectsInfo"
         :show-dialog="isShowChooseIp"
         show-view
         :show-view-diff="showViewDiff"
-        :value="hostNodeInfo"
+        :value="executeObjectsInfo"
         @change="handleChange"
         @close-dialog="handleCloseIpSelector" />
       <p
@@ -67,10 +67,10 @@
 <script>
   import _ from 'lodash';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import {
-    removeIllegalHostFromHostNodeInfo,
+    removeIllegalHostFromExecuteObjectsInfo,
   } from '@utils/assist';
 
   export default {
@@ -95,13 +95,13 @@
     data() {
       return {
         isShowChooseIp: false,
-        hostNodeInfo: {},
-        originalHostNodeInfo: {},
+        executeObjectsInfo: {},
+        originalExecuteObjectsInfo: {},
       };
     },
     computed: {
       isNotEmpty() {
-        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
+        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.executeObjectsInfo);
       },
       isError() {
         if (this.data.required !== 1) {
@@ -135,11 +135,11 @@
        */
       init() {
         if (!this.data.defaultTargetValue.isEmpty) {
-          this.hostNodeInfo = this.data.defaultTargetValue.hostNodeInfo;
+          this.executeObjectsInfo = this.data.defaultTargetValue.executeObjectsInfo;
         } else {
-          this.hostNodeInfo = this.data.targetValue.hostNodeInfo;
+          this.executeObjectsInfo = this.data.targetValue.executeObjectsInfo;
         }
-        this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
+        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
       },
       /**
        * @desc 外部调用——移除无效主机
@@ -161,15 +161,15 @@
        * @desc 清空主机列表
        */
       handleClear() {
-        const { hostNodeInfo } = new TaskHostNodeModel({});
-        this.hostNodeInfo = hostNodeInfo;
+        const { executeObjectsInfo } = new ExecuteTargetModel({});
+        this.executeObjectsInfo = executeObjectsInfo;
         window.changeFlag = true;
       },
       /**
        * @desc 提交编辑的数据
        */
-      handleChange(hostNodeInfo) {
-        this.hostNodeInfo = Object.freeze(hostNodeInfo);
+      handleChange(executeObjectsInfo) {
+        this.executeObjectsInfo = Object.freeze(executeObjectsInfo);
         window.changeFlag = true;
       },
       /**
@@ -182,8 +182,8 @@
        * @desc 外部调用——移除无效主机
        */
       removeIllegalHost() {
-        this.hostNodeInfo = Object.freeze(removeIllegalHostFromHostNodeInfo(this.hostNodeInfo));
-        this.originalHostNodeInfo = Object.freeze(_.cloneDeep(this.hostNodeInfo));
+        this.executeObjectsInfo = Object.freeze(removeIllegalHostFromExecuteObjectsInfo(this.executeObjectsInfo));
+        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
       },
       /**
        * @desc 外部调用——值验证
@@ -202,7 +202,7 @@
             type,
             value: '',
             targetValue: {
-              hostNodeInfo: this.hostNodeInfo,
+              executeObjectsInfo: this.executeObjectsInfo,
             },
           });
         });

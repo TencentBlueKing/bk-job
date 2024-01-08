@@ -38,7 +38,7 @@
         style="height: 100%;" />
     </div>
     <div
-      v-if="host && isRunning"
+      v-if="taskExecuteDetail && isRunning"
       class="log-status">
       <div class="log-loading">
         {{ $t('history.执行中') }}
@@ -80,17 +80,19 @@
     ],
     props: {
       name: String,
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
       stepInstanceId: {
         type: Number,
         required: true,
       },
-      host: {
+      taskExecuteDetail: {
         type: Object,
+        required: true,
       },
-      batch: {
-        type: [Number, String],
-      },
-      retryCount: {
+      executeCount: {
         type: Number,
         required: true,
       },
@@ -176,7 +178,7 @@
        * @desc 获取脚本日志
        */
       fetchLogContent() {
-        if (!this.host.ip && !this.host.hostId) {
+        if (!this.taskExecuteDetail.executeObject) {
           this.isLoading = false;
           if (this.editor) {
             this.editor.setValue('');
@@ -184,16 +186,14 @@
           }
           return;
         }
-        const requestHandler = this.host.hostId
-          ? TaskExecuteService.fetchLogContentOfHostId
-          : TaskExecuteService.fetchLogContentOfIp;
 
-        requestHandler({
+        TaskExecuteService.fetchLogContentOfHostId({
+          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
-          retryCount: this.retryCount,
-          hostId: this.host.hostId,
-          ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
-          batch: this.batch,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          executeCount: this.executeCount,
+          batch: this.taskExecuteDetail.batch,
         })
           .then(({
             finished,

@@ -111,7 +111,6 @@ export default {
     去更新: 'Update now',
     '脚本内容：': 'Contents: ',
     '脚本参数：': 'Params: ',
-    '执行账号：': 'Account: ',
     执行目标: 'Host',
     '步骤类型：': 'Type: ',
     '步骤名称：': 'Name: ',

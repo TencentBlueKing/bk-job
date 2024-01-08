@@ -191,7 +191,7 @@
       },
       handleSave() {
         this.$refs.platformForm.validate()
-          .then((validator) => {
+          .then(() => {
             this.isSubmitting = true;
             GlobalSettingService.updatePlatformInfo(this.formData)
               .then(() => {

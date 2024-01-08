@@ -115,8 +115,8 @@
     <ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
-      :value="formData.defaultTargetValue.hostNodeInfo"
-      @change="handleHostChange"
+      :value="formData.defaultTargetValue.executeObjectsInfo"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIPSelector" />
   </tr>
 </template>
@@ -185,7 +185,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.data.defaultTargetValue.hostNodeInfo);
+      this.originalValue = _.cloneDeep(this.data.defaultTargetValue.executeObjectsInfo);
 
       this.typeList = [
         {
@@ -258,10 +258,10 @@
       },
       /**
        * @desc 更新主机变量
-       * @param { Object } hostNodeInfo 主机信息
+       * @param { Object } executeObjectsInfo 主机信息
        */
-      handleHostChange(hostNodeInfo) {
-        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
         this.triggerChange();
       },
       /**

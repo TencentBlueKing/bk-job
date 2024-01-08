@@ -26,71 +26,54 @@
 -->
 
 <template>
-  <div class="list-column-setting">
-    <div class="select-body">
-      <div class="title">
-        {{ $t('history.字段显示设置') }}
+  <bk-popover
+    ref="popoverRef"
+    placement="bottom-start"
+    theme="light"
+    trigger="click"
+    :width="450">
+    <div
+      id="stepDetailIpListSettingBtn"
+      class="select-btn">
+      <i class="bk-icon icon-cog-shape" />
+    </div>
+    <div
+      slot="content"
+      class="list-column-setting">
+      <div class="select-body">
+        <div class="title">
+          {{ $t('history.字段显示设置') }}
+        </div>
+        <bk-checkbox
+          :checked="isAllColumn"
+          :indeterminate="isIndeterminate"
+          @click.native="handleToggleAll">
+          {{ $t('history.全选') }}
+        </bk-checkbox>
+        <bk-checkbox-group v-model="tempAllShowColumn">
+          <template v-for="item in columnList">
+            <bk-checkbox
+              :key="item.name"
+              :checked="item.checked"
+              class="select-column"
+              :value="item.name">
+              {{ item.label }}
+            </bk-checkbox>
+          </template>
+        </bk-checkbox-group>
       </div>
-      <bk-checkbox
-        :checked="isAllColumn"
-        :indeterminate="isIndeterminate"
-        @click.native="handleToggleAll">
-        {{ $t('history.全选') }}
-      </bk-checkbox>
-      <bk-checkbox-group v-model="tempAllShowColumn">
-        <template v-for="item in columnList">
-          <span
-            v-if="item.name === 'ipv4'"
-            :key="`ip_${item.name}`"
-            v-bk-tooltips="{
-              content: 'IP 与 IPv6 至少需保留一个',
-              disabled: tempAllShowColumn.includes('ipv6'),
-            }"
-            class="select-column">
-            <bk-checkbox
-              :checked="item.checked"
-              :disabled="!tempAllShowColumn.includes('ipv6')"
-              :value="item.name">
-              {{ item.label }}
-            </bk-checkbox>
-          </span>
-          <span
-            v-else-if="item.name === 'ipv6'"
-            :key="`ipv6_${item.name}`"
-            v-bk-tooltips="{
-              content: 'IP 与 IPv6 至少需保留一个',
-              disabled: tempAllShowColumn.includes('ipv4'),
-            }"
-            class="select-column">
-            <bk-checkbox
-              :checked="item.checked"
-              :disabled="!tempAllShowColumn.includes('ipv4')"
-              :value="item.name">
-              {{ item.label }}
-            </bk-checkbox>
-          </span>
-          <bk-checkbox
-            v-else
-            :key="item.name"
-            :checked="item.checked"
-            class="select-column"
-            :value="item.name">
-            {{ item.label }}
-          </bk-checkbox>
-        </template>
-      </bk-checkbox-group>
+      <div class="select-footer">
+        <bk-button
+          theme="primary"
+          @click="handleSubmitSetting">
+          {{ $t('history.确定') }}
+        </bk-button>
+        <bk-button @click="handleHideSetting">
+          {{ $t('history.取消') }}
+        </bk-button>
+      </div>
     </div>
-    <div class="select-footer">
-      <bk-button
-        theme="primary"
-        @click="handleSubmitSetting">
-        {{ $t('history.确定') }}
-      </bk-button>
-      <bk-button @click="handleHideSetting">
-        {{ $t('history.取消') }}
-      </bk-button>
-    </div>
-  </div>
+  </bk-popover>
 </template>
 <script setup>
   import {
@@ -113,6 +96,7 @@
     'close',
   ]);
 
+  const popoverRef = ref();
   const tempAllShowColumn = ref([...props.value]);
 
   const isIndeterminate = computed(() => tempAllShowColumn.value.length !== props.columnList.length);
@@ -134,14 +118,25 @@
 
   const handleSubmitSetting = () => {
     emits('change', [...tempAllShowColumn.value]);
-    emits('close');
+    popoverRef.value.hideHandler();
   };
 
   const handleHideSetting = () => {
-    emits('close');
+    popoverRef.value.hideHandler();
   };
 </script>
 <style lang="postcss" scoped>
+  .select-btn{
+    width: 45px;
+    height: 40px;
+    padding: 0;
+    font-size: 14px;
+    color: #979ba5;
+    text-align: center;
+    cursor: pointer;
+    border-left: 1px solid #dcdee5;
+  }
+
   .list-column-setting {
     .select-body {
       padding: 15px 22px 30px;
@@ -178,3 +173,4 @@
     }
   }
 </style>
+

@@ -228,7 +228,7 @@
             this.isLoading = false;
           });
       },
-      renderHeader(h) {
+      renderHeader() {
         return (
                 <bk-checkbox value={this.wholeTableRowSelect} onChange={this.handlePageSelectToggle} />
         );

@@ -69,16 +69,8 @@ export default {
     return TaskExecuteSource.getOneStep(params, payload)
       .then(({ data }) => new StepExecutionResultModel(data));
   },
-  fetchLogContentOfIp(params) {
-    return TaskExecuteSource.getLogByIp(params)
-      .then(({ data }) => data);
-  },
   fetchLogContentOfHostId(params) {
     return TaskExecuteSource.getLogByHostId(params)
-      .then(({ data }) => data);
-  },
-  fetchFileLogOfIp(params = {}) {
-    return TaskExecuteSource.getFileLogByIP(params)
       .then(({ data }) => data);
   },
   fetchFileLogOfHostId(params = {}) {

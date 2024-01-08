@@ -97,7 +97,7 @@
       this.fetchData();
     },
     methods: {
-      fetchData(id) {
+      fetchData() {
         this.$request(TaskPlanService.fetchSyncInfo({
           id: this.id,
           templateId: this.templateId,

@@ -64,7 +64,8 @@
       :label="$t('template.执行目标：')"
       layout="vertical">
       <ip-selector
-        :complete-host-list="hostsDetails(stepInfo.fileDestination.server.hostNodeInfo.hostList)"
+        :complete-container-list="containerDetail(stepInfo.fileDestination.server.executeObjectsInfo.containerList)"
+        :complete-host-list="hostsDetails(stepInfo.fileDestination.server.executeObjectsInfo.hostList)"
         readonly
         show-view />
     </detail-item>
@@ -80,7 +81,11 @@
   import AccountManageService from '@service/account-manage';
 
   import DetailItem from '@components/detail-layout/item';
-  import { hostsDetails } from '@components/ip-selector/adapter';
+
+  import {
+    containerDetail,
+    hostsDetails,
+  } from '@blueking/ip-selector/dist/adapter';
 
   import RenderSourceFile from './components/render-source-file';
 

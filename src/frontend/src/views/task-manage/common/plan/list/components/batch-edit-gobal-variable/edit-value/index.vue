@@ -92,7 +92,7 @@
   </div>
 </template>
 <script>
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import {
     genGlobalVariableKey,
@@ -185,7 +185,7 @@
           selectVariableMap[key] = true;
           // 初始化选中变量值
           if (this.globalVariableMap[key].isHost) {
-            selectVariableValueMap[key] = new TaskHostNodeModel({});
+            selectVariableValueMap[key] = new ExecuteTargetModel({});
           } else {
             selectVariableValueMap[key] = '';
           }
@@ -205,7 +205,7 @@
           selectVariableMap[key] = true;
           // 初始化选中变量值
           if (this.globalVariableMap[key].isHost) {
-            selectVariableValueMap[key] = new TaskHostNodeModel({});
+            selectVariableValueMap[key] = new ExecuteTargetModel({});
           } else {
             selectVariableValueMap[key] = '';
           }

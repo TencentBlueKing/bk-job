@@ -394,7 +394,7 @@
       /**
        * @desc 编辑脚本
        */
-      handleEdit(payload) {
+      handleEdit() {
         this.$emit('on-go-edit', {
           scriptVersionId: this.scriptInfo.scriptVersionId,
         });
@@ -438,8 +438,7 @@
       width: 250px;
       margin-top: -35px;
       transform: translateX(-50%);
-      align-content: center;
-      justify-content: center;
+      place-content: center center;
 
       .content-tab-item {
         @extend %tab-item;

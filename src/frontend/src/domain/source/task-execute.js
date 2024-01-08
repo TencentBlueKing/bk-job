@@ -53,41 +53,21 @@ class TaskExecute extends ModuleBase {
     return Request.get(`${this.path}/task-instance/${id}`);
   }
 
-  // 获取ip对应的日志内容
-  getLogByIp(params) {
-    const { stepInstanceId, retryCount, ip } = params;
-    const realParams = { ...params };
-    delete realParams.stepInstanceId;
-    delete realParams.retryCount;
-    delete realParams.hostId;
-    delete realParams.ip;
-    return Request.get(`${this.path}/step-execution-result/log-content/${stepInstanceId}/${retryCount}/${ip}`, {
-      params: realParams,
-    });
-  }
-
   getLogByHostId(params) {
-    const { stepInstanceId, retryCount, hostId } = params;
-    const realParams = { ...params };
-    delete realParams.stepInstanceId;
-    delete realParams.retryCount;
-    delete realParams.hostId;
-    delete realParams.ip;
-    return Request.get(`${this.path}/step-execution-result/log-content/${stepInstanceId}/${retryCount}/host/${hostId}`, {
-      params: realParams,
-    });
-  }
+    const {
+      taskInstanceId,
+      stepInstanceId,
+      executeObjectType,
+      executeObjectResourceId,
+    } = params;
 
-  // 获取文件分发步骤IP的日志基本信息
-  getFileLogByIP(params = {}) {
     const realParams = { ...params };
-    const { stepInstanceId, retryCount, ip } = params;
+    delete realParams.taskInstanceId;
     delete realParams.stepInstanceId;
-    delete realParams.retryCount;
-    delete realParams.hostId;
-    delete realParams.ip;
+    delete realParams.executeObjectType;
+    delete realParams.executeObjectResourceId;
 
-    return Request.get(`${this.path}/step-execution-result/log-content/file/${stepInstanceId}/${retryCount}/${ip}`, {
+    return Request.get(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/executeObject/${executeObjectType}/${executeObjectResourceId}/scriptLog`, {
       params: realParams,
     });
   }
@@ -95,32 +75,36 @@ class TaskExecute extends ModuleBase {
   // 获取文件分发步骤IP的日志基本信息
   getFileLogByHostId(params = {}) {
     const realParams = { ...params };
-    const { stepInstanceId, retryCount, hostId } = params;
+    const {
+      taskInstanceId,
+      stepInstanceId,
+      executeObjectType,
+      executeObjectResourceId,
+    } = params;
+    delete realParams.taskInstanceId;
     delete realParams.stepInstanceId;
-    delete realParams.retryCount;
-    delete realParams.hostId;
-    delete realParams.ip;
+    delete realParams.executeObjectType;
+    delete realParams.executeObjectResourceId;
 
-    return Request.get(`${this.path}/step-execution-result/log-content/file/${stepInstanceId}/${retryCount}/host/${hostId}`, {
+    return Request.get(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/executeObject/${executeObjectType}/${executeObjectResourceId}/fileLog`, {
       params: realParams,
     });
   }
 
   // 获取文件分发指定文件的日志内容
   getFileLogByFileId(params = {}) {
+    const {
+      taskInstanceId,
+      stepInstanceId,
+    } = params;
+
     const realParams = { ...params };
-    const { stepInstanceId, retryCount } = params;
+    delete realParams.taskInstanceId;
     delete realParams.stepInstanceId;
-    delete realParams.retryCount;
 
-    return Request.post(`${this.path}/step-execution-result/log-content/file/${stepInstanceId}/${retryCount}/query-by-ids`, {
-      params: realParams.taskIds,
+    return Request.post(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/fileLog/queryByIds`, {
+      params: realParams,
     });
-  }
-
-  // 根据日志搜索结果显示ip
-  getIpByLog({ stepInstanceId, retryCount }) {
-    return Request.get(`${this.path}/step-execution-result/agent-execution-list/${stepInstanceId}/${retryCount}`);
   }
 
   // 获取作业步骤执行情况
@@ -128,9 +112,10 @@ class TaskExecute extends ModuleBase {
     const tempParams = {
       ...params,
     };
+    delete tempParams.taskInstanceId;
     delete tempParams.id;
-    delete tempParams.retryCount;
-    return Request.get(`${this.path}/step-execution-result/${params.id}/${params.retryCount}`, {
+
+    return Request.get(`${this.path}/taskInstance/${params.taskInstanceId}/stepInstance/${params.id}/stepExecutionResult`, {
       params: tempParams,
       payload,
     });
@@ -206,7 +191,6 @@ class TaskExecute extends ModuleBase {
 
   // 获取执行步骤主机对应的变量列表
   getStepVariables(params) {
-    // return Request.get(`${this.path}/step-execution-result/variable/${id}/${ip}`);
     const realParams = { ...params };
     delete realParams.stepInstanceId;
     return Request.get(`${this.path}/step-execution-result/step/${params.stepInstanceId}/variables`, {
@@ -216,23 +200,35 @@ class TaskExecute extends ModuleBase {
 
   // 请求日志打包结果
   getLogFilePackageInfo(params = {}) {
+    const {
+      taskInstanceId,
+      stepInstanceId,
+    } = params;
+
     const realParams = { ...params };
+    delete realParams.taskInstanceId;
     delete realParams.stepInstanceId;
 
-    return Request.get(`${this.path}/step-execution-result/${params.stepInstanceId}/log-file`, {
+    return Request.get(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/requestDownloadLogFile`, {
       params: realParams,
     });
   }
 
   // 下载执行日志文件
-  getLogFile(payload) {
-    const params = {
-      ...payload,
-    };
-    delete params.id;
+  getLogFile(params) {
+    const {
+      taskInstanceId,
+      stepInstanceId,
+    } = params;
 
-    return Request.download(`${this.path}/step-execution-result/${payload.id}/log-file/download`, {
-      params,
+    const realParams = {
+      ...params,
+    };
+    delete realParams.taskInstanceId;
+    delete realParams.stepInstanceId;
+
+    return Request.download(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/downloadLogFile`, {
+      params: realParams,
     });
   }
 
@@ -243,11 +239,18 @@ class TaskExecute extends ModuleBase {
 
   // 获取执行结果分组下的主机列表
   getStepGroupHost(params = {}) {
-    const realParams = { ...params };
-    delete realParams.id;
-    delete realParams.retryCount;
+    const {
+      taskInstanceId,
+      id,
+      executeCount,
+    } = params;
 
-    return Request.get(`${this.path}/step-execution-result/hosts/${params.id}/${params.retryCount}`, {
+    const realParams = { ...params };
+    delete realParams.taskInstanceId;
+    delete realParams.id;
+    delete realParams.executeCount;
+
+    return Request.get(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${id}/${executeCount}/executeObjects`, {
       params: realParams,
     });
   }

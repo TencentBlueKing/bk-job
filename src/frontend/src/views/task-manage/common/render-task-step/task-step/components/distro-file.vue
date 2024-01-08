@@ -108,8 +108,8 @@
 <script>
   import { mapState } from 'vuex';
 
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskStepModel from '@model/task/task-step';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   import {
     compareHost,
@@ -147,7 +147,7 @@
     // }
     account: '',
     path: '',
-    server: new TaskHostNodeModel({}),
+    server: new ExecuteTargetModel({}),
   });
 
   export default {
@@ -370,16 +370,16 @@
                   reject(new Error('not save'));
                 };
                 const subHeader = () => (
-                                    <div>
-                                        <div style="text-align: center">
-                                            <bk-button
-                                                onClick={handleClose}
-                                                style="width: 96px"
-                                                theme="primary">
-                                                { I18n.t('template.去处理') }
-                                            </bk-button>
-                                        </div>
-                                    </div>
+                  <div>
+                    <div style="text-align: center">
+                      <bk-button
+                          onClick={handleClose}
+                          style="width: 96px"
+                          theme="primary">
+                          { I18n.t('template.去处理') }
+                      </bk-button>
+                    </div>
+                  </div>
                 );
                 if (this.isLocalFileUploading) {
                   confirmInfo = this.$bkInfo({

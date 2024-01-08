@@ -129,7 +129,7 @@
     <ip-selector
       ref="ipSelector"
       :show-dialog="isShowChooseIp"
-      @change="handleHostChange"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIpSelector" />
   </tbody>
 </template>
@@ -137,7 +137,7 @@
   import _ from 'lodash';
   import { mapMutations } from 'vuex';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import { findParent } from '@utils/vdom';
 
@@ -213,7 +213,7 @@
        */
       handleSourceFileTypeChange(type) {
         this.sourceFileType = type;
-        this.serverFile.host = new TaskHostNodeModel({});
+        this.serverFile.host = new ExecuteTargetModel({});
         const formItem = findParent(this, 'JbFormItem');
         if (formItem) {
           setTimeout(() => {
@@ -250,11 +250,11 @@
       },
       /**
        * @desc 服务器类型为主机时主机值更新
-       * @param {Object} hostNodeInfo 主机值
+       * @param {Object} executeObjectsInfo 主机值
        */
-      handleHostChange(hostNodeInfo) {
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
         window.changeFlag = true;
-        this.serverFile.host.hostNodeInfo = hostNodeInfo;
+        this.serverFile.host.executeObjectsInfo = executeObjectsInfo;
         this.editNewSourceFile(true);
       },
       /**

@@ -61,7 +61,7 @@
                 id="variable"
                 :name="$t('全局变量')" />
               <bk-option
-                id="hostNodeInfo"
+                id="executeObjectsInfo"
                 :name="$t('手动添加')" />
             </bk-select>
             <template v-if="isGolbalVariableType">
@@ -146,11 +146,12 @@
       </div>
       <ip-selector
         ref="ipSelector"
+        :config="ipSelectorConfig"
         :show-dialog="isShowChooseIp"
         show-view
-        :value="localHost"
+        :value="localExecuteObjectsInfo"
         :view-search-key="searchText"
-        @change="handleHostChange"
+        @change="handleExecuteObjectsInfoChange"
         @close-dialog="handleCloseIpSelector" />
     </jb-form-item>
   </div>
@@ -158,7 +159,7 @@
 <script>
   import _ from 'lodash';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import { execCopy } from '@utils/assist';
 
@@ -179,7 +180,7 @@
     },
     inheritAttrs: false,
     props: {
-      taskHostNode: {
+      executeTarget: {
         type: Object,
         required: true,
       },
@@ -194,6 +195,11 @@
         type: String,
         default: '', // onlyHost: 快速执行只可以选择主机列表
       },
+      // 组件被使用的场景，快速执行｜作业模板
+      from: {
+        type: String,
+        required: true,
+      },
     },
     data() {
       return {
@@ -202,9 +208,9 @@
         searchText: '',
         isSearchMode: false,
         searchData: [],
-        targetType: 'variable', // variable：主机变量；hostNodeInfo：手动添加
+        targetType: 'variable', // variable：主机变量；executeObjectsInfo：手动添加
         localVariable: '',
-        localHost: {},
+        localExecuteObjectsInfo: {},
       };
     },
     computed: {
@@ -223,7 +229,7 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost);
+        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
       },
       /**
        * @desc 是否显示主机结果快捷操作
@@ -233,14 +239,14 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost);
+        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
       },
       /**
        * @desc 清除异常主机是否可用
        * @returns {Boolean}
        */
       isClearFailDisabled() {
-        return this.localHost.hostList.length < 1;
+        return this.localExecuteObjectsInfo.hostList.length < 1;
       },
       /**
        * @desc 选择的主机才显示主机搜索框
@@ -250,7 +256,7 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return this.localHost.hostList.length > 0;
+        return this.localExecuteObjectsInfo.hostList.length > 0;
       },
       /**
        * @desc 切换执行目标选择的展示样式
@@ -263,28 +269,41 @@
       },
     },
     watch: {
-      taskHostNode: {
-        handler(taskHostNode) {
+      executeTarget: {
+        handler() {
           const {
-            hostNodeInfo,
+            executeObjectsInfo,
             variable,
-          } = taskHostNode;
+          } = this.executeTarget;
 
-          this.localHost = hostNodeInfo;
+          this.localExecuteObjectsInfo = executeObjectsInfo;
           this.localVariable = variable;
           if (this.mode !== 'onlyHost') {
             // 编辑态，执行目标为服务器列表
-            if (!TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost)) {
-              this.targetType = 'hostNodeInfo';
+            if (!ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo)) {
+              this.targetType = 'executeObjectsInfo';
             }
           } else {
-            this.targetType = 'hostNodeInfo';
+            this.targetType = 'executeObjectsInfo';
           }
         },
         immediate: true,
       },
     },
     created() {
+      this.ipSelectorConfig = {};
+      if (this.from === 'execute') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'dynamicGroup',
+            'manualInput',
+            'containerStaticTopo',
+            'containerManualInput',
+          ],
+        };
+      }
       // 执行目标是主机变量
       if (this.isGolbalVariableType) {
         if (this.localVariable) {
@@ -312,7 +331,7 @@
             if (this.isGolbalVariableType) {
               return Boolean(this.localVariable);
             }
-            return !TaskHostNodeModel.isHostNodeInfoEmpty(this.localHost);
+            return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
           },
           message: I18n.t('目标服务器必填'),
           trigger: 'blur',
@@ -324,16 +343,16 @@
        * @desc 执行目标值更新
        */
       triggerChange() {
-        const taskHostNode = new TaskHostNodeModel({});
+        const executeTarget = new ExecuteTargetModel({});
         if (this.isGolbalVariableType) {
-          taskHostNode.variable = this.localVariable;
+          executeTarget.variable = this.localVariable;
         } else {
-          taskHostNode.hostNodeInfo = this.localHost;
+          executeTarget.executeObjectsInfo = this.localExecuteObjectsInfo;
         }
-        if (!taskHostNode.isEmpty) {
+        if (!executeTarget.isEmpty) {
           this.$refs.targetServerRef.clearValidator();
         }
-        this.$emit('on-change', Object.freeze(taskHostNode));
+        this.$emit('on-change', Object.freeze(executeTarget));
       },
       /**
        * @desc 执行目标类型改变
@@ -359,10 +378,10 @@
       },
       /**
        * @desc 主机值更新
-       * @param {Object} hostNodeInfo 主机信息
+       * @param {Object} executeObjectsInfo 主机信息
        */
-      handleHostChange(hostNodeInfo) {
-        this.localHost = Object.freeze(hostNodeInfo);
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.localExecuteObjectsInfo = Object.freeze(executeObjectsInfo);
         this.triggerChange();
         setTimeout(() => {
           this.$refs.actionBox.scrollIntoView();
