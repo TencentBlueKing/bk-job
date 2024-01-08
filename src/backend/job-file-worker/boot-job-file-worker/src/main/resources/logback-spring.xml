@@ -6,9 +6,9 @@
     <property name="FILE_LOG_PATTERN"
               value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="BK_LOG_DIR_FILE_WORKER" value="${BK_LOG_DIR}/${job.file.worker.instance-name:-job-file-worker}"/>
-    <property name="FILE_WORKER_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/worker.log"/>
-    <property name="ERROR_LOG_FILE" value="${BK_LOG_DIR_FILE_WORKER}/error.log"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/${job.file.worker.instance-name:-job-file-worker}" scope="context"/>
+    <property name="FILE_WORKER_LOG_FILE" value="${APP_LOG_DIR}/worker.log"/>
+    <property name="ERROR_LOG_FILE" value="${APP_LOG_DIR}/error.log"/>
 
     <springProperty name="LOG_KEEP_HOURS" source="log.keep-hours" defaultValue="168"/>
 

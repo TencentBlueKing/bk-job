@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+
 /**
  * 根据磁盘使用量清理过期日志文件任务
  */
@@ -84,7 +86,13 @@ public class ClearLogFileByVolumeUsageTask {
     }
 
     private int doCheckVolumeAndClear(long maxSizeBytes, String appLogDirPath) {
-        return FileUtil.checkVolumeAndClearOldestFiles(maxSizeBytes, appLogDirPath);
+        // 当前正在写入的日志文件不删除，防止日志采集丢失部分日志
+        String notDeleteFileSuffix = ".log";
+        return FileUtil.checkVolumeAndClearOldestFiles(
+            maxSizeBytes,
+            appLogDirPath,
+            Collections.singleton(notDeleteFileSuffix)
+        );
     }
 
     private String getAppLogDirPath() {

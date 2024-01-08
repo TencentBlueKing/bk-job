@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.file.worker.task.clear;
 
-import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -104,7 +104,10 @@ public class ClearFileTask {
 
     private void doCheckVolumeAndClear() {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
-        FileUtil.checkVolumeAndClearOldestFiles(maxSizeBytes, workerConfig.getWorkspaceDirPath());
+        int count = FileUtil.checkVolumeAndClearOldestFiles(maxSizeBytes, workerConfig.getWorkspaceDirPath());
+        if (count > 0) {
+            log.info("{} file cleared", count);
+        }
     }
 
 }

@@ -27,7 +27,9 @@ package com.tencent.bk.job.common.util.file;
 import com.tencent.bk.job.common.util.Base64Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -388,6 +390,20 @@ public class FileUtil {
      * @return 被成功清理的文件数量
      */
     public static int checkVolumeAndClearOldestFiles(long maxSizeBytes, String targetDirPath) {
+        return checkVolumeAndClearOldestFiles(maxSizeBytes, targetDirPath, null);
+    }
+
+    /**
+     * 检查指定目录下的磁盘使用是否超出限制，超出限制则清理最旧的文件
+     *
+     * @param maxSizeBytes  最大限制字节数
+     * @param targetDirPath 目标目录路径
+     * @param exceptSuffixs 不删除的文件后缀名
+     * @return 被成功清理的文件数量
+     */
+    public static int checkVolumeAndClearOldestFiles(long maxSizeBytes,
+                                                     String targetDirPath,
+                                                     Set<String> exceptSuffixs) {
         if (null == targetDirPath) {
             throw new IllegalArgumentException("TargetDirPath cannot be null");
         }
@@ -406,6 +422,8 @@ public class FileUtil {
         fileList.sort(Comparator.comparingLong(File::lastModified));
         // 记录删除失败的文件，下次不再列出
         Set<String> deleteFailedFilePathSet = new HashSet<>();
+        // 记录忽略的文件，下次不再列出
+        Set<String> ignoredFilePathSet = new HashSet<>();
         int count = 0;
         while (currentSize > maxSizeBytes) {
             if (fileList.isEmpty()) {
@@ -414,15 +432,29 @@ public class FileUtil {
                 if (files == null || files.length == 0) return count;
                 fileList.addAll(Arrays.stream(files)
                     .filter(file -> !deleteFailedFilePathSet.contains(file.getAbsolutePath()))
+                    .filter(file -> !ignoredFilePathSet.contains(file.getAbsolutePath()))
                     .collect(Collectors.toList())
                 );
                 fileList.sort(Comparator.comparingLong(File::lastModified));
             }
             if (fileList.isEmpty()) {
-                log.warn("Volume still overlimit after clear, deleteFailedFilePathSet={}", deleteFailedFilePathSet);
+                if (!deleteFailedFilePathSet.isEmpty()) {
+                    log.warn(
+                        "Volume still overlimit after clear, ignoredFilePathSet={}, deleteFailedFilePathSet={}",
+                        ignoredFilePathSet,
+                        deleteFailedFilePathSet
+                    );
+                } else {
+                    log.info("Volume still overlimit after clear, ignoredFilePathSet={}", ignoredFilePathSet);
+                }
                 return count;
             }
             File oldestFile = fileList.remove(0);
+            // 符合指定后缀名的文件不删除
+            if (matchSuffixs(oldestFile.getName(), exceptSuffixs)) {
+                ignoredFilePathSet.add(oldestFile.getAbsolutePath());
+                continue;
+            }
             if (deleteFileAndRecordIfFail(oldestFile, deleteFailedFilePathSet)) {
                 count += 1;
                 log.info("Delete file {} because of volume overlimit", oldestFile.getAbsolutePath());
@@ -436,5 +468,27 @@ public class FileUtil {
             log.info("{} files deleted because of volume overlimit", count);
         }
         return count;
+    }
+
+    /**
+     * 判断文件名是否以指定的某些后缀名结尾
+     *
+     * @param fileName 文件名
+     * @param suffixs  后缀名集合
+     * @return 文件名是否以后缀名集合中的任意一个结尾
+     */
+    private static boolean matchSuffixs(String fileName, Set<String> suffixs) {
+        if (CollectionUtils.isEmpty(suffixs)) {
+            return false;
+        }
+        if (StringUtils.isBlank(fileName)) {
+            return false;
+        }
+        for (String suffix : suffixs) {
+            if (fileName.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
