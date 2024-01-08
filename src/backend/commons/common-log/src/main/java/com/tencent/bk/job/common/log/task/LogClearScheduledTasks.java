@@ -50,7 +50,7 @@ public class LogClearScheduledTasks {
     /**
      * 清理：每20分钟根据磁盘使用量清理一次日志文件
      */
-    @Scheduled(cron = "50 * * * * ?")
+    @Scheduled(cron = "50 0/20 * * * ?")
     public void clearLogFileByVolumeUsage() {
         if (clearLogFileByVolumeUsageTask == null) {
             log.debug("clearLogFileByVolumeUsage not enabled, ignore clearLogFile");
