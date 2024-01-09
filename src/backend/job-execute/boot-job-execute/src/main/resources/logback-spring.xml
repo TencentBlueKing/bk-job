@@ -4,7 +4,7 @@
 
     <property name="APP_NAME" value="${APP_NAME:-job-execute}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-execute}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-execute}" scope="context"/>
     <property name="APP_LOG_NAME" value="execute.log"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="SCHEDULE_LOG_FILE" value="${APP_LOG_DIR}/schedule.log"/>
@@ -17,8 +17,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${SCHEDULE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>24</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>24GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -31,8 +32,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${TASK_MONITOR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>3</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>

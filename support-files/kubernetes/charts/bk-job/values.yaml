@@ -664,6 +664,17 @@ persistence:
     # 临时文件根路径（使用HostPath作为本地存储时同时也是宿主机根路径）
     path: /data/job_temp_file
 
+# 日志留存配置
+log:
+  # 服务后台日志保留的小时数，默认48小时（2天）
+  keepHours: 48
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clearByVolumeUsage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
+    maxVolume: 40GB
+
 ## 蓝鲸日志采集配置
 bkLogConfig:
   # 是否开启蓝鲸日志采集

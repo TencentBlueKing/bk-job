@@ -4,7 +4,7 @@
 
     <property name="APP_NAME" value="${APP_NAME:-job-manage}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-manage}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-manage}" scope="context"/>
     <property name="APP_LOG_NAME" value="manage.log"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="SYNC_APP_HOST_LOG_FILE" value="${APP_LOG_DIR}/sync_app_host.log"/>
@@ -17,8 +17,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${SYNC_APP_HOST_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>120</maxHistory>
+            <maxHistory>${LOG_KEEP_HOURS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -32,8 +33,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${NOTICE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>7</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>2GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -67,6 +69,7 @@
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
@@ -78,6 +81,7 @@
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>

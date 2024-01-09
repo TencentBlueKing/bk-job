@@ -4,7 +4,7 @@
 
     <property name="APP_NAME" value="${APP_NAME:-job-gateway}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/${APP_NAME}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/${APP_NAME}" scope="context"/>
     <property name="APP_LOG_NAME" value="gateway.log"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ACCESS_LOG" value="${APP_LOG_DIR}/access.log"/>
@@ -18,7 +18,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -31,7 +32,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ESB_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>
@@ -44,7 +46,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${IAM_ACCESS_LOG}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>15</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>[%X{traceId}|%X{spanId}]%msg%n</pattern>

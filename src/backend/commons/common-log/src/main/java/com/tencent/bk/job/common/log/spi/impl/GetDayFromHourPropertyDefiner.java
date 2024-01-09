@@ -22,22 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api 'commons-io:commons-io'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
-    api 'net.sf.dozer:dozer'
-    api 'org.apache.commons:commons-collections4'
-    api 'commons-codec:commons-codec'
-    api 'com.google.guava:guava'
-    api 'com.github.ben-manes.caffeine:caffeine'
-    api 'org.apache.commons:commons-lang3'
-    api 'org.reflections:reflections'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.log.spi.impl;
+
+import ch.qos.logback.core.CoreConstants;
+import ch.qos.logback.core.PropertyDefinerBase;
+
+/**
+ * 根据参数传入的小时数换算为对应的天数，不足1天按1天算
+ */
+public class GetDayFromHourPropertyDefiner extends PropertyDefinerBase {
+
+    int hours;
+
+    @Override
+    public String getPropertyValue() {
+        // 无限期存储
+        if (hours == CoreConstants.UNBOUND_HISTORY) {
+            return String.valueOf(CoreConstants.UNBOUND_HISTORY);
+        }
+        int days = new Double(Math.ceil(hours / 24.0)).intValue();
+        // 不足1天按1天算
+        int minHistory = 1;
+        if (days <= 0) {
+            return String.valueOf(minHistory);
+        }
+        return String.valueOf(days);
+    }
+
+    public int getHours() {
+        return hours;
+    }
+
+    public void setHours(int hours) {
+        this.hours = hours;
+    }
 }
