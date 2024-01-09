@@ -273,6 +273,7 @@ public class PageUtil {
                 // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
                 break;
             }
+            start += pageLimit;
         }
         return elements;
     }
