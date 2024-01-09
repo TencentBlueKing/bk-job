@@ -22,29 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.file;
+package com.tencent.bk.job.common.log.task;
 
-public class FileSizeUtil {
-    public static String getFileSizeStr(Long byteNum) {
-        if (byteNum == null) return "--";
-        String[] units = new String[]{"B", "KB", "MB", "GB", "TB", "PB"};
-        int i = 0;
-        double value = (float) byteNum;
-        while (value >= 1024 && i < units.length - 1) {
-            value = value / 1024.;
-            i += 1;
+import com.tencent.bk.job.common.log.config.LogClearByVolumeUsageProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+
+@Slf4j
+public class LogClearScheduledTasks {
+
+    private static final Logger logger = LoggerFactory.getLogger(LogClearScheduledTasks.class);
+
+    private final ClearLogFileByVolumeUsageTask clearLogFileByVolumeUsageTask;
+
+    public LogClearScheduledTasks(LogClearByVolumeUsageProperties logClearByVolumeUsageProperties) {
+        if (logClearByVolumeUsageProperties.isEnabled()) {
+            this.clearLogFileByVolumeUsageTask = new ClearLogFileByVolumeUsageTask(
+                logClearByVolumeUsageProperties.getMaxVolume()
+            );
+        } else {
+            this.clearLogFileByVolumeUsageTask = null;
         }
-        return String.format("%.2f", value) + units[i];
     }
 
-    public static void main(String[] args) {
-        System.out.println(getFileSizeStr(1023L));
-        System.out.println(getFileSizeStr(1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L - 1));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L * 1024L));
+    /**
+     * 清理：每20分钟根据磁盘使用量清理一次日志文件
+     */
+    @Scheduled(cron = "50 0/20 * * * ?")
+    public void clearLogFileByVolumeUsage() {
+        if (clearLogFileByVolumeUsageTask == null) {
+            log.debug("clearLogFileByVolumeUsage not enabled, ignore clearLogFile");
+            return;
+        }
+        logger.info("clearLogFileByVolumeUsage start");
+        try {
+            clearLogFileByVolumeUsageTask.checkVolumeAndClear();
+        } catch (Exception e) {
+            logger.error("clearLogFileByVolumeUsage fail", e);
+        }
     }
+
 }

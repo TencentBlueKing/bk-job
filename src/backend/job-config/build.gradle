@@ -34,6 +34,7 @@ ext {
 version "${jobConfigVersion}"
 dependencies {
     api project(':commons:common')
+    api project(":commons:common-log")
     api project(":commons:common-consul")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework.boot:spring-boot-starter-web'

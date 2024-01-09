@@ -22,22 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api 'commons-io:commons-io'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
-    api 'net.sf.dozer:dozer'
-    api 'org.apache.commons:commons-collections4'
-    api 'commons-codec:commons-codec'
-    api 'com.google.guava:guava'
-    api 'com.github.ben-manes.caffeine:caffeine'
-    api 'org.apache.commons:commons-lang3'
-    api 'org.reflections:reflections'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.log.config;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * 根据磁盘使用量清理日志相关配置
+ */
+@ConfigurationProperties(prefix = "log.clear-by-volume-usage")
+@Getter
+@Setter
+public class LogClearByVolumeUsageProperties {
+
+    /**
+     * 是否开启日志清理
+     */
+    private boolean enabled = true;
+
+    /**
+     * 最大容量，单位支持B、KB、MB、GB、TB、PB
+     */
+    private String maxVolume = "200GB";
 }

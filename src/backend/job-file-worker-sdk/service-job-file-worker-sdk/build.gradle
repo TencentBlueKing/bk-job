@@ -23,6 +23,7 @@
  */
 
 dependencies {
+    api project(":commons:common-log")
     api project(":commons:common-i18n")
     api project(":commons:common-otel")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")

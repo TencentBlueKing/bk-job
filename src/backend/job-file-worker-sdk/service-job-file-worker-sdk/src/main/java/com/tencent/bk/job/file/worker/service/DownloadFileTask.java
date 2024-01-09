@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.service;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.util.FileUtil;
+import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.file.worker.model.FileMetaData;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;

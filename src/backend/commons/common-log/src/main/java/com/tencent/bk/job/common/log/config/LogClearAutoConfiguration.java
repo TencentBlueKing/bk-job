@@ -22,22 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api 'commons-io:commons-io'
-    api 'com.fasterxml.jackson.core:jackson-core'
-    api 'com.fasterxml.jackson.core:jackson-databind'
-    api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
-    api 'net.sf.dozer:dozer'
-    api 'org.apache.commons:commons-collections4'
-    api 'commons-codec:commons-codec'
-    api 'com.google.guava:guava'
-    api 'com.github.ben-manes.caffeine:caffeine'
-    api 'org.apache.commons:commons-lang3'
-    api 'org.reflections:reflections'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.log.config;
+
+import com.tencent.bk.job.common.log.task.LogClearScheduledTasks;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(name = "log.clear-by-volume-usage.enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(LogClearByVolumeUsageProperties.class)
+public class LogClearAutoConfiguration {
+
+    @Bean
+    public LogClearScheduledTasks logClearScheduledTasks(
+        LogClearByVolumeUsageProperties logClearByVolumeUsageProperties) {
+        return new LogClearScheduledTasks(logClearByVolumeUsageProperties);
+    }
 }
