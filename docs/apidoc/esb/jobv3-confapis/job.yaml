@@ -563,3 +563,13 @@
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-manage/check_script/
   dest_http_method: POST
+
+- path: /esb/api/v3/get_latest_service_version/
+  name: get_latest_service_version
+  label: 查询最新服务版本号
+  label_en: Get latest service version
+  suggest_method: POST
+  api_type: operate
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /esb/api/v3/get_latest_service_version/
+  dest_http_method: POST
