@@ -59,6 +59,7 @@
             "ip_list": [{
               "bk_host_id": 1,
               "bk_cloud_id": 0,
+              "bk_cloud_name": "Default Area",
               "ip": "192.168.1.1",
               "ipv6": null,
               "bk_agent_id": "020000000052540079809816967513755991",
@@ -89,6 +90,7 @@
                   "ip_list": [{
                     "bk_host_id": 1,
                     "bk_cloud_id": 0,
+                    "bk_cloud_name": "Default Area",
                     "ip": "192.168.1.1",
                     "ipv6": null,
                     "bk_agent_id": "020000000052540079809816967513755991",
@@ -121,6 +123,7 @@
               "ip_list": [{
                 "bk_host_id": 1,
                 "bk_cloud_id": 0,
+                "bk_cloud_name": "Default Area",
                 "ip": "192.168.1.1",
                 "ipv6": null,
                 "bk_agent_id": "020000000052540079809816967513755991",
@@ -203,14 +206,15 @@
 
 ##### host
 
-| 字段         | 类型       | 是否一定存在 | 描述      |
-|-------------|-----------|------------|-----------|
-| bk_host_id  | long      |  是        | 主机ID     |
-| bk_cloud_id | long      |  否        | 管控区域ID  |
-| ip          | string    |  否        | IP        |
-| ipv6        | string    |  否        | IPv6      |
-| bk_agent_id | string    |  否        | Agent ID  |
-| alive       | int       |  否        | Agent是否正常，取值为：1-正常，0-异常 |
+| 字段           | 类型       | 是否一定存在 | 描述      |
+|---------------|-----------|------------|-----------|
+| bk_host_id    | long      |  是        | 主机ID     |
+| bk_cloud_id   | long      |  否        | 管控区域ID  |
+| bk_cloud_name | string    |  否        | 管控区域名称 |
+| ip            | string    |  否        | IP        |
+| ipv6          | string    |  否        | IPv6      |
+| bk_agent_id   | string    |  否        | Agent ID  |
+| alive         | int       |  否        | Agent是否正常，取值为：1-正常，0-异常 |
 
 ##### topo_node
 
