@@ -135,6 +135,9 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
     private boolean isRequestIdempotent(HttpContext context) {
         // 判断方法使用幂等
         Object isIdempotentAttrVal = context.getAttribute(HttpContextAttributeNames.IS_IDEMPOTENT);
+        if (log.isDebugEnabled()) {
+            log.debug("HttpContext::IS_IDEMPOTENT: {}", isIdempotentAttrVal);
+        }
         boolean isIdempotent = isIdempotentAttrVal != null && (boolean) isIdempotentAttrVal;
         if (isIdempotent) {
             // 如果上下文主动设置了该请求的幂等参数，那么优先使用
@@ -146,6 +149,9 @@ public class JobHttpRequestRetryHandler implements HttpRequestRetryHandler {
         final HttpRequest request = clientContext.getRequest();
         final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
         final Boolean b = this.retryMethods.get(method);
+        if (log.isDebugEnabled()) {
+            log.debug("Method: {}, isRequestIdempotent: {}",method, isIdempotentAttrVal);
+        }
         return b != null && b;
     }
 
