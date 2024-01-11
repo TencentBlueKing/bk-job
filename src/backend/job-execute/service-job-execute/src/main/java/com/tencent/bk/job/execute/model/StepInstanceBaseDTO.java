@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
@@ -238,5 +239,9 @@ public class StepInstanceBaseDTO {
         }
         return supportExecuteObject;
 
+    }
+
+    public ExecuteObjectTypeEnum determineStepExecuteObjectType() {
+        return targetExecuteObjects.getExecuteObjectsCompatibly().get(0).getType();
     }
 }

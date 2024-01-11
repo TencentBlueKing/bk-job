@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -73,4 +75,12 @@ public class StepExecutionDetailV2VO {
     private Integer runMode;
     @ApiModelProperty("步骤包含的滚动任务;如果非滚动步骤，那么该值为空")
     private List<RollingStepBatchTaskVO> rollingTasks;
+
+    @ApiModelProperty("步骤使用的执行对象类型，1-主机，2-容器")
+    private ExecuteObjectTypeEnum executeObjectType;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
+        return ExecuteObjectTypeEnum.valOf(type);
+    }
 }

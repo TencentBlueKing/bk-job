@@ -599,6 +599,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
     private StepExecutionDetailV2VO convertToStepInstanceExecutionDetailV2VO(StepExecutionDetailDTO executionDetail) {
         StepExecutionDetailV2VO stepExecutionDetailVO = new StepExecutionDetailV2VO();
+        stepExecutionDetailVO.setExecuteObjectType(
+            executionDetail.getStepInstance().determineStepExecuteObjectType());
         stepExecutionDetailVO.setFinished(executionDetail.isFinished());
         stepExecutionDetailVO.setName(executionDetail.getName());
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
