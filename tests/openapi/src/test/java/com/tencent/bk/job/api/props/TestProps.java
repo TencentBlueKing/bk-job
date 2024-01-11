@@ -93,6 +93,9 @@ public class TestProps {
     // 用于测试的默认系统账号别名
     public static final String DEFAULT_OS_ACCOUNT_ALIAS = getPropString("os.account.alias.default");
 
+    // 定义默认的执行方案ID
+    public static final Long TASK_PLAN_DEFAULT_ID = getPropLong("task.plan.default.id");
+
     public static Integer getPropInteger(String key) {
 
         String value = props.getProperty(key);

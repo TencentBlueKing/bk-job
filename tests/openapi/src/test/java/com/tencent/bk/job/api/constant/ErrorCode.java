@@ -30,6 +30,7 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME = 1241005; //请求参数[]不合法
     public static final int MISSING_OR_ILLEGAL_PARAM = 1241006; //请求参数缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007; //请求参数[]缺失或不合法
+    public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010; // 请求参数[0]不合法，原因：[1]
 
 
     public static final int SCRIPT_NOT_EXIST = 1243001;//脚本不存在

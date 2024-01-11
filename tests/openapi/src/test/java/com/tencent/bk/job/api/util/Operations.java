@@ -7,6 +7,7 @@ import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbFileSourceV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
@@ -24,6 +25,7 @@ import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbManageDangerousRuleV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbSaveCronV3Request;
 import io.restassured.common.mapper.TypeRef;
 
 import java.time.LocalDateTime;
@@ -298,6 +300,27 @@ public class Operations {
             .then()
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
+            })
+            .getData();
+    }
+
+    public static EsbCronInfoV3DTO createCron() {
+        EsbSaveCronV3Request req = new EsbSaveCronV3Request();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setName(TestValueGenerator.generateUniqueStrValue("cron_task", 50));
+        req.setCronExpression("* * * * *");
+        req.setPlanId(TestProps.TASK_PLAN_DEFAULT_ID);
+
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.SAVE_CRON)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbCronInfoV3DTO>>() {
             })
             .getData();
     }
