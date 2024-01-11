@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
+import com.tencent.bk.job.common.constant.ProfileEnum;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -32,12 +33,14 @@ import com.tencent.bk.job.manage.common.util.VersionComparatorUtil;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbServiceVersionV3DTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @Slf4j
+@Profile("!" + ProfileEnum.Constants.TEST)
 public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
 
     private final ServiceInfoProvider serviceInfoProvider;
