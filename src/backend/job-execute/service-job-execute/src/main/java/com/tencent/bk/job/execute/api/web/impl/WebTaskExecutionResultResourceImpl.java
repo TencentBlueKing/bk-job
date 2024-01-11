@@ -602,7 +602,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         stepExecutionDetailVO.setFinished(executionDetail.isFinished());
         stepExecutionDetailVO.setName(executionDetail.getName());
         stepExecutionDetailVO.setStepInstanceId(executionDetail.getStepInstanceId());
-        stepExecutionDetailVO.setRetryCount(executionDetail.getExecuteCount());
+        stepExecutionDetailVO.setExecuteCount(executionDetail.getExecuteCount());
         stepExecutionDetailVO.setStatus(executionDetail.getStatus().getValue());
         stepExecutionDetailVO.setStatusDesc(
             i18nService.getI18n(executionDetail.getStatus().getI18nKey()));
@@ -634,7 +634,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     executeObjectTaskVO.setExitCode(executeObjectTask.getExitCode());
                     executeObjectTaskVO.setTag(executeObjectTask.getTag());
                     executeObjectTaskVO.setTotalTime(executeObjectTask.getTotalTime());
-                    executeObjectTaskVO.setRetryCount(executeObjectTask.getExecuteCount());
+                    executeObjectTaskVO.setExecuteCount(executeObjectTask.getExecuteCount());
                     executeObjectTaskVO.setBatch(executeObjectTask.getBatch());
                     executeObjectTaskVO.setExecuteObject(executeObjectTask.getExecuteObject().toExecuteObjectVO());
                     executeObjectTaskVOs.add(executeObjectTaskVO);
@@ -1128,8 +1128,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             appResourceScope.getAppId(), stepInstanceId);
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
+        int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
         ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
-            logService.getScriptExecuteObjectLogContent(stepInstance, executeCount, batch,
+            logService.getScriptExecuteObjectLogContent(stepInstance, actualExecuteCount, batch,
                 ExecuteObjectCompositeKey.ofExecuteObjectResource(
                     ExecuteObjectTypeEnum.valOf(executeObjectType), executeObjectResourceId));
         ExecuteObjectScriptLogVO executeObjectScriptLogVO = new ExecuteObjectScriptLogVO();
@@ -1140,6 +1141,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 scriptExecuteObjectLogContent.getExecuteObject().toExecuteObjectVO());
         }
         return Response.buildSuccessResp(executeObjectScriptLogVO);
+    }
+
+    private int computeActualExecuteCount(StepInstanceBaseDTO stepInstance, Integer queryExecuteCount) {
+        return queryExecuteCount == null ? stepInstance.getExecuteCount() : queryExecuteCount;
     }
 
     @Override
@@ -1163,12 +1168,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         List<FileDistributionDetailV2VO> fileDistDetailVOS = new ArrayList<>();
 
         FileDistModeEnum fileDistMode = FileDistModeEnum.getFileDistMode(mode);
+        int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
         switch (fileDistMode) {
             case DOWNLOAD:
                 FileExecuteObjectLogContent downloadLog =
                     logService.getFileExecuteObjectLogContent(
                         stepInstance,
-                        executeCount,
+                        actualExecuteCount,
                         batch,
                         ExecuteObjectCompositeKey.ofExecuteObjectResource(
                             ExecuteObjectTypeEnum.valOf(executeObjectType), executeObjectResourceId),
@@ -1185,7 +1191,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             case UPLOAD:
                 List<FileExecuteObjectLogContent> executeObjectLogContents =
                     logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
-                        executeCount, batch);
+                        actualExecuteCount, batch);
                 if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
                     fileDistDetailVOS =
                         executeObjectLogContents.stream()
@@ -1223,10 +1229,13 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                      Integer executeCount,
                                                                                      Integer batch,
                                                                                      List<String> taskIds) {
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+            appResourceScope.getAppId(), stepInstanceId);
+        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
-        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId, executeCount,
-            batch, taskIds);
+        int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
+        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId,
+            actualExecuteCount, batch, taskIds);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return Response.buildSuccessResp(null);
         }

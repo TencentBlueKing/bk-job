@@ -35,7 +35,7 @@ import lombok.Data;
 @Data
 public class ExecuteObjectTaskVO {
     @ApiModelProperty("执行次数")
-    private Integer retryCount;
+    private Integer executeCount;
 
     @ApiModelProperty("滚动批次")
     private Integer batch;

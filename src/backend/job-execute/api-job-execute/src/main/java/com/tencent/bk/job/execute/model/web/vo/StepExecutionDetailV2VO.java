@@ -39,7 +39,7 @@ public class StepExecutionDetailV2VO {
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
     @ApiModelProperty("执行次数,默认为0")
-    private Integer retryCount;
+    private Integer executeCount;
     @ApiModelProperty("步骤执行是否结束")
     private boolean finished;
     @ApiModelProperty("步骤名称")

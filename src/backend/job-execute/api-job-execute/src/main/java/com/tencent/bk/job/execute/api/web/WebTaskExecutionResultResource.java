@@ -225,8 +225,8 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @RequestParam(value = "executeCount") Integer executeCount,
+        @ApiParam(value = "执行次数,如果不传表示获取最近一次的执行结果", name = "executeCount")
+        @RequestParam(value = "executeCount", required = false) Integer executeCount,
         @ApiParam(value = "滚动执行批次。如果不传表示返回最新批次，传入0表示返回全部批次", name = "batch")
         @RequestParam(value = "batch", required = false) Integer batch,
         @ApiParam(value = "任务执行结果", name = "resultType")
@@ -310,8 +310,8 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行对象资源 ID", name = "executeObjectType", required = true)
         @PathVariable(value = "executeObjectResourceId")
             Long executeObjectResourceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @RequestParam(value = "executeCount")
+        @ApiParam(value = "执行次数,如果不传表示获取最近一次的执行结果", name = "executeCount")
+        @RequestParam(value = "executeCount", required = false)
             Integer executeCount,
         @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
         @RequestParam(value = "batch", required = false)
@@ -380,8 +380,8 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "执行对象资源 ID", name = "executeObjectType", required = true)
         @PathVariable(value = "executeObjectResourceId")
             Long executeObjectResourceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @RequestParam(value = "executeCount")
+        @ApiParam(value = "执行次数,如果不传表示获取最近一次的执行结果", name = "executeCount")
+        @RequestParam(value = "executeCount", required = false)
             Integer executeCount,
         @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
         @RequestParam(value = "batch", required = false)
@@ -444,8 +444,8 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @RequestParam(value = "executeCount")
+        @ApiParam(value = "执行次数,如果不传表示获取最近一次的执行结果", name = "executeCount")
+        @RequestParam(value = "executeCount", required = false)
             Integer executeCount,
         @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
         @RequestParam(value = "batch", required = false)
@@ -514,7 +514,7 @@ public interface WebTaskExecutionResultResource {
             Long executeObjectResourceId
     );
 
-    @ApiOperation(value = "获取执行结果分组下的主机列表", produces = "application/json")
+    @ApiOperation(value = "获取执行结果分组下的主机列表（废弃）", produces = "application/json")
     @GetMapping(value = {"/step-execution-result/hosts/{stepInstanceId}/{executeCount}"})
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
@@ -571,7 +571,7 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
+        @ApiParam(value = "执行次数", name = "executeCount", required = true)
         @PathVariable("executeCount") Integer executeCount,
         @ApiParam(value = "滚动执行批次，该步骤为滚动步骤时并且用户指定了批次的场景下需要传入该参数", name = "batch")
         @RequestParam(value = "batch", required = false) Integer batch,

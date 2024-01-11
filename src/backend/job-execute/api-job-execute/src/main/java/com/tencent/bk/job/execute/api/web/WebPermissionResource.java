@@ -66,7 +66,8 @@ public interface WebPermissionResource {
      * 检查操作权限
      *
      * @param username               用户名
-     * @param appId                  业务ID
+     * @param scopeType              资源范围类型
+     * @param scopeId                资源范围ID
      * @param operation              操作ID
      * @param resourceId             资源ID
      * @param returnPermissionDetail 是否返回详细的权限信息
