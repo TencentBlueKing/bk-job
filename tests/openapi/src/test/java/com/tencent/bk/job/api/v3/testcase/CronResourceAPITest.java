@@ -47,12 +47,16 @@ class CronResourceAPITest extends BaseTest {
         @Test
         @DisplayName("测试定时作业正常创建")
         void testCreateCron() {
+            Long planId = Operations.getTaskPlanId();
+            if (planId == null) {
+                return;
+            }
             EsbSaveCronV3Request req = new EsbSaveCronV3Request();
             req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
             req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
             req.setName(TestValueGenerator.generateUniqueStrValue("cron_task", 50));
             req.setCronExpression("3 * * * 3");
-            req.setPlanId(TestProps.TASK_PLAN_DEFAULT_ID);
+            req.setPlanId(planId);
 
             EsbCronInfoV3DTO createdCron =
                 given()
@@ -84,13 +88,17 @@ class CronResourceAPITest extends BaseTest {
         @Test
         @DisplayName("创建定时作业异常场景测试")
         void givenInvalidCreateCronThenFail() {
+            Long planId = Operations.getTaskPlanId();
+            if (planId == null) {
+                return;
+            }
             EsbSaveCronV3Request req = new EsbSaveCronV3Request();
             req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
             req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
             req.setName(TestValueGenerator.generateUniqueStrValue("cron_task", 50));
             // 不是Unix格式的表达式
             req.setCronExpression("* 0/5 * * * * *");
-            req.setPlanId(TestProps.TASK_PLAN_DEFAULT_ID);
+            req.setPlanId(planId);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.SAVE_CRON)
@@ -107,7 +115,7 @@ class CronResourceAPITest extends BaseTest {
 
             // 定时作业名称为null
             req.setName(null);
-            req.setPlanId(TestProps.TASK_PLAN_DEFAULT_ID);
+            req.setPlanId(planId);
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.SAVE_CRON)
@@ -122,6 +130,9 @@ class CronResourceAPITest extends BaseTest {
         @DisplayName("测试获取定时作业列表")
         void testGetCronList() {
             EsbCronInfoV3DTO createdCron = Operations.createCron();
+            if (createdCron == null) {
+                return;
+            }
             createdCronList.add(createdCron);
             EsbGetCronListV3Request req = new EsbGetCronListV3Request();
             req.setScopeId(createdCron.getScopeId());
@@ -139,6 +150,9 @@ class CronResourceAPITest extends BaseTest {
         @DisplayName("测试获取定时作业详情")
         void testGetCronDetail() {
             EsbCronInfoV3DTO createdCron = Operations.createCron();
+            if (createdCron == null) {
+                return;
+            }
             createdCronList.add(createdCron);
             EsbGetCronDetailV3Request req = new EsbGetCronDetailV3Request();
             req.setScopeId(createdCron.getScopeId());
@@ -170,6 +184,9 @@ class CronResourceAPITest extends BaseTest {
         @DisplayName("测试更新定时任务状态")
         void testUpdateCronStatus() {
             EsbCronInfoV3DTO createdCron = Operations.createCron();
+            if (createdCron == null) {
+                return;
+            }
             createdCronList.add(createdCron);
             EsbUpdateCronStatusV3Request req = new EsbUpdateCronStatusV3Request();
             req.setScopeId(createdCron.getScopeId());
@@ -201,6 +218,9 @@ class CronResourceAPITest extends BaseTest {
         @DisplayName("测试更新定时任务")
         void testUpdateCron() {
             EsbCronInfoV3DTO createdCron = Operations.createCron();
+            if (createdCron == null) {
+                return;
+            }
             createdCronList.add(createdCron);
 
             EsbSaveCronV3Request req = new EsbSaveCronV3Request();

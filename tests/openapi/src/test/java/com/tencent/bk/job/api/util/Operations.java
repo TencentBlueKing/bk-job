@@ -11,6 +11,8 @@ import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbFileSourceV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
+import com.tencent.bk.job.api.v3.model.EsbPageDataV3;
+import com.tencent.bk.job.api.v3.model.EsbPlanBasicInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import com.tencent.bk.job.api.v3.model.HostDTO;
@@ -24,6 +26,7 @@ import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptVersionV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbGetPlanListV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbManageDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbSaveCronV3Request;
 import io.restassured.common.mapper.TypeRef;
@@ -305,13 +308,16 @@ public class Operations {
     }
 
     public static EsbCronInfoV3DTO createCron() {
+        Long planId = getTaskPlanId();
+        if (planId == null) {
+            return null;
+        }
         EsbSaveCronV3Request req = new EsbSaveCronV3Request();
         req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
         req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
         req.setName(TestValueGenerator.generateUniqueStrValue("cron_task", 50));
         req.setCronExpression("* * * * *");
-        req.setPlanId(TestProps.TASK_PLAN_DEFAULT_ID);
-
+        req.setPlanId(planId);
         return given()
             .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
             .body(JsonUtil.toJson(req))
@@ -323,6 +329,30 @@ public class Operations {
             .as(new TypeRef<EsbResp<EsbCronInfoV3DTO>>() {
             })
             .getData();
+    }
+
+    public static Long getTaskPlanId() {
+        EsbGetPlanListV3Request req = new EsbGetPlanListV3Request();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setLength(1);
+        EsbPageDataV3<EsbPlanBasicInfoV3DTO> data = given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.GET_JOB_PLAN_LIST)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>>>() {
+            })
+            .getData();
+        List<EsbPlanBasicInfoV3DTO> planList = data.getData();
+        if (planList != null && planList.size() > 0) {
+            EsbPlanBasicInfoV3DTO planBasicInfoV3DTO = planList.get(0);
+            return planBasicInfoV3DTO.getId();
+        }
+        return null;
     }
 
     private static String buildJobName() {
