@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
  * 作业执行日志API-前端调用
  */
 @Api(tags = {"job-execute:web:Task_Execution_Log"})
-@RequestMapping("/web/scope/{scopeType}/{scopeId}")
+@RequestMapping("/web/execution/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebTaskLogResource {
