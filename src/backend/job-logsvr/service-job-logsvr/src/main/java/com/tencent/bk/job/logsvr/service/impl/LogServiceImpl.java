@@ -359,7 +359,8 @@ public class LogServiceImpl implements LogService {
                 return Collections.emptyList();
             }
 
-            return groupScriptTaskLogsByHost(scriptLogQuery.getStepInstanceId(), scriptLogQuery.getExecuteCount(),
+            return groupScriptTaskLogsByExecuteObject(scriptLogQuery.getStepInstanceId(),
+                scriptLogQuery.getExecuteCount(),
                 scriptLogQuery.getBatch(), scriptLogs);
         } finally {
             long cost = (System.currentTimeMillis() - start);
@@ -452,13 +453,25 @@ public class LogServiceImpl implements LogService {
         return query;
     }
 
-    private List<TaskExecuteObjectLog> groupScriptTaskLogsByHost(long stepInstanceId,
-                                                                 int executeCount,
-                                                                 Integer batch,
-                                                                 List<ScriptTaskLogDoc> scriptTaskLogs) {
+    private List<TaskExecuteObjectLog> groupScriptTaskLogsByExecuteObject(long stepInstanceId,
+                                                                          int executeCount,
+                                                                          Integer batch,
+                                                                          List<ScriptTaskLogDoc> scriptTaskLogs) {
         List<TaskExecuteObjectLog> taskExecuteObjectLogs = new ArrayList<>();
-        boolean existHostIdField = scriptTaskLogs.get(0).getHostId() != null;
-        if (existHostIdField) {
+        boolean existExecuteObjectIdField = scriptTaskLogs.get(0).getExecuteObjectId() != null;
+        if (existExecuteObjectIdField) {
+            Map<String, List<ScriptTaskLogDoc>> scriptLogsGroups = new HashMap<>();
+            scriptTaskLogs.forEach(scriptTaskLog -> {
+                List<ScriptTaskLogDoc> scriptLogGroup = scriptLogsGroups.computeIfAbsent(
+                    scriptTaskLog.getExecuteObjectId(), k -> new ArrayList<>());
+                scriptLogGroup.add(scriptTaskLog);
+            });
+            scriptLogsGroups.forEach(
+                (executeObjectId, scriptLogGroup) ->
+                    taskExecuteObjectLogs.add(
+                        buildTaskExecuteObjectLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
+        } else {
+            // 兼容 hostId
             Map<Long, List<ScriptTaskLogDoc>> scriptLogsGroups = new HashMap<>();
             scriptTaskLogs.forEach(scriptTaskLog -> {
                 List<ScriptTaskLogDoc> scriptLogGroup = scriptLogsGroups.computeIfAbsent(scriptTaskLog.getHostId(),
@@ -468,35 +481,28 @@ public class LogServiceImpl implements LogService {
             scriptLogsGroups.forEach(
                 (hostId, scriptLogGroup) ->
                     taskExecuteObjectLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
-        } else {
-            Map<String, List<ScriptTaskLogDoc>> scriptLogsGroups = new HashMap<>();
-            scriptTaskLogs.forEach(scriptTaskLog -> {
-                List<ScriptTaskLogDoc> scriptLogGroup = scriptLogsGroups.computeIfAbsent(scriptTaskLog.getIp(),
-                    k -> new ArrayList<>());
-                scriptLogGroup.add(scriptTaskLog);
-            });
-            scriptLogsGroups.forEach(
-                (ip, scriptLogGroup) ->
-                    taskExecuteObjectLogs.add(
-                        buildTaskHostLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
+                        buildTaskExecuteObjectLog(stepInstanceId, executeCount, batch, scriptLogGroup)));
         }
 
         return taskExecuteObjectLogs;
     }
 
-    private TaskExecuteObjectLog buildTaskHostLog(long stepInstanceId, int executeCount, Integer batch,
-                                                  List<ScriptTaskLogDoc> scriptLogs) {
+    private TaskExecuteObjectLog buildTaskExecuteObjectLog(long stepInstanceId,
+                                                           int executeCount,
+                                                           Integer batch,
+                                                           List<ScriptTaskLogDoc> scriptLogs) {
         TaskExecuteObjectLog taskExecuteObjectLog = new TaskExecuteObjectLog();
         taskExecuteObjectLog.setStepInstanceId(stepInstanceId);
         taskExecuteObjectLog.setExecuteCount(executeCount);
         taskExecuteObjectLog.setBatch(batch);
+        taskExecuteObjectLog.setExecuteObjectId(scriptLogs.get(0).getExecuteObjectId());
         taskExecuteObjectLog.setHostId(scriptLogs.get(0).getHostId());
         taskExecuteObjectLog.setIp(scriptLogs.get(0).getIp());
         taskExecuteObjectLog.setIpv6(scriptLogs.get(0).getIpv6());
 
         scriptLogs.sort(ScriptTaskLogDoc.LOG_OFFSET_COMPARATOR);
-        taskExecuteObjectLog.setScriptContent(scriptLogs.stream().map(ScriptTaskLogDoc::getContent).collect(Collectors.joining("")));
+        taskExecuteObjectLog.setScriptContent(scriptLogs.stream()
+            .map(ScriptTaskLogDoc::getContent).collect(Collectors.joining("")));
 
         return taskExecuteObjectLog;
     }
