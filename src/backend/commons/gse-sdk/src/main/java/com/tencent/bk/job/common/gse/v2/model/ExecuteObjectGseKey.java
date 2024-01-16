@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.gse.util.K8sUtils;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -62,10 +63,12 @@ public class ExecuteObjectGseKey {
         ExecuteObjectGseKey executeObjectGseKey = new ExecuteObjectGseKey();
         // agentId+containerId 唯一指定容器对象
         executeObjectGseKey.agentId = agentId;
-        executeObjectGseKey.containerId = containerId;
-        executeObjectGseKey.key = ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + agentId + ":" + containerId;
+        executeObjectGseKey.containerId = K8sUtils.removeContainerIdType(containerId);
+        executeObjectGseKey.key = ExecuteObjectTypeEnum.CONTAINER.getValue() + ":" + agentId + ":"
+            + executeObjectGseKey.getContainerId();
         return executeObjectGseKey;
     }
+
 
     @Override
     public boolean equals(Object o) {

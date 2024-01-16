@@ -81,12 +81,14 @@ public class TaskTargetDTO {
         TaskTargetVO taskTargetVO = new TaskTargetVO();
         taskTargetVO.setVariable(executeTarget.getVariable());
         TaskHostNodeVO taskHostNodeVO = TaskHostNodeDTO.toVO(executeTarget.getHostNodeList());
-        taskTargetVO.setHostNodeInfo(taskHostNodeVO);
-        TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
-        taskExecuteObjectsInfoVO.setHostList(taskHostNodeVO.getHostList());
-        taskExecuteObjectsInfoVO.setNodeList(taskHostNodeVO.getNodeList());
-        taskExecuteObjectsInfoVO.setDynamicGroupList(taskHostNodeVO.getDynamicGroupList());
-        taskTargetVO.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
+        if (taskHostNodeVO != null) {
+            taskTargetVO.setHostNodeInfo(taskHostNodeVO);
+            TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
+            taskExecuteObjectsInfoVO.setHostList(taskHostNodeVO.getHostList());
+            taskExecuteObjectsInfoVO.setNodeList(taskHostNodeVO.getNodeList());
+            taskExecuteObjectsInfoVO.setDynamicGroupList(taskHostNodeVO.getDynamicGroupList());
+            taskTargetVO.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
+        }
         return taskTargetVO;
     }
 
