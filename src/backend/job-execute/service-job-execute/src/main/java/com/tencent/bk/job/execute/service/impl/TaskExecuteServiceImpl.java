@@ -2744,7 +2744,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StopWatch watch = new StopWatch("authJobPlan");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
         TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
-        List<StepInstanceDTO> stepInstanceList = taskInstance.getStepInstances();
+        List<StepInstanceDTO> stepInstanceList = taskInfo.getStepInstances();
 
         TaskInstanceExecuteObjects taskInstanceExecuteObjects =
             processExecuteObjects(taskInstance, stepInstanceList, taskInfo.getVariables().values());
