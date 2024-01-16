@@ -111,11 +111,6 @@ public class LogExportServiceImpl implements LogExportService {
                                               String logFileDir,
                                               String logFileName,
                                               Boolean repackage) {
-        if (log.isDebugEnabled()) {
-            log.debug("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId,
-                executeObjectType.getValue() + ":" + executeObjectResourceId, executeCount, logFileDir, logFileName,
-                repackage);
-        }
         LogExportJobInfoDTO exportJobInfo = new LogExportJobInfoDTO();
         exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, executeObjectType, executeObjectResourceId));
         exportJobInfo.setStatus(LogExportStatusEnum.INIT);
@@ -294,19 +289,19 @@ public class LogExportServiceImpl implements LogExportService {
                                                 StepInstanceBaseDTO stepInstance,
                                                 LogBatchQuery query,
                                                 List<ExecuteObject> executeObjects) {
-        List<ExecuteObjectCompositeKey> keys;
+        List<ExecuteObjectCompositeKey> executeObjectQueryKeys;
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            keys = executeObjects.stream()
+            executeObjectQueryKeys = executeObjects.stream()
                 .map(executeObject -> ExecuteObjectCompositeKey.ofExecuteObjectId(executeObject.getId()))
                 .collect(Collectors.toList());
         } else {
-            keys = executeObjects.stream()
+            executeObjectQueryKeys = executeObjects.stream()
                 .map(executeObject -> ExecuteObjectCompositeKey.ofHostId(executeObject.getResourceId()))
                 .collect(Collectors.toList());
         }
         List<ScriptExecuteObjectLogContent> scriptExecuteObjectLogContentList =
             logService.batchGetScriptExecuteObjectLogContent(jobCreateDate, stepInstance,
-                query.getExecuteCount(), null, keys);
+                query.getExecuteCount(), null, executeObjectQueryKeys);
         for (ScriptExecuteObjectLogContent scriptExecuteObjectLogContent : scriptExecuteObjectLogContentList) {
             if (scriptExecuteObjectLogContent != null
                 && StringUtils.isNotEmpty(scriptExecuteObjectLogContent.getContent())) {

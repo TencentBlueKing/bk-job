@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.gse.util.K8sUtils;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.model.dto.Container;
@@ -174,9 +175,9 @@ public class ExecuteObject implements Cloneable {
         Agent agent = new Agent();
         if (isHostExecuteObject()) {
             agent.setAgentId(host.getAgentId());
-        } else {
+        } else if (isContainerExecuteObject()) {
             agent.setAgentId(container.getNodeAgentId());
-            agent.setContainerId(container.getContainerId());
+            agent.setContainerId(K8sUtils.removeContainerIdType(container.getContainerId()));
         }
         return agent;
     }

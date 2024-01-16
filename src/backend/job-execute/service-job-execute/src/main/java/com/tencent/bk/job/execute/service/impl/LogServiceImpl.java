@@ -246,16 +246,7 @@ public class LogServiceImpl implements LogService {
 
         List<ExecuteObject> queryExecuteObjects =
             stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
-        if (stepInstance.isSupportExecuteObjectFeature()) {
-            List<String> executeObjectId = queryExecuteObjects.stream()
-                .map(ExecuteObject::getId).collect(Collectors.toList());
-            query.setExecuteObjectIds(executeObjectId);
-        } else {
-            // 兼容 hostId 查询
-            List<Long> hostIds = queryExecuteObjects.stream()
-                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
-            query.setHostIds(hostIds);
-        }
+        setExecuteObjectCondition(query, stepInstance, queryExecuteObjects);
 
         long stepInstanceId = stepInstance.getId();
         InternalResponse<List<ServiceExecuteObjectLogDTO>> resp =
@@ -274,10 +265,13 @@ public class LogServiceImpl implements LogService {
                 .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
             return resp.getData().stream().map(logDTO -> {
-                String scriptContent = logDTO.getScriptLog() != null ?
-                    logDTO.getScriptLog().getContent() : "";
+                String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
+                ExecuteObject executeObject = executeObjectMap.get(logDTO.getExecuteObjectId());
+                if (executeObject == null) {
+                    log.warn("Can not find log execute object by executeObjectId : {}", logDTO.getExecuteObjectId());
+                }
                 return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
-                    executeObjectMap.get(logDTO.getExecuteObjectId()), scriptContent, true);
+                    executeObject, scriptContent, true);
             }).collect(Collectors.toList());
         } else {
             Map<Long, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
@@ -285,11 +279,29 @@ public class LogServiceImpl implements LogService {
                     executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
             return resp.getData().stream().map(logDTO -> {
-                String scriptContent = logDTO.getScriptLog() != null ?
-                    logDTO.getScriptLog().getContent() : "";
+                String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
+                ExecuteObject executeObject = executeObjectMap.get(logDTO.getHostId());
+                if (executeObject == null) {
+                    log.warn("Can not find log execute object by hostId : {}", logDTO.getHostId());
+                }
                 return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
-                    executeObjectMap.get(logDTO.getHostId()), scriptContent, true);
+                    executeObject, scriptContent, true);
             }).collect(Collectors.toList());
+        }
+    }
+
+    private void setExecuteObjectCondition(ServiceScriptLogQueryRequest query,
+                                           StepInstanceBaseDTO stepInstance,
+                                           List<ExecuteObject> queryExecuteObjects) {
+        if (stepInstance.isSupportExecuteObjectFeature()) {
+            List<String> executeObjectId = queryExecuteObjects.stream()
+                .map(ExecuteObject::getId).collect(Collectors.toList());
+            query.setExecuteObjectIds(executeObjectId);
+        } else {
+            // 兼容 hostId 查询
+            List<Long> hostIds = queryExecuteObjects.stream()
+                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
+            query.setHostIds(hostIds);
         }
     }
 
