@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -269,6 +270,9 @@ public class LogServiceImpl implements LogService {
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getExecuteObjectId());
                 if (executeObject == null) {
                     log.warn("Can not find log execute object by executeObjectId : {}", logDTO.getExecuteObjectId());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Log: {}", JsonUtils.toJson(logDTO));
+                    }
                 }
                 return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
                     executeObject, scriptContent, true);
@@ -283,6 +287,9 @@ public class LogServiceImpl implements LogService {
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getHostId());
                 if (executeObject == null) {
                     log.warn("Can not find log execute object by hostId : {}", logDTO.getHostId());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Log: {}", JsonUtils.toJson(logDTO));
+                    }
                 }
                 return new ScriptExecuteObjectLogContent(logDTO.getStepInstanceId(), logDTO.getExecuteCount(),
                     executeObject, scriptContent, true);

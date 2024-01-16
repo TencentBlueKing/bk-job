@@ -136,18 +136,29 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
         result.setStepInstanceId(taskExecuteObjectLog.getStepInstanceId());
         result.setExecuteCount(taskExecuteObjectLog.getExecuteCount());
         result.setBatch(taskExecuteObjectLog.getBatch());
-        result.setExecuteObjectId(taskExecuteObjectLog.getExecuteObjectId());
-        result.setHostId(taskExecuteObjectLog.getHostId());
-        result.setCloudIp(taskExecuteObjectLog.getIp());
-        result.setCloudIpv6(taskExecuteObjectLog.getIpv6());
+        if (taskExecuteObjectLog.getExecuteObjectId() != null) {
+            result.setExecuteObjectId(taskExecuteObjectLog.getExecuteObjectId());
+        } else {
+            result.setHostId(taskExecuteObjectLog.getHostId());
+            result.setCloudIp(taskExecuteObjectLog.getIp());
+            result.setCloudIpv6(taskExecuteObjectLog.getIpv6());
+        }
         if (StringUtils.isNotEmpty(taskExecuteObjectLog.getScriptContent())) {
-            result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
-                taskExecuteObjectLog.getHostId(),
-                taskExecuteObjectLog.getIp(),
-                taskExecuteObjectLog.getIpv6(),
-                taskExecuteObjectLog.getScriptContent(),
-                0)
-            );
+            if (taskExecuteObjectLog.getExecuteObjectId() != null) {
+                result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
+                    taskExecuteObjectLog.getExecuteObjectId(),
+                    taskExecuteObjectLog.getScriptContent(),
+                    0)
+                );
+            } else {
+                result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
+                    taskExecuteObjectLog.getHostId(),
+                    taskExecuteObjectLog.getIp(),
+                    taskExecuteObjectLog.getIpv6(),
+                    taskExecuteObjectLog.getScriptContent(),
+                    0)
+                );
+            }
         }
         if (CollectionUtils.isNotEmpty(taskExecuteObjectLog.getFileTaskLogs())) {
             result.setFileTaskLogs(taskExecuteObjectLog.getFileTaskLogs().stream()
