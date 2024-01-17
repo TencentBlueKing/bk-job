@@ -42,7 +42,7 @@ public class EsbAppScopeDTO {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID
      */
-    @CompatibleImplementation(name = "bizId", type = CompatibleType.API_PARAM,
+    @CompatibleImplementation(name = "bizId", type = CompatibleType.API,
         explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
     @JsonProperty("bk_biz_id")
     @JsonPropertyDescription("bk_biz_id")

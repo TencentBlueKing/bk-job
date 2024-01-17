@@ -206,20 +206,13 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        ContainerCheckReq req) {
-        ContainerQuery containerQuery =
-            ContainerQuery.builder()
-                .bizId(Long.parseLong(scopeId))
-                .containerUIDs(req.getUidList())
-                .build();
+        List<ContainerDetailDTO> containers =
+            containerService.listKubeContainerByUIds(Long.parseLong(scopeId), req.getUidList());
 
-        List<ContainerVO> containerVOS = listContainerVOS(containerQuery);
-
-        return Response.buildSuccessResp(containerVOS);
+        return Response.buildSuccessResp(toContainerVOS(containers));
     }
 
-    private List<ContainerVO> listContainerVOS(ContainerQuery containerQuery) {
-        List<ContainerDetailDTO> containers = containerService.listKubeContainerByTopo(containerQuery);
-
+    private List<ContainerVO> toContainerVOS(List<ContainerDetailDTO> containers) {
         if (CollectionUtils.isEmpty(containers)) {
             return Collections.emptyList();
         }
@@ -237,15 +230,11 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                            String scopeType,
                                                            String scopeId,
                                                            ContainerDetailReq req) {
-        ContainerQuery containerQuery =
-            ContainerQuery.builder()
-                .bizId(Long.parseLong(scopeId))
-                .ids(req.getContainerList().stream()
-                    .map(ContainerIdWithMeta::getId).collect(Collectors.toList()))
-                .build();
+        List<ContainerDetailDTO> containers = containerService.listKubeContainerByIds(
+            Long.parseLong(scopeId),
+            req.getContainerList().stream()
+                .map(ContainerIdWithMeta::getId).collect(Collectors.toList()));
 
-        List<ContainerVO> containerVOS = listContainerVOS(containerQuery);
-
-        return Response.buildSuccessResp(containerVOS);
+        return Response.buildSuccessResp(toContainerVOS(containers));
     }
 }

@@ -61,4 +61,22 @@ public interface ContainerService {
      */
     List<ContainerDetailDTO> listKubeContainerByTopo(ContainerQuery query);
 
+    /**
+     * 根据容器 ID 批量获取容器详情
+     *
+     * @param bizId        业务 ID
+     * @param containerIds 容器 ID 列表
+     * @return 容器列表
+     */
+    List<ContainerDetailDTO> listKubeContainerByIds(Long bizId, List<Long> containerIds);
+
+    /**
+     * 根据容器 UId 批量获取容器详情
+     *
+     * @param bizId         业务 ID
+     * @param containerUIds 容器 UId 列表
+     * @return 容器列表
+     */
+    List<ContainerDetailDTO> listKubeContainerByUIds(Long bizId, List<String> containerUIds);
+
 }

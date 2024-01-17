@@ -33,9 +33,13 @@ public enum CompatibleType {
      */
     HISTORY_DATA,
     /**
-     * API 参数兼容。该参数正式废弃之后可删除
+     * 历史业务逻辑兼容。该业务逻辑不会再次启用之后可删除
      */
-    API_PARAM,
+    HISTORY_LOGIC,
+    /**
+     * API 协议兼容。协议正式废弃之后可删除
+     */
+    API,
     /**
      * 发布兼容。发布完成后可删除
      */

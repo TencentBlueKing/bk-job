@@ -98,13 +98,13 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -1520,30 +1520,56 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
      * @return 容器列表
      */
     public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
-        ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
-
-        // 查询条件
-        req.setBizId(bizId);
-        PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-        containerFilter.setCondition("AND");
-        containerFilter.addRule(BaseRuleDTO.in(ContainerFields.ID, containerIds));
-        req.setContainerFilter(containerFilter);
-
-        // 返回参数设置
-        req.setContainerFields(ContainerFields.FIELDS);
-        req.setPodFields(PodFields.FIELDS);
-
-        return PageUtil.queryAllWithLoopPageQuery(
-            500,
-            page -> listPageContainersByIds(req, page),
-            PageData::getData,
-            container -> container
-        );
+        return listBizKubeContainerByContainerFieldWithInCondition(
+            bizId, ContainerFields.ID, containerIds);
     }
 
-    private PageData<ContainerDetailDTO> listPageContainersByIds(ListKubeContainerByTopoReq req,
-                                                                 PageCondition pageCondition) {
-        req.setPage(new Page(pageCondition.getStart(), pageCondition.getLength()));
-        return listPageKubeContainerByTopo(req);
+    /**
+     * 根据容器ID批量查询容器
+     *
+     * @param bizId         CMDB 业务 ID
+     * @param containerUIds 容器 UID 集合
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds) {
+        return listBizKubeContainerByContainerFieldWithInCondition(
+            bizId, ContainerFields.CONTAINER_UID, containerUIds);
+    }
+
+    private <T> List<ContainerDetailDTO> listBizKubeContainerByContainerFieldWithInCondition(
+        long bizId,
+        String containerField,
+        Collection<T> filedValues) {
+
+        int maxFiledValuesPerBatch = 500;  // cmdb 限制每次查询传入的字段值
+        List<List<T>> containerFieldValueBatches =
+            CollectionUtil.partitionCollection(filedValues, maxFiledValuesPerBatch);
+
+        List<ContainerDetailDTO> containers = new ArrayList<>();
+
+        containerFieldValueBatches.forEach(containerFieldValueBatch -> {
+            ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
+
+            // 查询条件
+            req.setBizId(bizId);
+            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+            containerFilter.setCondition("AND");
+            containerFilter.addRule(BaseRuleDTO.in(containerField, containerFieldValueBatch));
+            req.setContainerFilter(containerFilter);
+
+            // 返回参数设置
+            req.setContainerFields(ContainerFields.FIELDS);
+            req.setPodFields(PodFields.FIELDS);
+
+            // 分页设置
+            req.setPage(new Page(0, maxFiledValuesPerBatch));
+
+            PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req);
+            if (CollectionUtils.isNotEmpty(pageData.getData())) {
+                containers.addAll(pageData.getData());
+            }
+        });
+
+        return containers;
     }
 }

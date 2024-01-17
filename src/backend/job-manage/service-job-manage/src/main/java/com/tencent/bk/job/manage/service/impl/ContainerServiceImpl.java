@@ -64,4 +64,14 @@ public class ContainerServiceImpl implements ContainerService {
         ListKubeContainerByTopoReq req = query.toListKubeContainerByTopoReq();
         return bizCmdbClient.listKubeContainerByTopo(req);
     }
+
+    @Override
+    public List<ContainerDetailDTO> listKubeContainerByIds(Long bizId, List<Long> containerIds) {
+        return bizCmdbClient.listKubeContainerByIds(bizId, containerIds);
+    }
+
+    @Override
+    public List<ContainerDetailDTO> listKubeContainerByUIds(Long bizId, List<String> containerUIds) {
+        return bizCmdbClient.listKubeContainerByUIds(bizId, containerUIds);
+    }
 }
