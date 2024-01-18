@@ -98,6 +98,8 @@ public class CompareUtil {
      * -1 ： version1在version2之前
      */
     public static int compareVersion(String version1, String version2) {
+        version1 = removeLeadingLetters(version1);
+        version2 = removeLeadingLetters(version2);
         // 标准化为点分形式
         version1 = version1.replace("-", ".").toLowerCase();
         version2 = version2.replace("-", ".").toLowerCase();
@@ -118,8 +120,18 @@ public class CompareUtil {
             int result = compareElement(arr1[i].trim(), arr2[i].trim());
             if (result != 0) return result;
         }
-        if (len1 < len2) return -1;
-        else if (len1 > len2) return 1;
+        // 特殊情况处理，比如3.3.3>3.3.3-beta.1，3.3.3.1>3.3.3-beta.1
+        if (len1 < len2) {
+            if (!isNumberStr(arr2[shortLen])) {
+                return 1;
+            }
+            return -1;
+        } else if (len1 > len2) {
+            if (!isNumberStr(arr1[shortLen])) {
+                return -1;
+            }
+            return 1;
+        }
         return 0;
     }
 
@@ -147,5 +159,12 @@ public class CompareUtil {
             return -1;
         }
         return p1.compareTo(p2);
+    }
+
+    /**
+     * 去掉版本号开头的字母，v1.0 -> 1.0
+     */
+    public static String removeLeadingLetters(String version) {
+        return version.replaceFirst("^[a-zA-Z]+", "");
     }
 }
