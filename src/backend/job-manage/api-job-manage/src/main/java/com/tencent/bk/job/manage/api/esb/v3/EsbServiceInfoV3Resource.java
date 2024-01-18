@@ -25,10 +25,12 @@
 package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbServiceVersionV3DTO;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +42,15 @@ import org.springframework.web.bind.annotation.RestController;
 @EsbAPI
 public interface EsbServiceInfoV3Resource {
 
-    @PostMapping("/get_latest_service_version")
-    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion();
+    @GetMapping("/get_latest_service_version")
+    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
 
+    @PostMapping("/get_latest_service_version")
+    EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersionUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
 }

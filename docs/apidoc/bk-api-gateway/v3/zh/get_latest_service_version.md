@@ -14,19 +14,15 @@
 | Accept       |  string    | 是     | 固定值。application/json|
 | Content-Type |  string    | 是     | 固定值。application/json|
 
-#### Body参数
+#### Query参数
 
 无
 
 ### 请求参数示例
-- POST
+
+- GET
 ```json
-{
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
-    "bk_username": "admin"
-}
+/api/v3/get_latest_service_version
 ```
 
 ### 返回结果示例
