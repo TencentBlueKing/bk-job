@@ -235,16 +235,15 @@
       }),
     },
     created() {
-      window.IPInputScope = 'FILE_DISTRIBUTION';
       this.init();
       this.calcTargetPathTipsPlacement();
     },
     mounted() {
+      window.IPInputScope = 'FILE_DISTRIBUTION';
       window.addEventListener('resize', this.calcTargetPathTipsPlacement);
+
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', this.calcTargetPathTipsPlacement);
-      });
-      this.$once('hook:beforeDestroy', () => {
         window.IPInputScope = '';
       });
     },
