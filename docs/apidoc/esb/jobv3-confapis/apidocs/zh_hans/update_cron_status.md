@@ -14,6 +14,7 @@
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 | id         |  long      | 是     | 定时作业 ID |
 | status     |  int       | 是     | 定时状态，1.启动、2.暂停 |
+| return_cron_detail |  boolean  | 否 | 是否返回定时任务详情，默认值为false |
 
 ### 请求参数示例
 

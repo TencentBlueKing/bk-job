@@ -234,6 +234,11 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         if (updateResult) {
             EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
             esbCronInfoV3DTO.setId(request.getId());
+            if (request.getReturnCronDetail()) {
+                CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(),
+                    request.getId());
+                esbCronInfoV3DTO = CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById);
+            }
             return EsbResp.buildSuccessResp(esbCronInfoV3DTO);
         }
         throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);

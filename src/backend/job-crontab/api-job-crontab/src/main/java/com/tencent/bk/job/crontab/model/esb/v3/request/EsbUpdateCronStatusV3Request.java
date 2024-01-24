@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.esb.v3.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -48,6 +49,12 @@ public class EsbUpdateCronStatusV3Request extends EsbAppScopeReq {
      * 1.启动、2.暂停
      */
     private Integer status;
+
+    /**
+     * 是否返回定时任务详情
+     */
+    @JsonProperty("return_cron_detail")
+    private Boolean returnCronDetail = false;
 
     public boolean validate() {
         if (id == null || id <= 0) {

@@ -211,6 +211,25 @@ class CronResourceAPITest extends BaseTest {
                 .spec(ApiUtil.successResponseSpec())
                 .body("data", notNullValue())
                 .body("data.id", equalTo(req.getId().intValue()));
+
+            // 返回定时任务详情
+            req.setReturnCronDetail(true);
+            given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+                .body(JsonUtil.toJson(req))
+                .post(APIV3Urls.UPDATE_CRON_STATUS)
+                .then()
+                .spec(ApiUtil.successResponseSpec())
+                .body("data", notNullValue())
+                .body("data.id", equalTo(req.getId().intValue()))
+                .body("data.name", notNullValue())
+                .body("data.status", notNullValue())
+                .body("data.bk_scope_type", equalTo(req.getScopeType()))
+                .body("data.bk_scope_id", equalTo(req.getScopeId()))
+                .body("data.expression", notNullValue())
+                .body("data.creator", equalTo(TestProps.DEFAULT_TEST_USER))
+                .body("data.create_time", greaterThan(0))
+                .body("data.last_modify_user", equalTo(TestProps.DEFAULT_TEST_USER))
+                .body("data.last_modify_time", greaterThan(0));
         }
 
         // 更新定时任务

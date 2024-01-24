@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.api.v3.model.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -46,4 +47,11 @@ public class EsbUpdateCronStatusV3Request extends EsbAppScopeReq {
      * 1.启动、2.暂停
      */
     private Integer status;
+
+    /**
+     * 是否返回定时任务详情
+     */
+    @JsonProperty("return_cron_detail")
+    private Boolean returnCronDetail = false;
+
 }
