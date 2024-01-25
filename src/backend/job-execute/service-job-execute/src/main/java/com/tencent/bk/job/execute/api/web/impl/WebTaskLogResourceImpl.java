@@ -134,7 +134,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         }
 
         if (!repackage) {
-            log.debug("Do not need repackage, check exist job");
+            log.debug("Do not need repackage, check exist job |{}|{}|{}", stepInstanceId, hostId, cloudIp);
             LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
@@ -158,6 +158,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                         if (!repackage) {
                             return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
                         }
+                        log.warn("Not exist zip file, needs to be repackaged! |{}", exportInfo);
                         break;
                     default:
                         throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
@@ -169,6 +170,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
         if (StringUtils.isBlank(logFileName)) {
+            log.warn("Log File Name is blank! request fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp, executeCount);
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
@@ -264,6 +266,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         if (isGetByHost) {
             String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
             if (StringUtils.isBlank(logFileName)) {
+                log.warn("Log File Name is blank! download fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp,
+                    executeCount);
                 return ResponseEntity.notFound().build();
             }
             exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, cloudIp, executeCount,
@@ -312,6 +316,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                 default:
             }
         }
+        log.warn("Not exist job info|{}|{}|{}|{}", appId, stepInstanceId, hostId, cloudIp);
         return ResponseEntity.notFound().build();
     }
 

@@ -125,12 +125,12 @@ public class LogExportServiceImpl implements LogExportService {
         } else {
             logExportExecutor.execute(() -> {
                 String requestId = UUID.randomUUID().toString();
-                log.debug("Begin log package process|{}", requestId);
+                log.debug("Begin log package process |{}|{}", stepInstanceId, requestId);
                 try {
                     boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(), requestId,
                         3600_000L);
                     if (lockResult) {
-                        log.debug("Acquire lock success! Begin process!|{}", requestId);
+                        log.debug("Acquire lock success! Begin process!|{}|{}", stepInstanceId, requestId);
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
