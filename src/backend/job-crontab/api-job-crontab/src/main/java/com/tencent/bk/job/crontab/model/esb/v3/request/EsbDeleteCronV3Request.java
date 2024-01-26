@@ -30,7 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -40,7 +40,7 @@ public class EsbDeleteCronV3Request extends EsbAppScopeReq {
     /**
      * 定时作业 ID
      */
-    @NotEmpty(message = "{validation.constraints.CronId_empty.message}")
+    @NotNull(message = "{validation.constraints.CronId_empty.message}")
     @Min(value = 1L, message = "{validation.constraints.InvalidCronId.message}")
     private Long id;
 }
