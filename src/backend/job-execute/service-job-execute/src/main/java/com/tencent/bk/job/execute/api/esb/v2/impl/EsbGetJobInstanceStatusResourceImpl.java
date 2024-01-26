@@ -99,7 +99,8 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
-        List<StepInstanceBaseDTO> stepInstances = stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);
+        List<StepInstanceBaseDTO> stepInstances =
+            stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
             log.warn("Get job instance status by taskInstanceId:{}, stepInstanceList is empty!", taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);

@@ -439,7 +439,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private void saveStatusWhenSkip() {
         List<ExecuteObjectTask> notFinishedExecuteObjectTasks =
-            targetExecuteObjectTasks.values().stream().filter(not(ExecuteObjectTask::isFinished)).collect(Collectors.toList());
+            targetExecuteObjectTasks.values().stream()
+                .filter(not(ExecuteObjectTask::isFinished))
+                .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notFinishedExecuteObjectTasks)) {
             notFinishedExecuteObjectTasks.forEach(executeObjectTask -> {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.UNKNOWN);

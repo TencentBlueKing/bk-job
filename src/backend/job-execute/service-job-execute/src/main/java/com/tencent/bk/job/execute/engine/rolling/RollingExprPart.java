@@ -58,6 +58,7 @@ public abstract class RollingExprPart {
      * @param context 解析上下文
      * @return 当前批次的执行对象
      */
-    public abstract List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException;
+    public abstract List<ExecuteObject> compute(RollingExecuteObjectBatchContext context)
+        throws RollingExprParseException;
 
 }

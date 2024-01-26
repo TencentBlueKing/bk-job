@@ -303,7 +303,8 @@ public class ExecuteObjectsDTO implements Cloneable {
         switch (compositeKeyType) {
             case EXECUTE_OBJECT_ID:
                 return getExecuteObjectsCompatibly().stream()
-                    .filter(executeObject -> executeObjectCompositeKey.getExecuteObjectId().equals(executeObject.getId()))
+                    .filter(executeObject ->
+                        executeObjectCompositeKey.getExecuteObjectId().equals(executeObject.getId()))
                     .findFirst()
                     .orElse(null);
             case RESOURCE_ID:

@@ -1751,8 +1751,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private Pair<ExecuteObjectsDTO, Set<Long>> extractNeedAuthHostsAndAccounts(StepInstanceDTO stepInstance,
-                                                                               Map<Long, List<String>> whiteHostAllowActions) {
+    private Pair<ExecuteObjectsDTO, Set<Long>> extractNeedAuthHostsAndAccounts
+        (
+            StepInstanceDTO stepInstance,
+            Map<Long, List<String>> whiteHostAllowActions
+        ) {
+
         ExecuteObjectsDTO authServers = new ExecuteObjectsDTO();
         Set<Long> accountIds = new HashSet<>();
         accountIds.add(stepInstance.getAccountId());

@@ -100,8 +100,8 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 taskVariableDTO.setName(globalVar.getName());
                 if ((globalVar.getIpList() != null || globalVar.getDynamicGroupIdList() != null
                     || globalVar.getTargetServer() != null) && StringUtils.isEmpty(globalVar.getValue())) {
-                    ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(globalVar.getTargetServer(), globalVar.getIpList(),
-                        globalVar.getDynamicGroupIdList());
+                    ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(
+                        globalVar.getTargetServer(), globalVar.getIpList(), globalVar.getDynamicGroupIdList());
                     taskVariableDTO.setTargetServers(executeObjectsDTO);
                 } else {
                     taskVariableDTO.setValue(globalVar.getValue());

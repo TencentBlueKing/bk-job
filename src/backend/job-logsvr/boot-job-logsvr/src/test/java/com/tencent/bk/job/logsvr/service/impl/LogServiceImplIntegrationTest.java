@@ -402,8 +402,13 @@ public class LogServiceImplIntegrationTest {
     }
 
 
-    private TaskExecuteObjectLog buildFileTaskHostLog(long stepInstanceId, int executeCount, String jobCreateDate, Long hostId,
-                                                      String ip, String ipv6, List<FileTaskLogDoc> fileTaskLogs) {
+    private TaskExecuteObjectLog buildFileTaskHostLog(long stepInstanceId,
+                                                      int executeCount,
+                                                      String jobCreateDate,
+                                                      Long hostId,
+                                                      String ip,
+                                                      String ipv6,
+                                                      List<FileTaskLogDoc> fileTaskLogs) {
         TaskExecuteObjectLog taskExecuteObjectLog = new TaskExecuteObjectLog();
         taskExecuteObjectLog.setStepInstanceId(stepInstanceId);
         taskExecuteObjectLog.setExecuteCount(executeCount);
