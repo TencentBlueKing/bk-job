@@ -61,7 +61,7 @@ public class CompareUtilTest {
         assertThat(CompareUtil.compareVersion("3.3.3.beta.10", "3.3.3.rc")).isEqualTo(-1);
         assertThat(CompareUtil.compareVersion("3.3.3.rc", "3.3.3.0")).isEqualTo(-1);
         assertThat(CompareUtil.compareVersion("3.3.3.rc.2", "3.3.3.0")).isEqualTo(-1);
-        assertThat(CompareUtil.compareVersion("3.3.3", "3.3.3.alpha")).isEqualTo(-1);
+        assertThat(CompareUtil.compareVersion("3.3.3", "3.3.3.alpha")).isEqualTo(1);
 
         assertThat(CompareUtil.compareVersion("3.3.3.10", "3.3.3.2")).isEqualTo(1);
         assertThat(CompareUtil.compareVersion("3.3.3.alpha.1", "3.3.3.alpha")).isEqualTo(1);
@@ -84,5 +84,11 @@ public class CompareUtilTest {
         assertThat(CompareUtil.compareVersion("3.3.3-alpha.1", "3.3.3-alpha.1")).isEqualTo(0);
         assertThat(CompareUtil.compareVersion("3.3.3.alpha", "3.3.3.alpha")).isEqualTo(0);
         assertThat(CompareUtil.compareVersion("3.3.3.alpha.1", "3.3.3.alpha.1")).isEqualTo(0);
+
+        assertThat(CompareUtil.compareVersion("3.3.3", "3.3.3-alpha.1")).isEqualTo(1);
+        assertThat(CompareUtil.compareVersion("3.3.3-beta.1", "3.3.3-alpha.1")).isEqualTo(1);
+        assertThat(CompareUtil.compareVersion("3.3.3-rc.1", "3.3.3-alpha.1")).isEqualTo(1);
+        assertThat(CompareUtil.compareVersion("3.3.3", "3.3.3-rc.1")).isEqualTo(1);
+        assertThat(CompareUtil.compareVersion("v3.3.3", "3.3.3")).isEqualTo(0);
     }
 }
