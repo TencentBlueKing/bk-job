@@ -348,6 +348,7 @@ public class ErrorCode {
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;
     public static final int END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED = 1245007;
+    public static final int DELETE_CRON_FAILED = 1245008;
     // 定时作业 end
 
     // 日志服务

@@ -19,6 +19,7 @@ import com.tencent.bk.job.api.v3.model.HostDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptVersionV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeleteScriptV3Req;
@@ -329,6 +330,15 @@ public class Operations {
             .as(new TypeRef<EsbResp<EsbCronInfoV3DTO>>() {
             })
             .getData();
+    }
+
+    public static void deleteCron(EsbDeleteCronV3Request req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_CRON)
+            .then()
+            .statusCode(200);
     }
 
     public static Long getTaskPlanId() {

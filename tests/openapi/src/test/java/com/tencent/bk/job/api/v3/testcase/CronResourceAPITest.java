@@ -11,11 +11,13 @@ import com.tencent.bk.job.api.util.Operations;
 import com.tencent.bk.job.api.util.TestValueGenerator;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
+import com.tencent.bk.job.api.v3.model.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbGetCronDetailV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbSaveCronV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbUpdateCronStatusV3Request;
 import io.restassured.common.mapper.TypeRef;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +41,17 @@ class CronResourceAPITest extends BaseTest {
 
     @AfterAll
     static void tearDown() {
-        // cron没有清理接口，暂时忽略
+        // 清理测试数据
+        if (CollectionUtils.isNotEmpty(createdCronList)) {
+            createdCronList.forEach(cron -> {
+                // 清理定时任务
+                EsbDeleteCronV3Request req = new EsbDeleteCronV3Request();
+                req.setScopeId(cron.getScopeId());
+                req.setScopeType(cron.getScopeType());
+                req.setId(cron.getId());
+                Operations.deleteCron(req);
+            });
+        }
     }
 
     @Nested
@@ -251,6 +263,26 @@ class CronResourceAPITest extends BaseTest {
                 .body("data.expression", equalTo(req.getCronExpression()))
                 .body("data.bk_scope_type", equalTo(req.getScopeType()))
                 .body("data.bk_scope_id", equalTo(req.getScopeId()));
+        }
+    }
+
+    @Nested
+    class CronDeleteTest {
+        @Test
+        @DisplayName("测试定时任务删除")
+        void testDeleteCron() {
+            EsbCronInfoV3DTO createdScript = Operations.createCron();
+            EsbDeleteCronV3Request req = new EsbDeleteCronV3Request();
+            req.setScopeId(createdScript.getScopeId());
+            req.setScopeType(createdScript.getScopeType());
+            req.setId(createdScript.getId());
+
+            given()
+                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+                .body(JsonUtil.toJson(req))
+                .post(APIV3Urls.DELETE_CRON)
+                .then()
+                .spec(ApiUtil.successResponseSpec());
         }
     }
 }
