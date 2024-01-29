@@ -171,12 +171,12 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     private void initLogPullProcess(Collection<ExecuteObjectTask> executeObjectTasks) {
-        executeObjectTasks.forEach(ExecuteObjectTask -> {
+        executeObjectTasks.forEach(executeObjectTask -> {
             ExecuteObjectGseKey executeObjectGseKey =
-                ExecuteObjectTask.getExecuteObject().toExecuteObjectGseKey();
+                executeObjectTask.getExecuteObject().toExecuteObjectGseKey();
             LogPullProgress process = new LogPullProgress();
             process.setExecuteObjectGseKey(executeObjectGseKey);
-            process.setByteOffset(ExecuteObjectTask.getScriptLogOffset());
+            process.setByteOffset(executeObjectTask.getScriptLogOffset());
             process.setAtomicTaskId(0);
             logPullProgressMap.put(executeObjectGseKey, process);
         });
