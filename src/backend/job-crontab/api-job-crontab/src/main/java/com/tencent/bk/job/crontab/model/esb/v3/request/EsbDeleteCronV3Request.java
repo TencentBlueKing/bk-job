@@ -40,7 +40,7 @@ public class EsbDeleteCronV3Request extends EsbAppScopeReq {
     /**
      * 定时作业 ID
      */
-    @NotNull(message = "{validation.constraints.CronId_empty.message}")
+    @NotNull(message = "{validation.constraints.CronId_null.message}")
     @Min(value = 1L, message = "{validation.constraints.InvalidCronId.message}")
     private Long id;
 }
