@@ -9,6 +9,13 @@ job:
     extraWebUrls: "http://my.job.example.com"
 ```
 
+2. 增加 cmdb API 蓝鲸网关配置
+
+```yaml
+# 蓝鲸消息通知中心 API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+```
+
 ## 0.5.7
 1. 增加日志留存配置
 
