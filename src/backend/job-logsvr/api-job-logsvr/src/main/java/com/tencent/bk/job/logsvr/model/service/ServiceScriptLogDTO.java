@@ -67,6 +67,12 @@ public class ServiceScriptLogDTO {
     private Integer offset;
 
     /**
+     * 日志大小 - 字节
+     */
+    @ApiModelProperty("日志大小 - 字节")
+    private Integer logSize = 0;
+
+    /**
      * 日志内容
      */
     @ApiModelProperty("日志内容")
@@ -86,6 +92,26 @@ public class ServiceScriptLogDTO {
         this.cloudIp = host.toCloudIp();
         this.cloudIpv6 = host.toCloudIpv6();
         this.offset = offset;
+        this.content = content;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param host    主机
+     * @param offset  日志偏移量(byte)
+     * @param logSize  日志大小(byte)
+     * @param content 日志内容
+     */
+    public ServiceScriptLogDTO(HostDTO host,
+                               Integer offset,
+                               Integer logSize,
+                               String content) {
+        this.hostId = host.getHostId();
+        this.cloudIp = host.toCloudIp();
+        this.cloudIpv6 = host.toCloudIpv6();
+        this.offset = offset;
+        this.logSize = logSize;
         this.content = content;
     }
 
