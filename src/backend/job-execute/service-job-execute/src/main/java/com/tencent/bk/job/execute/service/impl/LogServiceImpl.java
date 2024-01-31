@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -80,7 +81,10 @@ public class LogServiceImpl implements LogService {
     private final StepInstanceService stepInstanceService;
 
     // 脚本日志阈值128MB，当批量保存脚本日志时，如果日志集合超过阈值，采用分批保存
-    @Value("${job.execute.scriptLog.requestContentSizeThreshold:134217728}")
+    @Value("${job.execute.scriptLog.requestContentSizeThresholdMB:128}")
+    private int requestContentSizeThresholdMB;
+
+    // 脚本日志阈值-字节
     private int requestContentSizeThreshold;
 
     @Autowired
@@ -94,6 +98,11 @@ public class LogServiceImpl implements LogService {
         this.scriptAgentTaskService = scriptAgentTaskService;
         this.fileAgentTaskService = fileAgentTaskService;
         this.stepInstanceService = stepInstanceService;
+    }
+
+    @PostConstruct
+    public void init() {
+        requestContentSizeThreshold = requestContentSizeThresholdMB * 1024 * 1024;
     }
 
     @Override
