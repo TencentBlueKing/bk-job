@@ -155,7 +155,7 @@
         this.isMouseenter = true;
       },
       handleChange(value) {
-        this.$emit('on-change', this.field, value);
+        this.$emit('on-change', this.field, Number(value) > 0 ? Number(value) : null);
       },
     },
   };
