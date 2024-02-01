@@ -50,7 +50,7 @@
         :lang="language"
         :options="languageOption"
         readonly
-        :value="stepInfo.content" />
+        :value="scriptContent" />
     </detail-item>
     <div>
       <detail-item :label="$t('template.脚本参数：')">
@@ -114,8 +114,10 @@
   const languageOption = [language];
 
   const stepInfo = shallowRef(props.data.scriptStepInfo);
+
   const executeAccountText = ref('');
   const scriptName = ref('');
+  const scriptContent = ref(stepInfo.value.content);
   const scriptInfo = shallowRef({});
   const requestQueue = ref([]);
 
@@ -132,10 +134,7 @@
       id: stepInfo.value.scriptVersionId,
     }).then((data) => {
       scriptName.value = data.name;
-      stepInfo.value = {
-        ...stepInfo.value,
-        content: data.content,
-      };
+      scriptContent.value = data.content;
       scriptInfo.value = data;
     })
       .finally(() => {
