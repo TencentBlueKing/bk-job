@@ -136,6 +136,8 @@ public class HostCache {
      */
     public void addOrUpdateHost(ApplicationHostDTO applicationHostDTO) {
         CacheHostDO cacheHost = CacheHostDO.fromApplicationHostDTO(applicationHostDTO);
+        cacheHost.setCacheTime(System.currentTimeMillis());
+        log.info("Update host cache, hostId: {}, host: {}", cacheHost.getHostId(), cacheHost);
         String hostIpKey = buildHostIpKey(applicationHostDTO);
         String hostIdKey = buildHostIdKey(applicationHostDTO);
         redisTemplate.opsForValue().set(hostIpKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
@@ -160,13 +162,7 @@ public class HostCache {
         redisTemplate.executePipelined(new SessionCallback<Object>() {
             @Override
             public Object execute(@NotNull RedisOperations operations) throws DataAccessException {
-                hosts.forEach(host -> {
-                    CacheHostDO cacheHost = CacheHostDO.fromApplicationHostDTO(host);
-                    String hostIpKey = buildHostIpKey(host);
-                    String hostIdKey = buildHostIdKey(host);
-                    operations.opsForValue().set(hostIpKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
-                    operations.opsForValue().set(hostIdKey, cacheHost, EXPIRE_DAYS, TimeUnit.DAYS);
-                });
+                hosts.forEach(host -> addOrUpdateHost(host));
                 return null;
             }
         });
