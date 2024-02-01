@@ -63,15 +63,24 @@ public class JobSrcFileUtils {
         String standardTargetDir = FilePathUtils.standardizedDirPath(targetDir);
         long currentTime = System.currentTimeMillis();
         for (JobFile srcFile : srcFiles) {
-            // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
-            String destDirPath = MacroUtil.resolveFileSrcIpMacro(standardTargetDir,
-                srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" :
-                    srcFile.getExecuteObject().getHost().getBkCloudId() + "_"
-                        + srcFile.getExecuteObject().getHost().getPrimaryIp());
+            String destDirPath = resolveFileSrcIp(standardTargetDir, srcFile);
             destDirPath = MacroUtil.resolveDate(destDirPath, currentTime);
             addSourceDestPathMapping(sourceDestPathMap, srcFile, destDirPath, targetFileName);
         }
         return sourceDestPathMap;
+    }
+
+
+    private static String resolveFileSrcIp(String targetFilePath, JobFile srcFile) {
+        // 本地文件的源ip是本机ip，展开源文件IP地址宏采用"0.0.0.0"
+        String resolvedTargetPath = targetFilePath;
+        if (srcFile.getExecuteObject().isHostExecuteObject()) {
+            resolvedTargetPath = MacroUtil.resolveFileSrcIpMacro(targetFilePath,
+                srcFile.getFileType() == TaskFileTypeEnum.LOCAL ? "0_0.0.0.0" :
+                    srcFile.getExecuteObject().getHost().getBkCloudId() + "_"
+                        + srcFile.getExecuteObject().getHost().getPrimaryIp());
+        }
+        return resolvedTargetPath;
     }
 
     private static void addSourceDestPathMapping(Map<JobFile, FileDest> sourceDestPathMap,
