@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.StringJoiner;
+
 /**
  * Redis 缓存主机DO
  */
@@ -93,6 +95,8 @@ public class CacheHostDO {
      */
     private String osType;
 
+    private long cacheTime;
+
     public ApplicationHostDTO toApplicationHostDTO() {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setBizId(this.bizId);
@@ -123,5 +127,23 @@ public class CacheHostDO {
         cacheHost.setOsType(host.getOsType());
         cacheHost.setGseAgentStatus(host.getGseAgentStatus());
         return cacheHost;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", CacheHostDO.class.getSimpleName() + "[", "]")
+            .add("cloudAreaId=" + cloudAreaId)
+            .add("ip='" + ip + "'")
+            .add("ipv6='" + ipv6 + "'")
+            .add("hostId=" + hostId)
+            .add("agentId='" + agentId + "'")
+            .add("appId=" + appId)
+            .add("bizId=" + bizId)
+            .add("hostDesc='" + hostDesc + "'")
+            .add("gseAgentStatus=" + gseAgentStatus)
+            .add("os='" + os + "'")
+            .add("osType='" + osType + "'")
+            .add("cacheTime=" + cacheTime)
+            .toString();
     }
 }
