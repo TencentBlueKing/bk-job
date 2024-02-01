@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class VersionInfoLogApplicationRunner implements ApplicationRunner {
-    @Value("${spring.application.name}")
+    @Value("${spring.application.name:bk-job}")
     private String serviceName;
     private final BuildProperties buildProperties;
 
