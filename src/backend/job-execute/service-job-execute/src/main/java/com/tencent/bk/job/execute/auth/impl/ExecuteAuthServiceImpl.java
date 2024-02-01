@@ -450,6 +450,20 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
+    private List<PermissionResource> convertContainersToPermissionResourceList(AppResourceScope appResourceScope) {
+        List<PermissionResource> hostResources = new ArrayList<>();
+        PermissionResource resource = new PermissionResource();
+        resource.setResourceId(appResourceScope.getId());
+        resource.setResourceType(ResourceTypeEnum.HOST);
+        resource.setSubResourceType("container");
+        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setSystemId(SystemId.CMDB);
+        resource.setType(CcNodeTypeEnum.BIZ.getType());
+        resource.setParentHierarchicalResources(null);
+        hostResources.add(resource);
+        return hostResources;
+    }
+
     private List<PermissionResource> convertHostsToPermissionResourceList(AppResourceScope appResourceScope,
                                                                           ExecuteObjectsDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
@@ -474,6 +488,10 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         }
         if (!CollectionUtils.isEmpty(servers.getDynamicServerGroups())) {
             hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, servers));
+        }
+        // 静态容器
+        if (!CollectionUtils.isEmpty(servers.getStaticContainerList())) {
+            hostResources.addAll(convertContainersToPermissionResourceList(appResourceScope));
         }
         return hostResources;
     }
