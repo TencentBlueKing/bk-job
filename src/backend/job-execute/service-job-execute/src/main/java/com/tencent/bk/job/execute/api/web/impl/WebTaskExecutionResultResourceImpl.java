@@ -1069,6 +1069,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             StepExecutionRecordVO vo = new StepExecutionRecordVO();
             vo.setStepInstanceId(stepInstanceId);
             vo.setRetryCount(stepExecutionRecord.getRetryCount());
+            vo.setExecuteCount(stepExecutionRecord.getRetryCount());
             vo.setCreateTime(stepExecutionRecord.getCreateTime());
             return vo;
         }).collect(Collectors.toList()));
