@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.job.manage.common.consts.TemplateTypeEnum;
@@ -62,7 +63,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -256,7 +256,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @AuditEntry(
         actionId = ActionId.DELETE_JOB_TEMPLATE,
         subActionIds = {ActionId.DELETE_JOB_PLAN}

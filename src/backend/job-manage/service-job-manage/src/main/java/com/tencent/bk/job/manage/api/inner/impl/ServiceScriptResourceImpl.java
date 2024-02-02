@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
@@ -41,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -99,7 +99,7 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public InternalResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
                                                                           Long lastModifyTime, String lastModifyUser,
                                                                           Integer scriptStatus, Long appId,

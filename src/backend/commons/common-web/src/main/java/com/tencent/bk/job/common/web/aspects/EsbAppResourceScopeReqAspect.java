@@ -43,7 +43,7 @@ public class EsbAppResourceScopeReqAspect {
         this.appScopeMappingService = appScopeMappingService;
     }
 
-    @Before("execution(* com.tencent.bk.job.*.api.esb..*.*(..)))")
+    @Before("within(com.tencent.bk.job..*) && execution(* com.tencent.bk.job.*.api.esb..*.*(..)))")
     public void handleAppScopeReq(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         for (Object arg : args) {

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.plan.impl;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
@@ -32,7 +33,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class TaskPlanVariableServiceImpl extends AbstractTaskVariableService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public boolean batchUpdateVariableByName(List<TaskVariableDTO> variableList) {
         if (CollectionUtils.isEmpty(variableList)) {
             return false;

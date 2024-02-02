@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -56,7 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,7 +110,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileSourceId, filePathList, null);
     }
 
-    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
                                                          Integer executeCount, String batchTaskId,
                                                          Integer fileSourceId, List<String> filePathList,

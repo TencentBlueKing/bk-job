@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.engine.prepare.local;
 
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.model.FileDetailDTO;

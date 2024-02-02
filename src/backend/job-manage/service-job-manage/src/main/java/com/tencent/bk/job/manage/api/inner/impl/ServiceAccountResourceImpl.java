@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -45,7 +46,6 @@ import com.tencent.bk.job.manage.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public InternalResponse<ServiceAccountDTO> saveOrGetAccount(String username, Long createTime, Long lastModifyTime,
                                                                 String lastModifyUser, Long appId,
                                                                 AccountCreateUpdateReq accountCreateUpdateReq) {

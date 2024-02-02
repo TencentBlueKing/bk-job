@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import com.tencent.bk.job.manage.model.tables.GlobalSetting;
@@ -34,7 +35,6 @@ import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,7 +52,7 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public int upsertGlobalSetting(GlobalSettingDTO globalSettingDTO) {
         AtomicInteger affectedNum = new AtomicInteger(0);
         deleteGlobalSetting(globalSettingDTO.getKey());

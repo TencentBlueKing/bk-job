@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.tables.TaskPlanVariable;
@@ -48,7 +49,6 @@ import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -249,7 +249,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public boolean updateVariableByName(TaskVariableDTO variable) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.equal(ULong.valueOf(variable.getPlanId())));

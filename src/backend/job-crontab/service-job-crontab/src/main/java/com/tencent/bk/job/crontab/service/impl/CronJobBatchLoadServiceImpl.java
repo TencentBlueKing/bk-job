@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobBatchLoadService;
 import com.tencent.bk.job.crontab.service.CronJobService;
@@ -31,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class}, timeout = 30)
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager", timeout = 30)
     public CronLoadResult batchLoadCronToQuartz(int start, int limit) {
         int successNum = 0;
         int failedNum = 0;
