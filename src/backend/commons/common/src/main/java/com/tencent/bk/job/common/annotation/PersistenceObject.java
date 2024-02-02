@@ -33,7 +33,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 用于表示某个持久对象，该对象会被持久化到DB中,所以对于该对象的改动需要谨慎，避免破坏性的修改(比如修改字段名)
+ * 用于标识持久化的对象。该对象会被持久化到DB中,所以对于该对象的改动需要谨慎，避免破坏性的修改(比如修改字段名)
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

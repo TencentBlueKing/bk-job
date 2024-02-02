@@ -27,23 +27,23 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.execute.model.tables.records.GseTaskIpLogRecord;
+import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
- * gse_task_ip_log 表归档
+ * gse_file_execute_obj_task 表归档
  */
-public class GseTaskIpLogArchivist extends AbstractArchivist<GseTaskIpLogRecord> {
+public class GseFileExecuteObjTaskArchivist extends AbstractArchivist<GseFileExecuteObjTaskRecord> {
 
-    public GseTaskIpLogArchivist(GseTaskIpLogRecordDAO executeRecordDAO,
-                                 ExecuteArchiveDAO executeArchiveDAO,
-                                 ArchiveProgressService archiveProgressService,
-                                 ArchiveDBProperties archiveDBProperties,
-                                 Long maxNeedArchiveId,
-                                 CountDownLatch countDownLatch) {
+    public GseFileExecuteObjTaskArchivist(GseFileExecuteObjTaskRecordDAO executeRecordDAO,
+                                          ExecuteArchiveDAO executeArchiveDAO,
+                                          ArchiveProgressService archiveProgressService,
+                                          ArchiveDBProperties archiveDBProperties,
+                                          Long maxNeedArchiveId,
+                                          CountDownLatch countDownLatch) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,

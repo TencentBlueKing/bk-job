@@ -27,29 +27,29 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.execute.model.tables.records.GseTaskLogRecord;
+import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
- * gse_task_log 表归档
+ * gse_script_execute_obj_task 表归档
  */
-public class GseTaskLogArchivist extends AbstractArchivist<GseTaskLogRecord> {
+public class GseScriptExecuteObjTaskArchivist extends AbstractArchivist<GseScriptExecuteObjTaskRecord> {
 
-    public GseTaskLogArchivist(GseTaskLogRecordDAO executeRecordDAO,
-                               ExecuteArchiveDAO executeArchiveDAO,
-                               ArchiveProgressService archiveProgressService,
-                               ArchiveDBProperties archiveDBProperties,
-                               Long maxNeedArchiveId,
-                               CountDownLatch countDownLatch) {
+    public GseScriptExecuteObjTaskArchivist(GseScriptExecuteObjTaskRecordDAO executeRecordDAO,
+                                            ExecuteArchiveDAO executeArchiveDAO,
+                                            ArchiveProgressService archiveProgressService,
+                                            ArchiveDBProperties archiveDBProperties,
+                                            Long maxNeedArchiveId,
+                                            CountDownLatch countDownLatch) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveDBProperties,
             maxNeedArchiveId,
             countDownLatch);
-        this.deleteIdStepSize = 10_000;
+        this.deleteIdStepSize = 1_000;
     }
 }

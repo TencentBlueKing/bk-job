@@ -41,7 +41,7 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE;
 
 /**
- * 兼容历史版本的实现
+ * 用来标识兼容历史版本的实现
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
