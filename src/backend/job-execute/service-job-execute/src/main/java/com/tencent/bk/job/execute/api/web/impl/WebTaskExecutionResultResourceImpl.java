@@ -458,7 +458,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             stepExecutionVO.setUserList(stepExecutionDTO.getConfirmUsers());
             if (stepExecutionDTO.getConfirmRoles() != null && !stepExecutionDTO.getConfirmRoles().isEmpty()) {
                 List<String> roleNames = new ArrayList<>();
-                Map<String, String> roleCodeAndName = null;
+                Map<String, String> roleCodeAndName;
                 try {
                     roleCodeAndName = roleCache.get(JobContextUtil.getUserLang());
                 } catch (Exception e) {
@@ -888,11 +888,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 result.setFinished(
                     executeObjectLogContents.stream()
                         .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                        .noneMatch(fileLog ->
-                            (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
-                                || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
-                                || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
-                                || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
+                        .allMatch(fileLog -> FileDistStatusEnum.isFinishedStatus(fileLog.getStatus())));
             }
         }
         Collections.sort(fileDistDetailVOS);
@@ -966,7 +962,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());
         FileDistStatusEnum fileDistStatus = FileDistStatusEnum.getFileDistStatus(fileLog.getStatus());
-        fileDistDetailVO.setStatusDesc(fileDistStatus != null ? fileDistStatus.getName() : "");
+        fileDistDetailVO.setStatusDesc(fileDistStatus.getName());
         fileDistDetailVO.setStatus(fileLog.getStatus());
         fileDistDetailVO.setLogContent(fileLog.getContent());
         return fileDistDetailVO;
@@ -988,7 +984,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setProgress(fileLog.getProcess());
         fileDistDetailVO.setSpeed(fileLog.getSpeed());
         FileDistStatusEnum fileDistStatus = FileDistStatusEnum.getFileDistStatus(fileLog.getStatus());
-        fileDistDetailVO.setStatusDesc(fileDistStatus != null ? fileDistStatus.getName() : "");
+        fileDistDetailVO.setStatusDesc(fileDistStatus.getName());
         fileDistDetailVO.setStatus(fileLog.getStatus());
         fileDistDetailVO.setLogContent(fileLog.getContent());
         return fileDistDetailVO;
@@ -1203,11 +1199,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                     result.setFinished(
                         executeObjectLogContents.stream()
                             .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                            .noneMatch(fileLog ->
-                                (fileLog.getStatus().equals(FileDistStatusEnum.DOWNLOADING.getValue())
-                                    || fileLog.getStatus().equals(FileDistStatusEnum.UPLOADING.getValue())
-                                    || fileLog.getStatus().equals(FileDistStatusEnum.WAITING.getValue()))
-                                    || fileLog.getStatus().equals(FileDistStatusEnum.PULLING.getValue())));
+                            .allMatch(fileLog -> FileDistStatusEnum.isFinishedStatus(fileLog.getStatus())));
                 }
                 break;
         }

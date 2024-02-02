@@ -329,16 +329,12 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return false;
         }
-        return fileTaskLogs.stream().noneMatch(this::isFileTaskNotFinished);
+        return fileTaskLogs.stream().allMatch(this::isFileTaskFinished);
     }
 
-    private boolean isFileTaskNotFinished(ServiceFileTaskLogDTO fileTaskLog) {
+    private boolean isFileTaskFinished(ServiceFileTaskLogDTO fileTaskLog) {
         FileDistStatusEnum status = FileDistStatusEnum.getFileDistStatus(fileTaskLog.getStatus());
-        if (status == null) {
-            return true;
-        }
-        return status == FileDistStatusEnum.DOWNLOADING || status == FileDistStatusEnum.UPLOADING
-            || status == FileDistStatusEnum.PULLING || status == FileDistStatusEnum.WAITING;
+        return FileDistStatusEnum.isFinishedStatus(status);
     }
 
     @Override
