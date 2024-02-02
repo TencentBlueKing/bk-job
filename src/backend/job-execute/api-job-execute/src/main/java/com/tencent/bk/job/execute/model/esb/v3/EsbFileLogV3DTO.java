@@ -55,6 +55,15 @@ public class EsbFileLogV3DTO {
     @JsonProperty("log_content")
     private String logContent;
 
+    @JsonProperty("size")
+    private String size;
+
+    @JsonProperty("speed")
+    private String speed;
+
+    @JsonProperty("process")
+    private String process;
+
 }
 
 

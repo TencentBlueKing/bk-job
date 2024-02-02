@@ -103,7 +103,10 @@
                         }, 
                         "dest_path": "/tmp/1.log", 
                         "status": 4,
-                        "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success" 
+                        "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success",
+                        "size": "1.0 Bytes", 
+                        "speed": "0 KB/s", 
+                        "process": "100%" 
                     }
                 ]
             },
@@ -121,7 +124,10 @@
                         }, 
                         "src_path": "/data/1.log",  
                         "status": 4,
-                        "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload"
+                        "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload",
+                        "size": "1.0 Bytes", 
+                        "speed": "0 KB/s", 
+                        "process": "100%" 
                     }
                 ]
             }
@@ -176,15 +182,18 @@
 
 #### file_log
 
-| 字段      | 类型      | 描述      |
-|-----------|-----------|-----------|
-| mode | int | 分发模式。0:上传;1:下载|
-| src_ip |  object |文件源主机IP。定义见ip |
-| src_path | string | 源文件路径 |
-| dest_ip | object | 分发目标主机IP，mode=1时有值。定义见ip |
-| dest_path | string | 目标路径，mode=1时有值 |
-| status | int | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
-| log_content | string | 文件分发日志内容 |
+| 字段          | 类型      | 描述      |
+|--------------|-----------|-----------|
+| mode         | 分发模式 | 0:上传;1:下载|
+| src_ip       |  object |文件源主机IP。定义见ip |
+| src_path     | string | 源文件路径 |
+| dest_ip      | object | 分发目标主机IP，mode=1时有值。定义见ip |
+| dest_path    | string | 目标路径，mode=1时有值 |
+| status       | int | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
+| log_content  | string | 文件分发日志内容 |
+| size         | string | 文件大小    |
+| speed        | string | 文件传输速率 |
+| process      | string | 文件传输进度 |
 
 #### ip
 

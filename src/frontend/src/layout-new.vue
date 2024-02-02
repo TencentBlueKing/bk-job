@@ -26,255 +26,260 @@
 -->
 
 <template>
-  <site-frame
-    :side-fixed="isFrameSideFixed"
-    @on-side-expand="handleSideExpandChange"
-    @on-side-fixed="handleSideFixedChnage">
-    <template slot="header">
-      <icon
-        style="font-size: 28px; color: #96a2b9;"
-        svg
-        type="job-logo"
-        @click="handleRouterChange('home')" />
-      <span
-        class="site-title"
-        @click="handleRouterChange('home')">
-        {{ $t('蓝鲸作业平台') }}
-      </span>
-    </template>
-    <template slot="headerCenter">
-      <div class="top-menu-box">
-        <div
-          v-test="{ type: 'navigation', value: 'home' }"
-          class="top-menu-item"
-          :class="{ active: routerGroup === 'business' }"
+  <div>
+    <notice-component
+      v-if="isEnableBKNotice"
+      :api-url="noticApiUrl" />
+    <site-frame
+      :side-fixed="isFrameSideFixed"
+      @on-side-expand="handleSideExpandChange"
+      @on-side-fixed="handleSideFixedChnage">
+      <template slot="header">
+        <icon
+          style="font-size: 28px; color: #96a2b9;"
+          svg
+          type="job-logo"
+          @click="handleRouterChange('home')" />
+        <span
+          class="site-title"
           @click="handleRouterChange('home')">
-          {{ $t('作业管理') }}
+          {{ $t('蓝鲸作业平台') }}
+        </span>
+      </template>
+      <template slot="headerCenter">
+        <div class="top-menu-box">
+          <div
+            v-test="{ type: 'navigation', value: 'home' }"
+            class="top-menu-item"
+            :class="{ active: routerGroup === 'business' }"
+            @click="handleRouterChange('home')">
+            {{ $t('作业管理') }}
+          </div>
+          <div
+            v-test="{ type: 'navigation', value: 'dashboard' }"
+            class="top-menu-item"
+            :class="{ active: routerGroup === 'operation' }"
+            @click="handleRouterChange('dashboard')">
+            {{ $t('运营分析') }}
+          </div>
+          <div
+            v-test="{ type: 'navigation', value: 'scriptTemplate' }"
+            class="top-menu-item"
+            :class="{ active: routerGroup === 'personal' }"
+            @click="handleRouterChange('scriptTemplate')">
+            {{ $t('个性化') }}
+          </div>
+          <div
+            v-if="isAdmin"
+            v-test="{ type: 'navigation', value: 'publicScriptList' }"
+            class="top-menu-item"
+            :class="{ active: routerGroup === 'manage' }"
+            @click="handleRouterChange('publicScriptList')">
+            {{ $t('平台管理') }}
+          </div>
         </div>
+      </template>
+      <template slot="headerRight">
+        <slot name="headerRight" />
+      </template>
+      <template
+        v-if="routerGroup === 'business'"
+        slot="sideAppendBefore">
+        <div class="app-select-box">
+          <app-select
+            :show-icon="!isFrameSideFixed && !isSideExpand"
+            style="background: #2d3542;" />
+        </div>
+      </template>
+      <template slot="side">
+        <jb-menu
+          default-active="fastExecuteScript"
+          :flod="!isFrameSideFixed && !isSideExpand"
+          @select="handleRouterChange">
+          <template v-if="routerGroup === 'business'">
+            <jb-item index="home">
+              <icon type="job-homepage" />
+              {{ $t('业务概览') }}
+            </jb-item>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('快速执行') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('快速') }}
+              </div>
+              <jb-item index="fastExecuteScript">
+                <icon type="job-fast-script" />
+                {{ $t('脚本执行') }}
+              </jb-item>
+              <jb-item index="fastPushFile">
+                <icon type="job-fast-file" />
+                {{ $t('文件分发') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('任务编排') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('任务') }}
+              </div>
+              <jb-item index="taskManage">
+                <icon type="job-job" />
+                {{ $t('作业') }}
+              </jb-item>
+              <jb-item index="planManage">
+                <icon type="plan" />
+                {{ $t('执行方案') }}
+              </jb-item>
+              <jb-item index="cronJob">
+                <icon type="job-timing" />
+                {{ $t('定时') }}
+              </jb-item>
+              <jb-item index="executiveHistory">
+                <icon type="job-history" />
+                {{ $t('执行历史') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('资源.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('资源.flodTitle') }}
+              </div>
+              <jb-item index="scriptManage">
+                <icon type="job-script" />
+                {{ $t('脚本') }}
+              </jb-item>
+              <jb-item index="accountManage">
+                <icon type="job-account" />
+                {{ $t('账号') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group v-if="isEnableFeatureFileManage">
+              <div slot="title">
+                {{ $t('文件源.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('文件') }}
+              </div>
+              <jb-item index="fileManage">
+                <icon type="file-fill" />
+                {{ $t('文件源.menu') }}
+              </jb-item>
+              <jb-item index="ticketManage">
+                <icon type="certificate" />
+                {{ $t('凭证') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('管理.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('管理.flodTitle') }}
+              </div>
+              <jb-item index="tagManage">
+                <icon type="tag" />
+                {{ $t('标签') }}
+              </jb-item>
+              <jb-item index="notifyManage">
+                <icon type="job-message" />
+                {{ $t('消息通知') }}
+              </jb-item>
+            </jb-item-group>
+          </template>
+          <template v-if="routerGroup === 'operation'">
+            <jb-item index="dashboard">
+              <icon type="dashboard" />
+              {{ $t('运营视图') }}
+            </jb-item>
+          </template>
+          <template v-if="routerGroup === 'personal'">
+            <jb-item index="scriptTemplate">
+              <icon type="dashboard" />
+              {{ $t('脚本模板') }}
+            </jb-item>
+          </template>
+          <template v-if="routerGroup === 'manage'">
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('资源.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('资源.flodTitle') }}
+              </div>
+              <jb-item index="publicScript">
+                <icon type="job-public-script" />
+                {{ $t('公共脚本') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('设置.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('设置.flodTitle') }}
+              </div>
+              <jb-item index="whiteIp">
+                <icon type="job-white-list" />
+                {{ $t('IP 白名单') }}
+              </jb-item>
+              <jb-item index="globalSetting">
+                <icon type="job-setting" />
+                {{ $t('全局设置') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('安全.menuGroup') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('安全.flodTitle') }}
+              </div>
+              <jb-item index="dangerousRuleManage">
+                <icon type="gaoweiyujujiance" />
+                {{ $t('高危语句规则') }}
+              </jb-item>
+              <jb-item index="detectRecords">
+                <icon type="lanjiejilu" />
+                {{ $t('检测记录') }}
+              </jb-item>
+            </jb-item-group>
+            <jb-item-group>
+              <div slot="title">
+                {{ $t('视图') }}
+              </div>
+              <div slot="flod-title">
+                {{ $t('视图') }}
+              </div>
+              <jb-item index="service">
+                <icon type="status-2" />
+                {{ $t('服务状态') }}
+              </jb-item>
+            </jb-item-group>
+          </template>
+        </jb-menu>
+      </template>
+      <template slot="contentHeader">
+        <slot name="back" />
         <div
-          v-test="{ type: 'navigation', value: 'dashboard' }"
-          class="top-menu-item"
-          :class="{ active: routerGroup === 'operation' }"
-          @click="handleRouterChange('dashboard')">
-          {{ $t('运营分析') }}
+          id="sitePageTitle"
+          class="page-title">
+          <div class="page-title-text">
+            {{ routerTitle }}
+          </div>
+          <div
+            v-once
+            id="siteHeaderStatusBar" />
         </div>
-        <div
-          v-test="{ type: 'navigation', value: 'scriptTemplate' }"
-          class="top-menu-item"
-          :class="{ active: routerGroup === 'personal' }"
-          @click="handleRouterChange('scriptTemplate')">
-          {{ $t('个性化') }}
-        </div>
-        <div
-          v-if="isAdmin"
-          v-test="{ type: 'navigation', value: 'publicScriptList' }"
-          class="top-menu-item"
-          :class="{ active: routerGroup === 'manage' }"
-          @click="handleRouterChange('publicScriptList')">
-          {{ $t('平台管理') }}
-        </div>
+      </template>
+      <div v-test="{ type: 'page', value: $route.name }">
+        <slot />
       </div>
-    </template>
-    <template slot="headerRight">
-      <slot name="headerRight" />
-    </template>
-    <template
-      v-if="routerGroup === 'business'"
-      slot="sideAppendBefore">
-      <div class="app-select-box">
-        <app-select
-          :show-icon="!isFrameSideFixed && !isSideExpand"
-          style="background: #2d3542;" />
-      </div>
-    </template>
-    <template slot="side">
-      <jb-menu
-        default-active="fastExecuteScript"
-        :flod="!isFrameSideFixed && !isSideExpand"
-        @select="handleRouterChange">
-        <template v-if="routerGroup === 'business'">
-          <jb-item index="home">
-            <icon type="job-homepage" />
-            {{ $t('业务概览') }}
-          </jb-item>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('快速执行') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('快速') }}
-            </div>
-            <jb-item index="fastExecuteScript">
-              <icon type="job-fast-script" />
-              {{ $t('脚本执行') }}
-            </jb-item>
-            <jb-item index="fastPushFile">
-              <icon type="job-fast-file" />
-              {{ $t('文件分发') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('任务编排') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('任务') }}
-            </div>
-            <jb-item index="taskManage">
-              <icon type="job-job" />
-              {{ $t('作业') }}
-            </jb-item>
-            <jb-item index="planManage">
-              <icon type="plan" />
-              {{ $t('执行方案') }}
-            </jb-item>
-            <jb-item index="cronJob">
-              <icon type="job-timing" />
-              {{ $t('定时') }}
-            </jb-item>
-            <jb-item index="executiveHistory">
-              <icon type="job-history" />
-              {{ $t('执行历史') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('资源.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('资源.flodTitle') }}
-            </div>
-            <jb-item index="scriptManage">
-              <icon type="job-script" />
-              {{ $t('脚本') }}
-            </jb-item>
-            <jb-item index="accountManage">
-              <icon type="job-account" />
-              {{ $t('账号') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group v-if="isEnableFeatureFileManage">
-            <div slot="title">
-              {{ $t('文件源.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('文件') }}
-            </div>
-            <jb-item index="fileManage">
-              <icon type="file-fill" />
-              {{ $t('文件源.menu') }}
-            </jb-item>
-            <jb-item index="ticketManage">
-              <icon type="certificate" />
-              {{ $t('凭证') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('管理.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('管理.flodTitle') }}
-            </div>
-            <jb-item index="tagManage">
-              <icon type="tag" />
-              {{ $t('标签') }}
-            </jb-item>
-            <jb-item index="notifyManage">
-              <icon type="job-message" />
-              {{ $t('消息通知') }}
-            </jb-item>
-          </jb-item-group>
-        </template>
-        <template v-if="routerGroup === 'operation'">
-          <jb-item index="dashboard">
-            <icon type="dashboard" />
-            {{ $t('运营视图') }}
-          </jb-item>
-        </template>
-        <template v-if="routerGroup === 'personal'">
-          <jb-item index="scriptTemplate">
-            <icon type="dashboard" />
-            {{ $t('脚本模板') }}
-          </jb-item>
-        </template>
-        <template v-if="routerGroup === 'manage'">
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('资源.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('资源.flodTitle') }}
-            </div>
-            <jb-item index="publicScript">
-              <icon type="job-public-script" />
-              {{ $t('公共脚本') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('设置.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('设置.flodTitle') }}
-            </div>
-            <jb-item index="whiteIp">
-              <icon type="job-white-list" />
-              {{ $t('IP 白名单') }}
-            </jb-item>
-            <jb-item index="globalSetting">
-              <icon type="job-setting" />
-              {{ $t('全局设置') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('安全.menuGroup') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('安全.flodTitle') }}
-            </div>
-            <jb-item index="dangerousRuleManage">
-              <icon type="gaoweiyujujiance" />
-              {{ $t('高危语句规则') }}
-            </jb-item>
-            <jb-item index="detectRecords">
-              <icon type="lanjiejilu" />
-              {{ $t('检测记录') }}
-            </jb-item>
-          </jb-item-group>
-          <jb-item-group>
-            <div slot="title">
-              {{ $t('视图') }}
-            </div>
-            <div slot="flod-title">
-              {{ $t('视图') }}
-            </div>
-            <jb-item index="service">
-              <icon type="status-2" />
-              {{ $t('服务状态') }}
-            </jb-item>
-          </jb-item-group>
-        </template>
-      </jb-menu>
-    </template>
-    <template slot="contentHeader">
-      <slot name="back" />
-      <div
-        id="sitePageTitle"
-        class="page-title">
-        <div class="page-title-text">
-          {{ routerTitle }}
-        </div>
-        <div
-          v-once
-          id="siteHeaderStatusBar" />
-      </div>
-    </template>
-    <div v-test="{ type: 'page', value: $route.name }">
-      <slot />
-    </div>
-  </site-frame>
+    </site-frame>
+  </div>
 </template>
 <script setup>
   import {
@@ -290,6 +295,8 @@
   import JbItemGroup from '@components/jb-menu/item-group';
   import SiteFrame from '@components/site-frame';
 
+  import  NoticeComponent  from  '@blueking/notice-component-vue2';
+
   import {
     useRoute,
     useRouter,
@@ -303,9 +310,12 @@
   const isAdmin = ref(false);
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
+  const isEnableBKNotice = ref(false);
 
   const route = useRoute();
   const router = useRouter();
+
+  const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
 
   watch(route, (currentRoute) => {
     routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
@@ -337,6 +347,7 @@
    */
   QueryGlobalSettingService.fetchJobConfig()
     .then((data) => {
+      isEnableBKNotice.value = data.ENABLE_BK_NOTICE;
       isEnableFeatureFileManage.value = data.ENABLE_FEATURE_FILE_MANAGE;
     });
 

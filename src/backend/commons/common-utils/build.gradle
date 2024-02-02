@@ -23,6 +23,7 @@
  */
 
 dependencies {
+    api 'commons-io:commons-io'
     api 'com.fasterxml.jackson.core:jackson-core'
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'

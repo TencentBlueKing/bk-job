@@ -143,6 +143,8 @@ app:
 bk-api-gateway:
   gse:
     url: gse.apigw.com
+  bkNotice:
+    url: bk-notice.apigw.com
 esb:
   service:
     url: esb.service

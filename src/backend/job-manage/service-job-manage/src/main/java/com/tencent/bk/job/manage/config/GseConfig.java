@@ -24,13 +24,17 @@
 
 package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.AutoChoosingAgentStateClientImpl;
 import com.tencent.bk.job.common.gse.service.BizHostInfoQueryService;
+import com.tencent.bk.job.common.gse.service.GseV1AgentStateClientImpl;
+import com.tencent.bk.job.common.gse.service.GseV2AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.service.UseV2ByFeatureAgentStateClientImpl;
+import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,21 +47,46 @@ public class GseConfig {
 
     public static final String MANAGE_BEAN_PREFIX = "jobManage";
     public static final String MANAGE_BEAN_AGENT_STATE_CLIENT = MANAGE_BEAN_PREFIX + "AgentStateClient";
+    public static final String MANAGE_BEAN_GSE_V1_AGENT_STATE_CLIENT = MANAGE_BEAN_PREFIX + "GseV1AgentStateClient";
+    public static final String MANAGE_BEAN_GSE_V2_AGENT_STATE_CLIENT = MANAGE_BEAN_PREFIX + "GseV2AgentStateClient";
     public static final String MANAGE_BEAN_USE_V2_BY_FEATURE_AGENT_STATE_CLIENT =
         MANAGE_BEAN_PREFIX + DefaultBeanNames.USE_V2_BY_FEATURE_AGENT_STATE_CLIENT;
 
-    @Bean(MANAGE_BEAN_USE_V2_BY_FEATURE_AGENT_STATE_CLIENT)
-    public AgentStateClient useV2ByFeatureAgentStateClient(AgentStateQueryConfig agentStateQueryConfig,
-                                                           GseClient gseClient,
-                                                           @Qualifier("jobManageBizHostInfoQueryService")
-                                                               BizHostInfoQueryService bizHostInfoQueryService,
+    @Bean(MANAGE_BEAN_GSE_V1_AGENT_STATE_CLIENT)
+    public GseV1AgentStateClientImpl gseV1AgentStateClient(AgentStateQueryConfig agentStateQueryConfig,
+                                                           ObjectProvider<GseV1ApiClient> gseV1ApiClient,
                                                            @Qualifier(DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
                                                                ThreadPoolExecutor threadPoolExecutor) {
-        return new UseV2ByFeatureAgentStateClientImpl(
+        return new GseV1AgentStateClientImpl(
             agentStateQueryConfig,
-            gseClient,
-            bizHostInfoQueryService,
+            gseV1ApiClient.getIfAvailable(),
             threadPoolExecutor
+        );
+    }
+
+    @Bean(MANAGE_BEAN_GSE_V2_AGENT_STATE_CLIENT)
+    public GseV2AgentStateClientImpl gseV2AgentStateClient(AgentStateQueryConfig agentStateQueryConfig,
+                                                           ObjectProvider<GseV2ApiClient> gseV2ApiClient,
+                                                           @Qualifier(DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
+                                                               ThreadPoolExecutor threadPoolExecutor) {
+        return new GseV2AgentStateClientImpl(
+            agentStateQueryConfig,
+            gseV2ApiClient.getIfAvailable(),
+            threadPoolExecutor
+        );
+    }
+
+    @Bean(MANAGE_BEAN_USE_V2_BY_FEATURE_AGENT_STATE_CLIENT)
+    public AgentStateClient useV2ByFeatureAgentStateClient(@Qualifier(MANAGE_BEAN_GSE_V1_AGENT_STATE_CLIENT)
+                                                               GseV1AgentStateClientImpl gseV1AgentStateClient,
+                                                           @Qualifier(MANAGE_BEAN_GSE_V2_AGENT_STATE_CLIENT)
+                                                               GseV2AgentStateClientImpl gseV2AgentStateClient,
+                                                           @Qualifier("jobManageBizHostInfoQueryService")
+                                                               BizHostInfoQueryService bizHostInfoQueryService) {
+        return new UseV2ByFeatureAgentStateClientImpl(
+            gseV1AgentStateClient,
+            gseV2AgentStateClient,
+            bizHostInfoQueryService
         );
     }
 

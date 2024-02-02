@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
 import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -82,31 +83,44 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         stepInst.setEndTime(stepInstance.getEndTime());
         stepInst.setTotalTime(stepInstance.getTotalTime());
 
-        List<EsbStepInstanceStatusV3DTO.HostResult> stepHostResults = new ArrayList<>();
+        List<EsbStepInstanceStatusV3DTO.StepResultGroup> stepResultGroupList = new ArrayList<>();
         List<AgentTaskResultGroupDTO> resultGroups = executionResult.getResultGroups();
         for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
             List<AgentTaskDetailDTO> agentTaskList = resultGroup.getAgentTasks();
             if (CollectionUtils.isEmpty(agentTaskList)) {
                 continue;
             }
+            EsbStepInstanceStatusV3DTO.StepResultGroup stepResultGroup =
+                new EsbStepInstanceStatusV3DTO.StepResultGroup();
+            stepResultGroup.setResultType(resultGroup.getStatus());
+            AgentTaskStatusEnum taskStatusEnum = AgentTaskStatusEnum.valueOf(resultGroup.getStatus());
+            if (taskStatusEnum != null) {
+                stepResultGroup.setResultTypeDesc(messageI18nService.getI18n(taskStatusEnum.getI18nKey()));
+            }
+            stepResultGroup.setTag(resultGroup.getTag());
+            stepResultGroup.setHostSize(resultGroup.getTotalAgentTasks());
+            List<EsbStepInstanceStatusV3DTO.HostResult> hostResults = new ArrayList<>();
             for (AgentTaskDetailDTO agentTask : agentTaskList) {
                 EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
                 stepHostResult.setHostId(agentTask.getHostId());
                 stepHostResult.setIp(agentTask.getIp());
                 stepHostResult.setIpv6(agentTask.getIpv6());
+                stepHostResult.setAgentId(agentTask.getAgentId());
                 stepHostResult.setCloudAreaId(agentTask.getBkCloudId());
+                stepHostResult.setCloudAreaName(agentTask.getBkCloudName());
                 stepHostResult.setStatus(agentTask.getStatus().getValue());
                 stepHostResult.setStatusDesc(messageI18nService.getI18n(agentTask.getStatus().getI18nKey()));
                 stepHostResult.setTag(agentTask.getTag());
-                stepHostResult.setGroupKey(resultGroup.getGroupKey());
                 stepHostResult.setExitCode(agentTask.getExitCode());
                 stepHostResult.setStartTime(agentTask.getStartTime());
                 stepHostResult.setEndTime(agentTask.getEndTime());
                 stepHostResult.setTotalTime(agentTask.getTotalTime());
-                stepHostResults.add(stepHostResult);
+                hostResults.add(stepHostResult);
             }
+            stepResultGroup.setHostResultList(hostResults);
+            stepResultGroupList.add(stepResultGroup);
         }
-        stepInst.setStepHostResultList(stepHostResults);
+        stepInst.setStepResultGroupList(stepResultGroupList);
         return stepInst;
     }
 

@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @since 6/11/2019 10:26
+ * Job http 请求上下文
  */
 @Data
 public class JobContext {

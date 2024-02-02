@@ -35,6 +35,9 @@ bkApiGateway:
   gse:
     # 蓝鲸 GSE API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-gse网关API文档。
     url: __BK_API_GATEWAY_GSE_URL__
+  bkNotice:
+    # 蓝鲸消息通知中心 API Gateway url。格式:{网关访问地址}/{网关环境}，网关访问地址、网关环境的取值见bk-notice网关API文档。
+    url: __BK_API_GATEWAY_BK_NOTICE_URL__
 gse:
   # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
   enabled: true
@@ -76,6 +79,9 @@ paas:
     url: __BK_PAAS_PUBLIC_URL__
   login:
     url: __BK_PAAS_PUBLIC_URL__/login/
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
 job:
   security:
     service:
@@ -155,3 +161,12 @@ cmdb:
 swagger:
   url: swagger.job.com
 
+log:
+  # 服务后台日志保留的小时数，默认168小时（7天）
+  keep-hours: 168
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clear-by-volume-usage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认200GB
+    max-volume: 200GB

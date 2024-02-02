@@ -185,21 +185,23 @@ public class HostServiceImpl implements HostService {
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
-    public int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+    public Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+        boolean needToCreate = false;
         try {
             if (applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
-                applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
-                return 0;
+                int affectedNum = applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                return Pair.of(needToCreate, affectedNum);
             } else {
+                needToCreate = true;
                 hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                 int affectedNum = applicationHostDAO.insertHostWithoutTopo(hostInfoDTO);
                 log.info("insert host: id={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
-                return affectedNum;
+                return Pair.of(needToCreate, affectedNum);
             }
         } catch (Throwable t) {
             log.error("createOrUpdateHostBeforeLastTime fail", t);
-            return 0;
+            return Pair.of(needToCreate, 0);
         } finally {
             // 从拓扑表向主机表同步拓扑数据
             int affectedNum = applicationHostDAO.syncHostTopo(hostInfoDTO.getHostId());
@@ -209,13 +211,17 @@ public class HostServiceImpl implements HostService {
         }
     }
 
+    public int updateHostAttrsByHostId(ApplicationHostDTO hostInfoDTO) {
+        return applicationHostDAO.updateHostAttrsByHostId(hostInfoDTO);
+    }
+
     public int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
         return applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
     }
 
     @Override
-    public void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteHostBeforeLastTime(
+    public int deleteHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
+        int affectedRowNum = applicationHostDAO.deleteHostBeforeOrEqualLastTime(
             null,
             hostInfoDTO.getHostId(),
             hostInfoDTO.getLastTime()
@@ -229,6 +235,7 @@ public class HostServiceImpl implements HostService {
         if (affectedRowNum > 0) {
             hostCache.deleteHost(hostInfoDTO);
         }
+        return affectedRowNum;
     }
 
     private void updateHostCache(ApplicationHostDTO hostInfoDTO) {

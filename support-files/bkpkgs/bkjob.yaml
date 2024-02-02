@@ -1,0 +1,22 @@
+bkpkg: v1
+name: bkjob
+type: file+tar
+description: 作业平台
+contains:
+relations:
+- rationale: "基础权限体系"
+  requires:
+  - usermgr^2.5.4
+  - bkiam^1.12.0
+  - bk_iam^1.10.0
+- rationale: "ESB"
+  requires:
+  - "bkpaas^2.14.0 OR bk-apigateway^1.12.0"
+- rationale: "支持hostid"
+  requires:
+  - "bk-cmdb^3.10.10"
+- rationale: "命令及文件传输网络"
+  description: "GSE v2，只有v2才支持IPv6。"
+  requires:
+  - "bk-gse^2.0.0"
+bkimports:

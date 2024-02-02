@@ -425,6 +425,8 @@ bkRepoUrl: "http://bkrepo.example.com"
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
 bkGseApiGatewayUrl: "http://bkapi.example.com"
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -569,6 +571,11 @@ login:
     # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
     tokenName: "bk_token"
 
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
+
 ## Job Common Config
 job:
   # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
@@ -651,6 +658,17 @@ persistence:
     enabled: true
     # 临时文件根路径（使用HostPath作为本地存储时同时也是宿主机根路径）
     path: /data/job_temp_file
+
+# 日志留存配置
+log:
+  # 服务后台日志保留的小时数，默认48小时（2天）
+  keepHours: 48
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clearByVolumeUsage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
+    maxVolume: 40GB
 
 ## 蓝鲸日志采集配置
 bkLogConfig:

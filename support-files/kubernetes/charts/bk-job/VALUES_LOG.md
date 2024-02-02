@@ -1,5 +1,33 @@
 # chart values 更新日志
 
+## 0.5.7
+1. 增加日志留存配置
+
+```yaml
+# 日志留存配置
+log:
+  # 服务后台日志保留的小时数，默认48小时（2天）
+  keepHours: 48
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clearByVolumeUsage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
+    maxVolume: 40GB
+```
+
+## 0.5.6
+1. 增加消息通知中心配置
+
+```yaml
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
+```
+
 ## 0.5.5
 1. 增加权限中心web地址配置
 

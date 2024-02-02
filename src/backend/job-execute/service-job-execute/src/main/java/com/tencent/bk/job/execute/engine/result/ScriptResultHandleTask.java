@@ -364,12 +364,13 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 return;
             }
             int offset = agentTask.getScriptLogOffset();
+            int bytes = 0;
             if (StringUtils.isNotEmpty(content)) {
-                int bytes = content.getBytes(StandardCharsets.UTF_8).length;
+                bytes = content.getBytes(StandardCharsets.UTF_8).length;
                 offset += bytes;
                 agentTask.setScriptLogOffset(offset);
             }
-            logs.add(new ServiceScriptLogDTO(host, offset, agentTaskResult.getScreen()));
+            logs.add(new ServiceScriptLogDTO(host, offset, bytes, agentTaskResult.getScreen()));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(agentTaskResult.getScreen(), agentId, agentTaskResult.getAtomicTaskId());

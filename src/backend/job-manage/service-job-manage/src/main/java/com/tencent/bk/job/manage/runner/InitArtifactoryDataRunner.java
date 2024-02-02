@@ -30,8 +30,11 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Component("jobManageInitArtifactoryDataRunner")
@@ -39,18 +42,25 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
+    private final ThreadPoolExecutor initRunnerExecutor;
 
     @Autowired
     public InitArtifactoryDataRunner(
         ArtifactoryConfig artifactoryConfig,
-        LocalFileConfigForManage localFileConfigForManage
+        LocalFileConfigForManage localFileConfigForManage,
+        @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor
     ) {
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForManage = localFileConfigForManage;
+        this.initRunnerExecutor = initRunnerExecutor;
     }
 
     @Override
     public void run(String... args) {
+        initRunnerExecutor.submit(this::initArtifactoryData);
+    }
+
+    public void initArtifactoryData() {
         if (!JobConstants.FILE_STORAGE_BACKEND_ARTIFACTORY.equals(localFileConfigForManage.getStorageBackend())) {
             //不使用制品库作为后端存储时不初始化
             return;

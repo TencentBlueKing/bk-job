@@ -27,8 +27,11 @@ package com.tencent.bk.job.manage.runner;
 import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 进程启动时立即执行一次无效主机清理
@@ -38,14 +41,17 @@ import org.springframework.stereotype.Component;
 public class ClearDeletedHostsRunner implements CommandLineRunner {
 
     private final ClearDeletedHostsTask clearDeletedHostsTask;
+    private final ThreadPoolExecutor initRunnerExecutor;
 
     @Autowired
-    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask) {
+    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask,
+                                   @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
         this.clearDeletedHostsTask = clearDeletedHostsTask;
+        this.initRunnerExecutor = initRunnerExecutor;
     }
 
     @Override
     public void run(String... args) {
-        new Thread(clearDeletedHostsTask::execute).start();
+        initRunnerExecutor.submit(clearDeletedHostsTask::execute);
     }
 }

@@ -24,7 +24,7 @@ public class IamAppTransferAspect {
         this.appScopeMappingService = appScopeMappingService;
     }
 
-    @Pointcut("within(com.tencent.bk.job..*) " +
+    @Pointcut("within(com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl) " +
         "&& execution (* com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl.auth*(..))")
     public void processAuthBusinessAction() {
     }

@@ -38,6 +38,7 @@ public class LocaleUtils {
     public static final String LANG_ZH = "zh";
     public static final String LANG_EN = "en";
     public static final String LANG_EN_US = "en_US";
+
     /**
      * 蓝鲸通用的LANG HEADER
      */
@@ -50,19 +51,28 @@ public class LocaleUtils {
     private static final Map<String, String> localeMap = new HashMap<>();
 
     static {
-        localeMap.put("zh", LANG_ZH);
-        localeMap.put("zh-cn", LANG_ZH_CN);
+        localeMap.put(BkConsts.HEADER_VALUE_LANG_ZH, LANG_ZH);
+        localeMap.put(BkConsts.HEADER_VALUE_LANG_ZH_CN, LANG_ZH_CN);
         localeMap.put("zh_cn", LANG_ZH_CN);
-        localeMap.put("en", LANG_EN);
-        localeMap.put("en-us", LANG_EN_US);
+        localeMap.put(BkConsts.HEADER_VALUE_LANG_EN, LANG_EN);
+        localeMap.put(BkConsts.HEADER_VALUE_LANG_EN_US, LANG_EN_US);
         localeMap.put("en_us", LANG_EN_US);
+    }
+
+    private static final Map<String, String> bkLangMap = new HashMap<>();
+
+    static {
+        bkLangMap.put(LANG_ZH, BkConsts.HEADER_VALUE_LANG_ZH);
+        bkLangMap.put(LANG_ZH_CN, BkConsts.HEADER_VALUE_LANG_ZH_CN);
+        bkLangMap.put(LANG_EN, BkConsts.HEADER_VALUE_LANG_EN);
+        bkLangMap.put(LANG_EN_US, BkConsts.HEADER_VALUE_LANG_EN_US);
     }
 
     /**
      * 对不同形式的language Header值进行统一
      *
-     * @param lang
-     * @return
+     * @param lang 语言Header取值
+     * @return 标准化后的语言Header取值
      */
     public static String getNormalLang(String lang) {
         lang = lang.toLowerCase();
@@ -70,6 +80,19 @@ public class LocaleUtils {
             return localeMap.get(lang);
         }
         return lang;
+    }
+
+    /**
+     * 根据标准语言取值获取蓝鲸协议语言参数取值
+     *
+     * @param normalLang 标准语言取值
+     * @return 蓝鲸协议语言参数取值
+     */
+    public static String getBkLang(String normalLang) {
+        if (bkLangMap.containsKey(normalLang)) {
+            return bkLangMap.get(normalLang);
+        }
+        return null;
     }
 
     public static Locale getLocale(String lang) {

@@ -76,7 +76,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     }
 
     @Override
-    protected void handleEvent(ResourceEvent<BizSetEventDetail> event) {
+    public void handleEvent(ResourceEvent<BizSetEventDetail> event) {
         log.info("Handle BizSetEvent: {}", event);
         ApplicationDTO latestApp = event.getDetail().toApplicationDTO();
         String eventType = event.getEventType();

@@ -1,27 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
+    <contextName>logback</contextName>
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
     <property name="APP_NAME" value="${APP_NAME:-job-config}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-config}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-config}" scope="context"/>
     <property name="APP_LOG_NAME" value="config.log"/>
     <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(%5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} %5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ERROR_LOG_FILE" value="${APP_LOG_DIR}/error.log"/>
 
-    <contextName>logback</contextName>
+    <springProperty name="LOG_KEEP_HOURS" source="log.keep-hours" defaultValue="168"/>
+
+    <define name="LOG_KEEP_DAYS" class="com.tencent.bk.job.common.log.spi.impl.GetDayFromHourPropertyDefiner">
+        <hours>${LOG_KEEP_HOURS}</hours>
+    </define>
+
+    <property name="CLEAN_HISTORY_ON_START" value="${LOGBACK_ROLLINGPOLICY_CLEAN_HISTORY_ON_START:-true}"/>
 
     <appender name="app-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${APP_LOG_FILE}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${APP_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>168</maxHistory>
+            <maxHistory>${LOG_KEEP_HOURS}</maxHistory>
             <totalSizeCap>100GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -33,8 +41,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>7</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>

@@ -22,29 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.file;
+package com.tencent.bk.job.api.v3.model;
 
-public class FileSizeUtil {
-    public static String getFileSizeStr(Long byteNum) {
-        if (byteNum == null) return "--";
-        String[] units = new String[]{"B", "KB", "MB", "GB", "TB", "PB"};
-        int i = 0;
-        double value = (float) byteNum;
-        while (value >= 1024 && i < units.length - 1) {
-            value = value / 1024.;
-            i += 1;
-        }
-        return String.format("%.2f", value) + units[i];
-    }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-    public static void main(String[] args) {
-        System.out.println(getFileSizeStr(1023L));
-        System.out.println(getFileSizeStr(1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L - 1));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L * 1024L));
-    }
+import java.util.List;
+
+@Data
+@EqualsAndHashCode
+public class EsbQueryAgentInfoV3Resp {
+
+    @JsonPropertyDescription("Agent info list")
+    @JsonProperty(value = "agent_info_list")
+    private List<EsbAgentInfoV3DTO> agentInfoList;
 }

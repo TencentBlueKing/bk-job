@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.model.tables.records.EsbUserInfoRecord;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
@@ -39,9 +40,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -116,6 +119,20 @@ public class EsbUserInfoDAOImpl implements EsbUserInfoDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.in(userNames));
         return listEsbUserInfoByConditions(dslContext, conditions, null);
+    }
+
+    @Override
+    public List<String> listExistUserName(Collection<String> userNames) {
+        if (CollectionUtils.isEmpty(userNames)) {
+            return Collections.emptyList();
+        }
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.in(userNames));
+        val baseQuery = dslContext.select(defaultTable.USERNAME)
+            .from(defaultTable)
+            .where(conditions);
+        Result<Record1<String>> records = baseQuery.fetch();
+        return records.map(record -> record.get(defaultTable.USERNAME));
     }
 
     private List<EsbUserInfoDTO> listEsbUserInfoByConditions(DSLContext dslContext, List<Condition> conditions,

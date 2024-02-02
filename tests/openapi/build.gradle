@@ -55,6 +55,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'io.rest-assured:rest-assured:5.3.2'
+    testImplementation 'org.assertj:assertj-core:3.21.0'
 }
 
 test {
