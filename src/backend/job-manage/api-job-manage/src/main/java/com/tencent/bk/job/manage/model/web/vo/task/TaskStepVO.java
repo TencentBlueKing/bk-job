@@ -42,9 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.validation.Valid;
 import java.util.List;
 
-/**
- * @since 16/10/2019 10:37
- */
 @Data
 @ApiModel("任务步骤信息")
 @Slf4j
