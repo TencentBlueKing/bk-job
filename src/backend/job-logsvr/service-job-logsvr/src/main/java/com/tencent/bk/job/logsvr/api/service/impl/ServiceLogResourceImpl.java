@@ -148,6 +148,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                 result.setScriptLog(new ServiceExecuteObjectScriptLogDTO(
                     taskExecuteObjectLog.getExecuteObjectId(),
                     taskExecuteObjectLog.getScriptContent(),
+                    0,
                     0)
                 );
             } else {
@@ -156,6 +157,7 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
                     taskExecuteObjectLog.getIp(),
                     taskExecuteObjectLog.getIpv6(),
                     taskExecuteObjectLog.getScriptContent(),
+                    0,
                     0)
                 );
             }
