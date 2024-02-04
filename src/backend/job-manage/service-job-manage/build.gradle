@@ -39,6 +39,7 @@ dependencies {
     api project(":commons:esb-sdk")
     api project(":commons:gse-sdk")
     api project(":commons:cmdb-sdk")
+    api project(":commons:common-mysql")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"

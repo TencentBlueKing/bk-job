@@ -367,13 +367,14 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                 return;
             }
             int offset = executeObjectTask.getScriptLogOffset();
+            int contentSizeBytes = 0;
             if (StringUtils.isNotEmpty(content)) {
-                int bytes = content.getBytes(StandardCharsets.UTF_8).length;
-                offset += bytes;
+                contentSizeBytes = content.getBytes(StandardCharsets.UTF_8).length;
+                offset += contentSizeBytes;
                 executeObjectTask.setScriptLogOffset(offset);
             }
             logs.add(logService.buildScriptLog(stepInstance, executeObject,
-                executeObjectTaskResult.getScreen(), offset));
+                executeObjectTaskResult.getScreen(), contentSizeBytes, offset));
         }
         // 刷新日志拉取偏移量
         refreshPullLogProgress(executeObjectTaskResult.getScreen(), executeObjectGseKey,

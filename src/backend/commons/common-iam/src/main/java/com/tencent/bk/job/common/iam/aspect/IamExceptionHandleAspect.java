@@ -17,11 +17,13 @@ import org.aspectj.lang.annotation.Pointcut;
 @Aspect
 public class IamExceptionHandleAspect {
 
-    @Pointcut("execution (* com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl.*(..))")
+    @Pointcut("within(com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl) " +
+        "&& execution (* com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl.*(..))")
     public void processPolicyServiceAction() {
     }
 
-    @Pointcut("execution (* com.tencent.bk.sdk.iam.helper.AuthHelper.isAllowed(..))")
+    @Pointcut("within(com.tencent.bk.sdk.iam.helper.AuthHelper) " +
+        "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper.isAllowed(..))")
     public void processIsAllowedAction() {
     }
 

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.task;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbScriptStepV3DTO;
 import com.tencent.bk.job.common.util.Base64Util;
@@ -125,7 +126,7 @@ public class TaskScriptStepDTO {
         scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptStepVO.getScriptLanguage()));
         scriptStep.setScriptParam(scriptStepVO.getScriptParam());
         if (scriptStepVO.getTimeout() == null) {
-            scriptStep.setTimeout(60L);
+            scriptStep.setTimeout((long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);
         } else {
             scriptStep.setTimeout(scriptStepVO.getTimeout());
         }

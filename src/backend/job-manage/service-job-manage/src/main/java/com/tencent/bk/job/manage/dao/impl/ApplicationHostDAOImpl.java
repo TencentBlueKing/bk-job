@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -71,7 +72,6 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -998,7 +998,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime) {
         int affectedNum;
@@ -1019,7 +1019,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int batchDeleteHostById(List<Long> hostIdList) {
         if (CollectionUtils.isEmpty(hostIdList)) {
@@ -1036,7 +1036,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .execute();
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {
         int affectedNum = 0;

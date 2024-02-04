@@ -35,9 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Range;
 
-/**
- * @since 16/10/2019 14:46
- */
 @Data
 @ApiModel("任务脚本步骤信息")
 @Slf4j
@@ -119,9 +116,6 @@ public class TaskScriptStepVO {
         }
         if (StringUtils.isNotBlank(scriptParam) && scriptParam.length() > 5000) {
             scriptParam = scriptParam.substring(0, 5000);
-        }
-        if (timeout == null) {
-            timeout = 3600L;
         }
         if (ignoreError == null || ignoreError < 0) {
             ignoreError = 0;

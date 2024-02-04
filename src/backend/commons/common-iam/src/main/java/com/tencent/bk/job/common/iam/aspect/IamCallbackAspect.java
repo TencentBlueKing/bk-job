@@ -15,7 +15,7 @@ public class IamCallbackAspect {
     public IamCallbackAspect() {
     }
 
-    @Pointcut("execution (* com.tencent.bk.job.*.api.iam.impl.*.callback(..))")
+    @Pointcut("within(com.tencent.bk.job..*) && execution (* com.tencent.bk.job.*.api.iam.impl.*.callback(..))")
     public void processCallbackRequest() {
     }
 

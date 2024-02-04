@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -43,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -116,7 +116,7 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     public InternalResponse<Long> saveCronJobWithId(String username, Long appId, Long cronJobId, Long createTime,
                                                     Long lastModifyTime, String lastModifyUser,
                                                     CronJobCreateUpdateReq cronJobCreateUpdateReq) {

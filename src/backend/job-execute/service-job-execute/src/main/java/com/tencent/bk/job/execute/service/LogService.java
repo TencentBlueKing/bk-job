@@ -66,15 +66,17 @@ public interface LogService {
     /**
      * 构造脚本日志
      *
-     * @param stepInstance  步骤实例
-     * @param executeObject 执行对象
-     * @param content       日志原始内容
-     * @param offset        日志偏移 - 字节
+     * @param stepInstance     步骤实例
+     * @param executeObject    执行对象
+     * @param content          日志原始内容
+     * @param contentSizeBytes 日志内容大小(单位byte)
+     * @param offset           日志偏移 - 字节
      * @return 系统日志
      */
     ServiceExecuteObjectScriptLogDTO buildScriptLog(StepInstanceBaseDTO stepInstance,
                                                     ExecuteObject executeObject,
                                                     String content,
+                                                    int contentSizeBytes,
                                                     int offset);
 
     /**

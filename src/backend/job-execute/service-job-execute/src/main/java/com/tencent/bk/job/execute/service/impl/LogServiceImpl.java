@@ -59,11 +59,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +82,13 @@ public class LogServiceImpl implements LogService {
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceService stepInstanceService;
 
+    // 脚本日志阈值128MB，当批量保存脚本日志时，如果日志集合超过阈值，采用分批保存
+    @Value("${job.execute.scriptLog.requestContentSizeThresholdMB:128}")
+    private int requestContentSizeThresholdMB;
+
+    // 脚本日志阈值-字节
+    private int requestContentSizeThreshold;
+
     @Autowired
     public LogServiceImpl(ServiceLogResource logResource,
                           ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
@@ -88,6 +98,11 @@ public class LogServiceImpl implements LogService {
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
+    }
+
+    @PostConstruct
+    public void init() {
+        requestContentSizeThreshold = requestContentSizeThresholdMB * 1024 * 1024;
     }
 
     @Override
@@ -105,24 +120,24 @@ public class LogServiceImpl implements LogService {
                 "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
         }
         String logContentWithDateTime = "[" + logDateTime + "] " + content + "\n";
-        return buildScriptLog(stepInstance, executeObject, logContentWithDateTime, offset);
+        return buildScriptLog(stepInstance, executeObject, logContentWithDateTime,
+            logContentWithDateTime.getBytes(StandardCharsets.UTF_8).length, offset);
     }
 
     @Override
     public ServiceExecuteObjectScriptLogDTO buildScriptLog(StepInstanceBaseDTO stepInstance,
                                                            ExecuteObject executeObject,
                                                            String content,
+                                                           int contentSizeBytes,
                                                            int offset) {
-
-        int length = content.getBytes(StandardCharsets.UTF_8).length;
         if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceExecuteObjectScriptLogDTO(
-                executeObject.getId(), content, offset + length);
+                executeObject.getId(), content, contentSizeBytes, offset + contentSizeBytes);
         } else {
             // 兼容历史版本使用 hostId 的方式；发布完成并全量切换到执行对象特性之后，可删除这里的兼容代码
             HostDTO host = executeObject.getHost();
-            return new ServiceExecuteObjectScriptLogDTO(
-                host.getHostId(), host.toCloudIp(), host.toCloudIpv6(), content, offset + length);
+            return new ServiceExecuteObjectScriptLogDTO(host.getHostId(), host.toCloudIp(), host.toCloudIpv6(),
+                content, contentSizeBytes, offset + contentSizeBytes);
         }
     }
 
@@ -140,10 +155,40 @@ public class LogServiceImpl implements LogService {
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());
-        List<ServiceExecuteObjectLogDTO> logs = scriptLogs.stream()
-            .map(scriptLog -> buildServiceExecuteObjectLogDTO(stepInstanceId, executeCount, batch, scriptLog))
-            .collect(Collectors.toList());
-        request.setLogs(logs);
+
+        List<ServiceExecuteObjectLogDTO> logs = new ArrayList<>();
+        int accumulatedSize = 0;
+
+        for (ServiceExecuteObjectScriptLogDTO scriptLog : scriptLogs) {
+            ServiceExecuteObjectLogDTO executeObjectLog =
+                buildServiceExecuteObjectLogDTO(stepInstanceId, executeCount, batch, scriptLog);
+            logs.add(executeObjectLog);
+            accumulatedSize += scriptLog.getContentSizeBytes();
+            ;
+            if (accumulatedSize > requestContentSizeThreshold) {
+                // 当达到阈值，保存当前积累的logs集合
+                request.setLogs(logs);
+                saveLogs(request, stepInstanceId, executeCount, batch);
+                logs.clear();
+                accumulatedSize = 0;
+                if (log.isDebugEnabled()) {
+                    log.debug("The current script log is too large, exceeding {}, and should be saved in batches, " +
+                            "stepInstanceId:{}, executeCount:{}, batch: {}",
+                        requestContentSizeThreshold, stepInstanceId, executeCount, batch);
+                }
+            }
+        }
+
+        if (!logs.isEmpty()) {
+            request.setLogs(logs);
+            saveLogs(request, stepInstanceId, executeCount, batch);
+        }
+    }
+
+    private void saveLogs(ServiceBatchSaveLogRequest request,
+                          long stepInstanceId,
+                          int executeCount,
+                          Integer batch) {
         InternalResponse<?> resp = logResource.saveLogs(request);
         if (!resp.isSuccess()) {
             log.error("Batch write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",

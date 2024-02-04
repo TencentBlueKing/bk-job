@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
@@ -38,9 +39,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
-/**
- * @since 16/10/2019 14:46
- */
 @Data
 @ApiModel("步骤文件信息")
 @Slf4j
@@ -127,7 +125,7 @@ public class TaskFileStepVO {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         if (timeout == null || timeout < 0) {
-            timeout = 0L;
+            timeout = (long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
         }
         if (originSpeedLimit == null || originSpeedLimit <= 0) {
             originSpeedLimit = null;

@@ -80,6 +80,12 @@ public class ServiceExecuteObjectScriptLogDTO {
     private Integer offset;
 
     /**
+     * 日志大小 - 字节
+     */
+    @ApiModelProperty("日志大小 - 字节")
+    private Integer contentSizeBytes = 0;
+
+    /**
      * 日志内容
      */
     @ApiModelProperty("日志内容")
@@ -89,11 +95,12 @@ public class ServiceExecuteObjectScriptLogDTO {
     /**
      * Constructor
      *
-     * @param hostId    主机hostId
-     * @param cloudIp   主机ipv4,格式: 云区域ID:IPv4
-     * @param cloudIpv6 主机ipv6,格式: 云区域ID:IPv6
-     * @param content   日志内容
-     * @param offset    日志偏移量
+     * @param hostId           主机hostId
+     * @param cloudIp          主机ipv4,格式: 云区域ID:IPv4
+     * @param cloudIpv6        主机ipv6,格式: 云区域ID:IPv6
+     * @param content          日志内容
+     * @param contentSizeBytes 日志内容大小(单位byte)
+     * @param offset           日志偏移量
      */
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
@@ -101,26 +108,31 @@ public class ServiceExecuteObjectScriptLogDTO {
                                             String cloudIp,
                                             String cloudIpv6,
                                             String content,
+                                            int contentSizeBytes,
                                             int offset) {
         this.hostId = hostId;
         this.cloudIp = cloudIp;
         this.cloudIpv6 = cloudIpv6;
         this.content = content;
+        this.contentSizeBytes = contentSizeBytes;
         this.offset = offset;
     }
 
     /**
      * Constructor
      *
-     * @param executeObjectId 执行对象 ID
-     * @param content         日志内容
-     * @param offset          日志偏移量
+     * @param executeObjectId  执行对象 ID
+     * @param content          日志内容
+     * @param contentSizeBytes 日志内容大小(单位byte)
+     * @param offset           日志偏移量
      */
     public ServiceExecuteObjectScriptLogDTO(String executeObjectId,
                                             String content,
+                                            int contentSizeBytes,
                                             int offset) {
         this.executeObjectId = executeObjectId;
         this.content = content;
+        this.contentSizeBytes = contentSizeBytes;
         this.offset = offset;
     }
 }
