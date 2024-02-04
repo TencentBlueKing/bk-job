@@ -177,6 +177,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
                                                                            Integer taskType,
                                                                            Integer taskStatus,
                                                                            String ip,
+                                                                           Long cronId,
                                                                            Integer start,
                                                                            Integer length) {
         EsbGetJobInstanceListV3Request request = new EsbGetJobInstanceListV3Request();
@@ -192,6 +193,7 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         request.setTaskType(taskType);
         request.setTaskStatus(taskStatus);
         request.setIp(ip);
+        request.setCronId(cronId);
         request.setStart(start);
         request.setLength(length);
         request.fillAppResourceScope(appScopeMappingService);
