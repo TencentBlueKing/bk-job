@@ -34,6 +34,7 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -233,6 +234,10 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
 
 
     public List<Container> extractStaticContainerList() {
+        if (targetExecuteObjects == null) {
+            return Collections.emptyList();
+        }
+
         List<Container> containers = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(targetExecuteObjects.getStaticContainerList())) {
             containers.addAll(targetExecuteObjects.getStaticContainerList());
@@ -250,6 +255,10 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     }
 
     public Set<HostDTO> extractAllHosts() {
+        if (targetExecuteObjects == null) {
+            return Collections.emptySet();
+        }
+
         Set<HostDTO> hosts = new HashSet<>(targetExecuteObjects.getHostsCompatibly());
 
         if (CollectionUtils.isNotEmpty(fileSourceList)) {

@@ -958,33 +958,34 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                        Set<DynamicServerGroupDTO> groups,
                                        List<StepInstanceDTO> stepInstances,
                                        Collection<TaskVariableDTO> variables) {
+        if (CollectionUtils.isEmpty(groups)) {
+            return;
+        }
         // 获取动态分组的主机并设置
-        if (CollectionUtils.isNotEmpty(groups)) {
-            watch.start("fillDynamicGroupHosts");
-            Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
-                hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
-            stepInstances.forEach(stepInstance -> {
-                setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
-                if (stepInstance.isFileStep()) {
-                    List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
-                    for (FileSourceDTO fileSource : fileSources) {
-                        ExecuteObjectsDTO servers = fileSource.getServers();
-                        if (servers != null && !fileSource.isLocalUpload()) {
-                            // 服务器文件的处理
-                            setHostsForDynamicGroup(servers, dynamicGroupHosts);
-                        }
+        watch.start("fillDynamicGroupHosts");
+        Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
+            hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
+        stepInstances.forEach(stepInstance -> {
+            setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
+            if (stepInstance.isFileStep()) {
+                List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
+                for (FileSourceDTO fileSource : fileSources) {
+                    ExecuteObjectsDTO servers = fileSource.getServers();
+                    if (servers != null && !fileSource.isLocalUpload()) {
+                        // 服务器文件的处理
+                        setHostsForDynamicGroup(servers, dynamicGroupHosts);
                     }
                 }
-            });
-            if (CollectionUtils.isNotEmpty(variables)) {
-                variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        setHostsForDynamicGroup(variable.getTargetServers(), dynamicGroupHosts);
-                    }
-                });
             }
-            watch.stop();
+        });
+        if (CollectionUtils.isNotEmpty(variables)) {
+            variables.forEach(variable -> {
+                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                    setHostsForDynamicGroup(variable.getTargetServers(), dynamicGroupHosts);
+                }
+            });
         }
+        watch.stop();
     }
 
     private void fillTopoNodeHosts(StopWatch watch,
@@ -992,32 +993,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                    Set<DynamicServerTopoNodeDTO> topoNodes,
                                    List<StepInstanceDTO> stepInstances,
                                    Collection<TaskVariableDTO> variables) {
-        if (CollectionUtils.isNotEmpty(topoNodes)) {
-            watch.start("fillTopoNodeHosts");
-            Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
-                hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
-            stepInstances.forEach(stepInstance -> {
-                setHostsForTopoNode(stepInstance.getTargetExecuteObjects(), topoNodeHosts);
-                if (stepInstance.isFileStep()) {
-                    List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
-                    for (FileSourceDTO fileSource : fileSources) {
-                        ExecuteObjectsDTO servers = fileSource.getServers();
-                        if (servers != null && !fileSource.isLocalUpload()) {
-                            // 服务器文件的处理
-                            setHostsForTopoNode(servers, topoNodeHosts);
-                        }
+        if (CollectionUtils.isEmpty(topoNodes)) {
+            return;
+        }
+        watch.start("fillTopoNodeHosts");
+        Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
+            hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
+        stepInstances.forEach(stepInstance -> {
+            setHostsForTopoNode(stepInstance.getTargetExecuteObjects(), topoNodeHosts);
+            if (stepInstance.isFileStep()) {
+                List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
+                for (FileSourceDTO fileSource : fileSources) {
+                    ExecuteObjectsDTO servers = fileSource.getServers();
+                    if (servers != null && !fileSource.isLocalUpload()) {
+                        // 服务器文件的处理
+                        setHostsForTopoNode(servers, topoNodeHosts);
                     }
                 }
-            });
-            if (CollectionUtils.isNotEmpty(variables)) {
-                variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        setHostsForTopoNode(variable.getTargetServers(), topoNodeHosts);
-                    }
-                });
             }
-            watch.stop();
+        });
+        if (CollectionUtils.isNotEmpty(variables)) {
+            variables.forEach(variable -> {
+                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                    setHostsForTopoNode(variable.getTargetServers(), topoNodeHosts);
+                }
+            });
         }
+        watch.stop();
     }
 
     private boolean needRefreshHostBkAgentId(TaskInstanceDTO taskInstance) {
