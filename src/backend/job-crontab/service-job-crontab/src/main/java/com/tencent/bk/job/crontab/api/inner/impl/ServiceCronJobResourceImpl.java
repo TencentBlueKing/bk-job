@@ -146,4 +146,10 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
     }
+
+    @Override
+    public InternalResponse<Boolean> disabledCronJobByAppId(Long appId) {
+        log.info("Disabled cron job, appId: {}", appId);
+        return InternalResponse.buildSuccessResp(cronJobService.disabledCronJobByAppId(appId));
+    }
 }

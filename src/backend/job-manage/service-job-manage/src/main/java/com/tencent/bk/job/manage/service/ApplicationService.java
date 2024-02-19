@@ -187,4 +187,11 @@ public interface ApplicationService {
      * @return 业务
      */
     ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope);
+
+    /**
+     * 获取作业平台所有已删除的业务
+     *
+     * @return 业务列表
+     */
+    List<ApplicationDTO> listAllDeletedApps();
 }
