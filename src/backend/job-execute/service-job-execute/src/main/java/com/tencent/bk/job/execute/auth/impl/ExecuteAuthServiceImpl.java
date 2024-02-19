@@ -252,7 +252,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             buildAppScopeResourcePath(appResourceScope, ResourceTypeEnum.TEMPLATE, templateId.toString()));
 
         if (log.isDebugEnabled()) {
-            log.debug("Auth execute plan, username:{}, appResourceScope:{}, planId:{}, planInstance:{}, hostInstances:{}",
+            log.debug("Auth execute plan, username:{}, appResourceScope:{}, planId:{}, planInstance:{}," +
+                    " hostInstances:{}",
                 username, appResourceScope, planId, planInstance, hostInstanceList);
         }
         boolean isAllowed = authHelper.isAllowed(username, ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
