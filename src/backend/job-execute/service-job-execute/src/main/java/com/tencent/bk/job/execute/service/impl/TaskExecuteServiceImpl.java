@@ -349,8 +349,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList);
             boolean isSupportExecuteObjectFeature = isSupportExecuteObjectFeature(taskInstance);
-            stepInstanceList.forEach(stepInstance ->
-                stepInstance.buildStepFinalExecuteObjects(isSupportExecuteObjectFeature));
+            mergeExecuteObjects(stepInstanceList, variables, isSupportExecuteObjectFeature);
             checkExecuteObjectExist(taskInstanceExecuteObjects);
             watch.stop();
 
@@ -378,6 +377,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (watch.getTotalTimeMillis() > 1000) {
                 log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
+        }
+    }
+
+    private void mergeExecuteObjects(List<StepInstanceDTO> stepInstanceList,
+                                     Collection<TaskVariableDTO> variables,
+                                     boolean isSupportExecuteObjectFeature) {
+        stepInstanceList.forEach(stepInstance ->
+            stepInstance.buildStepFinalExecuteObjects(isSupportExecuteObjectFeature));
+        if (CollectionUtils.isNotEmpty(variables)) {
+            variables.forEach(variable -> {
+                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()
+                    && variable.getTargetServers() != null) {
+                    variable.getTargetServers().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+                }
+            });
         }
     }
 
