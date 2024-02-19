@@ -37,10 +37,13 @@ import org.springframework.stereotype.Component;
 public class ScheduledTasks {
 
     private final CronJobLoadingService cronJobLoadingService;
+    private final DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask;
 
     @Autowired
-    public ScheduledTasks(CronJobLoadingService cronJobLoadingService) {
+    public ScheduledTasks(CronJobLoadingService cronJobLoadingService,
+                          DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask) {
         this.cronJobLoadingService = cronJobLoadingService;
+        this.disableCronJobWithBizNotExistTask = disableCronJobWithBizNotExistTask;
     }
 
     /**
@@ -56,6 +59,22 @@ public class ScheduledTasks {
             log.error("loadCronToQuartz fail", e);
         } finally {
             log.info("loadCronToQuartz end, duration={}ms", System.currentTimeMillis() - start);
+        }
+    }
+
+    /**
+     * 每早上2点把已删除业务的定时任务禁用
+     */
+    @Scheduled(cron = "0 0 2 * * ?")
+    public void disableCronJob() {
+        log.info(Thread.currentThread().getId() + ":disableCronJob start");
+        long start = System.currentTimeMillis();
+        try {
+            disableCronJobWithBizNotExistTask.execute();
+        } catch (Exception e) {
+            log.error("disableCronJob fail", e);
+        } finally {
+            log.info("disableCronJob end, duration={}ms", System.currentTimeMillis() - start);
         }
     }
 }

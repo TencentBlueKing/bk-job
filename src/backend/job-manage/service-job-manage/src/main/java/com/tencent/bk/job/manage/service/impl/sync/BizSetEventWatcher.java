@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -51,6 +52,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final BizSetCmdbClient bizSetCmdbClient;
+    private final ServiceCronJobResource serviceCronJobResource;
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
@@ -58,11 +60,13 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
                               CmdbEventSampler cmdbEventSampler,
                               ApplicationService applicationService,
                               BizSetService bizSetService,
-                              BizSetCmdbClient bizSetCmdbClient) {
+                              BizSetCmdbClient bizSetCmdbClient,
+                              ServiceCronJobResource serviceCronJobResource) {
         super("bizSet", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
+        this.serviceCronJobResource = serviceCronJobResource;
     }
 
     @Override
@@ -114,6 +118,9 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
                 if (cachedApp != null) {
                     log.info("Delete app for bizSet, app: {}", cachedApp);
                     applicationService.deleteApp(cachedApp.getId());
+                    log.info("bizSet has been deleted from cmdb, cron job will be disabled. appId:{}",
+                        cachedApp.getId());
+                    serviceCronJobResource.disabledCronJobByAppId(cachedApp.getId());
                 }
                 break;
             default:

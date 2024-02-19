@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -50,6 +51,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
 
     private final BizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
+    private final ServiceCronJobResource serviceCronJobResource;
 
     private final AtomicBoolean bizWatchFlag = new AtomicBoolean(true);
 
@@ -58,10 +60,12 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                            Tracer tracer,
                            CmdbEventSampler cmdbEventSampler,
                            BizCmdbClient bizCmdbClient,
-                           ApplicationService applicationService) {
+                           ApplicationService applicationService,
+                           ServiceCronJobResource serviceCronJobResource) {
         super("biz", redisTemplate, tracer, cmdbEventSampler);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
+        this.serviceCronJobResource = serviceCronJobResource;
     }
 
     public void setWatchFlag(boolean value) {
@@ -103,6 +107,9 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
             case ResourceWatchReq.EVENT_TYPE_DELETE:
                 if (cachedApp != null) {
                     applicationService.deleteApp(cachedApp.getId());
+                    log.info("biz has been deleted from cmdb, cron job will be disabled. appId:{}",
+                        cachedApp.getId());
+                    serviceCronJobResource.disabledCronJobByAppId(cachedApp.getId());
                 } else {
                     log.info("ignore delete event of app not exist:{}", event);
                 }

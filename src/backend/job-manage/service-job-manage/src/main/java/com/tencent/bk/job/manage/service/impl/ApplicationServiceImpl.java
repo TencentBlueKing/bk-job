@@ -268,4 +268,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     public ApplicationDTO getAppByScopeIncludingDeleted(ResourceScope scope) {
         return applicationDAO.getAppByScopeIncludingDeleted(scope);
     }
+
+    @Override
+    public List<ApplicationDTO> listAllDeletedApps() {
+        return applicationDAO.listAllDeletedApps();
+    }
 }
