@@ -218,7 +218,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private void initSrcFilesMap(Collection<JobFile> srcFiles) {
         srcFiles.forEach(srcFile ->
             srcFilesMap.put(
-                buildSrcFileKey(srcFile.getExecuteObject().getExecuteObjectGseKey(), srcFile.getStandardFilePath()),
+                buildSrcFileKey(srcFile.getExecuteObject().toExecuteObjectGseKey(), srcFile.getStandardFilePath()),
                 srcFile)
         );
     }
