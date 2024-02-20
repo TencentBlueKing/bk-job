@@ -141,12 +141,18 @@ public class LogExportServiceImpl implements LogExportService {
                         log.error("Job already running!|appId={}|stepInstanceId={}", appId, stepInstanceId);
                     }
                 } catch (Exception e) {
-                    log.error("Error while package log file!|stepInstanceId={}|executeCount={}|e={}", stepInstanceId,
-                        executeCount, e);
+                    String msg = MessageFormatter.arrayFormat(
+                        "Error while package log file!|stepInstanceId={}|executeCount={}",
+                        new String[]{
+                            String.valueOf(stepInstanceId),
+                            String.valueOf(executeCount)
+                        }
+                    ).getMessage();
+                    log.error(msg, e);
                     markJobFailed(exportJobInfo);
                 } finally {
                     LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), requestId);
-                    log.debug("Process finished!|stepInstanceId={}|logFileName={}", stepInstanceId,
+                    log.debug("Process finished!|stepInstanceId={}|executeCount={}|logFileName={}", stepInstanceId,
                         executeCount, logFileName);
                 }
             });
@@ -219,7 +225,8 @@ public class LogExportServiceImpl implements LogExportService {
         if (watch.getTotalTimeMillis() > 10000L) {
             log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
         }
-        log.info("Package log success.|stepInstanceId={}|logFileName={}", stepInstanceId, logFileName);
+        log.info("Package log success.|stepInstanceId={}|executeCount={}|logFileName={}", stepInstanceId,
+            executeCount, logFileName);
     }
 
     /**
