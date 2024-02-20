@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.CollectionUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -63,7 +64,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -105,7 +105,7 @@ public class LogExportServiceImpl implements LogExportService {
     public LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId,
                                               String cloudIp, int executeCount,
                                               String logFileDir, String logFileName, Boolean repackage) {
-        log.debug("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId, hostId, executeCount,
+        log.info("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId, hostId, executeCount,
             logFileDir, logFileName, repackage);
         LogExportJobInfoDTO exportJobInfo = new LogExportJobInfoDTO();
         exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId, cloudIp));
@@ -123,29 +123,28 @@ public class LogExportServiceImpl implements LogExportService {
         if (isGetByHost) {
             doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir, logFileName);
         } else {
+            String requestId = JobContextUtil.getRequestId();
             logExportExecutor.execute(() -> {
-                String requestId = UUID.randomUUID().toString();
-                log.debug("Begin log package process |{}|{}", stepInstanceId, requestId);
+                log.debug("Begin log package process |{}", stepInstanceId);
                 try {
-                    boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(), requestId,
-                        3600_000L);
+                    boolean lockResult = LockUtils.tryGetDistributedLock(exportJobInfo.getJobKey(),
+                        requestId, 3600_000L);
                     if (lockResult) {
-                        log.debug("Acquire lock success! Begin process!|{}|{}", stepInstanceId, requestId);
+                        log.debug("Acquire lock success! Begin process!|{}", stepInstanceId);
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
                         doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir,
                             logFileName);
                     } else {
-                        log.error("Job already running!|{}|{}|{}|{}", requestId, appId, stepInstanceId, hostId);
+                        log.error("Job already running!|{}|{}", appId, stepInstanceId);
                     }
                 } catch (Exception e) {
-                    log.error("Error while package log file!|{}|{}|{}|{}", requestId, stepInstanceId, hostId,
-                        executeCount, e);
+                    log.error("Error while package log file!|{}|{}|{}", stepInstanceId, executeCount, e);
                     markJobFailed(exportJobInfo);
                 } finally {
                     LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), requestId);
-                    log.debug("Process finished!|{}", requestId);
+                    log.debug("Process finished!|{}|{}|{}", stepInstanceId, executeCount, logFileName);
                 }
             });
         }
@@ -217,6 +216,7 @@ public class LogExportServiceImpl implements LogExportService {
         if (watch.getTotalTimeMillis() > 10000L) {
             log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
         }
+        log.info("Package log success.|{}|{}|{}", stepInstanceId, executeCount, logFileName);
     }
 
     /**

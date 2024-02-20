@@ -170,7 +170,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
         if (StringUtils.isBlank(logFileName)) {
-            log.warn("Log File Name is blank! request fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp, executeCount);
+            log.warn("Log File Name is blank! request fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp,
+                executeCount);
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
