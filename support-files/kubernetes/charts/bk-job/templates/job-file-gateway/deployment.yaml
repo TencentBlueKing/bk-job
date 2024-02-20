@@ -102,6 +102,8 @@ spec:
           resources:
             {{- toYaml .Values.fileGatewayConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
@@ -112,6 +114,9 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "job.storage.pvc.name" . }}
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
