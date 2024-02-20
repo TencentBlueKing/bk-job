@@ -194,7 +194,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
                 TaskTargetVO taskTarget = webTaskVariable.getTargetValue();
                 ExecuteObjectsDTO executeObjectsDTO = ExecuteObjectsDTO.fromTaskTargetVO(taskTarget);
-                taskVariableDTO.setTargetServers(executeObjectsDTO);
+                taskVariableDTO.setExecuteObjects(executeObjectsDTO);
             } else if (webTaskVariable.getType() == NAMESPACE.getType()) {
                 taskVariableDTO.setValue(webTaskVariable.getValue());
             }

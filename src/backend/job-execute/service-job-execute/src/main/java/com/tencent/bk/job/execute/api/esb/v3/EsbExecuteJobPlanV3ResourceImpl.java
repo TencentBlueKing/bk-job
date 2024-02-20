@@ -96,7 +96,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 EsbServerV3DTO server = globalVar.getServer();
                 if (StringUtils.isEmpty(globalVar.getValue()) && server != null && server.checkHostParamsNonEmpty()) {
                     ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(globalVar.getServer());
-                    taskVariableDTO.setTargetServers(executeObjectsDTO);
+                    taskVariableDTO.setExecuteObjects(executeObjectsDTO);
                 } else {
                     taskVariableDTO.setValue(globalVar.getValue());
                 }

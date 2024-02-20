@@ -372,10 +372,10 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             if (hostVariableMap.containsKey(importVariable)) {
                 TaskVariableDTO hostVariableValue = hostVariableMap.get(importVariable);
                 String formattedHosts = "";
-                if (hostVariableValue.getTargetServers() != null
-                    && hostVariableValue.getTargetServers().getExecuteObjectsCompatibly() != null) {
+                if (hostVariableValue.getExecuteObjects() != null
+                    && hostVariableValue.getExecuteObjects().getExecuteObjectsCompatibly() != null) {
                     formattedHosts = VariableResolveUtils.formatHosts(
-                        hostVariableValue.getTargetServers().getHostsCompatibly());
+                        hostVariableValue.getExecuteObjects().getHostsCompatibly());
                 }
                 variableValues.put(importVariable, formattedHosts);
             } else {

@@ -388,8 +388,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()
-                    && variable.getTargetServers() != null) {
-                    variable.getTargetServers().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+                    && variable.getExecuteObjects() != null) {
+                    variable.getExecuteObjects().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
                 }
             });
         }
@@ -922,7 +922,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (CollectionUtils.isNotEmpty(variables)) {
                 variables.forEach(variable -> {
                     if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
+                        extractDynamicGroupsAndTopoNodes(variable.getExecuteObjects(), groups, topoNodes);
                     }
                 });
             }
@@ -995,7 +995,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                    setHostsForDynamicGroup(variable.getTargetServers(), dynamicGroupHosts);
+                    setHostsForDynamicGroup(variable.getExecuteObjects(), dynamicGroupHosts);
                 }
             });
         }
@@ -1029,7 +1029,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                    setHostsForTopoNode(variable.getTargetServers(), topoNodeHosts);
+                    setHostsForTopoNode(variable.getExecuteObjects(), topoNodeHosts);
                 }
             });
         }
@@ -1277,7 +1277,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    fillHostsDetail(variable.getTargetServers(), hostMap);
+                    fillHostsDetail(variable.getExecuteObjects(), hostMap);
                 }
             });
         }
@@ -1388,8 +1388,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.stream()
                 .filter(variable -> variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
-                    && variable.getTargetServers() != null)
-                .forEach(variable -> hosts.addAll(variable.getTargetServers().extractHosts()));
+                    && variable.getExecuteObjects() != null)
+                .forEach(variable -> hosts.addAll(variable.getExecuteObjects().extractHosts()));
         }
         return hosts;
     }
@@ -1647,8 +1647,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void standardizeTaskVarDynamicGroupId(Collection<TaskVariableDTO> variables) {
         if (CollectionUtils.isNotEmpty(variables)) {
-            variables.stream().filter(variable -> variable.getTargetServers() != null)
-                .forEach(variable -> standardizeServerDynamicGroupId(variable.getTargetServers()));
+            variables.stream().filter(variable -> variable.getExecuteObjects() != null)
+                .forEach(variable -> standardizeServerDynamicGroupId(variable.getExecuteObjects()));
         }
     }
 
@@ -1667,7 +1667,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Long appId = executeParam.getAppId();
         Long planId = executeParam.getPlanId();
         String operator = executeParam.getOperator();
-        log.info("Create task instance for task, appId={}, planId={}, operator={}, attributes={}", appId, planId,
+        log.info("Create task instance for task, appId={}, planId={}, operator={}, variables={}", appId, planId,
             operator, executeParam.getExecuteVariableValues());
         watch.start("getPlan");
         ServiceTaskPlanDTO taskPlan = taskPlanService.getPlanById(appId, planId);
@@ -1901,7 +1901,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     public TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
                                                      List<TaskVariableDTO> executeVariableValues) throws ServiceException {
-        log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, attributes={}", appId,
+        log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
         TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
         if (originTaskInstance == null) {
@@ -2023,7 +2023,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             commonVariable.setName(variable.getName());
             commonVariable.setValue(variable.getDefaultValue());
             if (variable.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType())) {
-                commonVariable.setTargetServers(convertToServersDTO(variable.getDefaultTargetValue()));
+                commonVariable.setExecuteObjects(convertToServersDTO(variable.getDefaultTargetValue()));
             }
             if (variable.getType().equals(TaskVariableTypeEnum.NAMESPACE.getType())) {
                 commonVariable.setChangeable(true);
@@ -2089,7 +2089,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void grantValueForVariable(TaskVariableDTO to, TaskVariableDTO from) {
         if (TaskVariableTypeEnum.HOST_LIST.getType() == to.getType()) {
-            to.setTargetServers(from.getTargetServers());
+            to.setExecuteObjects(from.getExecuteObjects());
         } else {
             to.setValue(from.getValue());
         }
@@ -2320,10 +2320,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 new String[]{hostVariableName});
         }
 
-        if (serverVariable.getTargetServers() == null) {
+        if (serverVariable.getExecuteObjects() == null) {
             return null;
         }
-        ExecuteObjectsDTO targetServers = serverVariable.getTargetServers().clone();
+        ExecuteObjectsDTO targetServers = serverVariable.getExecuteObjects().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
     }

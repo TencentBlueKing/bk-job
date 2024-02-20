@@ -126,7 +126,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
                 ServiceTargetServers serviceServers = serviceTaskVariable.getServerValue();
                 ExecuteObjectsDTO executeObjectsDTO = convertToServersDTO(serviceServers);
-                taskVariableDTO.setTargetServers(executeObjectsDTO);
+                taskVariableDTO.setExecuteObjects(executeObjectsDTO);
             } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.NAMESPACE.getType()) {
                 taskVariableDTO.setValue(serviceTaskVariable.getNamespaceValue());
             }
