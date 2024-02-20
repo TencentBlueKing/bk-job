@@ -134,7 +134,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         }
 
         if (!repackage) {
-            log.debug("Do not need repackage, check exist job |{}|{}|{}", stepInstanceId, hostId, cloudIp);
+            log.debug("Do not need repackage, check exist job |stepInstanceId={}|hostId={}|cloudIp={}",
+                stepInstanceId, hostId, cloudIp);
             LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
@@ -170,8 +171,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
         if (StringUtils.isBlank(logFileName)) {
-            log.warn("Log File Name is blank! request fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp,
-                executeCount);
+            log.warn("Log File Name is blank! request fail! |stepInstanceId={}|hostId={}|cloudIp={}|executeCount={}",
+                stepInstanceId, hostId, cloudIp, executeCount);
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
@@ -267,7 +268,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         if (isGetByHost) {
             String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
             if (StringUtils.isBlank(logFileName)) {
-                log.warn("Log File Name is blank! download fail! {}|{}|{}|{}", stepInstanceId, hostId, cloudIp,
+                log.warn("Log File Name is blank! download fail! " +
+                    "|stepInstanceId={}|hostId={}|cloudIp={}|executeCount={}", stepInstanceId, hostId, cloudIp,
                     executeCount);
                 return ResponseEntity.notFound().build();
             }
@@ -317,7 +319,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                 default:
             }
         }
-        log.warn("Not exist job info|{}|{}|{}|{}", appId, stepInstanceId, hostId, cloudIp);
+        log.warn("Not exist job info.|appId={}|stepInstanceId={}|hostId={}|cloudIp={}", appId, stepInstanceId,
+            hostId, cloudIp);
         return ResponseEntity.notFound().build();
     }
 

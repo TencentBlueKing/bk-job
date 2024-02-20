@@ -105,8 +105,9 @@ public class LogExportServiceImpl implements LogExportService {
     public LogExportJobInfoDTO packageLogFile(String username, Long appId, Long stepInstanceId, Long hostId,
                                               String cloudIp, int executeCount,
                                               String logFileDir, String logFileName, Boolean repackage) {
-        log.info("Package log file for {}|{}|{}|{}|{}|{}|{}|{}", username, appId, stepInstanceId, hostId, executeCount,
-            logFileDir, logFileName, repackage);
+        log.info("Package log file for username={}|appId={}|stepInstanceId={}|hostId={}|executeCount={}|logFileDir" +
+            "={}|logFileName={}|repackage={}", username, appId, stepInstanceId, hostId, executeCount, logFileDir,
+            logFileName, repackage);
         LogExportJobInfoDTO exportJobInfo = new LogExportJobInfoDTO();
         exportJobInfo.setJobKey(getExportJobKey(appId, stepInstanceId, hostId, cloudIp));
         exportJobInfo.setStatus(LogExportStatusEnum.INIT);
@@ -137,14 +138,16 @@ public class LogExportServiceImpl implements LogExportService {
                         doPackage(exportJobInfo, stepInstanceId, hostId, cloudIp, executeCount, logFileDir,
                             logFileName);
                     } else {
-                        log.error("Job already running!|{}|{}", appId, stepInstanceId);
+                        log.error("Job already running!|appId={}|stepInstanceId={}", appId, stepInstanceId);
                     }
                 } catch (Exception e) {
-                    log.error("Error while package log file!|{}|{}|{}", stepInstanceId, executeCount, e);
+                    log.error("Error while package log file!|stepInstanceId={}|executeCount={}|e={}", stepInstanceId,
+                        executeCount, e);
                     markJobFailed(exportJobInfo);
                 } finally {
                     LockUtils.releaseDistributedLock(exportJobInfo.getJobKey(), requestId);
-                    log.debug("Process finished!|{}|{}|{}", stepInstanceId, executeCount, logFileName);
+                    log.debug("Process finished!|stepInstanceId={}|logFileName={}", stepInstanceId,
+                        executeCount, logFileName);
                 }
             });
         }
@@ -216,7 +219,7 @@ public class LogExportServiceImpl implements LogExportService {
         if (watch.getTotalTimeMillis() > 10000L) {
             log.info("Export job execution log is slow, cost: {}", watch.prettyPrint());
         }
-        log.info("Package log success.|{}|{}|{}", stepInstanceId, executeCount, logFileName);
+        log.info("Package log success.|stepInstanceId={}|logFileName={}", stepInstanceId, logFileName);
     }
 
     /**
