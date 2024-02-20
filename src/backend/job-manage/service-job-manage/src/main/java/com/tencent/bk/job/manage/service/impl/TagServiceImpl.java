@@ -236,7 +236,7 @@ public class TagServiceImpl implements TagService {
         while (iterator.hasNext()) {
             TagDTO tag = iterator.next();
             if (!tag.getAppId().equals(appId) && !tag.getAppId().equals(JobConstants.PUBLIC_APP_ID)) {
-                log.warn(String.format("Tag is not exist, appId=%s, tagId=%s", appId, tag.getId()));
+                log.info("Tag is not exist, appId={}, tagId={}", appId, tag.getId());
                 iterator.remove();
             }
         }
