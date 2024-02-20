@@ -15,7 +15,7 @@ echo "OTEL_TRACE_REPORT_BK_DATA_TOKEN=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
 
 # 根据cgroup信息获取容器ID
 CONTAINER_ID=$(cat /proc/self/cgroup|grep "pids"|sed 's/\//\n/g'|tail -1|cut -c 1-12)
-if [[ "$" == "" ]];then
+if [[ "$CONTAINER_ID" == "" ]];then
     CONTAINER_ID=$(cat /proc/self/cgroup|grep "memory"|sed 's/\//\n/g'|tail -1|cut -c 1-12)
 fi
 echo "CONTAINER_ID=$CONTAINER_ID"
