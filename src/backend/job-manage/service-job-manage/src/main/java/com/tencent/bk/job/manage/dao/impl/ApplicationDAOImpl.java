@@ -331,4 +331,16 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         }
         return null;
     }
+
+    @Override
+    public List<ApplicationDTO> listAllDeletedApps() {
+        List<Condition> conditions = getBasicDeletedConditions();
+        return listAppsByConditions(conditions);
+    }
+
+    private List<Condition> getBasicDeletedConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(1)));
+        return conditions;
+    }
 }

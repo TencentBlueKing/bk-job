@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.timer.executor;
 
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.constant.NotificationPolicyEnum;
@@ -38,6 +39,8 @@ import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
 import com.tencent.bk.job.crontab.timer.NotificationPolicy;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
+import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -72,6 +75,8 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
     @Autowired
     NotificationPolicy notificationPolicy;
 
+    @Autowired
+    ServiceApplicationResource applicationResource;
 
     /**
      * 业务 ID 字符串
@@ -97,6 +102,19 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         long appId = Long.parseLong(appIdStr);
         long cronJobId = Long.parseLong(cronJobIdStr);
         long scheduledFireTime = getScheduledFireTime(context).toEpochMilli();
+
+        // 判断业务/业务集的存在性，如果不存在不执行定时任务
+        try {
+            ServiceApplicationDTO serviceApplicationDTO = applicationResource.queryAppById(appId);
+            if (serviceApplicationDTO == null) {
+                log.warn("appId not exist, cron not execute! appId:{}, cronId:{}", appId, cronJobId);
+                return;
+            }
+        } catch (NotFoundException e) {
+            log.error("Error(biz or biz set not exist) occurred while querying app by id," +
+                "cron not execute! appId:{}, cronId:{}",appId, cronJobId);
+            return;
+        }
 
         CronJobHistoryDTO cronJobHistory =
             cronJobHistoryService.getHistoryByIdAndTime(appId, cronJobId, scheduledFireTime);

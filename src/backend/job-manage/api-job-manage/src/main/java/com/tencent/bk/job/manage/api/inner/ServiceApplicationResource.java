@@ -101,4 +101,8 @@ public interface ServiceApplicationResource {
     InternalResponse<List<ServiceApplicationDTO>> listApps(
         @ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集")
         @RequestParam(value = "scopeType", required = false) String scopeType);
+
+    @ApiOperation(value = "获取已删除的业务列表", produces = "application/json")
+    @GetMapping("/service/app/listByDeleted")
+    InternalResponse<List<ServiceApplicationDTO>> listAllAppsByDeleted();
 }

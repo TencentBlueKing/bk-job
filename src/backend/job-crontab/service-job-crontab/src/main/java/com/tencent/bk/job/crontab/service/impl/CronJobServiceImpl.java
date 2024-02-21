@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -879,5 +880,28 @@ public class CronJobServiceImpl implements CronJobService {
     @Override
     public List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit) {
         return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
+    }
+
+    @Override
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
+    public boolean disabledCronJobByAppId(Long appId) {
+        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
+        cronJobInfoDTO.setAppId(appId);
+        cronJobInfoDTO.setEnable(true);
+        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
+        baseSearchCondition.setStart(0);
+        baseSearchCondition.setLength(Integer.MAX_VALUE);
+        List<CronJobInfoDTO> cronJobDTOList = listPageCronJobInfos(cronJobInfoDTO,
+            baseSearchCondition).getData();
+        log.info("cron job will be disabled, appId:{}, size:{}", appId, cronJobDTOList.size());
+
+        for (CronJobInfoDTO jobInfoDTO : cronJobDTOList) {
+            changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+                jobInfoDTO.getId(), false);
+            if (log.isDebugEnabled()) {
+                log.debug("cron job disabled successfully, appId:{}, cronId:{}", appId, jobInfoDTO.getId());
+            }
+        }
+        return true;
     }
 }
