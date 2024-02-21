@@ -101,6 +101,8 @@ spec:
           resources:
             {{- toYaml .Values.logsvrConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: mongodb
               mountPath: /etc/secrets/mongodb
               readOnly: true
@@ -108,6 +110,9 @@ spec:
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "job.storage.pvc.name" . }}
         - name: mongodb
           secret:
             secretName: {{ include "job.mongodb.secretName" . }}

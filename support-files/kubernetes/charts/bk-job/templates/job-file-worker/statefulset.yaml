@@ -107,9 +107,14 @@ spec:
           resources:
             {{- toYaml .Values.fileWorkerConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: distribute-volume
               mountPath: {{ .Values.fileDistribute.hostPath }}
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "job.storage.pvc.name" . }}
         - name: distribute-volume
           hostPath:
             path: {{ .Values.fileDistribute.hostPath }}
