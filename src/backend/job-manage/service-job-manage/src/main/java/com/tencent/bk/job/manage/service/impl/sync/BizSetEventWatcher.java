@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final BizSetCmdbClient bizSetCmdbClient;
-    private final ServiceCronJobResource serviceCronJobResource;
+    private ServiceCronJobResource serviceCronJobResource;
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
@@ -60,12 +61,16 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
                               CmdbEventSampler cmdbEventSampler,
                               ApplicationService applicationService,
                               BizSetService bizSetService,
-                              BizSetCmdbClient bizSetCmdbClient,
-                              ServiceCronJobResource serviceCronJobResource) {
+                              BizSetCmdbClient bizSetCmdbClient) {
         super("bizSet", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
+    }
+
+    @Autowired
+    @Lazy
+    public void setServiceCronJobResource(ServiceCronJobResource serviceCronJobResource) {
         this.serviceCronJobResource = serviceCronJobResource;
     }
 
