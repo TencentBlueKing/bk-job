@@ -107,6 +107,8 @@ spec:
           resources:
             {{- toYaml .Values.gatewayConfig.resources | nindent 12 }}
           volumeMounts:
+            - name: job-storage
+              mountPath: {{ .Values.persistence.localStorage.path }}
             - name: job-gateway-tls-certs
               mountPath: /data/job/cert
               readOnly: true
@@ -117,6 +119,9 @@ spec:
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
       volumes:
+        - name: job-storage
+          persistentVolumeClaim:
+            claimName: {{ include "job.storage.pvc.name" . }}
         - name: job-gateway-tls-certs
           secret:
             secretName: {{ printf "%s-gateway-%s" (include "common.names.fullname" .) "tls-cert" }}

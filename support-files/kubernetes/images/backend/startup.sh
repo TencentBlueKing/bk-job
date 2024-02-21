@@ -13,6 +13,13 @@ echo "OTEL_TRACE_REPORT_ENABLED=$OTEL_TRACE_REPORT_ENABLED"
 echo "OTEL_TRACE_REPORT_ENDPOINT_URL=$OTEL_TRACE_REPORT_ENDPOINT_URL"
 echo "OTEL_TRACE_REPORT_BK_DATA_TOKEN=$OTEL_TRACE_REPORT_BK_DATA_TOKEN"
 
+# 根据cgroup信息获取容器ID
+CONTAINER_ID=$(cat /proc/self/cgroup|grep "pids"|sed 's/\//\n/g'|tail -1|cut -c 1-12)
+if [[ "$CONTAINER_ID" == "" ]];then
+    CONTAINER_ID=$(cat /proc/self/cgroup|grep "memory"|sed 's/\//\n/g'|tail -1|cut -c 1-12)
+fi
+echo "CONTAINER_ID=$CONTAINER_ID"
+
 # 创建本地临时文件目录
 mkdir -p "$BK_JOB_STORAGE_LOCAL_DIR"
 chmod 666 "$BK_JOB_STORAGE_LOCAL_DIR"
@@ -40,6 +47,14 @@ if [[ "$BK_JOB_FILE_WORKER_WORKSPACE_DIR" != "" ]];then
     chmod 666 "$BK_JOB_FILE_WORKER_WORKSPACE_DIR"
 fi
 
+# 创建JVM相关文件存储空间
+JVM_FILE_DIR="$BK_JOB_STORAGE_BASE_DIR/jvm"
+if [[ ! -d "$JVM_FILE_DIR" ]];then
+    echo "mkdir $JVM_FILE_DIR"
+    mkdir -p "$JVM_FILE_DIR"
+    chmod 666 "$JVM_FILE_DIR"
+fi
+
 exec java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$BK_JOB_LOG_BASE_DIR \
@@ -51,8 +66,8 @@ exec java -server \
      -XX:+PrintGCDetails \
      -XX:+PrintGCDateStamps \
      -XX:+HeapDumpOnOutOfMemoryError \
-     -XX:HeapDumpPath=heap.hprof \
-     -XX:ErrorFile=$BK_JOB_LOG_DIR/error_sys.log \
+     -XX:HeapDumpPath=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_heap.hprof \
+     -XX:ErrorFile=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_jvm_error.log \
      -Dspring.profiles.active=$BK_JOB_PROFILE \
      $BK_JOB_JVM_OPTION \
      -jar /data/job/exec/$BK_JOB_JAR \

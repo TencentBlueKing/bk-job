@@ -145,7 +145,11 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         }
 
         if (!repackage) {
-            log.debug("Do not need repackage, check exist job");
+            if (log.isDebugEnabled()) {
+                log.debug("Do not need repackage, check exist job " +
+                        "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}",
+                    stepInstanceId, executeObjectType, executeObjectResourceId);
+            }
             LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId,
                 executeObjectTypeEnum, executeObjectResourceId);
             if (exportInfo != null) {
@@ -170,6 +174,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                         if (!repackage) {
                             return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
                         }
+                        log.warn("Not exist zip file, needs to be repackaged! |{}", exportInfo);
                         break;
                     default:
                         throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
@@ -182,6 +187,9 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         String logFileName = getLogFileName(stepInstanceId, executeCount,
             executeObjectTypeEnum, executeObjectResourceId);
         if (StringUtils.isBlank(logFileName)) {
+            log.warn("Log File Name is blank! request fail! " +
+                    "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}|executeCount={}",
+                stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
@@ -284,6 +292,9 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             String logFileName = getLogFileName(stepInstanceId, executeCount,
                 executeObjectTypeEnum, executeObjectResourceId);
             if (StringUtils.isBlank(logFileName)) {
+                log.warn("Log File Name is blank! download fail! " +
+                        "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}|executeCount={}",
+                    stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
                 return ResponseEntity.notFound().build();
             }
             exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, executeObjectTypeEnum,
@@ -332,6 +343,8 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                 default:
             }
         }
+        log.warn("Not exist job info.|appId={}|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}",
+            appId, stepInstanceId, executeObjectType, executeObjectResourceId);
         return ResponseEntity.notFound().build();
     }
 
