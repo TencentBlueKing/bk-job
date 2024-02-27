@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -71,7 +72,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -142,7 +142,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @SuppressWarnings("all")
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public Long insertWhiteIPRecord(WhiteIPRecordDTO whiteIPRecordDTO) {
         //插入Record表
@@ -194,7 +194,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return recordId;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int deleteWhiteIPRecordById(Long id) {
         //删关联表
@@ -435,7 +435,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return query.fetchOne(0, Long.class);
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int updateWhiteIPRecordById(WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表

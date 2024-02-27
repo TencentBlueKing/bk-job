@@ -371,5 +371,4 @@ data:
         root: {{ .Values.bkFeedBackUrl }}
     deploy:
       mode: lite    
-
 {{- end }}

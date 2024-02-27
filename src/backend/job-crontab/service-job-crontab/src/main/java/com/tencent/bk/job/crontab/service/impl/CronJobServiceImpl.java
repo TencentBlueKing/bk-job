@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -84,7 +85,6 @@ import org.quartz.SimpleTrigger;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -200,7 +200,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.CREATE_CRON,
         instance = @AuditInstanceRecord(
@@ -227,7 +227,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_CRON,
         instance = @AuditInstanceRecord(
@@ -393,7 +393,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_CRON,
         instance = @AuditInstanceRecord(
@@ -452,7 +452,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     public Boolean disableExpiredCronJob(Long appId, Long cronJobId, String lastModifyUser, Long lastModifyTime) {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         cronJobInfo.setAppId(appId);
@@ -508,7 +508,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Error.class, Exception.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     public Boolean addInnerJob(ServiceAddInnerCronJobRequestDTO request) {
         if (!request.validate()) {
             return false;
@@ -600,7 +600,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Transactional(value = "jobCrontabTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_CRON,
         instance = @AuditInstanceRecord(

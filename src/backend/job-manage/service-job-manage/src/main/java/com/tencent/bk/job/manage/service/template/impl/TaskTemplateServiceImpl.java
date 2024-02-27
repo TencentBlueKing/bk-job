@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
@@ -80,7 +81,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -351,7 +351,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = ServiceException.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.CREATE_JOB_TEMPLATE,
         instance = @AuditInstanceRecord(
@@ -369,7 +369,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.EDIT_JOB_TEMPLATE,
         instance = @AuditInstanceRecord(
@@ -574,7 +574,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.DELETE_JOB_TEMPLATE,
         instance = @AuditInstanceRecord(
@@ -737,7 +737,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Long saveTaskTemplateForMigration(
         TaskTemplateInfoDTO taskTemplateInfo,
         Long createTime,

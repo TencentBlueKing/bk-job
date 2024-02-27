@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
@@ -59,7 +60,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -132,7 +132,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public InternalResponse<Long> saveTemplateForMigration(
         String username,
         Long appId,

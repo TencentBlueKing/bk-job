@@ -22,29 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.util.file;
+package com.tencent.bk.job.api.constant;
 
-public class FileSizeUtil {
-    public static String getFileSizeStr(Long byteNum) {
-        if (byteNum == null) return "--";
-        String[] units = new String[]{"B", "KB", "MB", "GB", "TB", "PB"};
-        int i = 0;
-        double value = (float) byteNum;
-        while (value >= 1024 && i < units.length - 1) {
-            value = value / 1024.;
-            i += 1;
-        }
-        return String.format("%.2f", value) + units[i];
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+/**
+ * 定时任务状态
+ */
+public enum CronStatusEnum {
+    RUNNING(1), STOPPING(2);
+
+
+    @JsonValue
+    private final Integer status;
+
+    CronStatusEnum(Integer status) {
+        this.status = status;
     }
 
-    public static void main(String[] args) {
-        System.out.println(getFileSizeStr(1023L));
-        System.out.println(getFileSizeStr(1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024L - 1));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L));
-        System.out.println(getFileSizeStr(1024 * 1024 * 1025 * 1024L * 1024L * 1024L));
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static CronStatusEnum valOf(int cronStatus) {
+        for (CronStatusEnum status : values()) {
+            if (status.getStatus() == cronStatus) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    public Integer getStatus() {
+        return status;
     }
 }

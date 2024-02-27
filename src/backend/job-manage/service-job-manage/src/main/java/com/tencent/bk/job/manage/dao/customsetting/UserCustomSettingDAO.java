@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.customsetting;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.manage.model.dto.customsetting.UserCustomSettingDTO;
 import com.tencent.bk.job.manage.model.tables.UserCustomSetting;
@@ -38,7 +39,6 @@ import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +60,7 @@ public class UserCustomSettingDAO {
         this.dslContext = dslContext;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public int batchSave(List<UserCustomSettingDTO> customSettingList) {
         List<String> keyList = extractKeyList(customSettingList);
         Set<String> existKeys = new HashSet<>(listExistKeys(keyList));

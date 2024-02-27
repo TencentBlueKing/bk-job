@@ -26,12 +26,13 @@ package com.tencent.bk.job.manage.model.dto.task;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
+import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbFileStepV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
-import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbFileStepV3DTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskFileStepDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskFileDestinationInfoVO;
@@ -116,7 +117,8 @@ public class TaskFileStepDTO {
             fileStep.setExecuteAccount(fileStepVO.getFileDestination().getAccount());
             fileStep.setDestinationHostList(TaskTargetDTO.fromVO(fileStepVO.getFileDestination().getServer()));
         }
-        fileStep.setTimeout(fileStepVO.getTimeout());
+        fileStep.setTimeout(fileStepVO.getTimeout() == null ?
+            (long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : fileStepVO.getTimeout());
         fileStep.setOriginSpeedLimit(fileStepVO.getOriginSpeedLimit());
         fileStep.setTargetSpeedLimit(fileStepVO.getTargetSpeedLimit());
         if (fileStepVO.getTransferMode() != null) {

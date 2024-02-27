@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.migration;
 
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.ResourceTagDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +92,7 @@ public class ResourceTagsMigrationTask {
         return Response.buildSuccessResp(resourceTags);
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveResourceTags(List<ResourceTagDTO> resourceTags) {
         resourceTagDAO.batchSaveResourceTags(resourceTags);
     }

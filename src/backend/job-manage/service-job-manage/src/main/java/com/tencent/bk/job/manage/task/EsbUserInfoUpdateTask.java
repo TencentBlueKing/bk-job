@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
@@ -40,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -154,7 +154,7 @@ public class EsbUserInfoUpdateTask {
         return true;
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveEsbUserInfos(Set<EsbUserInfoDTO> deleteSet, Set<EsbUserInfoDTO> insertSet) {
         deleteSet.forEach(esbUserInfoDTO -> esbUserInfoDAO.deleteEsbUserInfoById(
             esbUserInfoDTO.getId()));

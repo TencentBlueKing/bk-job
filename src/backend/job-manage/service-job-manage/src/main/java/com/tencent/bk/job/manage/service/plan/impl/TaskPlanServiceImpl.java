@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -68,7 +69,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -285,7 +285,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.CREATE_JOB_PLAN,
         instance = @AuditInstanceRecord(
@@ -360,7 +360,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.EDIT_JOB_PLAN,
         instance = @AuditInstanceRecord(
@@ -378,7 +378,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public TaskPlanInfoDTO updateDebugTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo) {
         // 调试作业模版会保存一份内置的执行方案；从用户角度来说仍然还是在处理跟模版相关的操作，所以使用模版查看鉴权
         templateAuthService.authViewJobTemplate(username,
@@ -461,7 +461,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId) {
         TaskPlanInfoDTO taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
         TaskTemplateInfoDTO taskTemplateInfo = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
@@ -570,7 +570,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.SYNC_JOB_PLAN,
         instance = @AuditInstanceRecord(
@@ -650,7 +650,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void syncPlan(TaskPlanInfoDTO taskPlanInfo) {
         try {
             // process plan id
@@ -802,7 +802,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Long saveTaskPlanForBackup(TaskPlanInfoDTO taskPlanInfo) {
         try {
             TaskPlanInfoDTO taskPlanByName = taskPlanDAO.getTaskPlanByName(taskPlanInfo.getAppId(),
@@ -911,7 +911,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.EDIT_JOB_PLAN,
         instance = @AuditInstanceRecord(

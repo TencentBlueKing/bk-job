@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
@@ -41,7 +42,6 @@ import com.tencent.bk.job.manage.service.DangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -113,7 +113,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
@@ -173,7 +173,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.DELETE_HIGH_RISK_DETECT_RULE

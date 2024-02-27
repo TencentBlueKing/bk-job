@@ -446,8 +446,6 @@
     calcPageSize();
     tableMaxHeight.value = listRef.value.getBoundingClientRect().height;
 
-    console.log('tableMaxHeight = ', tableMaxHeight.value);
-
     window.addEventListener('resize', handleWindowResize);
     onBeforeUnmount(() => {
       window.removeEventListener('resize', handleWindowResize);

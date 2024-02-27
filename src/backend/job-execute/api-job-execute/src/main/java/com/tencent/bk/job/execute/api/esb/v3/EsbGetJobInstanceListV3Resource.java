@@ -72,6 +72,7 @@ public interface EsbGetJobInstanceListV3Resource {
         @RequestParam(value = "type", required = false) Integer taskType,
         @RequestParam(value = "status", required = false) Integer taskStatus,
         @RequestParam(value = "ip", required = false) String ip,
+        @RequestParam(value = "job_cron_id", required = false) Long cronId,
         @RequestParam(value = "start", required = false) Integer start,
         @RequestParam(value = "length", required = false) Integer length);
 

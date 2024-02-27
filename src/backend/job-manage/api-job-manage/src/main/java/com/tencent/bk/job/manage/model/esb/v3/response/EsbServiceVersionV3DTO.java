@@ -22,18 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql.config;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import org.jooq.DSLContext;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.sql.DataSource;
-
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(DSLContext.class)
-@ConditionalOnBean(DataSource.class)
-public class JobMySQLAutoConfiguration {
-
+@Data
+@EqualsAndHashCode
+public class EsbServiceVersionV3DTO {
+    /**
+     * 服务版本号
+     */
+    @JsonPropertyDescription("Service Version")
+    private String version;
 }

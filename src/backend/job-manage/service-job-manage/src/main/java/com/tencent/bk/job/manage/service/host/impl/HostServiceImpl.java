@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -51,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class HostServiceImpl implements HostService {
         return updateCount;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
         boolean needToCreate = false;

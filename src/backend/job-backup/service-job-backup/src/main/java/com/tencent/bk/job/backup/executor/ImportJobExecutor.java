@@ -49,7 +49,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.util.FileUtil;
+import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;

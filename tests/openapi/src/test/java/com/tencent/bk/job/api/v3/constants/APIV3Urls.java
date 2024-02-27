@@ -64,4 +64,13 @@ public interface APIV3Urls {
     String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/execute_job_plan";
     String GET_STEP_INSTANCE_DETAIL = "/api/job/v3/job-execute/get_step_instance_detail";
     String GET_STEP_INSTANCE_STATUS = "/api/job/v3/job-execute/get_step_instance_status";
+
+    String SAVE_CRON = "/api/job/v3/job-crontab/save_cron";
+    String GET_CRON_LIST = "/api/job/v3/job-crontab/get_cron_list";
+    String UPDATE_CRON_STATUS = "/api/job/v3/job-crontab/update_cron_status";
+    String GET_CRON_DETAIL = "/api/job/v3/job-crontab/get_cron_detail";
+    String DELETE_CRON = "/api/job/v3/job-crontab/delete_cron";
+
+
+    String GET_JOB_PLAN_LIST = "/api/job/v3/job-manage/get_job_plan_list";
 }

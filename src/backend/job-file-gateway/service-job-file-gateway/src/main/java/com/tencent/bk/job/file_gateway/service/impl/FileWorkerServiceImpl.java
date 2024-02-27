@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.config.FileGatewayConfig;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
@@ -41,7 +42,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,7 +71,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     }
 
     @Override
-    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public Long heartBeat(FileWorkerDTO fileWorkerDTO) {
         Long id;
         String configStr = fileWorkerDTO.getConfigStr();

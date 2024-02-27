@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -95,7 +96,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -698,7 +698,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.GLOBAL_SETTINGS,
         content = EventContentConstants.EDIT_GLOBAL_SETTINGS

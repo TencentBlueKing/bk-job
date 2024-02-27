@@ -52,6 +52,10 @@ public class EsbIpDTO {
     @JsonPropertyDescription("BK-Network Area")
     private Long bkCloudId;
 
+    @JsonProperty("bk_cloud_name")
+    @JsonPropertyDescription("BK-Network Area Name")
+    private String bkCloudName;
+
     @JsonProperty("ip")
     @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
@@ -63,6 +67,14 @@ public class EsbIpDTO {
     @JsonProperty("ipv6")
     @JsonPropertyDescription("ipv6")
     private String ipv6;
+
+    @JsonProperty("bk_agent_id")
+    @JsonPropertyDescription("Agent Id")
+    private String agentId;
+
+    @JsonProperty("alive")
+    @JsonPropertyDescription("Agent是否正常")
+    private Integer alive;
 
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
@@ -87,9 +99,12 @@ public class EsbIpDTO {
         }
         EsbIpDTO esbIp = new EsbIpDTO();
         esbIp.setBkCloudId(host.getBkCloudId());
+        esbIp.setBkCloudName(host.getBkCloudName());
         esbIp.setIp(host.getIp());
         esbIp.setIpv6(host.getIpv6());
         esbIp.setHostId(host.getHostId());
+        esbIp.setAgentId(host.getAgentId());
+        esbIp.setAlive(host.getAlive());
         return esbIp;
     }
 
