@@ -52,7 +52,8 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
             for (TaskVariableDTO taskVariable : taskVarList) {
                 if (taskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
                     && taskVariable.getValue() != null) {
-                    taskVariable.setExecuteObjects(JsonUtils.fromJson(taskVariable.getValue(), ExecuteObjectsDTO.class));
+                    taskVariable.setExecuteObjects(
+                        JsonUtils.fromJson(taskVariable.getValue(), ExecuteObjectsDTO.class));
                 }
             }
         }
