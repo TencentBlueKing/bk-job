@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.crontab.task;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.service.CronJobLoadingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Slf4j
 @Component("jobCrontabScheduledTasks")
@@ -38,13 +41,13 @@ public class ScheduledTasks {
 
     private final CronJobLoadingService cronJobLoadingService;
 
-    private final DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask;
+    private final DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask;
 
     @Autowired
     public ScheduledTasks(CronJobLoadingService cronJobLoadingService,
-                          DisableCronJobWithBizNotExistTask disableCronJobWithBizNotExistTask) {
+                          DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask) {
         this.cronJobLoadingService = cronJobLoadingService;
-        this.disableCronJobWithBizNotExistTask = disableCronJobWithBizNotExistTask;
+        this.disableCronJobOfArchivedScopeTask = disableCronJobOfArchivedScopeTask;
     }
 
     /**
@@ -64,18 +67,20 @@ public class ScheduledTasks {
     }
 
     /**
-     * 每早上2点把已删除业务的定时任务禁用
+     * 每上午10点把已归档业务(集)的定时任务禁用
      */
-    @Scheduled(cron = "0 0 2 * * ?")
-    public void disableCronJob() {
-        log.info(Thread.currentThread().getId() + ":disableCronJob start");
+    @Scheduled(cron = "0 0 10 * * ?")
+    public void disableCronJobTask() {
+        log.info(Thread.currentThread().getId() + ":disableCronJobTask start");
         long start = System.currentTimeMillis();
         try {
-            disableCronJobWithBizNotExistTask.execute();
+            JobContextUtil.setRequestId(UUID.randomUUID().toString());
+            disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
-            log.error("disableCronJob fail", e);
+            log.error("disableCronJobTask fail", e);
         } finally {
-            log.info("disableCronJob end, duration={}ms", System.currentTimeMillis() - start);
+            log.info("disableCronJobTask end, duration={}ms", System.currentTimeMillis() - start);
+            JobContextUtil.setRequestId(null);
         }
     }
 }

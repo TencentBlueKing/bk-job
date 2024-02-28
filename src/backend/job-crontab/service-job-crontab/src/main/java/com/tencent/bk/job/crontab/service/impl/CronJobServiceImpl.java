@@ -883,23 +883,18 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
-    public boolean disabledCronJobByAppId(Long appId) {
+    public boolean disableCronJobByAppId(Long appId) {
         CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
         cronJobInfoDTO.setAppId(appId);
         cronJobInfoDTO.setEnable(true);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(Integer.MAX_VALUE);
-        List<CronJobInfoDTO> cronJobDTOList = listPageCronJobInfos(cronJobInfoDTO,
-            baseSearchCondition).getData();
-        log.info("cron job will be disabled, appId:{}, size:{}", appId, cronJobDTOList.size());
+        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
+        log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
 
-        for (CronJobInfoDTO jobInfoDTO : cronJobDTOList) {
-            changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
-                jobInfoDTO.getId(), false);
+        for (Long cronJobId : cronJobIdList) {
+            Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+                cronJobId, false);
             if (log.isDebugEnabled()) {
-                log.debug("cron job disabled successfully, appId:{}, cronId:{}", appId, jobInfoDTO.getId());
+                log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
             }
         }
         return true;

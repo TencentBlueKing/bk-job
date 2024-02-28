@@ -22,21 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.req;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
+import java.util.List;
 
 /**
- * @description
- * @date 2019/3/1
+ * CMDB接口请求实体类，定义业务通过组合规则选择业务的过滤器
  */
-@Getter
 @Setter
-public class GetAppReq extends AbstractCcReq {
+@Getter
+@ToString
+public class BizFilter {
 
-    @JsonProperty("biz_property_filter")
-    private BizFilter bizFilter;
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
+
+    /**
+     * 多个规则之间的组合条件，取值为：AND/OR
+     */
+    private String condition;
+
+    /**
+     * 规则列表
+     */
+    private List<Rule> rules;
+
 }

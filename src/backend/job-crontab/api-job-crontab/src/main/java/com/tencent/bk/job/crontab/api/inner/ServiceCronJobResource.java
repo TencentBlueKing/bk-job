@@ -140,17 +140,4 @@ public interface ServiceCronJobResource {
         @ApiParam(value = "更新的定时任务对象", name = "cronJobCreateUpdateReq",
             required = true) @RequestBody CronJobCreateUpdateReq cronJobCreateUpdateReq
     );
-
-    /**
-     * 关闭业务下的定时任务
-     *
-     * @param appId     业务 ID
-     * @return 是否关闭成功
-     */
-    @PutMapping("/service/app/{appId}/cron/job/disabledCronJobByAppId")
-    InternalResponse<Boolean> disabledCronJobByAppId(
-        @ApiParam(value = "业务 ID", required = true, example = "2")
-        @PathVariable("appId")
-            Long appId
-    );
 }
