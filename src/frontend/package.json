@@ -20,7 +20,7 @@
     "@blueking/user-selector": "1.0.11",
     "@vue/babel-preset-jsx": "1.4.0",
     "@vue/composition-api": "1.7.2",
-    "ace-builds": "1.31.2",
+    "ace-builds": "1.32.6",
     "axios": "1.6.2",
     "bk-magic-vue": "2.5.8-beta.6",
     "core-js": "3.33.2",
