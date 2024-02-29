@@ -79,9 +79,9 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         stepInst.setType(stepInstance.getExecuteType());
         stepInst.setStatus(stepInstance.getStatus().getValue());
         stepInst.setCreateTime(stepInstance.getCreateTime());
-        stepInst.setStartTime(stepInstance.getStartTime());
-        stepInst.setEndTime(stepInstance.getEndTime());
-        stepInst.setTotalTime(stepInstance.getTotalTime());
+        stepInst.setStartTime(executionResult.getStartTime());
+        stepInst.setEndTime(executionResult.getEndTime());
+        stepInst.setTotalTime(executionResult.getTotalTime());
 
         List<EsbStepInstanceStatusV3DTO.StepResultGroup> stepResultGroupList = new ArrayList<>();
         List<AgentTaskResultGroupDTO> resultGroups = executionResult.getResultGroups();
