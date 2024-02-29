@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -50,6 +51,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .body("data.execute_count", equalTo(0))
                 .body("data.type", equalTo(1))
                 .body("data.status", notNullValue())
+                .body("data.total_time", greaterThan(0))
                 .body("data.step_result_group_list", hasSize(1));
         }
 
@@ -73,6 +75,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .body("data.execute_count", equalTo(0))
                 .body("data.type", equalTo(2))
                 .body("data.status", notNullValue())
+                .body("data.total_time", greaterThan(0))
                 .body("data.step_result_group_list", hasSize(1));
         }
 
