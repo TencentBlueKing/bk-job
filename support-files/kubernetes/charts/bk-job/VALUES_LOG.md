@@ -1,4 +1,20 @@
 # chart values 更新日志
+## 0.6.0
+1. 增加额外定义的前端页面访问URL
+
+```yaml
+# 额外定义的前端页面访问URL
+job:
+  web:
+    extraWebUrls: "http://my.job.example.com"
+```
+
+2. 增加 cmdb API 蓝鲸网关配置
+
+```yaml
+# cmdb API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+```
 
 ## 0.5.7
 1. 增加日志留存配置

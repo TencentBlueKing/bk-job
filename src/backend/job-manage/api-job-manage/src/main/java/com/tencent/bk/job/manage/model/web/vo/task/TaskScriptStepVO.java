@@ -120,6 +120,6 @@ public class TaskScriptStepVO {
         if (ignoreError == null || ignoreError < 0) {
             ignoreError = 0;
         }
-        executeTarget.validate(isCreate);
+        executeTarget.validate();
     }
 }

@@ -26,5 +26,5 @@ package com.tencent.bk.job.common.cc.model.result;
 
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 
-public class ExecuteDynamicGroupHostResult extends AbstractCcSearchResult<CcHostInfoDTO> {
+public class ExecuteDynamicGroupHostResult extends BaseCcSearchResult<CcHostInfoDTO> {
 }

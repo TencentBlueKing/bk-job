@@ -141,7 +141,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
             record.setClient("bk_job");
         }
         record.setOperator(taskInstance.getOperator());
-        record.setScriptLanguage(stepInstance.getScriptType());
+        record.setScriptLanguage(stepInstance.getScriptType().getValue());
         record.setScriptContent(stepInstance.getScriptContent());
 
         List<ScriptCheckItemDTO> checkItems = new ArrayList<>(1);

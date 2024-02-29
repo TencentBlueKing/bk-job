@@ -31,7 +31,7 @@ import lombok.ToString;
 
 import java.util.List;
 
-public class ListBizHostsTopoResult extends AbstractCcSearchResult<ListBizHostsTopoResult.HostInfo> {
+public class ListBizHostsTopoResult extends BaseCcSearchResult<ListBizHostsTopoResult.HostInfo> {
     @Getter
     @Setter
     @ToString

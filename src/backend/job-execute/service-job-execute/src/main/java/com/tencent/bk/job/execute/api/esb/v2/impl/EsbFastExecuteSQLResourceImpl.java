@@ -184,7 +184,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             stepInstance.setName(generateDefaultFastTaskName());
         }
         stepInstance.setStepId(-1L);
-        stepInstance.setScriptType(ScriptTypeEnum.SQL.getValue());
+        stepInstance.setScriptType(ScriptTypeEnum.SQL);
         if (request.getScriptVersionId() != null && request.getScriptVersionId() > 0) {
             stepInstance.setScriptVersionId(request.getScriptVersionId());
         } else {
@@ -194,9 +194,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
 
         AccountDTO account = accountService.getAccountById(request.getDbAccountId());

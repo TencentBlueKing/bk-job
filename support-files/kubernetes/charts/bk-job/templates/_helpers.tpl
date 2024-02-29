@@ -562,7 +562,11 @@ Return the Job Web Scheme
 Return the Job Web URL
 */}}
 {{- define "job.web.url" -}}
+{{- if .Values.job.web.extraWebUrls -}}
+{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}{{ printf ",%s" .Values.job.web.extraWebUrls }}
+{{- else -}}
 {{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
+{{- end -}}
 {{- end -}}
 
 {{/*

@@ -202,7 +202,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             stepInstance.setScriptId(request.getScriptId());
         } else if (StringUtils.isNotBlank(request.getContent())) {
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(request.getScriptLanguage());
+            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptLanguage()));
         }
 
         if (StringUtils.isNotEmpty(request.getScriptParam())) {
@@ -216,9 +216,9 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         stepInstance.setTimeout(
             request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setOperator(username);

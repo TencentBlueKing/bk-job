@@ -24,5 +24,5 @@
 
 truncate table rolling_config;
 insert into job_execute.rolling_config (id,task_instance_id,config_name,config) values
-(1,1,'config1', '{"name":"config1","includeStepInstanceIdList":[100,101,102,103],"stepRollingConfigs": {"100": {"batch": true},"101": {"batch": false},"102": {"batch": true},"103": {"batch": true}},"mode":1,"expr":"1 10% 100%","hostsBatchList":[{"batch":1,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.1"}]},{"batch":2,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.2"}]},{"batch":3,"hosts":[{"cloudAreaId":0,"ip":"127.0.0.3"},{"cloudAreaId":0,"ip":"127.0.0.4"}]}]}');
+(1,1,'config1', '{"name":"config1","includeStepInstanceIdList":[100,101,102,103],"stepRollingConfigs": {"100": {"batch": true},"101": {"batch": false},"102": {"batch": true},"103": {"batch": true}},"mode":1,"expr":"1 10% 100%","executeObjectsBatchList":[{"batch":1,"executeObjects":[{"id":"1:1","type":1,"resourceId":1,"host":{"hostId":1,"cloudAreaId":0,"ip":"127.0.0.1"}}]},{"batch":2,"executeObjects":[{"id":"1:2","type":1,"resourceId":2,"host":{"hostId":2,"cloudAreaId":0,"ip":"127.0.0.2"}}]},{"batch":3,"executeObjects":[{"id":"1:3","type":1,"resourceId":3,"host":{"hostId":3,"cloudAreaId":0,"ip":"127.0.0.3"}},{"id":"1:4","type":1,"resourceId":4,"host":{"hostId":4,"cloudAreaId":0,"ip":"127.0.0.4"}}]}]}');
 

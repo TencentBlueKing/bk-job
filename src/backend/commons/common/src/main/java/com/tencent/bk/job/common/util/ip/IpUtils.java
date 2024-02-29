@@ -506,4 +506,8 @@ public class IpUtils {
         }
         return multiIp;
     }
+
+    public static String buildCloudIp(Long bkCloudId, String ipv4) {
+        return bkCloudId + ":" + ipv4;
+    }
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request.whiteip;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

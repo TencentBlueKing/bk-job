@@ -28,28 +28,28 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_AGENT_ERROR;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_FILE_ERROR;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_FILE_SIZE_EXCEED;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_FILE_TASK_ERROR;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_TASK_ERROR;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_TIMEOUT;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_USER_ERROR;
-import static com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum.GSE_USER_PWD_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_AGENT_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_FILE_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_FILE_SIZE_EXCEED;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_FILE_TASK_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_TASK_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_TASK_TERMINATE_SUCCESS;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_TIMEOUT;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_USER_ERROR;
+import static com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum.GSE_USER_PWD_ERROR;
 
 public class Consts {
     /**
-     * GSE 错误码与 AgentTask 执行结果的映射关系
+     * GSE 错误码与执行对象任务结果的映射关系
      */
-    public static final Map<Integer, AgentTaskStatusEnum> GSE_ERROR_CODE_2_STATUS_MAP;
+    public static final Map<Integer, ExecuteObjectTaskStatusEnum> GSE_ERROR_CODE_2_STATUS_MAP;
     /**
      * 直连云区域ID
      */
     public static final int DEFAULT_CLOUD_ID = 0;
 
     static {
-        Map<Integer, AgentTaskStatusEnum> gseErrorCode2StatusMap = new HashMap<>();
+        Map<Integer, ExecuteObjectTaskStatusEnum> gseErrorCode2StatusMap = new HashMap<>();
         // 文件任务超时
         gseErrorCode2StatusMap.put(120, GSE_TIMEOUT);
         // agent异常

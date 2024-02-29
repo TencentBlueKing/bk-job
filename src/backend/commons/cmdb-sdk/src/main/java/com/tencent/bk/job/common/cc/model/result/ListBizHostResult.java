@@ -29,5 +29,5 @@ import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 /**
  * @since 19/12/2019 21:51
  */
-public class ListBizHostResult extends AbstractCcSearchResult<CcHostInfoDTO> {
+public class ListBizHostResult extends BaseCcSearchResult<CcHostInfoDTO> {
 }

@@ -196,7 +196,7 @@ public class EsbFastExecuteScriptResourceImpl
         } else {
             // 对传入参数进行base64解码
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(request.getScriptType());
+            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptType()));
         }
         if (StringUtils.isNotEmpty(request.getScriptParam())) {
             String scriptParam = Base64Util.decodeContentToStr(request.getScriptParam());
@@ -209,9 +209,9 @@ public class EsbFastExecuteScriptResourceImpl
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
         AccountDTO account = accountService.getSystemAccountByAlias(request.getAccount(), request.getAppId());
         if (account == null) {

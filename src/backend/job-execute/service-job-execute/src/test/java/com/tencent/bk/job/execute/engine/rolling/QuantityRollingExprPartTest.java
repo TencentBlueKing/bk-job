@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -70,33 +71,33 @@ class QuantityRollingExprPartTest {
 
     @Test
     void compute() {
-        List<HostDTO> rollingServers = new ArrayList<>();
-        rollingServers.add(new HostDTO(0L, "127.0.0.1"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.2"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.3"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.4"));
-        rollingServers.add(new HostDTO(0L, "127.0.0.5"));
-        RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
+        List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+        rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+        RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
         QuantityRollingExprPart quantityRollingExprPart =
             (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("2");
-        List<HostDTO> serversOnBatch = quantityRollingExprPart.compute(context);
-        assertThat(serversOnBatch).hasSize(2);
-        assertThat(serversOnBatch).containsSequence(
-            new HostDTO(0L, "127.0.0.1"),
-            new HostDTO(0L, "127.0.0.2")
+        List<ExecuteObject> executeObjectsOnBatch = quantityRollingExprPart.compute(context);
+        assertThat(executeObjectsOnBatch).hasSize(2);
+        assertThat(executeObjectsOnBatch).containsSequence(
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L))
         );
 
         quantityRollingExprPart =
             (QuantityRollingExprPart) QUANTITY_ROLLING_EXPR_PART.parseExpr("10");
-        serversOnBatch = quantityRollingExprPart.compute(context);
-        assertThat(serversOnBatch).hasSize(5);
-        assertThat(serversOnBatch).containsSequence(
-            new HostDTO(0L, "127.0.0.1"),
-            new HostDTO(0L, "127.0.0.2"),
-            new HostDTO(0L, "127.0.0.3"),
-            new HostDTO(0L, "127.0.0.4"),
-            new HostDTO(0L, "127.0.0.5")
+        executeObjectsOnBatch = quantityRollingExprPart.compute(context);
+        assertThat(executeObjectsOnBatch).hasSize(5);
+        assertThat(executeObjectsOnBatch).containsSequence(
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)),
+            ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L))
         );
     }
 }
