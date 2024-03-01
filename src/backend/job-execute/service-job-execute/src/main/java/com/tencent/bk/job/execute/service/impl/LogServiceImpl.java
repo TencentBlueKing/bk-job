@@ -132,12 +132,12 @@ public class LogServiceImpl implements LogService {
                                                            int offset) {
         if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceExecuteObjectScriptLogDTO(
-                executeObject.getId(), content, contentSizeBytes, offset + contentSizeBytes);
+                executeObject.getId(), content, contentSizeBytes, offset);
         } else {
             // 兼容历史版本使用 hostId 的方式；发布完成并全量切换到执行对象特性之后，可删除这里的兼容代码
             HostDTO host = executeObject.getHost();
             return new ServiceExecuteObjectScriptLogDTO(host.getHostId(), host.toCloudIp(), host.toCloudIpv6(),
-                content, contentSizeBytes, offset + contentSizeBytes);
+                content, contentSizeBytes, offset);
         }
     }
 
@@ -164,7 +164,7 @@ public class LogServiceImpl implements LogService {
                 buildServiceExecuteObjectLogDTO(stepInstanceId, executeCount, batch, scriptLog);
             logs.add(executeObjectLog);
             accumulatedSize += scriptLog.getContentSizeBytes();
-            ;
+
             if (accumulatedSize > requestContentSizeThreshold) {
                 // 当达到阈值，保存当前积累的logs集合
                 request.setLogs(logs);
