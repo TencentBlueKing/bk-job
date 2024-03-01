@@ -103,9 +103,9 @@
         this.calcScroller();
       });
       observer.observe(this.$refs.scrollContent, {
-        subtree: true,
+        attributes: true,
         childList: true,
-        attributeName: true,
+        subtree: true,
       });
       this.$once('hook:beforeDestroy', () => {
         observer.takeRecords();
@@ -318,8 +318,7 @@
 
     & > .scroll-faker-content {
       height: 100%;
-      overflow-x: scroll;
-      overflow-y: scroll;
+      overflow: scroll scroll;
 
       &::-webkit-scrollbar {
         width: 0;
@@ -355,8 +354,7 @@
       right: 0;
       bottom: 0;
       width: 14px;
-      overflow-x: hidden;
-      overflow-y: scroll;
+      overflow: hidden scroll;
 
       &::-webkit-scrollbar {
         width: 6px;
@@ -379,8 +377,7 @@
       bottom: 0;
       left: 0;
       height: 14px;
-      overflow-x: scroll;
-      overflow-y: hidden;
+      overflow: scroll hidden;
 
       &::-webkit-scrollbar {
         height: 6px;

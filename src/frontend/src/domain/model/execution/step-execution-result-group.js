@@ -37,8 +37,8 @@ export default class ResultGroup {
     this.resultType = payload.resultType;
     this.resultTypeDesc = payload.resultTypeDesc;
     this.tag = payload.tag || '';
-    this.agentTaskExecutionDetail = this.initAgentTaskExecution(payload.agentTaskExecutionDetail);
-    this.agentTaskSize = payload.agentTaskSize || 0;
+    this.taskSize = payload.taskSize || 0;
+    this.tasks = this.initTask(payload.tasks);
   }
 
   /**
@@ -66,7 +66,7 @@ export default class ResultGroup {
      * @returns { Number }
      */
   get groupNums() {
-    return this.agentTaskExecutionDetail.length;
+    return this.tasks.length;
   }
 
   /**
@@ -80,15 +80,10 @@ export default class ResultGroup {
     ].includes(this.resultType);
   }
 
-  /**
-     * @desc 执行结果的 agent 实例
-     * @param { Array } agentTaskExecutionDetail
-     * @returns { Array }
-     */
-  initAgentTaskExecution = (agentTaskExecutionDetail) => {
-    if (!_.isArray(agentTaskExecutionDetail)) {
+  initTask(tasks) {
+    if (!_.isArray(tasks)) {
       return [];
     }
-    return agentTaskExecutionDetail.map(item => Object.freeze(new AgentTaskModel(item)));
-  };
+    return tasks.map(item => Object.freeze(new AgentTaskModel(item)));
+  }
 }

@@ -29,7 +29,7 @@
   <div
     ref="listRef"
     class="step-execute-host-list"
-    :style="styles">
+    :style="rootStyles">
     <bk-table
       v-if="tableMaxHeight"
       :data="list"
@@ -49,7 +49,7 @@
           <div
             class="ip-box"
             :class="row.result">
-            {{ row.ipv4 }}
+            {{ row.executeObject.host.ip || '--' }}
           </div>
         </template>
       </bk-table-column>
@@ -60,7 +60,7 @@
         :render-header="renderIpv6Header"
         :width="300">
         <template slot-scope="{ row }">
-          {{ row.ipv6 || '--' }}
+          {{ row.executeObject.host.ipv6 || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -80,7 +80,7 @@
         sortable
         :width="120">
         <template slot-scope="{ row }">
-          {{ row.cloudAreaName || '--' }}
+          {{ row.executeObject.host.cloudArea.name || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -90,7 +90,7 @@
         sortable
         :width="100">
         <template slot-scope="{ row }">
-          {{ row.exitCode }}
+          {{ row.exitCode || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -99,7 +99,7 @@
         prop="agentId"
         :width="240">
         <template slot-scope="{ row }">
-          {{ row.agentId || '--' }}
+          {{ row.executeObject.host.agentId || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -109,7 +109,7 @@
         sortable
         :width="100">
         <template slot-scope="{ row }">
-          {{ row.hostId || '--' }}
+          {{ row.executeObject.host.hostId || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -162,27 +162,21 @@
   </div>
 </template>
 <script setup>
-  import _ from 'lodash';
   import {
-    computed,
-    onBeforeUnmount,
-    onMounted,
-    reactive,
-    ref,
     shallowRef,
-    watch,
   } from 'vue';
 
   import {
-    getOffset,
-    makeMap,
+    execCopy,
   } from '@utils/assist';
 
   import Empty from '@components/empty';
 
   import I18n from '@/i18n';
 
-  import ColumnSetting from './column-setting-new';
+  import useList from '../hooks/use-list';
+
+  import ColumnSetting from './column-setting';
 
   const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN3';
 
@@ -259,9 +253,13 @@
       default: 0,
     },
     searchValue: String,
+    getAllTaskList: {
+      type: Function,
+      required: true,
+    },
   });
 
-  const emits = defineEmits([
+  defineEmits([
     'on-pagination-change',
     'on-sort',
     'on-change',
@@ -269,83 +267,68 @@
     'on-copy',
   ]);
 
-  const listRef = ref();
-  const list = shallowRef([]);
   const columnList = shallowRef([...columnConfig]);
   const allShowColumn = shallowRef(defaultShowColumn);
-  const pagination = reactive({
-    page: 1,
-    pageSize: 0,
-  });
-  const tableMaxHeight = ref(0);
-  const selectRowKey = ref('');
-  const windowInnerWidth = ref(window.innerWidth);
-  const positionLeftOffset = ref(0);
 
-  const styles = computed(() => {
-    const rightLogWidth = 800;
-    const paddingLeft = 24;
-    const maxWidth = windowInnerWidth.value - positionLeftOffset.value - rightLogWidth - paddingLeft;
-    const allShowColumnMap = makeMap(allShowColumn.value);
-    const allShowColumnWidth = columnList.value.reduce((result, item) => {
-      if (allShowColumnMap[item.name]) {
-        return result + item.width;
-      }
-      return result;
-    }, 65);
+  const {
+    listRef,
+    list,
+    tableMaxHeight,
+    selectRowKey,
+    hasMore,
+    rootStyles,
+    rowClassNameCallback,
+    handleRowClick,
+    handleScrollEnd,
+    handleSortChange,
+    handleClearSearch,
+  } = useList(props, columnList, allShowColumn);
 
-    return {
-      width: `${Math.min(Math.max(allShowColumnWidth, 217), maxWidth)}px`,
-    };
-  });
+  const handleCopyIP = () => {
+    props.getAllTaskList()
+      .then((data) => {
+        const fieldDataList = data.reduce((result, item) => {
+          if (item.host.ip) {
+            result.push(item.host.ip);
+          }
+          return result;
+        }, []);
 
-  const hasMore = computed(() => pagination.page * pagination.pageSize < props.total);
+        if (fieldDataList.length < 1) {
+          this.$bkMessage({
+            theme: 'warning',
+            message: I18n.t('history.没有可复制的 IPv4'),
+            limit: 1,
+          });
+          return;
+        }
+        const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')} IP）`;
+        execCopy(fieldDataList.join('\n'), successMessage);
+      });
+  };
+  const handleCopyIpv6 = () => {
+    props.getAllTaskList()
+      .then((data) => {
+        const fieldDataList = data.reduce((result, item) => {
+          if (item.host.ip) {
+            result.push(item.host.ip);
+          }
+          return result;
+        }, []);
 
-  watch(() => props.name, () => {
-    pagination.page = 1;
-    selectRowKey.value = '';
-  });
-
-  /**
-   * @desc 点击行选择改行的主机
-   */
-  const handleRowClick = (row) => {
-    selectRowKey.value = row.key;
-    emits('on-change', row);
+        if (fieldDataList.length < 1) {
+          this.$bkMessage({
+            theme: 'warning',
+            message: I18n.t('history.没有可复制的 IPv6'),
+            limit: 1,
+          });
+          return;
+        }
+        const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')} IPv6）`;
+        execCopy(fieldDataList.join('\n'), successMessage);
+      });
   };
 
-  watch(() => props.data, () => {
-    if (listRef.value) {
-      positionLeftOffset.value = listRef.value.getBoundingClientRect().left;
-    }
-    // 切换分组时最新的分组数据一定来自API返回数据
-    // listLoading为false说明是本地切换不更新列表
-    if (!props.listLoading) {
-      return;
-    }
-    list.value = props.data;
-
-    if (props.data.length < 1) {
-      handleRowClick({});
-    } else if (!selectRowKey.value) {
-      selectRowKey.value = props.data[0].key;
-      handleRowClick(props.data[0]);
-    }
-  }, {
-    immediate: true,
-  });
-
-  /**
-   * @desc 根据屏幕高度计算单页 pageSize
-   */
-  const calcPageSize = () => {
-    const { top } = getOffset(listRef.value);
-    const windowHeight = window.innerHeight;
-    const rowHeight = 40;
-    const listHeight = windowHeight - top - 20;
-    pagination.pageSize = parseInt(listHeight / rowHeight + 6, 10);
-    emits('on-pagination-change', pagination.pageSize);
-  };
   /**
    * @desc 自定义 IP 列的头
    */
@@ -355,7 +338,7 @@
       <span
         v-bk-tooltips={I18n.t('history.复制 IP')}
         class="copy-ip-btn"
-        onClick={() => handleCopyIP('ip')}>
+        onClick={handleCopyIP}>
         <icon type="step-copy" />
       </span>
     </div>
@@ -369,7 +352,7 @@
       <span
         v-bk-tooltips={I18n.t('history.复制 IPv6')}
         class="copy-ip-btn"
-        onClick={() => handleCopyIP('ipv6')}>
+        onClick={handleCopyIpv6}>
         <icon type="step-copy" />
       </span>
     </div>
@@ -383,47 +366,7 @@
       value={allShowColumn.value}
       onChange={handleSubmitSetting} />
   );
-  /**
-   * @desc 表格行的样式 class
-   */
-  const rowClassNameCallback = ({ row }) => (selectRowKey.value === row.key ? 'active' : '');
-  /**
-   * @desc 表格滚动到底部
-   */
-  const handleScrollEnd = () => {
-    if (!hasMore.value) {
-      return;
-    }
-    // 增加分页
-    pagination.page = pagination.page + 1;
-    emits('on-pagination-change', pagination.page * pagination.pageSize);
-  };
 
-  /**
-   * @desc 列表数据排序
-   */
-  const handleSortChange = ({ prop, order }) => {
-    if (!order) {
-      emits('on-sort', {
-        orderField: '',
-        order: '',
-      });
-    } else {
-      emits('on-sort', {
-        orderField: prop,
-        order: order === 'descending' ? 0 : 1,
-      });
-    }
-
-    emits('on-pagination-change', pagination.pageSize);
-  };
-  /**
-   * @desc 复制ip
-   * @param { String } type 要复制的字段，IP | IPv6
-   */
-  const handleCopyIP = (type) => {
-    emits('on-copy', type);
-  };
   /**
    * @desc 保存列配置
    */
@@ -431,26 +374,6 @@
     allShowColumn.value = showColumnList;
     localStorage.setItem(COLUMN_CACHE_KEY, JSON.stringify(showColumnList));
   };
-  /**
-   * @desc 清空搜索
-   */
-  const handleClearSearch = () => {
-    emits('on-clear-search');
-  };
-
-  const handleWindowResize = _.throttle(() => {
-    windowInnerWidth.value = window.innerWidth;
-  }, 60);
-
-  onMounted(() => {
-    calcPageSize();
-    tableMaxHeight.value = listRef.value.getBoundingClientRect().height;
-
-    window.addEventListener('resize', handleWindowResize);
-    onBeforeUnmount(() => {
-      window.removeEventListener('resize', handleWindowResize);
-    });
-  });
 </script>
 <style lang='postcss'>
   @keyframes list-loading-ani {

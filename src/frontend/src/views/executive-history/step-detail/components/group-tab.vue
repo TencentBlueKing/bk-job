@@ -52,7 +52,7 @@
           class="max-length-info"
           type="info" />
         <div class="group-nums">
-          {{ item.agentTaskSize }}
+          {{ item.taskSize }}
         </div>
       </div>
       <div
@@ -87,7 +87,7 @@
               class="max-length-info"
               type="info" />
             <div class="group-nums">
-              {{ item.agentTaskSize }}
+              {{ item.taskSize }}
             </div>
           </div>
         </div>

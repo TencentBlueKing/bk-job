@@ -52,7 +52,7 @@
 
   import RenderStep from './components/render-step.vue';
 
-  const props = defineProps({
+  defineProps({
     taskInstanceId: {
       type: Number,
       required: true,

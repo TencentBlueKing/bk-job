@@ -91,8 +91,9 @@
     </tr>
     <ip-selector
       ref="ipSelector"
+      :config="ipSelectorConfig"
       :show-dialog="isShowChooseIp"
-      @change="handleHostChange"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIpSelector" />
   </tbody>
 </template>
@@ -133,6 +134,11 @@
         type: Array,
         required: true,
       },
+      // 组件被使用的场景，快速执行｜作业模板
+      from: {
+        type: String,
+        required: true,
+      },
     },
     data() {
       return {
@@ -140,6 +146,21 @@
         hasSaved: this.data.length > 0,
         serverFile: new SourceFileVO(generatorDefault()),
       };
+    },
+    created() {
+      this.ipSelectorConfig = {};
+      if (this.from === 'execute') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'dynamicGroup',
+            'manualInput',
+            'containerStaticTopo',
+            'containerManualInput',
+          ],
+        };
+      }
     },
     methods: {
       ...mapMutations('distroFile', [
@@ -158,12 +179,12 @@
       },
       /**
        * @desc 服务器类型为主机时主机值更新
-       * @param {Object} hostNodeInfo 主机值
+       * @param {Object} executeObjectsInfo 主机值
        *
        * store记录服务器文件的编辑状态
        */
-      handleHostChange(hostNodeInfo) {
-        this.serverFile.host.hostNodeInfo = Object.freeze(hostNodeInfo);
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.serverFile.host.executeObjectsInfo = Object.freeze(executeObjectsInfo);
         window.changeFlag = true;
         this.editNewSourceFile(true);
       },

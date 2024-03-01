@@ -192,7 +192,7 @@
       handleChange(value) {
         this.$emit('on-change', value);
       },
-      handleApprovalUserChange(user, role) {
+      handleApprovalUserChange(user) {
         this.reciverList = user;
       },
       handleSend() {
@@ -206,7 +206,7 @@
         };
         this.isLoading = true;
         GlobalSettingService.sendNotifyPreview(params)
-          .then((data) => {
+          .then(() => {
             this.messageSuccess(I18n.t('setting.发送成功'));
           })
           .finally(() => {

@@ -33,19 +33,12 @@ const AGENT_STATUS_LAST_SUCCESS = 3;
 export default class AgentTaskExecutionDetail extends Model {
   constructor(payload) {
     super();
-    this.agentId = payload.agentId;
     this.batch = payload.batch;
-    this.cloudAreaId = payload.cloudAreaId;
-    this.cloudAreaName = payload.cloudAreaName;
-    this.displayIp = payload.displayIp;
     this.endTime = payload.endTime;
     this.errorCode = payload.errorCode;
+    this.executeCount = payload.executeCount || 0;
+    this.executeObject = payload.executeObject;
     this.exitCode = payload.exitCode;
-    this.hostId = payload.hostId;
-    this.ip = payload.ip;
-    this.ipv4 = payload.ipv4;
-    this.ipv6 = payload.ipv6;
-    this.retryCount = payload.retryCount || 0;
     this.startTime = payload.startTime;
     this.status = payload.status;
     this.statusDesc = payload.statusDesc;
@@ -58,7 +51,7 @@ export default class AgentTaskExecutionDetail extends Model {
      * @returns { String }
      */
   get key() {
-    return `${this.hostId}_${this.ip}_${this.ipv6}`;
+    return `${this.executeObject.type}_${this.executeObject.executeObjectResourceId}`;
   }
 
   /**

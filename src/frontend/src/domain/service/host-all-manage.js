@@ -25,8 +25,7 @@
 
 /* eslint-disable no-param-reassign */
 
-import * as IpSelectrAdapter from '@components/ip-selector/adapter';
-
+import * as IpSelectrAdapter from '@blueking/ip-selector/dist/adapter';
 import DynamicGroupInfoVO from '@domain/variable-object/dynamic-group-info';
 import NodeInfoVO from '@domain/variable-object/node-info';
 

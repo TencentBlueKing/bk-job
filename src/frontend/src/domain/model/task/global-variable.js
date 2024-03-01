@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
 */
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 import I18n from '@/i18n';
 
@@ -64,13 +64,13 @@ export default class GlobalVariable {
     this.name = payload.name || '';
     this.type = payload.type || TYPE_STRING;
     this.defaultValue = payload.defaultValue || '';
-    this.defaultTargetValue = new TaskHostNodeModel(payload.defaultTargetValue || {});
+    this.defaultTargetValue = new ExecuteTargetModel(payload.defaultTargetValue || {});
     this.description = payload.description || '';
     this.changeable = payload.changeable || 0;
     this.required = payload.required || 0;
     this.delete = payload.delete || 0;
     this.value = payload.value || '';
-    this.targetValue = new TaskHostNodeModel(payload.targetValue || {});
+    this.targetValue = new ExecuteTargetModel(payload.targetValue || {});
   }
 
   /**

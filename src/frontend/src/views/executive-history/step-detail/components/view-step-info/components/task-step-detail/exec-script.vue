@@ -73,7 +73,8 @@
       :label="$t('template.执行目标：')"
       layout="vertical">
       <ip-selector
-        :complete-host-list="hostsDetails(stepInfo.executeTarget.hostNodeInfo.hostList)"
+        :complete-container-list="containerDetail(stepInfo.executeTarget.executeObjectsInfo.containerList)"
+        :complete-host-list="hostsDetails(stepInfo.executeTarget.executeObjectsInfo.hostList)"
         readonly
         show-view />
     </detail-item>
@@ -98,8 +99,12 @@
 
   import AceEditor from '@components/ace-editor';
   import DetailItem from '@components/detail-layout/item';
-  import { hostsDetails } from '@components/ip-selector/adapter';
   import JbEditTextarea from '@components/jb-edit/textarea';
+
+  import {
+    containerDetail,
+    hostsDetails,
+  } from '@blueking/ip-selector/dist/adapter';
 
   const props = defineProps({
     data: {

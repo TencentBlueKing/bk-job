@@ -62,7 +62,7 @@
     getOffset,
   } from '@utils/assist';
 
-  import mixins from '../../mixins';
+  import mixins from '../../../mixins';
 
   import FileItem from './log-item';
 
@@ -76,17 +76,19 @@
     ],
     props: {
       name: String,
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
       stepInstanceId: {
         type: Number,
         required: true,
       },
-      host: {
+      taskExecuteDetail: {
         type: Object,
+        required: true,
       },
-      batch: {
-        type: [Number, String],
-      },
-      retryCount: {
+      executeCount: {
         type: Number,
         required: true,
       },
@@ -163,21 +165,20 @@
        * 如果文件信息里面不包含日志内容，需要异步获取文件内容
        */
       fetchData() {
-        if (!this.host.ip && !this.host.hostId) {
+        if (!this.taskExecuteDetail.executeObject) {
           this.isLoading = false;
           this.contentList = [];
           return;
         }
-        const requestHandler = this.host.hostId
-          ? TaskExecuteService.fetchFileLogOfHostId
-          : TaskExecuteService.fetchFileLogOfIp;
-        requestHandler({
+
+        TaskExecuteService.fetchFileLogOfHostId({
+          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
-          retryCount: this.retryCount,
-          hostId: this.host.hostId,
-          ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
-          batch: this.batch,
-          mode: this.mode,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          executeCount: this.executeCount,
+          batch: this.taskExecuteDetail.batch,
+          mode: this.mode === 'download' ? 1 : 0,
         }).then((data) => {
           const {
             fileDistributionDetails,
@@ -216,7 +217,9 @@
         this.isAsyncContentLoading = true;
         TaskExecuteService.fetchFileLogOfFile({
           stepInstanceId: this.stepInstanceId,
-          retryCount: this.retryCount,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          executeCount: this.executeCount,
           taskIds: Object.keys(this.openMemo),
         }).then((data) => {
           this.renderContentMap = Object.freeze(data.reduce((result, item) => {

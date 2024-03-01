@@ -86,7 +86,7 @@
               hostList,
               nodeList,
               dynamicGroupList,
-            } = hostVariable.defaultTargetValue.hostNodeInfo;
+            } = hostVariable.defaultTargetValue.executeObjectsInfo;
             allHostList.push(...hostList.map(({ hostId }) => ({ hostId })));
             allNodeList.push(...nodeList.map(({ objectId, instanceId }) => ({ objectId, instanceId })));
             allDynamicGroupList.push(...dynamicGroupList.map(({ id }) => ({ id })));

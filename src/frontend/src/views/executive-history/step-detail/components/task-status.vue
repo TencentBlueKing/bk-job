@@ -153,11 +153,11 @@
       this.timer = '';
 
       const { taskInstanceId } = this.$route.params;
-      const { stepInstanceId, retryCount = 0 } = this.$route.query;
+      const { stepInstanceId, executeCount = 0 } = this.$route.query;
 
       this.taskInstanceId = parseInt(taskInstanceId, 10);
       this.stepInstanceId = parseInt(stepInstanceId, 10);
-      this.retryCount = parseInt(retryCount, 10);
+      this.executeCount = parseInt(executeCount, 10);
 
       this.fetchData();
     },
@@ -168,7 +168,7 @@
       });
     },
     methods: {
-      fetchData(trigger = false) {
+      fetchData() {
         this.isLoading = true;
         TaskExecuteService.fetchTaskExecutionResult({
           id: this.taskInstanceId,
@@ -184,18 +184,18 @@
             const [
               {
                 stepInstanceId,
-                retryCount,
+                executeCount,
               },
             ] = data.stepExecution;
             this.stepInstanceId = stepInstanceId;
-            this.retryCount = retryCount;
+            this.executeCount = executeCount;
           }
 
           this.currentStepInstanceId = this.stepInstanceId;
           this.$emit('on-init', {
             taskInstanceId: this.taskInstanceId,
             stepInstanceId: this.stepInstanceId,
-            retryCount: this.retryCount,
+            executeCount: this.executeCount,
             taskStepList: data.stepExecution,
             isTask: this.taskExecutionDetail.taskExecution.isTask,
             taskExecution: this.taskExecutionDetail.taskExecution,
@@ -284,19 +284,19 @@
           return;
         }
 
-        const { stepInstanceId, retryCount } = step;
+        const { stepInstanceId, executeCount } = step;
         this.currentStepInstanceId = stepInstanceId;
 
         this.$emit('on-init', {
           stepInstanceId,
           taskInstanceId: this.taskInstanceId,
-          retryCount,
+          executeCount,
           taskStepList: this.taskExecutionDetail.stepExecution,
           isTask: this.taskExecutionDetail.taskExecution.isTask,
           taskExecution: this.taskExecutionDetail.taskExecution,
         });
       },
-      handleTaskStatusUpdate(payload) {
+      handleTaskStatusUpdate() {
         this.reLoading();
       },
     },

@@ -47,7 +47,8 @@
       <div class="content-wraper">
         <scroll-faker>
           <ip-selector
-            :complete-host-list="hostsDetails(hostNodeInfo.hostList)"
+            :complete-container-list="containerDetail(executeObjectsInfo.containerList)"
+            :complete-host-list="hostsDetails(executeObjectsInfo.hostList)"
             readonly
             show-view />
         </scroll-faker>
@@ -66,8 +67,12 @@
     shallowRef,
   } from 'vue';
 
-  import { hostsDetails } from '@components/ip-selector/adapter';
   import ScrollFaker from '@components/scroll-faker';
+
+  import {
+    containerDetail,
+    hostsDetails,
+  } from '@blueking/ip-selector/dist/adapter';
 
   const props = defineProps({
     data: {
@@ -77,10 +82,10 @@
   });
 
   const isShowDetail = ref(false);
-  const hostNodeInfo = shallowRef({});
+  const executeObjectsInfo = shallowRef({});
 
   const handlerView = () => {
-    hostNodeInfo.value = props.data.host.hostNodeInfo;
+    executeObjectsInfo.value = props.data.host.executeObjectsInfo;
     isShowDetail.value = true;
   };
   const handleClose = () =>  {

@@ -87,8 +87,8 @@
   </jb-form>
 </template>
 <script>
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskStepModel from '@model/task/task-step';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   import {
     scriptErrorConfirm,
@@ -127,7 +127,7 @@
     // 执行账号
     account: '',
     // 执行目标信息 （主机和全局变量二选一）
-    executeTarget: new TaskHostNodeModel({}),
+    executeTarget: new ExecuteTargetModel({}),
 
   });
 

@@ -207,7 +207,7 @@
             ],
             rePassword: [
               {
-                validator: value => this.formData.rePassword === this.formData.dbPassword,
+                validator: () => this.formData.rePassword === this.formData.dbPassword,
                 message: I18n.t('account.密码不一致'),
                 trigger: 'blur',
               },

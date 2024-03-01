@@ -170,7 +170,7 @@
           this.usersMemo = [...this.users];
         });
       },
-      handleBlackListChange(user, role) {
+      handleBlackListChange(user) {
         this.formData.users = user;
       },
       handleToggleChannel(code) {
@@ -233,7 +233,7 @@
             title,
           };
           GlobalSettingService.updateNotifyTemplate(params)
-            .then((data) => {
+            .then(() => {
               this.showTemplateEdit = false;
               this.messageSuccess(I18n.t('setting.保存成功'));
             })

@@ -50,9 +50,9 @@
             <execution-history-select
               ref="executionHistorySelect"
               :batch="params.batch"
-              :retry-count="params.retryCount"
+              :execute-count="params.executeCount"
               :step-instance-id="params.id"
-              @on-change="handleRetryCountChange" />
+              @on-change="handleExecuteCountChange" />
           </div>
         </div>
         <!-- 步骤执行操作 -->
@@ -66,54 +66,15 @@
             display-style="step-detail"
             :name="action" />
         </div>
-        <div class="log-search-box">
-          <compose-form-item>
-            <bk-select
-              v-model="searchModel"
-              :clearable="false"
-              style="width: 100px;">
-              <bk-option
-                id="log"
-                :name="$t('history.搜索日志')" />
-              <bk-option
-                id="ip"
-                :name="$t('history.搜索 IP')" />
-            </bk-select>
-            <bk-input
-              v-if="searchModel === 'log'"
-              key="log"
-              :disabled="isFile"
-              right-icon="bk-icon icon-search"
-              style="width: 292px;"
-              :tippy-tips="isFile ? $t('history.分发文件步骤不支持日志搜索') : ''"
-              :value="params.keyword"
-              @keyup="handleLogSearch" />
-            <bk-input
-              v-if="searchModel === 'ip'"
-              key="ip"
-              right-icon="bk-icon icon-search"
-              style="width: 292px;"
-              :value="params.searchIp"
-              @keyup="handleIPSearch" />
-          </compose-form-item>
-          <div
-            v-if="isLogSearching"
-            class="search-loading">
-            <icon
-              class="loading-flag"
-              type="loading" />
-          </div>
-          <div
-            v-if="isIPSearching"
-            class="search-loading">
-            <icon
-              class="loading-flag"
-              type="loading" />
-          </div>
-        </div>
+        <search-log
+          :data="data"
+          :searching="isSearching"
+          :value="params"
+          @change="handleSearchChange" />
         <export-log
           :is-file="isFile"
-          :step-instance-id="params.id" />
+          :step-instance-id="params.id"
+          :task-instance-id="taskInstanceId" />
         <div class="task-instance-action">
           <view-global-variable
             v-if="isTask"
@@ -138,16 +99,17 @@
           class="container-left">
           <!-- 主机列表 -->
           <!-- eslint-disable max-len -->
-          <ip-list
-            :data="dispalyGroup.agentTaskExecutionDetail"
+          <result-task-list
+            :data="dispalyGroup.tasks"
+            :execute-object-type="data.executeObjectType"
+            :get-all-task-list="getAllTaskList"
             :list-loading="isLoading"
-            :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.retryCount}_${params.keyword}_${params.searchIp}`"
+            :name="`${data.stepInstanceId}_${dispalyGroup.groupName}_${params.executeCount}_${params.keyword}_${params.searchIp}`"
             :pagination-loading="paginationChangeLoading"
             :search-value="`${params.keyword}_${params.searchIp}`"
-            :total="dispalyGroup.agentTaskSize"
-            @on-change="handleHostChange"
+            :total="dispalyGroup.taskSize"
+            @on-change="handleResultTaskChange"
             @on-clear-search="handleClearSearch"
-            @on-copy="handleCopyHost"
             @on-pagination-change="handlePaginationChange"
             @on-sort="handleSort" />
         </div>
@@ -155,14 +117,14 @@
           <!-- 执行日志 -->
           <execution-info
             v-if="data.stepInstanceId"
-            :host="currentHost"
+            :execute-count="params.executeCount"
             :is-file="isFile"
             :is-task="isTask"
             :log-filter="params.keyword"
-            :name="`${params.id}_${params.retryCount}_${dispalyGroup.groupName}_${currentHost.key}_${params.keyword}`"
-            :retry-count="params.retryCount"
+            :name="`${params.id}_${params.executeCount}_${dispalyGroup.groupName}_${currentResultTask.key}_${params.keyword}`"
             :step-instance-id="data.stepInstanceId"
-            @on-search="handleLogSearch" />
+            :task-execute-detail="currentResultTask"
+            :task-instance-id="taskInstanceId" />
         </div>
       </div>
     </task-status>
@@ -187,12 +149,6 @@
 
   import TaskExecuteService from '@service/task-execute';
 
-  import {
-    execCopy,
-  } from '@utils/assist';
-
-  import ComposeFormItem from '@components/compose-form-item';
-
   import I18n from '@/i18n';
 
   import ExecutionStatusBar from '../common/execution-status-bar';
@@ -202,9 +158,10 @@
   import ExecutionInfo from './components/execution-info';
   import ExportLog from './components/export-log';
   import GroupTab from './components/group-tab';
-  import IpList from './components/ip-list/index-new.vue';
   import mixins from './components/mixins';
+  import ResultTaskList from './components/result-task-list/index.vue';
   import RollingBatch from './components/rolling-batch';
+  import SearchLog from './components/search-log.vue';
   import TaskStatus from './components/task-status';
   import ViewGlobalVariable from './components/view-global-variable';
   import ViewOperationRecord from './components/view-operation-record';
@@ -225,20 +182,19 @@
   export default {
     name: 'StepExecuteDetail',
     components: {
-      ComposeFormItem,
       ExecutionStatusBar,
       StepAction,
       RollingBatch,
       TaskStatus,
       ExecutionHistorySelect,
       GroupTab,
-      IpList,
+      ResultTaskList,
       ExecutionInfo,
       ExportLog,
       ViewGlobalVariable,
       ViewOperationRecord,
       ViewStepInfo,
-
+      SearchLog,
     },
     mixins: [
       mixins,
@@ -246,11 +202,8 @@
     data() {
       return {
         isLoading: true,
-        isLogSearching: false,
-        isIPSearching: false,
+        isSearching: false,
         defailContainerStyles: {},
-        // 搜索模式
-        searchModel: 'log',
         // 步骤所属作业的所有步骤列表
         taskStepList: [],
         // 任务信息
@@ -264,7 +217,7 @@
         params: {
           id: 0,
           batch: '',
-          retryCount: '',
+          executeCount: '',
           maxIpsPerResultGroup: 0,
           keyword: '', // 日志的筛选值
           searchIp: '', // ip的筛选值
@@ -277,9 +230,12 @@
           tag: '',
         },
         // 选中的主机信息
-        currentHost: {
-          ip: '',
-          retryCount: 0,
+        currentResultTask: {
+          type: 0,
+          executeObject: {
+            executeObjectResourceId: 0,
+            executeCount: 0,
+          },
         },
         // 作业执行步骤
         isTask: false,
@@ -334,7 +290,7 @@
           return targetGroup;
         }
         return {
-          agentTaskExecutionDetail: [],
+          tasks: [],
           groupName: '',
         };
       },
@@ -371,6 +327,7 @@
           ...this.params,
           resultType: this.currentGroup.resultType,
           tag: this.currentGroup.tag,
+          taskInstanceId: this.taskInstanceId,
         }).then((data) => {
           if (this.isForceing) {
             return;
@@ -408,11 +365,18 @@
           })
           .finally(() => {
             this.isLoading = false;
-            this.isLogSearching = false;
-            this.isIPSearching = false;
+            this.isSearching = false;
             this.paginationChangeLoading = false;
           });
       }, 100),
+      // 获取完整的 taskList
+      getAllTaskList() {
+        return TaskExecuteService.fetchStepGroupHost({
+          ...this.params,
+          resultType: this.currentGroup.resultType,
+          tag: this.currentGroup.tag,
+        });
+      },
       calcDetailContainerStyle: _.throttle(function () {
         const { top } = this.$refs.detailContainer.getBoundingClientRect();
         this.defailContainerStyles = {
@@ -428,15 +392,16 @@
       handleTaskInit(payload) {
         this.params = {
           ...this.params,
+          taskInstanceId: payload.taskInstanceId,
           id: payload.stepInstanceId,
-          retryCount: payload.retryCount,
+          executeCount: payload.executeCount || 0,
         };
         this.taskInstanceId = payload.taskInstanceId;
         this.isTask = payload.isTask;
         this.taskStepList = Object.freeze(payload.taskStepList);
         this.taskExecution = payload.taskExecution;
         appendURLParams({
-          retryCount: payload.retryCount,
+          executeCount: payload.executeCount,
           stepInstanceId: payload.stepInstanceId,
         });
         this.fetchStep();
@@ -463,17 +428,17 @@
       },
       /**
        * @desc 执行历史
-       * @param {Number} retryCount 重试次数
+       * @param {Number} executeCount 重试次数
        *
        * 刷新步骤执行详情
        */
-      handleRetryCountChange(retryCount) {
+      handleExecuteCountChange(executeCount) {
         this.params = {
           ...this.params,
-          retryCount,
+          executeCount,
         };
         appendURLParams({
-          retryCount: this.params.retryCount,
+          executeCount: this.params.executeCount,
         });
         this.fetchStep();
       },
@@ -490,10 +455,10 @@
       },
       /**
        * @desc 选中主机
-       * @param {Object} host 选中的主机
+       * @param {Object} task 目标任务
        */
-      handleHostChange(host) {
-        this.currentHost = Object.freeze(host);
+      handleResultTaskChange(resultTask) {
+        this.currentResultTask = Object.freeze(resultTask);
       },
       /**
        * @desc 组件列表分页
@@ -518,40 +483,8 @@
       handleClearSearch() {
         this.params.keyword = '';
         this.params.searchIp = '';
-        this.isLogSearching = true;
+        this.isSearching = true;
         this.fetchStep();
-      },
-      /**
-       * @desc 复制所有主机IP
-       * @param { String } fieldName 复制的字段 IP | IPv6
-       *
-       * 主机列表是分页加载，复制全部主机时需要全量请求一次
-       */
-      handleCopyHost(fieldName) {
-        TaskExecuteService.fetchStepGroupHost({
-          ...this.params,
-          resultType: this.currentGroup.resultType,
-          tag: this.currentGroup.tag,
-        }).then((data) => {
-          const fieldDataList = data.reduce((result, item) => {
-            if (item[fieldName]) {
-              result.push(item[fieldName]);
-            }
-            return result;
-          }, []);
-
-          if (fieldDataList.length < 1) {
-            this.$bkMessage({
-              theme: 'warning',
-              message: fieldName === 'ip' ? `${I18n.t('history.没有可复制的 IPv4')}` : `${I18n.t('history.没有可复制的 IPv6')}`,
-              limit: 1,
-            });
-            return;
-          }
-          const fieldNameText = fieldName === 'ip' ? 'IP' : 'IPv6';
-          const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')}${fieldNameText}）`;
-          execCopy(fieldDataList.join('\n'), successMessage);
-        });
       },
       /**
        * @desc 开始强制终止
@@ -597,7 +530,7 @@
           id: this.params.id,
           operationCode,
         }).then((data) => {
-          this.params.retryCount = data.retryCount;
+          this.params.executeCount = data.executeCount;
           this.$refs.taskStatus.reLoading();
           this.$refs.executionHistorySelect.reLoading();
           this.$bkMessage({
@@ -606,64 +539,24 @@
             message: I18n.t('history.操作成功'),
           });
           appendURLParams({
-            retryCount: this.params.retryCount,
+            executeCount: this.params.executeCount,
           });
           this.fetchStep();
           return true;
         });
       },
       /**
-       * @desc ip搜索
-       * @param {String} value 搜索值，支持模糊搜索
-       * @param {Object} event input交互事件
-       *
-       * 1，与日志搜索互斥
-       * 2，enter建触发搜索
-       * 3，重置页码（ip-list组件处理）
+       * @desc 日志搜若
+       * @param { keyword: string, searchIp: string } payload
+       * @returns { Boolean }
        */
-      handleIPSearch(value, event) {
-        if (event.isComposing) {
-          // 跳过输入法复合事件
-          return;
-        }
-
-        // 输入框的值被清空直接触发搜索
-        // enter键开始搜索
-        if ((value === '' && value !== this.params.searchIp)
-          || event.keyCode === 13) {
-          this.params.keyword = '';
-          this.params.searchIp = value;
-          this.isIPSearching = true;
-          this.fetchStep();
-        }
+      handleSearchChange(payload) {
+        this.params.keyword = payload.keyword;
+        this.params.searchIp = payload.searchIp;
+        this.isSearching = true;
+        this.fetchStep();
       },
-      /**
-       * @desc 日志搜索
-       * @param {String} value 搜索值，支持模糊搜索
-       * @param {Object} event input交互事件
-       *
-       * 1，与ip搜索互斥
-       * 2，enter建触发搜索
-       * 3，重置页码（ip-list组件处理）
-       */
-      handleLogSearch(value, event) {
-        if (event.isComposing) {
-          // 跳过输入法复合事件
-          return;
-        }
 
-        // 输入框的值被清空直接触发搜索
-        // enter键开始搜索
-        if ((value === '' && value !== this.params.keyword)
-          || event.keyCode === 13
-          || event.type === 'click') {
-          this.params.keyword = value;
-          this.params.searchIp = '';
-          this.isLogSearching = true;
-          this.searchModel = 'log';
-          this.fetchStep();
-        }
-      },
       /**
        * @desc 路由回退
        */
@@ -790,28 +683,6 @@
 
           i {
             display: none;
-          }
-        }
-      }
-
-      .log-search-box {
-        position: relative;
-        display: flex;
-        flex: 0 0 391px;
-        background: #fff;
-
-        .search-loading {
-          position: absolute;
-          top: 1px;
-          right: 13px;
-          bottom: 1px;
-          display: flex;
-          align-items: center;
-          color: #c4c6cc;
-          background: #fff;
-
-          .loading-flag {
-            animation: list-loading-ani 1s linear infinite;
           }
         }
       }
