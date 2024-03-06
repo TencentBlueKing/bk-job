@@ -35,6 +35,12 @@ public class GetExecuteScriptResultRequest extends GseReq {
         private String agentId;
 
         /**
+         * 目标容器 ID, 空则为主机
+         */
+        @JsonProperty("bk_container_id")
+        private String containerId;
+
+        /**
          * 脚本任务
          */
         @JsonProperty("atomic_tasks")
@@ -55,9 +61,10 @@ public class GetExecuteScriptResultRequest extends GseReq {
         private int offset;
     }
 
-    public void addAgentTaskQuery(String agentId, Integer atomicTaskId, int offset) {
+    public void addAgentTaskQuery(ExecuteObjectGseKey executeObjectGseKey, Integer atomicTaskId, int offset) {
         AgentTask agentTask = new AgentTask();
-        agentTask.setAgentId(agentId);
+        agentTask.setAgentId(executeObjectGseKey.getAgentId());
+        agentTask.setContainerId(executeObjectGseKey.getContainerId());
         AtomicTask atomicTask = new AtomicTask();
         atomicTask.setAtomicTaskId(atomicTaskId);
         atomicTask.setOffset(offset);

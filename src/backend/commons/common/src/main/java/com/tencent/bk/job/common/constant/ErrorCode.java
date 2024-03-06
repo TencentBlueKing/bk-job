@@ -284,7 +284,7 @@ public class ErrorCode {
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机无效，请检查源或目标主机的IPv4或AgentID字段值是否存在于配置平台；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。无效的{0}台主机：[{1}]
+    // 主机无效，请检查源或目标主机的是否存在于配置平台的业务[{0}]下；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。无效的{1}台主机：[{2}]
     public static final int HOST_INVALID = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
@@ -334,10 +334,12 @@ public class ErrorCode {
     public static final int INVALID_ROLLING_EXPR = 1244026;
     // 滚动批次不能大于{}
     public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
-    // 步骤：{} 的目标主机为空
-    public static final int STEP_TARGET_HOST_EMPTY = 1244028;
-    // 步骤：{} 的源文件主机为空
-    public static final int STEP_SOURCE_HOST_EMPTY = 1244029;
+    // 步骤：{} 的目标执行对象为空
+    public static final int STEP_TARGET_EXECUTE_OBJECT_EMPTY = 1244028;
+    // 步骤：{} 的源文件执行对象为空
+    public static final int STEP_SOURCE_EXECUTE_OBJECT_EMPTY = 1244029;
+    // 执行对象不存在。无效的{0}个执行对象：[{1}]
+    public static final int EXECUTE_OBJECT_NOT_EXIST = 1244030;
     // 作业执行 end
 
     // 定时作业 start

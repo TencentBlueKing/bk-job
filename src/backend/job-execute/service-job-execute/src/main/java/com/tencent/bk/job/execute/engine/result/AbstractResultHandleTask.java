@@ -26,12 +26,12 @@ package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
@@ -44,12 +44,12 @@ import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -58,7 +58,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.Collection;
@@ -100,7 +99,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     protected ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-    protected AgentTaskService agentTaskService;
+    protected ExecuteObjectTaskService executeObjectTaskService;
     protected StepInstanceService stepInstanceService;
     protected GseClient gseClient;
     /**
@@ -132,13 +131,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected GseTaskDTO gseTask;
     /**
-     * Agent 任务
+     * 执行对象任务列表
      */
-    protected List<AgentTaskDTO> agentTasks;
+    protected List<ExecuteObjectTask> executeObjectTasks;
     /**
-     * GSE 目标主机任务执行结果，Map<AgentId, AgentTaskDTO>
+     * GSE任务与JOB执行对象任务的映射关系
      */
-    protected Map<String, AgentTaskDTO> targetAgentTasks;
+    protected Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTasks;
     /**
      * 全局参数分析结果
      */
@@ -150,23 +149,19 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 任务包含的所有目标服务器
      */
-    protected Set<String> targetAgentIds = new HashSet<>();
+    protected Set<ExecuteObjectGseKey> targetExecuteObjectGseKeys = new HashSet<>();
     /**
      * 未结束的目标服务器
      */
-    protected Set<String> notFinishedTargetAgentIds = new HashSet<>();
+    protected Set<ExecuteObjectGseKey> notFinishedTargetExecuteObjectGseKeys = new HashSet<>();
     /**
      * 已经分析结果完成的目标服务器
      */
-    protected Set<String> analyseFinishedTargetAgentIds = new HashSet<>();
+    protected Set<ExecuteObjectGseKey> analyseFinishedTargetExecuteObjectGseKeys = new HashSet<>();
     /**
      * 执行成功的目标服务器
      */
-    protected Set<String> successTargetAgentIds = new HashSet<>();
-    /**
-     * Agent ID 与 host 映射关系
-     */
-    protected Map<String, HostDTO> agentIdHostMap;
+    protected Set<ExecuteObjectGseKey> successTargetExecuteObjectGseKeys = new HashSet<>();
     /**
      * 任务成功被终止
      */
@@ -207,9 +202,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected boolean gseV2Task;
     /**
-     * 是否包含非法主机
+     * 是否包含非法执行对象
      */
-    protected boolean hasInvalidHost;
+    protected boolean hasInvalidExecuteObject;
     /**
      * GSE 任务信息，用于日志输出
      */
@@ -224,16 +219,16 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                       AgentTaskService agentTaskService,
+                                       ExecuteObjectTaskService executeObjectTaskService,
                                        StepInstanceService stepInstanceService,
                                        GseClient gseClient,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
-                                       Map<String, AgentTaskDTO> targetAgentTasks,
+                                       Map<ExecuteObjectGseKey, ExecuteObjectTask> targetExecuteObjectTasks,
                                        GseTaskDTO gseTask,
                                        String requestId,
-                                       List<AgentTaskDTO> agentTasks) {
+                                       List<ExecuteObjectTask> executeObjectTasks) {
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
         this.logService = logService;
@@ -242,7 +237,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.agentTaskService = agentTaskService;
+        this.executeObjectTaskService = executeObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
         this.requestId = requestId;
@@ -253,15 +248,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
-        this.targetAgentTasks = targetAgentTasks;
+        this.targetExecuteObjectTasks = targetExecuteObjectTasks;
         this.gseTask = gseTask;
-        this.agentTasks = agentTasks;
+        this.executeObjectTasks = executeObjectTasks;
         this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
 
-        targetAgentTasks.values().forEach(agentTask -> this.targetAgentIds.add(agentTask.getAgentId()));
-        this.notFinishedTargetAgentIds.addAll(targetAgentIds);
-
-        this.agentIdHostMap = stepInstanceService.computeStepHosts(stepInstance, HostDTO::getAgentId);
+        targetExecuteObjectTasks.values().forEach(executeObjectTask ->
+            this.targetExecuteObjectGseKeys.add(executeObjectTask.getExecuteObject().toExecuteObjectGseKey()));
+        this.notFinishedTargetExecuteObjectGseKeys.addAll(targetExecuteObjectGseKeys);
 
         // 如果是执行方案，需要初始化全局变量
         if (taskInstance.isPlanInstance()) {
@@ -271,7 +265,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
 
-        this.hasInvalidHost = agentTasks.stream().anyMatch(agentTask -> StringUtils.isEmpty(agentTask.getAgentId()));
+        this.hasInvalidExecuteObject =
+            executeObjectTasks.stream().anyMatch(
+                executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty());
     }
 
     private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
@@ -437,20 +433,22 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private boolean shouldSkipStep() {
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 
     private void saveStatusWhenSkip() {
-        List<AgentTaskDTO> notFinishedGseAgentTasks =
-            targetAgentTasks.values().stream().filter(not(AgentTaskDTO::isFinished)).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notFinishedGseAgentTasks)) {
-            notFinishedGseAgentTasks.forEach(agentTask -> {
-                agentTask.setStatus(AgentTaskStatusEnum.UNKNOWN);
-                agentTask.setEndTime(System.currentTimeMillis());
+        List<ExecuteObjectTask> notFinishedExecuteObjectTasks =
+            targetExecuteObjectTasks.values().stream()
+                .filter(not(ExecuteObjectTask::isFinished))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(notFinishedExecuteObjectTasks)) {
+            notFinishedExecuteObjectTasks.forEach(executeObjectTask -> {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.UNKNOWN);
+                executeObjectTask.setEndTime(System.currentTimeMillis());
             });
         }
-        agentTaskService.batchUpdateAgentTasks(notFinishedGseAgentTasks);
+        executeObjectTaskService.batchUpdateTasks(notFinishedExecuteObjectTasks);
     }
 
     /*
@@ -471,7 +469,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.warn("[{}]: Task execution timeout! runDuration: {}ms, timeout: {}s", gseTaskInfo,
                 runDuration, stepInstance.getTimeout());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR,
+            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             isTimeout = true;
@@ -493,7 +491,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             if (currentTimeMillis - latestPullGseLogSuccessTimeMillis >= GSE_TASK_EMPTY_RESULT_MAX_TOLERATION_MILLS) {
                 log.warn("[{}]: Execution result log always empty!", gseTaskInfo);
                 this.executeResult = GseTaskExecuteResult.FAILED;
-                saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, "Execution result log always empty.");
+                saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result " +
+                    "log " +
+                    "always empty.");
                 finishGseTask(GseTaskExecuteResult.FAILED, true);
                 isAbnormal = true;
             }
@@ -508,7 +508,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
                 gseLogBatchPullResult.getErrorMsg());
             this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum.LOG_ERROR, gseLogBatchPullResult.getErrorMsg());
+            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
+                gseLogBatchPullResult.getErrorMsg());
             finishGseTask(GseTaskExecuteResult.FAILED, true);
             return false;
         }
@@ -519,25 +520,30 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 设置目标gent任务结束状态
      *
-     * @param agentId   agentId
-     * @param startTime 起始时间
-     * @param endTime   终止时间
-     * @param agentTask 日志
+     * @param executeObjectGseKey executeObjectGseKey
+     * @param startTime           起始时间
+     * @param endTime             终止时间
+     * @param executeObjectTask   执行对象任务
      */
-    protected void dealTargetAgentFinish(String agentId, Long startTime, Long endTime, AgentTaskDTO agentTask) {
-        log.info("[{}]: Deal target agent finished| agentId={}| startTime:{}, endTime:{}, agentTask:{}",
-            gseTaskInfo, agentId, startTime, endTime, JsonUtils.toJsonWithoutSkippedFields(agentTask));
+    protected void dealTargetExecuteObjectFinish(ExecuteObjectGseKey executeObjectGseKey,
+                                                 Long startTime,
+                                                 Long endTime,
+                                                 ExecuteObjectTask executeObjectTask) {
+        log.info("[{}]: Deal target agent finished| executeObjectGseKey={}| startTime:{}, endTime:{}, " +
+                "executeObjectTask:{}",
+            gseTaskInfo, executeObjectGseKey, startTime, endTime,
+            JsonUtils.toJsonWithoutSkippedFields(executeObjectTask));
 
-        notFinishedTargetAgentIds.remove(agentId);
-        analyseFinishedTargetAgentIds.add(agentId);
+        notFinishedTargetExecuteObjectGseKeys.remove(executeObjectGseKey);
+        analyseFinishedTargetExecuteObjectGseKeys.add(executeObjectGseKey);
 
         if (endTime - startTime <= 0) {
-            agentTask.setTotalTime(100L);
+            executeObjectTask.setTotalTime(100L);
         } else {
-            agentTask.setTotalTime(endTime - startTime);
+            executeObjectTask.setTotalTime(endTime - startTime);
         }
-        agentTask.setStartTime(startTime);
-        agentTask.setEndTime(endTime);
+        executeObjectTask.setStartTime(startTime);
+        executeObjectTask.setEndTime(endTime);
     }
 
     /**
@@ -595,31 +601,31 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 批量更新AgentTask并重置changed标志
+     * 批量更新执行对象任务并重置changed标志
      *
-     * @param agentTasks agent任务列表
+     * @param executeObjectTasks 执行对象任务列表
      */
-    protected void batchSaveChangedGseAgentTasks(Collection<AgentTaskDTO> agentTasks) {
-        if (CollectionUtils.isNotEmpty(agentTasks)) {
-            List<AgentTaskDTO> changedGseAgentTasks =
-                agentTasks.stream().filter(AgentTaskDTO::isChanged).collect(Collectors.toList());
-            agentTaskService.batchUpdateAgentTasks(changedGseAgentTasks);
-            changedGseAgentTasks.forEach(agentTask -> agentTask.setChanged(false));
+    protected void batchSaveChangedExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
+        if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
+            List<ExecuteObjectTask> changedTasks =
+                executeObjectTasks.stream().filter(ExecuteObjectTask::isChanged).collect(Collectors.toList());
+            executeObjectTaskService.batchUpdateTasks(changedTasks);
+            changedTasks.forEach(executeObjectTask -> executeObjectTask.setChanged(false));
         }
     }
 
-    protected void saveFailInfoForUnfinishedAgentTask(AgentTaskStatusEnum status, String errorMsg) {
+    protected void saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum status, String errorMsg) {
         log.info("[{}]: Deal unfinished agent result| notFinishedTargetAgentIds : {}",
-            gseTaskInfo, notFinishedTargetAgentIds);
+            gseTaskInfo, notFinishedTargetExecuteObjectGseKeys);
         long startTime = (gseTask != null && gseTask.getStartTime() != null) ?
             gseTask.getStartTime() : System.currentTimeMillis();
-        for (String agentId : notFinishedTargetAgentIds) {
-            AgentTaskDTO agentTask = targetAgentTasks.get(agentId);
-            agentTask.setStartTime(startTime);
-            agentTask.setEndTime(System.currentTimeMillis());
-            agentTask.setStatus(status);
+        for (ExecuteObjectGseKey executeObjectGseKey : notFinishedTargetExecuteObjectGseKeys) {
+            ExecuteObjectTask executeObjectTask = targetExecuteObjectTasks.get(executeObjectGseKey);
+            executeObjectTask.setStartTime(startTime);
+            executeObjectTask.setEndTime(System.currentTimeMillis());
+            executeObjectTask.setStatus(status);
         }
-        batchSaveChangedGseAgentTasks(targetAgentTasks.values());
+        batchSaveChangedExecuteObjectTasks(targetExecuteObjectTasks.values());
     }
 
     @Override
@@ -672,28 +678,28 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     /**
-     * 是否所有目标Agent上的任务都完成
+     * 是否所有目标上的执行对象任务都完成
      */
-    protected boolean isAllTargetAgentTasksDone() {
-        return this.analyseFinishedTargetAgentIds.size() == this.targetAgentIds.size();
+    protected boolean isAllTargetExecuteObjectTasksDone() {
+        return this.analyseFinishedTargetExecuteObjectGseKeys.size() == this.targetExecuteObjectGseKeys.size();
     }
 
     /**
-     * 是否所有目标Agent上的任务都执行成功
+     * 是否所有目标上的执行对象任务都执行成功
      */
-    protected boolean isAllTargetAgentTasksSuccess() {
-        return this.targetAgentIds.size() == this.successTargetAgentIds.size();
+    protected boolean isAllTargetExecuteObjectTasksSuccess() {
+        return this.targetExecuteObjectGseKeys.size() == this.successTargetExecuteObjectGseKeys.size();
     }
 
     /**
-     * 所有agent任务结束的时候，分析整体GSE任务状态
+     * 所有执行对象任务结束的时候，分析整体GSE任务状态
      */
     protected GseTaskExecuteResult analyseFinishedExecuteResult() {
         GseTaskExecuteResult rst;
-        if (isAllTargetAgentTasksSuccess()) {
+        if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
-            if (hasInvalidHost) {
-                log.info("Gse task contains invalid host, set execute result fail");
+            if (hasInvalidExecuteObject) {
+                log.info("Gse task contains invalid execute object, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
                 rst = GseTaskExecuteResult.SUCCESS;

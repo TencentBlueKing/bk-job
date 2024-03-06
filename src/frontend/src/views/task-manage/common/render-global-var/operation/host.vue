@@ -59,11 +59,11 @@
           </bk-button>
         </div>
         <ip-selector
-          :original-value="originalHostNodeInfo"
+          :original-value="originalExecuteObjectsInfo"
           :show-dialog="isShowChooseIp"
           show-view
-          :value="formData.defaultTargetValue.hostNodeInfo"
-          @change="handleHostChange"
+          :value="formData.defaultTargetValue.executeObjectsInfo"
+          @change="handleExecuteObjectsInfoChange"
           @close-dialog="handleCloseIPSelector" />
       </jb-form-item>
       <jb-form-item :label="$t('template.变量描述')">
@@ -87,8 +87,8 @@
 <script>
   import _ from 'lodash';
 
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   import {
     globalVariableNameRule,
@@ -125,14 +125,14 @@
        * @returns { Boolean }
        */
       isShowClear() {
-        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
+        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.formData.defaultTargetValue.executeObjectsInfo);
       },
     },
     created() {
       if (this.$route.name !== 'templateCreate') {
-        this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+        this.originalExecuteObjectsInfo = _.cloneDeep(this.formData.defaultTargetValue.executeObjectsInfo);
       } else {
-        this.originalHostNodeInfo = null;
+        this.originalExecuteObjectsInfo = null;
       }
 
       this.rules = {
@@ -158,10 +158,10 @@
     methods: {
       /**
        * @desc 编辑主机信息
-       * @param { hostNodeInfo } 主机信息
+       * @param { executeObjectsInfo } 主机信息
        */
-      handleHostChange(hostNodeInfo) {
-        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
       },
       /**
        * @desc 显示 IP 选择器
@@ -176,8 +176,8 @@
        * @desc 清空主机信息
        */
       handleClearDefault() {
-        const { hostNodeInfo } = new TaskHostNodeModel({});
-        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+        const { executeObjectsInfo } = new ExecuteTargetModel({});
+        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
       },
       /**
        * @desc 保存变量

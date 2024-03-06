@@ -82,14 +82,14 @@
           <ip-selector
             readonly
             show-view
-            :value="hostNodeInfo" />
+            :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
     </jb-dialog>
   </div>
 </template>
 <script>
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import {
     findParent,
@@ -101,20 +101,20 @@
     findVariable,
   } from './utils';
 
-  const isHostEmpty = (taskHostNode) => {
-    if (!taskHostNode) {
+  const isHostEmpty = (executeTarget) => {
+    if (!executeTarget) {
       return true;
     }
-    if (taskHostNode.variable) {
+    if (executeTarget.variable) {
       return false;
     }
-    if (taskHostNode.hostNodeInfo.nodeList.length > 0) {
+    if (executeTarget.executeObjectsInfo.nodeList.length > 0) {
       return false;
     }
-    if (taskHostNode.hostNodeInfo.hostList.length > 0) {
+    if (executeTarget.executeObjectsInfo.hostList.length > 0) {
       return false;
     }
-    if (taskHostNode.hostNodeInfo.dynamicGroupList.length > 0) {
+    if (executeTarget.executeObjectsInfo.dynamicGroupList.length > 0) {
       return false;
     }
     return true;
@@ -142,7 +142,7 @@
         variableName: '',
         ipText: '',
         hostEqual: true,
-        hostNodeInfo: {},
+        executeObjectsInfo: {},
         nodeDiff: {},
         hostDiff: {},
         groupDiff: {},
@@ -160,9 +160,9 @@
       },
     },
     created() {
-      const { hostNodeInfo } = new TaskHostNodeModel({});
-      this.originHostNodeInfo = Object.freeze(hostNodeInfo);
-      this.hostNodeInfo = Object.freeze(hostNodeInfo);
+      const { executeObjectsInfo } = new ExecuteTargetModel({});
+      this.originExecuteObjectsInfo = Object.freeze(executeObjectsInfo);
+      this.executeObjectsInfo = Object.freeze(executeObjectsInfo);
 
       this.composeNode = [];
       this.diffNodeMemo = {};
@@ -188,28 +188,28 @@
           this.variableName = host.variable;
           const curVariable = findVariable(this.dataSourceParent.planVariableList, this.variableName);
 
-          this.originHostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
+          this.originExecuteObjectsInfo = Object.freeze(curVariable.defaultTargetValue.executeObjectsInfo);
         } else {
-          this.originHostNodeInfo = Object.freeze(host.hostNodeInfo);
+          this.originExecuteObjectsInfo = Object.freeze(host.executeObjectsInfo);
           this.ipText = host.text;
         }
-        this.hostNodeInfo = this.originHostNodeInfo;
+        this.executeObjectsInfo = this.originExecuteObjectsInfo;
       },
       checkDiff() {
-        let preValue = this.preHost.hostNodeInfo;
-        let lastValue = this.lastHost.hostNodeInfo;
+        let preValue = this.preHost.executeObjectsInfo;
+        let lastValue = this.lastHost.executeObjectsInfo;
 
         // 优先判断是否使用全局主机变量
         if (this.preHost.variable) {
           const curVariable = findVariable(this.dataSourceParent.planVariableList, this.preHost.variable);
           if (curVariable) {
-            preValue = curVariable.defaultTargetValue.hostNodeInfo;
+            preValue = curVariable.defaultTargetValue.executeObjectsInfo;
           }
         }
         if (this.lastHost.variable) {
           const curVariable = findVariable(this.dataSourceParent.templateVariableList, this.lastHost.variable);
           if (curVariable) {
-            lastValue = curVariable.defaultTargetValue.hostNodeInfo;
+            lastValue = curVariable.defaultTargetValue.executeObjectsInfo;
           }
         }
 
@@ -288,7 +288,7 @@
         });
       },
       handlerView() {
-        this.hostNodeInfo = this.originHostNodeInfo;
+        this.executeObjectsInfo = this.originExecuteObjectsInfo;
         this.nodeDiff = {};
         this.hostDiff = {};
         this.groupDiff = {};
@@ -297,7 +297,7 @@
       },
       handleToggleDiff(value) {
         if (value) {
-          this.hostNodeInfo = Object.freeze({
+          this.executeObjectsInfo = Object.freeze({
             dynamicGroupList: this.composeGroup,
             hostList: this.composeHost,
             nodeList: this.composeNode,

@@ -49,4 +49,8 @@ public interface FeatureIdConstants {
      * 特性-是否支持GSE 获取文件分发任务结果的API协议(2.0版本之前)
      */
     String GSE_FILE_PROTOCOL_BEFORE_V2 = "gseFileProtocolBeforeV2";
+    /**
+     * 特性: 执行对象
+     */
+    String FEATURE_EXECUTE_OBJECT = "executeObject";
 }

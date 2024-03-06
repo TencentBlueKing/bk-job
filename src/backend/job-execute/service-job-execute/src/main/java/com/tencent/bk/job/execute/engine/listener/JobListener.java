@@ -123,7 +123,7 @@ public class JobListener {
         long jobInstanceId = taskInstance.getId();
         // 首先验证作业的状态，只有状态为“未执行”的作业可以启动
         if (RunStatusEnum.BLANK == taskInstance.getStatus()) {
-            StepInstanceBaseDTO stepInstance = taskInstanceService.getFirstStepInstance(jobInstanceId);
+            StepInstanceBaseDTO stepInstance = stepInstanceService.getFirstStepInstance(jobInstanceId);
             taskInstanceService.updateTaskExecutionInfo(jobInstanceId, RunStatusEnum.RUNNING, stepInstance.getId(),
                 DateUtils.currentTimeMillis(), null, null);
             startStep(stepInstance);
@@ -168,13 +168,13 @@ public class JobListener {
 
             // 重置作业状态
             taskInstanceService.resetTaskStatus(jobInstanceId);
-            taskInstanceService.addStepInstanceExecuteCount(jobInstanceId);
+            stepInstanceService.addStepInstanceExecuteCount(jobInstanceId);
 
             // 重置作业下步骤的状态、开始时间和结束时间等。
-            List<Long> stepInstanceIdList = taskInstanceService.getTaskStepIdList(jobInstanceId);
+            List<Long> stepInstanceIdList = stepInstanceService.getTaskStepIdList(jobInstanceId);
             for (long stepInstanceId : stepInstanceIdList) {
-                taskInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
-                taskInstanceService.resetStepStatus(stepInstanceId);
+                stepInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
+                stepInstanceService.resetStepStatus(stepInstanceId);
             }
 
             taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(jobInstanceId));
@@ -194,7 +194,7 @@ public class JobListener {
         RunStatusEnum taskStatus = taskInstance.getStatus();
 
         long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
-        StepInstanceBaseDTO currentStepInstance = taskInstanceService.getBaseStepInstance(currentStepInstanceId);
+        StepInstanceBaseDTO currentStepInstance = stepInstanceService.getBaseStepInstance(currentStepInstanceId);
         RunStatusEnum stepStatus = currentStepInstance.getStatus();
 
         // 验证作业状态，只有'正在执行'、'强制终止中'的作业可以刷新状态进入下一步或者结束
@@ -242,7 +242,7 @@ public class JobListener {
                     && rollingConfig.isFirstRollingStep(nextStepInstance.getId())) {
                     log.info("Manual mode for rolling step[{}], pause and wait for user confirmation",
                         nextStepInstance.getId());
-                    taskInstanceService.updateStepStatus(nextStepInstance.getId(),
+                    stepInstanceService.updateStepStatus(nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
                     taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
                 } else {
@@ -320,7 +320,7 @@ public class JobListener {
                         currentStepInstance.getId());
                 }
                 if (nextRollingStepInstanceId != null) {
-                    nextStepInstance = taskInstanceService.getBaseStepInstance(nextRollingStepInstanceId);
+                    nextStepInstance = stepInstanceService.getBaseStepInstance(nextRollingStepInstanceId);
                 }
             }
         } else {
@@ -342,11 +342,11 @@ public class JobListener {
     private void startStep(StepInstanceBaseDTO stepInstance) {
         taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
         if (stepInstance.isRollingStep()) {
-            taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
+            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
                 stepInstance.getBatch() + 1));
         } else {
-            taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.BLANK.getValue());
+            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.BLANK.getValue());
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(), null));
         }
     }

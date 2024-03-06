@@ -83,14 +83,14 @@
             <render-server-agent
               v-if="!row.isVar"
               key="host"
-              :host-node-info="row.host.hostNodeInfo"
+              :execute-objects-info="row.host.executeObjectsInfo"
               :separator="agentSeparator"
               :title="`${$t('服务器文件-服务器列表')}`" />
             <!-- 展示变量的主机信息 -->
             <render-server-agent
               v-else
               :key="row.serverDesc"
-              :host-node-info="findVariableValue(row.serverDesc)"
+              :execute-objects-info="findVariableValue(row.serverDesc)"
               :separator="agentSeparator"
               :title="`${$t('全局变量')} - ${row.host.variable}`" />
           </td>
@@ -116,14 +116,16 @@
         v-bind="$attrs"
         :account="accountList"
         :data="serverFileList"
+        :from="from"
         :variable="variable"
         @on-cancel="handleAddCancel"
         @on-change="handleAddSave" />
     </table>
     <ip-selector
+      :config="ipSelectorConfig"
       :show-dialog="isShowChooseIp"
-      :value="currentHost"
-      @change="handleHostChange"
+      :value="currentExecuteObjectsInfo"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIpSelector" />
   </div>
 </template>
@@ -132,7 +134,7 @@
 
   import AccountManageService from '@service/account-manage';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import AccountSelect from '@components/account-select';
   import RenderServerAgent from '@components/render-server-agent';
@@ -165,12 +167,17 @@
         type: Array,
         default: () => [],
       },
+      // 组件被使用的场景，快速执行｜作业模板
+      from: {
+        type: String,
+        required: true,
+      },
     },
     data() {
       return {
         isLoading: true,
         serverFileList: [],
-        currentHost: {},
+        currentExecuteObjectsInfo: {},
         accountList: [],
         isShowChooseIp: false,
         currentIndex: 0,
@@ -206,6 +213,19 @@
       },
     },
     created() {
+      this.ipSelectorConfig = {};
+      if (this.from === 'execute') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'dynamicGroup',
+            'manualInput',
+            'containerStaticTopo',
+            'containerManualInput',
+          ],
+        };
+      }
       this.fetchAccount();
       this.editNewSourceFile(false);
     },
@@ -234,11 +254,11 @@
         const curVariable = this.variable.find(item => item.name === variableName);
         if (!curVariable) {
           const {
-            hostNodeInfo,
-          } = new TaskHostNodeModel({});
-          return hostNodeInfo;
+            executeObjectsInfo,
+          } = new ExecuteTargetModel({});
+          return executeObjectsInfo;
         }
-        return curVariable.defaultTargetValue.hostNodeInfo;
+        return curVariable.defaultTargetValue.executeObjectsInfo;
       },
       /**
        * @desc 服务器文件更新
@@ -265,17 +285,17 @@
       handleHostEdit(index) {
         this.isShowChooseIp = true;
         this.currentIndex = index;
-        this.currentHost = this.data[index].host.hostNodeInfo;
+        this.currentExecuteObjectsInfo = this.data[index].host.executeObjectsInfo;
       },
       handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
       /**
        * @desc 更新编辑服务器文件的主机
-       * @param {Object} hostNodeInfo 服务器主机信息
+       * @param {Object} executeObjectsInfo 服务器主机信息
        */
-      handleHostChange(hostNodeInfo) {
-        this.serverFileList[this.currentIndex].host.hostNodeInfo = hostNodeInfo;
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.serverFileList[this.currentIndex].host.executeObjectsInfo = executeObjectsInfo;
         this.triggerChange();
       },
       /**

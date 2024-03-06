@@ -30,7 +30,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -40,12 +40,12 @@ import java.util.List;
 @Slf4j
 public class DefaultFilePrepareTaskResultHandler implements FilePrepareTaskResultHandler {
 
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
-    public DefaultFilePrepareTaskResultHandler(TaskInstanceService taskInstanceService,
+    public DefaultFilePrepareTaskResultHandler(StepInstanceService stepInstanceService,
                                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
@@ -111,7 +111,7 @@ public class DefaultFilePrepareTaskResultHandler implements FilePrepareTaskResul
 
     private void onStopped(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 步骤状态变更
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
@@ -120,7 +120,7 @@ public class DefaultFilePrepareTaskResultHandler implements FilePrepareTaskResul
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
-        taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                 EventSource.buildStepEventSource(stepInstance.getId())));

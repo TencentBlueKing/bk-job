@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 滚动执行子表达式-按照服务器数量解析
+ * 滚动执行子表达式-按照执行对象数量解析
  */
 @Getter
 @Setter
@@ -70,8 +70,9 @@ public class QuantityRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
-        List<HostDTO> candidateServers = context.getRemainedServers();
-        return new ArrayList<>(candidateServers.subList(0, Math.min(this.quantity, candidateServers.size())));
+    public List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException {
+        List<ExecuteObject> candidateExecuteObjects = context.getRemainedExecuteObjects();
+        return new ArrayList<>(candidateExecuteObjects.subList(
+            0, Math.min(this.quantity, candidateExecuteObjects.size())));
     }
 }

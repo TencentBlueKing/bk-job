@@ -25,6 +25,8 @@
 package com.tencent.bk.job.logsvr.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -44,44 +46,75 @@ public class ScriptTaskLogDoc {
     /**
      * 作业步骤实例ID
      */
-    @Field("stepId")
+    @Field(ScriptTaskLogDocField.STEP_ID)
     private Long stepInstanceId;
     /**
      * 执行次数
      */
-    @Field("executeCount")
+    @Field(ScriptTaskLogDocField.EXECUTE_COUNT)
     private Integer executeCount;
     /**
      * 滚动执行批次
      */
-    @Field("batch")
+    @Field(ScriptTaskLogDocField.BATCH)
     private Integer batch;
+    /**
+     * 执行对象 ID
+     */
+    @Field(ScriptTaskLogDocField.EXECUTE_OBJECT_ID)
+    private String executeObjectId;
     /**
      * 执行任务的主机ipv4
      */
-    @Field("ip")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
+    @Field(ScriptTaskLogDocField.IP)
     private String ip;
     /**
      * 执行任务的主机ipv6
      */
-    @Field("ipv6")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
+    @Field(ScriptTaskLogDocField.IPV6)
     private String ipv6;
     /**
      * 执行任务的主机hostId
      */
-    @Field("hostId")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用, 新版本将不再使用该字段")
+    @Field(ScriptTaskLogDocField.HOST_ID)
     private Long hostId;
     /**
      * 日志内容
      */
-    @Field("content")
+    @Field(ScriptTaskLogDocField.CONTENT)
     private String content;
     /**
      * 日志偏移 - 单位(byte)
      */
-    @Field("offset")
+    @Field(ScriptTaskLogDocField.OFFSET)
     private Integer offset;
 
+    public ScriptTaskLogDoc(Long stepInstanceId,
+                            Integer executeCount,
+                            Integer batch,
+                            String executeObjectId,
+                            String content,
+                            Integer offset) {
+        this.stepInstanceId = stepInstanceId;
+        this.executeCount = executeCount;
+        this.batch = batch;
+        this.executeObjectId = executeObjectId;
+        this.content = content;
+        this.offset = offset;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用")
     public ScriptTaskLogDoc(Long stepInstanceId,
                             Integer executeCount,
                             Integer batch,

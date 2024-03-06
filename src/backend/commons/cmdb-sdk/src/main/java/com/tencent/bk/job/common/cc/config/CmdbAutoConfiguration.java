@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.util.FlowController;
@@ -92,6 +93,7 @@ public class CmdbAutoConfiguration {
     @Primary
     public BizCmdbClient bizCmdbClient(AppProperties appProperties,
                                        EsbProperties esbProperties,
+                                       BkApiGatewayProperties bkApiGatewayProperties,
                                        CmdbConfig cmdbConfig,
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
@@ -100,6 +102,7 @@ public class CmdbAutoConfiguration {
         return new BizCmdbClient(
             appProperties,
             esbProperties,
+            bkApiGatewayProperties,
             cmdbConfig,
             EsbLang.EN,
             cmdbThreadPoolExecutor,
@@ -112,6 +115,7 @@ public class CmdbAutoConfiguration {
     @Bean("cnBizCmdbClient")
     public BizCmdbClient cnBizCmdbClient(AppProperties appProperties,
                                          EsbProperties esbProperties,
+                                         BkApiGatewayProperties bkApiGatewayProperties,
                                          CmdbConfig cmdbConfig,
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
@@ -120,6 +124,7 @@ public class CmdbAutoConfiguration {
         return new BizCmdbClient(
             appProperties,
             esbProperties,
+            bkApiGatewayProperties,
             cmdbConfig,
             EsbLang.CN,
             cmdbThreadPoolExecutor,
@@ -132,12 +137,14 @@ public class CmdbAutoConfiguration {
     @Bean
     public BizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
                                              EsbProperties esbProperties,
+                                             BkApiGatewayProperties bkApiGatewayProperties,
                                              CmdbConfig cmdbConfig,
                                              MeterRegistry meterRegistry,
                                              ObjectProvider<FlowController> flowControllerProvider) {
         return new BizSetCmdbClient(
             appProperties,
             esbProperties,
+            bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
             meterRegistry

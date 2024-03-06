@@ -30,7 +30,7 @@ import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.model.FileLogQuery;
 import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
 import com.tencent.bk.job.logsvr.model.ScriptLogQuery;
-import com.tencent.bk.job.logsvr.model.TaskHostLog;
+import com.tencent.bk.job.logsvr.model.TaskExecuteObjectLog;
 
 import java.util.List;
 
@@ -41,17 +41,17 @@ public interface LogService {
     /**
      * 保存执行日志
      *
-     * @param taskHostLog 执行日志
+     * @param taskExecuteObjectLog 执行日志
      */
-    void saveLog(TaskHostLog taskHostLog);
+    void saveLog(TaskExecuteObjectLog taskExecuteObjectLog);
 
     /**
      * 保存执行日志
      *
-     * @param logType      日志类型
-     * @param taskHostLogs 执行日志
+     * @param logType               日志类型
+     * @param taskExecuteObjectLogs 执行日志
      */
-    void saveLogs(LogTypeEnum logType, List<TaskHostLog> taskHostLogs);
+    void saveLogs(LogTypeEnum logType, List<TaskExecuteObjectLog> taskExecuteObjectLogs);
 
     /**
      * 批量获取脚本执行日志
@@ -60,7 +60,7 @@ public interface LogService {
      * @return 日志内容
      * @throws ServiceException 异常
      */
-    List<TaskHostLog> listScriptLogs(ScriptLogQuery scriptLogQuery);
+    List<TaskExecuteObjectLog> listScriptLogs(ScriptLogQuery scriptLogQuery);
 
     /**
      * 查询文件任务执行日志
@@ -96,10 +96,26 @@ public interface LogService {
      * @param keyword        查询关键字
      * @return ip
      */
-    List<HostDTO> getIpsByKeyword(String jobCreateDate,
-                                  long stepInstanceId,
-                                  int executeCount,
-                                  Integer batch,
-                                  String keyword);
+    List<HostDTO> getHostsByKeyword(String jobCreateDate,
+                                    long stepInstanceId,
+                                    int executeCount,
+                                    Integer batch,
+                                    String keyword);
+
+    /**
+     * 返回日志内容包含关键字的任务对应的执行对象 ID 集合
+     *
+     * @param jobCreateDate  创建时间
+     * @param stepInstanceId 步骤ID
+     * @param executeCount   执行次数
+     * @param batch          滚动执行批次
+     * @param keyword        查询关键字
+     * @return 执行对象 ID 集合
+     */
+    List<String> getExecuteObjectIdsByKeyword(String jobCreateDate,
+                                              long stepInstanceId,
+                                              int executeCount,
+                                              Integer batch,
+                                              String keyword);
 
 }

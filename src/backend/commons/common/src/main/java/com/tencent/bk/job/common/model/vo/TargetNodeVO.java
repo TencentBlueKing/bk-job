@@ -33,9 +33,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-/**
- * @since 12/12/2019 15:07
- */
 @Slf4j
 @Data
 @ApiModel("目标节点信息")
@@ -47,7 +44,7 @@ public class TargetNodeVO {
     @ApiModelProperty(value = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
     private String objectId;
 
-    public void validate(boolean isCreate) throws InvalidParamException {
+    public void validate() throws InvalidParamException {
         if (instanceId == null || instanceId <= 0) {
             log.warn("Invalid target node instanceId");
         }

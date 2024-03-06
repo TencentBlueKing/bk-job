@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
@@ -92,9 +94,19 @@ public class WebFastExecuteScriptRequest {
     private Integer timeout;
 
     /**
-     * 目标服务器
+     * 目标执行对象
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "使用 taskTarget 参数替换。发布完成后可以删除")
+    @ApiModelProperty(hidden = true)
     private TaskTargetVO targetServers;
+
+    /**
+     * 目标执行对象
+     */
+    @ApiModelProperty(value = "执行目标", required = true)
+    private TaskTargetVO taskTarget;
 
     /**
      * 是否敏感参数 0-否，1-是
@@ -114,4 +126,10 @@ public class WebFastExecuteScriptRequest {
 
     @ApiModelProperty(value = "是否启用滚动执行")
     private boolean rollingEnabled;
+
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "发布完成后可以删除")
+    public TaskTargetVO getTaskTarget() {
+        return taskTarget != null ? taskTarget : targetServers;
+    }
 }

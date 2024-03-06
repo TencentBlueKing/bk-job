@@ -123,7 +123,7 @@ public class TaskScriptStepDTO {
         } else {
             scriptStep.setContent(null);
         }
-        scriptStep.setLanguage(ScriptTypeEnum.valueOf(scriptStepVO.getScriptLanguage()));
+        scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptStepVO.getScriptLanguage()));
         scriptStep.setScriptParam(scriptStepVO.getScriptParam());
         if (scriptStepVO.getTimeout() == null) {
             scriptStep.setTimeout((long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);

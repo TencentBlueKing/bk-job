@@ -75,7 +75,7 @@
       <ip-selector
         readonly
         show-view
-        :value="stepInfo.fileDestination.server.hostNodeInfo" />
+        :value="stepInfo.fileDestination.server.executeObjectsInfo" />
     </detail-item>
     <slot />
   </div>

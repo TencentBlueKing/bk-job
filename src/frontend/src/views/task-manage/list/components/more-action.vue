@@ -98,7 +98,7 @@
       this.id = `${_.random(1, 1000)}_${Date.now()}_PopoverRef`;
     },
     methods: {
-      handleMoreAction(actionId, payload) {
+      handleMoreAction() {
         if (this.trigger === 'click') {
           this.$refs[`${this.id}PopoverRef`].instance.hide();
         }

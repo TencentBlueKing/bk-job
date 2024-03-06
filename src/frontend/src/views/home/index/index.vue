@@ -101,7 +101,7 @@
   const xssHTML = (html) => {
     const attrs = ['class', 'title', 'target', 'style', 'href'];
     return xss(html, {
-      onTagAttr: (tag, name, value, isWhiteAttr) => {
+      onTagAttr: (tag, name, value) => {
         if (attrs.includes(name)) {
           return `${name}=${value}`;
         }

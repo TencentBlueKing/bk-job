@@ -80,7 +80,9 @@
     ref,
   } from 'vue';
 
-  import { hostsDetails } from '@components/ip-selector/adapter';
+  import {
+    hostsDetails,
+  } from '@blueking/ip-selector/dist/adapter';
 
   const props = defineProps({
     title: {

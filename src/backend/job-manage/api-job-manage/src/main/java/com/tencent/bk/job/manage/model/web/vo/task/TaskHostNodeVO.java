@@ -60,7 +60,7 @@ public class TaskHostNodeVO {
         if (!CollectionUtils.isEmpty(topoNodeList)) {
             allEmpty = false;
             for (TargetNodeVO targetNodeVO : topoNodeList) {
-                targetNodeVO.validate(isCreate);
+                targetNodeVO.validate();
             }
         }
         if (!CollectionUtils.isEmpty(dynamicGroupList)) {
@@ -75,7 +75,7 @@ public class TaskHostNodeVO {
         if (!CollectionUtils.isEmpty(ipList)) {
             allEmpty = false;
             for (HostInfoVO hostInfoVO : ipList) {
-                hostInfoVO.validate(isCreate);
+                hostInfoVO.validate();
             }
         }
         if (allEmpty) {

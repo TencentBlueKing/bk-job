@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
+import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -80,22 +82,24 @@ public class TaskHostNodeDTO {
         return hostNodeVO;
     }
 
-    public static TaskHostNodeDTO fromVO(TaskHostNodeVO hostNode) {
-        if (hostNode == null) {
+    public static TaskHostNodeDTO fromVO(TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO) {
+        if (taskExecuteObjectsInfoVO == null) {
             return null;
         }
         TaskHostNodeDTO taskHostNodeDTO = new TaskHostNodeDTO();
-        if (CollectionUtils.isNotEmpty(hostNode.getNodeList())) {
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getNodeList())) {
             taskHostNodeDTO.setNodeInfoList(
-                hostNode.getNodeList().stream()
+                taskExecuteObjectsInfoVO.getNodeList().stream()
                     .map(TaskNodeInfoDTO::fromVO).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getDynamicGroupIdList())) {
-            taskHostNodeDTO.setDynamicGroupId(hostNode.getDynamicGroupIdList());
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getDynamicGroupList())) {
+            taskHostNodeDTO.setDynamicGroupId(
+                taskExecuteObjectsInfoVO.getDynamicGroupList().stream()
+                    .map(DynamicGroupIdWithMeta::getId).collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(hostNode.getHostList())) {
+        if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getHostList())) {
             taskHostNodeDTO
-                .setHostList(hostNode.getHostList().stream()
+                .setHostList(taskExecuteObjectsInfoVO.getHostList().stream()
                     .map(ApplicationHostDTO::fromVO).collect(Collectors.toList()));
         }
         return taskHostNodeDTO;

@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 import I18n from '@/i18n';
 
@@ -103,7 +103,7 @@ export default class TaskInstanceDetailStepFile {
     return {
       account: account || '',
       path: path || '',
-      server: new TaskHostNodeModel(server || {}),
+      server: new ExecuteTargetModel(server || {}),
     };
   }
 
@@ -123,7 +123,7 @@ export default class TaskInstanceDetailStepFile {
       fileHash: item.fileHash,
       fileSize: parseInt(item.fileSize, 10) || 0,
       fileSourceId: item.fileSourceId || 0,
-      host: new TaskHostNodeModel(item.host || {}),
+      host: new ExecuteTargetModel(item.host || {}),
       account: item.account || 0,
     }));
   }

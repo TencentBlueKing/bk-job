@@ -78,7 +78,7 @@
     },
     watch: {
       formData: {
-        handler(formData) {
+        handler() {
           if (this.formData.notifyOffset
             || this.formData.notifyChannel.length > 0
             || this.formData.notifyUser.roleList.length > 0

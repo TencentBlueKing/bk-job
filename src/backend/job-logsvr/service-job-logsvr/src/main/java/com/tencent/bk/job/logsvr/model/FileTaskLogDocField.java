@@ -27,4 +27,7 @@ public interface FileTaskLogDocField {
     String SPEED = "speed";
     String PROCESS = "process";
     String CONTENT_LIST = "contentList";
+    String EXECUTE_OBJECT_ID = "executeObjectId";
+    String SRC_EXECUTE_OBJECT_ID = "srcExecuteObjectId";
+    String DEST_EXECUTE_OBJECT_ID = "destExecuteObjectId";
 }

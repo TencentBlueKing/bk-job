@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
 */
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 import I18n from '@/i18n';
 
@@ -47,7 +47,7 @@ export default class TaskScriptStep {
     this.scriptLanguage = payload.scriptLanguage || 1;
     this.account = payload.account;
     this.status = payload.status;
-    this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
+    this.executeTarget = new ExecuteTargetModel(payload.executeTarget || {});
   }
 
   get isReferPublicScript() {

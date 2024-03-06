@@ -23,7 +23,7 @@
  * IN THE SOFTWARE.
 */
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 import I18n from '@/i18n';
 
@@ -49,7 +49,7 @@ export default class TaskInstanceDetailStepScript {
     this.status = payload.status;
     this.rollingEnabled = Boolean(payload.rollingEnabled);
 
-    this.executeTarget = new TaskHostNodeModel(payload.executeTarget || {});
+    this.executeTarget = new ExecuteTargetModel(payload.executeTarget || {});
     this.rollingConfig = this.initRollingConfig(payload.rollingConfig);
   }
 

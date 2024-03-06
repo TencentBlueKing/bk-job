@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -33,6 +35,9 @@ import lombok.Data;
 
 @ApiModel("Agent任务执行信息")
 @Data
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+    explain = "使用 ExecuteObjectTaskVO 替换。发布完成后可以删除")
 public class AgentTaskExecutionVO {
     @ApiModelProperty("执行次数")
     private Integer retryCount;
@@ -45,10 +50,6 @@ public class AgentTaskExecutionVO {
 
     @ApiModelProperty("Agent ID")
     private String agentId;
-
-    @ApiModelProperty("云区域+ipv4，废弃字段，ipv6版本发布后删除")
-    @Deprecated
-    private String ip;
 
     @ApiModelProperty("Agent ipv4")
     private String ipv4;

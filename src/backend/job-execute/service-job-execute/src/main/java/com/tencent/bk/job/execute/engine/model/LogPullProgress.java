@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import lombok.Data;
 
 /**
@@ -32,9 +33,9 @@ import lombok.Data;
 @Data
 public class LogPullProgress {
     /**
-     * bk_agent_id
+     * 执行对象GSE KEY
      */
-    private String agentId;
+    private ExecuteObjectGseKey executeObjectGseKey;
     /**
      * 任务编号
      */

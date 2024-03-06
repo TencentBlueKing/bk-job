@@ -519,7 +519,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
         String content = new String(Base64.decodeBase64(scriptCheckReq.getContent()), StandardCharsets.UTF_8);
         List<ScriptCheckResultItemDTO> checkResultItems =
-            scriptCheckService.check(ScriptTypeEnum.valueOf(scriptCheckReq.getScriptType()), content);
+            scriptCheckService.check(ScriptTypeEnum.valOf(scriptCheckReq.getScriptType()), content);
 
         List<ScriptCheckResultItemVO> checkResultItemVOS = new ArrayList<>();
         if (checkResultItems != null) {

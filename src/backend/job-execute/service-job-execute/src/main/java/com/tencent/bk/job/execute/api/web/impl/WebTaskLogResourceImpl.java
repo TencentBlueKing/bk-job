@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.execute.api.web.impl;
 
+import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -43,7 +46,7 @@ import com.tencent.bk.job.execute.model.LogExportJobInfoDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.web.vo.LogExportJobInfoVO;
 import com.tencent.bk.job.execute.service.LogExportService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,20 +71,20 @@ import java.time.LocalDateTime;
 @Slf4j
 public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final String logFileDir;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final LogExportService logExportService;
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryConfig artifactoryConfig;
     private final LogExportConfig logExportConfig;
 
     @Autowired
-    public WebTaskLogResourceImpl(TaskInstanceService taskInstanceService,
+    public WebTaskLogResourceImpl(StepInstanceService stepInstanceService,
                                   StorageConfig storageConfig,
                                   LogExportService logExportService,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                   ArtifactoryConfig artifactoryConfig,
                                   LogExportConfig logExportConfig) {
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageConfig.getJobStorageRootPath(),
             FileDirTypeConf.JOB_INSTANCE_PATH);
@@ -114,13 +117,15 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<LogExportJobInfoVO> requestDownloadLogFile(String username,
                                                                AppResourceScope appResourceScope,
                                                                String scopeType,
                                                                String scopeId,
+                                                               Long taskInstanceId,
                                                                Long stepInstanceId,
-                                                               Long hostId,
-                                                               String cloudIp,
+                                                               Integer executeObjectType,
+                                                               Long executeObjectResourceId,
                                                                Boolean repackage) {
         Long appId = appResourceScope.getAppId();
 
@@ -128,15 +133,25 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             repackage = false;
         }
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
+        boolean getByExecuteObject = executeObjectResourceId != null;
+        ExecuteObjectTypeEnum executeObjectTypeEnum = null;
+        if (getByExecuteObject) {
+            executeObjectTypeEnum = ExecuteObjectTypeEnum.valOf(executeObjectType);
+        }
+
         if (!repackage) {
-            log.debug("Do not need repackage, check exist job |stepInstanceId={}|hostId={}|cloudIp={}",
-                stepInstanceId, hostId, cloudIp);
-            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
+            if (log.isDebugEnabled()) {
+                log.debug("Do not need repackage, check exist job " +
+                        "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}",
+                    stepInstanceId, executeObjectType, executeObjectResourceId);
+            }
+            LogExportJobInfoDTO exportInfo = logExportService.getExportInfo(appId, stepInstanceId,
+                executeObjectTypeEnum, executeObjectResourceId);
             if (exportInfo != null) {
                 log.debug("Find exist job info|{}", exportInfo);
                 switch (exportInfo.getStatus()) {
@@ -169,21 +184,26 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         int executeCount = stepInstance.getExecuteCount();
 
-        String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
+        String logFileName = getLogFileName(stepInstanceId, executeCount,
+            executeObjectTypeEnum, executeObjectResourceId);
         if (StringUtils.isBlank(logFileName)) {
-            log.warn("Log File Name is blank! request fail! |stepInstanceId={}|hostId={}|cloudIp={}|executeCount={}",
-                stepInstanceId, hostId, cloudIp, executeCount);
+            log.warn("Log File Name is blank! request fail! " +
+                    "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}|executeCount={}",
+                stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId,
-            cloudIp,
-            executeCount, logFileDir, logFileName, repackage);
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId,
+            executeObjectTypeEnum, executeObjectResourceId, executeCount, logFileDir, logFileName, repackage);
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
-    private String getLogFileName(Long stepInstanceId, Long hostId, String cloudIp, int executeCount) {
-        String fileName = makeExportLogFileName(stepInstanceId, executeCount, hostId, cloudIp);
+    private String getLogFileName(Long stepInstanceId,
+                                  int executeCount,
+                                  ExecuteObjectTypeEnum executeObjectType,
+                                  Long executeObjectResourceId) {
+        String fileName = makeExportLogFileName(stepInstanceId, executeCount,
+            executeObjectType, executeObjectResourceId);
         String logFileName = fileName + ".log";
 
         File dir = new File(logFileDir);
@@ -244,17 +264,19 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     }
 
     @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public ResponseEntity<StreamingResponseBody> downloadLogFile(HttpServletResponse response,
                                                                  String username,
                                                                  AppResourceScope appResourceScope,
                                                                  String scopeType,
                                                                  String scopeId,
+                                                                 Long taskInstanceId,
                                                                  Long stepInstanceId,
-                                                                 Long hostId,
-                                                                 String cloudIp) {
+                                                                 Integer executeObjectType,
+                                                                 Long executeObjectResourceId) {
         Long appId = appResourceScope.getAppId();
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             log.info("StepInstance: {} is not in app: {}", stepInstance.getId(), appResourceScope.getAppId());
             return ResponseEntity.notFound().build();
@@ -264,19 +286,21 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
 
         LogExportJobInfoDTO exportInfo;
 
-        boolean isGetByHost = hostId != null || StringUtils.isNotBlank(cloudIp);
-        if (isGetByHost) {
-            String logFileName = getLogFileName(stepInstanceId, hostId, cloudIp, executeCount);
+        boolean isGetByExecuteObject = executeObjectResourceId != null;
+        if (isGetByExecuteObject) {
+            ExecuteObjectTypeEnum executeObjectTypeEnum = ExecuteObjectTypeEnum.valOf(executeObjectType);
+            String logFileName = getLogFileName(stepInstanceId, executeCount,
+                executeObjectTypeEnum, executeObjectResourceId);
             if (StringUtils.isBlank(logFileName)) {
                 log.warn("Log File Name is blank! download fail! " +
-                    "|stepInstanceId={}|hostId={}|cloudIp={}|executeCount={}", stepInstanceId, hostId, cloudIp,
-                    executeCount);
+                        "|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}|executeCount={}",
+                    stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, hostId, cloudIp, executeCount,
-                logFileDir, logFileName, false);
+            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, executeObjectTypeEnum,
+                executeObjectResourceId, executeCount, logFileDir, logFileName, false);
         } else {
-            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, hostId, cloudIp);
+            exportInfo = logExportService.getExportInfo(appId, stepInstanceId, null, null);
         }
 
         if (exportInfo != null) {
@@ -319,19 +343,20 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                 default:
             }
         }
-        log.warn("Not exist job info.|appId={}|stepInstanceId={}|hostId={}|cloudIp={}", appId, stepInstanceId,
-            hostId, cloudIp);
+        log.warn("Not exist job info.|appId={}|stepInstanceId={}|executeObjectType={}|executeObjectResourceId={}",
+            appId, stepInstanceId, executeObjectType, executeObjectResourceId);
         return ResponseEntity.notFound().build();
     }
 
-    private String makeExportLogFileName(Long stepInstanceId, Integer executeCount, Long hostId, String cloudIp) {
+    private String makeExportLogFileName(Long stepInstanceId,
+                                         int executeCount,
+                                         ExecuteObjectTypeEnum executeObjectType,
+                                         Long executeObjectResourceId) {
         StringBuilder fileName = new StringBuilder();
         fileName.append("bk_job_export_log_");
         fileName.append("step_").append(stepInstanceId).append("_").append(executeCount).append("_");
-        if (hostId != null) {
-            fileName.append(hostId).append("_");
-        } else if (StringUtils.isNotBlank(cloudIp)) {
-            fileName.append(cloudIp).append("_");
+        if (executeObjectResourceId != null) {
+            fileName.append(executeObjectType.getValue()).append("_").append(executeObjectResourceId).append("_");
         }
         fileName.append(DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS"));
         return fileName.toString();

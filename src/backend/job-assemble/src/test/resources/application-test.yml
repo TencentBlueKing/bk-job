@@ -145,10 +145,11 @@ bk-api-gateway:
     url: gse.apigw.com
   bkNotice:
     url: bk-notice.apigw.com
+  cmdb:
+    url: cmdb.apigw.com
 esb:
   service:
     url: esb.service
-
 server:
   port: 19800
   servlet:

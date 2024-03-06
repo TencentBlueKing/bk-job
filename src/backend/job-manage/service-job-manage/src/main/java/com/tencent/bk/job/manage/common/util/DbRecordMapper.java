@@ -161,7 +161,7 @@ public class DbRecordMapper {
             taskScriptStep.setScriptVersionId(((ULong) record.get(5)).longValue());
         }
         taskScriptStep.setContent((String) record.get(6));
-        taskScriptStep.setLanguage(ScriptTypeEnum.valueOf(((UByte) record.get(7)).intValue()));
+        taskScriptStep.setLanguage(ScriptTypeEnum.valOf(((UByte) record.get(7)).intValue()));
         taskScriptStep.setScriptParam((String) record.get(8));
         taskScriptStep.setTimeout(((ULong) record.get(9)).longValue());
         taskScriptStep.setAccount(((ULong) record.get(10)).longValue());

@@ -24,10 +24,9 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
@@ -64,17 +63,6 @@ public interface TaskResultService {
      */
     TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId, Long taskInstanceId);
 
-    /**
-     * 获取步骤执行详情
-     *
-     * @param username       用户名
-     * @param appId          业务ID
-     * @param taskInstanceId 作业实例ID
-     * @param query          查询条件
-     * @return 步骤执行详情
-     */
-    StepExecutionDetailDTO getFastTaskStepExecutionResult(String username, Long appId, Long taskInstanceId,
-                                                          StepExecutionResultQuery query);
 
     /**
      * 获取步骤执行详情
@@ -83,10 +71,8 @@ public interface TaskResultService {
      * @param appId    业务ID
      * @param query    查询条件
      * @return 执行详情
-     * @throws ServiceException
      */
-    StepExecutionDetailDTO getStepExecutionResult(String username, Long appId, StepExecutionResultQuery query)
-        throws ServiceException;
+    StepExecutionDetailDTO getStepExecutionResult(String username, Long appId, StepExecutionResultQuery query);
 
     /**
      * 获取定时任务执行结果统计
@@ -99,7 +85,7 @@ public interface TaskResultService {
                                                                                          List<Long> cronTaskIdList);
 
     /**
-     * 根据执行结果分组获取主机信息
+     * 根据执行结果分组获取执行对象信息
      *
      * @param username       用户名
      * @param appId          业务ID
@@ -111,14 +97,14 @@ public interface TaskResultService {
      * @param keyword        脚本日志关键字
      * @return 主机列表
      */
-    List<HostDTO> getHostsByResultType(String username,
-                                       Long appId,
-                                       Long stepInstanceId,
-                                       Integer batch,
-                                       Integer executeCount,
-                                       Integer resultType,
-                                       String tag,
-                                       String keyword);
+    List<ExecuteObject> getExecuteObjectsByResultType(String username,
+                                                      Long appId,
+                                                      Long stepInstanceId,
+                                                      Integer batch,
+                                                      Integer executeCount,
+                                                      Integer resultType,
+                                                      String tag,
+                                                      String keyword);
 
     /**
      * 获取步骤执行历史

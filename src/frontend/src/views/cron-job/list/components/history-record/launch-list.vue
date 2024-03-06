@@ -161,7 +161,7 @@
           id: 'taskInstanceId',
           description: I18n.t('cron.搜索条件带任务ID时，将自动忽略其他条件'),
           default: true,
-          validate(values, item) {
+          validate(values) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('cron.ID只支持数字') : true;
           },

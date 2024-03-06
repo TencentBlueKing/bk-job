@@ -217,7 +217,7 @@
             && dataSourceParent.stepDiff[this.id].type === 'new')) {
           this.localFileList = Object.freeze(templateLocalFileList);
           this.localFileDiff = Object.freeze({});
-          this.preServerList = Object.freeze(templateServerFileList.map(_ => ({})));
+          this.preServerList = Object.freeze(templateServerFileList.map(() => ({})));
           this.lastServerList = Object.freeze(templateServerFileList);
           this.serverFileDiff = Object.freeze({});
           return;

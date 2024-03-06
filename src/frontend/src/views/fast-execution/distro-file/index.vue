@@ -161,8 +161,8 @@
 
   import TaskExecuteService from '@service/task-execute';
 
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskStepModel from '@model/task/task-step';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   import {
     compareHost,
@@ -198,7 +198,7 @@
     // 目标路径
     path: '',
     // 目标服务器
-    server: new TaskHostNodeModel({}),
+    server: new ExecuteTargetModel({}),
     // 开启滚动
     rollingEnabled: false,
     // 滚动执行配置，编辑时拍平

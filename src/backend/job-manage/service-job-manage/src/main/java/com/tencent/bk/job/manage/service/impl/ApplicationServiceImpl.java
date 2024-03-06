@@ -92,7 +92,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public Map<Long, ResourceScope> getScopeByAppIds(Collection<Long> appIds) {
         List<ApplicationDTO> applications = listAppsByAppIds(appIds);
-        return applications.stream().collect(Collectors.toMap(ApplicationDTO::getId, ApplicationDTO::getScope));
+        return applications.stream().collect(
+            Collectors.toMap(ApplicationDTO::getId, ApplicationDTO::getScope, (oldValue, newValue) -> newValue));
     }
 
     @Override

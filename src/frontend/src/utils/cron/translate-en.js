@@ -23,8 +23,6 @@
  * IN THE SOFTWARE.
 */
 
-import _ from 'lodash';
-
 import { ordinalSuffixOf } from '@utils/assist';
 
 import Node from './utils/Node';

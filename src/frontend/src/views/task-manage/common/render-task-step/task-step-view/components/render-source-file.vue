@@ -121,7 +121,7 @@
                   </td>
                   <td>
                     <render-server-agent
-                      :host-node-info="findVariableValue(row.host.variable)"
+                      :execute-objects-info="findVariableValue(row.host.variable)"
                       :title="`${$t('template.全局变量.label')} - ${row.host.variable}`" />
                   </td>
                 </template>
@@ -131,7 +131,7 @@
                   </td>
                   <td>
                     <render-server-agent
-                      :host-node-info="row.host.hostNodeInfo"
+                      :execute-objects-info="row.host.executeObjectsInfo"
                       :title="$t('template.服务器文件-服务器列表')" />
                   </td>
                 </template>
@@ -147,7 +147,7 @@
 <script>
   import FileManageService from '@service/file-source-manage';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import JbCollapseItem from '@components/jb-collapse-item';
   import RenderServerAgent from '@components/render-server-agent';
@@ -249,10 +249,10 @@
       findVariableValue(variable) {
         const curVariable = this.variable.find(item => item.name === variable);
         if (!curVariable) {
-          const { hostNodeInfo } = new TaskHostNodeModel({});
-          return hostNodeInfo;
+          const { executeObjectsInfo } = new ExecuteTargetModel({});
+          return executeObjectsInfo;
         }
-        return curVariable.defaultTargetValue.hostNodeInfo;
+        return curVariable.defaultTargetValue.executeObjectsInfo;
       },
       findAccountAlias(payload) {
         const accountData = this.account.find(item => item.id === payload);

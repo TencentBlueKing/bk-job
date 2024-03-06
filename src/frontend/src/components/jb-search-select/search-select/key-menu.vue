@@ -135,43 +135,43 @@
           return '';
         }
         return (
-                <div class="search-condition" onClick={this.handleCondition}>
-                    {condition[displayKey]}
-                </div>
+          <div class="search-condition" onClick={this.handleCondition}>
+              {condition[displayKey]}
+          </div>
         );
       };
 
-      const renderList = (h) => {
+      const renderList = () => {
         if (this.list.length < 1) {
           return (
-                    <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
+            <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
           );
         }
         return (
-                <ul ref="list" class="search-menu">
-                    { this.list.map((item, index) => (
-                        <li
-                            class={{
-                                'search-menu-item': true,
-                                active: index === this.activeIndex,
-                            }}>
-                            <div class="item-name" onClick={() => this.handleClick(item, index)}>
-                                <span>{ item[displayKey] }</span>
-                                {
-                                    item.description ? <span class="item-description">({item.description})</span> : ''
-                                }
-                            </div>
-                        </li>
-                    )) }
-                </ul>
+          <ul ref="list" class="search-menu">
+            { this.list.map((item, index) => (
+                <li
+                    class={{
+                        'search-menu-item': true,
+                        active: index === this.activeIndex,
+                    }}>
+                    <div class="item-name" onClick={() => this.handleClick(item, index)}>
+                        <span>{ item[displayKey] }</span>
+                        {
+                            item.description ? <span class="item-description">({item.description})</span> : ''
+                        }
+                    </div>
+                </li>
+            )) }
+          </ul>
         );
       };
 
       return (
-            <div class="jb-bk-search-list" role="key-menu" tabIndex="-1">
-                { renderCondition(h) }
-                { renderList(h) }
-            </div>
+        <div class="jb-bk-search-list" role="key-menu" tabIndex="-1">
+          { renderCondition(h) }
+          { renderList(h) }
+        </div>
       );
     },
   };

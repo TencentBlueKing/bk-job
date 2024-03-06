@@ -56,7 +56,7 @@ const init = function (el, binding) {
     el.element.style.left = `${elLeft}px`;
     el.element.style.top = `${elTop}px`;
   };
-  el.mouseLeaveHandler = function (event) {
+  el.mouseLeaveHandler = function () {
     el.element && el.element.remove();
     el.element = null;
     el.removeEventListener('mousemove', el.mouseMoveHandler);

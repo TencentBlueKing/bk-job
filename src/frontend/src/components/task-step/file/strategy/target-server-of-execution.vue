@@ -28,9 +28,10 @@
 <template>
   <execute-target
     v-bind="$attrs"
+    :execute-target="formData[field]"
+    from="execute"
     mode="onlyHost"
     property="targetServers"
-    :task-host-node="formData[field]"
     @on-change="handleTargetChange" />
 </template>
 <script>
@@ -52,8 +53,8 @@
       },
     },
     methods: {
-      handleTargetChange(taskHostNode) {
-        this.$emit('on-change', this.field, Object.freeze(taskHostNode));
+      handleTargetChange(executeTarget) {
+        this.$emit('on-change', this.field, Object.freeze(executeTarget));
       },
     },
   };

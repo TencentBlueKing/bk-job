@@ -51,7 +51,7 @@ public class ServiceCheckScriptResourceImpl implements ServiceCheckScriptResourc
     @Override
     public InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(ServiceCheckScriptRequest checkScriptRequest) {
         List<ScriptCheckResultItemDTO> checkResultItems = scriptCheckService.checkScriptWithDangerousRule(
-            ScriptTypeEnum.valueOf(checkScriptRequest.getScriptType()), checkScriptRequest.getScriptContent());
+            ScriptTypeEnum.valOf(checkScriptRequest.getScriptType()), checkScriptRequest.getScriptContent());
         return InternalResponse.buildSuccessResp(checkResultItems.stream()
             .map(ScriptCheckResultItemDTO::toServiceScriptCheckResultDTO)
             .collect(Collectors.toList()));

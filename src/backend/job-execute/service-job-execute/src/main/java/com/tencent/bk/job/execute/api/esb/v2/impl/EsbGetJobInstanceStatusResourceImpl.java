@@ -39,14 +39,15 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetJobInstanceStatusResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbIpStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetJobInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -64,18 +65,21 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceStatusResource {
 
     private final TaskInstanceService taskInstanceService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final AppScopeMappingService appScopeMappingService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceStatusResourceImpl(TaskInstanceService taskInstanceService,
-                                               ScriptAgentTaskService scriptAgentTaskService,
-                                               FileAgentTaskService fileAgentTaskService,
-                                               AppScopeMappingService appScopeMappingService) {
+                                               ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                               FileExecuteObjectTaskService fileExecuteObjectTaskService,
+                                               AppScopeMappingService appScopeMappingService,
+                                               StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.appScopeMappingService = appScopeMappingService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -95,7 +99,8 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username,
             request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
-        List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+        List<StepInstanceBaseDTO> stepInstances =
+            stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
             log.warn("Get job instance status by taskInstanceId:{}, stepInstanceList is empty!", taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
@@ -117,31 +122,31 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
     private Map<Long, List<EsbIpStatusDTO>> getStepIpResult(List<StepInstanceBaseDTO> stepInstanceList) {
         Map<Long, List<EsbIpStatusDTO>> stepIpResult = new HashMap<>();
         for (StepInstanceBaseDTO stepInstance : stepInstanceList) {
-            List<AgentTaskDetailDTO> agentTasks = null;
+            List<ExecuteObjectTask> executeObjectTasks = null;
             if (stepInstance.isScriptStep()) {
-                agentTasks = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
+                executeObjectTasks = scriptExecuteObjectTaskService.listTasks(stepInstance,
                     stepInstance.getExecuteCount(), null);
             } else if (stepInstance.isFileStep()) {
-                agentTasks = fileAgentTaskService.listAgentTaskDetail(stepInstance,
+                executeObjectTasks = fileExecuteObjectTaskService.listTasks(stepInstance,
                     stepInstance.getExecuteCount(), null);
-                if (CollectionUtils.isNotEmpty(agentTasks)) {
+                if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
                     // 如果是文件分发任务，只返回目标Agent结果
-                    agentTasks = agentTasks.stream()
-                        .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                    executeObjectTasks = executeObjectTasks.stream()
+                        .filter(executeObjectTask -> executeObjectTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
                         .collect(Collectors.toList());
                 }
             }
             List<EsbIpStatusDTO> ipResultList = Lists.newArrayList();
-            if (CollectionUtils.isEmpty(agentTasks)) {
+            if (CollectionUtils.isEmpty(executeObjectTasks)) {
                 stepIpResult.put(stepInstance.getId(), ipResultList);
                 continue;
             }
-            for (AgentTaskDetailDTO agentTask : agentTasks) {
+            for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
                 EsbIpStatusDTO ipStatus = new EsbIpStatusDTO();
-                ipStatus.setIp(agentTask.getIp());
-                ipStatus.setCloudAreaId(agentTask.getBkCloudId());
+                ipStatus.setIp(executeObjectTask.getExecuteObject().getHost().getIp());
+                ipStatus.setCloudAreaId(executeObjectTask.getExecuteObject().getHost().getBkCloudId());
 
-                ipStatus.setStatus(agentTask.getStatus().getValue());
+                ipStatus.setStatus(executeObjectTask.getStatus().getValue());
                 ipResultList.add(ipStatus);
             }
             stepIpResult.put(stepInstance.getId(), ipResultList);
@@ -182,7 +187,7 @@ public class EsbGetJobInstanceStatusResourceImpl implements EsbGetJobInstanceSta
             stepInst.setCreateTime(stepInstance.getCreateTime());
             stepInst.setEndTime(stepInstance.getEndTime());
             stepInst.setStartTime(stepInstance.getStartTime());
-            stepInst.setType(stepInstance.getExecuteType());
+            stepInst.setType(stepInstance.getExecuteType().getValue());
             stepInst.setOperator(stepInstance.getOperator());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
             stepInst.setStatus(stepInstance.getStatus().getValue());

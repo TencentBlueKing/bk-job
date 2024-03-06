@@ -50,8 +50,6 @@ public interface TaskInstanceDAO {
 
     void updateTaskEndTime(long taskInstanceId, Long endTime);
 
-    List<Long> getTaskStepInstanceIdList(long taskInstanceId);
-
     void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId);
 
     void resetTaskStatus(Long taskInstanceId);

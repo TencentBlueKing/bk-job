@@ -29,6 +29,7 @@
   <source-file
     :data="fileSources"
     :field="field"
+    from="execute"
     mode="onlyHost"
     @on-change="handleSourceFileChange" />
 </template>

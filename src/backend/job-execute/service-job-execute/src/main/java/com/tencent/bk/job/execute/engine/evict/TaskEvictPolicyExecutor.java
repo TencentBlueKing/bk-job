@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +43,15 @@ public class TaskEvictPolicyExecutor {
 
     private final TaskEvictPolicyManager taskEvictPolicyManager;
     private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public TaskEvictPolicyExecutor(TaskEvictPolicyManager taskEvictPolicyManager,
-                                   TaskInstanceService taskInstanceService) {
+                                   TaskInstanceService taskInstanceService,
+                                   StepInstanceService stepInstanceService) {
         this.taskEvictPolicyManager = taskEvictPolicyManager;
         this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     /**
@@ -80,7 +84,7 @@ public class TaskEvictPolicyExecutor {
                 endTime,
                 stepInstance.getTotalTime()
             );
-            taskInstanceService.updateStepExecutionInfo(
+            stepInstanceService.updateStepExecutionInfo(
                 stepInstance.getId(),
                 RunStatusEnum.ABANDONED,
                 null,

@@ -52,17 +52,17 @@
       </div>
     </div>
     <ip-selector
-      :original-value="originalHostNodeInfo"
+      :original-value="originalExecuteObjectsInfo"
       :show-dialog="isShowChooseIp"
-      :value="localValue.hostNodeInfo"
-      @change="handleHostChange"
+      :value="localValue.executeObjectsInfo"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIPSelector" />
   </div>
 </template>
 <script>
   import _ from 'lodash';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import I18n from '@/i18n';
 
@@ -89,7 +89,7 @@
        */
       value: {
         type: Object,
-        default: new TaskHostNodeModel({}),
+        default: new ExecuteTargetModel({}),
       },
       /**
        * @desc 宽度
@@ -128,7 +128,7 @@
           dynamicGroupList,
           hostList,
           nodeList,
-        } = this.localValue.hostNodeInfo || {};
+        } = this.localValue.executeObjectsInfo || {};
         const strs = [];
         if (hostList.length > 0) {
           strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机.result')}`);
@@ -159,7 +159,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
+      this.originalExecuteObjectsInfo = _.cloneDeep(this.value.executeObjectsInfo);
     },
     methods: {
       /**
@@ -245,10 +245,10 @@
         this.isShowChooseIp = false;
       },
 
-      handleHostChange(hostNodeInfo) {
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
         this.localValue = Object.freeze({
           ...this.localValue,
-          hostNodeInfo,
+          executeObjectsInfo,
         });
         this.triggerChange();
       },

@@ -29,30 +29,31 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
@@ -60,8 +61,9 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileLogPieceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
+import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,7 +76,6 @@ import org.slf4j.helpers.MessageFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -99,13 +100,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
     volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
     private ServiceFileSourceTaskResource fileSourceTaskResource;
-    private TaskInstanceService taskInstanceService;
     private AccountService accountService;
     private HostService hostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final ThirdFilePrepareTaskResultHandler resultHandler;
+    private StepInstanceService stepInstanceService;
     private int pullTimes = 0;
     private long logStart = 0L;
 
@@ -119,18 +120,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         List<FileSourceDTO> fileSourceList,
         String batchTaskId,
         boolean isForRetry,
-        ThirdFilePrepareTaskResultHandler resultHandler
-    ) {
+        ThirdFilePrepareTaskResultHandler resultHandler) {
         this.stepInstance = stepInstance;
         this.fileSourceList = fileSourceList;
         this.batchTaskId = batchTaskId;
         this.isForRetry = isForRetry;
         this.resultHandler = resultHandler;
+
     }
 
     public void initDependentService(
         ServiceFileSourceTaskResource fileSourceTaskResource,
-        TaskInstanceService taskInstanceService,
+        StepInstanceService stepInstanceService,
         AccountService accountService,
         HostService hostService,
         LogService logService,
@@ -138,12 +139,12 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
-        this.taskInstanceService = taskInstanceService;
         this.accountService = accountService;
         this.hostService = hostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -285,7 +286,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         boolean allSuccess = statePair.getLeft();
         boolean stopped = statePair.getRight();
         if (allSuccess) {
-            onSuccess(taskStatusList);
+            onSuccess(stepInstance, taskStatusList);
         } else if (stopped) {
             resultHandler.onStopped(this);
         } else {
@@ -321,7 +322,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         return Pair.of(allSuccess, stopped);
     }
 
-    private void onSuccess(List<FileSourceTaskStatusDTO> fileSourceTaskStatusList) {
+    private void onSuccess(StepInstanceDTO stepInstance, List<FileSourceTaskStatusDTO> fileSourceTaskStatusList) {
         Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
@@ -339,7 +340,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         stepInstance.getUniqueKey(),
                         stepInstance.getAppId()
                     );
-                    taskInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+                    stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
                     taskExecuteMQEventDispatcher.dispatchJobEvent(
                         JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
                             EventSource.buildStepEventSource(stepInstance.getId())));
@@ -348,7 +349,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 fileSourceDTO.setAccountId(accountDTO.getId());
                 fileSourceDTO.setLocalUpload(false);
 
-                ServersDTO servers = new ServersDTO();
+                ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
                 HostDTO hostDTO = parseFileWorkerHostWithCache(
                     fileSourceTaskStatusDTO.getCloudId(),
                     fileSourceTaskStatusDTO.getIpProtocol(),
@@ -376,15 +377,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                     sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
-                servers.addStaticIps(hostDTOList);
-                if (servers.getIpList() == null) {
-                    servers.setIpList(hostDTOList);
-                } else {
-                    servers.getIpList().addAll(hostDTOList);
-                    // 去重
-                    servers.setIpList(new ArrayList<>(new HashSet<>(servers.getIpList())));
-                }
-                fileSourceDTO.setServers(servers);
+                executeObjectsDTO.addStaticHosts(hostDTOList);
+                executeObjectsDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
+                fileSourceDTO.setServers(executeObjectsDTO);
                 Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
                 log.debug(
                     "[{}]: filePathMap={}",
@@ -401,7 +396,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
         }
         //更新StepInstance
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
 
@@ -448,18 +443,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private void writeLogs(StepInstanceDTO stepInstance,
                            FileSourceTaskStatusDTO fileSourceTaskStatusDTO,
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
-        List<ServiceHostLogDTO> serviceHostLogDTOList = new ArrayList<>();
+        List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
             HostDTO host = parseFileWorkerHostWithCache(
                 fileSourceTaskStatusDTO.getCloudId(),
                 fileSourceTaskStatusDTO.getIpProtocol(),
                 fileSourceTaskStatusDTO.getIp()
             );
-            serviceHostLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
+            serviceExecuteObjectLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
         }
         logService.writeFileLogsWithTimestamp(
             stepInstance.getCreateTime(),
-            serviceHostLogDTOList,
+            serviceExecuteObjectLogDTOList,
             System.currentTimeMillis()
         );
     }
@@ -471,47 +466,54 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
      * @param thirdFileSourceTaskLog 第三方源文件下载任务日志
      * @return 统一格式日志实体
      */
-    private ServiceHostLogDTO buildServiceHostLogDTO(HostDTO host, ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog) {
+    private ServiceExecuteObjectLogDTO buildServiceHostLogDTO(HostDTO host,
+                                                              ThirdFileSourceTaskLogDTO thirdFileSourceTaskLog) {
         if (thirdFileSourceTaskLog == null) {
             return null;
         }
-        ServiceHostLogDTO serviceHostLog = new ServiceHostLogDTO();
+        ServiceExecuteObjectLogDTO serviceHostLog = new ServiceExecuteObjectLogDTO();
         serviceHostLog.setStepInstanceId(stepInstance.getId());
         serviceHostLog.setExecuteCount(stepInstance.getExecuteCount());
         serviceHostLog.setBatch(stepInstance.getBatch());
-        serviceHostLog.setHostId(host.getHostId());
-        serviceHostLog.setCloudIp(host.getIp());
-        serviceHostLog.setFileTaskLogs(buildFileTaskLogs(host, thirdFileSourceTaskLog.getFileTaskLogs()));
+        ExecuteObject executeObject;
+        if (stepInstance.isSupportExecuteObjectFeature()) {
+            executeObject = new ExecuteObject(host);
+            serviceHostLog.setExecuteObjectId(executeObject.getId());
+        } else {
+            serviceHostLog.setHostId(host.getHostId());
+            serviceHostLog.setCloudIp(host.getIp());
+            executeObject = ExecuteObject.buildCompatibleExecuteObject(host);
+        }
+        serviceHostLog.setFileTaskLogs(buildFileTaskLogs(executeObject, thirdFileSourceTaskLog.getFileTaskLogs()));
         return serviceHostLog;
     }
 
     /**
      * 将第三方文件源任务日志转为Job系统统一格式日志用于存储与展示
      *
-     * @param host          日志关联的主机信息
+     * @param executeObject 日志关联的执行对象信息
      * @param fileLogPieces 文件下载日志列表
      * @return Job日志列表
      */
-    private List<ServiceFileTaskLogDTO> buildFileTaskLogs(HostDTO host, List<FileLogPieceDTO> fileLogPieces) {
+    private List<ServiceFileTaskLogDTO> buildFileTaskLogs(ExecuteObject executeObject,
+                                                          List<FileLogPieceDTO> fileLogPieces) {
         if (CollectionUtils.isEmpty(fileLogPieces)) {
             return Collections.emptyList();
         }
-        return fileLogPieces.stream().map(fileLogPiece -> {
-            ServiceFileTaskLogDTO serviceFileTaskLog = new ServiceFileTaskLogDTO();
-            // 第三方源文件下载后用于分发上传，仅有源文件相关属性
-            serviceFileTaskLog.setMode(FileDistModeEnum.UPLOAD.getValue());
-            serviceFileTaskLog.setSrcIp(fileLogPiece.getSrcIp());
-            serviceFileTaskLog.setSrcHostId(host.getHostId());
-            serviceFileTaskLog.setSrcFile(fileLogPiece.getSrcFile());
-            serviceFileTaskLog.setDisplaySrcFile(fileLogPiece.getDisplaySrcFile());
-            serviceFileTaskLog.setSize(fileLogPiece.getSize());
-            serviceFileTaskLog.setStatus(fileLogPiece.getStatus());
-            serviceFileTaskLog.setStatusDesc(fileLogPiece.getStatusDesc());
-            serviceFileTaskLog.setSpeed(fileLogPiece.getSpeed());
-            serviceFileTaskLog.setProcess(fileLogPiece.getProcess());
-            serviceFileTaskLog.setContent(fileLogPiece.getContent());
-            return serviceFileTaskLog;
-        }).collect(Collectors.toList());
+        return fileLogPieces.stream().map(fileLogPiece ->
+            logService.buildUploadServiceFileTaskLogDTO(
+                stepInstance,
+                TaskFileTypeEnum.FILE_SOURCE,
+                fileLogPiece.getSrcFile(),
+                fileLogPiece.getDisplaySrcFile(),
+                executeObject,
+                FileDistStatusEnum.getFileDistStatus(fileLogPiece.getStatus()),
+                fileLogPiece.getSize(),
+                fileLogPiece.getSpeed(),
+                fileLogPiece.getProcess(),
+                fileLogPiece.getContent()
+            )
+        ).collect(Collectors.toList());
     }
 
     @Override
