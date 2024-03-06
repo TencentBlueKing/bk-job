@@ -749,6 +749,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setBizFilter(filter);
 
         EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             SEARCH_BUSINESS,
             null,
@@ -761,7 +762,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         }
         List<BusinessInfoDTO> businessInfos = data.getInfo();
         if (businessInfos == null || businessInfos.isEmpty()) {
-            log.error("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
+            log.info("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
             return new ArrayList<>();
         }
         return convertToAppInfoList(businessInfos);

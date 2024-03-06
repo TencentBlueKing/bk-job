@@ -211,7 +211,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
             return InternalResponse.buildSuccessResp(appInfo != null);
         } catch (NotFoundException e){
-            log.error("biz/bizSet not exist, appId={}", appId);
+            log.info("biz/bizSet not exist, appId={}", appId);
             return InternalResponse.buildSuccessResp(false);
         }
     }

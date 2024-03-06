@@ -889,14 +889,23 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfoDTO.setEnable(true);
         List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
         log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
-
+        List<Long> failedCronJobIds = new ArrayList<>();
         for (Long cronJobId : cronJobIdList) {
-            Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
-                cronJobId, false);
-            if (log.isDebugEnabled()) {
+            try {
+                Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+                    cronJobId, false);
                 log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
+                if (!disableResult) {
+                    failedCronJobIds.add(cronJobId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to disable cron job with appId:{} and cronId:{}", appId, cronJobId, e);
+                failedCronJobIds.add(cronJobId);
             }
         }
-        return true;
+        if (!failedCronJobIds.isEmpty()) {
+            log.warn("Failed to disable cron jobs for appId:{} with cronJobIds:{}", appId, failedCronJobIds);
+        }
+        return failedCronJobIds.isEmpty();
     }
 }

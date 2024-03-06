@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -120,10 +121,18 @@ public class DisableCronJobOfArchivedScopeTask {
     private void disableCronJobOfArchivedScope() {
         List<Long> archivedAppIds = serviceApplicationResource.listAllAppIdOfArchivedScope().getData();
         log.info("finally find archived appIds={}", archivedAppIds);
+        List<Long> failedAppIds = new ArrayList<>();
         for (Long appId : archivedAppIds) {
-            cronJobService.disableCronJobByAppId(appId);
+            boolean result = cronJobService.disableCronJobByAppId(appId);
+            if (!result) {
+                failedAppIds.add(appId);
+            }
         }
-        log.info("cron job disabled successfully");
+        if (failedAppIds.isEmpty()) {
+            log.info("all cron jobs with archived apps have been successfully disabled.");
+        } else {
+            log.warn("failed to disable cron jobs for the following archived appIds: {}}", failedAppIds);
+        }
     }
 
 }
