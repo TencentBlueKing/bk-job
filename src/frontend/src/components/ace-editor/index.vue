@@ -480,14 +480,14 @@
           autoScrollEditorIntoView: true,
           copyWithEmptySelection: true,
           useElasticTabstops: true,
-          printMarginColumn: true,
-          printMargin: 80,
           scrollPastEnd: 0.2,
         });
         editor.setTheme('ace/theme/monokai');
         editor.setShowPrintMargin(false);
         editor.$blockScrolling = Infinity;
         editor.setReadOnly(this.readonly);
+
+        editor.renderer.setScrollMargin(0, 0, 0, 30);
 
         editor.on('change', () => {
           this.content = editor.getValue();
