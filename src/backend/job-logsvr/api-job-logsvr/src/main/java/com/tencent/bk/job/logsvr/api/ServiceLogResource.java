@@ -61,7 +61,7 @@ public interface ServiceLogResource {
      * @param request 保存日志请求
      */
     @ApiOperation("批量保存执行日志")
-    @PostMapping("/batch")
+    @PostMapping("/service/log/batch")
     InternalResponse<?> saveLogs(
         @ApiParam("批量保存日志请求报文")
         @RequestBody ServiceBatchSaveLogRequest request
