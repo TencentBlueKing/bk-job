@@ -760,8 +760,8 @@ public class HostServiceImpl implements HostService {
     public Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds) {
         Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(hostIds),
             new ListHostByHostIdsStrategy());
-        return result.getRight().stream()
-            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host, (host1, host2) -> host2));
+        return result.getRight().stream().collect(
+            Collectors.toMap(ApplicationHostDTO::getHostId, host -> host, (oldValue, newValue) -> newValue));
     }
 
     /**
