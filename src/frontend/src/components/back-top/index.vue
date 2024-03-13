@@ -83,7 +83,7 @@
     mounted() {
       this.smartPosition();
       window.addEventListener('resize', this.smartPosition);
-      const observer = new MutationObserver((payload) => {
+      const observer = new MutationObserver(() => {
         this.smartPosition();
       });
       observer.observe(this.target(), {

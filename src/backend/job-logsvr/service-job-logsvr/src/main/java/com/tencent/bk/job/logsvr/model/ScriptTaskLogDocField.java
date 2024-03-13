@@ -7,6 +7,7 @@ public interface ScriptTaskLogDocField {
     String STEP_ID = "stepId";
     String EXECUTE_COUNT = "executeCount";
     String BATCH = "batch";
+    String EXECUTE_OBJECT_ID = "executeObjectId";
     String HOST_ID = "hostId";
     String IP = "ip";
     String IPV6 = "ipv6";

@@ -94,7 +94,6 @@
     encodeRegexp,
   } from '@utils/assist';
 
-  import Empty from '@components/empty';
   import JbSearchSelect from '@components/jb-search-select';
 
   import I18n from '@/i18n';

@@ -215,7 +215,6 @@
 
   import { listColumnsCache } from '@utils/cache-helper';
 
-  import Empty from '@components/empty';
   import JbEditInput from '@components/jb-edit/input';
   import JbEditSelect from '@components/jb-edit/select';
   import JbPopoverConfirm from '@components/jb-popover-confirm';

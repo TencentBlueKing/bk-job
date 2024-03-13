@@ -139,7 +139,7 @@ public class WebCustomSettingsScriptTemplateResourceImpl implements WebCustomSet
     }
 
     private ValidateResult checkScriptTemplateCreateUpdateReq(ScriptTemplateCreateUpdateReq req) {
-        if (req.getScriptLanguage() == null || ScriptTypeEnum.valueOf(req.getScriptLanguage()) == null) {
+        if (req.getScriptLanguage() == null || ScriptTypeEnum.valOf(req.getScriptLanguage()) == null) {
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM);
         }
         if (req.getScriptContent() == null) {

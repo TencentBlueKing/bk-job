@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.common.annotation;
 
+import com.tencent.bk.job.common.constant.CompatibleType;
+
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -38,10 +41,11 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE;
 
 /**
- * 兼容历史版本的实现
+ * 用来标识兼容历史版本的实现
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 @Target(value = {CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
 public @interface CompatibleImplementation {
     /**
@@ -50,12 +54,17 @@ public @interface CompatibleImplementation {
     String name() default "";
 
     /**
-     * 说明
+     * 兼容说明
      */
-    String explain();
+    String explain() default "";
 
     /**
      * 兼容实现被废除的版本
      */
     String deprecatedVersion() default "";
+
+    /**
+     * 兼容类型
+     */
+    CompatibleType type();
 }

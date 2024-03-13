@@ -23,10 +23,10 @@ public class TerminateGseTaskRequest extends GseReq {
     private String taskId;
 
     /**
-     * 脚本命令定义
+     * 目标 Agent 列表
      */
-    @JsonProperty("agent_id_list")
-    private List<String> agentIds = new ArrayList<>();
+    @JsonProperty("agents")
+    private List<Agent> agents = new ArrayList<>();
 
     /**
      * 是否是GSE V2 Task; 根据gseV2Task判断请求GSE V1/v2
@@ -35,10 +35,10 @@ public class TerminateGseTaskRequest extends GseReq {
     private boolean gseV2Task;
 
     public TerminateGseTaskRequest(String taskId,
-                                   List<String> agentIds,
+                                   List<Agent> agents,
                                    boolean gseV2Task) {
         this.taskId = taskId;
-        this.agentIds = agentIds;
+        this.agents = agents;
         this.gseV2Task = gseV2Task;
     }
 }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.tables.GseTaskIpLog;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,15 +41,12 @@ import java.util.Set;
 @Builder
 public class StepExecutionResultQuery {
     public static final String ORDER_FIELD_TOTAL_TIME = "totalTime";
-    public static final String ORDER_FIELD_CLOUD_AREA_ID = "cloudAreaId";
     public static final String ORDER_FIELD_EXIT_CODE = "exitCode";
     private static final Map<String, String> ORDER_FIELD_IN_DB = new HashMap<>();
 
     static {
-        ORDER_FIELD_IN_DB.put(ORDER_FIELD_TOTAL_TIME, GseTaskIpLog.GSE_TASK_IP_LOG.TOTAL_TIME.getName());
-        ORDER_FIELD_IN_DB.put(ORDER_FIELD_EXIT_CODE, GseTaskIpLog.GSE_TASK_IP_LOG.EXIT_CODE.getName());
-        // 表中不包含cloud_area_id字段，可以使用IP达到相同的目的
-        ORDER_FIELD_IN_DB.put(ORDER_FIELD_CLOUD_AREA_ID, GseTaskIpLog.GSE_TASK_IP_LOG.IP.getName());
+        ORDER_FIELD_IN_DB.put(ORDER_FIELD_TOTAL_TIME, "total_time");
+        ORDER_FIELD_IN_DB.put(ORDER_FIELD_EXIT_CODE, "exit_code");
     }
 
     /**
@@ -88,7 +84,7 @@ public class StepExecutionResultQuery {
     /**
      * 执行结果分组下返回的最大任务数
      */
-    private Integer maxAgentTasksForResultGroup;
+    private Integer maxTasksForResultGroup;
     /**
      * 是否获取所有分组下的所有主机执行数据（默认为false，只获取第一个分组中的数据）
      */
@@ -102,9 +98,12 @@ public class StepExecutionResultQuery {
      */
     private Order order;
 
-    private Set<Long> matchHostIds;
+    private Set<ExecuteObjectCompositeKey> matchExecuteObjectCompositeKeys;
 
-    public boolean hasIpCondition() {
+    /**
+     * 是否包含按照执行对象过滤的条件。如果查询条件包含日志关键字、主机 ip 等，需要先根据条件查询到匹配的执行对象
+     */
+    public boolean hasExecuteObjectFilterCondition() {
         return StringUtils.isNotEmpty(logKeyword) || StringUtils.isNotEmpty(searchIp);
     }
 

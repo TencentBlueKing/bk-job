@@ -40,30 +40,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @since 1/11/2019 12:15
- */
 @Data
 @ApiModel("主机节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class TaskHostNodeVO {
 
-    @ApiModelProperty("机器列表")
+    @ApiModelProperty("主机列表")
     private List<HostInfoVO> hostList;
 
-    @ApiModelProperty("节点 ID")
+    @ApiModelProperty("拓扑节点 ID")
     private List<TargetNodeVO> nodeList;
 
     @ApiModelProperty("动态分组")
     private List<DynamicGroupIdWithMeta> dynamicGroupList;
 
-    public void validate(boolean isCreate) throws InvalidParamException {
+    public void validate() throws InvalidParamException {
         boolean allEmpty = true;
         if (CollectionUtils.isNotEmpty(nodeList)) {
             allEmpty = false;
             for (TargetNodeVO targetNodeVO : nodeList) {
-                targetNodeVO.validate(isCreate);
+                targetNodeVO.validate();
             }
         }
         if (CollectionUtils.isNotEmpty(dynamicGroupList)) {
@@ -78,7 +75,7 @@ public class TaskHostNodeVO {
         if (CollectionUtils.isNotEmpty(hostList)) {
             allEmpty = false;
             for (HostInfoVO hostInfoVO : hostList) {
-                hostInfoVO.validate(isCreate);
+                hostInfoVO.validate();
             }
         }
         if (allEmpty) {
@@ -110,7 +107,7 @@ public class TaskHostNodeVO {
         }
         List<DynamicGroupIdWithMeta> dynamicGroupList = new ArrayList<>();
         for (String id : dynamicGroupIdList) {
-            dynamicGroupList.add(new DynamicGroupIdWithMeta(id, null));
+            dynamicGroupList.add(new DynamicGroupIdWithMeta(id));
         }
         this.dynamicGroupList = dynamicGroupList;
     }

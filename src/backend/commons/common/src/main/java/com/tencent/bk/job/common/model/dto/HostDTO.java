@@ -42,7 +42,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * 主机通用表示-内部服务使用
+ * 作业执行对象-主机模型
  */
 @Setter
 @Getter
@@ -130,6 +130,16 @@ public class HostDTO implements Cloneable {
         this.ip = ip;
     }
 
+    public HostDTO(Long hostId) {
+        this.hostId = hostId;
+    }
+
+    public HostDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public static HostDTO fromHostId(Long hostId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
@@ -154,15 +164,6 @@ public class HostDTO implements Cloneable {
             host.setBkCloudId(Long.valueOf(ipProps[0]));
             host.setIp(ipProps[1]);
         }
-        return host;
-    }
-
-    @Deprecated
-    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setBkCloudId(bkCloudId);
-        host.setIp(ip);
         return host;
     }
 
@@ -295,6 +296,9 @@ public class HostDTO implements Cloneable {
     }
 
     public void updateByHost(HostDTO host) {
+        if (host == null) {
+            return;
+        }
         this.hostId = host.getHostId();
         this.agentId = host.getAgentId();
         this.bkCloudId = host.getBkCloudId();

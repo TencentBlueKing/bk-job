@@ -26,14 +26,14 @@ package com.tencent.bk.job.logsvr.api;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceHostLogsDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
@@ -56,19 +56,6 @@ import java.util.List;
 public interface ServiceLogResource {
 
     /**
-     * 保存执行日志
-     * tmp: ipv6版本发布完成后删除
-     * @param request 保存日志请求
-     */
-    @ApiOperation("保存执行日志")
-    @PostMapping("/service/log")
-    @Deprecated
-    InternalResponse<?> saveLog(
-        @ApiParam("保存日志请求报文")
-        @RequestBody ServiceSaveLogRequest request
-    );
-
-    /**
      * 批量保存执行日志
      *
      * @param request 保存日志请求
@@ -80,27 +67,14 @@ public interface ServiceLogResource {
         @RequestBody ServiceBatchSaveLogRequest request
     );
 
-    @Deprecated
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", deprecatedVersion = "3.7.x")
-    @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
-    @GetMapping(value = {"/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
-    InternalResponse<ServiceHostLogDTO> getScriptHostLogByIp(
-        @ApiParam("作业创建时间")
-        @PathVariable("jobCreateDate") String jobCreateDate,
-        @ApiParam("步骤实例ID")
-        @PathVariable("stepInstanceId") Long stepInstanceId,
-        @ApiParam("执行次数")
-        @PathVariable("executeCount") Integer executeCount,
-        @ApiParam("ip")
-        @PathVariable("ip") String ip,
-        @ApiParam("滚动执行批次，非滚动任务传入null")
-        @RequestParam(value = "batch", required = false) Integer batch);
-
     @ApiOperation("根据目标主机ID获取脚本任务对应的执行日志")
     @GetMapping(value = {
         "/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
     })
-    InternalResponse<ServiceHostLogDTO> getScriptHostLogByHostId(
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用 hostId 的查询方式")
+    InternalResponse<ServiceExecuteObjectLogDTO> getScriptHostLogByHostId(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -112,9 +86,27 @@ public interface ServiceLogResource {
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch);
 
+    @ApiOperation("根据目标执行对象ID获取脚本任务对应的执行日志")
+    @GetMapping(value = {
+        "/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/executeObject" +
+            "/{executeObjectId}"
+    })
+    InternalResponse<ServiceExecuteObjectLogDTO> getScriptLogByExecuteObjectId(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("executeObjectId")
+        @PathVariable("executeObjectId") String executeObjectId,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch);
+
     @ApiOperation("批量获取脚本任务对应的执行日志")
-    @PostMapping(value = {"/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}"})
-    InternalResponse<List<ServiceHostLogDTO>> listScriptLogs(
+    @PostMapping(value = {"/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry" +
+        "/{executeCount}"})
+    InternalResponse<List<ServiceExecuteObjectLogDTO>> listScriptExecuteObjectLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -125,29 +117,14 @@ public interface ServiceLogResource {
         @RequestBody ServiceScriptLogQueryRequest query
     );
 
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", deprecatedVersion = "3.7.x")
     @Deprecated
-    @ApiOperation("按照IP获取文件任务对应的执行日志")
-    @GetMapping(value = {"/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
-    InternalResponse<ServiceHostLogDTO> getFileHostLogByIp(
-        @ApiParam("作业创建时间")
-        @PathVariable("jobCreateDate") String jobCreateDate,
-        @ApiParam("步骤实例ID")
-        @PathVariable("stepInstanceId") Long stepInstanceId,
-        @ApiParam("执行次数")
-        @PathVariable("executeCount") Integer executeCount,
-        @ApiParam("ip")
-        @PathVariable("ip") String ip,
-        @ApiParam("分发模式,0:upload,1:download")
-        @RequestParam(value = "mode", required = false) Integer mode,
-        @ApiParam("滚动执行批次，非滚动任务传入null")
-        @RequestParam(value = "batch", required = false) Integer batch);
-
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容历史数据使用 hostId 的查询方式")
     @ApiOperation("按照hostId获取文件任务对应的执行日志")
     @GetMapping(value = {
         "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
     })
-    InternalResponse<ServiceHostLogDTO> getFileHostLogByHostId(
+    InternalResponse<ServiceExecuteObjectLogDTO> getFileHostLogByHostId(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -161,6 +138,29 @@ public interface ServiceLogResource {
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch);
 
+    @ApiOperation("按照执行对象ID获取文件任务对应的执行日志")
+    @GetMapping(value = {
+        "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/executeObject" +
+            "/{executeObjectId}"
+    })
+    InternalResponse<ServiceExecuteObjectLogDTO> getFileLogByExecuteObjectId(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("executeObjectId")
+        @PathVariable("executeObjectId") String executeObjectId,
+        @ApiParam("分发模式,0:upload,1:download")
+        @RequestParam(value = "mode", required = false) Integer mode,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch);
+
+
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "使用 listFileExecuteObjectLogs() 替换，发布完成后可删除")
     @ApiOperation("获取文件任务对应的执行日志")
     @GetMapping("/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
     InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(
@@ -180,9 +180,13 @@ public interface ServiceLogResource {
         @RequestParam(value = "hostId", required = false) Long hostId
     );
 
-    @ApiOperation("获取文件任务agent对应的执行日志")
-    @PostMapping("/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
-    InternalResponse<ServiceHostLogDTO> listFileHostLogsByTaskIds(
+    @ApiOperation("获取文件任务对应的执行日志")
+    @PostMapping(
+        "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "返回的协议内容有问题，发布完成后可删除")
+    InternalResponse<ServiceExecuteObjectLogDTO> listFileLogsByTaskIds(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")
@@ -191,13 +195,47 @@ public interface ServiceLogResource {
         @PathVariable("executeCount") Integer executeCount,
         @ApiParam("滚动执行批次，非滚动任务传入null")
         @RequestParam(value = "batch", required = false) Integer batch,
-        @ApiParam("文件任务ID列表，多个任务ID以;分隔")
+        @ApiParam("文件任务ID列表")
+        @RequestBody List<String> taskIds
+    );
+
+    @ApiOperation("根据任务 ID 批量获取文件任务对应的执行日志")
+    @PostMapping(
+        "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}" +
+            "/listTaskFileLogsByTaskIds")
+    InternalResponse<List<ServiceFileTaskLogDTO>> listTaskFileLogsByTaskIds(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch,
+        @ApiParam("文件任务ID列表")
         @RequestBody List<String> taskIds
     );
 
     @ApiOperation("获取文件任务对应的执行日志")
-    @PostMapping("/service/log/file")
-    InternalResponse<ServiceHostLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
+    @PostMapping("/file")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "发布之后不再被使用，可删除")
+    InternalResponse<ServiceExecuteObjectLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
+
+    @ApiOperation("批量获取文件任务对应的执行日志")
+    @PostMapping(
+        value = {"/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}"})
+    InternalResponse<List<ServiceExecuteObjectLogDTO>> listFileExecuteObjectLogs(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("查询请求")
+        @RequestBody ServiceFileLogQueryRequest request
+    );
 
     /**
      * 返回日志内容包含关键字的主机ip
@@ -208,9 +246,35 @@ public interface ServiceLogResource {
      * @param keyword        查询关键字
      * @return ip
      */
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
+    @Deprecated
     @ApiOperation("根据脚本任务日志关键字获取对应的ip")
     @GetMapping("/service/log/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<HostDTO>> questHostsByLogKeyword(
+    InternalResponse<List<HostDTO>> queryHostsByLogKeyword(
+        @ApiParam("作业创建时间")
+        @PathVariable("jobCreateDate") String jobCreateDate,
+        @ApiParam("步骤实例ID")
+        @PathVariable("stepInstanceId") Long stepInstanceId,
+        @ApiParam("执行次数")
+        @PathVariable("executeCount") Integer executeCount,
+        @ApiParam("滚动执行批次，非滚动任务传入null")
+        @RequestParam(value = "batch", required = false) Integer batch,
+        @ApiParam("关键字")
+        @RequestParam("keyword") String keyword
+    );
+
+    /**
+     * 返回日志内容包含关键字的执行对象 ID 集合
+     *
+     * @param jobCreateDate  创建时间
+     * @param stepInstanceId 步骤实例ID
+     * @param executeCount   执行次数
+     * @param keyword        查询关键字
+     * @return 执行对象 ID 集合
+     */
+    @ApiOperation("根据脚本任务日志关键字获取对应的执行对象ID集合")
+    @GetMapping("/service/log/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/executeObject")
+    InternalResponse<List<String>> queryExecuteObjectsByLogKeyword(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
         @ApiParam("步骤实例ID")

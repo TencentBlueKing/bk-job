@@ -162,7 +162,7 @@
         return Promise.all([
           this.$refs.handler.getData(),
           this.$refs.ticketForm.validate(),
-        ]).then(([data, validate]) => requestHandler({
+        ]).then(([data]) => requestHandler({
           ...this.formData,
           ...data,
         }))

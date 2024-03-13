@@ -428,7 +428,7 @@
           name: 'ID',
           id: 'cronJobId',
           description: I18n.t('cron.将覆盖其它条件'),
-          validate(values, item) {
+          validate(values) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('cron.ID只支持数字') : true;
           },

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -53,11 +53,12 @@ public abstract class RollingExprPart {
     public abstract RollingExprPart parseExpr(String expr) throws RollingExprParseException;
 
     /**
-     * 根据滚动子表达式以及分批计算上下文，计算当前批次的主机
+     * 根据滚动子表达式以及分批计算上下文，计算当前批次的执行对象
      *
      * @param context 解析上下文
-     * @return 当前批次的主机
+     * @return 当前批次的执行对象
      */
-    public abstract List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException;
+    public abstract List<ExecuteObject> compute(RollingExecuteObjectBatchContext context)
+        throws RollingExprParseException;
 
 }

@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -61,15 +62,18 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
     private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceValidateService stepInstanceValidateService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetStepInstanceDetailV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                   AppScopeMappingService appScopeMappingService,
                                                   TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                  StepInstanceValidateService stepInstanceValidateService) {
+                                                  StepInstanceValidateService stepInstanceValidateService,
+                                                  StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceValidateService = stepInstanceValidateService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -92,7 +96,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
             throw new InvalidParamException(checkResult);
         }
 
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(appId, stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
 
         taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
 
@@ -115,7 +119,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 scriptStepInfo.setScriptId(stepInstance.getScriptId());
                 scriptStepInfo.setScriptVersionId(stepInstance.getScriptVersionId());
                 scriptStepInfo.setContent(stepInstance.getScriptContent());
-                scriptStepInfo.setLanguage(stepInstance.getScriptType());
+                scriptStepInfo.setLanguage(stepInstance.getScriptType().getValue());
                 if (stepInstance.isSecureParam()) {
                     scriptStepInfo.setSecureParam(1);
                     scriptStepInfo.setScriptParam("******");
@@ -129,7 +133,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 }
                 scriptStepInfo.setScriptTimeout(getTimeout(stepInstance));
                 scriptStepInfo.setAccount(getAccount(stepInstance));
-                scriptStepInfo.setServer(stepInstance.getTargetServers().toEsbServerV3DTO());
+                scriptStepInfo.setServer(stepInstance.getTargetExecuteObjects().toEsbServerV3DTO());
                 scriptStepInfo.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
                 esbStepV3DTO.setScriptInfo(scriptStepInfo);
                 break;
@@ -221,7 +225,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
         EsbFileDestinationV3DTO esbFileDestinationV3DTO = new EsbFileDestinationV3DTO();
         esbFileDestinationV3DTO.setPath(stepInstance.getFileTargetPath());
         esbFileDestinationV3DTO.setAccount(getAccount(stepInstance));
-        esbFileDestinationV3DTO.setServer(stepInstance.getTargetServers().toEsbServerV3DTO());
+        esbFileDestinationV3DTO.setServer(stepInstance.getTargetExecuteObjects().toEsbServerV3DTO());
         return esbFileDestinationV3DTO;
     }
 }

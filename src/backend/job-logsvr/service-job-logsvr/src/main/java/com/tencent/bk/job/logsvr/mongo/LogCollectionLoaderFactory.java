@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LogCollectionLoaderFactory {
-    private ScriptLogsCollectionLoader scriptLogsCollectionLoader;
-    private FileLogsCollectionLoader fileLogsCollectionLoader;
+    private final ScriptLogsCollectionLoader scriptLogsCollectionLoader;
+    private final FileLogsCollectionLoader fileLogsCollectionLoader;
 
     @Autowired
     public LogCollectionLoaderFactory(ScriptLogsCollectionLoader scriptLogsCollectionLoader,

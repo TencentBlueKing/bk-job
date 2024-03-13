@@ -48,11 +48,11 @@
         </bk-button>
       </section>
       <ip-selector
-        :original-value="originalHostNodeInfo"
+        :original-value="originalExecuteObjectsInfoInfo"
         :show-dialog="isShowChooseIp"
         show-view
-        :value="formData.defaultTargetValue.hostNodeInfo"
-        @change="handleHostChange"
+        :value="formData.defaultTargetValue.executeObjectsInfo"
+        @change="handleExecuteObjectsInfoChange"
         @close-dialog="handleCloseIPSelector" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
@@ -77,8 +77,8 @@
 <script>
   import _ from 'lodash';
 
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   const getDefaultData = () => ({
     id: 0,
@@ -87,7 +87,7 @@
     name: '',
     // 执行目标信息
     defaultTargetValue: {
-      hostNodeInfo: {},
+      executeObjectsInfo: {},
       variable: '',
     },
     // 变量描述
@@ -112,7 +112,7 @@
     },
     computed: {
       isShowClear() {
-        return !TaskHostNodeModel.isHostNodeInfoEmpty(this.formData.defaultTargetValue.hostNodeInfo);
+        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.formData.defaultTargetValue.executeObjectsInfo);
       },
     },
     watch: {
@@ -124,11 +124,11 @@
       },
     },
     created() {
-      this.originalHostNodeInfo = _.cloneDeep(this.formData.defaultTargetValue.hostNodeInfo);
+      this.originalExecuteObjectsInfoInfo = _.cloneDeep(this.formData.defaultTargetValue.executeObjectsInfo);
     },
     methods: {
-      handleHostChange(hostNodeInfo) {
-        this.formData.defaultTargetValue.hostNodeInfo = Object.freeze(hostNodeInfo);
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
+        this.formData.defaultTargetValue.executeObjectsInfo = Object.freeze(executeObjectsInfo);
       },
       handleShowChooseIp() {
         this.isShowChooseIp = true;
@@ -138,8 +138,8 @@
       },
 
       handleClear() {
-        const { hostNodeInfo } = new TaskHostNodeModel({});
-        this.formData.defaultTargetValue.hostNodeInfo = hostNodeInfo;
+        const { executeObjectsInfo } = new ExecuteTargetModel({});
+        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
       },
       submit() {
         return Promise.resolve({

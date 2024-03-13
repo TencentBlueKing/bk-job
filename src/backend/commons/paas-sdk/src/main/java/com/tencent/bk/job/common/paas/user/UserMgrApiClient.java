@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.AbstractBkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
@@ -58,7 +58,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_USER_MANAG
  * 用户管理 API 客户端
  */
 @Slf4j
-public class UserMgrApiClient extends AbstractBkApiClient {
+public class UserMgrApiClient extends BkApiClient {
 
     private static final String API_GET_USER_LIST = "/api/c/compapi/v2/usermanage/list_users/";
 

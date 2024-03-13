@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 
 import java.util.List;
 

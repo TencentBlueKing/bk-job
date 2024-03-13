@@ -130,19 +130,20 @@ export default class StepExecutionResult {
   static MODE_ROLLING_BATCH = MODE_ROLLING_BATCH;
 
   constructor(payload) {
+    this.endTime = payload.endTime;
+    this.executeCount = payload.executeCount;
+    this.executeObjectType = payload.executeObjectType;
     this.gseTaskId = payload.gseTaskId;
     this.finished = payload.finished;
     this.isLastStep = payload.isLastStep;
     this.name = payload.name;
-    this.retryCount = payload.retryCount;
-    this.stepInstanceId = payload.stepInstanceId;
+    this.runMode = payload.runMode || MODE_ONCE;
     this.startTime = payload.startTime;
-    this.endTime = payload.endTime;
-    this.totalTime = payload.totalTime;
-    this.type = payload.type;
     this.status = payload.status;
     this.statusDesc = payload.statusDesc;
-    this.runMode = payload.runMode || MODE_ONCE;
+    this.stepInstanceId = payload.stepInstanceId;
+    this.totalTime = payload.totalTime;
+    this.type = payload.type;
 
     this.resultGroups = this.initResultGroup(payload.resultGroups);
     this.rollingTasks = this.initRollingTasks(payload.rollingTasks);

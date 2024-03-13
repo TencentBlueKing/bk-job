@@ -26,5 +26,5 @@ package com.tencent.bk.job.common.cc.model.result;
 
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 
-public class SearchDynamicGroupResult extends AbstractCcSearchResult<CcDynamicGroupDTO> {
+public class SearchDynamicGroupResult extends BaseCcSearchResult<CcDynamicGroupDTO> {
 }

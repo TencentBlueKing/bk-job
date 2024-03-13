@@ -129,6 +129,10 @@
     },
     props: {
       isFile: Boolean,
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
       stepInstanceId: {
         type: Number,
         required: true,
@@ -195,6 +199,7 @@
        */
       fetchLogFilePackageResult() {
         TaskExecuteService.fetchLogFilePackageResult({
+          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
           repackage: this.repackage,
         }).then((data) => {
@@ -326,7 +331,8 @@
       handleDownload() {
         this.isLogDownloaded = true;
         TaskExecuteService.fetchStepExecutionLogFile({
-          id: this.stepInstanceId,
+          taskInstanceId: this.taskInstanceId,
+          stepInstanceId: this.stepInstanceId,
         });
       },
     },

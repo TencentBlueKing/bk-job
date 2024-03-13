@@ -51,7 +51,7 @@ const sacnDialog = (resolve, reject) => {
     showFooter: false,
     closeIcon: false,
     width: 450,
-    subHeader: (h => (
+    subHeader: (() => (
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
           <span style="color: red; font-weight: bold">{ I18n.t('警告！') }</span>
@@ -102,7 +102,7 @@ const preventDialog = (resolve, reject) => {
     showFooter: false,
     closeIcon: false,
     width: 450,
-    subHeader: (h => (
+    subHeader: (() => (
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
           <span>{ I18n.t('请按脚本编辑框左侧') } </span>

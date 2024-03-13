@@ -33,7 +33,6 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
-import com.tencent.bk.job.execute.model.tables.StepInstance;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
@@ -186,21 +185,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .execute();
     }
 
-    @Override
-    public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
-        Result result = ctx.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
-            .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
-            .fetch();
-        List<Long> stepInstanceIdList = new ArrayList<>();
-        result.into(record -> {
-            Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);
-            if (stepInstanceId != null) {
-                stepInstanceIdList.add(stepInstanceId);
-            }
-        });
-        return stepInstanceIdList;
-    }
+
 
     @Override
     public void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId) {

@@ -33,15 +33,16 @@ import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
@@ -72,7 +73,7 @@ import java.util.stream.Collectors;
 public class ThirdFilePrepareService {
     private final ResultHandleManager resultHandleManager;
     private final ServiceFileSourceTaskResource fileSourceTaskResource;
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
     private final AccountService accountService;
     private final HostService hostService;
@@ -84,7 +85,7 @@ public class ThirdFilePrepareService {
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
                                    ServiceFileSourceTaskResource fileSourceTaskResource,
-                                   TaskInstanceService taskInstanceService,
+                                   StepInstanceService stepInstanceService,
                                    FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                    AccountService accountService,
                                    HostService hostService,
@@ -92,7 +93,7 @@ public class ThirdFilePrepareService {
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
         this.accountService = accountService;
         this.hostService = hostService;
@@ -106,15 +107,17 @@ public class ThirdFilePrepareService {
      * @param taskInfoDTO   文件源文件下载任务信息
      * @param fileSourceDTO 分发源文件数据
      */
-    private void setTaskInfoIntoThirdFileSource(TaskInfoDTO taskInfoDTO, FileSourceDTO fileSourceDTO) {
+    private void setTaskInfoIntoThirdFileSource(StepInstanceBaseDTO stepInstance,
+                                                TaskInfoDTO taskInfoDTO,
+                                                FileSourceDTO fileSourceDTO) {
         String fileSourceTaskId = taskInfoDTO.getTaskId();
         if (fileSourceDTO.getServers() == null) {
-            fileSourceDTO.setServers(new ServersDTO());
+            fileSourceDTO.setServers(new ExecuteObjectsDTO());
         }
         List<HostDTO> hostDTOList = new ArrayList<>();
         hostDTOList.add(new HostDTO(taskInfoDTO.getCloudId(), taskInfoDTO.getIp()));
         fileSourceDTO.getServers().setStaticIpList(hostDTOList);
-        fileSourceDTO.getServers().setIpList(hostDTOList);
+        fileSourceDTO.getServers().buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
         fileSourceDTO.setFileSourceTaskId(fileSourceTaskId);
         fileSourceDTO.getFiles().forEach(fileDetailDTO -> {
             // 含文件源名称的文件路径
@@ -130,7 +133,8 @@ public class ThirdFilePrepareService {
      * @param batchTaskInfoDTO    文件源批量任务信息
      * @param thirdFileSourceList 第三方文件源列表
      */
-    private void setBatchTaskInfoIntoThirdFileSource(BatchTaskInfoDTO batchTaskInfoDTO,
+    private void setBatchTaskInfoIntoThirdFileSource(StepInstanceDTO stepInstance,
+                                                     BatchTaskInfoDTO batchTaskInfoDTO,
                                                      List<FileSourceDTO> thirdFileSourceList) {
         List<TaskInfoDTO> taskInfoList = batchTaskInfoDTO.getTaskInfoList();
         for (int i = 0; i < taskInfoList.size(); i++) {
@@ -138,7 +142,7 @@ public class ThirdFilePrepareService {
             FileSourceDTO fileSourceDTO = thirdFileSourceList.get(i);
             Integer fileSourceId = fileSourceDTO.getFileSourceId();
             if (fileSourceId != null && fileSourceId > 0) {
-                setTaskInfoIntoThirdFileSource(taskInfoDTO, fileSourceDTO);
+                setTaskInfoIntoThirdFileSource(stepInstance, taskInfoDTO, fileSourceDTO);
             }
         }
     }
@@ -216,13 +220,13 @@ public class ThirdFilePrepareService {
             batchTaskInfoDTO.getTaskInfoList()
         );
         // 填充任务信息到分发源文件数据
-        setBatchTaskInfoIntoThirdFileSource(batchTaskInfoDTO, thirdFileSourceList);
+        setBatchTaskInfoIntoThirdFileSource(stepInstance, batchTaskInfoDTO, thirdFileSourceList);
         log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         // 放进文件源下载任务进度表中
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
         fileSourceTaskLogDAO.insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
-        taskInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         // 异步轮询文件下载任务
         ThirdFilePrepareTask task = asyncWatchThirdFilePulling(
             stepInstance,
@@ -277,7 +281,7 @@ public class ThirdFilePrepareService {
     }
 
     public void clearPreparedTmpFile(long stepInstanceId) {
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
         // 找出所有第三方文件源的TaskId进行清理
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         List<String> fileSourceTaskIdList = findFileSourceTaskIds(stepInstanceId, fileSourceList);
@@ -353,10 +357,9 @@ public class ThirdFilePrepareService {
                 fileSourceList,
                 batchTaskId,
                 isForRetry,
-                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
-            );
+                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler));
         batchResultHandleTask.initDependentService(
-            fileSourceTaskResource, taskInstanceService, accountService,
+            fileSourceTaskResource, stepInstanceService, accountService,
             hostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO
         );
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);

@@ -221,4 +221,6 @@ public interface StepInstanceDAO {
      * @param rollingConfigId 滚动配置ID
      */
     void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
+
+    List<Long> getTaskStepInstanceIdList(long taskInstanceId);
 }

@@ -10,7 +10,7 @@ const VALID_HOST_ID_FLAG = 0;
 const instance = new Vue();
 let messageInstance;
 
-const checkIllegalHost = hostNodeInfo => _.find(hostNodeInfo.hostList, item => item.hostId < VALID_HOST_ID_FLAG);
+const checkIllegalHost = executeObjectsInfo => _.find(executeObjectsInfo.hostList, item => item.hostId < VALID_HOST_ID_FLAG);
 
 // !important
 // 全局变量中有两个字段存储主机信息
@@ -28,7 +28,7 @@ export const checkIllegalHostFromVariableTargetValue = (
     if (variableItem.type !== GlobalVariableModel.TYPE_HOST) {
       return;
     }
-    if (checkIllegalHost(variableItem.targetValue.hostNodeInfo)) {
+    if (checkIllegalHost(variableItem.targetValue.executeObjectsInfo)) {
       variableStack.push(variableItem);
     }
   });
@@ -86,7 +86,7 @@ export const checkIllegalHostFromVariableStep = (
     if (!variableItem.isHost) {
       return;
     }
-    if (checkIllegalHost(variableItem.defaultTargetValue.hostNodeInfo)) {
+    if (checkIllegalHost(variableItem.defaultTargetValue.executeObjectsInfo)) {
       variableStack.push(variableItem);
     }
   });
@@ -103,7 +103,7 @@ export const checkIllegalHostFromVariableStep = (
         if (fileSourceItem.host.variable) {
           return false;
         }
-        return checkIllegalHost(fileSourceItem.host.hostNodeInfo);
+        return checkIllegalHost(fileSourceItem.host.executeObjectsInfo);
       });
       if (hasIllegalHost) {
         stepStask.push(stepItem);
@@ -111,7 +111,7 @@ export const checkIllegalHostFromVariableStep = (
       }
       // 目标服务器
       const { server } = stepItem.fileStepInfo.fileDestination;
-      hasIllegalHost = server.variable ? false : checkIllegalHost(server.hostNodeInfo);
+      hasIllegalHost = server.variable ? false : checkIllegalHost(server.executeObjectsInfo);
       if (hasIllegalHost) {
         stepStask.push(stepItem);
         return;
@@ -123,10 +123,10 @@ export const checkIllegalHostFromVariableStep = (
       // 目标服务器
       const {
         variable,
-        hostNodeInfo,
+        executeObjectsInfo,
       } = stepItem.scriptStepInfo.executeTarget;
 
-      const hasIllegalHost = variable ? false : checkIllegalHost(hostNodeInfo);
+      const hasIllegalHost = variable ? false : checkIllegalHost(executeObjectsInfo);
       if (hasIllegalHost) {
         stepStask.push(stepItem);
       }
@@ -192,9 +192,9 @@ export const checkIllegalHostFromVariableStep = (
   return false;
 };
 
-export const removeIllegalHostFromHostNodeInfo = hostNodeInfo => ({
-  ...hostNodeInfo,
-  hostList: _.filter(hostNodeInfo.hostList, item => item.hostId > VALID_HOST_ID_FLAG),
+export const removeIllegalHostFromExecuteObjectsInfo = executeObjectsInfo => ({
+  ...executeObjectsInfo,
+  hostList: _.filter(executeObjectsInfo.hostList, item => item.hostId > VALID_HOST_ID_FLAG),
 });
 
 // 移除变量中的异常主机
@@ -203,7 +203,7 @@ export const removeIllegalHostFromVariable = (variableList = []) => {
   // 处理全局变量
   newVariableList.forEach((variableItem) => {
     if (variableItem.isHost) {
-      variableItem.defaultTargetValue.hostNodeInfo = removeIllegalHostFromHostNodeInfo(variableItem.defaultTargetValue.hostNodeInfo);
+      variableItem.defaultTargetValue.executeObjectsInfo = removeIllegalHostFromExecuteObjectsInfo(variableItem.defaultTargetValue.executeObjectsInfo);
     }
   });
   return newVariableList;
@@ -223,13 +223,13 @@ export const removeIllegalHostFromStep = (stepList = []) => {
         if (fileSourceItem.host.variable) {
           return false;
         }
-        fileSourceItem.host.hostNodeInfo = removeIllegalHostFromHostNodeInfo(fileSourceItem.host.hostNodeInfo);
+        fileSourceItem.host.executeObjectsInfo = removeIllegalHostFromExecuteObjectsInfo(fileSourceItem.host.executeObjectsInfo);
       });
 
       // 目标服务器
       const { server } = stepItem.fileStepInfo.fileDestination;
       if (!server.variable) {
-        server.hostNodeInfo = removeIllegalHostFromHostNodeInfo(server.hostNodeInfo);
+        server.executeObjectsInfo = removeIllegalHostFromExecuteObjectsInfo(server.executeObjectsInfo);
       }
     }
 
@@ -241,7 +241,7 @@ export const removeIllegalHostFromStep = (stepList = []) => {
       } = stepItem.scriptStepInfo;
 
       if (!executeTarget.variable) {
-        executeTarget.hostNodeInfo = removeIllegalHostFromHostNodeInfo(executeTarget.hostNodeInfo);
+        executeTarget.executeObjectsInfo = removeIllegalHostFromExecuteObjectsInfo(executeTarget.executeObjectsInfo);
       }
     }
   });

@@ -105,6 +105,7 @@ public class WebAuthServiceImpl implements WebAuthService {
             int topoNodeCount = 0;
             int dynamicGroupCount = 0;
             int bizSetCount = 0;
+            int containerCount = 0;
             for (PermissionResource resource : resourceGroup.getPermissionResources()) {
                 String subResourceType = resource.getSubResourceType();
                 switch (subResourceType) {
@@ -120,6 +121,9 @@ public class WebAuthServiceImpl implements WebAuthService {
                     case "biz_set":
                         bizSetCount++;
                         break;
+                    case "container":
+                        containerCount++;
+                        break;
                 }
             }
             StringJoiner stringJoiner = new StringJoiner(",");
@@ -134,6 +138,9 @@ public class WebAuthServiceImpl implements WebAuthService {
             }
             if (bizSetCount > 0) {
                 stringJoiner.add(bizSetCount + " " + i18nService.getI18n("resource.biz_set.name"));
+            }
+            if (containerCount > 0) {
+                stringJoiner.add(containerCount + " " + i18nService.getI18n("resource.container.name"));
             }
             return stringJoiner.toString();
         } else {

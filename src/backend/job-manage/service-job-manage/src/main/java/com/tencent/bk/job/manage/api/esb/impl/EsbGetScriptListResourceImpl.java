@@ -184,7 +184,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         }
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptType() != null && request.getScriptType() > 0
-            && ScriptTypeEnum.valueOf(request.getScriptType()) == null) {
+            && ScriptTypeEnum.valOf(request.getScriptType()) == null) {
             log.warn("ScriptType:{} is illegal!", request.getScriptType());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "script_type");
         }

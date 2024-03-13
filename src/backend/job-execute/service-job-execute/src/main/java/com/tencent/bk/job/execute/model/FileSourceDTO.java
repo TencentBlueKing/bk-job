@@ -72,7 +72,7 @@ public class FileSourceDTO implements Cloneable {
      * 文件源服务器
      */
     @JsonProperty("servers")
-    private ServersDTO servers;
+    private ExecuteObjectsDTO servers;
 
     /**
      * 文件源ID

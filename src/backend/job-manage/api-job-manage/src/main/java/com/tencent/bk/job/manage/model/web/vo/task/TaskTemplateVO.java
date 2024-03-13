@@ -37,9 +37,6 @@ import lombok.ToString;
 
 import java.util.List;
 
-/**
- * @since 23/10/2019 16:07
- */
 @Getter
 @Setter
 @ToString

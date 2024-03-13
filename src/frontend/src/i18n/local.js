@@ -108,6 +108,9 @@ export default {
     select: 'node(s)',
     result: 'node(s)',
   },
+  个容器: {
+    result: 'container(s)',
+  },
   个动态分组: 'group(s) selected',
   移除全部: 'Remove all',
   现有主机: 'Including',

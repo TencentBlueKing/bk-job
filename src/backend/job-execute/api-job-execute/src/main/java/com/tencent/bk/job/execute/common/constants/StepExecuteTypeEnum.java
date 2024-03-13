@@ -41,7 +41,16 @@ public enum StepExecuteTypeEnum {
         this.name = name;
     }
 
-    public static StepExecuteTypeEnum valueOf(int type) {
+    public static StepExecuteTypeEnum valOf(int type) {
+        for (StepExecuteTypeEnum stepType : values()) {
+            if (stepType.getValue() == type) {
+                return stepType;
+            }
+        }
+        throw new IllegalArgumentException("StepExecuteTypeEnum:" + type);
+    }
+
+    public static StepExecuteTypeEnum valOf(byte type) {
         for (StepExecuteTypeEnum stepType : values()) {
             if (stepType.getValue() == type) {
                 return stepType;

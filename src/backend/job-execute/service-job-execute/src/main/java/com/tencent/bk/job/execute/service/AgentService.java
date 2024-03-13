@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 
 /**
  * Agent 相关服务
@@ -35,9 +35,4 @@ public interface AgentService {
      * 获取本地主机的Agent
      */
     HostDTO getLocalAgentHost();
-
-    /**
-     * 获取本地主机的Agent
-     */
-    ServersDTO getLocalServersDTO();
 }

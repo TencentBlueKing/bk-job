@@ -26,6 +26,8 @@ package com.tencent.bk.job.logsvr.mongo;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,7 +42,13 @@ import java.util.List;
 @Slf4j
 public class FileLogsCollectionLoader extends CollectionLoaderBase {
 
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "兼容历史数据使用。新版本切换完成之后将使用 IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID 索引")
+    @Deprecated
     private static final String IDX_STEP_EXECUTE_COUNT_MODE_HOST_ID = "stepId_executeCount_mode_hostId";
+
+    private static final String IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID
+        = "stepId_executeCount_mode_executeObjectId";
     private static final String IDX_STEP_EXECUTE_COUNT_TASK_ID = "stepId_executeCount_taskId";
     private static final String IDX_STEP_ID_HASHED = "stepId_hashed";
 
@@ -75,7 +83,18 @@ public class FileLogsCollectionLoader extends CollectionLoaderBase {
                 indexOptions);
             log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_MODE_HOST_ID,
                 collectionName);
+        }
 
+        if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID)) {
+            log.info("Create index {} for collection: {} start...", IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID,
+                collectionName);
+            IndexOptions indexOptions = new IndexOptions();
+            indexOptions.background(false);
+            indexOptions.name(IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID);
+            collection.createIndex(Document.parse("{\"stepId\":1,\"executeCount\":1,\"mode\":1,\"executeObjectId\":1}"),
+                indexOptions);
+            log.info("Create index {} for collection: {} successfully!", IDX_STEP_EXECUTE_COUNT_MODE_EXECUTE_OBJECT_ID,
+                collectionName);
         }
 
         if (!indexes.contains(IDX_STEP_EXECUTE_COUNT_TASK_ID)) {

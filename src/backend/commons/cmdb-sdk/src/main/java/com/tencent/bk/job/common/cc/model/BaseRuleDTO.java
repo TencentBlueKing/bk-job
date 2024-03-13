@@ -47,4 +47,21 @@ public class BaseRuleDTO implements IRule {
      * 操作值，不同的operator对应不同的value格式
      */
     private Object value;
+
+    public BaseRuleDTO() {
+    }
+
+    public BaseRuleDTO(String field, String operator, Object value) {
+        this.field = field;
+        this.operator = operator;
+        this.value = value;
+    }
+
+    public static BaseRuleDTO in(String field, Object value) {
+        return new BaseRuleDTO(field, "in", value);
+    }
+
+    public static BaseRuleDTO equals(String field, Object value) {
+        return new BaseRuleDTO(field, "equals", value);
+    }
 }

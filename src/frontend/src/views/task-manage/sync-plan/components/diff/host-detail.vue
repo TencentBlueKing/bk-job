@@ -65,7 +65,7 @@
           <ip-selector
             readonly
             show-view
-            :value="hostNodeInfo" />
+            :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
     </jb-dialog>
@@ -74,7 +74,7 @@
 <script>
   import _ from 'lodash';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import {
     findParent,
@@ -111,7 +111,7 @@
       return {
         isShowDetail: false,
         isShowDiff: false,
-        hostNodeInfo: {
+        executeObjectsInfo: {
           dynamicGroupList: [],
           hostList: [],
           nodeList: [],
@@ -142,11 +142,11 @@
       checkDiff() {
         const createVariable = () => {
           const {
-            hostNodeInfo,
-          } = new TaskHostNodeModel({});
+            executeObjectsInfo,
+          } = new ExecuteTargetModel({});
           return {
             defaultTargetValue: {
-              hostNodeInfo,
+              executeObjectsInfo,
             },
           };
         };
@@ -160,8 +160,8 @@
           currentTemplateVariable = createVariable();
         }
 
-        const planValue = currentPlanVariable.defaultTargetValue.hostNodeInfo;
-        const templateValue = currentTemplateVariable.defaultTargetValue.hostNodeInfo;
+        const planValue = currentPlanVariable.defaultTargetValue.executeObjectsInfo;
+        const templateValue = currentTemplateVariable.defaultTargetValue.executeObjectsInfo;
 
         // 对比节点
         const nodeDiffMap = {};
@@ -221,15 +221,7 @@
         this.diffGroupMemo = Object.freeze(groupDiffMap);
       },
       handlerView() {
-        // const {
-        //     dynamicGroupList,
-        //     hostList,
-        //     nodeList
-        // } = this.data.hostNodeInfo
-        // this.node = Object.freeze(nodeList)
-        // this.host = Object.freeze(hostList)
-        // this.dynamicGroup = Object.freeze(dynamicGroupList)
-        this.hostNodeInfo = Object.freeze(this.data.hostNodeInfo);
+        this.executeObjectsInfo = Object.freeze(this.data.executeObjectsInfo);
         this.nodeDiff = {};
         this.hostDiff = {};
         this.groupDiff = {};
@@ -237,16 +229,13 @@
       },
       handleToggleDiff(value) {
         if (value) {
-          this.hostNodeInfo = Object.freeze({
+          this.executeObjectsInfo = Object.freeze({
             dynamicGroupList: this.composeGroup,
             hostList: this.composeHost,
             nodeList: this.composeNode,
           });
-          // this.node = this.composeNode
           this.nodeDiff = this.diffNodeMemo;
-          // this.host = this.composeHost
           this.hostDiff = this.diffHostMemo;
-          // this.dynamicGroup = this.composeGroup
           this.groupDiff = this.diffGroupMemo;
         } else {
           this.handlerView();

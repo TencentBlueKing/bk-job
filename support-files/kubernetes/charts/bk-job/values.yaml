@@ -427,6 +427,8 @@ bkNodemanUrl: "http://nodeman.example.com"
 bkGseApiGatewayUrl: "http://bkapi.example.com"
 # 蓝鲸消息通知中心 API Gateway url
 bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+# 蓝鲸 CMDB API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -607,6 +609,9 @@ job:
       enabled: true
     gseV2:
       # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
+      enabled: true
+    # 是否支持执行对象。如果 Job 需要支持容器内作业的执行，需要开启该特性
+    executeObject:
       enabled: true
   trace:
     report:

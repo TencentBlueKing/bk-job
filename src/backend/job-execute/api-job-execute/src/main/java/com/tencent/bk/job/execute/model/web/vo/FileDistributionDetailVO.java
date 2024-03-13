@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -32,6 +34,9 @@ import lombok.Data;
 @ApiModel("文件分发执行详情")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+    explain = "使用 FileDistributionDetailV2VO 替换。发布完成后可以删除")
 public class FileDistributionDetailVO implements Comparable<FileDistributionDetailVO> {
     @ApiModelProperty(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;

@@ -94,7 +94,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
             taskScriptStep.setScriptVersionId((record.get(TABLE.SCRIPT_VERSION_ID)).longValue());
         }
         taskScriptStep.setContent(record.get(TABLE.CONTENT));
-        taskScriptStep.setLanguage(ScriptTypeEnum.valueOf((record.get(TABLE.LANGUAGE)).intValue()));
+        taskScriptStep.setLanguage(ScriptTypeEnum.valOf((record.get(TABLE.LANGUAGE)).intValue()));
         taskScriptStep.setTimeout((record.get(TABLE.SCRIPT_TIMEOUT)).longValue());
         taskScriptStep.setAccount((record.get(TABLE.EXECUTE_ACCOUNT)).longValue());
         taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST)));

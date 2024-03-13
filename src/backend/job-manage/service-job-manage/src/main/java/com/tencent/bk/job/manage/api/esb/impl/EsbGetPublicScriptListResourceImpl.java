@@ -133,7 +133,7 @@ public class EsbGetPublicScriptListResourceImpl implements EsbGetPublicScriptLis
     }
 
     private ValidateResult checkRequest(EsbGetPublicScriptListRequest request) {
-        if (request.getScriptType() != null && ScriptTypeEnum.valueOf(request.getScriptType()) == null) {
+        if (request.getScriptType() != null && ScriptTypeEnum.valOf(request.getScriptType()) == null) {
             log.warn("ScriptType:{} is illegal!", request.getScriptType());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "script_type");
         }

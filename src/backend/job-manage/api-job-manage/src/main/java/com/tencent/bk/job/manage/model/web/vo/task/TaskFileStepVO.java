@@ -119,7 +119,7 @@ public class TaskFileStepVO {
             log.warn("Empty account!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        fileDestination.getServer().validate(isCreate);
+        fileDestination.getServer().validate();
         if (transferMode == null || transferMode < 1 || transferMode > 4) {
             log.warn("Invalid transferMode : {}", transferMode);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

@@ -174,7 +174,7 @@
   }
 
   .bk-dialog {
-    top: unset;
+    top: unset !important;
     display: inline-block;
     margin: unset;
     text-align: initial;

@@ -29,11 +29,11 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
@@ -77,7 +77,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getStepNum()).isEqualTo(2);
         assertThat(stepInstance.getStepOrder()).isEqualTo(1);
         assertThat(stepInstance.getName()).isEqualTo("task1-step1");
-        assertThat(stepInstance.getExecuteType()).isEqualTo(1);
+        assertThat(stepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         assertThat(stepInstance.getOperator()).isEqualTo("admin");
         assertThat(stepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(stepInstance.getExecuteCount()).isEqualTo(0);
@@ -85,10 +85,10 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(stepInstance.getEndTime()).isEqualTo(1572868801000L);
         assertThat(stepInstance.getTotalTime()).isEqualTo(1111L);
         assertThat(stepInstance.getCreateTime()).isEqualTo(1572868800000L);
-        assertThat(stepInstance.getTargetServers()).isNotNull();
+        assertThat(stepInstance.getTargetExecuteObjects()).isNotNull();
         List<HostDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
-        assertThat(stepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(stepInstance.getTargetExecuteObjects().getIpList()).containsAll(expectedServer);
         assertThat(stepInstance.getBatch()).isEqualTo(0);
     }
 
@@ -99,12 +99,12 @@ public class StepInstanceDAOImplIntegrationTest {
         stepInstanceDTO.setName("task1-step1");
         stepInstanceDTO.setTaskInstanceId(1L);
         stepInstanceDTO.setStepId(1L);
-        stepInstanceDTO.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        ServersDTO servers = new ServersDTO();
+        stepInstanceDTO.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
         List<HostDTO> ipList = new ArrayList<>();
         ipList.add(new HostDTO(0L, "127.0.0.1"));
         servers.setIpList(ipList);
-        stepInstanceDTO.setTargetServers(servers);
+        stepInstanceDTO.setTargetExecuteObjects(servers);
         stepInstanceDTO.setOperator("admin");
         stepInstanceDTO.setStatus(RunStatusEnum.SUCCESS);
         stepInstanceDTO.setExecuteCount(0);
@@ -124,11 +124,11 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(1L);
         assertThat(returnStepInstance.getStepId()).isEqualTo(1L);
         assertThat(returnStepInstance.getName()).isEqualTo("task1-step1");
-        assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
-        assertThat(returnStepInstance.getTargetServers().getIpList()).hasSize(1);
+        assertThat(returnStepInstance.getExecuteType()).isEqualTo(StepExecuteTypeEnum.EXECUTE_SCRIPT);
+        assertThat(returnStepInstance.getTargetExecuteObjects().getIpList()).hasSize(1);
         List<HostDTO> expectedServer = new ArrayList<>();
         expectedServer.add(new HostDTO(0L, "127.0.0.1"));
-        assertThat(returnStepInstance.getTargetServers().getIpList()).containsAll(expectedServer);
+        assertThat(returnStepInstance.getTargetExecuteObjects().getIpList()).containsAll(expectedServer);
         assertThat(returnStepInstance.getOperator()).isEqualTo("admin");
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.SUCCESS);
         assertThat(returnStepInstance.getExecuteCount()).isEqualTo(0);
@@ -271,7 +271,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(returnStepInstance.getScriptContent()).isEqualTo("script_content");
         assertThat(returnStepInstance.getScriptParam()).isEqualTo("${var1}");
         assertThat(returnStepInstance.getResolvedScriptParam()).isEqualTo("var1");
-        assertThat(returnStepInstance.getScriptType()).isEqualTo(1);
+        assertThat(returnStepInstance.getScriptType()).isEqualTo(ScriptTypeEnum.SHELL);
         assertThat(returnStepInstance.getTimeout()).isEqualTo(1000);
         assertThat(returnStepInstance.isSecureParam()).isEqualTo(true);
     }
@@ -291,7 +291,7 @@ public class StepInstanceDAOImplIntegrationTest {
         scriptStepInstance.setScriptContent("script_content");
         scriptStepInstance.setScriptParam("${var1} ${var2}");
         scriptStepInstance.setResolvedScriptParam("var1 var2");
-        scriptStepInstance.setScriptType(ScriptTypeEnum.SHELL.getValue());
+        scriptStepInstance.setScriptType(ScriptTypeEnum.SHELL);
         scriptStepInstance.setTimeout(1000);
 
         stepInstanceDAO.addScriptStepInstance(scriptStepInstance);
@@ -308,7 +308,7 @@ public class StepInstanceDAOImplIntegrationTest {
         assertThat(savedStepInstance.getScriptContent()).isEqualTo("script_content");
         assertThat(savedStepInstance.getScriptParam()).isEqualTo("${var1} ${var2}");
         assertThat(savedStepInstance.getResolvedScriptParam()).isEqualTo("var1 var2");
-        assertThat(savedStepInstance.getScriptType()).isEqualTo(ScriptTypeEnum.SHELL.getValue());
+        assertThat(savedStepInstance.getScriptType()).isEqualTo(ScriptTypeEnum.SHELL);
         assertThat(savedStepInstance.getTimeout()).isEqualTo(1000);
     }
 
@@ -333,7 +333,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSource.setAccountId(1L);
         fileSource.setLocalUpload(false);
         fileSource.setFileType(TaskFileTypeEnum.SERVER.getType());
-        ServersDTO fileSourceServers = new ServersDTO();
+        ExecuteObjectsDTO fileSourceServers = new ExecuteObjectsDTO();
         fileSourceServers.setIpList(Lists.newArrayList(new HostDTO(1L, "10.10.10.10")));
         fileSource.setServers(fileSourceServers);
         FileDetailDTO fileDetail = new FileDetailDTO();
@@ -450,7 +450,7 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSourceDTO.setFileType(TaskFileTypeEnum.SERVER.getType());
         fileSourceDTO.setAccountId(1L);
         fileSourceDTO.setAccount("root");
-        ServersDTO servers = new ServersDTO();
+        ExecuteObjectsDTO servers = new ExecuteObjectsDTO();
         List<HostDTO> ips = new ArrayList<>();
         ips.add(new HostDTO(1L, "10.10.10.10"));
         servers.setIpList(ips);
