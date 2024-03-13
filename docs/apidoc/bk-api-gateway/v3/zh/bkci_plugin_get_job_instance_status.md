@@ -1,10 +1,8 @@
 ### 功能描述
 
-根据作业实例 ID 查询作业执行状态
+根据作业实例 ID 查询作业执行状态(蓝盾作业执行插件专用，非正式公开 API)
 
 ### 请求参数说明
-
-GET /open/api/scope/{scopeType}/{scopeId}/jobInstance/{jobInstanceId}/status
 
 #### Header参数
 
@@ -15,25 +13,27 @@ GET /open/api/scope/{scopeType}/{scopeId}/jobInstance/{jobInstanceId}/status
 | Content-Type | string | 是 | 固定值。application/json| 
 
 
-#### Path 参数
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
-| bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
-| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_instance_id | long | 是 | 作业实例ID |
-
-#### Query参数
+#### Body 参数
 
 | 字段 | 类型 | 必选 | 描述 |
 |------------------|------------|--------|------------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
+| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| job_instance_id | long | 是 | 作业实例ID |
 | include_execute_object_task_result | boolean | 否 | 是否返回每个执行对象上的任务详情，对应返回结果中的 step_execute_object_result_list 。默认值为false。 |
 
 ### 请求参数示例
 
-- URI
+- Body
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_instance_id": 100,
+    "include_execute_object_task_result": true
+}
 ```
-GET /open/api/scope/biz/1/jobInstance/100?include_execute_object_task_result=true
-```
+
 
 ### 返回结果示例
 

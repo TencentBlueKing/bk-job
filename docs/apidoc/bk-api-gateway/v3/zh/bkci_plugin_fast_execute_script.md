@@ -1,10 +1,8 @@
 ### 功能描述
 
-快速执行脚本
+快速执行脚本(蓝盾作业执行插件专用，非正式公开 API)
 
 ### 请求参数
-
-POST /open/api/scope/{scopeType}/{scopeId}/execute/fast_execute_script
 
 #### Header参数
 
@@ -14,16 +12,13 @@ POST /open/api/scope/{scopeType}/{scopeId}/execute/fast_execute_script
 | Accept | string | 是 | 固定值。application/json |
 | Content-Type | string | 是 | 固定值。application/json| 
 
-#### Path 参数
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
-| bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
-| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 
 #### Body参数
 
 | 字段 | 类型 | 必选 | 描述 |
 |---------------|------------|--------|------------|
+| bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
+| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 | script_version_id | long | 否 | 脚本版本ID。当script_version_id不为空的时候，使用script_version_id对应的脚本版本 |
 | script_id | string | 否 | 脚本ID。当传入script_id，且script_version_id为空的时候，使用脚本的上线版本 |
 | script_content | string | 否 | 脚本内容Base64。如果不存在script_version_id和script_id,那么使用script_content。优先级：script_version_id>script_id>script_content |
@@ -39,14 +34,21 @@ POST /open/api/scope/{scopeType}/{scopeId}/execute/fast_execute_script
 | rolling_config | object | 否 | 滚动配置，见rolling_config定义 |
 
 ##### execute_target
+
 | 字段 | 类型 | 必选 | 描述 |
 | ------------------ | ----- | ---- | ----------------------------------- |
-| host_id_list | array | 否 | 主机ID列表 |
+| host_list | array | 否 | 主机列表，调用方可以选择使用 bk_host_id 或者 bk_cloud_id+ip 指定主机两种方式。 见 host 定义 |
 | host_dynamic_group_list | array | 否 | 主机动态分组列表，定义见 dynamic_group |
 | host_topo_node_list | array | 否 | 主机动态 topo 节点列表，定义见 host_topo_node |
-| container_id_list | array | 否 | 容器ID列表 |
-| container_label_selector_list | array | 否 | 容器 Label Selector 表达式列表，定义见 container_label_selector |
+| kube_container_filter | array | 否 | 容器过滤器，定义见 kube_container_filter |
 
+##### host
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|
+| bk_host_id | long | 否 | 主机 ID (cmdb) |
+| bk_cloud_id | long | 否 | 管控区域ID |
+| ip | string | 否 | Ipv4 ｜
 
 ##### dynamic_group
 
@@ -61,22 +63,41 @@ POST /open/api/scope/{scopeType}/{scopeId}/execute/fast_execute_script
 | id | long | 是 | 动态topo节点ID，对应CMDB API 中的 bk_inst_id |
 | node_type | string | 是 | 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set" |
 
-##### container_label_selector
+##### kube_container_filter
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| topo_node_id | long | 是 | 容器拓扑节点，可以从 cmdb 业务拓扑获取 |
-| topo_node_type | string | 是 | 容器拓扑节点类型 (biz/cluster/namespace)，可以从 cmdb 业务拓扑获取 |
-| label_selector_expr_list | array | 是 | 容器 label 选择表达式，多个表示是之间为 AND 关系。定义见 label_selector_expr |
+| kube_node_filters | array | 否 | 容器拓扑节点过滤器列表，多个过滤器为 OR 关系. 过滤器定义见 kube_node_filter |
+| kube_pod_prop_filter | object | 是 | 容器 pod 属性过滤器，过滤器定义见 kube_pod_prop_filter |
+| kube_container_prop_filter | object | 是 | 容器 container 属性过滤器，过滤器定义见 kube_container_prop_filter |
+| fetch_any_container | boolean | 否 | 是否随机选择一个容器作为执行对象；默认为 false |
 
-
-##### label_selector_expr
+##### kube_node_filter
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| label_key | string | 是 | 容器 label key |
-| label_value | string | 否 | 容器 label value |
-| operator | string | 是 | label 选择计算操作符。当前支持(equals/not_equals/in/not_in/exists) |
+| cluster_name_list | array | 否 | 集群名称列表 |
+| namespace_name_list | array | 否 | namespace 名称列表 |
+| workload_list | string | 否 |  workload 列表，见 workload 定义 |
+
+##### workload
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|------------|
+| kind | string | 是 | workload类型，目前支持的workload类型有deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job) |
+| workload_name_list | array | 否 | workload 名称列表 |
+
+##### kube_pod_prop_filter
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|------------|
+| pod_name_list | array | 是 | pod 名称列表 |
+
+##### kube_container_prop_filter
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|------------|
+| container_name_list | array | 是 | 容器名称列表 |
 
 
 ##### rolling_config
@@ -129,31 +150,52 @@ POST /open/api/scope/biz/1/execute/fast_execute_script
                 "node_type": "module"
             }
         ],
-        "container_id_list":
-        [
-            10001,
-            10002
-        ],
-        "container_label_selector_list":
-        [
+        "kube_container_filter":
+        {
+            "kube_node_filters":
+            [
+                {
+                    "cluster_name_list":
+                    [
+                        "BCS-K8S-00001",
+                        "BCS-K8S-00002"
+                    ],
+                    "namespace_name_list":
+                    [
+                        "job-prod",
+                        "job-gray"
+                    ],
+                    "workload_list":
+                    [
+                        {
+                            "kind": "Deployment",
+                            "workload_name_list":
+                            [
+                                "bk-job-manage",
+                                "bk-job-execute"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "kube_pod_prop_filter":
             {
-                "topo_node_type": "namespace",
-                "topo_node_id": 18881,
-                "label_selector_expr_list":
+                "pod_name_list":
                 [
-                    {
-                        "label_key": "app",
-                        "label_value": "job",
-                        "operator": "equals"
-                    },
-                    {
-                        "label_key": "component",
-                        "label_value": "job-execute",
-                        "operator": "equals"
-                    }
+                    "bk-job-execute-6fcd8cf5c7-jvctq",
+                    "bk-job-manage-6fcd8cf5c7-abues"
                 ]
-            }
-        ]
+            },
+            "kube_container_prop_filter":
+            {
+                "container_name_list":
+                [
+                    "job-execute",
+                    "job-manage"
+                ]
+            },
+            "fetch_any_container": true
+        }
     }
 }
 ```

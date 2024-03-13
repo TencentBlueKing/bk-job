@@ -1,10 +1,8 @@
 ### 功能描述
 
-根据执行对象列表批量查询执行日志
+根据执行对象列表批量查询执行日志(蓝盾作业执行插件专用，非正式公开 API)
 
 ### 请求参数
-
-POST /open/api/scope/{scopeType}/{scopeId}/jobInstance/{jobInstanceId}/stepInstance/{stepInstanceId}/log
 
 #### Header 参数
 
@@ -14,18 +12,15 @@ POST /open/api/scope/{scopeType}/{scopeId}/jobInstance/{jobInstanceId}/stepInsta
 | Accept | string | 是 | 固定值。application/json |
 | Content-Type | string | 是 | 固定值。application/json| 
 
-#### Path 参数
+
+#### Body 参数
+
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
 | bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
 | job_instance_id | long | 是 | 作业实例ID |
 | step_instance_id | long | 是 | 步骤实例ID |
-
-#### Body 参数
-
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
 | execute_object_list | array | 否 | 执行对象列表，定义见 exeucte_object |
 
 ##### exeucte_object
@@ -37,15 +32,15 @@ POST /open/api/scope/{scopeType}/{scopeId}/jobInstance/{jobInstanceId}/stepInsta
 
 ### 请求参数示例
 
-- URI
-```
-POST /open/api/scope/biz/1/jobInstance/100/stepInstance/200/log
-```
-
 - Body
 ```json
 {
-    "execute_object_list": [
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "job_instance_id": 100,
+    "step_instance_id": 200,
+    "execute_object_list":
+    [
         {
             "type": 1,
             "resource_id": "101"
@@ -55,7 +50,7 @@ POST /open/api/scope/biz/1/jobInstance/100/stepInstance/200/log
             "resource_id": "10002"
         }
     ]
-}	
+}
 ```
 
 ### 返回结果示例
