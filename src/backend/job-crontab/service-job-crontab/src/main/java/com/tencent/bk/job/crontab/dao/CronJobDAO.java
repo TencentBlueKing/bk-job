@@ -196,4 +196,12 @@ public interface CronJobDAO {
      * @return 是否删除成功
      */
     boolean deleteCronJobById(long appId, long cronJobId);
+
+    /**
+     * 查询定时任务id
+     *
+     * @param cronJobInfoDTO 定时任务信息
+     * @return 定时任务id列表
+     */
+    List<Long> listCronJobIds(CronJobInfoDTO cronJobInfoDTO);
 }

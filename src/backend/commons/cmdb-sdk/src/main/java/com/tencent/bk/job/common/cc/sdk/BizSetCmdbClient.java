@@ -133,6 +133,36 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     /**
      * 查询业务集信息
      *
+     * @return 业务集信息列表
+     */
+    public List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds) {
+        BizSetFilter filter = new BizSetFilter();
+        filter.setCondition(BizSetFilter.CONDITION_AND);
+        Rule bizSetIdRule = new Rule();
+        bizSetIdRule.setField("bk_biz_set_id");
+        bizSetIdRule.setOperator(Rule.OPERATOR_IN);
+        bizSetIdRule.setValue(bizSetIds);
+        filter.setRules(Collections.singletonList(bizSetIdRule));
+        List<BizSetInfo> bizSetInfoList = searchBizSet(filter, 0, bizSetIds.size());
+
+        if (bizSetInfoList == null) {
+            return new ArrayList<>();
+        }
+
+        bizSetInfoList.forEach(bizSetInfo -> {
+            // 查询业务集下包含的子业务(全业务除外)
+            BizSetScope scope = bizSetInfo.getScope();
+            if (scope != null && !scope.isMatchAll()) {
+                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                bizSetInfo.setBizList(bizList);
+            }
+        });
+        return bizSetInfoList;
+    }
+
+    /**
+     * 查询业务集信息
+     *
      * @param filter 查询条件
      * @param start  分页起始
      * @param limit  每页大小

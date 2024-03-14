@@ -38,9 +38,13 @@ public class ScheduledTasks {
 
     private final CronJobLoadingService cronJobLoadingService;
 
+    private final DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask;
+
     @Autowired
-    public ScheduledTasks(CronJobLoadingService cronJobLoadingService) {
+    public ScheduledTasks(CronJobLoadingService cronJobLoadingService,
+                          DisableCronJobOfArchivedScopeTask disableCronJobOfArchivedScopeTask) {
         this.cronJobLoadingService = cronJobLoadingService;
+        this.disableCronJobOfArchivedScopeTask = disableCronJobOfArchivedScopeTask;
     }
 
     /**
@@ -56,6 +60,22 @@ public class ScheduledTasks {
             log.error("loadCronToQuartz fail", e);
         } finally {
             log.info("loadCronToQuartz end, duration={}ms", System.currentTimeMillis() - start);
+        }
+    }
+
+    /**
+     * 每上午10点把已归档业务(集)的定时任务禁用
+     */
+    @Scheduled(cron = "0 0 10 * * ?")
+    public void disableCronJobOfArchivedScopeTask() {
+        log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
+        long start = System.currentTimeMillis();
+        try {
+            disableCronJobOfArchivedScopeTask.execute();
+        } catch (Exception e) {
+            log.error("disableCronJobOfArchivedScopeTask fail", e);
+        } finally {
+            log.info("disableCronJobOfArchivedScopeTask end, duration={}ms", System.currentTimeMillis() - start);
         }
     }
 }

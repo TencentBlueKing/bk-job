@@ -561,6 +561,13 @@ public class CronJobDAOImpl implements CronJobDAO {
         });
     }
 
+    @Override
+    public List<Long> listCronJobIds(CronJobInfoDTO cronJobInfoDTO) {
+        List<Condition> conditions = buildConditionList(cronJobInfoDTO, new BaseSearchCondition());
+        List<ULong> cronJobIds = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
+        return cronJobIds.stream().map(ULong::longValue).collect(Collectors.toList());
+    }
+
     private CronJobInfoDTO convertToCronJobDTO(Record21<ULong, ULong, String, String, ULong, ULong, String, ULong,
         String, ULong, String, UByte, UByte, UByte, ULong, String, ULong, ULong, ULong, String, String> record) {
         if (record == null) {

@@ -257,4 +257,9 @@ public interface CronJobService {
     boolean deleteJobFromQuartz(long appId, long cronJobId);
 
     List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit);
+
+    /**
+     * 通过业务id禁用定时任务
+     */
+    boolean disableCronJobByAppId(Long appId);
 }

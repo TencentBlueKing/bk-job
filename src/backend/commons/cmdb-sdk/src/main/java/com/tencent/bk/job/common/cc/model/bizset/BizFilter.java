@@ -22,47 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.assemble;
+package com.tencent.bk.job.common.cc.model.bizset;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.SqlConfig;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import redis.embedded.RedisServer;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.io.IOException;
+import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:test.properties")
-@SqlConfig(encoding = "utf-8")
-public class BootIntegrationTest {
-    private static RedisServer redisServer;
+/**
+ * CMDB接口请求实体类，定义业务通过组合规则选择业务的过滤器
+ */
+@Setter
+@Getter
+@ToString
+public class BizFilter {
 
-    @BeforeAll
-    public static void init() throws IOException {
-        redisServer = RedisServer.builder()
-            .port(6379)
-            .setting("maxmemory 128M") //maxheap 128M
-            .build();
-        redisServer.start();
-    }
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
 
-    @AfterAll
-    public static void tearDown() {
-        redisServer.stop();
-    }
+    /**
+     * 多个规则之间的组合条件，取值为：AND/OR
+     */
+    private String condition;
 
-    @Test
-    @DisplayName("测试 job-assemble 启动")
-    public void bootTest() {
-        // do nothing
-    }
+    /**
+     * 规则列表
+     */
+    private List<Rule> rules;
+
 }
