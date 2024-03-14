@@ -93,4 +93,14 @@ public interface TicketAuthService {
     List<String> batchAuthUseTicket(String username,
                                     AppResourceScope appResourceScope,
                                     List<String> ticketIdList);
+
+    /**
+     * 注册凭证实例
+     *
+     * @param creator 资源实例创建者
+     * @param id      资源实例 ID
+     * @param name    资源实例名称
+     * @return 是否注册成功
+     */
+    boolean registerTicket(String creator, String id, String name);
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.auth.impl;
 
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -117,5 +118,10 @@ public class TicketAuthServiceImpl implements TicketAuthService {
             ResourceTypeEnum.TICKET,
             ticketIdList
         );
+    }
+
+    @Override
+    public boolean registerTicket(String creator, String id, String name) {
+        return authService.registerResource(id, name, ResourceTypeId.TICKET, creator, null);
     }
 }
