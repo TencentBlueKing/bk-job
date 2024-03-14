@@ -67,15 +67,15 @@ public class ScheduledTasks {
      * 每上午10点把已归档业务(集)的定时任务禁用
      */
     @Scheduled(cron = "0 0 10 * * ?")
-    public void disableCronJobTask() {
-        log.info(Thread.currentThread().getId() + ":disableCronJobTask start");
+    public void disableCronJobOfArchivedScopeTask() {
+        log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
         long start = System.currentTimeMillis();
         try {
             disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
-            log.error("disableCronJobTask fail", e);
+            log.error("disableCronJobOfArchivedScopeTask fail", e);
         } finally {
-            log.info("disableCronJobTask end, duration={}ms", System.currentTimeMillis() - start);
+            log.info("disableCronJobOfArchivedScopeTask end, duration={}ms", System.currentTimeMillis() - start);
         }
     }
 }
