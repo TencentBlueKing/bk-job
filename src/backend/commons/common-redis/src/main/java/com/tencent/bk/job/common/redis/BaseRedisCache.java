@@ -22,12 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    implementation project(':commons:common-utils')
-    implementation project(':commons:common')
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    api 'org.springframework.boot:spring-boot-starter-data-redis'
-    api 'org.springframework.data:spring-data-redis'
-    api 'org.springframework.boot:spring-boot-configuration-processor'
-    api 'org.apache.commons:commons-pool2'
+package com.tencent.bk.job.common.redis;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
+/**
+ * Redis 缓存基础实现类，提供通用能力
+ */
+public class BaseRedisCache {
+
+    private final MeterRegistry meterRegistry;
+
+    private final String cacheName;
+
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL = "job_redis_cache_hits_total";
+
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL = "job_redis_cache_misses_total";
+
+    private static final String TAG_CACHE_NAME = "cacheName";
+
+    public BaseRedisCache(MeterRegistry meterRegistry, String cacheName) {
+        this.meterRegistry = meterRegistry;
+        this.cacheName = cacheName;
+    }
+
+    /**
+     * 增加缓存命中 key 次数
+     */
+    public void addHits(int hitCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(hitCount);
+    }
+
+    /**
+     * 增加缓存命中 key 次数
+     */
+    public void addMisses(int missCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(missCount);
+    }
 }
