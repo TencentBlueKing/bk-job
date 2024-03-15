@@ -40,7 +40,7 @@
 | host_list | array | 否 | 主机列表，调用方可以选择使用 bk_host_id 或者 bk_cloud_id+ip 指定主机两种方式。 见 host 定义 |
 | host_dynamic_group_list | array | 否 | 主机动态分组列表，定义见 dynamic_group |
 | host_topo_node_list | array | 否 | 主机动态 topo 节点列表，定义见 host_topo_node |
-| kube_container_filters | array | 否 | 容器过滤器，定义见 kube_container_filter |
+| kube_container_filters | array | 否 | 容器过滤器，多个过滤器为 OR 关系，取容器并集。定义见 kube_container_filter |
 
 ##### host
 
@@ -78,21 +78,16 @@
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| cluster_name_list | array | 否 | 集群名称列表；传入 null 或者空的集合，该过滤条件不生效 |
+| cluster_name_list | array | 是 | 集群名称列表 |
 
 ##### kube_namespace_filter
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| namespace_name_list | array | 否 | namespace 名称列表；传入 null 或者空的集合，该过滤条件不生效 |
+| namespace_name_list | array | 是 | namespace 名称列表 |
+
 
 ##### kube_workload_filter
-
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
-| workload_list | string | 否 |  workload 列表，见 workload 定义 |
-
-##### workload
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
@@ -173,7 +168,7 @@
                     ]
                 },
                 "kube_workload_filter": {
-                    "kind": "Deployment",
+                    "kind": "deployment",
                     "workload_name_list": [
                         "bk-job-manage",
                         "bk-job-execute"
@@ -213,10 +208,15 @@
 
 ### 返回结果参数说明
 
+#### response
+
 | 字段 | 类型 | 描述 |
 |-----------|-----------|-----------|
-| data | object | 正常请求返回的数据 |
-| error | object | 如果响应的 http code 不为 200/201, error 用于说明错误信息 |
+| result       | bool   | 请求成功与否。true:请求成功；false请求失败 |
+| code         | int    | 错误编码。 0表示success，>0表示失败错误 |
+| message      | string | 请求失败返回的错误信息|
+| data         | object | 请求返回的数据|
+| permission   | object | 权限信息|
 
 ##### data
 
@@ -225,11 +225,3 @@
 | job_instance_id | long | 作业实例ID |
 | job_instance_name | long | 作业实例名称 |
 | step_instance_id | long | 步骤实例ID |
-
-##### error
-
-| 字段 | 类型 | 描述 |
-|-----------|-----------|-----------|
-| code | string | 蓝鲸 API 通用错误码 |
-| message | string | 错误信息 (给用户看的) |
-| data | object | 不同的 code 对应的错误 payload 信息，用于给调用方针对这个 code 做响应的处理，比如无权限返回权限申请信息。|
