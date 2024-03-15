@@ -25,7 +25,9 @@
 package com.tencent.bk.job.manage.manager.host;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.redis.BaseRedisCache;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +52,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class HostCache {
+public class HostCache extends BaseRedisCache {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -58,7 +60,9 @@ public class HostCache {
     private static final int EXPIRE_DAYS = 1;
 
     @Autowired
-    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
+    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
+                     MeterRegistry meterRegistry) {
+        super(meterRegistry, "HostCache");
         this.redisTemplate = redisTemplate;
     }
 
@@ -85,16 +89,30 @@ public class HostCache {
     }
 
     private List<CacheHostDO> getHostsByKeys(List<String> hostKeys) {
+        int hitCount = 0;
+        int missCount = 0;
         try {
             List<Object> results = redisTemplate.opsForValue().multiGet(hostKeys);
-            if (CollectionUtils.isEmpty(results)) {
-                return Collections.emptyList();
-            }
             // 通过 Object 间接强制转换 List
-            return (List<CacheHostDO>) (Object) results;
+            List<CacheHostDO> foundHosts = results == null ?
+                Collections.emptyList() : (List<CacheHostDO>) (Object) results;
+
+            hitCount = foundHosts.size();
+            missCount = hostKeys.size() - hitCount;
+
+            return foundHosts;
         } catch (Exception e) {
             log.warn("Batch get host in cache exception", e);
+            hitCount = 0;
+            missCount = hostKeys.size();
             return Collections.emptyList();
+        } finally {
+            if (hitCount > 0) {
+                addHits(hitCount);
+            }
+            if (missCount > 0) {
+                addMisses(missCount);
+            }
         }
     }
 
