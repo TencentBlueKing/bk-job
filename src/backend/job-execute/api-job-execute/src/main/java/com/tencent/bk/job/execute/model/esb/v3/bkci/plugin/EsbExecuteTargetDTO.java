@@ -22,46 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v4;
+package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
+import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+
+import javax.validation.Valid;
+import java.util.List;
 
 /**
- * OpenAPI - 作业执行对象-容器模型
+ * 执行目标-ESB
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Slf4j
-public class OpenApiContainer {
-    /**
-     * 容器在 cmdb 注册的 ID
-     */
-    @JsonProperty("id")
-    private String id;
+@Data
+public class EsbExecuteTargetDTO {
+
+    @JsonProperty("ip_list")
+    @JsonPropertyDescription("Hosts with ip")
+    @Valid
+    private List<EsbIpDTO> ips;
+
+    @JsonProperty("host_id_list")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonPropertyDescription("Host ids")
+    private List<Long> hostIds;
 
     /**
-     * 容器 ID
+     * 动态分组ID列表
      */
-    @JsonProperty("container_id")
-    private String containerId;
-
-
-    /**
-     * 容器所在 Node 对应的主机ID
-     */
-    @JsonProperty("hostId")
-    private Long hostId;
+    @JsonProperty("dynamic_group_list")
+    @JsonPropertyDescription("Cmdb dynamic groups")
+    private List<EsbDynamicGroupDTO> dynamicGroups;
 
     /**
-     * 容器名称
+     * 分布式拓扑节点列表
      */
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("topo_node_list")
+    @JsonPropertyDescription("Cmdb topo nodes")
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
+
+    /**
+     * 检查执行主机的参数是否非空
+     */
+    public boolean checkHostParamsNonEmpty() {
+        return CollectionUtils.isNotEmpty(hostIds)
+            || CollectionUtils.isNotEmpty(ips)
+            || CollectionUtils.isNotEmpty(topoNodes)
+            || CollectionUtils.isNotEmpty(dynamicGroups);
+    }
 }

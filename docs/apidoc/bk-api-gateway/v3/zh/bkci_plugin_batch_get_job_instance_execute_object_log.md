@@ -39,8 +39,7 @@
     "bk_scope_id": "2",
     "job_instance_id": 100,
     "step_instance_id": 200,
-    "execute_object_list":
-    [
+    "execute_object_list": [
         {
             "type": 1,
             "resource_id": "101"
@@ -58,20 +57,18 @@
 #### 脚本执行步骤
 ```json
 {
-    "data":
-    {
+    "result": true,
+    "code": 0,
+    "data": {
         "log_type": 1,
         "job_instance_id": 100,
         "step_instance_id": 200,
-        "script_execute_object_task_logs":
-        [
+        "script_execute_object_task_logs": [
             {
-                "execute_object":
-                {
+                "execute_object": {
                     "type": 1,
                     "resource_id": "101",
-                    "host":
-                    {
+                    "host": {
                         "bk_host_id": 101,
                         "ip": "10.0.0.1",
                         "bk_cloud_id": 0
@@ -80,12 +77,10 @@
                 "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
             },
             {
-                "execute_object":
-                {
+                "execute_object": {
                     "type": 2,
                     "resource_id": "10002",
-                    "container":
-                    {
+                    "container": {
                         "id": 10002,
                         "container_uid": "docker://0f65a78b83d247615a696f1f8d136aa39afdc578fc8589e765ee5c3a38751858"
                     }
@@ -101,47 +96,40 @@
 
 ```json
 {
-    "data":
-    {
+    "result": true,
+    "code": 0,
+    "data": {
         "log_type": 2,
         "job_instance_id": 100,
         "step_instance_id": 200,
-        "file_execute_object_task_logs":
-        [
+        "file_execute_object_task_logs": [
             {
-                "execute_object":
-                {
+                "execute_object": {
                     "type": 1,
                     "resource_id": "101",
-                    "host":
-                    {
+                    "host": {
                         "bk_host_id": 101,
                         "ip": "10.0.0.1",
                         "bk_cloud_id": 0
                     }
                 },
-                "file_atomic_task_logs":
-                [
+                "file_atomic_task_logs": [
                     {
                         "mode": 1,
-                        "src_execute_object":
-                        {
+                        "src_execute_object": {
                             "type": 2,
                             "resource_id": "10002",
-                            "container":
-                            {
+                            "container": {
                                 "id": 10002,
                                 "container_uid": "docker://0f65a78b83d247615a696f1f8d136aa39afdc578fc8589e765ee5c3a38751858",
                                 "name": "job_test"
                             }
                         },
                         "src_path": "/data/1.log",
-                        "dest_execute_object":
-                        {
+                        "dest_execute_object": {
                             "type": 1,
                             "resource_id": "101",
-                            "host":
-                            {
+                            "host": {
                                 "bk_host_id": 101,
                                 "ip": "10.0.0.1",
                                 "bk_cloud_id": 0
@@ -157,27 +145,22 @@
                 ]
             },
             {
-                "execute_object":
-                {
+                "execute_object": {
                     "type": 2,
                     "resource_id": "10002",
-                    "container":
-                    {
+                    "container": {
                         "id": 10002,
                         "container_uid": "docker://0f65a78b83d247615a696f1f8d136aa39afdc578fc8589e765ee5c3a38751858",
                         "name": "job_test"
                     }
                 },
-                "file_atomic_task_logs":
-                [
+                "file_atomic_task_logs": [
                     {
                         "mode": 0,
-                        "src_execute_object":
-                        {
+                        "src_execute_object": {
                             "type": 2,
                             "resource_id": "10002",
-                            "container":
-                            {
+                            "container": {
                                 "id": 10002,
                                 "container_uid": "docker://0f65a78b83d247615a696f1f8d136aa39afdc578fc8589e765ee5c3a38751858",
                                 "name": "job_test"

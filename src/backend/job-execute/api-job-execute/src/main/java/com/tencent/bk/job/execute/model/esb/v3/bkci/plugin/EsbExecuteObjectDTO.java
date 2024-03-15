@@ -22,54 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v4;
+package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Data;
 
-import javax.validation.Valid;
-import java.util.List;
-
 /**
- * 执行对象定义
+ * OpenAPI - 执行对象定义
  */
 @Data
-public class OpenApiExecuteObjects {
+public class EsbExecuteObjectDTO {
+
     /**
-     * 全局变量名
+     * 执行对象类型
+     *
+     * @see ExecuteObjectTypeEnum
+     */
+    @JsonPropertyDescription("Execute object type")
+    private Integer type;
+
+    /**
+     * 执行对象 ID，比如主机 ID、容器 ID
+     */
+    @JsonPropertyDescription("Execute object id")
+    private String id;
+
+    /**
+     * 容器
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonPropertyDescription("Variable name")
-    private String variable;
-
-    @JsonProperty("host_list")
-    @JsonPropertyDescription("Hosts")
-    @Valid
-    private List<OpenApiHost> hosts;
-
-    @JsonProperty("container_list")
-    @JsonPropertyDescription("Containers")
-    @Valid
-    private List<OpenApiContainer> containers;
-
+    @JsonPropertyDescription("Container")
+    private EsbContainerDTO container;
 
     /**
-     * 动态分组ID列表
+     * 主机
      */
-    @JsonProperty("dynamic_group_list")
-    @JsonPropertyDescription("Cmdb dynamic groups")
-    @Valid
-    private List<EsbDynamicGroupDTO> dynamicGroups;
+    @JsonPropertyDescription("Host")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private EsbHostDTO host;
 
-    /**
-     * 分布式拓扑节点列表
-     */
-    @JsonProperty("topo_node_list")
-    @JsonPropertyDescription("Cmdb topo nodes")
-    @Valid
-    private List<EsbCmdbTopoNodeDTO> topoNodes;
 }

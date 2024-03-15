@@ -72,7 +72,7 @@
 | kube_workload_filter | object | 否 |  workload 过滤器. 过滤器定义见 kube_workload_filter |
 | kube_pod_filter | object | 否 | pod 属性过滤器，过滤器定义见 kube_pod_filter |
 | kube_container_prop_filter | object | 是 | 容器 container 属性过滤器，过滤器定义见 kube_container_prop_filter |
-| fetch_any_one_container | boolean | 否 | 是否随机选择一个容器作为执行对象；默认为 false |
+| fetch_any_one_container | boolean | 否 | 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）；默认为 false |
 
 ##### kube_cluster_filter
 
@@ -125,6 +125,8 @@
 - Body
 ```json
 {
+    "result": true,
+    "code": 0,
     "script_version_id": 1,
     "script_content": "ZWNobyAkMQ==",
     "script_param": "aGVsbG8=",
@@ -197,8 +199,9 @@
 
 ```json
 {
-    "data":
-    {
+    "result": true,
+    "code": 0,
+    "data": {
         "job_instance_name": "API Quick execution script1521100521303",
         "job_instance_id": 10000,
         "step_instance_id": 10001

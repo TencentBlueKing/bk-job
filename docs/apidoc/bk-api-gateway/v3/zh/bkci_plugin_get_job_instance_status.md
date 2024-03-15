@@ -25,6 +25,7 @@
 ### 请求参数示例
 
 - Body
+
 ```json
 {
     "bk_scope_type": "biz",
@@ -39,11 +40,11 @@
 
 ```json
 {
-    "data":
-    {
+    "result": true,
+    "code": 0,
+    "data": {
         "finished": true,
-        "job_instance":
-        {
+        "job_instance": {
             "job_instance_id": 100,
             "bk_scope_type": "biz",
             "bk_scope_id": "1",
@@ -54,8 +55,7 @@
             "end_time": 1605064272000,
             "total_time": 1000
         },
-        "step_instance_list":
-        [
+        "step_instance_list": [
             {
                 "status": 4,
                 "total_time": 1000,
@@ -66,15 +66,12 @@
                 "end_time": 1605064272000,
                 "type": 1,
                 "start_time": 1605064271000,
-                "execute_object_result_list":
-                [
+                "execute_object_result_list": [
                     {
-                        "execute_object":
-                        {
+                        "execute_object": {
                             "type": 1,
                             "resource_id": "101",
-                            "host":
-                            {
+                            "host": {
                                 "bk_host_id": 101,
                                 "ip": "10.0.0.1",
                                 "bk_cloud_id": 0

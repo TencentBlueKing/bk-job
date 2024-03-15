@@ -22,45 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v4;
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import lombok.Data;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteScriptV3Request;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * OpenAPI - 执行对象定义
+ * 快速执行脚本ESB-API-V3
  */
-@Data
-public class OpenApiExecuteObject {
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbBkCIPluginFastExecuteScriptV3Resource {
 
-    /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
-     */
-    @JsonPropertyDescription("Execute object type")
-    private Integer type;
-
-    /**
-     * 执行对象 ID，比如主机 ID、容器 ID
-     */
-    @JsonPropertyDescription("Execute object id")
-    private String id;
-
-    /**
-     * 容器
-     */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonPropertyDescription("Container")
-    private OpenApiContainer container;
-
-    /**
-     * 主机
-     */
-    @JsonPropertyDescription("Host")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private OpenApiHost host;
+    @PostMapping("/bkci_plugin_fast_execute_script")
+    EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            EsbFastExecuteScriptV3Request request
+    );
 
 }

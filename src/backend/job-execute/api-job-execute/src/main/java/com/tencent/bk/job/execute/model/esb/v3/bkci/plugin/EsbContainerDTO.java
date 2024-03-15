@@ -22,53 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v4;
+package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 /**
- * 作业执行对象-主机模型
+ * OpenAPI - 作业执行对象-容器模型
  */
 @Setter
 @Getter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ToString
 @Slf4j
-public class OpenApiHost {
+public class EsbContainerDTO {
+    /**
+     * 容器在 cmdb 注册的 ID
+     */
+    @JsonProperty("id")
+    private String id;
 
-    @JsonProperty("bk_host_id")
-    @JsonPropertyDescription("Host ID")
+    /**
+     * 容器 ID
+     */
+    @JsonProperty("container_id")
+    private String containerId;
+
+
+    /**
+     * 容器所在 Node 对应的主机ID
+     */
+    @JsonProperty("hostId")
     private Long hostId;
 
-    @JsonProperty("bk_cloud_id")
-    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
-    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
-    @JsonPropertyDescription("BK-Network Area")
-    private Long bkCloudId;
-
-    @JsonProperty("ip")
-    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
-        message = "{validation.constraints.InvalidIp.message}")
-    @JsonPropertyDescription("ip")
-    private String ip;
-
-    @JsonProperty("ipv6")
-    @JsonPropertyDescription("ipv6")
-    private String ipv6;
-
-
+    /**
+     * 容器名称
+     */
+    @JsonProperty("name")
+    private String name;
 }
