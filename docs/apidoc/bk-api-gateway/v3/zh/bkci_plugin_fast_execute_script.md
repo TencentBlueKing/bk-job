@@ -40,7 +40,7 @@
 | host_list | array | 否 | 主机列表，调用方可以选择使用 bk_host_id 或者 bk_cloud_id+ip 指定主机两种方式。 见 host 定义 |
 | host_dynamic_group_list | array | 否 | 主机动态分组列表，定义见 dynamic_group |
 | host_topo_node_list | array | 否 | 主机动态 topo 节点列表，定义见 host_topo_node |
-| kube_container_filter | array | 否 | 容器过滤器，定义见 kube_container_filter |
+| kube_container_filters | array | 否 | 容器过滤器，定义见 kube_container_filter |
 
 ##### host
 
@@ -67,17 +67,29 @@
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| kube_node_filters | array | 否 | 容器拓扑节点过滤器列表，多个过滤器为 OR 关系. 过滤器定义见 kube_node_filter |
-| kube_pod_prop_filter | object | 是 | 容器 pod 属性过滤器，过滤器定义见 kube_pod_prop_filter |
+| kube_cluster_filter | object | 否 | 集群过滤器. 过滤器定义见 kube_cluster_filter |
+| kube_namespace_filter | object | 否 |  namespace 过滤器. 过滤器定义见 kube_namespace_filter |
+| kube_workload_filter | object | 否 |  workload 过滤器. 过滤器定义见 kube_workload_filter |
+| kube_pod_filter | object | 否 | pod 属性过滤器，过滤器定义见 kube_pod_filter |
 | kube_container_prop_filter | object | 是 | 容器 container 属性过滤器，过滤器定义见 kube_container_prop_filter |
-| fetch_any_container | boolean | 否 | 是否随机选择一个容器作为执行对象；默认为 false |
+| fetch_any_one_container | boolean | 否 | 是否随机选择一个容器作为执行对象；默认为 false |
 
-##### kube_node_filter
+##### kube_cluster_filter
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| cluster_name_list | array | 否 | 集群名称列表 |
-| namespace_name_list | array | 否 | namespace 名称列表 |
+| cluster_name_list | array | 否 | 集群名称列表；传入 null 或者空的集合，该过滤条件不生效 |
+
+##### kube_namespace_filter
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|------------|
+| namespace_name_list | array | 否 | namespace 名称列表；传入 null 或者空的集合，该过滤条件不生效 |
+
+##### kube_workload_filter
+
+| 字段 | 类型 | 必选 | 描述 |
+|-----------|------------|--------|------------|
 | workload_list | string | 否 |  workload 列表，见 workload 定义 |
 
 ##### workload
@@ -115,11 +127,6 @@
 
 ### 请求参数示例
 
-- URI
-```
-POST /open/api/scope/biz/1/execute/fast_execute_script
-```
-
 - Body
 ```json
 {
@@ -130,72 +137,63 @@ POST /open/api/scope/biz/1/execute/fast_execute_script
     "account_id": 1000,
     "is_param_sensitive": 0,
     "script_language": 1,
-    "execute_target":
-    {
-        "host_dynamic_group_list":
-        [
+    "execute_target": {
+        "host_dynamic_group_list": [
             {
                 "id": "blo8gojho0skft7pr5q0"
             }
         ],
-        "host_id_list":
-        [
-            101,
-            102
+        "host_list": [
+            {
+                "bk_host_id": 101
+            },
+            {
+                "bk_cloud_id": 0,
+                "ip": "10.0.0.2"
+            }
         ],
-        "host_topo_node_list":
-        [
+        "host_topo_node_list": [
             {
                 "id": 1000,
                 "node_type": "module"
             }
         ],
-        "kube_container_filter":
-        {
-            "kube_node_filters":
-            [
-                {
-                    "cluster_name_list":
-                    [
+        "kube_container_filters": [
+            {
+                "kube_cluster_filter": {
+                    "cluster_name_list": [
                         "BCS-K8S-00001",
                         "BCS-K8S-00002"
-                    ],
-                    "namespace_name_list":
-                    [
+                    ]
+                },
+                "kube_namespace_filter": {
+                    "namespace_name_list": [
                         "job-prod",
                         "job-gray"
-                    ],
-                    "workload_list":
-                    [
-                        {
-                            "kind": "Deployment",
-                            "workload_name_list":
-                            [
-                                "bk-job-manage",
-                                "bk-job-execute"
-                            ]
-                        }
                     ]
-                }
-            ],
-            "kube_pod_prop_filter":
-            {
-                "pod_name_list":
-                [
-                    "bk-job-execute-6fcd8cf5c7-jvctq",
-                    "bk-job-manage-6fcd8cf5c7-abues"
-                ]
-            },
-            "kube_container_prop_filter":
-            {
-                "container_name_list":
-                [
-                    "job-execute",
-                    "job-manage"
-                ]
-            },
-            "fetch_any_container": true
-        }
+                },
+                "kube_workload_filter": {
+                    "kind": "Deployment",
+                    "workload_name_list": [
+                        "bk-job-manage",
+                        "bk-job-execute"
+                    ]
+                },
+                "kube_pod_filter": {
+                    "pod_name_list": [
+                        "bk-job-execute-6fcd8cf5c7-jvctq",
+                        "bk-job-manage-6fcd8cf5c7-abues"
+                    ]
+                },
+                "kube_container_prop_filter": {
+                    "container_name_list": [
+                        "job-execute",
+                        "job-manage"
+                    ]
+                },
+                "fetch_any_one_container": true
+            }
+        ]
     }
 }
 ```
