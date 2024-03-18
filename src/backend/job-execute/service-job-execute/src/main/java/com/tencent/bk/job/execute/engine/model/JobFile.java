@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.model;
 
 import com.tencent.bk.job.common.util.FilePathUtils;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;

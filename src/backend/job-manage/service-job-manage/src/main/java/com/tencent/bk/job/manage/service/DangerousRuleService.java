@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;

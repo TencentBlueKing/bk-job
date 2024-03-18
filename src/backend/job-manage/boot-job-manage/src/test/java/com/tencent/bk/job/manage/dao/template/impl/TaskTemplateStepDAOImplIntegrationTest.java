@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.util.RandomUtil;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.dao.TaskStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import org.junit.jupiter.api.BeforeEach;

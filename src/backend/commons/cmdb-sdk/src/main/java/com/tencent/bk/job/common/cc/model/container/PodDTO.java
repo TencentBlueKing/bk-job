@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.cc.model.container;
 
 import lombok.Data;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +35,19 @@ import java.util.Map;
  */
 @Data
 public class PodDTO {
+
+    /**
+     * 集群模型 cmdb 字段
+     */
+    public interface Fields {
+        String ID = "id";
+        String NAME = "name";
+        String LABELS = "labels";
+
+        List<String> ALL = Arrays.asList(ID, LABELS, NAME);
+    }
+
+
     private Long id;
 
     private Map<String, String> labels;

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.execute.model.KubeContainerFilter;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,4 +41,13 @@ public interface ContainerService {
      * @param ids   容器 ID 列表
      */
     List<Container> listContainerByIds(long appId, Collection<Long> ids);
+
+    /**
+     * 根据容器过滤器查询容器列表
+     *
+     * @param appId  Job 业务 ID
+     * @param filter 容器过滤器
+     * @return 查询到的容器列表
+     */
+    List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter);
 }

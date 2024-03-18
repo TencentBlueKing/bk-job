@@ -46,8 +46,14 @@ import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.req.CmdbPageReq;
 import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
 import com.tencent.bk.job.common.cc.model.req.FindModuleHostRelationReq;
@@ -61,12 +67,13 @@ import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeClusterReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeNamespaceReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeWorkloadReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
-import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
-import com.tencent.bk.job.common.cc.model.req.field.PodFields;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
 import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
@@ -137,6 +144,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -1446,39 +1454,21 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     private PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req,
                                                                      boolean withCount) {
         setSupplierAccount(req);
-        req.setContainerFields(ContainerFields.FIELDS);
-        req.setPodFields(PodFields.FIELDS);
+        req.setContainerFields(ContainerDTO.Fields.ALL);
+        req.setPodFields(PodDTO.Fields.ALL);
 
-        Page originPage = req.getPage();
-        long count = 0;
-        if (withCount) {
-            // 设置为查询总数量的分页条件
-            req.setPage(Page.buildQueryCountPage());
-
-            // 查询总数量
-            EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
+        return listPage(
+            req,
+            withCount,
+            cmdbPageReq -> requestCmdbApi(
                 ApiGwType.BK_APIGW,
                 HttpMethodEnum.POST,
                 LIST_KUBE_CONTAINER_BY_TOPO,
                 null,
-                req,
+                cmdbPageReq,
                 new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
-                });
-            count = esbResp.getData().getCount();
-        }
-
-        // 查询数据
-        req.setPage(originPage);
-        EsbResp<BaseCcSearchResult<ContainerDetailDTO>> esbResp = requestCmdbApi(
-            ApiGwType.BK_APIGW,
-            HttpMethodEnum.POST,
-            LIST_KUBE_CONTAINER_BY_TOPO,
-            null,
-            req,
-            new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
-            });
-        BaseCcSearchResult<ContainerDetailDTO> result = esbResp.getData();
-        return new PageData<>(originPage.getStart(), originPage.getLimit(), count, result.getInfo());
+                })
+        );
     }
 
     /**
@@ -1489,8 +1479,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
      */
     public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
-        req.setContainerFields(ContainerFields.FIELDS);
-        req.setPodFields(PodFields.FIELDS);
+        req.setContainerFields(ContainerDTO.Fields.ALL);
+        req.setPodFields(PodDTO.Fields.ALL);
 
         return PageUtil.queryAllWithLoopPageQuery(
             500,
@@ -1521,7 +1511,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
      */
     public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
-            bizId, ContainerFields.ID, containerIds);
+            bizId, ContainerDTO.Fields.ID, containerIds);
     }
 
     /**
@@ -1533,17 +1523,17 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
      */
     public List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
-            bizId, ContainerFields.CONTAINER_UID, containerUIds);
+            bizId, ContainerDTO.Fields.CONTAINER_UID, containerUIds);
     }
 
     private <T> List<ContainerDetailDTO> listBizKubeContainerByContainerFieldWithInCondition(
         long bizId,
         String containerField,
-        Collection<T> filedValues) {
+        Collection<T> fieldValues) {
 
-        int maxFiledValuesPerBatch = 500;  // cmdb 限制每次查询传入的字段值
+        int maxFieldValuesPerBatch = 500;  // cmdb 限制每次查询传入的字段值
         List<List<T>> containerFieldValueBatches =
-            CollectionUtil.partitionCollection(filedValues, maxFiledValuesPerBatch);
+            CollectionUtil.partitionCollection(fieldValues, maxFieldValuesPerBatch);
 
         List<ContainerDetailDTO> containers = new ArrayList<>();
 
@@ -1558,11 +1548,11 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req.setContainerFilter(containerFilter);
 
             // 返回参数设置
-            req.setContainerFields(ContainerFields.FIELDS);
-            req.setPodFields(PodFields.FIELDS);
+            req.setContainerFields(ContainerDTO.Fields.ALL);
+            req.setPodFields(PodDTO.Fields.ALL);
 
             // 分页设置
-            req.setPage(new Page(0, maxFiledValuesPerBatch));
+            req.setPage(new Page(0, maxFieldValuesPerBatch));
 
             PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req);
             if (CollectionUtils.isNotEmpty(pageData.getData())) {
@@ -1571,5 +1561,135 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         });
 
         return containers;
+    }
+
+    public List<KubeClusterDTO> listKubeClusterByClusterNames(long bizId, List<String> clusterNames) {
+        ListKubeClusterReq req = makeCmdbBaseReq(ListKubeClusterReq.class);
+
+        // 查询条件
+        req.setBizId(bizId);
+
+        PropertyFilterDTO clusterPropFilter = new PropertyFilterDTO();
+        clusterPropFilter.setCondition("AND");
+        clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.NAME, clusterNames));
+        req.setFilter(clusterPropFilter);
+
+        // 返回参数设置
+        req.setFields(KubeClusterDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_CLUSTER,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeClusterDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            cluster -> cluster
+        );
+    }
+
+    private <R> PageData<R> listPage(CmdbPageReq req,
+                                     boolean withCount,
+                                     Function<CmdbPageReq, EsbResp<BaseCcSearchResult<R>>> query) {
+        setSupplierAccount(req);
+
+        Page originPage = req.getPage();
+        long count = 0;
+        if (withCount) {
+            // 设置为查询总数量的分页条件
+            req.setPage(Page.buildQueryCountPage());
+
+            // 查询总数量
+            EsbResp<BaseCcSearchResult<R>> response = query.apply(req);
+            count = response.getData().getCount();
+        }
+
+        // 查询数据
+        req.setPage(originPage);
+        EsbResp<BaseCcSearchResult<R>> response = query.apply(req);
+        return new PageData<>(originPage.getStart(), originPage.getLimit(), count, response.getData().getInfo());
+    }
+
+    public List<KubeNamespaceDTO> listKubeNamespaceByNames(long bizId, List<String> namespaces) {
+        ListKubeNamespaceReq req = makeCmdbBaseReq(ListKubeNamespaceReq.class);
+
+        // 查询条件
+        req.setBizId(bizId);
+
+        PropertyFilterDTO namespacePropFilter = new PropertyFilterDTO();
+        namespacePropFilter.setCondition("AND");
+        namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.NAME, namespaces));
+        req.setFilter(namespacePropFilter);
+
+        // 返回参数设置
+        req.setFields(KubeNamespaceDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_NAMESPACE,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeNamespaceDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            namespace -> namespace
+        );
+    }
+
+    public List<KubeWorkloadDTO> listKubeWorkloads(long bizId, String kind, List<String> names) {
+        ListKubeWorkloadReq req = makeCmdbBaseReq(ListKubeWorkloadReq.class);
+
+        // 查询条件
+        req.setBizId(bizId);
+
+        PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
+        workloadPropFilter.setCondition("AND");
+        workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.KIND, kind));
+        if (CollectionUtils.isNotEmpty(names)) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.NAME, names));
+        }
+        req.setFilter(workloadPropFilter);
+
+        // 返回参数设置
+        req.setFields(KubeWorkloadDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_NAMESPACE,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            workload -> workload
+        );
     }
 }

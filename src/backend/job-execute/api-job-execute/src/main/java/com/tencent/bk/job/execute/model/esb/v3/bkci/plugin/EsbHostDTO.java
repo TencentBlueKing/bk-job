@@ -29,26 +29,34 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbHostDTOGroupSequenceProvider;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+/**
+ * 主机
+ */
 @Setter
 @Getter
 @NoArgsConstructor
+@GroupSequenceProvider(EsbHostDTOGroupSequenceProvider.class)
 public class EsbHostDTO {
 
     @JsonProperty("bk_host_id")
     @JsonPropertyDescription("Host id")
+    @NotNull(message = "{validation.constraints.BkHostId_null.message}", groups = BkHostIdGroup.class)
+    @Min(value = 1L, message = "{validation.constraints.BkHostId_invalid.message}", groups = BkHostIdGroup.class)
     private Long hostId;
 
     @JsonProperty("bk_cloud_id")
-    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
-    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
+    @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}", groups = BkCloudIpGroup.class)
+    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}", groups = BkCloudIpGroup.class)
     @JsonPropertyDescription("BK-Network Area")
     private Long bkCloudId;
 
@@ -60,7 +68,8 @@ public class EsbHostDTO {
     @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
-        message = "{validation.constraints.InvalidIp.message}")
+        message = "{validation.constraints.InvalidIp.message}", groups = BkCloudIpGroup.class)
+    @NotNull(message = "{validation.constraints.InvalidIp.message}", groups = BkCloudIpGroup.class)
     @JsonPropertyDescription("ip")
     private String ip;
 
@@ -75,6 +84,12 @@ public class EsbHostDTO {
     @JsonProperty("alive")
     @JsonPropertyDescription("Agent是否正常")
     private Integer alive;
+
+    public interface BkHostIdGroup {
+    }
+
+    public interface BkCloudIpGroup {
+    }
 
     public EsbHostDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;

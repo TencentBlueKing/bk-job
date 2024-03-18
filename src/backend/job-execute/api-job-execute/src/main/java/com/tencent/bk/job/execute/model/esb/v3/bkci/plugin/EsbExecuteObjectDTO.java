@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Data;
@@ -46,8 +47,9 @@ public class EsbExecuteObjectDTO {
     /**
      * 执行对象 ID，比如主机 ID、容器 ID
      */
-    @JsonPropertyDescription("Execute object id")
-    private String id;
+    @JsonPropertyDescription("Execute object resource id")
+    @JsonProperty("resource_id")
+    private String resourceId;
 
     /**
      * 容器

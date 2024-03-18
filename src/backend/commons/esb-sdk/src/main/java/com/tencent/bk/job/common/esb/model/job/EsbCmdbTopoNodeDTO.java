@@ -29,6 +29,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * ESB接口 CMDB topo节点实体类
  */
@@ -39,6 +41,7 @@ public class EsbCmdbTopoNodeDTO {
      */
     @JsonProperty("id")
     @JsonPropertyDescription("Cmdb topo node id")
+    @NotNull(message = "{validation.constraints.TopoNodeId_null.message}")
     private Long id;
 
     /**
@@ -46,6 +49,7 @@ public class EsbCmdbTopoNodeDTO {
      */
     @JsonProperty("node_type")
     @JsonPropertyDescription("Cmdb topo node type")
+    @NotNull(message = "{validation.constraints.TopoNodeType_null.message}")
     private String nodeType;
 
     public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {

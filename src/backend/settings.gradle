@@ -97,4 +97,5 @@ include 'job-tools'
 include 'job-tools:k8s-startup-controller'
 include 'upgrader'
 include 'job-assemble'
+include 'job-manage:api-common-job-manage'
 

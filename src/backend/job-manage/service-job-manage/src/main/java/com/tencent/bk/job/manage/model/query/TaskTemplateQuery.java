@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.query;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.manage.common.consts.task.TaskTemplateStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import lombok.Builder;
 import lombok.Getter;

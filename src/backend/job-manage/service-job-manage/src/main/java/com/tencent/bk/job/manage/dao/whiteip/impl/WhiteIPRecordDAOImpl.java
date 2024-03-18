@@ -81,21 +81,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_ID_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_NAME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_TYPE;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CLOUD_AREA_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATE_TIME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATOR;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_HOST_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IPV6;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_TIME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_USER;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_REMARK;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_ID_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_NAME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_TYPE;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CLOUD_AREA_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CREATE_TIME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CREATOR;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_HOST_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IP;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IPV6;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IP_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_LAST_MODIFY_TIME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_LAST_MODIFY_USER;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_REMARK;
 
 @Slf4j
 @Repository

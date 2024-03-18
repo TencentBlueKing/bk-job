@@ -62,7 +62,7 @@ public class TaskNotifyDTO {
     /**
      * 资源操作结果
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
      */
     private Integer resourceExecuteStatus;
     /**

@@ -25,15 +25,15 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
-import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import static com.tencent.bk.job.manage.common.consts.CredentialTypeEnum.APP_ID_SECRET_KEY;
-import static com.tencent.bk.job.manage.common.consts.CredentialTypeEnum.PASSWORD;
-import static com.tencent.bk.job.manage.common.consts.CredentialTypeEnum.SECRET_KEY;
-import static com.tencent.bk.job.manage.common.consts.CredentialTypeEnum.USERNAME_PASSWORD;
+import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.APP_ID_SECRET_KEY;
+import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.PASSWORD;
+import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.SECRET_KEY;
+import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.USERNAME_PASSWORD;
 
 @Data
 @ApiModel("凭据创建/更新请求")

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;

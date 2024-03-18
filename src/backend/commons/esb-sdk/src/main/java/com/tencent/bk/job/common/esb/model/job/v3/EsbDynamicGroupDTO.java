@@ -27,6 +27,8 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 动态分组
  */
@@ -36,5 +38,6 @@ public class EsbDynamicGroupDTO {
      * 动态分组ID
      */
     @JsonPropertyDescription("Cmdb dynamic group id")
+    @NotNull(message = "{validation.constraints.EmptyDynamicGroupId.message}")
     private String id;
 }

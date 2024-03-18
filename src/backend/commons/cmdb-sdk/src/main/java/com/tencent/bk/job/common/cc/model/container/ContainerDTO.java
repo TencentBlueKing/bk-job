@@ -27,11 +27,29 @@ package com.tencent.bk.job.common.cc.model.container;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * CMDB 容器基础信息
  */
 @Data
 public class ContainerDTO {
+
+    /**
+     * 集群模型 cmdb 字段
+     */
+    public interface Fields {
+        String ID = "id";
+        String CONTAINER_UID = "container_uid";
+        String NAME = "name";
+
+        /**
+         * CMDB 模型的字段名
+         */
+        List<String> ALL = Arrays.asList(ID, CONTAINER_UID, NAME);
+    }
+
 
     private Long id;
 

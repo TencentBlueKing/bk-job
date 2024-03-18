@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting;
 
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 

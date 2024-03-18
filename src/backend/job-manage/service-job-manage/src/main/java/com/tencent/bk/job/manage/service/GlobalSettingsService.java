@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;

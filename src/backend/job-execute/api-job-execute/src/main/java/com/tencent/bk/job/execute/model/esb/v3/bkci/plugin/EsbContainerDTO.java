@@ -32,7 +32,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * OpenAPI - 作业执行对象-容器模型
+ * 作业执行对象-容器模型
  */
 @Setter
 @Getter

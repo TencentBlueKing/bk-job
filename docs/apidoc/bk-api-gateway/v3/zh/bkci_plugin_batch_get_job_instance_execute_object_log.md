@@ -223,7 +223,7 @@
 | 字段 | 类型 | 描述 |
 |--------------|-----------|-----------|
 | mode | int | 分发模式。0:上传;1:下载 |
-| src_execute_object | object |文件源执行对象。定义见 execute_object |
+| src_execute_object | object |源文件所在执行对象。定义见 execute_object |
 | src_path | string | 源文件路径 |
 | dest_execute_object | object |文件分发目标执行对象。定义见 execute_object |
 | dest_path | string | 目标路径，mode=1时有值 |

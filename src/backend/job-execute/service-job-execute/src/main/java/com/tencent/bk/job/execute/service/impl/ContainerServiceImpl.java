@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.execute.model.KubeContainerFilter;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -97,5 +98,17 @@ public class ContainerServiceImpl implements ContainerService {
         container.setPodLabels(containerDetailDTO.getPod().getLabels());
         container.setNodeHostId(containerDetailDTO.getTopo().getHostId());
         return container;
+    }
+
+    @Override
+    public List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
+        return null;
+    }
+
+    private void computeKubeTopoNode(KubeContainerFilter filter) {
+        // 按照
+        if (filter.getWorkloadFilter() != null) {
+
+        }
     }
 }

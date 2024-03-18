@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
-import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +39,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ListKubeContainerByTopoReq extends EsbReq {
+public class ListKubeContainerByTopoReq extends CmdbPageReq {
     @JsonProperty("bk_biz_id")
     private Long bizId;
 
@@ -61,8 +60,5 @@ public class ListKubeContainerByTopoReq extends EsbReq {
 
     @JsonProperty("pod_fields")
     private List<String> podFields;
-
-    @JsonProperty("page")
-    private Page page;
 
 }

@@ -28,51 +28,51 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.ExecuteTargetNotEmpty;
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
 
 import javax.validation.Valid;
 import java.util.List;
 
 /**
- * 执行目标-ESB
+ * 执行目标
  */
 @Data
+@ExecuteTargetNotEmpty
 public class EsbExecuteTargetDTO {
 
-    @JsonProperty("ip_list")
-    @JsonPropertyDescription("Hosts with ip")
-    @Valid
-    private List<EsbIpDTO> ips;
-
-    @JsonProperty("host_id_list")
+    /**
+     * 静态主机列表
+     */
+    @JsonProperty("host_list")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyDescription("Host ids")
-    private List<Long> hostIds;
+    @JsonPropertyDescription("Hosts")
+    @Valid
+    private List<EsbHostDTO> hosts;
 
     /**
-     * 动态分组ID列表
+     * cmdb 动态分组列表
      */
-    @JsonProperty("dynamic_group_list")
-    @JsonPropertyDescription("Cmdb dynamic groups")
-    private List<EsbDynamicGroupDTO> dynamicGroups;
+    @JsonProperty("host_dynamic_group_list")
+    @JsonPropertyDescription("Cmdb host dynamic groups")
+    @Valid
+    private List<EsbDynamicGroupDTO> hostDynamicGroups;
 
     /**
-     * 分布式拓扑节点列表
+     * cmdb 主机拓扑节点列表
      */
-    @JsonProperty("topo_node_list")
-    @JsonPropertyDescription("Cmdb topo nodes")
-    private List<EsbCmdbTopoNodeDTO> topoNodes;
+    @JsonProperty("host_topo_node_list")
+    @JsonPropertyDescription("Cmdb host topo nodes")
+    @Valid
+    private List<EsbCmdbTopoNodeDTO> hostTopoNodes;
 
     /**
-     * 检查执行主机的参数是否非空
+     * k8s 容器过滤器列表
      */
-    public boolean checkHostParamsNonEmpty() {
-        return CollectionUtils.isNotEmpty(hostIds)
-            || CollectionUtils.isNotEmpty(ips)
-            || CollectionUtils.isNotEmpty(topoNodes)
-            || CollectionUtils.isNotEmpty(dynamicGroups);
-    }
+    @JsonProperty("kube_container_filters")
+    @JsonPropertyDescription("Kube container filters")
+    @Valid
+    private List<EsbKubeContainerFilterDTO> kubeContainerFilters;
+
 }

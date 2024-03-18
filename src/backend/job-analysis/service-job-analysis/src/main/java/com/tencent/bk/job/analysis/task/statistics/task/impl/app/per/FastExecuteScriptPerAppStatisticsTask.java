@@ -31,7 +31,7 @@ import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;

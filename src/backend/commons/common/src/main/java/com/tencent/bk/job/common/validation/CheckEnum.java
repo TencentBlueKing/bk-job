@@ -47,7 +47,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * spring validation枚举校验注解
  */
-@Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE })
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
 @Constraint(validatedBy = CheckEnum.Validator.class)
 @Documented
 @Retention(RUNTIME)
@@ -61,7 +61,7 @@ public @interface CheckEnum {
 
     Class<? extends Enum<?>> enumClass();
 
-    String enumMethod();
+    String enumMethod() default "isValid";
 
     class Validator implements ConstraintValidator<CheckEnum, Object> {
 

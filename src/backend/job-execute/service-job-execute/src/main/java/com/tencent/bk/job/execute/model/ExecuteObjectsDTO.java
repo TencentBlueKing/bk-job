@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbExecuteTargetDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -88,6 +89,11 @@ public class ExecuteObjectsDTO implements Cloneable {
      */
     @Deprecated
     private List<HostDTO> ipList;
+
+    /**
+     * 容器过滤器
+     */
+    private List<KubeContainerFilter> containerFilters;
 
     /**
      * 执行对象列表(所有主机+容器）
@@ -487,5 +493,72 @@ public class ExecuteObjectsDTO implements Cloneable {
             // 兼容方式，写入 ipList 字段
             this.ipList = extractHosts();
         }
+    }
+
+    public static ExecuteObjectsDTO buildFrom(EsbExecuteTargetDTO executeTarget) {
+        if (executeTarget == null) {
+            return null;
+        }
+        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+
+        // 主机拓扑节点
+        if (CollectionUtils.isNotEmpty(executeTarget.getHostTopoNodes())) {
+            List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
+            executeTarget.getHostTopoNodes().forEach(
+                topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
+                    topoNode.getNodeType())));
+            executeObjectsDTO.setTopoNodes(topoNodes);
+        }
+
+        // 主机动态分组
+        if (CollectionUtils.isNotEmpty(executeTarget.getHostDynamicGroups())) {
+            List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
+            executeTarget.getHostDynamicGroups().forEach(
+                group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
+            executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
+        }
+
+        if (CollectionUtils.isNotEmpty(executeTarget.getHosts())) {
+            executeObjectsDTO.setStaticIpList(
+                executeTarget.getHosts().stream()
+                    .map(host -> new HostDTO(host.getHostId(), host.getBkCloudId(), host.getIp()))
+                    .collect(Collectors.toList()));
+        }
+
+        if (CollectionUtils.isNotEmpty(executeTarget.getKubeContainerFilters())) {
+            executeTarget.getKubeContainerFilters().forEach(originContainerFilter -> {
+                KubeContainerFilter containerFilter = new KubeContainerFilter();
+                if (originContainerFilter.getClusterFilter() != null) {
+                    KubeClusterFilter clusterFilter = new KubeClusterFilter();
+                    clusterFilter.setClusterNames(originContainerFilter.getClusterFilter().getClusterNames());
+                    containerFilter.setClusterFilter(clusterFilter);
+                }
+                if (originContainerFilter.getNamespaceFilter() != null) {
+                    KubeNamespaceFilter namespaceFilter = new KubeNamespaceFilter();
+                    namespaceFilter.setNamespaces(originContainerFilter.getNamespaceFilter().getNamespaces());
+                    containerFilter.setNamespaceFilter(namespaceFilter);
+                }
+                if (originContainerFilter.getWorkloadFilter() != null) {
+                    KubeWorkloadFilter workloadFilter = new KubeWorkloadFilter();
+                    workloadFilter.setKind(originContainerFilter.getWorkloadFilter().getKind());
+                    workloadFilter.setWorkloadNames(originContainerFilter.getWorkloadFilter().getWorkloadNames());
+                    containerFilter.setWorkloadFilter(workloadFilter);
+                }
+                if (originContainerFilter.getPodFilter() != null) {
+                    KubePodFilter podFilter = new KubePodFilter();
+                    podFilter.setPodNames(originContainerFilter.getPodFilter().getPodNames());
+                    containerFilter.setPodFilter(podFilter);
+                }
+                if (originContainerFilter.getContainerPropFilter() != null) {
+                    KubeContainerPropFilter containerPropFilter = new KubeContainerPropFilter();
+                    containerPropFilter.setContainerNames(
+                        originContainerFilter.getContainerPropFilter().getContainerNames());
+                    containerFilter.setContainerPropFilter(containerPropFilter);
+                }
+                containerFilter.setFetchAnyOneContainer(originContainerFilter.isFetchAnyOneContainer());
+            });
+        }
+
+        return executeObjectsDTO;
     }
 }
