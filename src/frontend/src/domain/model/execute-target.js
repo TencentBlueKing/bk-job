@@ -54,7 +54,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList,
       hostList,
       nodeList,
-      containerList,
+      containerList = [],
     } = this.executeObjectsInfo;
     const strs = [];
     if (hostList.length > 0) {

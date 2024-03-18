@@ -21,7 +21,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
 import _ from 'lodash';
 
@@ -88,7 +88,7 @@ export default class SourceFile {
      * @returns {Boolean}
      *
      * 服务列表为空则使用的是全局变量
-    */
+     */
   get isVar() {
     return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo);
   }
@@ -96,7 +96,7 @@ export default class SourceFile {
   /**
      * @desc 服务器文件
      * @returns {Boolean}
-    */
+     */
   get isServerFile() {
     return this.fileType === FILE_TYPE_SERVER;
   }
@@ -104,7 +104,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件
      * @returns {Boolean}
-    */
+     */
   get isLocalFile() {
     return this.fileType === FILE_TYPE_LOCAL;
   }
@@ -112,7 +112,7 @@ export default class SourceFile {
   /**
      * @desc 文件源文件
      * @returns {Boolean}
-    */
+     */
   get isSourceFile() {
     return this.fileType === FILE_TYPE_SOURCE;
   }
@@ -120,7 +120,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件——文件大小
      * @returns {String}
-    */
+     */
   get fileSizeText() {
     return bytePretty(this.fileSize);
   }
@@ -128,7 +128,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件——上传进度
      * @returns {Number}
-    */
+     */
   get uploadProgress() {
     return this.loaded / this.loadTotal;
   }
@@ -136,7 +136,7 @@ export default class SourceFile {
   /**
      * @desc 服务器文件——主机为空
      * @returns {Boolean}
-    */
+     */
   get isHostEmpty() {
     return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo);
   }
@@ -180,8 +180,7 @@ export default class SourceFile {
       return true;
     }
     // 服务器列表为空
-    if (ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo)
-            && this.host.variable === '') {
+    if (ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo) && this.host.variable === '') {
       return true;
     }
     return false;
@@ -207,12 +206,7 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
-      containerList,
-    } = this.host.executeObjectsInfo;
+    const { dynamicGroupList, hostList, nodeList, containerList = [] } = this.host.executeObjectsInfo;
 
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
@@ -231,3 +225,4 @@ export default class SourceFile {
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }
 }
+
