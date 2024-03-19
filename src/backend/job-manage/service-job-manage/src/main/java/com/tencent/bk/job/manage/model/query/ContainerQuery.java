@@ -26,10 +26,10 @@ package com.tencent.bk.job.manage.model.query;
 
 import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
+import com.tencent.bk.job.common.cc.model.container.PodDTO;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
-import com.tencent.bk.job.common.cc.model.req.field.ContainerFields;
-import com.tencent.bk.job.common.cc.model.req.field.PodFields;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.OrderCondition;
 import com.tencent.bk.job.common.model.PageCondition;
@@ -126,15 +126,15 @@ public class ContainerQuery {
             containerFilter.setCondition("AND");
 
             if (CollectionUtils.isNotEmpty(ids)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.ID, ids));
+                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.ID, ids));
             }
 
             if (CollectionUtils.isNotEmpty(containerUIDs)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.CONTAINER_UID, containerUIDs));
+                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.CONTAINER_UID, containerUIDs));
             }
 
             if (CollectionUtils.isNotEmpty(containerNames)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerFields.NAME, containerNames));
+                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME, containerNames));
             }
             req.setContainerFilter(containerFilter);
         }
@@ -150,7 +150,7 @@ public class ContainerQuery {
         if (CollectionUtils.isNotEmpty(podNames)) {
             PropertyFilterDTO podFilter = new PropertyFilterDTO();
             podFilter.setCondition("AND");
-            podFilter.addRule(BaseRuleDTO.in(PodFields.NAME, podNames));
+            podFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, podNames));
             req.setPodFilter(podFilter);
         }
     }
@@ -160,7 +160,7 @@ public class ContainerQuery {
             Page page = new Page();
             page.setStart(pageCondition.getStart());
             page.setLimit(pageCondition.getLength());
-            page.setSort(ContainerFields.ID);
+            page.setSort(ContainerDTO.Fields.ID);
             req.setPage(page);
         }
     }

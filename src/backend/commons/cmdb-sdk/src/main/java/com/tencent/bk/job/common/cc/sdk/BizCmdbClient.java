@@ -53,6 +53,9 @@ import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.CmdbPageReq;
 import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
@@ -1563,16 +1566,23 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         return containers;
     }
 
-    public List<KubeClusterDTO> listKubeClusterByClusterNames(long bizId, List<String> clusterNames) {
+    public List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query) {
         ListKubeClusterReq req = makeCmdbBaseReq(ListKubeClusterReq.class);
 
         // 查询条件
-        req.setBizId(bizId);
+        req.setBizId(query.getBizId());
 
         PropertyFilterDTO clusterPropFilter = new PropertyFilterDTO();
         clusterPropFilter.setCondition("AND");
-        clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.NAME, clusterNames));
-        req.setFilter(clusterPropFilter);
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.ID, query.getIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterUIDs())) {
+            clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.CLUSTER_UID, query.getBkClusterUIDs()));
+        }
+        if (clusterPropFilter.hasRule()) {
+            req.setFilter(clusterPropFilter);
+        }
 
         // 返回参数设置
         req.setFields(KubeClusterDTO.Fields.ALL);
@@ -1620,16 +1630,26 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         return new PageData<>(originPage.getStart(), originPage.getLimit(), count, response.getData().getInfo());
     }
 
-    public List<KubeNamespaceDTO> listKubeNamespaceByNames(long bizId, List<String> namespaces) {
+    public List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query) {
         ListKubeNamespaceReq req = makeCmdbBaseReq(ListKubeNamespaceReq.class);
 
         // 查询条件
-        req.setBizId(bizId);
+        req.setBizId(query.getBizId());
 
         PropertyFilterDTO namespacePropFilter = new PropertyFilterDTO();
         namespacePropFilter.setCondition("AND");
-        namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.NAME, namespaces));
-        req.setFilter(namespacePropFilter);
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.ID, query.getIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterIds())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.BK_CLUSTER_ID, query.getBkClusterIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getNames())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.NAME, query.getNames()));
+        }
+        if (namespacePropFilter.hasRule()) {
+            req.setFilter(namespacePropFilter);
+        }
 
         // 返回参数设置
         req.setFields(KubeNamespaceDTO.Fields.ALL);
@@ -1655,22 +1675,35 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         );
     }
 
-    public List<KubeWorkloadDTO> listKubeWorkloads(long bizId, String kind, List<String> names) {
+    public List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query) {
         ListKubeWorkloadReq req = makeCmdbBaseReq(ListKubeWorkloadReq.class);
 
         // 查询条件
-        req.setBizId(bizId);
+        req.setBizId(query.getBizId());
 
         PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
         workloadPropFilter.setCondition("AND");
-        workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.KIND, kind));
-        if (CollectionUtils.isNotEmpty(names)) {
-            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.NAME, names));
+        workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.KIND, query.getKind()));
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.ID, query.getIds()));
         }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.BK_CLUSTER_ID, query.getBkClusterIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkNamespaceIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.BK_NAMESPACE_ID,
+                query.getBkNamespaceIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getNames())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.NAME, query.getNames()));
+        }
+
         req.setFilter(workloadPropFilter);
 
         // 返回参数设置
         req.setFields(KubeWorkloadDTO.Fields.ALL);
+
+        String requestUrl = LIST_KUBE_WORKLOAD.replace("{kind}", query.getKind());
 
         return PageUtil.queryAllWithLoopPageQuery(
             500,
@@ -1682,7 +1715,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                     cmdbPageReq -> requestCmdbApi(
                         ApiGwType.BK_APIGW,
                         HttpMethodEnum.POST,
-                        LIST_KUBE_NAMESPACE,
+                        requestUrl,
                         null,
                         cmdbPageReq,
                         new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {

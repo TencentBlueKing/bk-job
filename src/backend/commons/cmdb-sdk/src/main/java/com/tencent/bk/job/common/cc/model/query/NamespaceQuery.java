@@ -22,23 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.common.cc.model.query;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
- * 执行目标-容器选择过滤器-按集群过滤
+ * namespace 查询
  */
-@Data
-@PersistenceObject
-public class KubeClusterFilter {
+@Getter
+@ToString
+public class NamespaceQuery {
+    private final Long bizId;
 
-    /**
-     * k8s 集群 UID
-     */
-    private List<String> clusterUIDs;
+    private final List<Long> ids;
 
+    private final List<String> names;
+
+    private final List<Long> bkClusterIds;
+
+    private NamespaceQuery(Builder builder) {
+        bizId = builder.bizId;
+        ids = builder.ids;
+        names = builder.names;
+        bkClusterIds = builder.bkClusterIds;
+    }
+
+
+    public static final class Builder {
+        private final Long bizId;
+        private List<Long> ids;
+        private List<String> names;
+        private List<Long> bkClusterIds;
+
+        private Builder(long bizId) {
+            this.bizId = bizId;
+        }
+
+        public static Builder builder(long bizId) {
+            return new Builder(bizId);
+        }
+
+        public Builder ids(List<Long> ids) {
+            this.ids = ids;
+            return this;
+        }
+
+        public Builder names(List<String> names) {
+            this.names = names;
+            return this;
+        }
+
+        public Builder bkClusterIds(List<Long> bkClusterIds) {
+            this.bkClusterIds = bkClusterIds;
+            return this;
+        }
+
+        public NamespaceQuery build() {
+            return new NamespaceQuery(this);
+        }
+    }
 }

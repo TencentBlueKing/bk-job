@@ -24,13 +24,25 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
+import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
+import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.execute.model.KubeClusterFilter;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
+import com.tencent.bk.job.execute.model.KubeNamespaceFilter;
+import com.tencent.bk.job.execute.model.KubeWorkloadFilter;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -102,13 +114,116 @@ public class ContainerServiceImpl implements ContainerService {
 
     @Override
     public List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
+        long bizId = convertToBizId(appId);
+        List<KubeNodeID> kubeNodeIDS = computeKubeTopoNode(bizId, filter);
+
+        ListKubeContainerByTopoReq req = new ListKubeContainerByTopoReq();
+        req.setBizId(bizId);
+        if (CollectionUtils.isNotEmpty(kubeNodeIDS)) {
+            req.setNodeIdList(kubeNodeIDS);
+        }
+
+        cmdbClient.listKubeContainerByTopo(req);
         return null;
     }
 
-    private void computeKubeTopoNode(KubeContainerFilter filter) {
-        // 按照
-        if (filter.getWorkloadFilter() != null) {
-
+    private Long convertToBizId(long appId) {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        if (!resourceScope.isBiz()) {
+            throw new IllegalArgumentException("Invalid appId");
         }
+        return Long.parseLong(resourceScope.getId());
+    }
+
+    private List<KubeNodeID> computeKubeTopoNode(long bizId, KubeContainerFilter filter) {
+        List<KubeNodeID> kubeNodes;
+        if (filter.getWorkloadFilter() != null) {
+            kubeNodes = computeKubeWorkloadTopoNodes(bizId, filter.getClusterFilter(), filter.getNamespaceFilter(),
+                filter.getWorkloadFilter());
+        } else if (filter.getNamespaceFilter() != null) {
+            kubeNodes = computeKubeNamespaceTopoNodes(bizId, filter.getClusterFilter(), filter.getNamespaceFilter());
+        } else if (filter.getClusterFilter() != null) {
+            kubeNodes = computeKubeClusterTopoNodes(bizId, filter.getClusterFilter());
+        } else {
+            kubeNodes = Collections.emptyList();
+        }
+        return kubeNodes;
+    }
+
+    private List<KubeNodeID> computeKubeWorkloadTopoNodes(long bizId,
+                                                          KubeClusterFilter clusterFilter,
+                                                          KubeNamespaceFilter namespaceFilter,
+                                                          KubeWorkloadFilter workloadFilter) {
+        List<KubeClusterDTO> matchClusters = null;
+        List<KubeNamespaceDTO> matchNamespaces = null;
+
+        if (clusterFilter != null) {
+            matchClusters = cmdbClient.listKubeClusters(
+                KubeClusterQuery.Builder.builder(bizId).bkClusterUIDs(clusterFilter.getClusterUIDs()).build());
+            if (CollectionUtils.isEmpty(matchClusters)) {
+                return Collections.emptyList();
+            }
+        }
+
+        if (namespaceFilter != null && CollectionUtils.isNotEmpty(namespaceFilter.getNamespaces())) {
+            matchNamespaces = cmdbClient.listKubeNamespaces(
+                NamespaceQuery.Builder.builder(bizId).names(namespaceFilter.getNamespaces()).build());
+            if (CollectionUtils.isEmpty(matchNamespaces)) {
+                return Collections.emptyList();
+            }
+        }
+
+        List<KubeWorkloadDTO> workloads = cmdbClient.listKubeWorkloads(
+            WorkloadQuery.Builder
+                .builder(bizId, workloadFilter.getKind())
+                .bkClusterIds(matchClusters == null ? null :
+                    matchClusters.stream().map(KubeClusterDTO::getId).collect(Collectors.toList()))
+                .bkNamespaceIds(matchNamespaces == null ? null :
+                    matchNamespaces.stream().map(KubeNamespaceDTO::getId).collect(Collectors.toList()))
+                .names(workloadFilter.getWorkloadNames())
+                .build());
+
+        return workloads == null ? Collections.emptyList() : workloads.stream()
+            .map(workload -> new KubeNodeID(workload.getKind(), workload.getId())).collect(Collectors.toList());
+    }
+
+    private List<KubeNodeID> computeKubeNamespaceTopoNodes(long bizId,
+                                                           KubeClusterFilter clusterFilter,
+                                                           KubeNamespaceFilter namespaceFilter) {
+        List<KubeClusterDTO> matchClusters = null;
+
+        if (clusterFilter != null) {
+            matchClusters = cmdbClient.listKubeClusters(
+                KubeClusterQuery.Builder.builder(bizId).bkClusterUIDs(clusterFilter.getClusterUIDs()).build());
+            if (CollectionUtils.isEmpty(matchClusters)) {
+                return Collections.emptyList();
+            }
+        }
+
+        List<KubeNamespaceDTO> namespaces = cmdbClient.listKubeNamespaces(
+            NamespaceQuery.Builder.builder(bizId)
+                .bkClusterIds(matchClusters == null ? null :
+                    matchClusters.stream().map(KubeClusterDTO::getId).collect(Collectors.toList()))
+                .names(namespaceFilter.getNamespaces())
+                .build());
+
+
+        return namespaces == null ? Collections.emptyList() : namespaces.stream()
+            .map(namespace -> new KubeNodeID(KubeTopoNodeTypeEnum.NAMESPACE.getValue(), namespace.getId()))
+            .collect(Collectors.toList());
+    }
+
+    private List<KubeNodeID> computeKubeClusterTopoNodes(long bizId,
+                                                         KubeClusterFilter clusterFilter) {
+
+        List<KubeClusterDTO> clusters = cmdbClient.listKubeClusters(
+            KubeClusterQuery.Builder.builder(bizId)
+                .bkClusterUIDs(clusterFilter.getClusterUIDs())
+                .build());
+
+
+        return clusters == null ? Collections.emptyList() : clusters.stream()
+            .map(cluster -> new KubeNodeID(KubeTopoNodeTypeEnum.CLUSTER.getValue(), cluster.getId()))
+            .collect(Collectors.toList());
     }
 }

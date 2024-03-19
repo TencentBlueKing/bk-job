@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.cc.model;
 
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,5 +51,9 @@ public class PropertyFilterDTO {
      */
     public void addRule(IRule rule) {
         this.rules.add(rule);
+    }
+
+    public boolean hasRule() {
+        return CollectionUtils.isNotEmpty(rules);
     }
 }

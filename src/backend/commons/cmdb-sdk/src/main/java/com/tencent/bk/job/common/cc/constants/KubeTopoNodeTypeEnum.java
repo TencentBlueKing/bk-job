@@ -22,23 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
-
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-
-import java.util.List;
+package com.tencent.bk.job.common.cc.constants;
 
 /**
- * 执行目标-容器选择过滤器-按集群过滤
+ * 容器拓扑节点资源类型
  */
-@Data
-@PersistenceObject
-public class KubeClusterFilter {
+public enum KubeTopoNodeTypeEnum {
+    CLUSTER("cluster"),
+    NAMESPACE("namespace"),
+    DEPLOYMENT("deployment"),
+    DAEMON_SET("daemonSet"),
+    STATEFUL_SET("statefulSet"),
+    CRON_JOB("cronJob"),
+    JOB("job");
 
-    /**
-     * k8s 集群 UID
-     */
-    private List<String> clusterUIDs;
+    private final String value;
 
+    KubeTopoNodeTypeEnum(String val) {
+        this.value = val;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }
