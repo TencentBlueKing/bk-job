@@ -38,9 +38,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
@@ -62,15 +61,12 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
     implements EsbBkCIPluginFastExecuteScriptV3Resource {
 
     private final TaskExecuteService taskExecuteService;
-    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final MessageI18nService i18nService;
 
     @Autowired
     public EsbBkCIPluginFastExecuteScriptV3ResourceImpl(TaskExecuteService taskExecuteService,
-                                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                                         MessageI18nService i18nService) {
         this.taskExecuteService = taskExecuteService;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.i18nService = i18nService;
     }
 
@@ -87,6 +83,7 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
         String appCode,
         @AuditRequestBody EsbBkCIPluginFastExecuteScriptRequest request) {
 
+        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
         StepRollingConfigDTO rollingConfig = null;
         if (request.getRollingConfig() != null) {
@@ -172,7 +169,7 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
 
         stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetExecuteObjects(ExecuteObjectsDTO.buildFrom(request.getExecuteTarget()));
+        stepInstance.setTargetExecuteObjects(ExecuteTargetDTO.buildFrom(request.getExecuteTarget()));
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setOperator(username);

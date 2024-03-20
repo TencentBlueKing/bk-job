@@ -25,14 +25,19 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.dto.Container;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 执行目标-容器选择过滤器
  */
 @Data
 @PersistenceObject
-public class KubeContainerFilter {
+public class KubeContainerFilter implements Cloneable {
 
     /**
      * 集群过滤器
@@ -64,4 +69,36 @@ public class KubeContainerFilter {
      */
     private boolean fetchAnyOneContainer;
 
+    /**
+     * 过滤之后的容器列表
+     */
+    private List<Container> containers;
+
+    @Override
+    public KubeContainerFilter clone() {
+        KubeContainerFilter clone = new KubeContainerFilter();
+        if (clusterFilter != null) {
+            clone.setClusterFilter(clusterFilter.clone());
+        }
+        if (namespaceFilter != null) {
+            clone.setNamespaceFilter(namespaceFilter.clone());
+        }
+        if (workloadFilter != null) {
+            clone.setWorkloadFilter(workloadFilter.clone());
+        }
+        if (podFilter != null) {
+            clone.setPodFilter(podFilter.clone());
+        }
+        if (containerPropFilter != null) {
+            clone.setContainerPropFilter(containerPropFilter.clone());
+        }
+        clone.setFetchAnyOneContainer(fetchAnyOneContainer);
+        if (CollectionUtils.isNotEmpty(containers)) {
+            List<Container> cloneContainers = new ArrayList<>(containers.size());
+            containers.forEach(container -> cloneContainers.add(container.clone()));
+            clone.setContainers(cloneContainers);
+        }
+
+        return clone;
+    }
 }

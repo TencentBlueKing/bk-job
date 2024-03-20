@@ -30,7 +30,7 @@ import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -161,9 +161,9 @@ public class JobSrcFileUtils {
                     String dir = NFSUtils.getFileDir(jobStorageRootDir, FileDirTypeConf.UPLOAD_FILE_DIR)
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
-                    ExecuteObjectsDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isNotEmpty(servers.getExecuteObjectsCompatibly())) {
-                        List<ExecuteObject> executeObjects = servers.getExecuteObjectsCompatibly();
+                    ExecuteTargetDTO executeTarget = fileSource.getServers();
+                    if (executeTarget != null && CollectionUtils.isNotEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                        List<ExecuteObject> executeObjects = executeTarget.getExecuteObjectsCompatibly();
                         for (ExecuteObject executeObject : executeObjects) {
                             sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,
                                 fileName, "root", null,

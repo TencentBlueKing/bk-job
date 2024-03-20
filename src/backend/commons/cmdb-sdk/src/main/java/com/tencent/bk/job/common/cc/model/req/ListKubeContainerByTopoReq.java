@@ -26,8 +26,8 @@ package com.tencent.bk.job.common.cc.model.req;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import lombok.Getter;
 import lombok.Setter;
 

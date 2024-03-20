@@ -22,80 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.model;
+package com.tencent.bk.job.common.cc.model.filter;
 
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-import java.util.StringJoiner;
-
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 作业全局变量
+ * cmdb 组合查询规则
  */
 @Getter
 @Setter
-public class TaskVariableDTO {
+@ToString
+@NoArgsConstructor
+public class ComposeRuleDTO implements IRule {
     /**
-     * id
+     * 组合查询条件
      */
-    private Long id;
+    private String condition;
+    /**
+     * 过滤规则
+     */
+    private List<IRule> rules = new ArrayList<>();
+
+    public ComposeRuleDTO(String condition) {
+        this.condition = condition;
+    }
 
     /**
-     * 变量类型
+     * 新增过滤规则
      *
-     * @see TaskVariableTypeEnum
+     * @param rule 过滤规则
      */
-    private Integer type;
-
-    /**
-     * 名称
-     */
-    private String name;
-
-    /**
-     * 变量值
-     */
-    private String value;
-
-    /**
-     * 执行目标；当 type = TaskVariableTypeEnum.HOST_LIST 的时候，该值不为null
-     */
-    private ExecuteTargetDTO executeTarget;
-
-
-    /**
-     * 是否赋值可变
-     */
-    private boolean changeable;
-
-    /**
-     * 是否必填
-     */
-    private boolean required;
-
-    /**
-     * 作业实例ID
-     */
-    private Long taskInstanceId;
-
-    @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(", ", TaskVariableDTO.class.getSimpleName() + "[", "]")
-            .add("id=" + id)
-            .add("type=" + type)
-            .add("name='" + name + "'")
-            .add("executeTarget=" + executeTarget)
-            .add("changeable=" + changeable)
-            .add("required=" + required)
-            .add("taskInstanceId=" + taskInstanceId);
-        if (type != null && type == TaskVariableTypeEnum.CIPHER.getType()) {
-            sj.add("value='******'");
-        } else {
-            sj.add("value='" + value + "'");
-        }
-        return sj.toString();
+    public void addRule(IRule rule) {
+        this.rules.add(rule);
     }
 }

@@ -22,33 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
-
-import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
-import com.tencent.bk.job.common.model.dto.Container;
-import com.tencent.bk.job.execute.model.KubeContainerFilter;
-
-import java.util.Collection;
-import java.util.List;
+package com.tencent.bk.job.common.cc.model.filter;
 
 /**
- * 容器服务
+ * cmdb 查询规则操作符
+ * <p>
+ * cmdb 文档：https://github.com/TencentBlueKing/bk-cmdb/blob/master/pkg/filter/README.md
  */
-public interface ContainerService {
-    /**
-     * 根据容器 ID 批量查询容器列表
-     *
-     * @param appId Job 业务 ID
-     * @param ids   容器 ID 列表
-     */
-    List<Container> listContainerByIds(long appId, Collection<Long> ids);
+public enum RuleOperatorEnum {
 
-    /**
-     * 根据容器过滤器查询容器列表
-     *
-     * @param appId  Job 业务 ID
-     * @param filter 容器过滤器
-     * @return 查询到的容器列表
-     */
-    List<ContainerDetailDTO> listContainerByContainerFilter(long appId, KubeContainerFilter filter);
+    EQUAL("equal"),
+    NOT_EQUAL("not_equal"),
+    IN("in"),
+    NOT_IN("not_in"),
+    LESS("less"),
+    LESS_OR_EQUAL("less_or_equal"),
+    GREATER("greater"),
+    GREATER_OR_EQUAL("greater_or_equal"),
+    BETWEEN("between"),
+    NOT_BETWEEN("not_between"),
+    CONTAINS("contains"),
+    EXIST("exist"),
+    NOT_EXIST("not_exist"),
+    FILTER_OBJECT("filter_object"),
+    FILTER_ARRAY("filter_array");
+
+    RuleOperatorEnum(String operator) {
+        this.operator = operator;
+    }
+
+    private final String operator;
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public static RuleOperatorEnum valOf(String operator) {
+        for (RuleOperatorEnum operatorEnum : values()) {
+            if (operatorEnum.getOperator().equals(operator)) {
+                return operatorEnum;
+            }
+        }
+        throw new IllegalArgumentException("No RuleOperatorEnum constant: " + operator);
+    }
+
+    public static boolean isValid(String operator) {
+        for (RuleOperatorEnum operatorEnum : values()) {
+            if (operatorEnum.getOperator().equals(operator)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

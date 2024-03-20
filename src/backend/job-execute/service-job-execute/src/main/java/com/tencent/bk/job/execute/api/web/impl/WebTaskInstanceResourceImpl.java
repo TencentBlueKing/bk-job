@@ -43,7 +43,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
@@ -300,9 +300,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         vo.setChangeable(variable.isChangeable() ? 1 : 0);
         vo.setRequired(variable.isRequired() ? 1 : 0);
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-            ExecuteObjectsDTO servers = variable.getExecuteObjects();
-            if (servers != null && servers.getExecuteObjectsCompatibly() != null) {
-                TaskTargetVO taskTargetVO = servers.convertToTaskTargetVO();
+            ExecuteTargetDTO executeTarget = variable.getExecuteTarget();
+            if (executeTarget != null && executeTarget.getExecuteObjectsCompatibly() != null) {
+                TaskTargetVO taskTargetVO = executeTarget.convertToTaskTargetVO();
                 vo.setTargetValue(taskTargetVO);
             }
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {

@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
@@ -338,7 +339,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     @Override
     public BizSetInfo queryBizSet(Long bizSetId) {
         BizSetFilter filter = new BizSetFilter();
-        filter.setCondition("AND");
+        filter.setCondition(RuleConditionEnum.AND.getCondition());
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");
         bizSetIdRule.setOperator("equal");

@@ -32,7 +32,6 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
 import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
@@ -41,10 +40,8 @@ import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
-import com.tencent.bk.job.common.cc.model.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
@@ -53,6 +50,10 @@ import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
@@ -947,13 +948,9 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         ListBizHostReq req = makeCmdbBaseReq(ListBizHostReq.class);
         req.setBizId(input.getBizId());
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
         input.ipList.removeIf(StringUtils::isBlank);
-        BaseRuleDTO baseRuleDTO = new BaseRuleDTO();
-        baseRuleDTO.setField("bk_host_innerip");
-        baseRuleDTO.setOperator("in");
-        baseRuleDTO.setValue(input.ipList);
-        condition.addRule(baseRuleDTO);
+        condition.addRule(BaseRuleDTO.in("bk_host_innerip", input.ipList));
         req.setCondition(condition);
 
         int limit = 200;
@@ -993,17 +990,9 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
-        BaseRuleDTO ipRule = new BaseRuleDTO();
-        ipRule.setField("bk_host_innerip");
-        ipRule.setOperator("equal");
-        ipRule.setValue(ip);
-        condition.addRule(ipRule);
-        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-        bkCloudIdRule.setField("bk_cloud_id");
-        bkCloudIdRule.setOperator("equal");
-        bkCloudIdRule.setValue(cloudAreaId);
-        condition.addRule(bkCloudIdRule);
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
+        condition.addRule(BaseRuleDTO.equals("bk_host_innerip", ip));
+        condition.addRule(BaseRuleDTO.equals("bk_cloud_id", cloudAreaId));
         req.setCondition(condition);
 
         List<ApplicationHostDTO> hosts = listHostsWithoutBiz(req);
@@ -1017,18 +1006,12 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         }
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("OR");
+        condition.setCondition(RuleConditionEnum.OR.getCondition());
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIps);
         hostGroups.forEach((bkCloudId, ips) -> {
-            ComposeRuleDTO hostRule = new ComposeRuleDTO();
-            hostRule.setCondition("AND");
+            ComposeRuleDTO hostRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
             hostRule.addRule(buildCloudIdRule(bkCloudId));
-
-            BaseRuleDTO ipRule = new BaseRuleDTO();
-            ipRule.setField("bk_host_innerip");
-            ipRule.setOperator("in");
-            ipRule.setValue(ips);
-            hostRule.addRule(ipRule);
+            hostRule.addRule(BaseRuleDTO.in("bk_host_innerip", ips));
 
             condition.addRule(hostRule);
         });
@@ -1044,12 +1027,11 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         }
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("OR");
+        condition.setCondition(RuleConditionEnum.OR.getCondition());
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
         hostGroups.forEach((bkCloudId, ipv6s) ->
             ipv6s.forEach(ipv6 -> {
-                ComposeRuleDTO hostRule = new ComposeRuleDTO();
-                hostRule.setCondition("AND");
+                ComposeRuleDTO hostRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
                 hostRule.addRule(buildCloudIdRule(bkCloudId));
 
                 BaseRuleDTO ipv6Rule = buildIpv6Rule(ipv6);
@@ -1061,20 +1043,12 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     }
 
     private BaseRuleDTO buildIpv6Rule(String ipv6) {
-        BaseRuleDTO ipv6Rule = new BaseRuleDTO();
         // ipv6字段可能包含多个IPv6地址，故此处使用contains
-        ipv6Rule.setField("bk_host_innerip_v6");
-        ipv6Rule.setOperator("contains");
-        ipv6Rule.setValue(ipv6);
-        return ipv6Rule;
+        return BaseRuleDTO.contains("bk_host_innerip_v6", ipv6);
     }
 
     private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
-        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-        bkCloudIdRule.setField("bk_cloud_id");
-        bkCloudIdRule.setOperator("equal");
-        bkCloudIdRule.setValue(bkCloudId);
-        return bkCloudIdRule;
+        return BaseRuleDTO.equals("bk_cloud_id", bkCloudId);
     }
 
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
@@ -1156,12 +1130,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
-        BaseRuleDTO ipRule = new BaseRuleDTO();
-        ipRule.setField("bk_host_id");
-        ipRule.setOperator("in");
-        ipRule.setValue(hostIds);
-        condition.addRule(ipRule);
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
+        condition.addRule(BaseRuleDTO.in("bk_host_id", hostIds));
         req.setCondition(condition);
         return listHostsWithoutBiz(req);
     }
@@ -1496,7 +1466,6 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         );
     }
 
-
     private void setSupplierAccount(EsbReq esbReq) {
         if (StringUtils.isEmpty(cmdbSupplierAccount)) {
             esbReq.setBkSupplierAccount("0");
@@ -1546,7 +1515,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             // 查询条件
             req.setBizId(bizId);
             PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-            containerFilter.setCondition("AND");
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
             containerFilter.addRule(BaseRuleDTO.in(containerField, containerFieldValueBatch));
             req.setContainerFilter(containerFilter);
 
@@ -1573,7 +1542,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setBizId(query.getBizId());
 
         PropertyFilterDTO clusterPropFilter = new PropertyFilterDTO();
-        clusterPropFilter.setCondition("AND");
+        clusterPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
         if (CollectionUtils.isNotEmpty(query.getIds())) {
             clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.ID, query.getIds()));
         }
@@ -1637,7 +1606,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setBizId(query.getBizId());
 
         PropertyFilterDTO namespacePropFilter = new PropertyFilterDTO();
-        namespacePropFilter.setCondition("AND");
+        namespacePropFilter.setCondition(RuleConditionEnum.AND.getCondition());
         if (CollectionUtils.isNotEmpty(query.getIds())) {
             namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.ID, query.getIds()));
         }
@@ -1682,7 +1651,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setBizId(query.getBizId());
 
         PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
-        workloadPropFilter.setCondition("AND");
+        workloadPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
         workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.KIND, query.getKind()));
         if (CollectionUtils.isNotEmpty(query.getIds())) {
             workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.ID, query.getIds()));

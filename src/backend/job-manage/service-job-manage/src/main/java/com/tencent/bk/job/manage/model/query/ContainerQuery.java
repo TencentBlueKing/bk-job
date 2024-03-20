@@ -24,10 +24,11 @@
 
 package com.tencent.bk.job.manage.model.query;
 
-import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
@@ -123,7 +124,7 @@ public class ContainerQuery {
     private void setContainerFilterIfNecessary(ListKubeContainerByTopoReq req) {
         if (isExistContainerPropCondition()) {
             PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-            containerFilter.setCondition("AND");
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
 
             if (CollectionUtils.isNotEmpty(ids)) {
                 containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.ID, ids));
@@ -149,7 +150,7 @@ public class ContainerQuery {
     private void setPodFilterIfNecessary(ListKubeContainerByTopoReq req) {
         if (CollectionUtils.isNotEmpty(podNames)) {
             PropertyFilterDTO podFilter = new PropertyFilterDTO();
-            podFilter.setCondition("AND");
+            podFilter.setCondition(RuleConditionEnum.AND.getCondition());
             podFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, podNames));
             req.setPodFilter(podFilter);
         }

@@ -51,7 +51,7 @@ import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -193,8 +193,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
                 TaskTargetVO taskTarget = webTaskVariable.getTargetValue();
-                ExecuteObjectsDTO executeObjectsDTO = ExecuteObjectsDTO.fromTaskTargetVO(taskTarget);
-                taskVariableDTO.setExecuteObjects(executeObjectsDTO);
+                ExecuteTargetDTO executeTargetDTO = ExecuteTargetDTO.fromTaskTargetVO(taskTarget);
+                taskVariableDTO.setExecuteTarget(executeTargetDTO);
             } else if (webTaskVariable.getType() == NAMESPACE.getType()) {
                 taskVariableDTO.setValue(webTaskVariable.getValue());
             }
@@ -316,7 +316,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setName(request.getName());
         stepInstance.setStepId(-1L);
         stepInstance.setAppId(appId);
-        stepInstance.setTargetExecuteObjects(ExecuteObjectsDTO.fromTaskTargetVO(request.getTaskTarget()));
+        stepInstance.setTargetExecuteObjects(ExecuteTargetDTO.fromTaskTargetVO(request.getTaskTarget()));
         if (request.getScriptLanguage().equals(ScriptTypeEnum.SQL.getValue())) {
             stepInstance.setDbAccountId(request.getAccount());
             stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL);
@@ -467,7 +467,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setName(request.getName());
         ExecuteFileDestinationInfoVO fileDestination = request.getFileDestination();
         stepInstance.setAccountId(fileDestination.getAccountId());
-        stepInstance.setTargetExecuteObjects(ExecuteObjectsDTO.fromTaskTargetVO(fileDestination.getServer()));
+        stepInstance.setTargetExecuteObjects(ExecuteTargetDTO.fromTaskTargetVO(fileDestination.getServer()));
         stepInstance.setFileTargetPath(fileDestination.getPath());
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
@@ -519,7 +519,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             fileSourceDTO.setFiles(files);
             if (fileType == TaskFileTypeEnum.SERVER) {
                 // 服务器文件分发才需要解析主机参数
-                fileSourceDTO.setServers(ExecuteObjectsDTO.fromTaskTargetVO(fileSource.getHost()));
+                fileSourceDTO.setServers(ExecuteTargetDTO.fromTaskTargetVO(fileSource.getHost()));
             }
             fileSourceDTOS.add(fileSourceDTO);
         });

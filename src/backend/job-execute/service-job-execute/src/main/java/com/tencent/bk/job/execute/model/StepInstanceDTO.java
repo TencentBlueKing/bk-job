@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * 步骤实例
@@ -232,7 +233,6 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     }
 
 
-
     public List<Container> extractStaticContainerList() {
         if (targetExecuteObjects == null) {
             return Collections.emptyList();
@@ -244,10 +244,10 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         }
         if (isFileStep()) {
             for (FileSourceDTO fileSource : fileSourceList) {
-                ExecuteObjectsDTO executeObjectsDTO = fileSource.getServers();
-                if (executeObjectsDTO != null
-                    && CollectionUtils.isNotEmpty(executeObjectsDTO.getStaticContainerList())) {
-                    containers.addAll(executeObjectsDTO.getStaticContainerList());
+                ExecuteTargetDTO executeTargetDTO = fileSource.getServers();
+                if (executeTargetDTO != null
+                    && CollectionUtils.isNotEmpty(executeTargetDTO.getStaticContainerList())) {
+                    containers.addAll(executeTargetDTO.getStaticContainerList());
                 }
             }
         }
@@ -289,6 +289,24 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
                     fileSource.getServers().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
                 }
             });
+        }
+    }
+
+    /**
+     * 遍历步骤实例包含的所有执行目标（执行目标+文件分发源执行目标）
+     * @param consumer
+     */
+    public void forEachExecuteObjects(Consumer<ExecuteTargetDTO> consumer) {
+        if (targetExecuteObjects != null) {
+            consumer.accept(targetExecuteObjects);
+        }
+        if (isFileStep()) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                ExecuteTargetDTO fileSourceExecuteObjects = fileSource.getServers();
+                if (fileSourceExecuteObjects != null) {
+                    consumer.accept(fileSourceExecuteObjects);
+                }
+            }
         }
     }
 }

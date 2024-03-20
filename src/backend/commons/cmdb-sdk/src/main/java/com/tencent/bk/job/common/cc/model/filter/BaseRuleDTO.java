@@ -22,37 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.cc.model.filter;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * cmdb 组合查询规则
+ * cmdb 查询规则
  */
 @Getter
 @Setter
 @ToString
-public class ComposeRuleDTO implements IRule {
+public class BaseRuleDTO implements IRule {
     /**
-     * 组合查询条件
+     * 字段名
      */
-    private String condition;
+    private String field;
     /**
-     * 过滤规则
+     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between,contains
      */
-    private List<IRule> rules = new ArrayList<>();
+    private String operator;
+    /**
+     * 操作值，不同的operator对应不同的value格式
+     */
+    private Object value;
 
-    /**
-     * 新增过滤规则
-     *
-     * @param rule 过滤规则
-     */
-    public void addRule(IRule rule) {
-        this.rules.add(rule);
+    public BaseRuleDTO() {
     }
+
+    public BaseRuleDTO(String field, String operator, Object value) {
+        this.field = field;
+        this.operator = operator;
+        this.value = value;
+    }
+
+    public static BaseRuleDTO in(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.IN.getOperator(), value);
+    }
+
+    public static BaseRuleDTO equals(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.EQUAL.getOperator(), value);
+    }
+
+    public static BaseRuleDTO contains(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.CONTAINS.getOperator(), value);
+    }
+
+    public static BaseRuleDTO filterObject(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.FILTER_OBJECT.getOperator(), value);
+    }
+
+
 }

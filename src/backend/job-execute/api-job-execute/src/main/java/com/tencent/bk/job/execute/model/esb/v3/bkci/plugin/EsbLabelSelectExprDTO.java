@@ -22,46 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * cmdb 查询规则
+ * Label selector 计算表达式
  */
-@Getter
-@Setter
-@ToString
-public class BaseRuleDTO implements IRule {
+@Data
+public class EsbLabelSelectExprDTO {
     /**
-     * 字段名
+     * Label key
      */
-    private String field;
+    @JsonProperty("label_key")
+    private String key;
+
     /**
-     * 操作符,可选值 equal,not_equal,in,not_in,less,less_or_equal,greater,greater_or_equal,between,not_between,contains
+     * 计算操作符
      */
     private String operator;
+
     /**
-     * 操作值，不同的operator对应不同的value格式
+     * Label value
      */
-    private Object value;
+    @JsonProperty("label_value")
+    private String value;
 
-    public BaseRuleDTO() {
-    }
-
-    public BaseRuleDTO(String field, String operator, Object value) {
-        this.field = field;
-        this.operator = operator;
-        this.value = value;
-    }
-
-    public static BaseRuleDTO in(String field, Object value) {
-        return new BaseRuleDTO(field, "in", value);
-    }
-
-    public static BaseRuleDTO equals(String field, Object value) {
-        return new BaseRuleDTO(field, "equals", value);
-    }
+    /**
+     * Label values
+     */
+    @JsonProperty("label_values")
+    private List<String> values;
 }

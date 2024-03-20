@@ -49,7 +49,7 @@ import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -206,7 +206,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
             // 设置配置文件所在主机信息
-            ExecuteObjectsDTO fileSourceExecuteObjects = new ExecuteObjectsDTO();
+            ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
             fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(agentService.getLocalAgentHost()));
             fileSourceDTO.setServers(fileSourceExecuteObjects);
             fileSourceDTOS.add(fileSourceDTO);

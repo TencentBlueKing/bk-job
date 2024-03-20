@@ -45,7 +45,7 @@ public class VariableValueDTO {
     @JsonProperty("type")
     private Integer type;
     @JsonProperty("serverValue")
-    private ExecuteObjectsDTO serverValue;
+    private ExecuteTargetDTO serverValue;
 
     public VariableValueDTO(String name, Integer type, String value) {
         this.name = name;
@@ -53,9 +53,9 @@ public class VariableValueDTO {
         this.type = type;
     }
 
-    public VariableValueDTO(String name, Integer type, ExecuteObjectsDTO serverValue) {
+    public VariableValueDTO(String name, Integer type, ExecuteTargetDTO executeTarget) {
         this.name = name;
         this.type = type;
-        this.serverValue = serverValue;
+        this.serverValue = executeTarget;
     }
 }

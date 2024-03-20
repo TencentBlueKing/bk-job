@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,11 +36,20 @@ import java.util.List;
  */
 @Data
 @PersistenceObject
-public class KubeContainerPropFilter {
+public class KubeContainerPropFilter implements Cloneable {
 
     /**
      * k8s 容器名称列表
      */
     private List<String> containerNames;
+
+    @Override
+    public KubeContainerPropFilter clone() {
+        KubeContainerPropFilter clone = new KubeContainerPropFilter();
+        if (CollectionUtils.isNotEmpty(containerNames)) {
+            clone.setContainerNames(new ArrayList<>(containerNames));
+        }
+        return clone;
+    }
 
 }

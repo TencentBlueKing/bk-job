@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
@@ -52,14 +53,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 执行对象集合 DTO
+ * 任务执行目标 DTO
  */
 @Data
 @PersistenceObject
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ExecuteObjectsDTO implements Cloneable {
+public class ExecuteTargetDTO implements Cloneable {
     /**
-     * 如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name
+     * 如果执行目标是通过全局变量-主机列表定义的，variable 表示变量 name
      */
     private String variable;
     /**
@@ -100,18 +101,18 @@ public class ExecuteObjectsDTO implements Cloneable {
      */
     private List<ExecuteObject> executeObjects;
 
-    public static ExecuteObjectsDTO emptyInstance() {
-        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
-        executeObjectsDTO.setIpList(Collections.emptyList());
-        executeObjectsDTO.setDynamicServerGroups(Collections.emptyList());
-        executeObjectsDTO.setStaticIpList(Collections.emptyList());
-        executeObjectsDTO.setTopoNodes(Collections.emptyList());
-        executeObjectsDTO.setStaticContainerList(Collections.emptyList());
-        return executeObjectsDTO;
+    public static ExecuteTargetDTO emptyInstance() {
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
+        executeTargetDTO.setIpList(Collections.emptyList());
+        executeTargetDTO.setDynamicServerGroups(Collections.emptyList());
+        executeTargetDTO.setStaticIpList(Collections.emptyList());
+        executeTargetDTO.setTopoNodes(Collections.emptyList());
+        executeTargetDTO.setStaticContainerList(Collections.emptyList());
+        return executeTargetDTO;
     }
 
-    public ExecuteObjectsDTO clone() {
-        ExecuteObjectsDTO clone = new ExecuteObjectsDTO();
+    public ExecuteTargetDTO clone() {
+        ExecuteTargetDTO clone = new ExecuteTargetDTO();
         clone.setVariable(variable);
         if (CollectionUtils.isNotEmpty(staticIpList)) {
             List<HostDTO> cloneStaticIpList = new ArrayList<>(staticIpList.size());
@@ -136,6 +137,11 @@ public class ExecuteObjectsDTO implements Cloneable {
             ipList.forEach(ip -> cloneIpList.add(ip.clone()));
             clone.setIpList(cloneIpList);
         }
+        if (CollectionUtils.isNotEmpty(containerFilters)) {
+            List<KubeContainerFilter> cloneContainerFilters = new ArrayList<>(containerFilters.size());
+            containerFilters.forEach(containerFilter -> cloneContainerFilters.add(containerFilter.clone()));
+            clone.setContainerFilters(cloneContainerFilters);
+        }
         if (CollectionUtils.isNotEmpty(executeObjects)) {
             List<ExecuteObject> cloneExecuteObjectList = new ArrayList<>(executeObjects.size());
             executeObjects.forEach(executeObject -> cloneExecuteObjectList.add(executeObject.clone()));
@@ -144,7 +150,7 @@ public class ExecuteObjectsDTO implements Cloneable {
         return clone;
     }
 
-    public ExecuteObjectsDTO merge(ExecuteObjectsDTO executeObjects) {
+    public ExecuteTargetDTO merge(ExecuteTargetDTO executeObjects) {
         if (executeObjects == null) {
             return this;
         }
@@ -374,12 +380,12 @@ public class ExecuteObjectsDTO implements Cloneable {
     /**
      * 转换TaskTargetVO 为 ExecuteObjectsDTO
      */
-    public static ExecuteObjectsDTO fromTaskTargetVO(TaskTargetVO target) {
+    public static ExecuteTargetDTO fromTaskTargetVO(TaskTargetVO target) {
 
-        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
-        executeObjectsDTO.setVariable(target.getVariable());
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
+        executeTargetDTO.setVariable(target.getVariable());
         if (target.getExecuteObjectsInfoCompatibly() == null) {
-            return executeObjectsDTO;
+            return executeTargetDTO;
         }
 
         TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = target.getExecuteObjectsInfoCompatibly();
@@ -394,20 +400,20 @@ public class ExecuteObjectsDTO implements Cloneable {
                 }
                 hostList.add(targetHost);
             });
-            executeObjectsDTO.setStaticIpList(hostList);
+            executeTargetDTO.setStaticIpList(hostList);
         }
         if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getDynamicGroupList())) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             taskExecuteObjectsInfoVO.getDynamicGroupList().forEach(
                 group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
-            executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
+            executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
         }
         if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getNodeList())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
             taskExecuteObjectsInfoVO.getNodeList().forEach(
                 topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getInstanceId(),
                     topoNode.getObjectId())));
-            executeObjectsDTO.setTopoNodes(topoNodes);
+            executeTargetDTO.setTopoNodes(topoNodes);
         }
 
         // 处理容器
@@ -420,10 +426,10 @@ public class ExecuteObjectsDTO implements Cloneable {
                 }
                 containerList.add(targetContainer);
             });
-            executeObjectsDTO.setStaticContainerList(containerList);
+            executeTargetDTO.setStaticContainerList(containerList);
         }
 
-        return executeObjectsDTO;
+        return executeTargetDTO;
     }
 
     /**
@@ -488,6 +494,14 @@ public class ExecuteObjectsDTO implements Cloneable {
                 executeObjects.addAll(staticContainerList.stream().map(ExecuteObject::new)
                     .collect(Collectors.toList()));
             }
+            if (CollectionUtils.isNotEmpty(containerFilters)) {
+                containerFilters.forEach(containerFilter -> {
+                    if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                        executeObjects.addAll(containerFilter.getContainers().stream().map(ExecuteObject::new)
+                            .collect(Collectors.toList()));
+                    }
+                });
+            }
             this.executeObjects = executeObjects;
         } else {
             // 兼容方式，写入 ipList 字段
@@ -495,11 +509,11 @@ public class ExecuteObjectsDTO implements Cloneable {
         }
     }
 
-    public static ExecuteObjectsDTO buildFrom(EsbExecuteTargetDTO executeTarget) {
+    public static ExecuteTargetDTO buildFrom(EsbExecuteTargetDTO executeTarget) {
         if (executeTarget == null) {
             return null;
         }
-        ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
 
         // 主机拓扑节点
         if (CollectionUtils.isNotEmpty(executeTarget.getHostTopoNodes())) {
@@ -507,7 +521,7 @@ public class ExecuteObjectsDTO implements Cloneable {
             executeTarget.getHostTopoNodes().forEach(
                 topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
                     topoNode.getNodeType())));
-            executeObjectsDTO.setTopoNodes(topoNodes);
+            executeTargetDTO.setTopoNodes(topoNodes);
         }
 
         // 主机动态分组
@@ -515,50 +529,74 @@ public class ExecuteObjectsDTO implements Cloneable {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             executeTarget.getHostDynamicGroups().forEach(
                 group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
-            executeObjectsDTO.setDynamicServerGroups(dynamicServerGroups);
+            executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
         }
 
+        // 静态主机列表
         if (CollectionUtils.isNotEmpty(executeTarget.getHosts())) {
-            executeObjectsDTO.setStaticIpList(
+            executeTargetDTO.setStaticIpList(
                 executeTarget.getHosts().stream()
                     .map(host -> new HostDTO(host.getHostId(), host.getBkCloudId(), host.getIp()))
                     .collect(Collectors.toList()));
         }
 
+        // 容器过滤器
         if (CollectionUtils.isNotEmpty(executeTarget.getKubeContainerFilters())) {
-            executeTarget.getKubeContainerFilters().forEach(originContainerFilter -> {
-                KubeContainerFilter containerFilter = new KubeContainerFilter();
-                if (originContainerFilter.getClusterFilter() != null) {
-                    KubeClusterFilter clusterFilter = new KubeClusterFilter();
-                    clusterFilter.setClusterNames(originContainerFilter.getClusterFilter().getClusterNames());
-                    containerFilter.setClusterFilter(clusterFilter);
-                }
-                if (originContainerFilter.getNamespaceFilter() != null) {
-                    KubeNamespaceFilter namespaceFilter = new KubeNamespaceFilter();
-                    namespaceFilter.setNamespaces(originContainerFilter.getNamespaceFilter().getNamespaces());
-                    containerFilter.setNamespaceFilter(namespaceFilter);
-                }
-                if (originContainerFilter.getWorkloadFilter() != null) {
-                    KubeWorkloadFilter workloadFilter = new KubeWorkloadFilter();
-                    workloadFilter.setKind(originContainerFilter.getWorkloadFilter().getKind());
-                    workloadFilter.setWorkloadNames(originContainerFilter.getWorkloadFilter().getWorkloadNames());
-                    containerFilter.setWorkloadFilter(workloadFilter);
-                }
-                if (originContainerFilter.getPodFilter() != null) {
-                    KubePodFilter podFilter = new KubePodFilter();
-                    podFilter.setPodNames(originContainerFilter.getPodFilter().getPodNames());
-                    containerFilter.setPodFilter(podFilter);
-                }
-                if (originContainerFilter.getContainerPropFilter() != null) {
-                    KubeContainerPropFilter containerPropFilter = new KubeContainerPropFilter();
-                    containerPropFilter.setContainerNames(
-                        originContainerFilter.getContainerPropFilter().getContainerNames());
-                    containerFilter.setContainerPropFilter(containerPropFilter);
-                }
-                containerFilter.setFetchAnyOneContainer(originContainerFilter.isFetchAnyOneContainer());
-            });
+            executeTargetDTO.setContainerFilters(convertToKubeContainerFilter(executeTarget));
         }
 
-        return executeObjectsDTO;
+        return executeTargetDTO;
+    }
+
+    private static List<KubeContainerFilter> convertToKubeContainerFilter(EsbExecuteTargetDTO executeTarget) {
+        List<KubeContainerFilter> kubeContainerFilters = new ArrayList<>();
+
+        executeTarget.getKubeContainerFilters().forEach(originContainerFilter -> {
+            KubeContainerFilter containerFilter = new KubeContainerFilter();
+            if (originContainerFilter.getClusterFilter() != null) {
+                KubeClusterFilter clusterFilter = new KubeClusterFilter();
+                clusterFilter.setClusterUIDs(originContainerFilter.getClusterFilter().getClusterUIDs());
+                containerFilter.setClusterFilter(clusterFilter);
+            }
+            if (originContainerFilter.getNamespaceFilter() != null) {
+                KubeNamespaceFilter namespaceFilter = new KubeNamespaceFilter();
+                namespaceFilter.setNamespaces(originContainerFilter.getNamespaceFilter().getNamespaces());
+                containerFilter.setNamespaceFilter(namespaceFilter);
+            }
+            if (originContainerFilter.getWorkloadFilter() != null) {
+                KubeWorkloadFilter workloadFilter = new KubeWorkloadFilter();
+                workloadFilter.setKind(originContainerFilter.getWorkloadFilter().getKind());
+                workloadFilter.setWorkloadNames(originContainerFilter.getWorkloadFilter().getWorkloadNames());
+                containerFilter.setWorkloadFilter(workloadFilter);
+            }
+            if (originContainerFilter.getPodFilter() != null) {
+                KubePodFilter podFilter = new KubePodFilter();
+                podFilter.setPodNames(originContainerFilter.getPodFilter().getPodNames());
+                if (CollectionUtils.isNotEmpty(originContainerFilter.getPodFilter().getLabelSelector())) {
+                    podFilter.setLabelSelector(
+                        originContainerFilter.getPodFilter().getLabelSelector()
+                            .stream()
+                            .map(labelSelectExpr -> new LabelSelectExprDTO(
+                                labelSelectExpr.getKey(),
+                                labelSelectExpr.getOperator(),
+                                labelSelectExpr.getValue(),
+                                labelSelectExpr.getValues()))
+                            .collect(Collectors.toList()));
+
+                }
+                containerFilter.setPodFilter(podFilter);
+            }
+            if (originContainerFilter.getContainerPropFilter() != null) {
+                KubeContainerPropFilter containerPropFilter = new KubeContainerPropFilter();
+                containerPropFilter.setContainerNames(
+                    originContainerFilter.getContainerPropFilter().getContainerNames());
+                containerFilter.setContainerPropFilter(containerPropFilter);
+            }
+            containerFilter.setFetchAnyOneContainer(originContainerFilter.isFetchAnyOneContainer());
+
+            kubeContainerFilters.add(containerFilter);
+        });
+
+        return kubeContainerFilters;
     }
 }

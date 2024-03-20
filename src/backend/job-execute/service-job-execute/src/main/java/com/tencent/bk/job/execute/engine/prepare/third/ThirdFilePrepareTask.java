@@ -45,7 +45,7 @@ import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
@@ -349,7 +349,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 fileSourceDTO.setAccountId(accountDTO.getId());
                 fileSourceDTO.setLocalUpload(false);
 
-                ExecuteObjectsDTO executeObjectsDTO = new ExecuteObjectsDTO();
+                ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
                 HostDTO hostDTO = parseFileWorkerHostWithCache(
                     fileSourceTaskStatusDTO.getCloudId(),
                     fileSourceTaskStatusDTO.getIpProtocol(),
@@ -377,9 +377,9 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                     sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
-                executeObjectsDTO.addStaticHosts(hostDTOList);
-                executeObjectsDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
-                fileSourceDTO.setServers(executeObjectsDTO);
+                executeTargetDTO.addStaticHosts(hostDTOList);
+                executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
+                fileSourceDTO.setServers(executeTargetDTO);
                 Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
                 log.debug(
                     "[{}]: filePathMap={}",

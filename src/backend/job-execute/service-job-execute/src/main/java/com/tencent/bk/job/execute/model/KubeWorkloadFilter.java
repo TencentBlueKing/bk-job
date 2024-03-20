@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +36,7 @@ import java.util.List;
  */
 @Data
 @PersistenceObject
-public class KubeWorkloadFilter {
+public class KubeWorkloadFilter implements Cloneable {
 
     /**
      * workload 类型
@@ -45,5 +47,15 @@ public class KubeWorkloadFilter {
      * k8s workload 名称列表
      */
     private List<String> workloadNames;
+
+    @Override
+    public KubeWorkloadFilter clone() {
+        KubeWorkloadFilter clone = new KubeWorkloadFilter();
+        clone.setKind(kind);
+        if (CollectionUtils.isNotEmpty(workloadNames)) {
+            clone.setWorkloadNames(new ArrayList<>(workloadNames));
+        }
+        return clone;
+    }
 
 }

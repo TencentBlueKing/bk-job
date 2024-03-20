@@ -36,9 +36,9 @@ import java.util.List;
 public class EsbKubeClusterFilterDTO {
 
     /**
-     * k8s 集群名称
+     * k8s 集群ID
      */
-    @JsonProperty("cluster_name_list")
-    private List<String> clusterNames;
+    @JsonProperty("cluster_uid_list")
+    private List<String> clusterUIDs;
 
 }

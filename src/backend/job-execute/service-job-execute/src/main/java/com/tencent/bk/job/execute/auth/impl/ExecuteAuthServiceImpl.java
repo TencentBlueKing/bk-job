@@ -41,7 +41,7 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
@@ -90,9 +90,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     public AuthResult authFastExecuteScript(String username,
                                             AppResourceScope appResourceScope,
-                                            ExecuteObjectsDTO executeObjects) {
+                                            ExecuteTargetDTO executeTarget) {
 
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeObjects);
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
         if (log.isDebugEnabled()) {
             log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}", username,
                 appResourceScope, hostInstanceList);
@@ -107,7 +107,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         AuthResult authResult = AuthResult.fail();
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeObjects);
+            appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.QUICK_EXECUTE_SCRIPT, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute script, authResult:{}", authResult);
@@ -115,8 +115,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteObjectsDTO servers) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+    public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
         if (log.isDebugEnabled()) {
             log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
                 appResourceScope, hostInstanceList);
@@ -130,7 +130,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
         AuthResult authResult = AuthResult.fail();
 
-        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, servers);
+        List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.QUICK_TRANSFER_FILE, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute script, authResult:{}", authResult);
@@ -139,8 +139,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     public AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
-                                           String scriptId, String scriptName, ExecuteObjectsDTO servers) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+                                           String scriptId, String scriptName, ExecuteTargetDTO executeTarget) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
         InstanceDTO scriptInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.SCRIPT, scriptId, null);
 
@@ -169,7 +169,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         authResult.addRequiredPermission(ActionId.EXECUTE_SCRIPT, scriptResource);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, servers);
+            appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.EXECUTE_SCRIPT, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute script, authResult:{}", authResult);
@@ -197,8 +197,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                               AppResourceScope appResourceScope,
                                               String scriptId,
                                               String scriptName,
-                                              ExecuteObjectsDTO servers) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+                                              ExecuteTargetDTO executeTarget) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
         InstanceDTO scriptInstance = buildExecutableInstance(
             appResourceScope, ResourceTypeEnum.PUBLIC_SCRIPT, scriptId, null);
@@ -229,7 +229,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         authResult.addRequiredPermission(ActionId.EXECUTE_PUBLIC_SCRIPT, scriptResource);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, servers);
+            appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.EXECUTE_PUBLIC_SCRIPT, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute script, authResult:{}", authResult);
@@ -242,8 +242,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                       Long templateId,
                                       Long planId,
                                       String planName,
-                                      ExecuteObjectsDTO executeObjects) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeObjects);
+                                      ExecuteTargetDTO executeTarget) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
         InstanceDTO planInstance = buildExecutableInstance(
             appResourceScope,
@@ -277,7 +277,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         authResult.addRequiredPermission(ActionId.LAUNCH_JOB_PLAN, planResource);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, executeObjects);
+            appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.LAUNCH_JOB_PLAN, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute plan, authResult:{}", authResult);
@@ -287,8 +287,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     @Override
     public AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope, Long templateId,
-                                        ExecuteObjectsDTO servers) {
-        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, servers);
+                                        ExecuteTargetDTO executeTarget) {
+        List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
         InstanceDTO jobTemplateInstance = buildExecutableInstance(appResourceScope, ResourceTypeEnum.TEMPLATE,
             templateId.toString(), null);
@@ -315,7 +315,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         authResult.addRequiredPermission(ActionId.DEBUG_JOB_TEMPLATE, jobTemplateResource);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
-            appResourceScope, servers);
+            appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.DEBUG_JOB_TEMPLATE, hostResources);
         if (log.isDebugEnabled()) {
             log.debug("Auth execute job template, authResult:{}", authResult);
@@ -334,9 +334,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<InstanceDTO> buildBizStaticHostInstances(AppResourceScope appResourceScope,
-                                                          ExecuteObjectsDTO servers) {
+                                                          ExecuteTargetDTO executeTarget) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
-        servers.getStaticIpList().forEach(host -> {
+        executeTarget.getStaticIpList().forEach(host -> {
             InstanceDTO hostInstance = new InstanceDTO();
             String hostIdStr = host.getHostId().toString();
             hostInstance.setId(hostIdStr);
@@ -351,7 +351,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<InstanceDTO> buildHostInstances(AppResourceScope appResourceScope,
-                                                 ExecuteObjectsDTO executeObjects) {
+                                                 ExecuteTargetDTO executeObjects) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
         // 静态IP
         if (!CollectionUtils.isEmpty(executeObjects.getStaticIpList())) {
@@ -403,9 +403,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostInstanceList;
     }
 
-    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(ExecuteObjectsDTO servers) {
+    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
-        servers.getStaticIpList().forEach(host -> {
+        executeTarget.getStaticIpList().forEach(host -> {
             PermissionResource resource = new PermissionResource();
             resource.setResourceId(String.valueOf(host.getHostId()));
             resource.setResourceType(ResourceTypeEnum.HOST);
@@ -458,9 +458,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                                  ExecuteObjectsDTO servers) {
+                                                                                  ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
-        servers.getDynamicServerGroups().forEach(serverGroup -> {
+        executeTarget.getDynamicServerGroups().forEach(serverGroup -> {
             PermissionResource resource = new PermissionResource();
             String groupId = serverGroup.getGroupId();
             resource.setResourceId(groupId);
@@ -490,13 +490,13 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     private List<PermissionResource> convertHostsToPermissionResourceList(AppResourceScope appResourceScope,
-                                                                          ExecuteObjectsDTO servers) {
+                                                                          ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
 
-        if (!CollectionUtils.isEmpty(servers.getStaticIpList())) {
+        if (!CollectionUtils.isEmpty(executeTarget.getStaticIpList())) {
             switch (appResourceScope.getType()) {
                 case BIZ:
-                    hostResources.addAll(convertBizStaticIpToPermissionResourceList(servers));
+                    hostResources.addAll(convertBizStaticIpToPermissionResourceList(executeTarget));
                     break;
                 case BIZ_SET:
                     hostResources.addAll(
@@ -508,14 +508,14 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                         ErrorCode.NOT_SUPPORT_FEATURE);
             }
         }
-        if (!CollectionUtils.isEmpty(servers.getTopoNodes())) {
+        if (!CollectionUtils.isEmpty(executeTarget.getTopoNodes())) {
             hostResources.addAll(convertTopoNodesToPermissionResourceList(appResourceScope));
         }
-        if (!CollectionUtils.isEmpty(servers.getDynamicServerGroups())) {
-            hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, servers));
+        if (!CollectionUtils.isEmpty(executeTarget.getDynamicServerGroups())) {
+            hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, executeTarget));
         }
         // 静态容器
-        if (!CollectionUtils.isEmpty(servers.getStaticContainerList())) {
+        if (!CollectionUtils.isEmpty(executeTarget.getStaticContainerList())) {
             hostResources.addAll(convertContainersToPermissionResourceList(appResourceScope));
         }
         return hostResources;

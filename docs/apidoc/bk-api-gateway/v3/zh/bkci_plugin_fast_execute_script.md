@@ -78,7 +78,7 @@
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| cluster_name_list | array | 是 | 集群名称列表 |
+| cluster_uid_list | array | 是 | 集群ID列表, 例如: "BCS-K8S-00001" |
 
 ##### kube_namespace_filter
 
@@ -168,7 +168,7 @@
         "kube_container_filters": [
             {
                 "kube_cluster_filter": {
-                    "cluster_name_list": [
+                    "cluster_uid_list": [
                         "BCS-K8S-00001",
                         "BCS-K8S-00002"
                     ]

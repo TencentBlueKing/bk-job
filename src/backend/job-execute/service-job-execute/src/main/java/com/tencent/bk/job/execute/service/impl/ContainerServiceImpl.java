@@ -25,11 +25,19 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.cc.constants.KubeTopoNodeTypeEnum;
+import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
 import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
+import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
+import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
@@ -41,7 +49,9 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.KubeClusterFilter;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
+import com.tencent.bk.job.execute.model.KubeContainerPropFilter;
 import com.tencent.bk.job.execute.model.KubeNamespaceFilter;
+import com.tencent.bk.job.execute.model.KubePodFilter;
 import com.tencent.bk.job.execute.model.KubeWorkloadFilter;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
@@ -81,7 +91,7 @@ public class ContainerServiceImpl implements ContainerService {
             return Collections.emptyList();
         }
         List<Container> containers = containerDetailList.stream()
-            .map(this::toContainer).collect(Collectors.toList());
+            .map(ContainerDetailDTO::toContainer).collect(Collectors.toList());
 
         ServiceListAppHostResultDTO hostResult =
             hostService.batchGetAppHosts(
@@ -101,19 +111,8 @@ public class ContainerServiceImpl implements ContainerService {
         return containers;
     }
 
-    private Container toContainer(ContainerDetailDTO containerDetailDTO) {
-        Container container = new Container();
-        container.setId(containerDetailDTO.getContainer().getId());
-        container.setContainerId(containerDetailDTO.getContainer().getContainerUID());
-        container.setName(containerDetailDTO.getContainer().getName());
-        container.setPodName(containerDetailDTO.getPod().getName());
-        container.setPodLabels(containerDetailDTO.getPod().getLabels());
-        container.setNodeHostId(containerDetailDTO.getTopo().getHostId());
-        return container;
-    }
-
     @Override
-    public List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
+    public List<ContainerDetailDTO> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
         long bizId = convertToBizId(appId);
         List<KubeNodeID> kubeNodeIDS = computeKubeTopoNode(bizId, filter);
 
@@ -123,8 +122,67 @@ public class ContainerServiceImpl implements ContainerService {
             req.setNodeIdList(kubeNodeIDS);
         }
 
-        cmdbClient.listKubeContainerByTopo(req);
-        return null;
+        if (filter.getPodFilter() != null) {
+            KubePodFilter kubePodFilter = filter.getPodFilter();
+
+            PropertyFilterDTO podPropFilter = new PropertyFilterDTO();
+            podPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
+
+            if (CollectionUtils.isNotEmpty(kubePodFilter.getPodNames())) {
+                podPropFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, kubePodFilter.getPodNames()));
+            }
+            if (CollectionUtils.isNotEmpty(kubePodFilter.getLabelSelector())) {
+                ComposeRuleDTO labelsComposeRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
+                kubePodFilter.getLabelSelector().forEach(
+                    labelSelectExpr -> labelsComposeRule.addRule(buildLabelFilterRule(labelSelectExpr)));
+
+                podPropFilter.addRule(BaseRuleDTO.filterObject(PodDTO.Fields.LABELS, labelsComposeRule));
+            }
+
+            req.setPodFilter(podPropFilter);
+        }
+
+        if (filter.getContainerPropFilter() != null) {
+            KubeContainerPropFilter containerPropFilter = filter.getContainerPropFilter();
+
+            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+            if (CollectionUtils.isNotEmpty(containerPropFilter.getContainerNames())) {
+                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME,
+                    containerPropFilter.getContainerNames()));
+            }
+
+            req.setContainerFilter(containerFilter);
+        }
+
+        List<ContainerDetailDTO> containers = cmdbClient.listKubeContainerByTopo(req);
+        if (CollectionUtils.isEmpty(containers)) {
+            return containers;
+        }
+        if (filter.isFetchAnyOneContainer()) {
+            return Collections.singletonList(containers.get(0));
+        } else {
+            return containers;
+        }
+    }
+
+    private BaseRuleDTO buildLabelFilterRule(LabelSelectExprDTO labelSelectExpr) {
+        RuleOperatorEnum operator = RuleOperatorEnum.valOf(labelSelectExpr.getOperator());
+        switch (operator) {
+            case EQUAL:
+            case NOT_EQUAL:
+                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(),
+                    labelSelectExpr.getValue());
+            case IN:
+            case NOT_IN:
+                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(),
+                    labelSelectExpr.getValues());
+            case EXIST:
+            case NOT_EXIST:
+                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(), null);
+            default:
+                throw new IllegalArgumentException("Invalid label select operator: " + operator);
+        }
     }
 
     private Long convertToBizId(long appId) {

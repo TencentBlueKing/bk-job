@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.LocalFileConfigForExecute;
 import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -130,7 +130,7 @@ public class LocalFilePrepareService {
                     // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
                     localHost.setAgentId(localHost.toCloudIp());
                 }
-                ExecuteObjectsDTO fileSourceExecuteObjects = new ExecuteObjectsDTO();
+                ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
                 fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(localHost));
                 fileSourceExecuteObjects.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
                 fileSourceDTO.setServers(fileSourceExecuteObjects);

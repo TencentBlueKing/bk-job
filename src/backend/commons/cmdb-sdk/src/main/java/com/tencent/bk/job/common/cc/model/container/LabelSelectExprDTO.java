@@ -22,38 +22,63 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model;
+package com.tencent.bk.job.common.cc.model.container;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * cmdb 过滤查询模型
+ * Label selector 计算表达式
  */
 @Data
-public class PropertyFilterDTO {
+@NoArgsConstructor
+@PersistenceObject
+public class LabelSelectExprDTO implements Cloneable {
     /**
-     * 组合查询条件
+     * Label key
      */
-    private String condition;
-    /**
-     * 过滤规则
-     */
-    private List<IRule> rules = new ArrayList<>();
+    @JsonProperty("label_key")
+    private String key;
 
     /**
-     * 新增过滤规则
-     *
-     * @param rule 过滤规则
+     * 计算操作符
      */
-    public void addRule(IRule rule) {
-        this.rules.add(rule);
+    private String operator;
+
+    /**
+     * Label value
+     */
+    @JsonProperty("label_value")
+    private String value;
+
+    /**
+     * Label values
+     */
+    @JsonProperty("label_values")
+    private List<String> values;
+
+    public LabelSelectExprDTO(String key, String operator, String value, List<String> values) {
+        this.key = key;
+        this.operator = operator;
+        this.value = value;
+        this.values = values;
     }
 
-    public boolean hasRule() {
-        return CollectionUtils.isNotEmpty(rules);
+    @Override
+    public LabelSelectExprDTO clone() {
+        LabelSelectExprDTO clone = new LabelSelectExprDTO();
+        clone.setKey(key);
+        clone.setValue(value);
+        clone.setOperator(operator);
+        if (CollectionUtils.isNotEmpty(values)) {
+            clone.setValues(new ArrayList<>(values));
+        }
+        return clone;
     }
 }

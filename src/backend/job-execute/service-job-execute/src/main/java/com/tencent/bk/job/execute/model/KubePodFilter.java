@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,11 +38,31 @@ import java.util.List;
  */
 @Data
 @PersistenceObject
-public class KubePodFilter {
+public class KubePodFilter implements Cloneable {
 
     /**
      * k8s pod 名称列表
      */
     private List<String> podNames;
+
+    /**
+     * label selector
+     */
+    @JsonProperty("label_selector")
+    private List<LabelSelectExprDTO> labelSelector;
+
+    @Override
+    public KubePodFilter clone() {
+        KubePodFilter clone = new KubePodFilter();
+        if (CollectionUtils.isNotEmpty(podNames)) {
+            clone.setPodNames(new ArrayList<>(podNames));
+        }
+        if (CollectionUtils.isNotEmpty(labelSelector)) {
+            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
+            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
+            clone.setLabelSelector(cloneLabelSelectExprList);
+        }
+        return clone;
+    }
 
 }

@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,11 +36,19 @@ import java.util.List;
  */
 @Data
 @PersistenceObject
-public class KubeNamespaceFilter {
+public class KubeNamespaceFilter implements Cloneable {
 
     /**
      * k8s 命名空间名称
      */
     private List<String> namespaces;
 
+    @Override
+    public KubeNamespaceFilter clone() {
+        KubeNamespaceFilter clone = new KubeNamespaceFilter();
+        if (CollectionUtils.isNotEmpty(namespaces)) {
+            clone.setNamespaces(new ArrayList<>(namespaces));
+        }
+        return clone;
+    }
 }

@@ -41,4 +41,10 @@ public class EsbKubePodFilterDTO {
     @JsonProperty("pod_name_list")
     private List<String> podNames;
 
+    /**
+     * k8s pod label
+     */
+    @JsonProperty("label_selector")
+    private List<EsbLabelSelectExprDTO> labelSelector;
+
 }

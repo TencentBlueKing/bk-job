@@ -236,7 +236,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
             variableValue.setName(taskVariable.getName());
             variableValue.setType(taskVariable.getType());
             variableValue.setValue(taskVariable.getValue());
-            variableValue.setServerValue(taskVariable.getExecuteObjects());
+            variableValue.setServerValue(taskVariable.getExecuteTarget());
             if (TaskVariableTypeEnum.valOf(taskVariable.getType()) != TaskVariableTypeEnum.NAMESPACE) {
                 globalVarValueMap.put(variableValue.getName(), variableValue);
             }
