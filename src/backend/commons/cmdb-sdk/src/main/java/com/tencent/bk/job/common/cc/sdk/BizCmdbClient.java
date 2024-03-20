@@ -43,6 +43,8 @@ import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
+import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
+import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -54,6 +56,7 @@ import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
+import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
@@ -706,6 +709,20 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         return appInfo;
     }
 
+    private List<ApplicationDTO> convertToAppInfoList(List<BusinessInfoDTO> businessInfoList) {
+        List<ApplicationDTO> appInfoList = new ArrayList<>();
+        for (BusinessInfoDTO businessInfo : businessInfoList) {
+            ApplicationDTO appInfo = new ApplicationDTO();
+            appInfo.setName(businessInfo.getBizName());
+            appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
+            appInfo.setTimeZone(businessInfo.getTimezone());
+            appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
+            appInfo.setLanguage(businessInfo.getLanguage());
+            appInfoList.add(appInfo);
+        }
+        return appInfoList;
+    }
+
     @Override
     public ApplicationDTO getBizAppById(long bizId) {
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
@@ -729,6 +746,39 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
         return convertToAppInfo(businessInfos.get(0));
+    }
+
+    @Override
+    public List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds) {
+        GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
+        // in查询filter
+        BizFilter filter = new BizFilter();
+        Rule rule = new Rule();
+        rule.setField("bk_biz_id");
+        rule.setOperator(RuleOperatorEnum.IN.getOperator());
+        rule.setValue(bizIds);
+        filter.setRules(Collections.singletonList(rule));
+        filter.setCondition(BizFilter.CONDITION_AND);
+        req.setBizFilter(filter);
+
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
+            HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
+            null,
+            req,
+            new TypeReference<EsbResp<SearchAppResult>>() {
+            });
+        SearchAppResult data = esbResp.getData();
+        if (data == null) {
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+        }
+        List<BusinessInfoDTO> businessInfos = data.getInfo();
+        if (businessInfos == null || businessInfos.isEmpty()) {
+            log.info("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
+            return new ArrayList<>();
+        }
+        return convertToAppInfoList(businessInfos);
     }
 
     @Override

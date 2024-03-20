@@ -78,13 +78,13 @@ export const compareHost = (preHost, nextHost) => {
     hostList: preIPList,
     nodeList: preNodeList,
     dynamicGroupList: preDynamicGroupList,
-    containerList: preContainerList,
+    containerList: preContainerList = [],
   } = preHost.executeObjectsInfo;
   const {
     hostList: nextIPList,
     nodeList: nextNodeList,
     dynamicGroupList: nextDynamicGroupList,
-    containerList: nextContainerList,
+    containerList: nextContainerList = [],
   } = nextHost.executeObjectsInfo;
     // 对比主机
   if (preIPList.length !== nextIPList.length) {

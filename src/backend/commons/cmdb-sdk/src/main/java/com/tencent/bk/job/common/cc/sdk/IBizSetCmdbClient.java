@@ -53,6 +53,14 @@ public interface IBizSetCmdbClient {
     List<BizSetInfo> listAllBizSets();
 
     /**
+     * 从CC获取业务集信息
+     *
+     * @param bizSetIds 业务集ID
+     * @return 业务集列表
+     */
+    List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds);
+
+    /**
      * 根据游标获取业务集事件
      *
      * @param startTime 监听事件的起始时间

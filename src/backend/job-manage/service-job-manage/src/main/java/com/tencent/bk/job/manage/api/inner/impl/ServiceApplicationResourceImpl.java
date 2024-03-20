@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -40,6 +43,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -49,10 +53,16 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceApplicationResourceImpl implements ServiceApplicationResource {
     private final ApplicationService applicationService;
+    private final IBizCmdbClient bizCmdbClient;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
-    public ServiceApplicationResourceImpl(ApplicationService applicationService) {
+    public ServiceApplicationResourceImpl(ApplicationService applicationService,
+                                          IBizCmdbClient bizCmdbClient,
+                                          IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
+        this.bizCmdbClient = bizCmdbClient;
+        this.bizSetCmdbClient = bizSetCmdbClient;
     }
 
     @Override
@@ -148,5 +158,61 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         List<ServiceApplicationDTO> resultList =
             appList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(resultList);
+    }
+
+    @Override
+    public InternalResponse<List<Long>> listAllAppIdOfArchivedScope() {
+        List<ApplicationDTO> loaclAllDeletedApps = applicationService.listAllDeletedApps();
+        log.debug("find archived app from local, size={}", loaclAllDeletedApps.size());
+
+        List<ApplicationDTO> bizApps = loaclAllDeletedApps.stream()
+            .filter(app -> ResourceScopeTypeEnum.BIZ.getValue().equals(app.getScope().getType().getValue()))
+            .collect(Collectors.toList());
+        List<Long> bizIds = bizApps.stream()
+            .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
+            .collect(Collectors.toList());
+
+        List<ApplicationDTO> bizSetApps = loaclAllDeletedApps.stream()
+            .filter(app -> ResourceScopeTypeEnum.BIZ_SET.getValue().equals(app.getScope().getType().getValue()))
+            .collect(Collectors.toList());
+        List<Long> bizSetIds = bizSetApps.stream()
+            .map(bizSetApp -> Long.valueOf(bizSetApp.getScope().getId()))
+            .collect(Collectors.toList());
+
+        List<Long> archivedIds = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(bizApps)) {
+            List<ApplicationDTO> ccAllBizApps = bizCmdbClient.ListBizAppByIds(bizIds);
+            Set<String> ccBizAppScopeIds = ccAllBizApps.stream()
+                .map(ccBizApp -> ccBizApp.getScope().getId())
+                .collect(Collectors.toSet());
+            archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
+                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                .map(ApplicationDTO::getId)
+                .collect(Collectors.toList()));
+        }
+        if (CollectionUtils.isNotEmpty(bizSetApps)) {
+            List<BizSetInfo> bizSetInfos = bizSetCmdbClient.ListBizSetByIds(bizSetIds);
+            Set<String> ccBizSetAppScopeIds = bizSetInfos.stream()
+                .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
+                .collect(Collectors.toSet());
+            archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
+                !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                .map(ApplicationDTO::getId)
+                .collect(Collectors.toList()));
+        }
+        log.debug("finally find archived appIds={}", archivedIds);
+        return InternalResponse.buildSuccessResp(archivedIds);
+    }
+
+    @Override
+    public InternalResponse<Boolean> existsAppById(Long appId) {
+        try {
+            ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
+            return InternalResponse.buildSuccessResp(appInfo != null);
+        } catch (NotFoundException e){
+            log.info("biz/bizSet not exist, appId={}", appId);
+            return InternalResponse.buildSuccessResp(false);
+        }
     }
 }

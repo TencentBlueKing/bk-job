@@ -83,9 +83,10 @@
         </template>
       </bk-table-column>
       <bk-table-column
-        v-if="allShowColumn.includes('agentId')"
+        v-if="allShowColumn.includes('podName')"
         :label="$t('history.所属 Pod 名称')"
         prop="podName"
+        show-overflow-tooltip
         :width="240">
         <template slot-scope="{ row }">
           {{ row.executeObject.container.podName || '--' }}

@@ -54,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,6 +140,7 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.CREATE_FILE_SOURCE
     )
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
         authCreate(username, appId);
 
