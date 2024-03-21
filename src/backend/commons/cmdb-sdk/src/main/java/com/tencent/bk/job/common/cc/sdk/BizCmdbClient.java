@@ -1699,10 +1699,10 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
         // 查询条件
         req.setBizId(query.getBizId());
+        req.setKind(query.getKind());
 
         PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
         workloadPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
-        workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.KIND, query.getKind()));
         if (CollectionUtils.isNotEmpty(query.getIds())) {
             workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.ID, query.getIds()));
         }
@@ -1716,8 +1716,10 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         if (CollectionUtils.isNotEmpty(query.getNames())) {
             workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.NAME, query.getNames()));
         }
+        if (workloadPropFilter.hasRule()) {
+            req.setFilter(workloadPropFilter);
+        }
 
-        req.setFilter(workloadPropFilter);
 
         // 返回参数设置
         req.setFields(KubeWorkloadDTO.Fields.ALL);
