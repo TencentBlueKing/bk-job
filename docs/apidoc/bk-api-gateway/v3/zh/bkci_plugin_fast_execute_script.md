@@ -99,16 +99,16 @@
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
 | pod_name_list | array | 否 | pod 名称列表 |
-| label_selector | array | 否 | label 选择计算表达式列表，多个表达式之间为 AND 关系。表达式 见 lable_select_expr 定义 |
+| label_selector | array | 否 | label 选择计算表达式列表，多个表达式之间为 AND 关系。表达式 见 label_select_expr 定义 |
 
-##### lable_select_expr
+##### label_select_expr
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| label_key | string | 是 | lable key |
+| label_key | string | 是 | label key |
 | operator |  string | 是 | 计算操作符, 支持 equals、not_equals、in、not_in、exists |
-| label_value | string | 否 | lable value, 当计算操作符为 equals、not_equals 时候需要设置 |
-| label_values | string | 否 | lable value 列表, 当计算操作符为 in、not_in 时候需要设置 |
+| label_value | string | 否 | label value, 当计算操作符为 equals、not_equals 时候需要设置 |
+| label_values | string | 否 | label value 列表, 当计算操作符为 in、not_in 时候需要设置 |
 
 ##### kube_container_prop_filter
 
@@ -193,17 +193,17 @@
                     ],
                     "label_selector": [
                         {
-                            "lable_key": "application",
+                            "label_key": "application",
                             "operator": "in",
-                            "lable_values": [
+                            "label_values": [
                                 "job-execute",
                                 "job-manage"
                             ]
                         },
                         {
-                            "lable_key": "env",
+                            "label_key": "env",
                             "operator": "equals",
-                            "lable_value": "prod"
+                            "label_value": "prod"
                         }
                     ]
                 },
