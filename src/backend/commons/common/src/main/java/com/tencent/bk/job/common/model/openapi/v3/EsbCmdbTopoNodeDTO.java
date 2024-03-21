@@ -22,28 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator;
+package com.tencent.bk.job.common.model.openapi.v3;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
+import lombok.Data;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * 联合校验分组
+ * ESB接口 CMDB topo节点实体类
  */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+@Data
+public class EsbCmdbTopoNodeDTO {
+    /**
+     * topo节点ID
+     */
+    @JsonProperty("id")
+    @JsonPropertyDescription("Cmdb topo node id")
+    @NotNull(message = "{validation.constraints.TopoNodeId_null.message}")
+    private Long id;
 
-        interface ScriptContent {
-        }
+    /**
+     * topo节点类型
+     */
+    @JsonProperty("node_type")
+    @JsonPropertyDescription("Cmdb topo node type")
+    @NotNull(message = "{validation.constraints.TopoNodeType_null.message}")
+    private String nodeType;
 
-        interface ScriptId {
+    public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {
+        if (ccTopoNode == null) {
+            return null;
         }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
+        EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
+        esbCmdbTopoNodeDTO.setId(ccTopoNode.getId());
+        esbCmdbTopoNodeDTO.setNodeType(ccTopoNode.getNodeType());
+        return esbCmdbTopoNodeDTO;
     }
 }

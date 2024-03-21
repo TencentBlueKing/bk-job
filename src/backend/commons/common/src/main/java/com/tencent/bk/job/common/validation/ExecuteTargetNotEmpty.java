@@ -22,51 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.validation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * 执行目标-容器选择过滤器
- */
-@Data
-public class EsbKubeContainerFilterDTO {
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    /**
-     * 集群过滤器
-     */
-    @JsonProperty("kube_cluster_filter")
-    private EsbKubeClusterFilterDTO clusterFilter;
+@Constraint(validatedBy = ExecuteTargetNotEmptyValidator.class)
+@Target({TYPE})
+@Retention(RUNTIME)
+@Documented
+public @interface ExecuteTargetNotEmpty {
 
-    /**
-     * namespace 过滤器
-     */
-    @JsonProperty("kube_namespace_filter")
-    private EsbKubeNamespaceFilterDTO namespaceFilter;
+    String message() default "{validation.constraints.ExecuteTarget_empty.message}";
 
-    /**
-     * workload 过滤器
-     */
-    @JsonProperty("kube_workload_filter")
-    private EsbKubeWorkloadFilterDTO workloadFilter;
+    Class<?>[] groups() default {};
 
-    /**
-     * pod 属性过滤器
-     */
-    @JsonProperty("kube_pod_filter")
-    private EsbKubePodFilterDTO podFilter;
-
-    /**
-     * 容器属性过滤器
-     */
-    @JsonProperty("kube_container_prop_filter")
-    private EsbKubeContainerPropFilterDTO containerPropFilter;
-
-    /**
-     * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
-     */
-    @JsonProperty("fetch_any_one_container")
-    private boolean fetchAnyOneContainer;
+    Class<? extends Payload>[] payload() default {};
 
 }

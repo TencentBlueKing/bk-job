@@ -484,25 +484,8 @@ public class LogServiceImpl implements LogService {
     public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
                                                                                        int executeCount,
                                                                                        Integer batch) {
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
-        String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
-        ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
-        request.setStepInstanceId(stepInstance.getId());
-        request.setExecuteCount(executeCount);
-        request.setBatch(batch);
-        request.setJobCreateDate(taskCreateDateStr);
-        request.setMode(FileTaskModeEnum.UPLOAD.getValue());
-        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listFileExecuteObjectLogs(
-            taskCreateDateStr, stepInstanceId, executeCount, request);
-        if (!resp.isSuccess()) {
-            log.error("Get file source log content error, stepInstanceId={}, executeCount={}, batch={}",
-                stepInstanceId, executeCount, batch);
-            return Collections.emptyList();
-        }
-
-        List<ServiceExecuteObjectLogDTO> executeObjectLogs = resp.getData();
-
-        return batchConvertToFileExecuteObjectLogContent(stepInstance, executeObjectLogs);
+        return batchGetFileExecuteObjectLogContent(stepInstanceId, executeCount, batch,
+            FileTaskModeEnum.UPLOAD, null);
     }
 
     private List<FileExecuteObjectLogContent> batchConvertToFileExecuteObjectLogContent(
@@ -555,44 +538,51 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-
     @Override
-    public List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
-        StepInstanceBaseDTO stepInstance,
+    public List<FileExecuteObjectLogContent> batchGetFileExecuteObjectLogContent(
+        long stepInstanceId,
         int executeCount,
         Integer batch,
-        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
-    ) {
-        if (CollectionUtils.isEmpty(executeObjectCompositeKeys)) {
-            return null;
-        }
+        FileTaskModeEnum mode,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
+
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
         request.setStepInstanceId(stepInstance.getId());
         request.setExecuteCount(executeCount);
         request.setBatch(batch);
         request.setJobCreateDate(taskCreateDateStr);
-
-        List<ExecuteObject> queryExecuteObjects =
-            stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
-        if (stepInstance.isSupportExecuteObjectFeature()) {
-            List<String> executeObjectId = queryExecuteObjects.stream()
-                .map(ExecuteObject::getId).collect(Collectors.toList());
-            request.setExecuteObjectIds(executeObjectId);
-        } else {
-            // 兼容 hostId 查询
-            List<Long> hostIds = queryExecuteObjects.stream()
-                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
-            request.setHostIds(hostIds);
+        if (mode != null) {
+            request.setMode(mode.getValue());
         }
+        if (CollectionUtils.isNotEmpty(executeObjectCompositeKeys)) {
+            List<ExecuteObject> queryExecuteObjects =
+                stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
+            if (stepInstance.isSupportExecuteObjectFeature()) {
+                List<String> executeObjectId = queryExecuteObjects.stream()
+                    .map(ExecuteObject::getId).collect(Collectors.toList());
+                request.setExecuteObjectIds(executeObjectId);
+            } else {
+                // 兼容 hostId 查询
+                List<Long> hostIds = queryExecuteObjects.stream()
+                    .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
+                request.setHostIds(hostIds);
+            }
+        }
+
 
         InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listFileExecuteObjectLogs(
-            taskCreateDateStr, stepInstance.getId(), executeCount, request);
+            taskCreateDateStr, stepInstanceId, executeCount, request);
         if (!resp.isSuccess()) {
-            log.error("Get file log content error, request={}", request);
-            return null;
+            log.error("Get file log content error, stepInstanceId={}, executeCount={}, batch={}",
+                stepInstanceId, executeCount, batch);
+            return Collections.emptyList();
         }
-        return resp.getData();
+
+        List<ServiceExecuteObjectLogDTO> executeObjectLogs = resp.getData();
+
+        return batchConvertToFileExecuteObjectLogContent(stepInstance, executeObjectLogs);
     }
 
     @Override

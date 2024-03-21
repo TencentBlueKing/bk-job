@@ -22,14 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbHostDTOGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.EsbHostDTOGroupSequenceProvider;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,7 +46,7 @@ import javax.validation.constraints.Pattern;
 @Getter
 @NoArgsConstructor
 @GroupSequenceProvider(EsbHostDTOGroupSequenceProvider.class)
-public class EsbHostDTO {
+public class OpenApiHostDTO {
 
     @JsonProperty("bk_host_id")
     @JsonPropertyDescription("Host id")
@@ -91,28 +91,28 @@ public class EsbHostDTO {
     public interface BkCloudIpGroup {
     }
 
-    public EsbHostDTO(Long hostId, Long bkCloudId, String ip) {
+    public OpenApiHostDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
         this.bkCloudId = bkCloudId;
         this.ip = ip;
     }
 
-    public static EsbHostDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
+    public static OpenApiHostDTO fromApplicationHostInfo(ApplicationHostDTO applicationHostInfo) {
         if (applicationHostInfo == null) {
             return null;
         }
-        EsbHostDTO esbIp = new EsbHostDTO();
+        OpenApiHostDTO esbIp = new OpenApiHostDTO();
         esbIp.setBkCloudId(applicationHostInfo.getCloudAreaId());
         esbIp.setIp(applicationHostInfo.getIp());
         esbIp.setHostId(applicationHostInfo.getHostId());
         return esbIp;
     }
 
-    public static EsbHostDTO fromHost(HostDTO host) {
+    public static OpenApiHostDTO fromHost(HostDTO host) {
         if (host == null) {
             return null;
         }
-        EsbHostDTO esbIp = new EsbHostDTO();
+        OpenApiHostDTO esbIp = new OpenApiHostDTO();
         esbIp.setBkCloudId(host.getBkCloudId());
         esbIp.setBkCloudName(host.getBkCloudName());
         esbIp.setIp(host.getIp());
@@ -123,12 +123,12 @@ public class EsbHostDTO {
         return esbIp;
     }
 
-    public static EsbHostDTO fromCloudIp(String cloudIp) {
+    public static OpenApiHostDTO fromCloudIp(String cloudIp) {
         if (!IpUtils.checkCloudIp(cloudIp)) {
             return null;
         }
         String[] ipProps = cloudIp.split(IpUtils.COLON);
-        EsbHostDTO host = new EsbHostDTO();
+        OpenApiHostDTO host = new OpenApiHostDTO();
         host.setBkCloudId(Long.valueOf(ipProps[0]));
         host.setIp(ipProps[1]);
         return host;

@@ -27,10 +27,11 @@ package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.ValidationGroups;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -120,7 +121,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
 
     @JsonProperty("execute_target")
     @Valid
-    private EsbExecuteTargetDTO executeTarget;
+    private OpenApiExecuteTargetDTO executeTarget;
 
     /**
      * 任务执行完成之后回调

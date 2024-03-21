@@ -22,46 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Data;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * 作业执行对象-容器模型
+ * 动态分组
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Slf4j
-public class EsbContainerDTO {
+@Data
+public class EsbDynamicGroupDTO {
     /**
-     * 容器在 cmdb 注册的 ID
+     * 动态分组ID
      */
-    @JsonProperty("id")
+    @JsonPropertyDescription("Cmdb dynamic group id")
+    @NotNull(message = "{validation.constraints.EmptyDynamicGroupId.message}")
     private String id;
-
-    /**
-     * 容器 ID
-     */
-    @JsonProperty("container_id")
-    private String containerId;
-
-
-    /**
-     * 容器所在 Node 对应的主机ID
-     */
-    @JsonProperty("hostId")
-    private Long hostId;
-
-    /**
-     * 容器名称
-     */
-    @JsonProperty("name")
-    private String name;
 }

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -33,7 +33,7 @@ import java.util.List;
  * 执行目标-容器选择过滤器-按集群过滤
  */
 @Data
-public class EsbKubeClusterFilterDTO {
+public class OpenApiKubeClusterFilterDTO {
 
     /**
      * k8s 集群ID

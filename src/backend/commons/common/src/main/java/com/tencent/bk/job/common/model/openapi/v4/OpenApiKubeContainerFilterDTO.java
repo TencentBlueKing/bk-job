@@ -22,57 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.ExecuteTargetNotEmpty;
 import lombok.Data;
 
-import javax.validation.Valid;
-import java.util.List;
-
 /**
- * 执行目标
+ * 执行目标-容器选择过滤器
  */
 @Data
-@ExecuteTargetNotEmpty
-public class EsbExecuteTargetDTO {
+public class OpenApiKubeContainerFilterDTO {
 
     /**
-     * 静态主机列表
+     * 集群过滤器
      */
-    @JsonProperty("host_list")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyDescription("Hosts")
-    @Valid
-    private List<EsbHostDTO> hosts;
+    @JsonProperty("kube_cluster_filter")
+    private OpenApiKubeClusterFilterDTO clusterFilter;
 
     /**
-     * cmdb 动态分组列表
+     * namespace 过滤器
      */
-    @JsonProperty("host_dynamic_group_list")
-    @JsonPropertyDescription("Cmdb host dynamic groups")
-    @Valid
-    private List<EsbDynamicGroupDTO> hostDynamicGroups;
+    @JsonProperty("kube_namespace_filter")
+    private OpenApiKubeNamespaceFilterDTO namespaceFilter;
 
     /**
-     * cmdb 主机拓扑节点列表
+     * workload 过滤器
      */
-    @JsonProperty("host_topo_node_list")
-    @JsonPropertyDescription("Cmdb host topo nodes")
-    @Valid
-    private List<EsbCmdbTopoNodeDTO> hostTopoNodes;
+    @JsonProperty("kube_workload_filter")
+    private OpenApiKubeWorkloadFilterDTO workloadFilter;
 
     /**
-     * k8s 容器过滤器列表
+     * pod 属性过滤器
      */
-    @JsonProperty("kube_container_filters")
-    @JsonPropertyDescription("Kube container filters")
-    @Valid
-    private List<EsbKubeContainerFilterDTO> kubeContainerFilters;
+    @JsonProperty("kube_pod_filter")
+    private OpenApiKubePodFilterDTO podFilter;
+
+    /**
+     * 容器属性过滤器
+     */
+    @JsonProperty("kube_container_prop_filter")
+    private OpenApiKubeContainerPropFilterDTO containerPropFilter;
+
+    /**
+     * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
+     */
+    @JsonProperty("fetch_any_one_container")
+    private boolean fetchAnyOneContainer;
 
 }

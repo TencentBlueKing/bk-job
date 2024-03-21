@@ -22,47 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Data;
 
+import java.util.List;
+
 /**
- * OpenAPI - 执行对象定义
+ * 执行目标-容器选择过滤器-按容器属性过滤
  */
 @Data
-public class EsbExecuteObjectDTO {
+public class OpenApiKubeContainerPropFilterDTO {
 
     /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
+     * k8s 容器名称列表
      */
-    @JsonPropertyDescription("Execute object type")
-    private Integer type;
-
-    /**
-     * 执行对象 ID，比如主机 ID、容器 ID
-     */
-    @JsonPropertyDescription("Execute object resource id")
-    @JsonProperty("resource_id")
-    private String resourceId;
-
-    /**
-     * 容器
-     */
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonPropertyDescription("Container")
-    private EsbContainerDTO container;
-
-    /**
-     * 主机
-     */
-    @JsonPropertyDescription("Host")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private EsbHostDTO host;
+    @JsonProperty("container_name_list")
+    private List<String> containerNames;
 
 }

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -30,15 +30,20 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 执行目标-容器选择过滤器-按命名空间过滤
+ * 执行目标-容器选择过滤器-按 workload 过滤
  */
 @Data
-public class EsbKubeNamespaceFilterDTO {
+public class OpenApiKubeWorkloadFilterDTO {
 
     /**
-     * k8s 命名空间名称
+     * workload 类型
      */
-    @JsonProperty("namespace_name_list")
-    private List<String> namespaces;
+    private String kind;
+
+    /**
+     * k8s workload 名称列表
+     */
+    @JsonProperty("workload_name_list")
+    private List<String> workloadNames;
 
 }

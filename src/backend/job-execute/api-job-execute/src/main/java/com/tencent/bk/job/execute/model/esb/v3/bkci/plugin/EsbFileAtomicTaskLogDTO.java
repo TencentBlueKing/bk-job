@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
 
 /**
@@ -43,7 +44,7 @@ public class EsbFileAtomicTaskLogDTO {
      * 源文件所在执行对象
      */
     @JsonProperty("src_execute_object")
-    private EsbExecuteObjectDTO srcExecuteObject;
+    private OpenApiExecuteObjectDTO srcExecuteObject;
 
     /**
      * 源文件路径
@@ -55,7 +56,7 @@ public class EsbFileAtomicTaskLogDTO {
      * 文件分发目标执行对象
      */
     @JsonProperty("dest_execute_object")
-    private EsbExecuteObjectDTO destExecuteObject;
+    private OpenApiExecuteObjectDTO destExecuteObject;
 
     /**
      * 目标路径

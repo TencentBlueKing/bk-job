@@ -28,20 +28,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
-import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbExecuteTargetDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -509,7 +509,7 @@ public class ExecuteTargetDTO implements Cloneable {
         }
     }
 
-    public static ExecuteTargetDTO buildFrom(EsbExecuteTargetDTO executeTarget) {
+    public static ExecuteTargetDTO buildFrom(OpenApiExecuteTargetDTO executeTarget) {
         if (executeTarget == null) {
             return null;
         }
@@ -548,7 +548,7 @@ public class ExecuteTargetDTO implements Cloneable {
         return executeTargetDTO;
     }
 
-    private static List<KubeContainerFilter> convertToKubeContainerFilter(EsbExecuteTargetDTO executeTarget) {
+    private static List<KubeContainerFilter> convertToKubeContainerFilter(OpenApiExecuteTargetDTO executeTarget) {
         List<KubeContainerFilter> kubeContainerFilters = new ArrayList<>();
 
         executeTarget.getKubeContainerFilters().forEach(originContainerFilter -> {

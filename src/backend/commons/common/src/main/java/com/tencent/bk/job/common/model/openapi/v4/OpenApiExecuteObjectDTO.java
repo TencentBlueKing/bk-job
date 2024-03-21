@@ -22,22 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job.v3;
+package com.tencent.bk.job.common.model.openapi.v4;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
-
 /**
- * 动态分组
+ * OpenAPI - 执行对象定义
  */
 @Data
-public class EsbDynamicGroupDTO {
+public class OpenApiExecuteObjectDTO {
+
     /**
-     * 动态分组ID
+     * 执行对象类型
+     *
+     * @see ExecuteObjectTypeEnum
      */
-    @JsonPropertyDescription("Cmdb dynamic group id")
-    @NotNull(message = "{validation.constraints.EmptyDynamicGroupId.message}")
-    private String id;
+    @JsonPropertyDescription("Execute object type")
+    private Integer type;
+
+    /**
+     * 执行对象 ID，比如主机 ID、容器 ID
+     */
+    @JsonPropertyDescription("Execute object resource id")
+    @JsonProperty("resource_id")
+    private String resourceId;
+
+    /**
+     * 容器
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonPropertyDescription("Container")
+    private OpenApiContainerDTO container;
+
+    /**
+     * 主机
+     */
+    @JsonPropertyDescription("Host")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private OpenApiHostDTO host;
+
 }

@@ -22,27 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator;
+package com.tencent.bk.job.common.validation;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
+import org.apache.commons.collections4.CollectionUtils;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-@Constraint(validatedBy = ExecuteTargetNotEmptyValidator.class)
-@Target({TYPE})
-@Retention(RUNTIME)
-@Documented
-public @interface ExecuteTargetNotEmpty {
+public class ExecuteTargetNotEmptyValidator
+    implements ConstraintValidator<ExecuteTargetNotEmpty, OpenApiExecuteTargetDTO> {
 
-    String message() default "{validation.constraints.ExecuteTarget_empty.message}";
+    @Override
+    public boolean isValid(OpenApiExecuteTargetDTO value, ConstraintValidatorContext context) {
+        return CollectionUtils.isNotEmpty(value.getHosts())
+            || CollectionUtils.isNotEmpty(value.getHostDynamicGroups())
+            || CollectionUtils.isNotEmpty(value.getHostTopoNodes())
+            || CollectionUtils.isNotEmpty(value.getKubeContainerFilters());
+    }
 
-    Class<?>[] groups() default {};
+    @Override
+    public void initialize(ExecuteTargetNotEmpty constraintAnnotation) {
 
-    Class<? extends Payload>[] payload() default {};
-
+    }
 }

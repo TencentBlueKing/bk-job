@@ -22,35 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator;
+package com.tencent.bk.job.common.model.openapi.v4;
 
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbHostDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 主机联合校验
+ * Label selector 计算表达式
  */
-@Slf4j
-public class EsbHostDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<EsbHostDTO> {
+@Data
+public class OpenApiLabelSelectExprDTO {
+    /**
+     * Label key
+     */
+    @JsonProperty("label_key")
+    private String key;
 
-    @Override
-    public List<Class<?>> getValidationGroups(EsbHostDTO host) {
-        List<Class<?>> validationGroups = new ArrayList<>();
-        validationGroups.add(EsbHostDTO.class);
-        if (host != null) {
-            if (host.getHostId() != null) {
-                validationGroups.add(EsbHostDTO.BkHostIdGroup.class);
-            } else if (host.getBkCloudId() != null || host.getIp() != null) {
-                validationGroups.add(EsbHostDTO.BkCloudIpGroup.class);
-            } else {
-                // 其它情况默认使用 bk_host_id 校验方式
-                validationGroups.add(EsbHostDTO.BkHostIdGroup.class);
-            }
-        }
-        return validationGroups;
-    }
+    /**
+     * 计算操作符
+     */
+    private String operator;
+
+    /**
+     * Label value
+     */
+    @JsonProperty("label_value")
+    private String value;
+
+    /**
+     * Label values
+     */
+    @JsonProperty("label_values")
+    private List<String> values;
 }

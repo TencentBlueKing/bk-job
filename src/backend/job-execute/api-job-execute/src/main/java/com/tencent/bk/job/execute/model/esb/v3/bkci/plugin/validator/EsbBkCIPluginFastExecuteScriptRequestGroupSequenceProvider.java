@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator;
 
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastExecuteScriptRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;

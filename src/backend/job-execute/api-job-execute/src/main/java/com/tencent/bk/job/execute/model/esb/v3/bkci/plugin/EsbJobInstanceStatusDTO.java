@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +44,7 @@ public class EsbJobInstanceStatusDTO {
     private JobInstance jobInstance;
 
     @JsonProperty("step_instance_list")
-    private List<StepInstance> stepInstances;
+    private List<StepResult> stepResults;
 
     @Setter
     @Getter
@@ -82,9 +83,12 @@ public class EsbJobInstanceStatusDTO {
         private Long totalTime;
     }
 
+    /**
+     * 步骤实例状态
+     */
     @Setter
     @Getter
-    public static class StepInstance {
+    public static class StepResult {
         /**
          * id
          */
@@ -143,12 +147,15 @@ public class EsbJobInstanceStatusDTO {
         private List<ExecuteObjectResult> executeObjectResults;
     }
 
+    /**
+     * 执行对象任务结果
+     */
     @Setter
     @Getter
     public static class ExecuteObjectResult {
 
         @JsonProperty("execute_object")
-        private EsbExecuteObjectDTO executeObject;
+        private OpenApiExecuteObjectDTO executeObject;
 
         private Integer status;
 

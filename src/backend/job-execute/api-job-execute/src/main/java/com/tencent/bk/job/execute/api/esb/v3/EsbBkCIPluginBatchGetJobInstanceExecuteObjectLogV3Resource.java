@@ -27,8 +27,8 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogsV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogRequest;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbExecuteObjectLogsDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,8 +44,8 @@ import org.springframework.web.bind.annotation.RestController;
 @EsbAPI
 public interface EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogV3Resource {
 
-    @PostMapping("/bkci_plugin_batch_get_job_instance_ip_log")
-    EsbResp<EsbIpLogsV3DTO> batchGetJobInstanceExecuteObjectLogs(
+    @PostMapping("/bkci_plugin_batch_get_job_instance_execute_object_log")
+    EsbResp<EsbExecuteObjectLogsDTO> batchGetJobInstanceExecuteObjectLogs(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody

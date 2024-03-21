@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -312,5 +313,17 @@ public class HostDTO implements Cloneable {
         this.cloudVendorId = host.getCloudVendorId();
         this.cloudVendorName = host.getCloudVendorName();
         this.hostname = host.getHostname();
+    }
+
+    public OpenApiHostDTO toOpenApiHostDTO() {
+        OpenApiHostDTO openApiHostDTO = new OpenApiHostDTO();
+        openApiHostDTO.setHostId(hostId);
+        openApiHostDTO.setBkCloudId(bkCloudId);
+        openApiHostDTO.setBkCloudName(bkCloudName);
+        openApiHostDTO.setIp(ip);
+        openApiHostDTO.setIpv6(ipv6);
+        openApiHostDTO.setAlive(alive);
+        openApiHostDTO.setAgentId(agentId);
+        return openApiHostDTO;
     }
 }

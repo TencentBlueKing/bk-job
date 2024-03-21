@@ -22,27 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator;
+package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbExecuteTargetDTO;
-import org.apache.commons.collections4.CollectionUtils;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ExecuteTargetNotEmptyValidator
-    implements ConstraintValidator<ExecuteTargetNotEmpty, EsbExecuteTargetDTO> {
-
-    @Override
-    public boolean isValid(EsbExecuteTargetDTO value, ConstraintValidatorContext context) {
-        return CollectionUtils.isNotEmpty(value.getHosts())
-            || CollectionUtils.isNotEmpty(value.getHostDynamicGroups())
-            || CollectionUtils.isNotEmpty(value.getHostTopoNodes())
-            || CollectionUtils.isNotEmpty(value.getKubeContainerFilters());
-    }
+/**
+ * 主机联合校验
+ */
+@Slf4j
+public class EsbHostDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<OpenApiHostDTO> {
 
     @Override
-    public void initialize(ExecuteTargetNotEmpty constraintAnnotation) {
-
+    public List<Class<?>> getValidationGroups(OpenApiHostDTO host) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(OpenApiHostDTO.class);
+        if (host != null) {
+            if (host.getHostId() != null) {
+                validationGroups.add(OpenApiHostDTO.BkHostIdGroup.class);
+            } else if (host.getBkCloudId() != null || host.getIp() != null) {
+                validationGroups.add(OpenApiHostDTO.BkCloudIpGroup.class);
+            } else {
+                // 其它情况默认使用 bk_host_id 校验方式
+                validationGroups.add(OpenApiHostDTO.BkHostIdGroup.class);
+            }
+        }
+        return validationGroups;
     }
 }

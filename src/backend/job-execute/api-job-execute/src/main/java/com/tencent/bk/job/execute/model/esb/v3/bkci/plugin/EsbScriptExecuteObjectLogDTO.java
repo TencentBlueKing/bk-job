@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
 
 /**
@@ -37,7 +38,7 @@ public class EsbScriptExecuteObjectLogDTO {
      * 执行对象
      */
     @JsonProperty("execute_object")
-    private EsbExecuteObjectDTO executeObject;
+    private OpenApiExecuteObjectDTO executeObject;
 
     /**
      * 脚本任务日志内容

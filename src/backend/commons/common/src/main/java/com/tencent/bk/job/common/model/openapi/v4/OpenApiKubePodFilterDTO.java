@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
+package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -30,20 +30,21 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 执行目标-容器选择过滤器-按 workload 过滤
+ * 执行目标-容器选择过滤器-按 POD 过滤
  */
 @Data
-public class EsbKubeWorkloadFilterDTO {
+public class OpenApiKubePodFilterDTO {
 
     /**
-     * workload 类型
+     * k8s pod 名称列表
      */
-    private String kind;
+    @JsonProperty("pod_name_list")
+    private List<String> podNames;
 
     /**
-     * k8s workload 名称列表
+     * k8s pod label
      */
-    @JsonProperty("workload_name_list")
-    private List<String> workloadNames;
+    @JsonProperty("label_selector")
+    private List<OpenApiLabelSelectExprDTO> labelSelector;
 
 }

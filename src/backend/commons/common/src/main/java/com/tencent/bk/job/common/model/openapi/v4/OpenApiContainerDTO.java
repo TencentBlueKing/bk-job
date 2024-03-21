@@ -22,43 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.job;
+package com.tencent.bk.job.common.model.openapi.v4;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
-import lombok.Data;
-
-import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * ESB接口 CMDB topo节点实体类
+ * 作业执行对象-容器模型
  */
-@Data
-public class EsbCmdbTopoNodeDTO {
+@Setter
+@Getter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Slf4j
+public class OpenApiContainerDTO {
     /**
-     * topo节点ID
+     * 容器在 cmdb 注册的 ID
      */
     @JsonProperty("id")
-    @JsonPropertyDescription("Cmdb topo node id")
-    @NotNull(message = "{validation.constraints.TopoNodeId_null.message}")
     private Long id;
 
     /**
-     * topo节点类型
+     * 容器 ID
      */
-    @JsonProperty("node_type")
-    @JsonPropertyDescription("Cmdb topo node type")
-    @NotNull(message = "{validation.constraints.TopoNodeType_null.message}")
-    private String nodeType;
+    @JsonProperty("container_id")
+    private String containerId;
 
-    public static EsbCmdbTopoNodeDTO fromCmdbTopoNode(CmdbTopoNodeDTO ccTopoNode) {
-        if (ccTopoNode == null) {
-            return null;
-        }
-        EsbCmdbTopoNodeDTO esbCmdbTopoNodeDTO = new EsbCmdbTopoNodeDTO();
-        esbCmdbTopoNodeDTO.setId(ccTopoNode.getId());
-        esbCmdbTopoNodeDTO.setNodeType(ccTopoNode.getNodeType());
-        return esbCmdbTopoNodeDTO;
-    }
+
+    /**
+     * 容器所在 Node 对应的主机ID
+     */
+    @JsonProperty("node_host_id")
+    private Long nodeHostId;
+
+    /**
+     * 容器名称
+     */
+    @JsonProperty("name")
+    private String name;
 }

@@ -1743,7 +1743,11 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                         }));
             },
             PageData::getData,
-            workload -> workload
+            workload -> {
+                // cmdb API 返回的数据没有包含 kind 信息，需要补全
+                workload.setKind(req.getKind());
+                return workload;
+            }
         );
     }
 }

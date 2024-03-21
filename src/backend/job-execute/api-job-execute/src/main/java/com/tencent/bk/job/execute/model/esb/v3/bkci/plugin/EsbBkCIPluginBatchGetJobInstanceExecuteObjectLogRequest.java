@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,6 +34,7 @@ import lombok.ToString;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 /**
@@ -64,7 +66,6 @@ public class EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogRequest extends Esb
      */
     @JsonProperty("execute_object_list")
     @Valid
-    private List<EsbExecuteObjectDTO> executeObjects;
-
-
+    @Size(max = 500, min = 1, message = "{validation.constraints.queryExecuteObjects_outOfRange.message}")
+    private List<OpenApiExecuteObjectDTO> executeObjects;
 }

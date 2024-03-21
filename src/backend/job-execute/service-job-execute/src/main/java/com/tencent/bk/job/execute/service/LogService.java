@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
@@ -202,20 +203,21 @@ public interface LogService {
                                                                                 Integer batch);
 
     /**
-     * 获取文件任务文件源日志
+     * 获取文件任务文件日志
      *
-     * @param stepInstance               步骤实例
+     * @param stepInstanceId             步骤实例 ID
      * @param executeCount               执行次数
      * @param batch                      滚动执行批次;非滚动步骤传入null
-     * @param executeObjectCompositeKeys 执行对象复合 KEY 列表
+     * @param mode                       文件分发任务模式;传入 null 该过滤条件不生效
+     * @param executeObjectCompositeKeys 执行对象复合 KEY 列表;传入 null 该过滤条件不生效
      * @return 日志内容
      */
-    List<ServiceExecuteObjectLogDTO> batchGetFileExecuteObjectLogContent(
-        StepInstanceBaseDTO stepInstance,
+    List<FileExecuteObjectLogContent> batchGetFileExecuteObjectLogContent(
+        long stepInstanceId,
         int executeCount,
         Integer batch,
-        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys
-    );
+        FileTaskModeEnum mode,
+        List<ExecuteObjectCompositeKey> executeObjectCompositeKeys);
 
     /**
      * 根据日志关键字获取对应的执行对象KEY

@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.util;
 
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import org.apache.commons.collections4.CollectionUtils;
@@ -70,5 +72,15 @@ public class ExecuteObjectCompositeKeyUtils {
         } else {
             throw new IllegalArgumentException("Invalid host params");
         }
+    }
+
+    public static List<ExecuteObjectCompositeKey> fromOpenApiExecuteObjectDTOList(
+        List<OpenApiExecuteObjectDTO> executeObjects) {
+
+        return executeObjects.stream()
+            .map(executeObject ->
+                ExecuteObjectCompositeKey.ofExecuteObjectResource(
+                    ExecuteObjectTypeEnum.valOf(executeObject.getType()), executeObject.getResourceId()))
+            .collect(Collectors.toList());
     }
 }

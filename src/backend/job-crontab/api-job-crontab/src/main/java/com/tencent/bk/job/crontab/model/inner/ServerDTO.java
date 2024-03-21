@@ -25,12 +25,12 @@
 package com.tencent.bk.job.crontab.model.inner;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
-import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;

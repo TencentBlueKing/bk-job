@@ -22,38 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
-import java.util.List;
+package com.tencent.bk.job.common.validation;
 
 /**
- * Label selector 计算表达式
+ * 联合校验分组
  */
-@Data
-public class EsbLabelSelectExprDTO {
-    /**
-     * Label key
-     */
-    @JsonProperty("label_key")
-    private String key;
+public interface ValidationGroups {
+    interface Script {
+        interface ScriptVersionId {
+        }
 
-    /**
-     * 计算操作符
-     */
-    private String operator;
+        interface ScriptContent {
+        }
 
-    /**
-     * Label value
-     */
-    @JsonProperty("label_value")
-    private String value;
+        interface ScriptId {
+        }
+    }
 
-    /**
-     * Label values
-     */
-    @JsonProperty("label_values")
-    private List<String> values;
+    interface Account {
+        interface AccountId {
+        }
+
+        interface AccountAlias {
+        }
+    }
 }
