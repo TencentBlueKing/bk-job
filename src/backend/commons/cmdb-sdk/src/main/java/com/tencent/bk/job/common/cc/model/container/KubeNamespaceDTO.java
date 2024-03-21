@@ -79,6 +79,6 @@ public class KubeNamespaceDTO {
      * 所在集群的UID
      */
     @JsonProperty("cluster_uid")
-    private Long clusterUID;
+    private String clusterUID;
 
 }

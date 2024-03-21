@@ -135,8 +135,8 @@
 - Body
 ```json
 {
-    "result": true,
-    "code": 0,
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
     "script_version_id": 1,
     "script_content": "ZWNobyAkMQ==",
     "script_param": "aGVsbG8=",

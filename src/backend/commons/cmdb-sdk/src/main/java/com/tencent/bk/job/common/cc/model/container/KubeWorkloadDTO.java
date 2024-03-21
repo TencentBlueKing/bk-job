@@ -87,7 +87,7 @@ public class KubeWorkloadDTO {
      * 所在集群的UID
      */
     @JsonProperty("cluster_uid")
-    private Long clusterUID;
+    private String clusterUID;
 
     /**
      * 所在namespace的资源 ID（namespace 在 cmdb 中注册资源的 ID）
