@@ -25,30 +25,46 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+@Component
 public class ArchiveTaskLock {
     private final String ARCHIVE_LOCK_KEY_PREFIX = "JOB_EXECUTE_LOG_ARCHIVE_LOCK";
-    private final Long LOCK_TIME = 24 * 3600 * 1000L;
+    /**
+     * 归档任务锁时间 1h
+     */
+    private final Long LOCK_TIME = 3600 * 1000L;
     /**
      * 最小获取锁间隔时间；为了保证在分布式系统中多个节点都能均匀获取到任务，会优先让空闲的节点获取到任务
      */
     private final long MIN_ACQUIRE_LOCK_INTERVAL_MS = 1000L;
+
     private volatile long lastAcquireLockTimeMS = 0L;
-    private Map<String, String> locks = new ConcurrentHashMap<>();
+    /**
+     * Key: tableName ; Value: 分布式锁请求 requestId
+     */
+    private final Map<String, String> locks = new ConcurrentHashMap<>();
+    /**
+     * 分布式锁保持，避免超时失效的心跳线程
+     * Key: tableName ; Value: 心跳线程
+     */
+    private final Map<String, RedisKeyHeartBeatThread> lockKeepThreads = new ConcurrentHashMap<>();
 
-    private ArchiveTaskLock() {
-    }
+    private final StringRedisTemplate redisTemplate;
 
-    public static ArchiveTaskLock getInstance() {
-        return ArchiveTaskLock.Inner.instance;
+    public ArchiveTaskLock(@Autowired StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
     public synchronized boolean lock(String tableName) {
@@ -64,12 +80,40 @@ public class ArchiveTaskLock {
             log.info("Acquire archive task lock successfully! tableName: {}", tableName);
             this.lastAcquireLockTimeMS = System.currentTimeMillis();
             this.locks.put(tableName, lockRequestId);
+            RedisKeyHeartBeatThread heartBeatThread =
+                startRedisKeyHeartBeatThread(tableName, archiveLockKey, lockRequestId);
+            lockKeepThreads.put(tableName, heartBeatThread);
             return true;
         }
 
     }
 
+    private RedisKeyHeartBeatThread startRedisKeyHeartBeatThread(String tableName,
+                                                                 String archiveLockKey,
+                                                                 String lockRequestId) {
+        // 开一个心跳子线程，维持锁状态不会因为超时失效
+        RedisKeyHeartBeatThread redisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
+            redisTemplate,
+            archiveLockKey,
+            lockRequestId,
+            LOCK_TIME,
+            30 * 60 * 1000L
+        );
+        redisKeyHeartBeatThread.setName("[ArchiveTask-" + tableName + "]-redisKeyHeartBeatThread");
+        redisKeyHeartBeatThread.start();
+        return redisKeyHeartBeatThread;
+    }
+
+    private void stopRedisKeyHeartBeatThread(String tableName) {
+        RedisKeyHeartBeatThread heartBeatThread = lockKeepThreads.get(tableName);
+        heartBeatThread.stopAtOnce();
+        lockKeepThreads.remove(tableName);
+    }
+
     public synchronized void unlock(String tableName, String lockRequestId) {
+        // 先停止分布式锁维持线程
+        stopRedisKeyHeartBeatThread(tableName);
+
         String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + tableName;
         LockUtils.releaseDistributedLock(archiveLockKey, lockRequestId);
         this.locks.remove(archiveLockKey);
@@ -78,19 +122,13 @@ public class ArchiveTaskLock {
     public synchronized void unlock(String tableName) {
         String lockRequestId = this.locks.get(tableName);
         if (StringUtils.isNotEmpty(lockRequestId)) {
-            String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + tableName;
-            LockUtils.releaseDistributedLock(archiveLockKey, lockRequestId);
-            this.locks.remove(archiveLockKey);
+            unlock(tableName, lockRequestId);
         }
     }
 
     public void unlockAll() {
         this.locks.forEach(this::unlock);
         this.locks.clear();
-    }
-
-    private static class Inner {
-        private static final ArchiveTaskLock instance = new ArchiveTaskLock();
     }
 
 }
