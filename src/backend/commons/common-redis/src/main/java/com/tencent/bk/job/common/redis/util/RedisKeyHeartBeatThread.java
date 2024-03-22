@@ -53,6 +53,7 @@ public class RedisKeyHeartBeatThread extends Thread {
     public void stopAtOnce() {
         setRunFlag(false);
         redisTemplate.delete(redisKey);
+        interrupt();
     }
 
     public void setRunFlag(boolean runFlag) {

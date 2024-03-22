@@ -29,9 +29,7 @@ import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.UUID;
@@ -85,8 +83,8 @@ public class ArchiveTaskLock {
     }
 
     private void startRedisKeyHeartBeatThread(String tableName,
-                                                                 String archiveLockKey,
-                                                                 String lockRequestId) {
+                                              String archiveLockKey,
+                                              String lockRequestId) {
         // 开一个心跳子线程，维持锁状态不会因为超时失效
         RedisKeyHeartBeatThread redisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
             redisTemplate,
@@ -98,6 +96,7 @@ public class ArchiveTaskLock {
         redisKeyHeartBeatThread.setName("[ArchiveTask-" + tableName + "]-redisKeyHeartBeatThread");
         lockKeepThreads.put(tableName, redisKeyHeartBeatThread);
 
+        log.info("Start redis key heart beat thread for ArchiveTask:{}", tableName);
         redisKeyHeartBeatThread.start();
     }
 
@@ -107,6 +106,7 @@ public class ArchiveTaskLock {
             log.error("RedisKeyHeartBeatThread for table {} not exist", tableName);
             return;
         }
+        log.info("Stop redis key heart beat thread for ArchiveTask:{}", tableName);
         heartBeatThread.stopAtOnce();
         lockKeepThreads.remove(tableName);
     }
