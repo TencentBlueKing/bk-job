@@ -38,7 +38,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Component
 public class ArchiveTaskLock {
     private final String ARCHIVE_LOCK_KEY_PREFIX = "JOB_EXECUTE_LOG_ARCHIVE_LOCK";
     /**
@@ -63,7 +62,7 @@ public class ArchiveTaskLock {
 
     private final StringRedisTemplate redisTemplate;
 
-    public ArchiveTaskLock(@Autowired StringRedisTemplate redisTemplate) {
+    public ArchiveTaskLock(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -80,15 +79,12 @@ public class ArchiveTaskLock {
             log.info("Acquire archive task lock successfully! tableName: {}", tableName);
             this.lastAcquireLockTimeMS = System.currentTimeMillis();
             this.locks.put(tableName, lockRequestId);
-            RedisKeyHeartBeatThread heartBeatThread =
-                startRedisKeyHeartBeatThread(tableName, archiveLockKey, lockRequestId);
-            lockKeepThreads.put(tableName, heartBeatThread);
+            startRedisKeyHeartBeatThread(tableName, archiveLockKey, lockRequestId);
             return true;
         }
-
     }
 
-    private RedisKeyHeartBeatThread startRedisKeyHeartBeatThread(String tableName,
+    private void startRedisKeyHeartBeatThread(String tableName,
                                                                  String archiveLockKey,
                                                                  String lockRequestId) {
         // 开一个心跳子线程，维持锁状态不会因为超时失效
@@ -100,12 +96,17 @@ public class ArchiveTaskLock {
             30 * 60 * 1000L
         );
         redisKeyHeartBeatThread.setName("[ArchiveTask-" + tableName + "]-redisKeyHeartBeatThread");
+        lockKeepThreads.put(tableName, redisKeyHeartBeatThread);
+
         redisKeyHeartBeatThread.start();
-        return redisKeyHeartBeatThread;
     }
 
     private void stopRedisKeyHeartBeatThread(String tableName) {
         RedisKeyHeartBeatThread heartBeatThread = lockKeepThreads.get(tableName);
+        if (heartBeatThread == null) {
+            log.error("RedisKeyHeartBeatThread for table {} not exist", tableName);
+            return;
+        }
         heartBeatThread.stopAtOnce();
         lockKeepThreads.remove(tableName);
     }
