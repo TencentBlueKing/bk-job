@@ -92,10 +92,13 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     private ArchiveSummary archiveSummary;
     private boolean isAcquireLock;
 
+    private ArchiveTaskLock archiveTaskLock;
+
     public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
                              ExecuteArchiveDAO executeArchiveDAO,
                              ArchiveProgressService archiveProgressService,
                              ArchiveDBProperties archiveDBProperties,
+                             ArchiveTaskLock archiveTaskLock,
                              Long maxNeedArchiveId,
                              CountDownLatch countDownLatch) {
         this.executeRecordDAO = executeRecordDAO;
@@ -108,6 +111,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         this.countDownLatch = countDownLatch;
         this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
         this.archiveSummary = new ArchiveSummary(this.tableName);
+        this.archiveTaskLock = archiveTaskLock;
     }
 
     public void archive() {
@@ -149,19 +153,19 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             archiveSummary.setArchiveMode(archiveDBProperties.getMode());
             storeArchiveSummary();
             if (this.isAcquireLock) {
-                ArchiveTaskLock.getInstance().unlock(tableName);
+                archiveTaskLock.unlock(tableName);
             }
             countDownLatch.countDown();
         }
     }
 
-    private boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
+    protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
         return archiveDBProperties.isEnabled()
             && ArchiveModeEnum.BACKUP_THEN_DELETE == ArchiveModeEnum.valOf(archiveDBProperties.getMode());
     }
 
     private boolean acquireLock() {
-        this.isAcquireLock = ArchiveTaskLock.getInstance().lock(tableName);
+        this.isAcquireLock = archiveTaskLock.lock(tableName);
         archiveSummary.setSkip(!isAcquireLock);
         if (!isAcquireLock) {
             log.info("[{}] Acquire lock fail", tableName);
