@@ -43,4 +43,21 @@ public class ThreadUtils {
             log.warn("Caught InterruptedException", e);
         }
     }
+
+
+    /**
+     * 线程sleep
+     *
+     * @param sleepInMills   sleep时间
+     * @param logInterrupted 是否输出线程打断的错误日志
+     */
+    public static void sleep(long sleepInMills, boolean logInterrupted) {
+        try {
+            Thread.sleep(sleepInMills);
+        } catch (InterruptedException e) {
+            if (logInterrupted) {
+                log.warn("Caught InterruptedException", e);
+            }
+        }
+    }
 }
