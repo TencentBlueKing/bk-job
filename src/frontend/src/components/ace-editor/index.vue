@@ -572,7 +572,7 @@
        */
       pushLocalStorage(type = I18n.t('自动保存')) {
         // 当前脚本内容为空不缓存
-        if (!this.value) {
+        if (!this.content) {
           return;
         }
         // eslint-disable-next-line max-len
@@ -694,6 +694,7 @@
        */
       handleSaveHistory: _.debounce(function () {
         this.pushLocalStorage(I18n.t('手动保存'));
+        this.messageSuccess(I18n.t('已成功保存到历史缓存！'));
         this.handleShowHistory();
       }, 300),
       /**
