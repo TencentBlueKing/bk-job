@@ -86,9 +86,10 @@ public class ArchiveTaskLock {
                                               String archiveLockKey,
                                               String lockRequestId) {
         // 开一个心跳子线程，维持锁状态不会因为超时失效
+        String realArchiveLockKey = LockUtils.LOCK_KEY_PREFIX + archiveLockKey;
         RedisKeyHeartBeatThread redisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
             redisTemplate,
-            archiveLockKey,
+            realArchiveLockKey,
             lockRequestId,
             LOCK_TIME,
             30 * 60 * 1000L
