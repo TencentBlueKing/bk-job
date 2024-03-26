@@ -222,7 +222,7 @@ if (apiExecuteStep) {
       context.scopeType = data.scopeType;
       context.scopeId = data.scopeId;
     }),
-    (context) => {
+    () => {
       window.BKApp.$router.replace({
         name: 'historyStep',
         params: {

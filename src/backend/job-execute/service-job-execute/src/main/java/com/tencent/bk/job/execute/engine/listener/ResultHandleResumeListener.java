@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
@@ -40,14 +41,14 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -89,9 +90,9 @@ public class ResultHandleResumeListener {
 
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
 
-    private final ScriptAgentTaskService scriptAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
-    private final FileAgentTaskService fileAgentTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
 
     private final StepInstanceService stepInstanceService;
     private final GseClient gseClient;
@@ -107,8 +108,8 @@ public class ResultHandleResumeListener {
                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                      ScriptAgentTaskService scriptAgentTaskService,
-                                      FileAgentTaskService fileAgentTaskService,
+                                      ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                      FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
                                       GseClient gseClient) {
         this.taskInstanceService = taskInstanceService;
@@ -121,8 +122,8 @@ public class ResultHandleResumeListener {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
     }
@@ -139,7 +140,7 @@ public class ResultHandleResumeListener {
             : UUID.randomUUID().toString();
 
         try {
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
             if (!checkIsTaskResumeable(stepInstance, gseTask)) {
@@ -170,11 +171,13 @@ public class ResultHandleResumeListener {
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                   GseTaskDTO gseTask,
                                   String requestId) {
-        Map<String, AgentTaskDTO> agentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = scriptAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        agentTasks.stream()
-            .filter(agentTask -> !agentTask.isAgentIdEmpty())
-            .forEach(agentTask -> agentTaskMap.put(agentTask.getAgentId(), agentTask));
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> executeObjectTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> executeObjectTasks
+            = scriptExecuteObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        executeObjectTasks.stream()
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .forEach(executeObjectTask -> executeObjectTaskMap.put(
+                executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
             taskInstanceService,
@@ -185,16 +188,16 @@ public class ResultHandleResumeListener {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
-            scriptAgentTaskService,
+            scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
-            agentTaskMap,
+            executeObjectTaskMap,
             gseTask,
             requestId,
-            agentTasks);
+            executeObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -209,16 +212,19 @@ public class ResultHandleResumeListener {
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());
 
-        Map<String, AgentTaskDTO> sourceAgentTaskMap = new HashMap<>();
-        Map<String, AgentTaskDTO> targetAgentTaskMap = new HashMap<>();
-        List<AgentTaskDTO> agentTasks = fileAgentTaskService.listAgentTasksByGseTaskId(gseTask.getId());
-        agentTasks.stream()
-            .filter(agentTask -> !agentTask.isAgentIdEmpty())
-            .forEach(agentTask -> {
-                if (agentTask.isTarget()) {
-                    targetAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> sourceAgentTaskMap = new HashMap<>();
+        Map<ExecuteObjectGseKey, ExecuteObjectTask> targetAgentTaskMap = new HashMap<>();
+        List<ExecuteObjectTask> executeObjectTasks
+            = fileExecuteObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
+        executeObjectTasks.stream()
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .forEach(executeObjectTask -> {
+                if (executeObjectTask.isTarget()) {
+                    targetAgentTaskMap.put(
+                        executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask);
                 } else {
-                    sourceAgentTaskMap.put(agentTask.getAgentId(), agentTask);
+                    sourceAgentTaskMap.put(
+                        executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask);
                 }
             });
 
@@ -231,7 +237,7 @@ public class ResultHandleResumeListener {
             taskExecuteMQEventDispatcher,
             resultHandleTaskKeepaliveManager,
             taskEvictPolicyExecutor,
-            fileAgentTaskService,
+            fileExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
             taskInstance,
@@ -242,7 +248,7 @@ public class ResultHandleResumeListener {
             gseTask,
             srcAndDestMap,
             requestId,
-            agentTasks);
+            executeObjectTasks);
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

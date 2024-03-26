@@ -25,11 +25,20 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
+import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * 步骤实例
@@ -82,10 +91,8 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
 
     /**
      * 执行脚本的类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)
-     *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
      */
-    private Integer scriptType;
+    private ScriptTypeEnum scriptType;
     /**
      * 执行脚本的执行参数
      */
@@ -169,7 +176,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.totalTime = stepInstanceBase.totalTime;
         this.createTime = stepInstanceBase.createTime;
         this.ignoreError = stepInstanceBase.ignoreError;
-        this.targetServers = stepInstanceBase.targetServers;
+        this.targetExecuteObjects = stepInstanceBase.targetExecuteObjects;
         this.rollingConfigId = stepInstanceBase.rollingConfigId;
         this.batch = stepInstanceBase.getBatch();
     }
@@ -223,5 +230,83 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.confirmUsers = confirmStepInstance.getConfirmUsers();
         this.confirmRoles = confirmStepInstance.getConfirmRoles();
         this.notifyChannels = confirmStepInstance.getNotifyChannels();
+    }
+
+
+    public List<Container> extractStaticContainerList() {
+        if (targetExecuteObjects == null) {
+            return Collections.emptyList();
+        }
+
+        List<Container> containers = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(targetExecuteObjects.getStaticContainerList())) {
+            containers.addAll(targetExecuteObjects.getStaticContainerList());
+        }
+        if (isFileStep()) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                ExecuteTargetDTO executeTargetDTO = fileSource.getServers();
+                if (executeTargetDTO != null
+                    && CollectionUtils.isNotEmpty(executeTargetDTO.getStaticContainerList())) {
+                    containers.addAll(executeTargetDTO.getStaticContainerList());
+                }
+            }
+        }
+        return containers;
+    }
+
+    public Set<HostDTO> extractAllHosts() {
+        if (targetExecuteObjects == null) {
+            return Collections.emptySet();
+        }
+
+        Set<HostDTO> hosts = new HashSet<>(targetExecuteObjects.getHostsCompatibly());
+
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            fileSourceList.forEach(fileSource -> {
+                if (fileSource.getServers() != null) {
+                    List<HostDTO> fileSourceHosts = fileSource.getServers().getHostsCompatibly();
+                    if (CollectionUtils.isNotEmpty(fileSourceHosts)) {
+                        hosts.addAll(fileSourceHosts);
+                    }
+                }
+            });
+        }
+        return hosts;
+    }
+
+    /**
+     * 步骤包含的执行对象 ExecuteObjectsDTO 的最终处理
+     *
+     * @param isSupportExecuteObjectFeature 是否执行执行对象特性
+     */
+    public void buildStepFinalExecuteObjects(boolean isSupportExecuteObjectFeature) {
+        if (targetExecuteObjects != null) {
+            targetExecuteObjects.buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+        }
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            fileSourceList.forEach(fileSource -> {
+                if (fileSource.getServers() != null) {
+                    fileSource.getServers().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
+                }
+            });
+        }
+    }
+
+    /**
+     * 遍历步骤实例包含的所有执行目标（执行目标+文件分发源执行目标）
+     * @param consumer
+     */
+    public void forEachExecuteObjects(Consumer<ExecuteTargetDTO> consumer) {
+        if (targetExecuteObjects != null) {
+            consumer.accept(targetExecuteObjects);
+        }
+        if (isFileStep()) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                ExecuteTargetDTO fileSourceExecuteObjects = fileSource.getServers();
+                if (fileSourceExecuteObjects != null) {
+                    consumer.accept(fileSourceExecuteObjects);
+                }
+            }
+        }
     }
 }

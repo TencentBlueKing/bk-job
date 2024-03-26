@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.manager.script.check.checker;
 
-import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;

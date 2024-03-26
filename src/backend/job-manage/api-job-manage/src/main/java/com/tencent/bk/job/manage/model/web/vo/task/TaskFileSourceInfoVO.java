@@ -88,7 +88,7 @@ public class TaskFileSourceInfoVO {
                         throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                     }
                 }
-                host.validate(isCreate);
+                host.validate();
                 if (account == null || account <= 0) {
                     log.warn("Invalid host account!");
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

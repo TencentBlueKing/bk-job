@@ -31,10 +31,13 @@ export default class TaskHostNode {
       dynamicGroupList,
       hostList,
       nodeList,
+      containerList,
     } = hostNodeInfo;
+
     return dynamicGroupList.length < 1
             && hostList.length < 1
-            && nodeList.length < 1;
+            && nodeList.length < 1
+            && containerList.length < 1;
   }
 
   constructor(payload = {}) {
@@ -43,16 +46,7 @@ export default class TaskHostNode {
   }
 
   get isEmpty() {
-    const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
-    } = this.hostNodeInfo;
-
-    return !this.variable
-            && dynamicGroupList.length < 1
-            && hostList.length < 1
-            && nodeList.length < 1;
+    return !this.variable && TaskHostNode.isHostNodeInfoEmpty(this.hostNodeInfo);
   }
 
   get text() {
@@ -79,12 +73,14 @@ export default class TaskHostNode {
       hostList,
       dynamicGroupList,
       nodeList,
+      containerList,
     } = hostNodeInfo;
 
     return Object.freeze({
       hostList: hostList || [],
       dynamicGroupList: dynamicGroupList || [],
       nodeList: nodeList || [],
+      containerList: containerList || [],
     });
   }
 }

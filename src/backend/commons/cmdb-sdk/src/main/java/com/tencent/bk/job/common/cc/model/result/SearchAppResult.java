@@ -29,5 +29,5 @@ import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 /**
  * @date 2019/2/28
  */
-public class SearchAppResult extends AbstractCcSearchResult<BusinessInfoDTO> {
+public class SearchAppResult extends BaseCcSearchResult<BusinessInfoDTO> {
 }

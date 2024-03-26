@@ -43,14 +43,17 @@ import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 
 @Service
+@Slf4j
 public class CredentialServiceImpl implements CredentialService {
 
     private final CredentialDAO credentialDAO;
@@ -89,6 +92,7 @@ public class CredentialServiceImpl implements CredentialService {
         ),
         content = EventContentConstants.CREATE_TICKET
     )
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
         authCreateTicket(username, appId);
 
@@ -96,7 +100,10 @@ public class CredentialServiceImpl implements CredentialService {
         credentialDTO.setCreator(username);
         credentialDTO.setCreateTime(credentialDTO.getLastModifyTime());
         String id = credentialDAO.insertCredential(credentialDTO);
-
+        Boolean registerResult = ticketAuthService.registerTicket(username, id, createUpdateReq.getName());
+        if (!registerResult) {
+            log.warn("Fail to register ticket to iam:({},{})", id, createUpdateReq.getName());
+        }
         return getCredentialById(id);
     }
 

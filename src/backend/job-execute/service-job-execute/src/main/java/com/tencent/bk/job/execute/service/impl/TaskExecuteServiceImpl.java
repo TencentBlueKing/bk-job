@@ -39,12 +39,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
-import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -52,24 +46,17 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
-import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
-import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -84,21 +71,20 @@ import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -108,18 +94,17 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalStepDTO;
@@ -138,7 +123,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -166,20 +150,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final TaskPlanService taskPlanService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final AgentStateClient preferV2AgentStateClient;
     private final TaskOperationLogService taskOperationLogService;
     private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
-    private final HostService hostService;
     private final ServiceUserResource userResource;
     private final ExecuteAuthService executeAuthService;
     private final DangerousScriptCheckService dangerousScriptCheckService;
     private final RollingConfigService rollingConfigService;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-    private final AppScopeMappingService appScopeMappingService;
-    private final WhiteHostCache whiteHostCache;
     private final ServiceTaskTemplateResource taskTemplateResource;
+    private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -189,40 +170,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                   TaskPlanService taskPlanService,
                                   TaskInstanceVariableService taskInstanceVariableService,
-                                  @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
-                                      AgentStateClient preferV2AgentStateClient,
                                   TaskOperationLogService taskOperationLogService,
                                   ScriptService scriptService,
                                   StepInstanceService stepInstanceService,
-                                  HostService hostService,
                                   ServiceUserResource userResource,
                                   ExecuteAuthService executeAuthService,
                                   DangerousScriptCheckService dangerousScriptCheckService,
                                   JobExecuteConfig jobExecuteConfig,
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   RollingConfigService rollingConfigService,
-                                  AppScopeMappingService appScopeMappingService,
-                                  WhiteHostCache whiteHostCache,
-                                  ServiceTaskTemplateResource taskTemplateResource) {
+                                  ServiceTaskTemplateResource taskTemplateResource,
+                                  TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.taskPlanService = taskPlanService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.preferV2AgentStateClient = preferV2AgentStateClient;
         this.taskOperationLogService = taskOperationLogService;
         this.scriptService = scriptService;
         this.stepInstanceService = stepInstanceService;
-        this.hostService = hostService;
         this.userResource = userResource;
         this.executeAuthService = executeAuthService;
         this.dangerousScriptCheckService = dangerousScriptCheckService;
         this.rollingConfigService = rollingConfigService;
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.appScopeMappingService = appScopeMappingService;
-        this.whiteHostCache = whiteHostCache;
         this.taskTemplateResource = taskTemplateResource;
+        this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
     }
 
     @Override
@@ -283,31 +257,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
             watch.stop();
 
-            // 获取主机
-            watch.start("acquireAndSetHosts");
-            ServiceListAppHostResultDTO hosts =
-                acquireAndSetHosts(taskInstance, Collections.singletonList(stepInstance), null);
+            // 处理执行对象
+            watch.start("processExecuteObjects");
+            TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+                taskInstanceExecuteObjectProcessor.processExecuteObjects(taskInstance,
+                    Collections.singletonList(stepInstance), null);
             watch.stop();
 
-            // 获取主机白名单
-            watch.start("getHostAllowedActions");
-            Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInstance.getAppId(),
-                ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-            watch.stop();
-
-            //检查主机
-            watch.start("checkHosts");
-            checkHosts(Collections.singletonList(stepInstance), hosts, hostAllowActions);
-            watch.stop();
-
-            // 检查步骤约束
-            watch.start("checkStepInstanceConstraint");
-            checkStepInstanceConstraint(taskInstance, Collections.singletonList(stepInstance));
+            // 检查步骤
+            watch.start("checkStepInstance");
+            checkStepInstance(taskInstance, Collections.singletonList(stepInstance));
             watch.stop();
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(taskInstance, stepInstance, hostAllowActions);
+            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
             watch.stop();
 
             // 保存作业
@@ -319,7 +283,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.stop();
 
             // 审计
-            Set<HostDTO> allHosts = extractHosts(Collections.singletonList(stepInstance), null);
+            Set<HostDTO> allHosts = taskInstanceExecuteObjectProcessor.extractHosts(
+                Collections.singletonList(stepInstance), null);
             taskInstance.setAllHosts(allHosts);
             auditFastJobExecute(taskInstance);
 
@@ -345,7 +310,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setTaskInstanceId(taskInstanceId);
         stepInstance.setStepNum(1);
         stepInstance.setStepOrder(1);
-        long stepInstanceId = taskInstanceService.addStepInstance(stepInstance);
+        long stepInstanceId = stepInstanceService.addStepInstance(stepInstance);
         stepInstance.setId(stepInstanceId);
         taskInstance.setStepInstances(Collections.singletonList(stepInstance));
         watch.stop();
@@ -369,25 +334,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
         watch.stop();
-    }
-
-    /**
-     * @param appId 业务ID
-     * @param hosts 主机列表
-     * @return key=hostId, value: 允许的操作列表
-     */
-    private Map<Long, List<String>> getHostAllowedActions(long appId, Collection<HostDTO> hosts) {
-        Map<Long, List<String>> hostAllowActionsMap = new HashMap<>();
-        if (CollectionUtils.isEmpty(hosts)) {
-            return hostAllowActionsMap;
-        }
-        for (HostDTO host : hosts) {
-            List<String> allowActions = whiteHostCache.getHostAllowedAction(appId, host.getHostId());
-            if (CollectionUtils.isNotEmpty(allowActions)) {
-                hostAllowActionsMap.put(host.getHostId(), allowActions);
-            }
-        }
-        return hostAllowActionsMap;
     }
 
     private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
@@ -438,7 +384,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void saveTaskInstanceHosts(long taskInstanceId,
                                        List<StepInstanceDTO> stepInstanceList) {
-        Set<HostDTO> stepHosts = extractHosts(stepInstanceList, null);
+        Set<HostDTO> stepHosts = taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null);
         saveTaskInstanceHosts(taskInstanceId, stepHosts);
     }
 
@@ -466,7 +412,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,
                                         Long appId) throws ServiceException {
-        if (stepInstance.getExecuteType().equals(EXECUTE_SQL.getValue())) {
+        if (stepInstance.getExecuteType() == EXECUTE_SQL) {
             checkAndSetDbAccountInfo(stepInstance);
         } else {
             checkAndSetOsAccountInfo(stepInstance, appId);
@@ -558,8 +504,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private void checkAndSetScript(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
-        if (stepInstance.getExecuteType().equals(EXECUTE_SCRIPT.getValue())
-            || stepInstance.getExecuteType().equals(EXECUTE_SQL.getValue())) {
+        if (stepInstance.isScriptStep()) {
             boolean isScriptSpecifiedById = false;
             Long scriptVersionId = stepInstance.getScriptVersionId();
             if (scriptVersionId != null && scriptVersionId > 0) {
@@ -581,7 +526,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 }
                 stepInstance.setScriptContent(script.getContent());
                 stepInstance.setScriptName(script.getName());
-                stepInstance.setScriptType(script.getType());
+                stepInstance.setScriptType(ScriptTypeEnum.valOf(script.getType()));
                 if (script.isPublicScript()) {
                     stepInstance.setScriptSource(ScriptSourceEnum.QUOTED_PUBLIC.getValue());
                 } else {
@@ -625,9 +570,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (!stepInstance.isScriptStep()) {
             return;
         }
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(stepInstance.getScriptType());
+
         String content = stepInstance.getScriptContent();
-        List<ServiceScriptCheckResultItemDTO> checkResultItems = dangerousScriptCheckService.check(scriptType, content);
+        List<ServiceScriptCheckResultItemDTO> checkResultItems =
+            dangerousScriptCheckService.check(stepInstance.getScriptType(), content);
         if (CollectionUtils.isNotEmpty(checkResultItems)) {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
@@ -670,41 +616,38 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Long appId = taskInstance.getAppId();
         String username = taskInstance.getOperator();
         Long accountId = null;
-        if (StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue().equals(stepInstance.getExecuteType())) {
+        if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
-        } else if (StepExecuteTypeEnum.EXECUTE_SQL.getValue().equals(stepInstance.getExecuteType())) {
+        } else if (StepExecuteTypeEnum.EXECUTE_SQL == stepInstance.getExecuteType()) {
             accountId = stepInstance.getDbAccountId();
         }
         if (accountId == null) {
             return AuthResult.fail();
         }
 
-        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username, new AppResourceScope(appId)
-            , accountId);
+        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username,
+            new AppResourceScope(appId), accountId);
 
         AuthResult serverAuthResult;
-        ServersDTO servers = stepInstance.getTargetServers().clone();
-        filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, servers, whiteHostAllowActions);
-        if (servers.isEmpty()) {
-            // 如果主机为空，无需对主机进行鉴权
+        ExecuteTargetDTO executeObjects = stepInstance.getTargetExecuteObjects().clone();
+        filterHostsDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, executeObjects, whiteHostAllowActions);
+        if (executeObjects.isEmpty()) {
+            // 如果执行对象为空，无需进一步鉴权
             return accountAuthResult;
         }
         ScriptSourceEnum scriptSource = ScriptSourceEnum.getScriptSourceEnum(stepInstance.getScriptSource());
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
-
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                username, new AppResourceScope(appId), servers);
+                username, new AppResourceScope(appId), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
-
             serverAuthResult = executeAuthService.authExecuteAppScript(
                 username, new AppResourceScope(appId), stepInstance.getScriptId(),
-                stepInstance.getScriptName(), servers);
+                stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
-
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId()
-                , stepInstance.getScriptName(), servers);
+                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                stepInstance.getScriptName(), executeObjects);
         } else {
             serverAuthResult = AuthResult.fail();
         }
@@ -712,17 +655,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
 
-    /*
+    /**
      * 过滤掉主机白名单的机器
      */
-    private void filterServerDoNotRequireAuth(ActionScopeEnum action,
-                                              ServersDTO servers,
-                                              Map<Long, List<String>> whiteHostAllowActions) {
+    private void filterHostsDoNotRequireAuth(ActionScopeEnum action,
+                                             ExecuteTargetDTO executeTarget,
+                                             Map<Long, List<String>> whiteHostAllowActions) {
         if (whiteHostAllowActions == null || whiteHostAllowActions.isEmpty()) {
             return;
         }
-        if (CollectionUtils.isNotEmpty(servers.getStaticIpList())) {
-            servers.setStaticIpList(servers.getStaticIpList().stream()
+        if (CollectionUtils.isNotEmpty(executeTarget.getStaticIpList())) {
+            executeTarget.setStaticIpList(executeTarget.getStaticIpList().stream()
                 .filter(host -> {
                     List<String> allowedActions = whiteHostAllowActions.get(host.getHostId());
                     boolean skipAuth = allowedActions != null && allowedActions.contains(action.name());
@@ -750,339 +693,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
             username, new AppResourceScope(appId), accounts);
 
-        ServersDTO servers = stepInstance.getTargetServers().clone();
+        ExecuteTargetDTO executeTarget = stepInstance.getTargetExecuteObjects().clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
                 && fileSource.getServers() != null)
-            .forEach(fileSource -> servers.merge(fileSource.getServers()));
-        filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, servers, whiteHostAllowActions);
-        if (servers.isEmpty()) {
+            .forEach(fileSource -> executeTarget.merge(fileSource.getServers()));
+        filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, executeTarget, whiteHostAllowActions);
+        if (executeTarget.isEmpty()) {
             // 如果主机为空，无需对主机进行权限
             return accountAuthResult;
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
-            username, new AppResourceScope(appId), servers);
+            username, new AppResourceScope(appId), executeTarget);
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
 
-    private ServiceListAppHostResultDTO acquireAndSetHosts(TaskInstanceDTO taskInstance,
-                                                           List<StepInstanceDTO> stepInstances,
-                                                           Collection<TaskVariableDTO> variables) {
-        StopWatch watch = new StopWatch("AcquireAndSetHosts");
-        try {
-            long appId = taskInstance.getAppId();
-
-            // 提取动态分组/topo节点
-            Set<DynamicServerGroupDTO> groups = new HashSet<>();
-            Set<DynamicServerTopoNodeDTO> topoNodes = new HashSet<>();
-            stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
-            if (CollectionUtils.isNotEmpty(variables)) {
-                variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        extractDynamicGroupsAndTopoNodes(variable.getTargetServers(), groups, topoNodes);
-                    }
-                });
-            }
-
-            // 获取动态分组的主机并设置
-            fillDynamicGroupHosts(watch, appId, groups, stepInstances, variables);
-
-            // 获取topo节点的主机并设置
-            fillTopoNodeHosts(watch, appId, topoNodes, stepInstances, variables);
-
-            // 提取作业包含的主机列表
-            watch.start("extractHosts");
-            Set<HostDTO> queryHosts = extractHosts(stepInstances, variables);
-            watch.stop();
-
-            if (CollectionUtils.isEmpty(queryHosts)) {
-                return ServiceListAppHostResultDTO.EMPTY;
-            }
-
-            watch.start("batchGetAppHosts");
-            ServiceListAppHostResultDTO queryHostsResult = hostService.batchGetAppHosts(appId, queryHosts,
-                needRefreshHostBkAgentId(taskInstance));
-            watch.stop();
-
-            if (CollectionUtils.isNotEmpty(queryHostsResult.getNotExistHosts())) {
-                // 如果主机在cmdb不存在，直接报错
-                throwHostInvalidException(queryHostsResult.getNotExistHosts());
-            }
-
-            watch.start("fillTaskInstanceHostDetail");
-            fillTaskInstanceHostDetail(taskInstance, stepInstances, variables, queryHostsResult);
-            watch.stop();
-
-            return queryHostsResult;
-        } finally {
-            if (watch.isRunning()) {
-                watch.stop();
-            }
-            if (watch.getTotalTimeMillis() > 1000) {
-                log.warn("AcquireAndSetHosts slow, watch: {}", watch.prettyPrint());
-            }
-        }
-
-    }
-
-    private void fillDynamicGroupHosts(StopWatch watch,
-                                       long appId,
-                                       Set<DynamicServerGroupDTO> groups,
-                                       List<StepInstanceDTO> stepInstances,
-                                       Collection<TaskVariableDTO> variables) {
-        // 获取动态分组的主机并设置
-        if (CollectionUtils.isNotEmpty(groups)) {
-            watch.start("fillDynamicGroupHosts");
-            Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
-                hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
-            stepInstances.forEach(stepInstance -> {
-                setHostsForDynamicGroup(stepInstance.getTargetServers(), dynamicGroupHosts);
-                if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
-                    List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
-                    for (FileSourceDTO fileSource : fileSources) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && !fileSource.isLocalUpload()) {
-                            // 服务器文件的处理
-                            setHostsForDynamicGroup(servers, dynamicGroupHosts);
-                        }
-                    }
-                }
-            });
-            if (CollectionUtils.isNotEmpty(variables)) {
-                variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        setHostsForDynamicGroup(variable.getTargetServers(), dynamicGroupHosts);
-                    }
-                });
-            }
-            watch.stop();
-        }
-    }
-
-    private void fillTopoNodeHosts(StopWatch watch,
-                                   long appId,
-                                   Set<DynamicServerTopoNodeDTO> topoNodes,
-                                   List<StepInstanceDTO> stepInstances,
-                                   Collection<TaskVariableDTO> variables) {
-        if (CollectionUtils.isNotEmpty(topoNodes)) {
-            watch.start("fillTopoNodeHosts");
-            Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodeHosts =
-                hostService.getAndGroupHostsByTopoNodes(appId, topoNodes);
-            stepInstances.forEach(stepInstance -> {
-                setHostsForTopoNode(stepInstance.getTargetServers(), topoNodeHosts);
-                if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
-                    List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
-                    for (FileSourceDTO fileSource : fileSources) {
-                        ServersDTO servers = fileSource.getServers();
-                        if (servers != null && !fileSource.isLocalUpload()) {
-                            // 服务器文件的处理
-                            setHostsForTopoNode(servers, topoNodeHosts);
-                        }
-                    }
-                }
-            });
-            if (CollectionUtils.isNotEmpty(variables)) {
-                variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
-                        setHostsForTopoNode(variable.getTargetServers(), topoNodeHosts);
-                    }
-                });
-            }
-            watch.stop();
-        }
-    }
-
-    private boolean needRefreshHostBkAgentId(TaskInstanceDTO taskInstance) {
-        /*
-         * tmp: GSE Agent v1/v2 兼容期间特殊逻辑, 对于节点管理安装Agent插件的请求需要实时获取bk_agent_id。等后续只对接GSE V2 之后，
-         * 此处代码可删除。 https://github.com/Tencent/bk-job/issues/1542
-         */
-        return taskInstance.getStartupMode() == TaskStartupModeEnum.API.getValue()
-            && StringUtils.isNotEmpty(taskInstance.getAppCode())
-            && (StringUtils.equals(taskInstance.getAppCode(), "bkc-nodeman")
-            || StringUtils.equals(taskInstance.getAppCode(), "bk_nodeman"));
-    }
-
-    private void checkHosts(List<StepInstanceDTO> stepInstances,
-                            ServiceListAppHostResultDTO hosts,
-                            Map<Long, List<String>> hostAllowActions) {
-        // 检查步骤引用的主机不为空
-        stepInstances.forEach(this::checkStepInstanceHostNonEmpty);
-
-        // 判断主机是否可以被当前作业使用
-        checkHostAccessible(stepInstances, hosts.getNotInAppHosts(), hostAllowActions);
-    }
-
-    /**
-     * 判断主机是否可以被当前作业使用
-     *
-     * @param stepInstanceList      作业步骤列表
-     * @param notInAppHosts         作业中包含的不在当前业务下的主机
-     * @param whileHostAllowActions 主机白名单
-     */
-    private void checkHostAccessible(List<StepInstanceDTO> stepInstanceList,
-                                     List<HostDTO> notInAppHosts,
-                                     Map<Long, List<String>> whileHostAllowActions) {
-        if (CollectionUtils.isEmpty(notInAppHosts)) {
+    private void checkStepInstanceExecuteTargetNonEmpty(StepInstanceDTO stepInstance) {
+        if (!stepInstance.isStepContainsExecuteObject()) {
             return;
         }
-        log.info("Contains hosts not in app, check white host config. notInAppHosts: {}, whileHostAllowActions: {}",
-            notInAppHosts, whileHostAllowActions);
-        Map<Long, HostDTO> notInAppHostMap = notInAppHosts.stream()
-            .collect(Collectors.toMap(HostDTO::getHostId, host -> host));
-
-        // 非法的主机
-        Set<HostDTO> invalidHosts = new HashSet<>();
-        for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsHostProps(stepInstance)) {
-                continue;
-            }
-            TaskStepTypeEnum stepType = stepInstance.getStepType();
-            // 检查目标主机
-            stepInstance.getTargetServers().getIpList().forEach(host -> {
-                if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
-                    invalidHosts.add(host);
-                }
-            });
-            // 如果是文件分发任务，检查文件源
-            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap,
-                whileHostAllowActions);
-        }
-
-        if (CollectionUtils.isNotEmpty(invalidHosts)) {
-            // 检查是否在白名单配置
-            log.warn("Found hosts not in target app!");
-            throwHostInvalidException(invalidHosts);
-        }
-    }
-
-    private void checkFileSourceHostAccessible(Set<HostDTO> invalidHosts,
-                                               StepInstanceDTO stepInstance,
-                                               TaskStepTypeEnum stepType,
-                                               Map<Long, HostDTO> notInAppHostMap,
-                                               Map<Long, List<String>> whileHostAllowActions) {
-        if (!stepInstance.isFileStep()) {
-            return;
-        }
-        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-        if (CollectionUtils.isEmpty(fileSourceList)) {
-            return;
-        }
-        for (FileSourceDTO fileSource : fileSourceList) {
-            // 远程文件分发需要校验文件源主机;其他类型不需要
-            if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
-                ServersDTO servers = fileSource.getServers();
-                if (servers == null || CollectionUtils.isEmpty(servers.getIpList())) {
-                    continue;
-                }
-                servers.getIpList().forEach(host -> {
-                    if (isHostUnAccessible(stepType, host, notInAppHostMap, whileHostAllowActions)) {
-                        invalidHosts.add(host);
-                    }
-                });
-            }
-        }
-    }
-
-    private boolean isHostUnAccessible(TaskStepTypeEnum stepType,
-                                       HostDTO host,
-                                       Map<Long, HostDTO> notInAppHostMap,
-                                       Map<Long, List<String>> whileHostAllowActions) {
-        long hostId = host.getHostId();
-        if (!notInAppHostMap.containsKey(host.getHostId())) {
-            // 主机在当前业务下，可以使用
-            return false;
-        }
-        // 如果主机不在当前业务下，需要判断主机白名单
-        if (whileHostAllowActions == null || whileHostAllowActions.isEmpty()) {
-            return true;
-        }
-        List<String> allowActions = whileHostAllowActions.get(hostId);
-        String actionScope = (stepType == TaskStepTypeEnum.SCRIPT ?
-            ActionScopeEnum.SCRIPT_EXECUTE.name() :
-            (stepType == TaskStepTypeEnum.FILE ? ActionScopeEnum.FILE_DISTRIBUTION.name() : ""));
-        return CollectionUtils.isEmpty(allowActions) || !allowActions.contains(actionScope);
-    }
-
-
-    private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
-        // 初始化Job任务灰度对接 GSE2.0 上下文
-        FeatureExecutionContext featureExecutionContext =
-            FeatureExecutionContext.builder()
-                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
-                    appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().anyMatch(host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().allMatch(
-                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
-                    () -> TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance::getOperator);
-
-        boolean isUsingGseV2 = FeatureToggle.checkFeature(
-            FeatureIdConstants.FEATURE_GSE_V2,
-            featureExecutionContext
-        );
-        log.info("Use gse version {}", isUsingGseV2 ? "v2" : "v1");
-        return isUsingGseV2;
-    }
-
-    private void extractDynamicGroupsAndTopoNodes(StepInstanceDTO stepInstance,
-                                                  Set<DynamicServerGroupDTO> groups,
-                                                  Set<DynamicServerTopoNodeDTO> topoNodes) {
-        extractDynamicGroupsAndTopoNodes(stepInstance.getTargetServers(), groups, topoNodes);
-        if (stepInstance.getExecuteType() == TaskStepTypeEnum.FILE.getValue()) {
-            List<FileSourceDTO> fileSources = stepInstance.getFileSourceList();
-            for (FileSourceDTO fileSource : fileSources) {
-                ServersDTO servers = fileSource.getServers();
-                if (servers != null && !fileSource.isLocalUpload()) {
-                    // 服务器文件的处理
-                    extractDynamicGroupsAndTopoNodes(servers, groups, topoNodes);
-                }
-            }
-        }
-    }
-
-    private void extractDynamicGroupsAndTopoNodes(ServersDTO servers,
-                                                  Set<DynamicServerGroupDTO> groups,
-                                                  Set<DynamicServerTopoNodeDTO> topoNodes) {
-        if (servers == null) {
-            return;
-        }
-        if (CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
-            groups.addAll(servers.getDynamicServerGroups());
-        }
-        if (CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
-            topoNodes.addAll(servers.getTopoNodes());
-        }
-    }
-
-    private void setHostsForDynamicGroup(ServersDTO servers,
-                                         Map<DynamicServerGroupDTO, List<HostDTO>> groups) {
-        if (servers != null && CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
-            servers.getDynamicServerGroups().forEach(group -> group.setIpList(groups.get(group)));
-        }
-    }
-
-    private void setHostsForTopoNode(ServersDTO servers,
-                                     Map<DynamicServerTopoNodeDTO, List<HostDTO>> topoNodes) {
-        if (servers != null && CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
-            servers.getTopoNodes().forEach(topoNode -> topoNode.setIpList(topoNodes.get(topoNode)));
-        }
-    }
-
-    private void checkStepInstanceHostNonEmpty(StepInstanceDTO stepInstance) {
-        if (!isStepContainsHostProps(stepInstance)) {
-            return;
-        }
-        ServersDTO targetServers = stepInstance.getTargetServers();
-        if (targetServers == null || CollectionUtils.isEmpty(targetServers.getIpList())) {
-            log.warn("Empty target server! stepInstanceName: {}", stepInstance.getName());
-            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_HOST_EMPTY,
+        ExecuteTargetDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
+        if (targetExecuteObjects == null
+            || CollectionUtils.isEmpty(targetExecuteObjects.getExecuteObjectsCompatibly())) {
+            log.warn("Empty target execute object! stepInstanceName: {}", stepInstance.getName());
+            throw new FailedPreconditionException(ErrorCode.STEP_TARGET_EXECUTE_OBJECT_EMPTY,
                 new String[]{stepInstance.getName()});
         }
         if (stepInstance.isFileStep()) {
@@ -1090,10 +727,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             for (FileSourceDTO fileSource : fileSourceList) {
                 // 远程文件分发需要判断文件源主机是否为空
                 if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
-                    ServersDTO servers = fileSource.getServers();
-                    if (servers != null && CollectionUtils.isEmpty(servers.getIpList())) {
+                    ExecuteTargetDTO executeTarget = fileSource.getServers();
+                    if (executeTarget != null && CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
-                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_HOST_EMPTY,
+                        throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_EXECUTE_OBJECT_EMPTY,
                             new String[]{stepInstance.getName()});
                     }
                 }
@@ -1101,178 +738,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private boolean isStepContainsHostProps(StepInstanceBaseDTO stepInstance) {
-        // 判断步骤是否包含主机信息
-        return !stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue());
+    private void checkStepInstance(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+        // 检查步骤引用的执行对象不为空
+        stepInstanceList.forEach(this::checkStepInstanceExecuteTargetNonEmpty);
+        // 检查步骤的GSE原子任务上限
+        checkStepInstanceAtomicTasksLimit(taskInstance, stepInstanceList);
     }
 
-    private void fillTaskInstanceHostDetail(TaskInstanceDTO taskInstance,
-                                            List<StepInstanceDTO> stepInstanceList,
-                                            Collection<TaskVariableDTO> variables,
-                                            ServiceListAppHostResultDTO hosts) {
-
-        fillHostAgent(taskInstance, hosts);
-
-        Map<String, HostDTO> hostMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
-            hosts.getValidHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
-        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
-            hosts.getNotInAppHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
-
-        for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsHostProps(stepInstance)) {
-                continue;
-            }
-            // 目标主机设置主机详情
-            fillTargetHostDetail(stepInstance, hostMap);
-            // 文件源设置主机详情
-            fillFileSourceHostDetail(stepInstance, hostMap);
-        }
-
-        if (CollectionUtils.isNotEmpty(variables)) {
-            variables.forEach(variable -> {
-                if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    fillServersDetail(variable.getTargetServers(), hostMap);
-                }
-            });
-        }
-    }
-
-    private void fillHostAgent(TaskInstanceDTO taskInstance, ServiceListAppHostResultDTO hosts) {
-        boolean isUsingGseV2 = isUsingGseV2(taskInstance,
-            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-        /*
-         * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
-         * 按照{云区域ID:ip}的方式构造agent_id
-         */
-        Set<HostDTO> invalidAgentIdHosts = new HashSet<>();
-
-        if (CollectionUtils.isNotEmpty(hosts.getValidHosts())) {
-            hosts.getValidHosts().forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
-        }
-
-        if (CollectionUtils.isNotEmpty(hosts.getNotInAppHosts())) {
-            hosts.getNotInAppHosts().forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
-        }
-
-        if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
-            // 如果存在主机没有agentID，不影响影响整个任务的执行。所以这里仅输出日志，不拦截整个任务的执行。后续执行代码会处理`主机没有agentId`的情况
-            log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
-                taskInstance.getAppId(), isUsingGseV2, invalidAgentIdHosts);
-        }
-
-        setAgentStatus(hosts.getValidHosts());
-        setAgentStatus(hosts.getNotInAppHosts());
-    }
-
-    private void setHostAgentId(boolean isUsingGseV2, HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
-        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
-        if (!isUsingGseV2) {
-            host.setAgentId(host.toCloudIp());
-        }
-        if (StringUtils.isBlank(host.getAgentId())) {
-            invalidAgentIdHosts.add(host);
-        }
-    }
-
-    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        fillServersDetail(stepInstance.getTargetServers(), hostMap);
-    }
-
-    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-            List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-            if (fileSourceList != null) {
-                for (FileSourceDTO fileSource : fileSourceList) {
-                    fillServersDetail(fileSource.getServers(), hostMap);
-                }
-            }
-        }
-    }
-
-    private void fillServersDetail(ServersDTO servers, Map<String, HostDTO> hostMap) {
-        if (servers != null) {
-            fillHostsDetail(servers.getStaticIpList(), hostMap);
-            if (CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
-                servers.getDynamicServerGroups().forEach(group -> fillHostsDetail(group.getIpList(), hostMap));
-            }
-            if (CollectionUtils.isNotEmpty(servers.getTopoNodes())) {
-                servers.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
-            }
-            servers.setIpList(servers.extractHosts());
-        }
-    }
-
-    private void fillHostsDetail(Collection<HostDTO> hosts, Map<String, HostDTO> hostMap) {
-        if (CollectionUtils.isNotEmpty(hosts)) {
-            hosts.forEach(host -> {
-                HostDTO hostDetail;
-                if (host.getHostId() != null) {
-                    hostDetail = hostMap.get("hostId:" + host.getHostId());
-                } else {
-                    hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
-                }
-                host.updateByHost(hostDetail);
-            });
-        }
-    }
-
-    private Set<HostDTO> extractHosts(List<StepInstanceDTO> stepInstanceList,
-                                      Collection<TaskVariableDTO> variables) {
-        Set<HostDTO> hosts = new HashSet<>();
-        for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (!isStepContainsHostProps(stepInstance)) {
-                continue;
-            }
-            if (stepInstance.getTargetServers() != null) {
-                hosts.addAll(stepInstance.getTargetServers().extractHosts());
-            }
-            if (stepInstance.getExecuteType().equals(SEND_FILE.getValue())) {
-                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-                if (fileSourceList != null) {
-                    for (FileSourceDTO fileSource : fileSourceList) {
-                        if (fileSource.getServers() != null) {
-                            hosts.addAll(fileSource.getServers().extractHosts());
-                        }
-                    }
-                }
-            }
-        }
-        if (CollectionUtils.isNotEmpty(variables)) {
-            variables.stream()
-                .filter(variable -> variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
-                    && variable.getTargetServers() != null)
-                .forEach(variable -> hosts.addAll(variable.getTargetServers().extractHosts()));
-        }
-        return hosts;
-    }
-
-
-    private void throwHostInvalidException(Collection<HostDTO> invalidHosts) {
-        String hostListStr = StringUtils.join(invalidHosts.stream()
-            .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
-        log.warn("The following hosts are invalid, hosts={}", invalidHosts);
-        throw new FailedPreconditionException(ErrorCode.HOST_INVALID, new Object[]{invalidHosts.size(), hostListStr});
-    }
-
-    private String printHostIdOrIp(HostDTO host) {
-        if (StringUtils.isNotBlank(host.getPrimaryIp())) {
-            // 优先使用ip，可读性更好
-            return "(ip:" + host.getPrimaryIp() + ")";
-        } else {
-            return "(host_id:" + host.getHostId() + ")";
-        }
-    }
-
-    private void checkStepInstanceConstraint(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstanceList) {
+    private void checkStepInstanceAtomicTasksLimit(TaskInstanceDTO taskInstance,
+                                                   List<StepInstanceDTO> stepInstanceList) {
         String appCode = taskInstance.getAppCode();
         Long appId = taskInstance.getAppId();
         String taskName = taskInstance.getName();
@@ -1280,13 +754,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             String operator = stepInstance.getOperator();
             if (stepInstance.isFileStep()) {
-                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
                 int totalSourceFileSize = 0;
                 for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
                     int sourceServerSize = 1;
                     Integer fileType = fileSource.getFileType();
                     if (fileType == TaskFileTypeEnum.SERVER.getType() && fileSource.getServers() != null) {
-                        sourceServerSize = CollectionUtils.size(fileSource.getServers().getIpList());
+                        sourceServerSize = CollectionUtils.size(fileSource.getServers().getExecuteObjectsCompatibly());
                     }
                     int sourceFileSize = CollectionUtils.size(fileSource.getFiles());
                     totalSourceFileSize += sourceServerSize * sourceFileSize;
@@ -1305,7 +779,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
-                int targetServerSize = stepInstance.getTargetServerTotalCount();
+                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
                 if (targetServerSize > 10000) {
                     TASK_MONITOR_LOGGER.info("LargeTask|type:script|taskName:{}|appCode:{}|appId:{}|operator:{}"
                             + "|targetServerSize:{}",
@@ -1329,7 +803,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         long taskInstanceId = taskInstance.getId();
         if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
-            StepInstanceDTO originStepInstance = taskInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
+            StepInstanceDTO originStepInstance = stepInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {
                 log.error("Rode task is not exist, taskInstanceId: {}", taskInstanceId);
                 throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
@@ -1400,32 +874,22 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
             watch.stop();
 
-            // 获取主机列表
-            watch.start("acquireAndSetHosts");
-            ServiceListAppHostResultDTO hosts =
-                acquireAndSetHosts(taskInstance, stepInstanceList, finalVariableValueMap.values());
+            // 处理执行对象
+            watch.start("processExecuteObjects");
+            TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+                taskInstanceExecuteObjectProcessor.processExecuteObjects(taskInstance, stepInstanceList,
+                    finalVariableValueMap.values());
             watch.stop();
 
-            // 获取主机白名单
-            watch.start("getHostAllowedActions");
-            Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInstance.getAppId(),
-                ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-            watch.stop();
-
-            //检查主机
-            watch.start("checkHosts");
-            checkHosts(stepInstanceList, hosts, hostAllowActions);
-            watch.stop();
-
-            // 检查步骤约束
-            watch.start("checkStepInstanceConstraint");
-            checkStepInstanceConstraint(taskInstance, stepInstanceList);
+            // 检查步骤
+            watch.start("checkStepInstance");
+            checkStepInstance(taskInstance, stepInstanceList);
             watch.stop();
 
             if (!executeParam.isSkipAuth()) {
                 watch.start("auth-execute-job");
                 authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), jobPlan, stepInstanceList,
-                    hostAllowActions);
+                    taskInstanceExecuteObjects.getWhiteHostAllowActions());
                 watch.stop();
             }
 
@@ -1434,7 +898,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
             watch.stop();
 
-            Set<HostDTO> allHosts = extractHosts(taskInstance.getStepInstances(), null);
+            Set<HostDTO> allHosts = taskInstanceExecuteObjectProcessor.extractHosts(
+                taskInstance.getStepInstances(), null);
             taskInstance.setAllHosts(allHosts);
 
             // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
@@ -1465,9 +930,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void standardizeStepDynamicGroupId(List<StepInstanceDTO> stepInstanceList) {
         for (StepInstanceDTO stepInstance : stepInstanceList) {
-            if (stepInstance.getTargetServers() != null
-                && CollectionUtils.isNotEmpty(stepInstance.getTargetServers().getDynamicServerGroups())) {
-                standardizeServerDynamicGroupId(stepInstance.getTargetServers());
+            if (stepInstance.getTargetExecuteObjects() != null
+                && CollectionUtils.isNotEmpty(stepInstance.getTargetExecuteObjects().getDynamicServerGroups())) {
+                standardizeServerDynamicGroupId(stepInstance.getTargetExecuteObjects());
             }
             if (CollectionUtils.isNotEmpty(stepInstance.getFileSourceList())) {
                 for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
@@ -1480,16 +945,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void standardizeServerDynamicGroupId(ServersDTO servers) {
-        if (servers != null && CollectionUtils.isNotEmpty(servers.getDynamicServerGroups())) {
-            servers.getDynamicServerGroups().forEach(this::standardizeDynamicGroupId);
+    private void standardizeServerDynamicGroupId(ExecuteTargetDTO executeTarget) {
+        if (executeTarget != null && CollectionUtils.isNotEmpty(executeTarget.getDynamicServerGroups())) {
+            executeTarget.getDynamicServerGroups().forEach(this::standardizeDynamicGroupId);
         }
     }
 
     private void standardizeTaskVarDynamicGroupId(Collection<TaskVariableDTO> variables) {
         if (CollectionUtils.isNotEmpty(variables)) {
-            variables.stream().filter(variable -> variable.getTargetServers() != null)
-                .forEach(variable -> standardizeServerDynamicGroupId(variable.getTargetServers()));
+            variables.stream().filter(variable -> variable.getExecuteTarget() != null)
+                .forEach(variable -> standardizeServerDynamicGroupId(variable.getExecuteTarget()));
         }
     }
 
@@ -1508,7 +973,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Long appId = executeParam.getAppId();
         Long planId = executeParam.getPlanId();
         String operator = executeParam.getOperator();
-        log.info("Create task instance for task, appId={}, planId={}, operator={}, attributes={}", appId, planId,
+        log.info("Create task instance for task, appId={}, planId={}, operator={}, variables={}", appId, planId,
             operator, executeParam.getExecuteVariableValues());
         watch.start("getPlan");
         ServiceTaskPlanDTO taskPlan = taskPlanService.getPlanById(appId, planId);
@@ -1567,13 +1032,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         boolean isDebugTask = plan.isDebugTask();
-        ServersDTO authServers = new ServersDTO();
+        ExecuteTargetDTO authServers = new ExecuteTargetDTO();
         Set<Long> accountIds = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isScriptStep() && !stepInstance.isFileStep()) {
                 continue;
             }
-            Pair<ServersDTO, Set<Long>> needAuthHostsAndAccounts =
+            Pair<ExecuteTargetDTO, Set<Long>> needAuthHostsAndAccounts =
                 extractNeedAuthHostsAndAccounts(stepInstance, whiteHostAllowActions);
             authServers = needAuthHostsAndAccounts.getLeft();
             accountIds = needAuthHostsAndAccounts.getRight();
@@ -1608,21 +1073,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private Pair<ServersDTO, Set<Long>> extractNeedAuthHostsAndAccounts(StepInstanceDTO stepInstance,
-                                                                        Map<Long, List<String>> whiteHostAllowActions) {
-        ServersDTO authServers = new ServersDTO();
+    private Pair<ExecuteTargetDTO, Set<Long>> extractNeedAuthHostsAndAccounts
+        (
+            StepInstanceDTO stepInstance,
+            Map<Long, List<String>> whiteHostAllowActions
+        ) {
+
+        ExecuteTargetDTO authServers = new ExecuteTargetDTO();
         Set<Long> accountIds = new HashSet<>();
         accountIds.add(stepInstance.getAccountId());
         if (stepInstance.isFileStep()) {
-            ServersDTO stepTargetServers = stepInstance.getTargetServers().clone();
-            filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepTargetServers,
+            ExecuteTargetDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
+            filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepTargetServers,
                 whiteHostAllowActions);
             authServers.merge(stepTargetServers);
             if (!CollectionUtils.isEmpty(stepInstance.getFileSourceList())) {
                 stepInstance.getFileSourceList().stream().filter(fileSource -> !fileSource.isLocalUpload())
                     .forEach(fileSource -> {
-                            ServersDTO stepFileSourceServers = fileSource.getServers().clone();
-                            filterServerDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
+                            ExecuteTargetDTO stepFileSourceServers = fileSource.getServers().clone();
+                            filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
                                 whiteHostAllowActions);
                             authServers.merge(stepFileSourceServers);
                             if (fileSource.getAccountId() != null) {
@@ -1632,8 +1101,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     );
             }
         } else if (stepInstance.isScriptStep()) {
-            ServersDTO stepTargetServers = stepInstance.getTargetServers().clone();
-            filterServerDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, stepTargetServers, whiteHostAllowActions);
+            ExecuteTargetDTO stepTargetServers = stepInstance.getTargetExecuteObjects().clone();
+            filterHostsDoNotRequireAuth(ActionScopeEnum.SCRIPT_EXECUTE, stepTargetServers, whiteHostAllowActions);
             authServers.merge(stepTargetServers);
         }
         return Pair.of(authServers, accountIds);
@@ -1680,7 +1149,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
         switch (stepType) {
             case SCRIPT:
-                ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(step.getScriptStepInfo().getType());
+                ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(step.getScriptStepInfo().getType());
                 if (scriptType == ScriptTypeEnum.SQL) {
                     executeType = EXECUTE_SQL;
                 } else {
@@ -1695,20 +1164,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 break;
         }
         return executeType;
-    }
-
-    private TaskStepTypeEnum getTaskStepTypeFromExecuteType(StepExecuteTypeEnum executeType) throws ServiceException {
-        TaskStepTypeEnum stepType;
-        if (executeType == EXECUTE_SCRIPT || executeType == EXECUTE_SQL) {
-            stepType = TaskStepTypeEnum.SCRIPT;
-        } else if (executeType == SEND_FILE) {
-            stepType = TaskStepTypeEnum.FILE;
-        } else if (executeType == MANUAL_CONFIRM) {
-            stepType = TaskStepTypeEnum.APPROVAL;
-        } else {
-            throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-        return stepType;
     }
 
     private TaskInstanceDTO buildTaskInstanceForTask(TaskExecuteParam executeParam, ServiceTaskPlanDTO taskPlan) {
@@ -1741,7 +1196,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setStepId(stepId);
         stepInstance.setName(stepName);
-        stepInstance.setExecuteType(stepType.getValue());
+        stepInstance.setExecuteType(stepType);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setOperator(operator);
         stepInstance.setAppId(appId);
@@ -1752,7 +1207,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     public TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
                                                      List<TaskVariableDTO> executeVariableValues) throws ServiceException {
-        log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, attributes={}", appId,
+        log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
         TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
         if (originTaskInstance == null) {
@@ -1774,10 +1229,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (StepInstanceDTO originStepInstance : originTaskInstance.getStepInstances()) {
-            StepExecuteTypeEnum executeType = StepExecuteTypeEnum.valueOf(originStepInstance.getExecuteType());
+            StepExecuteTypeEnum executeType = originStepInstance.getExecuteType();
             StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator,
                 originStepInstance.getStepId(), originStepInstance.getName(), executeType);
-            TaskStepTypeEnum stepType = getTaskStepTypeFromExecuteType(executeType);
+            TaskStepTypeEnum stepType = StepTypeExecuteTypeConverter.convertToStepType(executeType);
             switch (stepType) {
                 case SCRIPT:
                     parseScriptStepInstanceFromStepInstance(stepInstance, originStepInstance, finalVariableValueMap);
@@ -1795,21 +1250,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         // 检查高危脚本
         batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
 
-        // 获取主机列表
-        ServiceListAppHostResultDTO hosts = acquireAndSetHosts(taskInstance, stepInstanceList,
-            finalVariableValueMap.values());
+        // 处理执行对象
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+            taskInstanceExecuteObjectProcessor.processExecuteObjects(taskInstance, stepInstanceList,
+                finalVariableValueMap.values());
 
-        // 获取主机白名单
-        Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInstance.getAppId(),
-            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
+        // 检查步骤
+        checkStepInstance(taskInstance, stepInstanceList);
 
-        // 检查主机合法性
-        checkHosts(stepInstanceList, hosts, hostAllowActions);
-
-        // 检查步骤约束
-        checkStepInstanceConstraint(taskInstance, stepInstanceList);
-
-        authRedoJob(operator, appId, originTaskInstance, hostAllowActions);
+        authRedoJob(operator, appId, originTaskInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
@@ -1853,7 +1302,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setStepNum(stepNum);
             stepInstance.setStepOrder(stepOrder++);
             // 保存StepInstance
-            long stepInstanceId = taskInstanceService.addStepInstance(stepInstance);
+            long stepInstanceId = stepInstanceService.addStepInstance(stepInstance);
             stepInstance.setId(stepInstanceId);
         }
         taskInstance.setStepInstances(stepInstances);
@@ -1881,7 +1330,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             commonVariable.setName(variable.getName());
             commonVariable.setValue(variable.getDefaultValue());
             if (variable.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType())) {
-                commonVariable.setTargetServers(convertToServersDTO(variable.getDefaultTargetValue()));
+                commonVariable.setExecuteTarget(convertToServersDTO(variable.getDefaultTargetValue()));
             }
             if (variable.getType().equals(TaskVariableTypeEnum.NAMESPACE.getType())) {
                 commonVariable.setChangeable(true);
@@ -1947,7 +1396,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void grantValueForVariable(TaskVariableDTO to, TaskVariableDTO from) {
         if (TaskVariableTypeEnum.HOST_LIST.getType() == to.getType()) {
-            to.setTargetServers(from.getTargetServers());
+            to.setExecuteTarget(from.getExecuteTarget());
         } else {
             to.setValue(from.getValue());
         }
@@ -1975,7 +1424,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setTimeout(1000);
         }
         stepInstance.setSecureParam(scriptStepInfo.getSecureParam() != null && scriptStepInfo.getSecureParam());
-        stepInstance.setScriptType(scriptStepInfo.getType());
+        stepInstance.setScriptType(ScriptTypeEnum.valOf(scriptStepInfo.getType()));
         stepInstance.setScriptSource(scriptStepInfo.getScriptSource());
 
         ServiceAccountDTO accountInfo = scriptStepInfo.getAccount();
@@ -1984,7 +1433,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(scriptStepInfo.getType());
+        ScriptTypeEnum scriptType = ScriptTypeEnum.valOf(scriptStepInfo.getType());
         stepInstance.setAccountId(accountInfo.getId());
         if (scriptType == ScriptTypeEnum.SQL) {
             stepInstance.setAccountId(accountInfo.getDbSystemAccount().getId());
@@ -2000,8 +1449,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         ServiceTaskTargetDTO target = scriptStepInfo.getExecuteTarget();
-        ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteTargetDTO targetServers = buildFinalTargetServers(target, variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
 
         stepInstance.setIgnoreError(scriptStepInfo.getIgnoreError());
     }
@@ -2044,14 +1493,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     fileSource.setAccountId(accountDTO.getId());
                 }
                 ServiceTaskTargetDTO target = originFile.getExecuteTarget();
-                ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
+                ExecuteTargetDTO targetServers = buildFinalTargetServers(target, variableValueMap);
                 fileSource.setServers(targetServers);
                 List<FileDetailDTO> fileList = new ArrayList<>();
                 originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
                 fileSource.setFiles(fileList);
             } else if (originFile.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType()) {
                 fileSource.setLocalUpload(false);
-                fileSource.setServers(ServersDTO.emptyInstance());
+                fileSource.setServers(ExecuteTargetDTO.emptyInstance());
                 // 文件源文件只需要fileSourceId与文件路径
                 List<FileDetailDTO> fileList = new ArrayList<>();
                 originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
@@ -2063,8 +1512,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setFileSourceList(fileSources);
 
         ServiceTaskTargetDTO target = fileStepInfo.getExecuteTarget();
-        ServersDTO targetServers = buildFinalTargetServers(target, variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteTargetDTO targetServers = buildFinalTargetServers(target, variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
 
         if (fileStepInfo.getDownloadSpeedLimit() != null) {
             // MB->KB
@@ -2098,7 +1547,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstance.setScriptType(originStepInstance.getScriptType());
         stepInstance.setScriptSource(originStepInstance.getScriptSource());
 
-        ScriptTypeEnum scriptType = ScriptTypeEnum.valueOf(originStepInstance.getScriptType());
+        ScriptTypeEnum scriptType = originStepInstance.getScriptType();
         stepInstance.setAccountId(originStepInstance.getAccountId());
         if (scriptType == ScriptTypeEnum.SQL) {
             stepInstance.setAccountId(originStepInstance.getAccountId());
@@ -2113,8 +1562,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstance.setAccount(originStepInstance.getAccount());
         }
 
-        ServersDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteTargetDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(),
+            variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
     }
 
     private void parseFileStepInstanceFromStepInstance(StepInstanceDTO stepInstance,
@@ -2133,19 +1583,20 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             originStepInstance.getFileSourceList().forEach(fileSourceDTO -> {
                 FileSourceDTO newFileSource = fileSourceDTO.clone();
                 // 重新解析源文件服务器信息
-                ServersDTO targetServers = buildFinalTargetServers(newFileSource.getServers(), variableValueMap);
+                ExecuteTargetDTO targetServers = buildFinalTargetServers(newFileSource.getServers(), variableValueMap);
                 newFileSource.setServers(targetServers);
                 fileSourceList.add(newFileSource);
             });
             stepInstance.setFileSourceList(fileSourceList);
         }
 
-        ServersDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetServers(), variableValueMap);
-        stepInstance.setTargetServers(targetServers);
+        ExecuteTargetDTO targetServers = buildFinalTargetServers(originStepInstance.getTargetExecuteObjects(),
+            variableValueMap);
+        stepInstance.setTargetExecuteObjects(targetServers);
     }
 
-    private ServersDTO buildFinalTargetServers(@NotNull ServiceTaskTargetDTO target,
-                                               @NotNull Map<String, TaskVariableDTO> variableValueMap)
+    private ExecuteTargetDTO buildFinalTargetServers(@NotNull ServiceTaskTargetDTO target,
+                                                     @NotNull Map<String, TaskVariableDTO> variableValueMap)
         throws ServiceException {
         // 如果目标服务器使用主机变量，那么需要解析主机变量
         if (StringUtils.isNotBlank(target.getVariable())) {
@@ -2155,7 +1606,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private ServersDTO buildFinalTargetServers(ServersDTO target, Map<String, TaskVariableDTO> variableValueMap)
+    private ExecuteTargetDTO buildFinalTargetServers(ExecuteTargetDTO target,
+                                                     Map<String, TaskVariableDTO> variableValueMap)
         throws ServiceException {
         // 如果目标服务器使用主机变量，那么需要解析主机变量
         if (target != null && StringUtils.isNotBlank(target.getVariable())) {
@@ -2165,8 +1617,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private ServersDTO getServerValueFromVariable(@NotNull String hostVariableName,
-                                                  @NotNull Map<String, TaskVariableDTO> variableValueMap)
+    private ExecuteTargetDTO getServerValueFromVariable(@NotNull String hostVariableName,
+                                                        @NotNull Map<String, TaskVariableDTO> variableValueMap)
         throws ServiceException {
         TaskVariableDTO serverVariable = variableValueMap.get(hostVariableName);
         if (serverVariable == null) {
@@ -2175,10 +1627,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 new String[]{hostVariableName});
         }
 
-        if (serverVariable.getTargetServers() == null) {
+        if (serverVariable.getExecuteTarget() == null) {
             return null;
         }
-        ServersDTO targetServers = serverVariable.getTargetServers().clone();
+        ExecuteTargetDTO targetServers = serverVariable.getExecuteTarget().clone();
         targetServers.setVariable(hostVariableName);
         return targetServers;
     }
@@ -2200,20 +1652,20 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
 
-    private ServersDTO convertToServersDTO(ServiceTaskTargetDTO taskTarget) {
+    private ExecuteTargetDTO convertToServersDTO(ServiceTaskTargetDTO taskTarget) {
         if (taskTarget == null) {
             return null;
         }
-        ServersDTO servers = new ServersDTO();
+        ExecuteTargetDTO executeTarget = new ExecuteTargetDTO();
         ServiceTaskHostNodeDTO targetServers = taskTarget.getTargetServer();
         List<ServiceHostInfoDTO> hostList = targetServers.getHostList();
         if (hostList != null && !hostList.isEmpty()) {
             List<HostDTO> staticIpList = new ArrayList<>();
             for (ServiceHostInfoDTO hostInfo : hostList) {
                 staticIpList.add(
-                    HostDTO.fromHostIdOrCloudIp(hostInfo.getHostId(), hostInfo.getCloudAreaId(), hostInfo.getIp()));
+                    new HostDTO(hostInfo.getHostId(), hostInfo.getCloudAreaId(), hostInfo.getIp()));
             }
-            servers.setStaticIpList(staticIpList);
+            executeTarget.setStaticIpList(staticIpList);
         }
 
         List<String> groupIdList = targetServers.getDynamicGroupId();
@@ -2222,7 +1674,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             for (String groupId : groupIdList) {
                 groups.add(new DynamicServerGroupDTO(groupId));
             }
-            servers.setDynamicServerGroups(groups);
+            executeTarget.setDynamicServerGroups(groups);
         }
 
         List<ServiceTaskNodeInfoDTO> topoNodeIdList = targetServers.getNodeInfoList();
@@ -2231,47 +1683,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             for (ServiceTaskNodeInfoDTO topoNodeId : topoNodeIdList) {
                 topoNodes.add(new DynamicServerTopoNodeDTO(topoNodeId.getId(), topoNodeId.getType()));
             }
-            servers.setTopoNodes(topoNodes);
+            executeTarget.setTopoNodes(topoNodes);
         }
-        return servers;
-    }
-
-    private void setAgentStatus(List<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return;
-        }
-        long start = System.currentTimeMillis();
-
-        List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
-        Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
-        hosts.forEach(hostDTO -> {
-            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
-            hostAgentStateQueryList.add(hostAgentStateQuery);
-            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
-        });
-
-        // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
-        Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
-
-        for (HostDTO host : hosts) {
-            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
-            String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
-            if (StringUtils.isEmpty(effectiveAgentId)) {
-                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-                continue;
-            }
-            AgentState agentState = agentStateMap.get(effectiveAgentId);
-            if (agentState != null) {
-                host.setAlive(AgentAliveStatusEnum.fromAgentState(agentState).getStatusValue());
-            } else {
-                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
-            }
-        }
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("SetAgentStatus slow, hostSize: {}, cost:{} ms", hosts.size(), cost);
-        }
+        return executeTarget;
     }
 
     @Override
@@ -2281,7 +1695,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepOperationEnum operation = stepOperation.getOperation();
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
         if (stepInstance == null) {
             log.warn("Step instance {} is not exist", stepInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
@@ -2355,7 +1769,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 stepInstance.getId(), StepOperationEnum.CONFIRM_TERMINATE.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-terminate");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2367,8 +1781,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        taskInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        taskInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
 
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepTerminate(stepInstance.getId()));
     }
@@ -2380,7 +1794,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 stepInstance.getId(), StepOperationEnum.CONFIRM_RESTART.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-restart");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2443,7 +1857,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private void confirmContinue(StepInstanceDTO stepInstance, String operator, String reason) {
         // 只有"人工确认等待"，可以进行"确认继续"操作
-        if (!stepInstance.getExecuteType().equals(MANUAL_CONFIRM.getValue())) {
+        if (stepInstance.getExecuteType() != MANUAL_CONFIRM) {
             log.warn("StepInstance:{} is not confirm-step, Unsupported Operation:{}", stepInstance.getId(),
                 "confirm-continue");
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
@@ -2462,8 +1876,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        taskInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        taskInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
@@ -2495,7 +1909,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
+        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
@@ -2510,7 +1924,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
+        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepAll(stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_ALL);
@@ -2618,27 +2032,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     public void authExecuteJobPlan(TaskExecuteParam executeParam) throws ServiceException {
         StopWatch watch = new StopWatch("authJobPlan");
         TaskInfo taskInfo = buildTaskInfoFromExecuteParam(executeParam, watch);
+        TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
+        List<StepInstanceDTO> stepInstanceList = taskInfo.getStepInstances();
 
-        watch.start("acquireAndSetHosts");
-        ServiceListAppHostResultDTO hosts =
-            acquireAndSetHosts(taskInfo.getTaskInstance(), taskInfo.getStepInstances(),
-                taskInfo.getVariables() != null ? taskInfo.getVariables().values() : null);
-        watch.stop();
-
-        // 获取主机白名单
-        watch.start("getHostAllowedActions");
-        Map<Long, List<String>> hostAllowActions = getHostAllowedActions(taskInfo.getTaskInstance().getAppId(),
-            ListUtil.union(hosts.getValidHosts(), hosts.getNotInAppHosts()));
-        watch.stop();
-
-        // 检查主机合法性
-        watch.start("checkHost");
-        checkHosts(taskInfo.getStepInstances(), hosts, hostAllowActions);
-        watch.stop();
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects =
+            taskInstanceExecuteObjectProcessor.processExecuteObjects(taskInstance, stepInstanceList,
+                taskInfo.getVariables().values());
 
         watch.start("auth-execute-job");
         authExecuteJobPlan(executeParam.getOperator(), executeParam.getAppId(), taskInfo.getJobPlan(),
-            taskInfo.getStepInstances(), hostAllowActions);
+            taskInfo.getStepInstances(), taskInstanceExecuteObjects.getWhiteHostAllowActions());
         watch.stop();
 
         if (watch.getTotalTimeMillis() > 500) {

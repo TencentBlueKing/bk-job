@@ -62,15 +62,15 @@
     <ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
-      :value="hostNodeInfo"
-      @change="handleChange"
+      :value="executeObjectsInfo"
+      @change="handleExecuteObjectsInfoChange"
       @close-dialog="handleCloseIpSelector" />
   </div>
 </template>
 <script>
   import _ from 'lodash';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   export default {
     props: {
@@ -80,21 +80,21 @@
       },
       value: {
         type: Object,
-        default: () => new TaskHostNodeModel({}),
+        default: () => new ExecuteTargetModel({}),
       },
     },
     data() {
       return {
         isShowChooseIp: false,
-        hostNodeInfo: {},
+        executeObjectsInfo: {},
       };
     },
     computed: {
       isValueEmpty() {
-        return TaskHostNodeModel.isHostNodeInfoEmpty(this.value.hostNodeInfo);
+        return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.value.executeObjectsInfo);
       },
       valueText() {
-        return new TaskHostNodeModel(this.value).text;
+        return new ExecuteTargetModel(this.value).text;
       },
       descPopover() {
         return {
@@ -109,7 +109,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.value.hostNodeInfo);
+      this.originalValue = _.cloneDeep(this.value.executeObjectsInfo);
     },
     methods: {
       handleRemove() {
@@ -117,17 +117,17 @@
       },
       handleChooseIp() {
         this.isShowChooseIp = true;
-        this.hostNodeInfo = this.value.hostNodeInfo;
+        this.executeObjectsInfo = this.value.executeObjectsInfo;
       },
       handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
       handleClear() {
-        this.$emit('on-change', new TaskHostNodeModel({}));
+        this.$emit('on-change', new ExecuteTargetModel({}));
       },
-      handleChange(hostNodeInfo) {
+      handleExecuteObjectsInfoChange(executeObjectsInfo) {
         this.$emit('on-change', {
-          hostNodeInfo,
+          executeObjectsInfo,
         });
       },
     },

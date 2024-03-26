@@ -67,6 +67,14 @@ public class ResourceScope {
         return "(" + type + "," + id + ")";
     }
 
+    public boolean isBiz() {
+        return type == ResourceScopeTypeEnum.BIZ;
+    }
+
+    public boolean isBizSet() {
+        return type == ResourceScopeTypeEnum.BIZ_SET;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")

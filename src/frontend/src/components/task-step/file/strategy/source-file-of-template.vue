@@ -29,6 +29,7 @@
   <source-file
     :data="fileSources"
     :field="field"
+    from="template"
     :variable="variable"
     @on-change="handleSourceFileChange" />
 </template>

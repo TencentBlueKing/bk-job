@@ -32,7 +32,6 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
 import com.tencent.bk.job.common.cc.model.BusinessInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
@@ -41,28 +40,50 @@ import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
 import com.tencent.bk.job.common.cc.model.CcHostInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
-import com.tencent.bk.job.common.cc.model.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
+import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
+import com.tencent.bk.job.common.cc.model.bizset.Rule;
+import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.container.PodDTO;
+import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
+import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
+import com.tencent.bk.job.common.cc.model.req.CmdbPageReq;
 import com.tencent.bk.job.common.cc.model.req.ExecuteDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.FindHostBizRelationsReq;
 import com.tencent.bk.job.common.cc.model.req.FindModuleHostRelationReq;
 import com.tencent.bk.job.common.cc.model.req.GetAppReq;
 import com.tencent.bk.job.common.cc.model.req.GetBizInstTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetBizInternalModuleReq;
+import com.tencent.bk.job.common.cc.model.req.GetBizKubeCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetBriefCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
 import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeClusterReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeNamespaceReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeWorkloadReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
+import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
 import com.tencent.bk.job.common.cc.model.result.FindModuleHostRelationResult;
@@ -84,18 +105,23 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.constants.ApiGwType;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.model.dto.PageDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -125,10 +151,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * ESB-CMDB接口调用客户端
+ * CMDB API 调用客户端
  */
 @Slf4j
 public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
@@ -154,6 +181,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     public BizCmdbClient(AppProperties appProperties,
                          EsbProperties esbProperties,
+                         BkApiGatewayProperties bkApiGatewayProperties,
                          CmdbConfig cmdbConfig,
                          String lang,
                          ThreadPoolExecutor threadPoolExecutor,
@@ -164,6 +192,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             flowController,
             appProperties,
             esbProperties,
+            bkApiGatewayProperties,
             cmdbConfig,
             meterRegistry,
             lang
@@ -240,6 +269,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         GetBriefCacheTopoReq req = makeCmdbBaseReq(GetBriefCacheTopoReq.class);
         req.setBizId(bizId);
         EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.GET,
             GET_BIZ_BRIEF_CACHE_TOPO,
             req.toUrlParams(),
@@ -253,6 +283,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         GetBizInstTopoReq req = makeCmdbBaseReq(GetBizInstTopoReq.class);
         req.setBizId(bizId);
         EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.GET,
             SEARCH_BIZ_INST_TOPO,
             req.toUrlParams(),
@@ -306,6 +337,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         GetBizInternalModuleReq req = makeCmdbBaseReq(GetBizInternalModuleReq.class);
         req.setBizId(bizId);
         EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.GET,
             GET_BIZ_INTERNAL_MODULE,
             req.toUrlParams(),
@@ -415,6 +447,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     private FindModuleHostRelationResult getHostsByReq(FindModuleHostRelationReq req) {
         EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             FIND_MODULE_HOST_RELATION,
             null,
@@ -634,9 +667,10 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         String orderField = "bk_biz_id";
         while (!isLastPage) {
             GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
-            PageDTO page = new PageDTO(start, limit, orderField);
+            Page page = new Page(start, limit, orderField);
             req.setPage(page);
             EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS,
                 null,
@@ -675,6 +709,20 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         return appInfo;
     }
 
+    private List<ApplicationDTO> convertToAppInfoList(List<BusinessInfoDTO> businessInfoList) {
+        List<ApplicationDTO> appInfoList = new ArrayList<>();
+        for (BusinessInfoDTO businessInfo : businessInfoList) {
+            ApplicationDTO appInfo = new ApplicationDTO();
+            appInfo.setName(businessInfo.getBizName());
+            appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
+            appInfo.setTimeZone(businessInfo.getTimezone());
+            appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
+            appInfo.setLanguage(businessInfo.getLanguage());
+            appInfoList.add(appInfo);
+        }
+        return appInfoList;
+    }
+
     @Override
     public ApplicationDTO getBizAppById(long bizId) {
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
@@ -682,6 +730,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         conditionMap.put("bk_biz_id", bizId);
         req.setCondition(conditionMap);
         EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             SEARCH_BUSINESS,
             null,
@@ -700,6 +749,39 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     }
 
     @Override
+    public List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds) {
+        GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
+        // in查询filter
+        BizFilter filter = new BizFilter();
+        Rule rule = new Rule();
+        rule.setField("bk_biz_id");
+        rule.setOperator(RuleOperatorEnum.IN.getOperator());
+        rule.setValue(bizIds);
+        filter.setRules(Collections.singletonList(rule));
+        filter.setCondition(BizFilter.CONDITION_AND);
+        req.setBizFilter(filter);
+
+        EsbResp<SearchAppResult> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
+            HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
+            null,
+            req,
+            new TypeReference<EsbResp<SearchAppResult>>() {
+            });
+        SearchAppResult data = esbResp.getData();
+        if (data == null) {
+            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
+        }
+        List<BusinessInfoDTO> businessInfos = data.getInfo();
+        if (businessInfos == null || businessInfos.isEmpty()) {
+            log.info("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
+            return new ArrayList<>();
+        }
+        return convertToAppInfoList(businessInfos);
+    }
+
+    @Override
     public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
         SearchHostDynamicGroupReq req = makeCmdbBaseReq(SearchHostDynamicGroupReq.class);
         req.setBizId(bizId);
@@ -713,6 +795,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req.getPage().setStart(start);
 
             EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_DYNAMIC_GROUP,
                 null,
@@ -773,6 +856,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         while (!isLastPage) {
             req.getPage().setStart(start);
             EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 EXECUTE_DYNAMIC_GROUP,
                 null,
@@ -841,7 +925,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         int start = 0;
         while (!isLastPage) {
             GetCloudAreaInfoReq req = makeCmdbBaseReq(GetCloudAreaInfoReq.class);
-            PageDTO page = new PageDTO(start, limit, null);
+            Page page = new Page(start, limit, null);
             req.setPage(page);
             if (fieldConditions != null && !fieldConditions.isEmpty()) {
                 req.setCondition(fieldConditions);
@@ -849,6 +933,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                 req.setCondition(Collections.emptyMap());
             }
             EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 GET_CLOUD_AREAS,
                 null,
@@ -893,6 +978,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         FindHostBizRelationsReq req = makeCmdbBaseReq(FindHostBizRelationsReq.class);
         req.setHostIdList(hostIdList);
         EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             FIND_HOST_BIZ_RELATIONS,
             null,
@@ -912,22 +998,19 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         ListBizHostReq req = makeCmdbBaseReq(ListBizHostReq.class);
         req.setBizId(input.getBizId());
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
         input.ipList.removeIf(StringUtils::isBlank);
-        BaseRuleDTO baseRuleDTO = new BaseRuleDTO();
-        baseRuleDTO.setField("bk_host_innerip");
-        baseRuleDTO.setOperator("in");
-        baseRuleDTO.setValue(input.ipList);
-        condition.addRule(baseRuleDTO);
+        condition.addRule(BaseRuleDTO.in("bk_host_innerip", input.ipList));
         req.setCondition(condition);
 
         int limit = 200;
         int start = 0;
         boolean isLastPage = false;
         while (!isLastPage) {
-            PageDTO page = new PageDTO(start, limit, "");
+            Page page = new Page(start, limit, "");
             req.setPage(page);
             EsbResp<ListBizHostResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 LIST_BIZ_HOSTS,
                 null,
@@ -957,17 +1040,9 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
-        BaseRuleDTO ipRule = new BaseRuleDTO();
-        ipRule.setField("bk_host_innerip");
-        ipRule.setOperator("equal");
-        ipRule.setValue(ip);
-        condition.addRule(ipRule);
-        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-        bkCloudIdRule.setField("bk_cloud_id");
-        bkCloudIdRule.setOperator("equal");
-        bkCloudIdRule.setValue(cloudAreaId);
-        condition.addRule(bkCloudIdRule);
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
+        condition.addRule(BaseRuleDTO.equals("bk_host_innerip", ip));
+        condition.addRule(BaseRuleDTO.equals("bk_cloud_id", cloudAreaId));
         req.setCondition(condition);
 
         List<ApplicationHostDTO> hosts = listHostsWithoutBiz(req);
@@ -981,18 +1056,12 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         }
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("OR");
+        condition.setCondition(RuleConditionEnum.OR.getCondition());
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIps);
         hostGroups.forEach((bkCloudId, ips) -> {
-            ComposeRuleDTO hostRule = new ComposeRuleDTO();
-            hostRule.setCondition("AND");
+            ComposeRuleDTO hostRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
             hostRule.addRule(buildCloudIdRule(bkCloudId));
-
-            BaseRuleDTO ipRule = new BaseRuleDTO();
-            ipRule.setField("bk_host_innerip");
-            ipRule.setOperator("in");
-            ipRule.setValue(ips);
-            hostRule.addRule(ipRule);
+            hostRule.addRule(BaseRuleDTO.in("bk_host_innerip", ips));
 
             condition.addRule(hostRule);
         });
@@ -1008,12 +1077,11 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         }
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("OR");
+        condition.setCondition(RuleConditionEnum.OR.getCondition());
         Map<Long, List<String>> hostGroups = groupHostsByBkCloudId(cloudIpv6s);
         hostGroups.forEach((bkCloudId, ipv6s) ->
             ipv6s.forEach(ipv6 -> {
-                ComposeRuleDTO hostRule = new ComposeRuleDTO();
-                hostRule.setCondition("AND");
+                ComposeRuleDTO hostRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
                 hostRule.addRule(buildCloudIdRule(bkCloudId));
 
                 BaseRuleDTO ipv6Rule = buildIpv6Rule(ipv6);
@@ -1025,20 +1093,12 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
     }
 
     private BaseRuleDTO buildIpv6Rule(String ipv6) {
-        BaseRuleDTO ipv6Rule = new BaseRuleDTO();
         // ipv6字段可能包含多个IPv6地址，故此处使用contains
-        ipv6Rule.setField("bk_host_innerip_v6");
-        ipv6Rule.setOperator("contains");
-        ipv6Rule.setValue(ipv6);
-        return ipv6Rule;
+        return BaseRuleDTO.contains("bk_host_innerip_v6", ipv6);
     }
 
     private BaseRuleDTO buildCloudIdRule(Long bkCloudId) {
-        BaseRuleDTO bkCloudIdRule = new BaseRuleDTO();
-        bkCloudIdRule.setField("bk_cloud_id");
-        bkCloudIdRule.setOperator("equal");
-        bkCloudIdRule.setValue(bkCloudId);
-        return bkCloudIdRule;
+        return BaseRuleDTO.equals("bk_cloud_id", bkCloudId);
     }
 
     private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
@@ -1047,9 +1107,10 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         int total;
         List<ApplicationHostDTO> hosts = new ArrayList<>();
         do {
-            PageDTO page = new PageDTO(start, limit, "");
+            Page page = new Page(start, limit, "");
             req.setPage(page);
             EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 LIST_HOSTS_WITHOUT_BIZ,
                 null,
@@ -1119,12 +1180,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
         ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
         PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition("AND");
-        BaseRuleDTO ipRule = new BaseRuleDTO();
-        ipRule.setField("bk_host_id");
-        ipRule.setOperator("in");
-        ipRule.setValue(hostIds);
-        condition.addRule(ipRule);
+        condition.setCondition(RuleConditionEnum.AND.getCondition());
+        condition.addRule(BaseRuleDTO.in("bk_host_id", hostIds));
         req.setCondition(condition);
         return listHostsWithoutBiz(req);
     }
@@ -1134,6 +1191,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
         req.setObjId(objId);
         EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             GET_OBJ_ATTRIBUTES,
             null,
@@ -1152,6 +1210,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         EsbResp<CcCountInfo> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             SEARCH_BUSINESS,
             null,
@@ -1263,6 +1322,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {
             EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 GET_TOPO_NODE_PATHS,
                 null,
@@ -1309,6 +1369,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             RESOURCE_WATCH,
             null,
@@ -1327,6 +1388,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             RESOURCE_WATCH,
             null,
@@ -1346,6 +1408,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(
+            ApiGwType.ESB,
             HttpMethodEnum.POST,
             RESOURCE_WATCH,
             null,
@@ -1378,5 +1441,313 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                 log.error("FindModuleHostRelationTask fail:", e);
             }
         }
+    }
+
+    /**
+     * 根据业务 ID 查询容器拓扑（缓存)
+     *
+     * @param bizId 业务 ID
+     * @return 容器拓扑
+     */
+    public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
+        GetBizKubeCacheTopoReq req = makeCmdbBaseReq(GetBizKubeCacheTopoReq.class);
+        req.setBizId(bizId);
+
+        EsbResp<KubeTopologyDTO> esbResp = requestCmdbApi(
+            ApiGwType.BK_APIGW,
+            HttpMethodEnum.POST,
+            GET_BIZ_KUBE_CACHE_TOPO,
+            null,
+            req,
+            new TypeReference<EsbResp<KubeTopologyDTO>>() {
+            });
+        return esbResp.getData();
+    }
+
+    /**
+     * 根据容器拓扑获取container信息(分页)
+     *
+     * @param req 请求
+     * @return 容器列表（分页）
+     */
+    public PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        return listPageKubeContainerByTopo(req, true);
+    }
+
+    private PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req,
+                                                                     boolean withCount) {
+        setSupplierAccount(req);
+        req.setContainerFields(ContainerDTO.Fields.ALL);
+        req.setPodFields(PodDTO.Fields.ALL);
+
+        return listPage(
+            req,
+            withCount,
+            cmdbPageReq -> requestCmdbApi(
+                ApiGwType.BK_APIGW,
+                HttpMethodEnum.POST,
+                LIST_KUBE_CONTAINER_BY_TOPO,
+                null,
+                cmdbPageReq,
+                new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+                })
+        );
+    }
+
+    /**
+     * 根据容器拓扑获取container信息
+     *
+     * @param req 请求
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        setSupplierAccount(req);
+        req.setContainerFields(ContainerDTO.Fields.ALL);
+        req.setPodFields(PodDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPageKubeContainerByTopo(req, false);
+            },
+            PageData::getData,
+            container -> container
+        );
+    }
+
+    private void setSupplierAccount(EsbReq esbReq) {
+        if (StringUtils.isEmpty(cmdbSupplierAccount)) {
+            esbReq.setBkSupplierAccount("0");
+        } else {
+            esbReq.setBkSupplierAccount(cmdbSupplierAccount);
+        }
+    }
+
+    /**
+     * 根据容器ID批量查询容器
+     *
+     * @param bizId        CMDB 业务 ID
+     * @param containerIds 容器 ID 集合
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
+        return listBizKubeContainerByContainerFieldWithInCondition(
+            bizId, ContainerDTO.Fields.ID, containerIds);
+    }
+
+    /**
+     * 根据容器ID批量查询容器
+     *
+     * @param bizId         CMDB 业务 ID
+     * @param containerUIds 容器 UID 集合
+     * @return 容器列表
+     */
+    public List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds) {
+        return listBizKubeContainerByContainerFieldWithInCondition(
+            bizId, ContainerDTO.Fields.CONTAINER_UID, containerUIds);
+    }
+
+    private <T> List<ContainerDetailDTO> listBizKubeContainerByContainerFieldWithInCondition(
+        long bizId,
+        String containerField,
+        Collection<T> fieldValues) {
+
+        int maxFieldValuesPerBatch = 500;  // cmdb 限制每次查询传入的字段值
+        List<List<T>> containerFieldValueBatches =
+            CollectionUtil.partitionCollection(fieldValues, maxFieldValuesPerBatch);
+
+        List<ContainerDetailDTO> containers = new ArrayList<>();
+
+        containerFieldValueBatches.forEach(containerFieldValueBatch -> {
+            ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
+
+            // 查询条件
+            req.setBizId(bizId);
+            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+            containerFilter.addRule(BaseRuleDTO.in(containerField, containerFieldValueBatch));
+            req.setContainerFilter(containerFilter);
+
+            // 返回参数设置
+            req.setContainerFields(ContainerDTO.Fields.ALL);
+            req.setPodFields(PodDTO.Fields.ALL);
+
+            // 分页设置
+            req.setPage(new Page(0, maxFieldValuesPerBatch));
+
+            PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req);
+            if (CollectionUtils.isNotEmpty(pageData.getData())) {
+                containers.addAll(pageData.getData());
+            }
+        });
+
+        return containers;
+    }
+
+    public List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query) {
+        ListKubeClusterReq req = makeCmdbBaseReq(ListKubeClusterReq.class);
+
+        // 查询条件
+        req.setBizId(query.getBizId());
+
+        PropertyFilterDTO clusterPropFilter = new PropertyFilterDTO();
+        clusterPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.ID, query.getIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterUIDs())) {
+            clusterPropFilter.addRule(BaseRuleDTO.in(KubeClusterDTO.Fields.CLUSTER_UID, query.getBkClusterUIDs()));
+        }
+        if (clusterPropFilter.hasRule()) {
+            req.setFilter(clusterPropFilter);
+        }
+
+        // 返回参数设置
+        req.setFields(KubeClusterDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_CLUSTER,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeClusterDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            cluster -> cluster
+        );
+    }
+
+    private <R> PageData<R> listPage(CmdbPageReq req,
+                                     boolean withCount,
+                                     Function<CmdbPageReq, EsbResp<BaseCcSearchResult<R>>> query) {
+        setSupplierAccount(req);
+
+        Page originPage = req.getPage();
+        long count = 0;
+        if (withCount) {
+            // 设置为查询总数量的分页条件
+            req.setPage(Page.buildQueryCountPage());
+
+            // 查询总数量
+            EsbResp<BaseCcSearchResult<R>> response = query.apply(req);
+            count = response.getData().getCount();
+        }
+
+        // 查询数据
+        req.setPage(originPage);
+        EsbResp<BaseCcSearchResult<R>> response = query.apply(req);
+        return new PageData<>(originPage.getStart(), originPage.getLimit(), count, response.getData().getInfo());
+    }
+
+    public List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query) {
+        ListKubeNamespaceReq req = makeCmdbBaseReq(ListKubeNamespaceReq.class);
+
+        // 查询条件
+        req.setBizId(query.getBizId());
+
+        PropertyFilterDTO namespacePropFilter = new PropertyFilterDTO();
+        namespacePropFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.ID, query.getIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterIds())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.BK_CLUSTER_ID, query.getBkClusterIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getNames())) {
+            namespacePropFilter.addRule(BaseRuleDTO.in(KubeNamespaceDTO.Fields.NAME, query.getNames()));
+        }
+        if (namespacePropFilter.hasRule()) {
+            req.setFilter(namespacePropFilter);
+        }
+
+        // 返回参数设置
+        req.setFields(KubeNamespaceDTO.Fields.ALL);
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_NAMESPACE,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeNamespaceDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            namespace -> namespace
+        );
+    }
+
+    public List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query) {
+        ListKubeWorkloadReq req = makeCmdbBaseReq(ListKubeWorkloadReq.class);
+
+        // 查询条件
+        req.setBizId(query.getBizId());
+        req.setKind(query.getKind());
+
+        PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
+        workloadPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        if (CollectionUtils.isNotEmpty(query.getIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.ID, query.getIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkClusterIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.BK_CLUSTER_ID, query.getBkClusterIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getBkNamespaceIds())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.BK_NAMESPACE_ID,
+                query.getBkNamespaceIds()));
+        }
+        if (CollectionUtils.isNotEmpty(query.getNames())) {
+            workloadPropFilter.addRule(BaseRuleDTO.in(KubeWorkloadDTO.Fields.NAME, query.getNames()));
+        }
+        if (workloadPropFilter.hasRule()) {
+            req.setFilter(workloadPropFilter);
+        }
+
+
+        // 返回参数设置
+        req.setFields(KubeWorkloadDTO.Fields.ALL);
+
+        String requestUrl = LIST_KUBE_WORKLOAD.replace("{kind}", query.getKind());
+
+        return PageUtil.queryAllWithLoopPageQuery(
+            500,
+            page -> {
+                req.setPage(new Page(page.getStart(), page.getLength()));
+                return listPage(
+                    req,
+                    false,
+                    cmdbPageReq -> requestCmdbApi(
+                        ApiGwType.BK_APIGW,
+                        HttpMethodEnum.POST,
+                        requestUrl,
+                        null,
+                        cmdbPageReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
+                        }));
+            },
+            PageData::getData,
+            workload -> {
+                // cmdb API 返回的数据没有包含 kind 信息，需要补全
+                workload.setKind(req.getKind());
+                return workload;
+            }
+        );
     }
 }

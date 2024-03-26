@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.template.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptStatusUpdateMessageDTO;
 import com.tencent.bk.job.manage.model.tables.ScriptVersion;

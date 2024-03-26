@@ -26,10 +26,14 @@ package com.tencent.bk.job.manage.model.dto.notify;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
-import lombok.*;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 通知触发策略DTO

@@ -61,7 +61,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastPushFileRequest;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -214,11 +214,11 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         stepInstance.setAccountId(account.getId());
         stepInstance.setAccount(account.getAccount());
         stepInstance.setStepId(-1L);
-        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileSourceList(convertFileSource(request.getAppId(), request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
-        stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
         stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);

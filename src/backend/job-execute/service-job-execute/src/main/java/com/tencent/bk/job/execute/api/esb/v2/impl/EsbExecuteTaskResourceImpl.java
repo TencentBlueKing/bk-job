@@ -45,7 +45,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
@@ -100,9 +100,9 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
                 taskVariableDTO.setName(globalVar.getName());
                 if ((globalVar.getIpList() != null || globalVar.getDynamicGroupIdList() != null
                     || globalVar.getTargetServer() != null) && StringUtils.isEmpty(globalVar.getValue())) {
-                    ServersDTO serversDTO = convertToServersDTO(globalVar.getTargetServer(), globalVar.getIpList(),
-                        globalVar.getDynamicGroupIdList());
-                    taskVariableDTO.setTargetServers(serversDTO);
+                    ExecuteTargetDTO executeTargetDTO = convertToServersDTO(
+                        globalVar.getTargetServer(), globalVar.getIpList(), globalVar.getDynamicGroupIdList());
+                    taskVariableDTO.setExecuteTarget(executeTargetDTO);
                 } else {
                     taskVariableDTO.setValue(globalVar.getValue());
                 }
@@ -145,43 +145,43 @@ public class EsbExecuteTaskResourceImpl extends JobExecuteCommonProcessor implem
         return ValidateResult.pass();
     }
 
-    private ServersDTO convertToServersDTO(EsbServerDTO servers, List<EsbIpDTO> ipList,
-                                           List<String> dynamicGroupIdList) {
+    private ExecuteTargetDTO convertToServersDTO(EsbServerDTO servers, List<EsbIpDTO> ipList,
+                                                 List<String> dynamicGroupIdList) {
         if (servers == null && ipList == null && dynamicGroupIdList == null) {
             return null;
         }
-        ServersDTO serversDTO = new ServersDTO();
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
         if (servers != null) {
             if (servers.getIps() != null) {
                 List<HostDTO> staticIpList = new ArrayList<>();
                 servers.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
-                serversDTO.setStaticIpList(staticIpList);
+                executeTargetDTO.setStaticIpList(staticIpList);
             }
             if (servers.getDynamicGroupIds() != null) {
                 List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
                 servers.getDynamicGroupIds().forEach(
                     groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-                serversDTO.setDynamicServerGroups(dynamicServerGroups);
+                executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
             }
             if (servers.getTopoNodes() != null) {
                 List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
                 servers.getTopoNodes().forEach(
                     topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getNodeType())));
-                serversDTO.setTopoNodes(topoNodes);
+                executeTargetDTO.setTopoNodes(topoNodes);
             }
         } else {
             if (ipList != null) {
                 List<HostDTO> staticIpList = new ArrayList<>();
                 ipList.forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
-                serversDTO.setStaticIpList(staticIpList);
+                executeTargetDTO.setStaticIpList(staticIpList);
             }
             if (dynamicGroupIdList != null) {
                 List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
                 dynamicGroupIdList.forEach(groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-                serversDTO.setDynamicServerGroups(dynamicServerGroups);
+                executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
             }
         }
-        return serversDTO;
+        return executeTargetDTO;
 
 
     }

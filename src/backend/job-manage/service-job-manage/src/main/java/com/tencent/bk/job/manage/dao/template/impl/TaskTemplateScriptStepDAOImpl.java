@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
@@ -94,7 +94,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskScriptStepDAO {
             taskScriptStep.setScriptVersionId((record.get(TABLE.SCRIPT_VERSION_ID)).longValue());
         }
         taskScriptStep.setContent(record.get(TABLE.CONTENT));
-        taskScriptStep.setLanguage(ScriptTypeEnum.valueOf((record.get(TABLE.LANGUAGE)).intValue()));
+        taskScriptStep.setLanguage(ScriptTypeEnum.valOf((record.get(TABLE.LANGUAGE)).intValue()));
         taskScriptStep.setTimeout((record.get(TABLE.SCRIPT_TIMEOUT)).longValue());
         taskScriptStep.setAccount((record.get(TABLE.EXECUTE_ACCOUNT)).longValue());
         taskScriptStep.setExecuteTarget(TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST)));

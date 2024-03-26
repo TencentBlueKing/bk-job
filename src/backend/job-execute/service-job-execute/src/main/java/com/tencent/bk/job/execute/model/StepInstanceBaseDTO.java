@@ -24,13 +24,15 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Set;
 
@@ -71,7 +73,7 @@ public class StepInstanceBaseDTO {
      *
      * @see StepExecuteTypeEnum
      */
-    protected Integer executeType;
+    protected StepExecuteTypeEnum executeType;
     /**
      * 步骤类型
      */
@@ -105,9 +107,9 @@ public class StepInstanceBaseDTO {
      */
     protected boolean ignoreError;
     /**
-     * 目标服务器
+     * 执行目标
      */
-    protected ServersDTO targetServers;
+    protected ExecuteTargetDTO targetExecuteObjects;
     /**
      * 不合法的服务器
      */
@@ -130,6 +132,16 @@ public class StepInstanceBaseDTO {
     protected Long rollingConfigId;
 
     /**
+     * 是否支持执行对象特性
+     */
+    private Boolean supportExecuteObject;
+
+    /**
+     * 目标执行对象是否使用 GSE V2 Agent
+     */
+    private Boolean targetGseV2Agent;
+
+    /**
      * 获取步骤类型
      *
      * @return 步骤类型
@@ -138,12 +150,12 @@ public class StepInstanceBaseDTO {
     public TaskStepTypeEnum getStepType() {
         if (this.stepType == null) {
             if (executeType != null) {
-                if (executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-                    || executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue())) {
+                if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT
+                    || executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
                     this.stepType = TaskStepTypeEnum.SCRIPT;
-                } else if (executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+                } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
                     this.stepType = TaskStepTypeEnum.FILE;
-                } else if (executeType.equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
+                } else if (executeType == StepExecuteTypeEnum.MANUAL_CONFIRM) {
                     this.stepType = TaskStepTypeEnum.APPROVAL;
                 }
             }
@@ -172,12 +184,8 @@ public class StepInstanceBaseDTO {
         return getStepType() == TaskStepTypeEnum.SCRIPT;
     }
 
-    public int getTargetServerTotalCount() {
-        if (this.targetServers != null && this.targetServers.getIpList() != null) {
-            return this.targetServers.getIpList().size();
-        } else {
-            return 0;
-        }
+    public int getTargetExecuteObjectCount() {
+        return targetExecuteObjects.getExecuteObjectsCountCompatibly();
     }
 
     /**
@@ -205,9 +213,40 @@ public class StepInstanceBaseDTO {
      * 执行目标是否是 GSE V2 Agent
      */
     public boolean isTargetGseV2Agent() {
+        if (targetGseV2Agent != null) {
+            return targetGseV2Agent;
+        }
         // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
-        boolean isTargetGseV1Agent = this.targetServers.getIpList().stream()
-            .anyMatch(host -> AgentUtils.isGseV1AgentId(host.getAgentId()));
-        return !isTargetGseV1Agent;
+        this.targetGseV2Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
+            .anyMatch(executeObject -> {
+                if (executeObject.isHostExecuteObject()) {
+                    return AgentUtils.isGseV2AgentId(executeObject.getHost().getAgentId());
+                } else if (executeObject.isContainerExecuteObject()) {
+                    // 只有 GSE V2 agent 才支持容器执行特性，这里这里必然是 true
+                    return true;
+                }
+                return false;
+            });
+        return this.targetGseV2Agent;
+    }
+
+    /**
+     * 通过执行目标判断是否支持"执行对象特性"
+     */
+    public boolean isSupportExecuteObjectFeature() {
+        if (supportExecuteObject == null) {
+            supportExecuteObject = CollectionUtils.isNotEmpty(targetExecuteObjects.getExecuteObjects());
+        }
+        return supportExecuteObject;
+
+    }
+
+    public ExecuteObjectTypeEnum determineStepExecuteObjectType() {
+        return targetExecuteObjects.getExecuteObjectsCompatibly().get(0).getType();
+    }
+
+    public boolean isStepContainsExecuteObject() {
+        // 判断步骤是否包含执行对象
+        return isScriptStep() || isFileStep();
     }
 }

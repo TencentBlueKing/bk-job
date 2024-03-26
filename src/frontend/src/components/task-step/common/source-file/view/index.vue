@@ -89,6 +89,7 @@
           <server-file
             v-bind="$attrs"
             :data="serverFileList"
+            :from="from"
             :mode="mode"
             @on-change="handleServerFileChange"
             @on-close="handleServerClose" />
@@ -145,6 +146,11 @@
       account: {
         type: Array,
         default: () => [],
+      },
+      // 组件被使用的场景，快速执行｜作业模板
+      from: {
+        type: String,
+        required: true,
       },
     },
     data() {

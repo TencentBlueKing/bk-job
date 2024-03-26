@@ -43,7 +43,6 @@ import ElementTeleport from '@components/element-teleport';
 import Empty from '@components/empty';
 import Exception from '@components/exception';
 import Icon from '@components/icon';
-// import createIpSelector from '@components/ip-selector/index.js';
 import JbBreadcrumb from '@components/jb-breadcrumb';
 import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
 import JbDialog from '@components/jb-dialog';
@@ -70,47 +69,13 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
 
 const IpSelector = createIpSelector({
-  version: '7',
+  version: '8',
+  // panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerManualInput'],
   panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
   unqiuePanelValue: false,
   nameStyle: 'camelCase',
   hostTableDefaultSelectAllMode: true,
   hostSearchSelect: true,
-  // hostTableCustomColumnList: [
-  //     {
-  //         key: 'a1',
-  //         label: '测试列一',
-  //         index: 3,
-  //         field: 'a1',
-  //         width: '100px',
-  //         renderHead: h => h('span', '测试列一header'),
-  //         renderCell: h => h('span', 'render a1'),
-  //     },
-  //     {
-  //         key: 'A2',
-  //         label: '测试列二',
-  //         field: 'A2',
-  //         index: 4,
-  //         width: '100px',
-  //         renderHead: h => h('span', '测试列二header'),
-  //         renderCell: h => h('span', 'render test1'),
-  //     },
-  // ],
-  // hostTableRenderColumnList: ['ip', 'alive', 'osName', 'ipv6', 'cloudArea'],
-  // hostMemuExtends: [
-  //     {
-  //         name: '复制更多一',
-  //         action: () => {
-  //             console.log('复制更多一');
-  //         },
-  //     },
-  //     {
-  //         name: '复制更多二',
-  //         action: () => {
-  //             console.log('复制更多二');
-  //         },
-  //     },
-  // ],
   fetchTopologyHostCount: HostManageService.fetchTopologyWithCount,
   fetchTopologyHostsNodes: HostManageService.fetchTopologyHost,
   fetchTopologyHostIdsNodes: HostManageService.fetchTopogyHostIdList,
@@ -121,6 +86,11 @@ const IpSelector = createIpSelector({
   fetchDynamicGroups: HostManageService.fetchDynamicGroup,
   fetchHostsDynamicGroup: HostManageService.fetchDynamicGroupHost,
   fetchHostAgentStatisticsDynamicGroups: HostManageService.fetchBatchGroupAgentStatistics,
+  fetchTopologyContainerWithCount: HostManageService.fetchTopologyContainerWithCount,
+  fetchTopologyContainerContainer: HostManageService.fetchTopologyContainerContainer,
+  fetchContainerTopologyContainerIdList: HostManageService.fetchTopologyContainerContainerIdList,
+  fetchContainerDetail: HostManageService.fetchContainerInfoById,
+  fetchContainerCheck: HostManageService.fetchInputParseContainerList,
   fetchCustomSettings: CustomSettingsService.fetchAll,
   updateCustomSettings: CustomSettingsService.update,
   fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()

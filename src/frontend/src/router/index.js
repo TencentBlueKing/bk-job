@@ -176,7 +176,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   const routerReplace = router.replace;
 
   // window.routerFlashBack === true 时查找路由缓存参数
-  const routerFlaskBack = (params, currentRoute) => {
+  const routerFlaskBack = (params) => {
     /* eslint-disable no-param-reassign */
     params = _.cloneDeep(params);
     if (window.routerFlashBack) {

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.api.common;
 
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.manage.common.consts.script.ScriptCategoryEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptCategoryEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;

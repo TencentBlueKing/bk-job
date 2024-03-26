@@ -68,6 +68,7 @@
         v-model="isAddServerFile"
         class="source-file-view"
         :data="sourceFileList"
+        :from="from"
         v-bind="$attrs"
         @on-change="handleSourceFileChange" />
     </jb-form-item>
@@ -113,6 +114,11 @@
       data: {
         type: Array,
         default: () => [],
+      },
+      // 组件被使用的场景，快速执行｜作业模板
+      from: {
+        type: String,
+        required: true,
       },
     },
     data() {

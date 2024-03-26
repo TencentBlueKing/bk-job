@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.execute.model.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +81,16 @@ public class RollingConfigDetailDO {
      * 目标服务器滚动分批
      */
     @JsonProperty("hostsBatchList")
-    private List<RollingHostsBatchDO> hostsBatchList;
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
+        explain = "兼容老数据，数据失效后可删除。使用 executeObjectsBatchList 替换")
+    private List<RollingExecuteObjectsBatchDO> hostsBatchList;
+
+    /**
+     * 目标服务器滚动分批
+     */
+    @JsonProperty("executeObjectsBatchList")
+    private List<RollingExecuteObjectsBatchDO> executeObjectsBatchList;
 
     /**
      * 滚动总批次
@@ -97,6 +110,20 @@ public class RollingConfigDetailDO {
      */
     public boolean isLastRollingStep(long stepInstanceId) {
         return this.includeStepInstanceIdList.get(includeStepInstanceIdList.size() - 1).equals(stepInstanceId);
+    }
+
+    /**
+     * 获取执行对象滚动批次(兼容当前版本+历史版本)
+     */
+    @JsonIgnore
+    public List<RollingExecuteObjectsBatchDO> getExecuteObjectsBatchListCompatibly() {
+        if (executeObjectsBatchList != null) {
+            return executeObjectsBatchList;
+        } else if (hostsBatchList != null) {
+            return hostsBatchList;
+        } else {
+            return Collections.emptyList();
+        }
     }
 
 }

@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;

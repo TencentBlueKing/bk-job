@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -53,13 +54,14 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -149,11 +151,11 @@ public class EsbPushConfigFileResourceV3Impl
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setStepId(-1L);
-        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileSourceList(convertConfigFileSource(username, configFileList));
         stepInstance.setAppId(request.getAppId());
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
         stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
@@ -175,7 +177,7 @@ public class EsbPushConfigFileResourceV3Impl
             fileSourceDTO.setLocalUpload(false);
             fileSourceDTO.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
             List<FileDetailDTO> files = new ArrayList<>();
-            // 保存配置文件至机器
+            // 保存配置文件至主机
             String configFileLocalPath = ConfigFileUtil.saveConfigFileToLocal(
                 fileDistributeConfig.getJobDistributeRootPath(),
                 userName,
@@ -184,8 +186,10 @@ public class EsbPushConfigFileResourceV3Impl
             );
             files.add(new FileDetailDTO(configFileLocalPath));
             fileSourceDTO.setFiles(files);
-            // 设置配置文件所在机器IP信息
-            fileSourceDTO.setServers(agentService.getLocalServersDTO());
+            // 设置配置文件所在主机信息
+            ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
+            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(agentService.getLocalAgentHost()));
+            fileSourceDTO.setServers(fileSourceExecuteObjects);
             fileSourceDTOS.add(fileSourceDTO);
         });
         return fileSourceDTOS;

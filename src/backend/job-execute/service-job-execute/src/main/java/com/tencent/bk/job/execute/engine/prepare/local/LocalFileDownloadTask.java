@@ -105,6 +105,12 @@ public class LocalFileDownloadTask implements Callable<Boolean> {
         localPath = PathUtil.joinFilePath(localPath, filePath);
         // 如果本地文件还未下载就已存在并且Md5正确，直接完成准备阶段
         if (currentLocalFileValid(localPath, nodeDTO)) {
+            // 将最后修改时间设置为当前时间，避免在分发过程中被清理
+            File localFile = new File(localPath);
+            boolean lastModifyTimeSet = localFile.setLastModified(System.currentTimeMillis());
+            if (!lastModifyTimeSet) {
+                log.warn("Fail to set lastModifyTime for {}", localPath);
+            }
             return true;
         }
         Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(

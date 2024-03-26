@@ -36,6 +36,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.NotifyService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,14 +53,17 @@ public class ConfirmStepEventHandler implements StepEventHandler {
     private final TaskInstanceService taskInstanceService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final NotifyService notifyService;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public ConfirmStepEventHandler(TaskInstanceService taskInstanceService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                   NotifyService notifyService) {
+                                   NotifyService notifyService,
+                                   StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.notifyService = notifyService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -104,7 +108,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 null, endTime, taskTotalTime);
             long stepTotalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
-            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.CONFIRM_TERMINATED, null,
+            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.CONFIRM_TERMINATED, null,
                 endTime, stepTotalTime);
         } else {
             log.warn("Unsupported step instance status for confirm step terminate action, stepInstanceId:{}, " +
@@ -143,7 +147,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 stepOperator = taskInstance.getOperator();
                 stepInstance.setOperator(stepOperator);
             }
-            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.WAITING_USER,
+            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.WAITING_USER,
                 System.currentTimeMillis(), null, null);
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
@@ -165,7 +169,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             // 人工确认通过，该步骤状态标识为成功；终止成功的步骤保持状态不变
-            taskInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
+            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
                 totalTime);
             taskExecuteMQEventDispatcher.dispatchJobEvent(
                 JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));

@@ -519,7 +519,7 @@
           name: 'ID',
           id: 'planId',
           description: I18n.t('template.将覆盖其它条件'),
-          validate(values, item) {
+          validate(values) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('template.ID只支持数字') : true;
           },
@@ -958,7 +958,7 @@
         return TaskPlanService.planDelete({
           id: row.id,
           templateId: row.templateId,
-        }).then((data) => {
+        }).then(() => {
           this.$bkMessage({
             theme: 'success',
             message: I18n.t('template.操作成功'),

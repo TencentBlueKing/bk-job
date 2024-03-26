@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.execute.dao;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 
 import java.util.Collection;
@@ -35,20 +37,22 @@ import java.util.List;
 /**
  * FileAgentTaskDAO
  */
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public interface FileAgentTaskDAO {
     /**
      * 批量新增Agent任务
      *
      * @param agentTasks Agent任务列表
      */
-    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量
@@ -67,7 +71,7 @@ public interface FileAgentTaskDAO {
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
+    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 根据执行结果查询Agent任务
@@ -78,7 +82,7 @@ public interface FileAgentTaskDAO {
      * @param status         任务状态
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                   Integer executeCount,
                                                   Integer batch,
                                                   Integer status);
@@ -95,7 +99,7 @@ public interface FileAgentTaskDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                   Integer executeCount,
                                                   Integer batch,
                                                   Integer status,
@@ -112,7 +116,7 @@ public interface FileAgentTaskDAO {
      * @param fileTaskMode   文件分发任务模式;传入null表示忽略该过滤条件
      * @return agent任务
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
                                       Integer executeCount,
                                       Integer batch,
                                       FileTaskModeEnum fileTaskMode);
@@ -123,7 +127,7 @@ public interface FileAgentTaskDAO {
      * @param gseTaskId GSE任务ID
      * @return agent任务
      */
-    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
 
     /**
      * 根据hostId查询Agent任务
@@ -135,15 +139,9 @@ public interface FileAgentTaskDAO {
      * @param hostId         主机ID
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
+    ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
                                       FileTaskModeEnum mode, long hostId);
 
-    /**
-     * 判断步骤实例的Agent Task 记录是否存在
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    boolean isStepInstanceRecordExist(long stepInstanceId);
 
     /**
      * 批量更新AgentTask的字段

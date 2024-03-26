@@ -24,24 +24,59 @@
 
 package com.tencent.bk.job.common.cc.model.req;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @Description
- * @Date 2020/1/13
- * @Version 1.0
+ * cmdb 请求分页信息
  */
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Page {
+    /**
+     * 记录开始位置
+     */
     private Integer start;
 
+    /**
+     * 每页限制条数
+     */
     private Integer limit;
+
+    /**
+     * 排序字段
+     */
+    private String sort;
+    /**
+     * 是否获取查询对象数量的标记。如果此标记为true那么表示此次请求是获取数量，此时其余字段必须为初始化值，start为0，limit为:0，sort为""
+     */
+    @JsonProperty("enable_count")
+    private boolean enableCount;
+
+    public Page(Integer start, Integer limit) {
+        this.start = start;
+        this.limit = limit;
+    }
+
+    public Page(Integer start, Integer limit, String sort) {
+        this.start = start;
+        this.limit = limit;
+        this.sort = sort;
+    }
+
+    /**
+     * 构造查询记录总数的分页条件
+     */
+    public static Page buildQueryCountPage() {
+        Page page = new Page(0, 0, "");
+        page.setEnableCount(true);
+        return page;
+    }
 }

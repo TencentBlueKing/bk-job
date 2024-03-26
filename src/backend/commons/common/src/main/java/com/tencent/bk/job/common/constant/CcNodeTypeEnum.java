@@ -31,8 +31,6 @@ import lombok.Getter;
 
 /**
  * CMDB通用topo节点类型（不包含用户自定义topo节点类型）
- *
- * @since 10/12/2019 16:11
  */
 @Getter
 @AllArgsConstructor
@@ -40,21 +38,18 @@ public enum CcNodeTypeEnum {
     /**
      * 模块
      */
-    MODULE("module", "模块"),
+    MODULE("module"),
     /**
      * 集群
      */
-    SET("set", "集群"),
+    SET("set"),
     /**
      * 业务
      */
-    BIZ("biz", "业务"),
-    ;
+    BIZ("biz");
 
     @JsonValue
-    private String type;
-
-    private String name;
+    private final String type;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static CcNodeTypeEnum parseString(String type) {

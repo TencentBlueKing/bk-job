@@ -55,7 +55,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteScriptRequest;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,7 +196,7 @@ public class EsbFastExecuteScriptResourceImpl
         } else {
             // 对传入参数进行base64解码
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(request.getScriptType());
+            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptType()));
         }
         if (StringUtils.isNotEmpty(request.getScriptParam())) {
             String scriptParam = Base64Util.decodeContentToStr(request.getScriptParam());
@@ -209,9 +209,9 @@ public class EsbFastExecuteScriptResourceImpl
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
         AccountDTO account = accountService.getSystemAccountByAlias(request.getAccount(), request.getAppId());
         if (account == null) {

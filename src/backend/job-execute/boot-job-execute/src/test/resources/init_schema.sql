@@ -361,15 +361,68 @@ CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 
 CREATE TABLE IF NOT EXISTS `task_instance_host`
 (
-    `task_instance_id` bigint(20)  NOT NULL DEFAULT '0',
-    `host_id`          bigint(20)  NOT NULL DEFAULT '0',
-    `ip`               varchar(15) DEFAULT NULL,
-    `ipv6`             varchar(46) DEFAULT NULL,
-    `row_create_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`  datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`task_instance_id`,`host_id`),
+    `task_instance_id` bigint(20) NOT NULL DEFAULT '0',
+    `host_id`          bigint(20) NOT NULL DEFAULT '0',
+    `ip`               varchar(15)         DEFAULT NULL,
+    `ipv6`             varchar(46)         DEFAULT NULL,
+    `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`task_instance_id`, `host_id`),
     KEY (`ip`),
     KEY (`ipv6`)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4;
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `gse_script_execute_obj_task`
+(
+    `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL,
+    `step_instance_id`     bigint(20)  NOT NULL,
+    `execute_count`        smallint(6) NOT NULL DEFAULT '0',
+    `actual_execute_count` smallint(6)          DEFAULT NULL,
+    `batch`                smallint(6) NOT NULL DEFAULT '0',
+    `execute_obj_type`     tinyint(4)  NOT NULL,
+    `execute_obj_id`       varchar(24) NOT NULL,
+    `gse_task_id`          bigint(20)  NOT NULL DEFAULT '0',
+    `status`               int(11)              DEFAULT '1',
+    `start_time`           bigint(20)           DEFAULT NULL,
+    `end_time`             bigint(20)           DEFAULT NULL,
+    `total_time`           bigint(20)           DEFAULT NULL,
+    `error_code`           int(11)              DEFAULT '0',
+    `exit_code`            int(11)              DEFAULT NULL,
+    `tag`                  varchar(256)         DEFAULT '',
+    `log_offset`           int(11)     NOT NULL DEFAULT '0',
+    `row_create_time`      datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`      datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY (`step_instance_id`, `execute_count`, `batch`, `execute_obj_id`),
+    KEY (`task_instance_id`),
+    KEY (`step_instance_id`, `execute_obj_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `gse_file_execute_obj_task`
+(
+    `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL,
+    `step_instance_id`     bigint(20)  NOT NULL,
+    `execute_count`        smallint(6) NOT NULL DEFAULT '0',
+    `actual_execute_count` smallint(6)          DEFAULT NULL,
+    `batch`                smallint(6) NOT NULL DEFAULT '0',
+    `execute_obj_type`     tinyint(4)  NOT NULL,
+    `execute_obj_id`       varchar(24) NOT NULL,
+    `mode`                 tinyint(1)  NOT NULL,
+    `gse_task_id`          bigint(20)  NOT NULL DEFAULT '0',
+    `status`               int(11)              DEFAULT '1',
+    `start_time`           bigint(20)           DEFAULT NULL,
+    `end_time`             bigint(20)           DEFAULT NULL,
+    `total_time`           bigint(20)           DEFAULT NULL,
+    `error_code`           int(11)              DEFAULT '0',
+    `row_create_time`      datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`      datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY (`step_instance_id`, `execute_count`, `batch`, `mode`, `execute_obj_id`),
+    KEY (`task_instance_id`),
+    KEY (`step_instance_id`, `execute_obj_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
 

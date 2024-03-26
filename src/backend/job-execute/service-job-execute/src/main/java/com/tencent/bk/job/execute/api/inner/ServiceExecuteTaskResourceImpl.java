@@ -38,7 +38,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
@@ -125,8 +125,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
                 }
             } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
                 ServiceTargetServers serviceServers = serviceTaskVariable.getServerValue();
-                ServersDTO serversDTO = convertToServersDTO(serviceServers);
-                taskVariableDTO.setTargetServers(serversDTO);
+                ExecuteTargetDTO executeTargetDTO = convertToServersDTO(serviceServers);
+                taskVariableDTO.setExecuteTarget(executeTargetDTO);
             } else if (serviceTaskVariable.getType() == TaskVariableTypeEnum.NAMESPACE.getType()) {
                 taskVariableDTO.setValue(serviceTaskVariable.getNamespaceValue());
             }
@@ -136,25 +136,25 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         return taskExecuteParam;
     }
 
-    private ServersDTO convertToServersDTO(ServiceTargetServers servers) {
+    private ExecuteTargetDTO convertToServersDTO(ServiceTargetServers servers) {
         if (servers == null) {
             return null;
         }
-        ServersDTO serversDTO = new ServersDTO();
-        serversDTO.setStaticIpList(servers.getIps());
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
+        executeTargetDTO.setStaticIpList(servers.getIps());
         if (servers.getDynamicGroupIds() != null) {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             servers.getDynamicGroupIds()
                 .forEach(groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-            serversDTO.setDynamicServerGroups(dynamicServerGroups);
+            executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
         }
         if (servers.getTopoNodes() != null) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
             servers.getTopoNodes().forEach(topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
                 topoNode.getNodeType())));
-            serversDTO.setTopoNodes(topoNodes);
+            executeTargetDTO.setTopoNodes(topoNodes);
         }
-        return serversDTO;
+        return executeTargetDTO;
     }
 
     private boolean checkExecuteTaskRequest(ServiceTaskExecuteRequest request) {

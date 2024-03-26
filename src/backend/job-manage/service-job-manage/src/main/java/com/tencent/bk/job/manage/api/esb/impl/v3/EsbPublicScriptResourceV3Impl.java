@@ -37,9 +37,9 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
@@ -343,7 +343,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptLanguage() != null
             && request.getScriptLanguage() > 0
-            && ScriptTypeEnum.valueOf(request.getScriptLanguage()) == null) {
+            && ScriptTypeEnum.valOf(request.getScriptLanguage()) == null) {
             log.warn("Param [type]:[{}] is illegal!", request.getScriptLanguage());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
         }

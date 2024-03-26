@@ -55,7 +55,7 @@ import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbFastExecuteSQLRequest;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,7 +184,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
             stepInstance.setName(generateDefaultFastTaskName());
         }
         stepInstance.setStepId(-1L);
-        stepInstance.setScriptType(ScriptTypeEnum.SQL.getValue());
+        stepInstance.setScriptType(ScriptTypeEnum.SQL);
         if (request.getScriptVersionId() != null && request.getScriptVersionId() > 0) {
             stepInstance.setScriptVersionId(request.getScriptVersionId());
         } else {
@@ -194,9 +194,9 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
 
         stepInstance.setTimeout(request.getTimeout() == null ?
             JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SQL);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToStandardServers(request.getTargetServer(), request.getIpList(),
+        stepInstance.setTargetExecuteObjects(convertToStandardServers(request.getTargetServer(), request.getIpList(),
             request.getDynamicGroupIdList()));
 
         AccountDTO account = accountService.getAccountById(request.getDbAccountId());

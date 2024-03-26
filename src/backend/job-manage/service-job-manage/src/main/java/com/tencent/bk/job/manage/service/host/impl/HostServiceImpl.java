@@ -483,7 +483,8 @@ public class HostServiceImpl implements HostService {
 
         Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
             .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
-            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId,
+                ApplicationHostDTO::getAgentId, (oldValue, newValue) -> newValue));
         hosts.forEach(host -> {
             if (StringUtils.isEmpty(host.getAgentId())) {
                 host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));

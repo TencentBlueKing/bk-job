@@ -64,7 +64,7 @@
 <script>
   import TaskExecuteService from '@service/task-execute';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import GlobalVariable from '@components/global-variable/edit';
   import GlobalVariableLayout from '@components/global-variable/layout';
@@ -117,7 +117,7 @@
             name,
             type,
             defaultValue: value,
-            defaultTargetValue: new TaskHostNodeModel(targetValue || {}),
+            defaultTargetValue: new ExecuteTargetModel(targetValue || {}),
             changeable,
           })));
         })

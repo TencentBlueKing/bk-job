@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.common.model.PageData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -232,5 +235,46 @@ public class PageUtil {
         targetPageData.setExistAny(srcPageData.getExistAny());
         targetPageData.setData(newDataList);
         return targetPageData;
+    }
+
+    /**
+     * 查询全量 - 通过循环分页查询
+     *
+     * @param pageLimit               每页限制大小
+     * @param pageQuery               查询操作
+     * @param extractElementsFunction 从分页查询结果提取返回的对象列表
+     * @param elementConverter        分页查询对象转换为最终对象
+     * @param <T1>                    分页查询返回的对象
+     * @param <T2>                    转换之后作为方法返回值的对象
+     * @param <R>                     分页查询结果
+     * @return 全量对象列表
+     */
+    public static <T1, T2, R> List<T2> queryAllWithLoopPageQuery(int pageLimit,
+                                                                 Function<PageCondition, R> pageQuery,
+                                                                 Function<R, Collection<T1>> extractElementsFunction,
+                                                                 Function<T1, T2> elementConverter) {
+        int start = 0;
+        List<T2> elements = new ArrayList<>();
+        while (true) {
+            PageCondition pageCondition = PageCondition.build(start, pageLimit);
+            R result = pageQuery.apply(pageCondition);
+
+            Collection<T1> originElements = extractElementsFunction.apply(result);
+            if (CollectionUtils.isEmpty(originElements)) {
+                // 如果本次没有获取到数据记录，说明数据已经全部拉取完成
+                break;
+            }
+            elements.addAll(originElements.stream()
+                .map(elementConverter)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+
+            if (originElements.size() < pageLimit) {
+                // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
+                break;
+            }
+            start += pageLimit;
+        }
+        return elements;
     }
 }

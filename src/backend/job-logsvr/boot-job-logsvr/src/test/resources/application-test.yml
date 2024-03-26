@@ -19,6 +19,8 @@ de:
 bk-api-gateway:
   gse:
     url: gse.apigw.com
+  cmdb:
+    url: cmdb.apigw.com
 esb:
   service:
     url: esb.service

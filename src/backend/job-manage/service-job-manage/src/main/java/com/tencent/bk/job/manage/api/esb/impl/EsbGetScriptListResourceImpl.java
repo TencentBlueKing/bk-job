@@ -38,10 +38,10 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptListResource;
 import com.tencent.bk.job.manage.auth.EsbAuthService;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.EsbScriptDTO;
 import com.tencent.bk.job.manage.model.esb.request.EsbGetScriptListRequest;
@@ -184,7 +184,7 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
         }
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptType() != null && request.getScriptType() > 0
-            && ScriptTypeEnum.valueOf(request.getScriptType()) == null) {
+            && ScriptTypeEnum.valOf(request.getScriptType()) == null) {
             log.warn("ScriptType:{} is illegal!", request.getScriptType());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "script_type");
         }

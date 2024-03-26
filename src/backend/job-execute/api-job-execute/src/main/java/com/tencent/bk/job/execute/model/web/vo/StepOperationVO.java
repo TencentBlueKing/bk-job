@@ -40,6 +40,7 @@ public class StepOperationVO {
     private Long stepInstanceId;
     @ApiModelProperty("执行次数")
     private Integer retryCount;
+
     public StepOperationVO(Long stepInstanceId, Integer retryCount) {
         this.stepInstanceId = stepInstanceId;
         this.retryCount = retryCount;

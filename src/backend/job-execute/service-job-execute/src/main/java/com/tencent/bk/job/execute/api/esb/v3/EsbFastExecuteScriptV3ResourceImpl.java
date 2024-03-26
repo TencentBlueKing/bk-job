@@ -51,7 +51,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,9 +97,6 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         request.trimIps();
 
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
-        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_ABANDONED);
-        }
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
         StepRollingConfigDTO rollingConfig = null;
         if (request.getRollingConfig() != null) {
@@ -202,7 +199,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             stepInstance.setScriptId(request.getScriptId());
         } else if (StringUtils.isNotBlank(request.getContent())) {
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(request.getScriptLanguage());
+            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptLanguage()));
         }
 
         if (StringUtils.isNotEmpty(request.getScriptParam())) {
@@ -216,9 +213,9 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         stepInstance.setTimeout(
             request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setOperator(username);

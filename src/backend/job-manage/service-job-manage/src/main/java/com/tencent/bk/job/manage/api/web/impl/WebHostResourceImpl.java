@@ -39,21 +39,21 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.web.WebHostResource;
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
 import com.tencent.bk.job.manage.model.web.request.AgentStatisticsReq;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByDynamicGroupsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.GetHostAgentStatisticsByNodesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostDetailReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListDynamicGroupsReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListHostByBizTopologyNodesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.ListTopologyHostCountTreesReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.PageListHostsByDynamicGroupReq;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.QueryNodesPathReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.ListTopologyTreesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.GetHostAgentStatisticsByDynamicGroupsReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.GetHostAgentStatisticsByNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostDetailReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.ListDynamicGroupsReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.ListHostByBizTopologyNodesReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.PageListHostsByDynamicGroupReq;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.QueryNodesPathReq;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.DynamicGroupBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
@@ -135,7 +135,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                        AppResourceScope appResourceScope,
                                                                        String scopeType,
                                                                        String scopeId,
-                                                                       ListTopologyHostCountTreesReq req) {
+                                                                       ListTopologyTreesReq req) {
         return Response.buildSuccessResp(
             Collections.singletonList(
                 scopeTopoHostService.listAppTopologyHostCountTree(username, appResourceScope)

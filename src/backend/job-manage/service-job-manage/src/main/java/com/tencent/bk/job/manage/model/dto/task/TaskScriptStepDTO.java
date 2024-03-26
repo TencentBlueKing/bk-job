@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbScriptStepV3DTO;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskScriptStepVO;
@@ -123,7 +123,7 @@ public class TaskScriptStepDTO {
         } else {
             scriptStep.setContent(null);
         }
-        scriptStep.setLanguage(ScriptTypeEnum.valueOf(scriptStepVO.getScriptLanguage()));
+        scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptStepVO.getScriptLanguage()));
         scriptStep.setScriptParam(scriptStepVO.getScriptParam());
         if (scriptStepVO.getTimeout() == null) {
             scriptStep.setTimeout((long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);

@@ -113,8 +113,8 @@
         isSideHover: false,
         pageWidth: PAGE_MIN_WIDTH,
         sideLeftExpandWidth: 0,
-        sideOffsetTop: 0,
-        contentOffsetTop: 0,
+        sideOffsetTop: 52,
+        contentOffsetTop: 104,
       };
     },
     computed: {
@@ -181,11 +181,11 @@
         this.sideOffsetTop = getOffset(this.$refs.side).top;
         this.contentOffsetTop = getOffset(this.$refs.contentScroll.$el).top;
       }, 100));
+
       observer.observe(this.$refs.root, {
         subtree: true,
         childList: true,
         attributeName: true,
-        characterData: true,
       });
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', resizeHandler);

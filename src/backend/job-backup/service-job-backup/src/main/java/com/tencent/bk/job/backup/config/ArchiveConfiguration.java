@@ -30,9 +30,9 @@ import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseTaskIpLogRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseTaskLogRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
@@ -140,22 +140,6 @@ public class ArchiveConfiguration {
             return new OperationLogRecordDAO(context, archiveDBProperties);
         }
 
-        @Bean(name = "gseTaskLogRecordDAO")
-        public GseTaskLogRecordDAO gseTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
-            log.info("Init GseTaskLogRecordDAO");
-            return new GseTaskLogRecordDAO(context, archiveDBProperties);
-        }
-
-        @Bean(name = "gseTaskIpLogRecordDAO")
-        public GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
-            log.info("Init GseTaskIpLogRecordDAO");
-            return new GseTaskIpLogRecordDAO(context, archiveDBProperties);
-        }
-
         @Bean(name = "fileSourceTaskLogRecordDAO")
         public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
             @Qualifier("job-execute-dsl-context") DSLContext context,
@@ -186,6 +170,22 @@ public class ArchiveConfiguration {
             ArchiveDBProperties archiveDBProperties) {
             log.info("Init GseFileAgentTaskRecordDAO");
             return new GseFileAgentTaskRecordDAO(context, archiveDBProperties);
+        }
+
+        @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
+        public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveDBProperties archiveDBProperties) {
+            log.info("Init GseScriptExecuteObjTaskRecordDAO");
+            return new GseScriptExecuteObjTaskRecordDAO(context, archiveDBProperties);
+        }
+
+        @Bean(name = "gseFileExecuteObjTaskRecordDAO")
+        public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context") DSLContext context,
+            ArchiveDBProperties archiveDBProperties) {
+            log.info("Init GseFileExecuteObjTaskRecordDAO");
+            return new GseFileExecuteObjTaskRecordDAO(context, archiveDBProperties);
         }
 
         @Bean(name = "stepInstanceRollingTaskRecordDAO")
@@ -247,11 +247,11 @@ public class ArchiveConfiguration {
         ObjectProvider<TaskInstanceVariableRecordDAO> taskInstanceVariableRecordDAOObjectProvider,
         ObjectProvider<OperationLogRecordDAO> operationLogRecordDAOObjectProvider,
         ObjectProvider<FileSourceTaskLogRecordDAO> fileSourceTaskLogRecordDAOObjectProvider,
-        ObjectProvider<GseTaskLogRecordDAO> gseTaskLogRecordDAOObjectProvider,
-        ObjectProvider<GseTaskIpLogRecordDAO> gseTaskIpLogRecordDAOObjectProvider,
         ObjectProvider<GseTaskRecordDAO> gseTaskRecordDAOObjectProvider,
         ObjectProvider<GseScriptAgentTaskRecordDAO> gseScriptAgentTaskRecordDAOObjectProvider,
         ObjectProvider<GseFileAgentTaskRecordDAO> gseFileAgentTaskRecordDAOObjectProvider,
+        ObjectProvider<GseScriptExecuteObjTaskRecordDAO> gseScriptExecuteObjTaskRecordDAOObjectProvider,
+        ObjectProvider<GseFileExecuteObjTaskRecordDAO> gseFileExecuteObjTaskRecordDAOObjectProvider,
         ObjectProvider<StepInstanceRollingTaskRecordDAO> stepInstanceRollingTaskRecordDAOObjectProvider,
         ObjectProvider<RollingConfigRecordDAO> rollingConfigRecordDAOObjectProvider,
         ObjectProvider<TaskInstanceHostRecordDAO> taskInstanceHostRecordDAOObjectProvider,
@@ -272,11 +272,11 @@ public class ArchiveConfiguration {
             taskInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
             operationLogRecordDAOObjectProvider.getIfAvailable(),
             fileSourceTaskLogRecordDAOObjectProvider.getIfAvailable(),
-            gseTaskLogRecordDAOObjectProvider.getIfAvailable(),
-            gseTaskIpLogRecordDAOObjectProvider.getIfAvailable(),
             gseTaskRecordDAOObjectProvider.getIfAvailable(),
             gseScriptAgentTaskRecordDAOObjectProvider.getIfAvailable(),
             gseFileAgentTaskRecordDAOObjectProvider.getIfAvailable(),
+            gseScriptExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
+            gseFileExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
             stepInstanceRollingTaskRecordDAOObjectProvider.getIfAvailable(),
             rollingConfigRecordDAOObjectProvider.getIfAvailable(),
             taskInstanceHostRecordDAOObjectProvider.getIfAvailable(),

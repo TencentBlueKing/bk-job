@@ -40,7 +40,7 @@ import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.crontab.service.TaskPlanService;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
-import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
+import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import lombok.AllArgsConstructor;

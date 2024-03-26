@@ -239,7 +239,7 @@
           name: 'ID',
           id: 'taskInstanceId',
           description: I18n.t('history.将覆盖其它条件'),
-          validate(values, item) {
+          validate(values) {
             const validate = values.every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('history.ID只支持数字') : true;
           },
@@ -252,7 +252,7 @@
         {
           name: I18n.t('history.目标 IP'),
           id: 'ip',
-          validate(values, item) {
+          validate(values) {
             const validate = values.every(_ => IPRule.validator(_.name));
             return !validate ? IPRule.message : true;
           },

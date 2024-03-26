@@ -43,10 +43,10 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -64,13 +64,14 @@ import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
 import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.util.FileTransferModeUtil;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -91,6 +92,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private final BusinessAuthService businessAuthService;
     private final RollingConfigService rollingConfigService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public WebTaskInstanceResourceImpl(TaskInstanceService taskInstanceService,
@@ -99,7 +101,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                        MessageI18nService i18nService,
                                        BusinessAuthService businessAuthService,
                                        RollingConfigService rollingConfigService,
-                                       TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                       TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                       StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.taskOperationLogService = taskOperationLogService;
@@ -107,6 +110,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         this.businessAuthService = businessAuthService;
         this.rollingConfigService = rollingConfigService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -117,7 +121,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                          String scopeId,
                                                          Long stepInstanceId) {
 
-        StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
             appResourceScope.getAppId(), stepInstanceId);
 
         taskInstanceAccessProcessor.processBeforeAccess(username,
@@ -195,7 +199,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private ExecuteStepVO convertToStepVO(StepInstanceDTO stepInstance) {
         ExecuteStepVO stepVO = new ExecuteStepVO();
         stepVO.setName(stepInstance.getName());
-        StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
+        StepExecuteTypeEnum stepType = stepInstance.getExecuteType();
         if (stepType == StepExecuteTypeEnum.EXECUTE_SCRIPT || stepType == StepExecuteTypeEnum.EXECUTE_SQL) {
             stepVO.setType(TaskStepTypeEnum.SCRIPT.getValue());
             ExecuteScriptStepVO scriptStepVO = new ExecuteScriptStepVO();
@@ -219,11 +223,11 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 scriptStepVO.setSecureParam(0);
             }
             scriptStepVO.setTimeout(stepInstance.getTimeout());
-            scriptStepVO.setScriptLanguage(stepInstance.getScriptType());
+            scriptStepVO.setScriptLanguage(stepInstance.getScriptType().getValue());
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());
             scriptStepVO.setScriptId(stepInstance.getScriptId());
             scriptStepVO.setScriptVersionId(stepInstance.getScriptVersionId());
-            scriptStepVO.setExecuteTarget(stepInstance.getTargetServers().convertToTaskTargetVO());
+            scriptStepVO.setExecuteTarget(stepInstance.getTargetExecuteObjects().convertToTaskTargetVO());
             scriptStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
             stepVO.setScriptStepInfo(scriptStepVO);
         } else if (stepType == StepExecuteTypeEnum.SEND_FILE) {
@@ -238,7 +242,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             } else {
                 fileDestinationInfoVO.setPath(stepInstance.getFileTargetPath());
             }
-            fileDestinationInfoVO.setServer(stepInstance.getTargetServers().convertToTaskTargetVO());
+            fileDestinationInfoVO.setServer(stepInstance.getTargetExecuteObjects().convertToTaskTargetVO());
             fileStepVO.setFileDestination(fileDestinationInfoVO);
 
             fileStepVO.setIgnoreError(stepInstance.isIgnoreError() ? 1 : 0);
@@ -296,9 +300,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         vo.setChangeable(variable.isChangeable() ? 1 : 0);
         vo.setRequired(variable.isRequired() ? 1 : 0);
         if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-            ServersDTO servers = variable.getTargetServers();
-            if (servers != null && servers.getIpList() != null) {
-                TaskTargetVO taskTargetVO = servers.convertToTaskTargetVO();
+            ExecuteTargetDTO executeTarget = variable.getExecuteTarget();
+            if (executeTarget != null && executeTarget.getExecuteObjectsCompatibly() != null) {
+                TaskTargetVO taskTargetVO = executeTarget.convertToTaskTargetVO();
                 vo.setTargetValue(taskTargetVO);
             }
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {

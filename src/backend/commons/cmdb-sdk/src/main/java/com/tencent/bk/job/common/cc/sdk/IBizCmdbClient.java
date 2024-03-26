@@ -117,6 +117,14 @@ public interface IBizCmdbClient {
     ApplicationDTO getBizAppById(long bizId);
 
     /**
+     * 查询业务列表
+     *
+     * @param bizIds cmdb业务ID
+     * @return 业务
+     */
+    List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds);
+
+    /**
      * 查询业务下的动态分组
      *
      * @param bizId cmdb业务ID

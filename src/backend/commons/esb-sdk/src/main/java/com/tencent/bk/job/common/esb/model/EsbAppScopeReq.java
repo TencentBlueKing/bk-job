@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.esb.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.validate.EsbAppScopeReqGroupSequenceProvider;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -50,7 +51,8 @@ public class EsbAppScopeReq extends EsbJobReq {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID
      */
-    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
+    @CompatibleImplementation(name = "bizId", type = CompatibleType.API,
+        explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
     @JsonProperty("bk_biz_id")
     @Min(value = 1L, message = "{validation.constraints.InvalidBkBizId.message}", groups = UseBkBizIdParam.class)
     private Long bizId;

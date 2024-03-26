@@ -25,10 +25,9 @@
 package com.tencent.bk.job.common.cc.model.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.cc.model.BaseRuleDTO;
-import com.tencent.bk.job.common.cc.model.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.model.dto.PageDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -60,5 +59,5 @@ public class ListBizHostReq extends EsbReq {
     private List<String> fields = Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_name", "bk_os_name",
         "bk_cloud_id");
 
-    private PageDTO page;
+    private Page page;
 }

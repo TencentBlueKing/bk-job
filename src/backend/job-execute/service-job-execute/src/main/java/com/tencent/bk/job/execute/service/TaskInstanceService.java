@@ -28,9 +28,6 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.Collection;
@@ -51,14 +48,6 @@ public interface TaskInstanceService {
         throws NotFoundException, PermissionDeniedException;
 
     /**
-     * 保存步骤实例
-     *
-     * @param stepInstance 步骤实例
-     * @return 步骤实例ID
-     */
-    long addStepInstance(StepInstanceDTO stepInstance);
-
-    /**
      * 获取作业实例详情-包含步骤信息和全局变量信息
      *
      * @param taskInstanceId 作业实例 ID
@@ -77,66 +66,11 @@ public interface TaskInstanceService {
     TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException;
 
-    List<StepInstanceBaseDTO> listStepInstanceByTaskInstanceId(long taskInstanceId);
-
-    /**
-     * 获取步骤基本信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @return 步骤基本信息
-     */
-    StepInstanceBaseDTO getBaseStepInstance(long stepInstanceId);
-
-    /**
-     * 获取步骤基本信息
-     *
-     * @param appId          业务 ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 步骤基本信息
-     */
-    StepInstanceBaseDTO getBaseStepInstance(long appId, long stepInstanceId);
-
-    /**
-     * 获取步骤基本信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @return 步骤基本信息
-     */
-    StepInstanceDTO getStepInstanceDetail(long stepInstanceId) throws NotFoundException;
-
-    /**
-     * 获取步骤基本信息
-     *
-     * @param appId          业务 ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 步骤基本信息
-     */
-    StepInstanceDTO getStepInstanceDetail(long appId, long stepInstanceId) throws NotFoundException;
-
-    /**
-     * 获取作业的第一个步骤实例
-     *
-     * @param taskInstanceId 作业实例ID
-     * @return 作业第一个步骤实例
-     */
-    StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId);
-
     void updateTaskStatus(long taskInstanceId, int status);
-
-    List<Long> getTaskStepIdList(long taskInstanceId);
 
     void updateTaskCurrentStepId(long taskInstanceId, Long stepInstanceId);
 
     void resetTaskStatus(long taskInstanceId);
-
-    void updateStepStatus(long stepInstanceId, int status);
-
-    /**
-     * 重试步骤操作-重置步骤执行状态
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void resetStepExecuteInfoForRetry(long stepInstanceId);
 
     /**
      * 作业恢复执行-重置作业执行状态
@@ -144,29 +78,6 @@ public interface TaskInstanceService {
      * @param taskInstanceId 作业实例ID
      */
     void resetTaskExecuteInfoForRetry(long taskInstanceId);
-
-    void resetStepStatus(long stepInstanceId);
-
-    void updateStepStartTime(long stepInstanceId, Long startTime);
-
-    /**
-     * 更新步骤启动时间 - 仅当启动时间为空
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param startTime      启动时间
-     */
-    void updateStepStartTimeIfNull(long stepInstanceId, Long startTime);
-
-    void updateStepEndTime(long stepInstanceId, Long endTime);
-
-    /**
-     * 步骤重试次数+1
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    void addStepInstanceExecuteCount(long stepInstanceId);
-
-    void updateStepTotalTime(long stepInstanceId, long totalTime);
 
     /**
      * 更新作业的执行信息
@@ -178,79 +89,12 @@ public interface TaskInstanceService {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateTaskExecutionInfo(long taskInstanceId, RunStatusEnum status, Long currentStepId,
-                                 Long startTime, Long endTime, Long totalTime);
-
-    /**
-     * 更新步骤的执行信息
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param status         步骤执行状态
-     * @param startTime      开始时间
-     * @param endTime        结束时间
-     * @param totalTime      总耗时
-     */
-    void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status,
-                                 Long startTime, Long endTime, Long totalTime);
-
-
-    /**
-     * 更新解析之后的脚本参数
-     *
-     * @param stepInstanceId      步骤实例ID
-     * @param isSecureParam       是否为敏感参数
-     * @param resolvedScriptParam 解析之后的脚本参数
-     */
-    void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam);
-
-    /**
-     * 更新变量解析之后的源文件
-     *
-     * @param stepInstanceId      步骤实例ID
-     * @param resolvedFileSources 解析后的源文件信息
-     */
-    void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources);
-
-    /**
-     * 更新变量解析之后的目标路径
-     *
-     * @param stepInstanceId     步骤实例ID
-     * @param resolvedTargetPath 解析之后的目标路径
-     */
-    void updateResolvedTargetPath(long stepInstanceId, String resolvedTargetPath);
-
-    /**
-     * 更新确认理由
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param confirmReason  确认理由
-     */
-    void updateConfirmReason(long stepInstanceId, String confirmReason);
-
-    /**
-     * 更新步骤操作人
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param operator       操作人
-     */
-    void updateStepOperator(long stepInstanceId, String operator);
-
-    /**
-     * 获取上一步骤实例(可执行的，不包含人工确认这种)
-     *
-     * @param taskInstanceId 任务实例ID
-     * @param stepInstanceId 当前步骤实例ID
-     * @return 上一步骤实例
-     */
-    StepInstanceDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId);
-
-    /**
-     * 根据 taskInstanceId 获取快速任务步骤实例详情
-     *
-     * @param taskInstanceId 任务实例ID
-     * @return 步骤详情
-     */
-    StepInstanceDTO getStepInstanceByTaskInstanceId(long taskInstanceId);
+    void updateTaskExecutionInfo(long taskInstanceId,
+                                 RunStatusEnum status,
+                                 Long currentStepId,
+                                 Long startTime,
+                                 Long endTime,
+                                 Long totalTime);
 
     List<Long> getJoinedAppIdList();
 
@@ -265,13 +109,4 @@ public interface TaskInstanceService {
      * @param hosts          主机列表
      */
     void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts);
-
-    /**
-     * 根据 appId,stepInstanceId 获取所属任务实例ID
-     *
-     * @param appId          Job业务ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 任务实例ID
-     */
-    Long getTaskInstanceId(long appId, long stepInstanceId);
 }

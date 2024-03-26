@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

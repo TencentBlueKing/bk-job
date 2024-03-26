@@ -149,9 +149,14 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         for (Long hostId : hostIdList) {
             String agentId = hostIdAgentIdMap.get(hostId);
             if (StringUtils.isBlank(agentId)) {
+                log.info("Cannot find agentId by hostId={}", hostId);
                 continue;
             }
             AgentState agentState = agentStateMap.get(agentId);
+            if (agentState == null) {
+                log.warn("Cannot find agentState from gse by hostId={}, agentId={}", hostId, agentId);
+                continue;
+            }
             EsbAgentInfoV3DTO agentInfoV3DTO = new EsbAgentInfoV3DTO();
             agentInfoV3DTO.setHostId(hostId);
             agentInfoV3DTO.setStatus(getEsbAgentStatus(agentState));

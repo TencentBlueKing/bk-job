@@ -36,6 +36,8 @@ import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
+import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
@@ -43,7 +45,9 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
@@ -70,10 +74,12 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
 
     public BizSetCmdbClient(AppProperties appProperties,
                             EsbProperties esbProperties,
+                            BkApiGatewayProperties bkApiGatewayProperties,
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
                             MeterRegistry meterRegistry) {
-        super(flowController, appProperties, esbProperties, cmdbConfig, meterRegistry, null);
+        super(flowController, appProperties, esbProperties,
+            bkApiGatewayProperties, cmdbConfig, meterRegistry, null);
     }
 
     /**
@@ -91,6 +97,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(null);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -128,6 +135,36 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     /**
      * 查询业务集信息
      *
+     * @return 业务集信息列表
+     */
+    public List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds) {
+        BizSetFilter filter = new BizSetFilter();
+        filter.setCondition(BizSetFilter.CONDITION_AND);
+        Rule bizSetIdRule = new Rule();
+        bizSetIdRule.setField("bk_biz_set_id");
+        bizSetIdRule.setOperator(RuleOperatorEnum.IN.getOperator());
+        bizSetIdRule.setValue(bizSetIds);
+        filter.setRules(Collections.singletonList(bizSetIdRule));
+        List<BizSetInfo> bizSetInfoList = searchBizSet(filter, 0, bizSetIds.size());
+
+        if (bizSetInfoList == null) {
+            return new ArrayList<>();
+        }
+
+        bizSetInfoList.forEach(bizSetInfo -> {
+            // 查询业务集下包含的子业务(全业务除外)
+            BizSetScope scope = bizSetInfo.getScope();
+            if (scope != null && !scope.isMatchAll()) {
+                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                bizSetInfo.setBizList(bizList);
+            }
+        });
+        return bizSetInfoList;
+    }
+
+    /**
+     * 查询业务集信息
+     *
      * @param filter 查询条件
      * @param start  分页起始
      * @param limit  每页大小
@@ -143,6 +180,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(filter);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -174,6 +212,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -218,6 +257,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -258,6 +298,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setStartTime(startTime);
         try {
             EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
                 null,
@@ -283,6 +324,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setStartTime(startTime);
         try {
             EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
+                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
                 null,
@@ -328,7 +370,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     @Override
     public BizSetInfo queryBizSet(Long bizSetId) {
         BizSetFilter filter = new BizSetFilter();
-        filter.setCondition("AND");
+        filter.setCondition(RuleConditionEnum.AND.getCondition());
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");
         bizSetIdRule.setOperator("equal");

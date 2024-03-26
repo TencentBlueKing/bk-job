@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 
 import java.util.List;

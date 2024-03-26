@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -36,8 +38,13 @@ public class StepExecutionRecordVO {
     @ApiModelProperty(value = "步骤实例ID")
     private Long stepInstanceId;
 
-    @ApiModelProperty(value = "重试次数")
+    @ApiModelProperty(value = "重试次数", hidden = true)
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "使用 executeCount 参数替换。发布完成后可以删除")
     private Integer retryCount;
+
+    @ApiModelProperty(value = "执行次数")
+    private Integer executeCount;
 
     @ApiModelProperty(value = "执行记录创建时间")
     @JsonSerialize(using = LongTimestampSerializer.class)

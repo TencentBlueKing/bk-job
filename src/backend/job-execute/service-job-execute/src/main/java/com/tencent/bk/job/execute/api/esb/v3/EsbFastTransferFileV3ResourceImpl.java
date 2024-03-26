@@ -63,7 +63,7 @@ import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Requ
 import com.tencent.bk.job.execute.service.ArtifactoryLocalFileService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
@@ -248,12 +248,12 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setStepId(-1L);
-        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileTargetPath(request.getTargetPath());
         stepInstance.setFileTargetName(request.getTargetName());
         stepInstance.setFileSourceList(convertFileSource(request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
         stepInstance.setOperator(username);
         stepInstance.setStatus(RunStatusEnum.BLANK);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());

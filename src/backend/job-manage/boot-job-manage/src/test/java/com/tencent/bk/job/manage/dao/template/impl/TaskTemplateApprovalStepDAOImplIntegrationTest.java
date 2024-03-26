@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
-import com.tencent.bk.job.manage.common.consts.task.TaskApprovalTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskApprovalTypeEnum;
 import com.tencent.bk.job.manage.dao.TaskApprovalStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import org.junit.jupiter.api.BeforeEach;

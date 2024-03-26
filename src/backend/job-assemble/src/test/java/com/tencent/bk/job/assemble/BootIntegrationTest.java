@@ -48,7 +48,10 @@ public class BootIntegrationTest {
 
     @BeforeAll
     public static void init() throws IOException {
-        redisServer = new RedisServer(6379);
+        redisServer = RedisServer.builder()
+            .port(6379)
+            .setting("maxmemory 128M") //maxheap 128M
+            .build();
         redisServer.start();
     }
 

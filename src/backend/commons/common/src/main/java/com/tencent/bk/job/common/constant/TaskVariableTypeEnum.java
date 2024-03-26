@@ -29,9 +29,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * @since 3/10/2019 17:17
- */
 @Getter
 @AllArgsConstructor
 public enum TaskVariableTypeEnum {

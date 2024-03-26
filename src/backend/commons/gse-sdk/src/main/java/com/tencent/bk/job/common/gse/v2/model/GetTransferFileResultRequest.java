@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,8 +23,30 @@ public class GetTransferFileResultRequest extends GseReq {
     private String taskId;
 
     /**
-     * 过滤结果的agentId
+     * 过滤结果的agent
      */
-    @JsonProperty("agent_id_list")
-    private List<String> agentIds;
+    @JsonProperty("agents")
+    private List<Agent> agents;
+
+    public void addAgentQuery(ExecuteObjectGseKey executeObjectGseKey) {
+        if (agents == null) {
+            agents = new ArrayList<>();
+        }
+        Agent agent = new Agent();
+        agent.setAgentId(executeObjectGseKey.getAgentId());
+        agent.setContainerId(executeObjectGseKey.getContainerId());
+        agents.add(agent);
+    }
+
+    public void batchAddAgentQuery(Collection<ExecuteObjectGseKey> executeObjectGseKeys) {
+        if (agents == null) {
+            agents = new ArrayList<>();
+        }
+        executeObjectGseKeys.forEach(executeObjectGseKey -> {
+            Agent agent = new Agent();
+            agent.setAgentId(executeObjectGseKey.getAgentId());
+            agent.setContainerId(executeObjectGseKey.getContainerId());
+            agents.add(agent);
+        });
+    }
 }

@@ -330,4 +330,14 @@ public class ApplicationHostDTO {
         }
         return ipv6;
     }
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryIp() {
+        return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+    }
 }

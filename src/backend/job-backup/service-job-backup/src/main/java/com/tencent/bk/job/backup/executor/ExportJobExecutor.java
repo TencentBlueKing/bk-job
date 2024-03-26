@@ -52,9 +52,9 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
@@ -522,7 +522,8 @@ public class ExportJobExecutor {
         Map<Long,
             TaskVariableVO> needProcessVariableList = variableList.stream()
             .filter(taskVariableVO -> taskVariableVO.getType().equals(TaskVariableTypeEnum.CIPHER.getType()))
-            .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO));
+            .collect(Collectors.toMap(TaskVariableVO::getId, taskVariableVO -> taskVariableVO,
+                (oldValue, newValue) -> newValue));
 
         if (MapUtils.isEmpty(needProcessVariableList)) {
             return;

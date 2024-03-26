@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -879,5 +880,34 @@ public class CronJobServiceImpl implements CronJobService {
     @Override
     public List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit) {
         return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
+    }
+
+    @Override
+    public boolean disableCronJobByAppId(Long appId) {
+        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
+        cronJobInfoDTO.setAppId(appId);
+        cronJobInfoDTO.setEnable(true);
+        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
+        List<Long> failedCronJobIds = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(cronJobIdList)) {
+            log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
+            for (Long cronJobId : cronJobIdList) {
+                try {
+                    Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+                        cronJobId, false);
+                    log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
+                    if (!disableResult) {
+                        failedCronJobIds.add(cronJobId);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to disable cron job with appId:{} and cronId:{}", appId, cronJobId, e);
+                    failedCronJobIds.add(cronJobId);
+                }
+            }
+            if (!failedCronJobIds.isEmpty()) {
+                log.warn("Failed to disable cron jobs for appId:{} with cronJobIds:{}", appId, failedCronJobIds);
+            }
+        }
+        return failedCronJobIds.isEmpty();
     }
 }

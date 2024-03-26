@@ -188,44 +188,44 @@
         });
       },
 
-      renderList(h) {
+      renderList() {
         // 列表为空
         if (this.list.length < 1) {
           return (
-                    <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
+            <div class="search-loading">{ this.searchSelect.remoteEmptyText }</div>
           );
         }
 
         return (
-                <div ref="list" class="search-suggest-menu-wraper">
-                    <table class="search-suggest-menu-list">
-                        {
-                            this.list.map((item, index) => (
-                                <tr
-                                    class={{
-                                        'search-suggest-menu-item': true,
-                                        active: index === this.activeIndex,
-                                    }}
-                                    key={index}
-                                    onClick={() => this.handleClick(item)}>
-                                    <td class="search-suggest-item-label">
-                                        { item.keyName }：
-                                    </td>
-                                    <td class="search-suggest-item-value">
-                                        <div class="value-text">{ item.valueName }</div>
-                                        {
-                                            item.payload && item.payload.description
-                                                ? <div class="description-text">
-                                                    ({ item.payload.description })
-                                                </div>
-                                                : ''
-                                        }
-                                    </td>
-                                </tr>
-                            ))
-                        }
-                    </table>
-                </div>
+          <div ref="list" class="search-suggest-menu-wraper">
+            <table class="search-suggest-menu-list">
+              {
+                this.list.map((item, index) => (
+                  <tr
+                    class={{
+                      'search-suggest-menu-item': true,
+                      active: index === this.activeIndex,
+                    }}
+                    key={index}
+                    onClick={() => this.handleClick(item)}>
+                    <td class="search-suggest-item-label">
+                      { item.keyName }：
+                    </td>
+                    <td class="search-suggest-item-value">
+                      <div class="value-text">{ item.valueName }</div>
+                      {
+                        item.payload && item.payload.description
+                          ? <div class="description-text">
+                              ({ item.payload.description })
+                          </div>
+                          : ''
+                      }
+                    </td>
+                  </tr>
+                ))
+              }
+            </table>
+          </div>
         );
       },
     },

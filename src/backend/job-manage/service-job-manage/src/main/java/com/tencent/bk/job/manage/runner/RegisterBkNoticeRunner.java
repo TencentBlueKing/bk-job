@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import lombok.extern.slf4j.Slf4j;

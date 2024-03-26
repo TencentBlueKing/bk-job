@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao;
 
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 

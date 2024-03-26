@@ -91,7 +91,7 @@
        */
       getData() {
         return this.$refs.form.validate()
-          .then(validator => this.formData, validator => Promise.reject(validator.content));
+          .then(() => this.formData, validator => Promise.reject(validator.content));
       },
     },
   };

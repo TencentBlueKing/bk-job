@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.manager.cache;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarRuleStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;

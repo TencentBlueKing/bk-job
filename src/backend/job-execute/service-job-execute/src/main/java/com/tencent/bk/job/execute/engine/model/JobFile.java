@@ -24,9 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.model;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.FilePathUtils;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +41,9 @@ public class JobFile {
      */
     private TaskFileTypeEnum fileType;
     /**
-     * 源文件主机
+     * 源文件执行对象
      */
-    private HostDTO host;
+    private ExecuteObject executeObject;
     /**
      * 文件路径(用户输入)
      */
@@ -94,7 +93,7 @@ public class JobFile {
 
     /**
      * @param fileType        文件类型
-     * @param host            源文件主机
+     * @param executeObject   源文件执行对象
      * @param filePath        文件路径
      * @param dir             目录名称
      * @param fileName        文件名
@@ -103,7 +102,7 @@ public class JobFile {
      * @param displayFilePath 要展示的文件路径
      */
     public JobFile(TaskFileTypeEnum fileType,
-                   HostDTO host,
+                   ExecuteObject executeObject,
                    String filePath,
                    String dir,
                    String fileName,
@@ -111,7 +110,7 @@ public class JobFile {
                    String password,
                    String displayFilePath) {
         this.fileType = fileType;
-        this.host = host;
+        this.executeObject = executeObject;
         this.filePath = filePath;
         this.dir = dir;
         this.fileName = fileName;
@@ -122,7 +121,7 @@ public class JobFile {
 
     /**
      * @param fileType        文件类型
-     * @param host            源文件主机
+     * @param executeObject   源文件执行对象
      * @param filePath        文件路径
      * @param displayFilePath 要展示的文件路径
      * @param dir             目录名称
@@ -132,7 +131,7 @@ public class JobFile {
      * @param accountAlias    账号别名
      */
     public JobFile(TaskFileTypeEnum fileType,
-                   HostDTO host,
+                   ExecuteObject executeObject,
                    String filePath,
                    String displayFilePath,
                    String dir,
@@ -141,7 +140,7 @@ public class JobFile {
                    Long accountId,
                    String accountAlias) {
         this.fileType = fileType;
-        this.host = host;
+        this.executeObject = executeObject;
         this.filePath = filePath;
         this.displayFilePath = displayFilePath;
         this.dir = dir;
@@ -178,14 +177,14 @@ public class JobFile {
      * @return 文件KEY
      */
     public String getUniqueKey() {
-        if (!StringUtils.isEmpty(this.uniqueKey)) {
+        if (StringUtils.isNotEmpty(this.uniqueKey)) {
             return this.uniqueKey;
         }
         StringBuilder sb = new StringBuilder();
         sb.append(fileType.name()).append(":");
         if (fileType == TaskFileTypeEnum.SERVER) {
-            // 远程文件分发，需要源主机信息才能唯一确定一个源文件
-            sb.append(host.getUniqueKey()).append(":");
+            // 远程文件分发，需要源执行对象信息才能唯一确定一个源文件
+            sb.append(executeObject.toResourceIdCompositeKey()).append(":");
         }
         sb.append(getStandardFilePath());
         this.uniqueKey = sb.toString();

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.rolling;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -50,7 +50,7 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
      */
     private static final String EXPR_REGEX = "^\\+(\\d+)$";
     /**
-     * 每一批次递增的主机数量
+     * 每一批次递增的执行对象数量
      */
     private int addend;
 
@@ -76,13 +76,14 @@ public class PlusIncrementRollingExprPart extends RollingExprPart {
     }
 
     @Override
-    public List<HostDTO> compute(RollingServerBatchContext context) throws RollingExprParseException {
-        List<HostDTO> candidateServers = context.getRemainedServers();
-        // 上一批次的主机
-        RollingServerBatch preServerBatch = CollectionUtils.isEmpty(context.getServerBatches()) ?
-            null : context.getServerBatches().get(context.getServerBatches().size() - 1);
+    public List<ExecuteObject> compute(RollingExecuteObjectBatchContext context) throws RollingExprParseException {
+        List<ExecuteObject> candidateExecuteObjects = context.getRemainedExecuteObjects();
+        // 上一批次的执行对象
+        RollingExecuteObjectBatch preBatch = CollectionUtils.isEmpty(context.getExecuteObjectBatches()) ?
+            null : context.getExecuteObjectBatches().get(context.getExecuteObjectBatches().size() - 1);
 
-        int currentBatchSize = preServerBatch == null ? addend : preServerBatch.getServers().size() + addend;
-        return new ArrayList<>(candidateServers.subList(0, Math.min(currentBatchSize, candidateServers.size())));
+        int currentBatchSize = preBatch == null ? addend : preBatch.getExecuteObjects().size() + addend;
+        return new ArrayList<>(candidateExecuteObjects.subList(
+            0, Math.min(currentBatchSize, candidateExecuteObjects.size())));
     }
 }

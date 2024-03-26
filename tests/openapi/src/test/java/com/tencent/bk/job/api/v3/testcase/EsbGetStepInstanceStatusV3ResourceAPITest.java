@@ -1,20 +1,21 @@
 package com.tencent.bk.job.api.v3.testcase;
 
 import com.tencent.bk.job.api.constant.ErrorCode;
+import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.util.ApiUtil;
 import com.tencent.bk.job.api.util.Operations;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
+import com.tencent.bk.job.api.v3.model.EsbStepInstanceStatusV3DTO;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * 获取步骤状态 API 测试
@@ -35,7 +36,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
             // 1.触发一次执行
             EsbJobExecuteV3DTO esbJobExecuteV3DTO = Operations.fastExecuteScriptTask();
             // 2.获取步骤详情
-            given()
+            EsbStepInstanceStatusV3DTO stepInstanceStatusV3DTO = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .param("bk_scope_type", "biz")
                 .param("bk_scope_id", TestProps.DEFAULT_BIZ)
@@ -45,12 +46,20 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .get(APIV3Urls.GET_STEP_INSTANCE_STATUS)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
-                .body("data", notNullValue())
-                .body("data.step_instance_id", equalTo(esbJobExecuteV3DTO.getStepInstanceId()))
-                .body("data.execute_count", equalTo(0))
-                .body("data.type", equalTo(1))
-                .body("data.status", notNullValue())
-                .body("data.step_result_group_list", hasSize(1));
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbStepInstanceStatusV3DTO>>() {
+                })
+                .getData();
+            assertThat(stepInstanceStatusV3DTO).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getId()).isEqualTo(esbJobExecuteV3DTO.getStepInstanceId());
+            assertThat(stepInstanceStatusV3DTO.getExecuteCount()).isEqualTo(0);
+            assertThat(stepInstanceStatusV3DTO.getType()).isEqualTo(1);
+            assertThat(stepInstanceStatusV3DTO.getStatus()).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getStartTime()).isGreaterThan(0L);
+            assertThat(stepInstanceStatusV3DTO.getTotalTime()).isGreaterThan(0L);
+            assertThat(stepInstanceStatusV3DTO.getStepResultGroupList()).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getStepResultGroupList().size()).isEqualTo(1);
         }
 
         @Test
@@ -59,7 +68,7 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
             // 1.触发一次执行
             EsbJobExecuteV3DTO esbJobExecuteV3DTO = Operations.fastTransferFileTask();
             // 2.获取步骤详情
-            given()
+            EsbStepInstanceStatusV3DTO stepInstanceStatusV3DTO = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .param("bk_scope_type", "biz")
                 .param("bk_scope_id", TestProps.DEFAULT_BIZ)
@@ -68,12 +77,20 @@ public class EsbGetStepInstanceStatusV3ResourceAPITest extends BaseTest {
                 .get(APIV3Urls.GET_STEP_INSTANCE_STATUS)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
-                .body("data", notNullValue())
-                .body("data.step_instance_id", equalTo(esbJobExecuteV3DTO.getStepInstanceId()))
-                .body("data.execute_count", equalTo(0))
-                .body("data.type", equalTo(2))
-                .body("data.status", notNullValue())
-                .body("data.step_result_group_list", hasSize(1));
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbStepInstanceStatusV3DTO>>() {
+                })
+                .getData();
+            assertThat(stepInstanceStatusV3DTO).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getId()).isEqualTo(esbJobExecuteV3DTO.getStepInstanceId());
+            assertThat(stepInstanceStatusV3DTO.getExecuteCount()).isEqualTo(0);
+            assertThat(stepInstanceStatusV3DTO.getType()).isEqualTo(2);
+            assertThat(stepInstanceStatusV3DTO.getStatus()).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getStartTime()).isGreaterThan(0L);
+            assertThat(stepInstanceStatusV3DTO.getTotalTime()).isGreaterThan(0L);
+            assertThat(stepInstanceStatusV3DTO.getStepResultGroupList()).isNotNull();
+            assertThat(stepInstanceStatusV3DTO.getStepResultGroupList().size()).isEqualTo(1);
         }
 
         @Test

@@ -100,7 +100,7 @@
       <ip-selector
         readonly
         show-view
-        :value="stepInfo.executeTarget.hostNodeInfo" />
+        :value="stepInfo.executeTarget.executeObjectsInfo" />
     </detail-item>
     <slot />
     <sync-script-version-diff

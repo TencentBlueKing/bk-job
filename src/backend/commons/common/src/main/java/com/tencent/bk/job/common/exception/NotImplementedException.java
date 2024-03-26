@@ -64,7 +64,7 @@ public class NotImplementedException extends ServiceException {
     }
 
     public NotImplementedException(String message, Throwable cause, Integer errorCode,
-                             Object[] errorParams) {
+                                   Object[] errorParams) {
         super(message, cause, ErrorType.UNIMPLEMENTED, errorCode, errorParams);
     }
 }

@@ -36,7 +36,6 @@ import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
-import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -46,13 +45,13 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
-import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +116,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskInstanceService taskInstanceService,
                                         StepInstanceService stepInstanceService,
                                         GseTaskService gseTaskService,
-                                        ScriptAgentTaskService scriptAgentTaskService,
+                                        ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                         AccountService accountService,
                                         TaskInstanceVariableService taskInstanceVariableService,
                                         StepInstanceVariableValueService stepInstanceVariableValueService,
@@ -140,7 +139,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             taskInstanceService,
             stepInstanceService,
             gseTaskService,
-            scriptAgentTaskService,
+            scriptExecuteObjectTaskService,
             accountService,
             taskInstanceVariableService,
             stepInstanceVariableValueService,
@@ -168,18 +167,13 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());
         int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
-        String publicScriptName = this.scriptFileNamePrefix
-            + ScriptTypeEnum.getExtByValue(ScriptTypeEnum.SHELL.getValue());
+        String publicScriptName = this.scriptFileNamePrefix + ScriptTypeEnum.SHELL.getExt();
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         builder.addScriptFile(scriptFilePath, publicScriptName, publicScriptContent);
         builder.addScriptFile(scriptFilePath, sqlScriptFileName, sqlScriptContent);
 
-        AccountDTO accountInfo = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
-            stepInstance.getAppId());
-
-        List<Agent> agentList = gseClient.buildAgents(targetAgentTaskMap.keySet(),
-            accountInfo.getAccount(), accountInfo.getPassword());
+        List<Agent> agentList = buildTargetAgents();
 
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),
             timeout);

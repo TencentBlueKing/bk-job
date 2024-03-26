@@ -24,9 +24,19 @@
 
 package com.tencent.bk.job.common.cc.model.req;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @description
  * @date 2019/3/1
  */
+@Getter
+@Setter
 public class GetAppReq extends AbstractCcReq {
+
+    @JsonProperty("biz_property_filter")
+    private BizFilter bizFilter;
 }

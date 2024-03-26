@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;

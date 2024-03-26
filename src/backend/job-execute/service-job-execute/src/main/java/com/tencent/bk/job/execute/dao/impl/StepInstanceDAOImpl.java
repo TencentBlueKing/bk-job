@@ -37,10 +37,10 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstance;
@@ -48,7 +48,7 @@ import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFile;
 import com.tencent.bk.job.execute.model.tables.StepInstanceScript;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -139,14 +139,15 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             stepInstance.getTaskInstanceId(),
             stepInstance.getAppId(),
             stepInstance.getName(),
-            JooqDataTypeUtil.toByte(stepInstance.getExecuteType()),
+            stepInstance.getExecuteType().getValue().byteValue(),
             stepInstance.getOperator(),
             stepInstance.getStatus().getValue().byteValue(),
             stepInstance.getExecuteCount(),
             stepInstance.getStartTime(),
             stepInstance.getEndTime(),
             stepInstance.getTotalTime(),
-            stepInstance.getTargetServers() == null ? null : JsonUtils.toJson(stepInstance.getTargetServers()),
+            stepInstance.getTargetExecuteObjects() == null ? null :
+                JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
             stepInstance.getCreateTime(),
             stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
             stepInstance.getStepNum(),
@@ -186,7 +187,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         ).values(
             stepInstance.getId(),
             stepInstance.getScriptContent(),
-            JooqDataTypeUtil.toByte(stepInstance.getScriptType()),
+            stepInstance.getScriptType().getValue().byteValue(),
             sensitiveParamCryptoService.encryptParamIfNeeded(
                 stepInstance.isSecureParam(), stepInstance.getScriptParam()),
             sensitiveParamCryptoService.encryptParamIfNeeded(
@@ -286,7 +287,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
-        stepInstance.setScriptType(JooqDataTypeUtil.toInteger(record.get(t.SCRIPT_TYPE)));
+        stepInstance.setScriptType(ScriptTypeEnum.valOf(record.get(t.SCRIPT_TYPE).intValue()));
         stepInstance.setSecureParam(record.get(t.IS_SECURE_PARAM).intValue() == 1);
         String encryptedScriptParam = record.get(t.SCRIPT_PARAM);
 
@@ -435,7 +436,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setStepId(record.get(t.STEP_ID));
         stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setName(record.get(t.NAME));
-        stepInstance.setExecuteType(JooqDataTypeUtil.toInteger(record.get(t.TYPE)));
+        stepInstance.setExecuteType(StepExecuteTypeEnum.valOf(JooqDataTypeUtil.toInteger(record.get(t.TYPE))));
         stepInstance.setOperator(record.get(t.OPERATOR));
         stepInstance.setStatus(RunStatusEnum.valueOf(record.get(t.STATUS)));
         stepInstance.setExecuteCount(record.get(t.EXECUTE_COUNT));
@@ -443,8 +444,8 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setEndTime(record.get(t.END_TIME));
         stepInstance.setTotalTime(record.get(t.TOTAL_TIME));
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
-            ServersDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ServersDTO.class);
-            stepInstance.setTargetServers(targetServers);
+            ExecuteTargetDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ExecuteTargetDTO.class);
+            stepInstance.setTargetExecuteObjects(targetServers);
         }
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));
         stepInstance.setIgnoreError(JooqDataTypeUtil.toInteger(record.get(t.IGNORE_ERROR)) != null
@@ -949,5 +950,21 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
             .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
+    }
+
+    @Override
+    public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
+        Result result = CTX.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
+            .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
+            .fetch();
+        List<Long> stepInstanceIdList = new ArrayList<>();
+        result.into(record -> {
+            Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);
+            if (stepInstanceId != null) {
+                stepInstanceIdList.add(stepInstanceId);
+            }
+        });
+        return stepInstanceIdList;
     }
 }

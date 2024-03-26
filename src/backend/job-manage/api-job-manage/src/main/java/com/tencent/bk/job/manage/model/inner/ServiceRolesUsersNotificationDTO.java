@@ -38,7 +38,7 @@ public class ServiceRolesUsersNotificationDTO {
     /**
      * 触发通知的资源类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
      */
     private Integer resourceType;
     /**

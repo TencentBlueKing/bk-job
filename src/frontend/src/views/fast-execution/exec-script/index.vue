@@ -81,7 +81,7 @@
             script-language-field="scriptLanguage"
             @on-change="handleChange" />
           <item-factory
-            field="targetServers"
+            field="taskTarget"
             :form-data="formData"
             name="executeTargetOfExecution"
             @on-change="handleChange" />
@@ -147,8 +147,8 @@
 
   import TaskExecuteService from '@service/task-execute';
 
+  import ExecuteTargetModel from '@model/execute-target';
   import TaskStepModel from '@model/task/task-step';
-  import TaskHostNodeModel from '@model/task-host-node';
 
   import {
     genDefaultName,
@@ -187,7 +187,7 @@
     // 账号
     account: '',
     // 目标服务器
-    targetServers: new TaskHostNodeModel({}),
+    taskTarget: new ExecuteTargetModel({}),
     // 开启滚动
     rollingEnabled: false,
     // 滚动执行配置，编辑时拍平
@@ -278,7 +278,7 @@
             scriptVersionId,
             secureParam,
             timeout,
-            targetServers: executeTarget,
+            taskTarget: executeTarget,
             rollingEnabled,
             rollingExpr,
             rollingMode,
@@ -415,7 +415,7 @@
               secureParam,
               timeout,
               account,
-              targetServers,
+              taskTarget,
               rollingEnabled,
               rollingExpr,
               rollingMode,
@@ -432,7 +432,7 @@
               secureParam,
               timeout,
               account,
-              targetServers,
+              taskTarget,
               rollingEnabled,
               rollingConfig: {
                 expr: rollingExpr,

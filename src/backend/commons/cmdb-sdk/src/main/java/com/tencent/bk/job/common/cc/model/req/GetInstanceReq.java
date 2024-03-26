@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.cc.model.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbReq;
-import com.tencent.bk.job.common.model.dto.PageDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,5 +38,5 @@ public class GetInstanceReq extends EsbReq {
     @JsonProperty("bk_obj_id")
     private String objectId;
 
-    private PageDTO page;
+    private Page page;
 }

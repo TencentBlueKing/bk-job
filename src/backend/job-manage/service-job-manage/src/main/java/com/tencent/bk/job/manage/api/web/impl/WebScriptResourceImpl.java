@@ -42,10 +42,10 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.web.WebScriptResource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptSyncTemplateStepDTO;
@@ -519,7 +519,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
         String content = new String(Base64.decodeBase64(scriptCheckReq.getContent()), StandardCharsets.UTF_8);
         List<ScriptCheckResultItemDTO> checkResultItems =
-            scriptCheckService.check(ScriptTypeEnum.valueOf(scriptCheckReq.getScriptType()), content);
+            scriptCheckService.check(ScriptTypeEnum.valOf(scriptCheckReq.getScriptType()), content);
 
         List<ScriptCheckResultItemVO> checkResultItemVOS = new ArrayList<>();
         if (checkResultItems != null) {

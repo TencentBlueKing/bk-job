@@ -45,14 +45,14 @@ public enum FileDistStatusEnum {
 
     public static FileDistStatusEnum getFileDistStatus(Integer status) {
         if (status == null) {
-            return null;
+            throw new IllegalArgumentException("Null FileDistStatusEnum constant");
         }
         for (FileDistStatusEnum fileDistStatus : values()) {
             if (fileDistStatus.getValue().equals(status)) {
                 return fileDistStatus;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No FileDistStatusEnum constant: " + status);
     }
 
     public Integer getValue() {
@@ -61,5 +61,13 @@ public enum FileDistStatusEnum {
 
     public String getName() {
         return name;
+    }
+
+    public static boolean isFinishedStatus(FileDistStatusEnum status) {
+        return status == FINISHED || status == FAILED;
+    }
+
+    public static boolean isFinishedStatus(Integer statusValue) {
+        return statusValue.equals(FINISHED.value) || statusValue.equals(FAILED.value);
     }
 }

@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,15 +38,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class StepListener {
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final GseStepEventHandler gseStepEventHandler;
     private final ConfirmStepEventHandler confirmStepEventHandler;
 
     @Autowired
-    public StepListener(TaskInstanceService taskInstanceService,
+    public StepListener(StepInstanceService stepInstanceService,
                         GseStepEventHandler gseStepEventHandler,
                         ConfirmStepEventHandler confirmStepEventHandler) {
-        this.taskInstanceService = taskInstanceService;
+        this.stepInstanceService = stepInstanceService;
         this.gseStepEventHandler = gseStepEventHandler;
         this.confirmStepEventHandler = confirmStepEventHandler;
     }
@@ -60,7 +60,7 @@ public class StepListener {
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
-            StepInstanceDTO stepInstance = taskInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             dispatchEvent(stepEvent, stepInstance);
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;
@@ -70,7 +70,7 @@ public class StepListener {
     }
 
     private void dispatchEvent(StepEvent stepEvent, StepInstanceDTO stepInstance) {
-        StepExecuteTypeEnum stepType = StepExecuteTypeEnum.valueOf(stepInstance.getExecuteType());
+        StepExecuteTypeEnum stepType = stepInstance.getExecuteType();
 
         switch (stepType) {
             case EXECUTE_SCRIPT:

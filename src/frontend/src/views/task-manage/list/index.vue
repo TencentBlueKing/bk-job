@@ -449,7 +449,7 @@
           name: 'ID',
           id: 'templateId',
           description: I18n.t('template.将覆盖其它条件'),
-          validate(values, item) {
+          validate(values) {
             const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
             return !validate ? I18n.t('template.ID只支持数字') : true;
           },
