@@ -150,10 +150,7 @@ public class StatisticsConstants {
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_LINUX = "LINUX";
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_WINDOWS = "WINDOWS";
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_DB = "DB";
-    // 维度取值：主机系统类型
-    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_LINUX = "LINUX";
-    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_WINDOWS = "WINDOWS";
-    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_AIX = "AIX";
+    // 维度取值：主机系统类型：其他取值来源于CMDB模型数据bk_os_type.option.name.toUpperCase()
     public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_OTHERS = "OTHERS";
     // 维度取值：任务启动方式
     public static final String DIMENSION_VALUE_TASK_STARTUP_MODE_NORMAL = "NORMAL";

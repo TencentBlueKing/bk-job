@@ -30,14 +30,17 @@ import com.tencent.bk.job.analysis.dao.StatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 统计主机操作系统类型分布情况
@@ -48,13 +51,17 @@ import java.time.LocalDateTime;
 public class HostStatisticsTask extends BaseStatisticsTask {
 
     private final ServiceMetricsResource manageMetricsResource;
+    private final IBizCmdbClient bizCmdbClient;
 
+    @Autowired
     protected HostStatisticsTask(BasicServiceManager basicServiceManager,
                                  StatisticsDAO statisticsDAO,
                                  @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-                                 ServiceMetricsResource manageMetricsResource) {
+                                 ServiceMetricsResource manageMetricsResource,
+                                 IBizCmdbClient bizCmdbClient) {
         super(basicServiceManager, statisticsDAO, dslContext);
         this.manageMetricsResource = manageMetricsResource;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     private StatisticsDTO genStatisticsDTO(String dateStr, String value, String dimensionValue) {
@@ -68,16 +75,8 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         return statisticsDTO;
     }
 
-    private StatisticsDTO genLinuxStatisticsDTO(String dateStr, String value) {
-        return genStatisticsDTO(dateStr, value, StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_LINUX);
-    }
-
-    private StatisticsDTO genWindowsStatisticsDTO(String dateStr, String value) {
-        return genStatisticsDTO(dateStr, value, StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_WINDOWS);
-    }
-
-    private StatisticsDTO genAixStatisticsDTO(String dateStr, String value) {
-        return genStatisticsDTO(dateStr, value, StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_AIX);
+    private StatisticsDTO genHostOsTypeStatisticsDTO(String osTypeName, String dateStr, String value) {
+        return genStatisticsDTO(dateStr, value, osTypeName);
     }
 
     private StatisticsDTO genOthersStatisticsDTO(String dateStr, String value) {
@@ -85,38 +84,33 @@ public class HostStatisticsTask extends BaseStatisticsTask {
     }
 
     public void calcAndSaveHostStatistics(String dateStr) {
-        // Linux
-        InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType("1");
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
-            return;
+        Map<String, String> osTypeIdNameMap = bizCmdbClient.getOsTypeIdNameMap();
+        long knownOsTypeHostCount = 0L;
+        for (Map.Entry<String, String> entry : osTypeIdNameMap.entrySet()) {
+            String id = entry.getKey();
+            String name = entry.getValue();
+            InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType(id);
+            if (resp == null || !resp.isSuccess()) {
+                log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
+                continue;
+            }
+            Long hostCount = resp.getData();
+            knownOsTypeHostCount += hostCount;
+            statisticsDAO.upsertStatistics(
+                dslContext,
+                genHostOsTypeStatisticsDTO(name.toUpperCase(), dateStr, hostCount.toString())
+            );
+            log.debug("calcAndSaveHostStatistics: id={},name={},hostCount={}", id, name, hostCount);
         }
-        Long linuxCount = resp.getData();
-        statisticsDAO.upsertStatistics(dslContext, genLinuxStatisticsDTO(dateStr, linuxCount.toString()));
-        // Windows
-        resp = manageMetricsResource.countHostsByOsType("2");
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
-            return;
-        }
-        Long windowsCount = resp.getData();
-        statisticsDAO.upsertStatistics(dslContext, genWindowsStatisticsDTO(dateStr, windowsCount.toString()));
-        // Aix
-        resp = manageMetricsResource.countHostsByOsType("3");
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
-            return;
-        }
-        Long aixCount = resp.getData();
-        statisticsDAO.upsertStatistics(dslContext, genAixStatisticsDTO(dateStr, aixCount.toString()));
         // Others
-        resp = manageMetricsResource.countHostsByOsType(null);
+        InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType(null);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
             return;
         }
-        Long othersCount = resp.getData() - linuxCount - windowsCount - aixCount;
-        statisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, othersCount.toString()));
+        long othersCount = resp.getData() - knownOsTypeHostCount;
+        log.debug("calcAndSaveHostStatistics: othersCount={}", othersCount);
+        statisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
     }
 
     @Override
