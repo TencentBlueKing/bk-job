@@ -65,7 +65,9 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
 
     protected final void fillExecuteObjectForExecuteObjectTask(StepInstanceBaseDTO stepInstance,
                                                                ExecuteObjectTask task) {
-        fillExecuteObjectForExecuteObjectTasks(stepInstance, Collections.singletonList(task));
+        if (task != null) {
+            fillExecuteObjectForExecuteObjectTasks(stepInstance, Collections.singletonList(task));
+        }
     }
 
     protected final List<ResultGroupDTO> groupTasks(List<ExecuteObjectTask> tasks) {
