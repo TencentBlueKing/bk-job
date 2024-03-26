@@ -192,10 +192,10 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer batch,
-                                                         Integer status,
-                                                         String tag) {
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status,
+                                                              String tag) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -216,13 +216,13 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                         Integer executeCount,
-                                                         Integer batch,
-                                                         Integer status,
-                                                         String tag,
-                                                         Integer limit,
-                                                         String orderField,
-                                                         Order order) {
+                                                              Integer executeCount,
+                                                              Integer batch,
+                                                              Integer status,
+                                                              String tag,
+                                                              Integer limit,
+                                                              String orderField,
+                                                              Order order) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId));
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
@@ -290,8 +290,8 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     @Override
     public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
-                                             Integer executeCount,
-                                             Integer batch) {
+                                                  Integer executeCount,
+                                                  Integer batch) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -353,14 +353,20 @@ public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
     }
 
     @Override
-    public ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId) {
-        Record record = CTX.select(ALL_FIELDS)
-            .from(T_GSE_SCRIPT_AGENT_TASK)
-            .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
-            .and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch == null ? 0 : batch.shortValue()))
-            .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId))
-            .fetchOne();
+    public ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
+                                                  long hostId) {
+        SelectConditionStep<?> selectConditionStep =
+            CTX.select(ALL_FIELDS)
+                .from(T_GSE_SCRIPT_AGENT_TASK)
+                .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
+                .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId));
+        if (batch != null && batch > 0) {
+            // 滚动执行批次，传入null或者0将忽略该参数
+            selectConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
+        }
+        selectConditionStep.limit(1);
+        Record record = selectConditionStep.fetchOne();
         return extract(record);
     }
 
