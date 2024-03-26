@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
-import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
@@ -51,11 +51,12 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ExecutorService;
@@ -217,14 +218,20 @@ public class ArchiveConfiguration {
      * job-execute 归档数据备份 DB 配置
      */
     @Configuration
-    @ConditionalOnProperty(value = "job.backup.archive.execute.mode",
-        havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
+    @Conditional(ExecuteBackupDbConfiguration.JobExecuteBackupDbInitCondition.class)
     public static class ExecuteBackupDAOConfig {
         @Bean(name = "execute-archive-dao")
         public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
             log.info("Init ExecuteArchiveDAO");
             return new ExecuteArchiveDAOImpl(context);
         }
+    }
+
+    @Bean
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+    public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
+        log.info("Init ArchiveTaskLock");
+        return new ArchiveTaskLock(redisTemplate);
     }
 
 
@@ -251,7 +258,8 @@ public class ArchiveConfiguration {
         ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
-        ArchiveDBProperties archiveDBProperties) {
+        ArchiveDBProperties archiveDBProperties,
+        ArchiveTaskLock archiveTaskLock) {
 
         log.info("Init JobExecuteArchiveManage");
         return new JobExecuteArchiveManage(
@@ -275,6 +283,7 @@ public class ArchiveConfiguration {
             executeArchiveDAOObjectProvider.getIfAvailable(),
             archiveProgressService,
             archiveDBProperties,
-            archiveExecutor);
+            archiveExecutor,
+            archiveTaskLock);
     }
 }

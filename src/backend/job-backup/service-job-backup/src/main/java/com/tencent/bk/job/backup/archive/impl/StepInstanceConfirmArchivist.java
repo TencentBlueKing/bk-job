@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
@@ -42,12 +43,14 @@ public class StepInstanceConfirmArchivist extends AbstractArchivist<StepInstance
                                         ExecuteArchiveDAO executeArchiveDAO,
                                         ArchiveProgressService archiveProgressService,
                                         ArchiveDBProperties archiveDBProperties,
+                                        ArchiveTaskLock archiveTaskLock,
                                         Long maxNeedArchiveId,
                                         CountDownLatch countDownLatch) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveDBProperties,
+            archiveTaskLock,
             maxNeedArchiveId,
             countDownLatch);
         this.deleteIdStepSize = 100_000;

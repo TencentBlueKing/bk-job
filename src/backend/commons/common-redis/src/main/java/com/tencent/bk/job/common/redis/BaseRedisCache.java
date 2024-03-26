@@ -22,37 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.common.redis;
 
-import com.tencent.bk.job.backup.archive.AbstractArchivist;
-import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.execute.model.tables.records.StepInstanceFileRecord;
-
-import java.util.concurrent.CountDownLatch;
+import io.micrometer.core.instrument.MeterRegistry;
 
 /**
- * step_instance_file 表归档
+ * Redis 缓存基础实现类，提供通用能力
  */
-public class StepInstanceFileArchivist extends AbstractArchivist<StepInstanceFileRecord> {
+public class BaseRedisCache {
 
-    public StepInstanceFileArchivist(StepInstanceFileRecordDAO executeRecordDAO,
-                                     ExecuteArchiveDAO executeArchiveDAO,
-                                     ArchiveProgressService archiveProgressService,
-                                     ArchiveDBProperties archiveDBProperties,
-                                     ArchiveTaskLock archiveTaskLock,
-                                     Long maxNeedArchiveId,
-                                     CountDownLatch countDownLatch) {
-        super(executeRecordDAO,
-            executeArchiveDAO,
-            archiveProgressService,
-            archiveDBProperties,
-            archiveTaskLock,
-            maxNeedArchiveId,
-            countDownLatch);
-        this.deleteIdStepSize = 10_000;
+    private final MeterRegistry meterRegistry;
+
+    private final String cacheName;
+
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL = "job_redis_cache_hits_total";
+
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL = "job_redis_cache_misses_total";
+
+    private static final String TAG_CACHE_NAME = "cacheName";
+
+    public BaseRedisCache(MeterRegistry meterRegistry, String cacheName) {
+        this.meterRegistry = meterRegistry;
+        this.cacheName = cacheName;
+    }
+
+    /**
+     * 增加缓存命中 key 次数
+     */
+    public void addHits(long hitCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(hitCount);
+    }
+
+    /**
+     * 增加缓存命中 key 次数
+     */
+    public void addMisses(long missCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(missCount);
     }
 }
