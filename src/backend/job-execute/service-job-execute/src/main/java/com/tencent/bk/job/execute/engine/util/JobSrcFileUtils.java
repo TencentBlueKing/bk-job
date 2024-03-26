@@ -162,7 +162,8 @@ public class JobSrcFileUtils {
                         + fileNameAndPath.getLeft();
                     String fileName = fileNameAndPath.getRight();
                     ExecuteTargetDTO executeTarget = fileSource.getServers();
-                    if (executeTarget != null && CollectionUtils.isNotEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                    if (executeTarget != null
+                        && CollectionUtils.isNotEmpty(executeTarget.getExecuteObjectsCompatibly())) {
                         List<ExecuteObject> executeObjects = executeTarget.getExecuteObjectsCompatibly();
                         for (ExecuteObject executeObject : executeObjects) {
                             sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,

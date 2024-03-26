@@ -115,7 +115,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget) {
+    public AuthResult authFastPushFile(String username,
+                                       AppResourceScope appResourceScope,
+                                       ExecuteTargetDTO executeTarget) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
         if (log.isDebugEnabled()) {
             log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
