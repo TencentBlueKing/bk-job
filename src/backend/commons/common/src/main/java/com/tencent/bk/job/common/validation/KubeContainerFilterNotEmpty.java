@@ -22,53 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.openapi.v4;
+package com.tencent.bk.job.common.validation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.validation.KubeContainerFilterNotEmpty;
-import lombok.Data;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * 执行目标-容器选择过滤器
- */
-@Data
-@KubeContainerFilterNotEmpty
-public class OpenApiKubeContainerFilterDTO {
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    /**
-     * 集群过滤器
-     */
-    @JsonProperty("kube_cluster_filter")
-    private OpenApiKubeClusterFilterDTO clusterFilter;
+@Constraint(validatedBy = KubeContainerFilterNotEmptyValidator.class)
+@Target({TYPE})
+@Retention(RUNTIME)
+@Documented
+public @interface KubeContainerFilterNotEmpty {
 
-    /**
-     * namespace 过滤器
-     */
-    @JsonProperty("kube_namespace_filter")
-    private OpenApiKubeNamespaceFilterDTO namespaceFilter;
+    String message() default "{validation.constraints.ExecuteTarget_KubeContainerFilterEmpty.message}";
 
-    /**
-     * workload 过滤器
-     */
-    @JsonProperty("kube_workload_filter")
-    private OpenApiKubeWorkloadFilterDTO workloadFilter;
+    Class<?>[] groups() default {};
 
-    /**
-     * pod 属性过滤器
-     */
-    @JsonProperty("kube_pod_filter")
-    private OpenApiKubePodFilterDTO podFilter;
-
-    /**
-     * 容器属性过滤器
-     */
-    @JsonProperty("kube_container_prop_filter")
-    private OpenApiKubeContainerPropFilterDTO containerPropFilter;
-
-    /**
-     * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
-     */
-    @JsonProperty("fetch_any_one_container")
-    private boolean fetchAnyOneContainer;
+    Class<? extends Payload>[] payload() default {};
 
 }

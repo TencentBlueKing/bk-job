@@ -22,53 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.openapi.v4;
+package com.tencent.bk.job.common.validation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.validation.KubeContainerFilterNotEmpty;
-import lombok.Data;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeContainerFilterDTO;
 
-/**
- * 执行目标-容器选择过滤器
- */
-@Data
-@KubeContainerFilterNotEmpty
-public class OpenApiKubeContainerFilterDTO {
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-    /**
-     * 集群过滤器
-     */
-    @JsonProperty("kube_cluster_filter")
-    private OpenApiKubeClusterFilterDTO clusterFilter;
+public class KubeContainerFilterNotEmptyValidator
+    implements ConstraintValidator<KubeContainerFilterNotEmpty, OpenApiKubeContainerFilterDTO> {
 
-    /**
-     * namespace 过滤器
-     */
-    @JsonProperty("kube_namespace_filter")
-    private OpenApiKubeNamespaceFilterDTO namespaceFilter;
+    @Override
+    public boolean isValid(OpenApiKubeContainerFilterDTO value, ConstraintValidatorContext context) {
+        return value.getClusterFilter() != null
+            || value.getNamespaceFilter() != null
+            || value.getWorkloadFilter() != null
+            || value.getPodFilter() != null
+            || value.getContainerPropFilter() != null;
+    }
 
-    /**
-     * workload 过滤器
-     */
-    @JsonProperty("kube_workload_filter")
-    private OpenApiKubeWorkloadFilterDTO workloadFilter;
+    @Override
+    public void initialize(KubeContainerFilterNotEmpty constraintAnnotation) {
 
-    /**
-     * pod 属性过滤器
-     */
-    @JsonProperty("kube_pod_filter")
-    private OpenApiKubePodFilterDTO podFilter;
-
-    /**
-     * 容器属性过滤器
-     */
-    @JsonProperty("kube_container_prop_filter")
-    private OpenApiKubeContainerPropFilterDTO containerPropFilter;
-
-    /**
-     * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
-     */
-    @JsonProperty("fetch_any_one_container")
-    private boolean fetchAnyOneContainer;
-
+    }
 }

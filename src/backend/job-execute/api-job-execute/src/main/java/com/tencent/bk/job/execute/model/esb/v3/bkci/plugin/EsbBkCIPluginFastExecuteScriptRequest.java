@@ -67,7 +67,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 执行账号别名
      */
     @JsonProperty("account_alias")
-    @NotNull(message = "{validation.constraints.AccountAlias_null.message}",
+    @NotNull(message = "{validation.constraints.AccountAlias_empty.message}",
         groups = ValidationGroups.Account.AccountAlias.class)
     private String accountAlias;
 
@@ -75,7 +75,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 执行账号别名
      */
     @JsonProperty("account_id")
-    @NotNull(message = "{validation.constraints.AccountId_null.message}",
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}",
         groups = ValidationGroups.Account.AccountId.class)
     private Long accountId;
 
