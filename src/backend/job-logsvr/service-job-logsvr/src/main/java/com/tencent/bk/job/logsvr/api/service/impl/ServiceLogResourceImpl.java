@@ -171,6 +171,11 @@ public class ServiceLogResourceImpl implements ServiceLogResource {
     }
 
     @Override
+    public InternalResponse<?> tmpSaveLogs(ServiceBatchSaveLogRequest request) {
+        return saveLogs(request);
+    }
+
+    @Override
     public InternalResponse<ServiceExecuteObjectLogDTO> getScriptHostLogByHostId(String jobCreateDate,
                                                                                  Long stepInstanceId,
                                                                                  Integer executeCount,
