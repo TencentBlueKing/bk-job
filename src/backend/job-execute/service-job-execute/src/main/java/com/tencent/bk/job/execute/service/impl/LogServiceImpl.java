@@ -237,12 +237,9 @@ public class LogServiceImpl implements LogService {
         ServiceExecuteObjectLogDTO executeObjectLog,
         ExecuteObjectTask executeObjectTask
     ) {
-        if (executeObjectLog == null) {
-            return null;
-        }
         // 日志是否拉取完成
         boolean isFinished = executeObjectTask.getStatus().isFinished();
-        String scriptContent = executeObjectLog.getScriptLog() != null ?
+        String scriptContent = executeObjectLog != null && executeObjectLog.getScriptLog() != null ?
             executeObjectLog.getScriptLog().getContent() : "";
         return new ScriptExecuteObjectLogContent(stepInstance.getId(), executeCount,
             executeObjectTask.getExecuteObject(), scriptContent, isFinished);
