@@ -77,5 +77,6 @@ export default {
     '【拦截】': 'BLOCK',
     '命中规则的脚本执行任务仅会做记录，不会拦截': 'The script execution task that hits the rule will only be recorded and not be blocked',
     '命中规则的脚本执行任务会被记录，并中止运行': 'The script execution task that hits the rule will be recorded and blocked',
+    ID只支持数字: 'ID只支持数字',
   },
 };
