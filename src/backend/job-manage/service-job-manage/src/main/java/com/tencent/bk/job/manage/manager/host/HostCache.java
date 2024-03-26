@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -89,15 +90,16 @@ public class HostCache extends BaseRedisCache {
     }
 
     private List<CacheHostDO> getHostsByKeys(List<String> hostKeys) {
-        int hitCount = 0;
-        int missCount = 0;
+        long hitCount = 0;
+        long missCount = 0;
         try {
             List<Object> results = redisTemplate.opsForValue().multiGet(hostKeys);
             // 通过 Object 间接强制转换 List
             List<CacheHostDO> foundHosts = results == null ?
                 Collections.emptyList() : (List<CacheHostDO>) (Object) results;
 
-            hitCount = foundHosts.size();
+            // multiGet 获取到的 list 中的元素可能为 null （如果key 不存在)
+            hitCount = foundHosts.stream().filter(Objects::nonNull).count();
             missCount = hostKeys.size() - hitCount;
 
             return foundHosts;

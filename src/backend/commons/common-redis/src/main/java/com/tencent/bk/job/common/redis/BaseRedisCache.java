@@ -49,7 +49,7 @@ public class BaseRedisCache {
     /**
      * 增加缓存命中 key 次数
      */
-    public void addHits(int hitCount) {
+    public void addHits(long hitCount) {
         meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL, TAG_CACHE_NAME, cacheName)
             .increment(hitCount);
     }
@@ -57,7 +57,7 @@ public class BaseRedisCache {
     /**
      * 增加缓存命中 key 次数
      */
-    public void addMisses(int missCount) {
+    public void addMisses(long missCount) {
         meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL, TAG_CACHE_NAME, cacheName)
             .increment(missCount);
     }
