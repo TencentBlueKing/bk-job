@@ -26,8 +26,8 @@ package com.tencent.bk.job.manage.model.dto.globalsetting;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
-import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
+import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;

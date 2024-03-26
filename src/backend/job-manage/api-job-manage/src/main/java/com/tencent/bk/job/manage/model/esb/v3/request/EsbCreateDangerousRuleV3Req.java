@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.ValidRegexPattern;
-import com.tencent.bk.job.manage.common.consts.rule.HighRiskGrammarActionEnum;
+import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarActionEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

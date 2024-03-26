@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Data;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,10 +39,7 @@ import java.util.Set;
  */
 @Data
 public class TaskInstanceExecuteObjects {
-    /**
-     * 当前作业实例是否包含容器执行对象
-     */
-    private boolean containsAnyContainer;
+
     /**
      * 当前作业实例是否包含主机执行对象
      */
@@ -62,7 +61,7 @@ public class TaskInstanceExecuteObjects {
     /**
      * 合法的容器（在当前业务下)
      */
-    private List<Container> validContainers;
+    private Set<Container> validContainers;
     /**
      * 不存在的容器ID列表
      */
@@ -72,4 +71,11 @@ public class TaskInstanceExecuteObjects {
      * key=hostId, value: 允许的操作列表
      */
     Map<Long, List<String>> whiteHostAllowActions;
+
+    public void addContainers(Collection<Container> containers) {
+        if (validContainers == null) {
+            validContainers = new HashSet<>();
+        }
+        validContainers.addAll(containers);
+    }
 }

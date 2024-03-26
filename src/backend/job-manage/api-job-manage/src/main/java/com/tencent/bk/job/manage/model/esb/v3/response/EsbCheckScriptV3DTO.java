@@ -48,7 +48,7 @@ public class EsbCheckScriptV3DTO {
 
     /**
      * 错误级别
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptCheckErrorLevelEnum
      */
     private Integer level;
 

@@ -39,7 +39,9 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileIpLogV3DTO;
@@ -52,8 +54,6 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
-import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -175,20 +175,19 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                                List<ExecuteObjectCompositeKey> hostKeys) {
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
-        List<ServiceExecuteObjectLogDTO> ipLogs = logService.batchGetFileExecuteObjectLogContent(
-            stepInstance, stepInstance.getExecuteCount(), null, hostKeys);
+        List<FileExecuteObjectLogContent> ipLogs = logService.batchGetFileExecuteObjectLogContent(
+            stepInstance.getId(), stepInstance.getExecuteCount(), null, null, hostKeys);
 
         if (CollectionUtils.isEmpty(ipLogs)) {
             return;
         }
 
         List<EsbFileIpLogV3DTO> fileTaskLogs = ipLogs.stream().map(ipLog -> {
-            List<ServiceFileTaskLogDTO> ipFileLogs = ipLog.getFileTaskLogs();
+            List<AtomicFileTaskLog> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
-                HostDTO cloudIp = HostDTO.fromCloudIp(ipLog.getCloudIp());
-                esbFileIpLog.setCloudAreaId(cloudIp.getBkCloudId());
-                esbFileIpLog.setIp(cloudIp.getIp());
+                esbFileIpLog.setCloudAreaId(ipLog.getExecuteObject().getHost().getBkCloudId());
+                esbFileIpLog.setIp(ipLog.getExecuteObject().getHost().getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()
                     .map(this::toEsbFileLogV3DTO).collect(Collectors.toList());
                 esbFileIpLog.setFileLogs(esbFileLogs);
@@ -199,19 +198,19 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         esbIpLogs.setFileTaskLogs(fileTaskLogs);
     }
 
-    private EsbFileLogV3DTO toEsbFileLogV3DTO(ServiceFileTaskLogDTO fileTaskLog) {
+    private EsbFileLogV3DTO toEsbFileLogV3DTO(AtomicFileTaskLog fileTaskLog) {
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
-        if (StringUtils.isNotBlank(fileTaskLog.getSrcIp())) {
-            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcIp());
+        if (fileTaskLog.getSrcExecuteObject() != null) {
+            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcExecuteObject().getHost().toCloudIp());
             if (srcIp != null) {
                 fileLog.setSrcIp(srcIp);
             }
         }
         fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
         if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
-            if (StringUtils.isNotBlank(fileTaskLog.getDestIp())) {
-                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestIp());
+            if (fileTaskLog.getDestExecuteObject() != null) {
+                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestExecuteObject().getHost().toCloudIp());
                 if (destIp != null) {
                     fileLog.setDestIp(destIp);
                 }

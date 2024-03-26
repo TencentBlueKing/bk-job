@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

@@ -78,6 +78,15 @@ public class ExecuteObjectCompositeKey {
         return key;
     }
 
+    public static ExecuteObjectCompositeKey ofExecuteObjectResource(
+        ExecuteObjectTypeEnum executeObjectType, String executeObjectResourceId) {
+        ExecuteObjectCompositeKey key = new ExecuteObjectCompositeKey();
+        key.setCompositeKeyType(CompositeKeyType.RESOURCE_ID);
+        key.setExecuteObjectType(executeObjectType);
+        key.setResourceId(Long.valueOf(executeObjectResourceId));
+        return key;
+    }
+
     public static ExecuteObjectCompositeKey ofHostId(Long hostId) {
         return ofExecuteObjectResource(ExecuteObjectTypeEnum.HOST, hostId);
     }

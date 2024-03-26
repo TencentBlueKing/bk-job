@@ -80,6 +80,9 @@ public class BaseCmdbApiClient {
     // 容器相关 API
     protected static final String LIST_KUBE_CONTAINER_BY_TOPO = "/api/v3/findmany/kube/container/by_topo";
     protected static final String GET_BIZ_KUBE_CACHE_TOPO = "/api/v3/cache/find/biz/kube/topo";
+    protected static final String LIST_KUBE_CLUSTER = "/api/v3/findmany/kube/cluster";
+    protected static final String LIST_KUBE_NAMESPACE = "/api/v3/findmany/kube/namespace";
+    protected static final String LIST_KUBE_WORKLOAD = "/api/v3/findmany/kube/workload/{kind}";
 
     // 业务集相关 API
     protected static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";

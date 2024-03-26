@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.common.converter;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 
 public class StepTypeExecuteTypeConverter {
 

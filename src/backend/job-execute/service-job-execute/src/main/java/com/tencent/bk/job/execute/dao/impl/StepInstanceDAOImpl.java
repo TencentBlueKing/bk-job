@@ -37,7 +37,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
@@ -48,7 +48,7 @@ import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFile;
 import com.tencent.bk.job.execute.model.tables.StepInstanceScript;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -444,7 +444,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setEndTime(record.get(t.END_TIME));
         stepInstance.setTotalTime(record.get(t.TOTAL_TIME));
         if (StringUtils.isNotBlank(record.get(t.TARGET_SERVERS))) {
-            ExecuteObjectsDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ExecuteObjectsDTO.class);
+            ExecuteTargetDTO targetServers = JsonUtils.fromJson(record.get(t.TARGET_SERVERS), ExecuteTargetDTO.class);
             stepInstance.setTargetExecuteObjects(targetServers);
         }
         stepInstance.setCreateTime(record.get(t.CREATE_TIME));

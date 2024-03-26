@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.dao.template.impl;
 
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import org.junit.jupiter.api.BeforeEach;

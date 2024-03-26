@@ -46,21 +46,21 @@ public class ServiceNotificationTriggerDTO {
     /**
      * 触发方式
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
      */
     private Integer triggerType;
 
     /**
      * 触发通知的资源类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
      */
     private Integer resourceType;
 
     /**
      * 资源操作结果
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
      */
     private Integer resourceExecuteStatus;
 }

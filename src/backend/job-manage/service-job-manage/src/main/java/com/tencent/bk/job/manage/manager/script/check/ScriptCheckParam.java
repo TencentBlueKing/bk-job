@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.manager.script.check;
 
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;

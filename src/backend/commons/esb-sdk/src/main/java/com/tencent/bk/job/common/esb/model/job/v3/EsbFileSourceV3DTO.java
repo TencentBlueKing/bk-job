@@ -51,7 +51,7 @@ public class EsbFileSourceV3DTO {
     /**
      * 文件源类型，不传默认为服务器文件
      *
-     * @see com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum
      */
     @JsonProperty("file_type")
     private Integer fileType;

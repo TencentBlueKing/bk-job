@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

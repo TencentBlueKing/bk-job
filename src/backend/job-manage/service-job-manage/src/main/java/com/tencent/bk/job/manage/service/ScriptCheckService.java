@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 
 import java.util.List;

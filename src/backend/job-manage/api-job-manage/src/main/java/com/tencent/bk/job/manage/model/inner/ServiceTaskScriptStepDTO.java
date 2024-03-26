@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,7 +40,7 @@ public class ServiceTaskScriptStepDTO {
     private Long scriptVersionId;
 
     /**
-     * @see com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum
+     * @see JobResourceStatusEnum
      */
     @ApiModelProperty("脚本状态")
     private Integer scriptStatus;
@@ -55,7 +56,7 @@ public class ServiceTaskScriptStepDTO {
     /**
      * 脚本类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     @ApiModelProperty("脚本语言类型")
     private Integer scriptType;
@@ -63,7 +64,7 @@ public class ServiceTaskScriptStepDTO {
     /**
      * 脚本类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     @ApiModelProperty("脚本语言类型")
     private Integer type;

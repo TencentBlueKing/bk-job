@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.query;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -83,7 +84,7 @@ public class ScriptQuery {
     /**
      * 脚本状态
      *
-     * @see com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum
+     * @see JobResourceStatusEnum
      */
     private Integer status;
 

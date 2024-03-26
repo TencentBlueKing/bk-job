@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

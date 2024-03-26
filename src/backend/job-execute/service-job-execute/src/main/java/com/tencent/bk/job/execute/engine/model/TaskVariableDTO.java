@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.model;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.execute.model.ExecuteObjectsDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -61,9 +61,9 @@ public class TaskVariableDTO {
     private String value;
 
     /**
-     * 执行对象；当 type = TaskVariableTypeEnum.HOST_LIST 的时候，该值不为null
+     * 执行目标；当 type = TaskVariableTypeEnum.HOST_LIST 的时候，该值不为null
      */
-    private ExecuteObjectsDTO executeObjects;
+    private ExecuteTargetDTO executeTarget;
 
 
     /**
@@ -87,7 +87,7 @@ public class TaskVariableDTO {
             .add("id=" + id)
             .add("type=" + type)
             .add("name='" + name + "'")
-            .add("executeObjects=" + executeObjects)
+            .add("executeTarget=" + executeTarget)
             .add("changeable=" + changeable)
             .add("required=" + required)
             .add("taskInstanceId=" + taskInstanceId);

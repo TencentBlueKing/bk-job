@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.common.consts.account.AccountTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.ToString;

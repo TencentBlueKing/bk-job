@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

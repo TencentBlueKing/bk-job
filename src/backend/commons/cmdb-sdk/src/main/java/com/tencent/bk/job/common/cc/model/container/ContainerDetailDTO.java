@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.cc.model.container;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.dto.Container;
 import lombok.Data;
 
 /**
@@ -47,4 +48,19 @@ public class ContainerDetailDTO {
      * 容器所在拓扑节点信息
      */
     private ContainerTopoDTO topo;
+
+    public Container toContainer() {
+        Container container = new Container();
+        container.setId(this.container.getId());
+        container.setContainerId(this.container.getContainerUID());
+        container.setName(this.container.getName());
+        if (pod != null) {
+            container.setPodName(pod.getName());
+            container.setPodLabels(pod.getLabels());
+        }
+        if (topo != null) {
+            container.setNodeHostId(topo.getHostId());
+        }
+        return container;
+    }
 }

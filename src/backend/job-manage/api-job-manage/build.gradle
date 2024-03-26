@@ -30,6 +30,7 @@ dependencies {
     api project(':commons:notice-sdk')
     api project(':job-execute:api-job-execute')
     api(project(":commons:common-api"))
+    api(project(":job-manage:api-common-job-manage"))
     implementation "org.springframework:spring-web"
     implementation "javax.ws.rs:javax.ws.rs-api"
     implementation("org.apache.commons:commons-collections4")

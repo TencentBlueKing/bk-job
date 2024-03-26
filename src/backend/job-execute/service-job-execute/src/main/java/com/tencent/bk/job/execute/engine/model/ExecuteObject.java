@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectVO;
 import lombok.Getter;
@@ -244,6 +245,19 @@ public class ExecuteObject implements Cloneable {
             vo.setContainer(container.toContainerVO());
         }
         return vo;
+    }
+
+    public OpenApiExecuteObjectDTO toOpenApiExecuteObjectDTO() {
+        OpenApiExecuteObjectDTO executeObject = new OpenApiExecuteObjectDTO();
+        executeObject.setType(type.getValue());
+        executeObject.setResourceId(String.valueOf(resourceId));
+        if (container != null) {
+            executeObject.setContainer(container.toOpenApiContainerDTO());
+        }
+        if (host != null) {
+            executeObject.setHost(host.toOpenApiHostDTO());
+        }
+        return executeObject;
     }
 
     /**

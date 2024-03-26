@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.manager.script.check.checker;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptCheckErrorLevelEnum;
 import com.tencent.bk.job.manage.manager.script.check.ScriptCheckParam;
 import com.tencent.bk.job.manage.model.dto.ScriptCheckResultItemDTO;
 import lombok.extern.slf4j.Slf4j;

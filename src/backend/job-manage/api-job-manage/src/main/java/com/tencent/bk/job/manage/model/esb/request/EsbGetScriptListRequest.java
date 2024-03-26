@@ -51,7 +51,7 @@ public class EsbGetScriptListRequest extends EsbAppScopeReq {
     /**
      * 脚本类型
      *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     @JsonProperty("script_type")
     private Integer scriptType;
