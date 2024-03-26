@@ -253,6 +253,9 @@ public class LogServiceImpl implements LogService {
                                                                           int executeCount,
                                                                           Integer batch,
                                                                           ExecuteObjectTask executeObjectTask) {
+        if (executeObjectTask == null) {
+            return null;
+        }
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         long stepInstanceId = stepInstance.getId();
         InternalResponse<ServiceExecuteObjectLogDTO> resp;
