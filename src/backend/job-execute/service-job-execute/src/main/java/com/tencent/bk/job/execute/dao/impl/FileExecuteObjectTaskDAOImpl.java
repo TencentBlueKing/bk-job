@@ -351,14 +351,19 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                       Integer batch,
                                                       FileTaskModeEnum mode,
                                                       String executeObjectId) {
-        Record record = CTX.select(ALL_FIELDS)
-            .from(T)
-            .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
-            .and(T.BATCH.eq(batch == null ? 0 : batch.shortValue()))
-            .and(T.MODE.eq(mode.getValue().byteValue()))
-            .and(T.EXECUTE_OBJ_ID.eq(executeObjectId))
-            .fetchOne();
+        SelectConditionStep<?> selectConditionStep =
+            CTX.select(ALL_FIELDS)
+                .from(T)
+                .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
+                .and(T.MODE.eq(mode.getValue().byteValue()))
+                .and(T.EXECUTE_OBJ_ID.eq(executeObjectId));
+        if (batch != null && batch > 0) {
+            // 滚动执行批次，传入null或者0将忽略该参数
+            selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+        selectConditionStep.limit(1);
+        Record record = selectConditionStep.fetchOne();
         return extract(record);
     }
 
