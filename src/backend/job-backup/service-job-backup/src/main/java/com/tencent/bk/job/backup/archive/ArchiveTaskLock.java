@@ -118,7 +118,7 @@ public class ArchiveTaskLock {
 
         String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + tableName;
         LockUtils.releaseDistributedLock(archiveLockKey, lockRequestId);
-        this.locks.remove(archiveLockKey);
+        this.locks.remove(tableName);
     }
 
     public synchronized void unlock(String tableName) {
