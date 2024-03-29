@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
-import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
@@ -42,8 +41,10 @@ import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -579,10 +580,14 @@ public class ExecuteTargetDTO implements Cloneable {
                             .map(labelSelectExpr -> new LabelSelectExprDTO(
                                 labelSelectExpr.getKey(),
                                 labelSelectExpr.getOperator(),
-                                labelSelectExpr.getValue(),
                                 labelSelectExpr.getValues()))
                             .collect(Collectors.toList()));
 
+                } else if (StringUtils.isNotBlank(originContainerFilter.getPodFilter().getLabelSelectorExpr())) {
+                    // 优先解析 label_selector；如果 label_selector 不存在，那么解析 label_selector_expr
+                    List<LabelSelectExprDTO> labelSelectExprList = LabelSelectorParse.parseToLabelSelectExprList(
+                        originContainerFilter.getPodFilter().getLabelSelectorExpr());
+                    podFilter.setLabelSelector(labelSelectExprList);
                 }
                 containerFilter.setPodFilter(podFilter);
             }

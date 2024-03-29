@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class OpenApiLabelSelectExprDTO {
     /**
      * 计算操作符
      */
-    private String operator;
+    private LabelSelectorOperatorEnum operator;
 
     /**
      * Label value

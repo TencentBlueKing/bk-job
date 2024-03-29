@@ -46,5 +46,8 @@ public class OpenApiKubePodFilterDTO {
      */
     @JsonProperty("label_selector")
     private List<OpenApiLabelSelectExprDTO> labelSelector;
+    
+    @JsonProperty("label_selector_expr")
+    private String labelSelectorExpr;
 
 }

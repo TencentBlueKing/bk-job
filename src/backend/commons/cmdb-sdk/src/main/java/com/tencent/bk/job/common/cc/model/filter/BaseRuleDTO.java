@@ -61,8 +61,16 @@ public class BaseRuleDTO implements IRule {
         return new BaseRuleDTO(field, RuleOperatorEnum.IN.getOperator(), value);
     }
 
+    public static BaseRuleDTO notIn(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_IN.getOperator(), value);
+    }
+
     public static BaseRuleDTO equals(String field, Object value) {
         return new BaseRuleDTO(field, RuleOperatorEnum.EQUAL.getOperator(), value);
+    }
+
+    public static BaseRuleDTO notEquals(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_EQUAL.getOperator(), value);
     }
 
     public static BaseRuleDTO contains(String field, Object value) {
@@ -73,5 +81,20 @@ public class BaseRuleDTO implements IRule {
         return new BaseRuleDTO(field, RuleOperatorEnum.FILTER_OBJECT.getOperator(), value);
     }
 
+    public static BaseRuleDTO exists(String field) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.EXIST.getOperator(), null);
+    }
+
+    public static BaseRuleDTO notExists(String field) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_EXIST.getOperator(), null);
+    }
+
+    public static BaseRuleDTO greaterThan(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.GREATER.getOperator(), value);
+    }
+
+    public static BaseRuleDTO lessThan(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.LESS.getOperator(), value);
+    }
 
 }

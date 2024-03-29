@@ -22,10 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.container;
+package com.tencent.bk.job.execute.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,30 +43,21 @@ public class LabelSelectExprDTO implements Cloneable {
     /**
      * Label key
      */
-    @JsonProperty("label_key")
     private String key;
 
     /**
      * 计算操作符
-     */
-    private String operator;
-
-    /**
-     * Label value
-     */
-    @JsonProperty("label_value")
-    private String value;
+     **/
+    private LabelSelectorOperatorEnum operator;
 
     /**
      * Label values
      */
-    @JsonProperty("label_values")
     private List<String> values;
 
-    public LabelSelectExprDTO(String key, String operator, String value, List<String> values) {
+    public LabelSelectExprDTO(String key, LabelSelectorOperatorEnum operator, List<String> values) {
         this.key = key;
         this.operator = operator;
-        this.value = value;
         this.values = values;
     }
 
@@ -74,7 +65,6 @@ public class LabelSelectExprDTO implements Cloneable {
     public LabelSelectExprDTO clone() {
         LabelSelectExprDTO clone = new LabelSelectExprDTO();
         clone.setKey(key);
-        clone.setValue(value);
         clone.setOperator(operator);
         if (CollectionUtils.isNotEmpty(values)) {
             clone.setValues(new ArrayList<>(values));

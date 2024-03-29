@@ -31,18 +31,17 @@ import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
 import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
-import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
 import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
-import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -53,6 +52,7 @@ import com.tencent.bk.job.execute.model.KubeContainerPropFilter;
 import com.tencent.bk.job.execute.model.KubeNamespaceFilter;
 import com.tencent.bk.job.execute.model.KubePodFilter;
 import com.tencent.bk.job.execute.model.KubeWorkloadFilter;
+import com.tencent.bk.job.execute.model.LabelSelectExprDTO;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
@@ -167,19 +167,24 @@ public class ContainerServiceImpl implements ContainerService {
     }
 
     private BaseRuleDTO buildLabelFilterRule(LabelSelectExprDTO labelSelectExpr) {
-        RuleOperatorEnum operator = RuleOperatorEnum.valOf(labelSelectExpr.getOperator());
+        LabelSelectorOperatorEnum operator = labelSelectExpr.getOperator();
         switch (operator) {
-            case EQUAL:
-            case NOT_EQUAL:
-                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(),
-                    labelSelectExpr.getValue());
+            case EQUALS:
+                return BaseRuleDTO.equals(labelSelectExpr.getKey(), labelSelectExpr.getValues().get(0));
+            case NOT_EQUALS:
+                return BaseRuleDTO.notEquals(labelSelectExpr.getKey(), labelSelectExpr.getValues().get(0));
             case IN:
+                return BaseRuleDTO.in(labelSelectExpr.getKey(), labelSelectExpr.getValues());
             case NOT_IN:
-                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(),
-                    labelSelectExpr.getValues());
-            case EXIST:
-            case NOT_EXIST:
-                return new BaseRuleDTO(labelSelectExpr.getKey(), labelSelectExpr.getOperator(), null);
+                return BaseRuleDTO.notIn(labelSelectExpr.getKey(), labelSelectExpr.getValues());
+            case EXISTS:
+                return BaseRuleDTO.exists(labelSelectExpr.getKey());
+            case NOT_EXISTS:
+                return BaseRuleDTO.notExists(labelSelectExpr.getKey());
+            case LESS_THAN:
+                return BaseRuleDTO.lessThan(labelSelectExpr.getKey(), labelSelectExpr.getValues().get(0));
+            case GREATER_THAN:
+                return BaseRuleDTO.greaterThan(labelSelectExpr.getKey(), labelSelectExpr.getValues().get(0));
             default:
                 throw new IllegalArgumentException("Invalid label select operator: " + operator);
         }
