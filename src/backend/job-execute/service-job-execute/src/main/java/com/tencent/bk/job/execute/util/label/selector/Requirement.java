@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Requirement contains values, a key, and an operator that relates the key and values.
+ */
 public class Requirement {
     private final String key;
     private final Operator operator;

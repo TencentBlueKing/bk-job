@@ -42,11 +42,14 @@ public class OpenApiKubePodFilterDTO {
     private List<String> podNames;
 
     /**
-     * k8s pod label
+     * k8s pod label selector
      */
     @JsonProperty("label_selector")
     private List<OpenApiLabelSelectExprDTO> labelSelector;
-    
+
+    /**
+     * k8s pod label selector 表达式
+     */
     @JsonProperty("label_selector_expr")
     private String labelSelectorExpr;
 

@@ -574,6 +574,7 @@ public class ExecuteTargetDTO implements Cloneable {
                 KubePodFilter podFilter = new KubePodFilter();
                 podFilter.setPodNames(originContainerFilter.getPodFilter().getPodNames());
                 if (CollectionUtils.isNotEmpty(originContainerFilter.getPodFilter().getLabelSelector())) {
+                    // 优先解析自定义的 Label Selector
                     podFilter.setLabelSelector(
                         originContainerFilter.getPodFilter().getLabelSelector()
                             .stream()
@@ -584,7 +585,7 @@ public class ExecuteTargetDTO implements Cloneable {
                             .collect(Collectors.toList()));
 
                 } else if (StringUtils.isNotBlank(originContainerFilter.getPodFilter().getLabelSelectorExpr())) {
-                    // 优先解析 label_selector；如果 label_selector 不存在，那么解析 label_selector_expr
+                    // 解析 label selector 表达式
                     List<LabelSelectExprDTO> labelSelectExprList = LabelSelectorParse.parseToLabelSelectExprList(
                         originContainerFilter.getPodFilter().getLabelSelectorExpr());
                     podFilter.setLabelSelector(labelSelectExprList);

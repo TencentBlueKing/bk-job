@@ -38,23 +38,18 @@ public class OpenApiLabelSelectExprDTO {
     /**
      * Label key
      */
-    @JsonProperty("label_key")
+    @JsonProperty("key")
     private String key;
 
     /**
      * 计算操作符
      */
+    @JsonProperty("operator")
     private LabelSelectorOperatorEnum operator;
-
-    /**
-     * Label value
-     */
-    @JsonProperty("label_value")
-    private String value;
 
     /**
      * Label values
      */
-    @JsonProperty("label_values")
+    @JsonProperty("values")
     private List<String> values;
 }
