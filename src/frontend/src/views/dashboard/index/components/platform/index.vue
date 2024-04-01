@@ -141,7 +141,7 @@
         },
         {
           name: I18n.t('MacOS 数量'),
-          key: 'mac',
+          key: 'MAC',
           icon: 'os-macos',
         },
         {
@@ -161,7 +161,7 @@
           date: this.date,
           metric: 'HOST_SYSTEM_TYPE',
         }).then((data) => {
-          this.data = data.labelAmountMap;
+          this.data = Object.assign({}, this.data, data.labelAmountMap);
           this.init();
         })
           .finally(() => {
