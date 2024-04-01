@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,14 +87,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
     }
 
     public void calcAndSaveHostStatistics(String dateStr) {
-        Set<String> allOsTypeNameSet = new HashSet<>();
-        allOsTypeNameSet.add("LINUX");
-        allOsTypeNameSet.add("WINDOWS");
-        allOsTypeNameSet.add("AIX");
-        allOsTypeNameSet.add("UNIX");
-        allOsTypeNameSet.add("SOLARIS");
-        allOsTypeNameSet.add("FREEBSD");
-        allOsTypeNameSet.add("MACOS");
+        Set<String> allOsTypeNameSet = getAllOsTypeNameSet();
 
         InternalResponse<Map<String, Integer>> resp = manageMetricsResource.groupHostByOsType();
         Map<String, Integer> osTypeCountMap = resp.getData();
@@ -107,7 +101,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         int knownOsTypeHostCount = 0;
         for (Map.Entry<String, String> entry : osTypeIdNameMap.entrySet()) {
             String id = entry.getKey();
-            String name = entry.getValue();
+            String name = entry.getValue().toUpperCase();
             // 只为Job关注的系统类型主机生成统计数据
             if (!allOsTypeNameSet.contains(name)) {
                 continue;
@@ -121,19 +115,35 @@ public class HostStatisticsTask extends BaseStatisticsTask {
             knownOsTypeHostCount += hostCount;
             statisticsDAO.upsertStatistics(
                 dslContext,
-                genHostOsTypeStatisticsDTO(name.toUpperCase(), dateStr, hostCount.toString())
+                genHostOsTypeStatisticsDTO(name, dateStr, hostCount.toString())
             );
             log.debug("calcAndSaveHostStatistics: id={},name={},hostCount={}", id, name, hostCount);
         }
         // CMDB中没有的类型统计值默认置为0
         allOsTypeNameSet.forEach(osTypeName -> {
             log.debug("calcAndSaveHostStatistics: {} count=0", osTypeName);
-            genStatisticsDTO(dateStr, "0", osTypeName.toUpperCase());
+            statisticsDAO.upsertStatistics(
+                dslContext,
+                genStatisticsDTO(dateStr, "0", osTypeName.toUpperCase())
+            );
         });
         // Others
         int othersCount = totalHostCount - knownOsTypeHostCount;
         log.debug("calcAndSaveHostStatistics: othersCount={}", othersCount);
         statisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
+    }
+
+    @NotNull
+    private static Set<String> getAllOsTypeNameSet() {
+        Set<String> allOsTypeNameSet = new HashSet<>();
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_LINUX);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_WINDOWS);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_AIX);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_UNIX);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_SOLARIS);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_FREEBSD);
+        allOsTypeNameSet.add(StatisticsConstants.DIMENSION_VALUE_HOST_SYSTEM_TYPE_MACOS);
+        return allOsTypeNameSet;
     }
 
     @Override

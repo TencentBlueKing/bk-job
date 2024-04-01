@@ -1194,7 +1194,11 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .fetch()
             .map(record -> {
                 String osType = record.get(0, String.class);
-                groupMap.put(osType, record.get(1, Integer.class));
+                if (StringUtils.isNotBlank(osType)) {
+                    groupMap.put(osType, record.get(1, Integer.class));
+                } else {
+                    groupMap.put("null", record.get(1, Integer.class));
+                }
                 return record;
             });
         return groupMap;
