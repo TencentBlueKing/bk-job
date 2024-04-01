@@ -108,7 +108,7 @@
 |-----------|------------|--------|------------|
 | key | string | 是 | label key |
 | operator |  string | 是 | 计算操作符, 支持 equals、not_equals、in、not_in、exists、not_exists |
-| values | string | 否 | label value 列表, 当计算操作符为 in、not_in 时候需要设置 |
+| values | string | 否 | label value 列表, 当计算操作符为 in、not_in、equals、not_equals 时需要设置 |
 
 ##### kube_container_prop_filter
 
