@@ -40,7 +40,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 统计主机操作系统类型分布情况
@@ -84,17 +86,38 @@ public class HostStatisticsTask extends BaseStatisticsTask {
     }
 
     public void calcAndSaveHostStatistics(String dateStr) {
+        Set<String> allOsTypeNameSet = new HashSet<>();
+        allOsTypeNameSet.add("LINUX");
+        allOsTypeNameSet.add("WINDOWS");
+        allOsTypeNameSet.add("AIX");
+        allOsTypeNameSet.add("UNIX");
+        allOsTypeNameSet.add("SOLARIS");
+        allOsTypeNameSet.add("FREEBSD");
+        allOsTypeNameSet.add("MACOS");
+
+        InternalResponse<Map<String, Integer>> resp = manageMetricsResource.groupHostByOsType();
+        Map<String, Integer> osTypeCountMap = resp.getData();
+        // 统计所有类型的主机总量
+        int totalHostCount = 0;
+        for (Map.Entry<String, Integer> e : osTypeCountMap.entrySet()) {
+            Integer count = e.getValue();
+            totalHostCount += count;
+        }
         Map<String, String> osTypeIdNameMap = bizCmdbClient.getOsTypeIdNameMap();
-        long knownOsTypeHostCount = 0L;
+        int knownOsTypeHostCount = 0;
         for (Map.Entry<String, String> entry : osTypeIdNameMap.entrySet()) {
             String id = entry.getKey();
             String name = entry.getValue();
-            InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType(id);
-            if (resp == null || !resp.isSuccess()) {
-                log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
+            // 只为Job关注的系统类型主机生成统计数据
+            if (!allOsTypeNameSet.contains(name)) {
                 continue;
             }
-            Long hostCount = resp.getData();
+
+            allOsTypeNameSet.remove(name);
+            Integer hostCount = 0;
+            if (osTypeCountMap.containsKey(id)) {
+                hostCount = osTypeCountMap.get(id);
+            }
             knownOsTypeHostCount += hostCount;
             statisticsDAO.upsertStatistics(
                 dslContext,
@@ -102,13 +125,13 @@ public class HostStatisticsTask extends BaseStatisticsTask {
             );
             log.debug("calcAndSaveHostStatistics: id={},name={},hostCount={}", id, name, hostCount);
         }
+        // CMDB中没有的类型统计值默认置为0
+        allOsTypeNameSet.forEach(osTypeName -> {
+            log.debug("calcAndSaveHostStatistics: {} count=0", osTypeName);
+            genStatisticsDTO(dateStr, "0", osTypeName.toUpperCase());
+        });
         // Others
-        InternalResponse<Long> resp = manageMetricsResource.countHostsByOsType(null);
-        if (resp == null || !resp.isSuccess()) {
-            log.warn("Fail to call remote countHostsByOsType, resp:{}", resp);
-            return;
-        }
-        long othersCount = resp.getData() - knownOsTypeHostCount;
+        int othersCount = totalHostCount - knownOsTypeHostCount;
         log.debug("calcAndSaveHostStatistics: othersCount={}", othersCount);
         statisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
     }
