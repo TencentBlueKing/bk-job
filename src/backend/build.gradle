@@ -116,7 +116,7 @@ ext {
     set('h2Version', "1.4.199")
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
-    set('apacheHttpClientVersion', "4.5.10")
+    set('apacheHttpClientVersion', "4.5.13")
     set('apacheThriftVersion', "0.15.0")
     set('commonsIOVersion', "2.6")
     set('javaxServletVersion', "4.0.1")
