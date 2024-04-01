@@ -514,5 +514,7 @@ export default {
     未发现无效主机: 'No invalid host found',
     '作业导入任务出错，原因详见下列日志，请稍后再试。': 'Import task encountered an error. please refer to the log details and try again later.',
     '作业导入完成（部分失败），请根据日志提示调整后重新选择导入。': 'Job import completed (some failed), please adjust according to the log prompt and re-select to import again.',
+    填入上一次执行参数: '填入上一次执行参数',
+    复用当前登录用户的最近一次通过页面执行的入参: '复用当前登录用户的最近一次通过页面执行的入参',
   },
 };

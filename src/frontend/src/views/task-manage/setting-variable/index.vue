@@ -26,9 +26,10 @@
 -->
 
 <template>
-  <div class="setting-variable-page">
+  <div>
     <smart-action offset-target="variable-value">
       <global-variable-layout
+        :key="refreshKey"
         style="padding-bottom: 20px;"
         type="vertical">
         <global-variable
@@ -58,7 +59,7 @@
         </toggle-display>
       </global-variable-layout>
       <template #action>
-        <div class="action-wraper">
+        <div class="setting-variable-action-wraper">
           <bk-button
             class="w120"
             :loading="isSubmiting"
@@ -75,6 +76,12 @@
             class="ml10"
             :host-variable-list="allHostVariable"
             @change="handleRemoveAllInvalidHost" />
+          <bk-button
+            v-bk-tooltips="$t('template.复用当前登录用户的最近一次通过页面执行的入参')"
+            style="margin-left: auto"
+            @click="handleLoadLastValue">
+            {{ $t('template.填入上一次执行参数') }}
+          </bk-button>
         </div>
       </template>
     </smart-action>
@@ -96,6 +103,7 @@
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
   } from '@utils/assist';
+  import { execTaskPlanVariableCache } from '@utils/cache-helper';
 
   import BackTop from '@components/back-top';
   import GlobalVariable from '@components/global-variable/edit';
@@ -119,10 +127,12 @@
       return {
         isLoading: true,
         isSubmiting: false,
+        wholeVariableList: [],
         usedList: [],
         unusedList: [],
         planName: '',
         allHostVariable: [],
+        refreshKey: Date.now(),
       };
     },
     computed: {
@@ -131,7 +141,7 @@
       },
     },
     created() {
-      this.taskId = this.$route.params.id;
+      this.planId = this.$route.params.id;
       this.templateId = this.$route.params.templateId;
       this.isDebugPlan = Boolean(this.$route.params.debug);
       this.fetchData();
@@ -145,7 +155,7 @@
           ? TaskPlanService.fetchDebugInfo
           : TaskPlanService.fetchPlanDetailInfo;
         serviceHandler({
-          id: this.taskId,
+          id: this.planId,
           templateId: this.templateId,
         }, {
           permission: 'page',
@@ -162,6 +172,7 @@
             return result;
           }, {});
 
+
           // 执行方案中的步骤使用了得变量
           const usedList = [];
           // 未被使用的变量
@@ -173,6 +184,7 @@
               unusedList.push(variable);
             }
           });
+          this.wholeVariableList = Object.freeze(variableList);
           this.usedList = Object.freeze(usedList);
           this.unusedList = Object.freeze(unusedList);
           this.allHostVariable = Object.freeze(_.filter(variableList, variable => variable.isHost));
@@ -224,8 +236,10 @@
               return Promise.reject();
             }
 
+            execTaskPlanVariableCache.setItem(this.planId, variableList);
+
             return TaskExecuteService.taskExecution({
-              taskId: this.taskId,
+              taskId: this.planId,
               taskVariables: variableList.map(({
                 id,
                 name,
@@ -245,6 +259,7 @@
                 message: I18n.t('template.执行成功'),
               });
               window.changeFlag = false;
+
               this.$router.push({
                 name: 'historyTask',
                 params: {
@@ -273,6 +288,31 @@
         this.$refs.used && this.$refs.used.forEach(item => item.removeAllInvalidHost());
         this.$refs.unused && this.$refs.unused.forEach(item => item.removeAllInvalidHost());
       },
+      handleLoadLastValue() {
+        const lastExecuteVariableMap = execTaskPlanVariableCache.getItem(this.planId)
+          .reduce((result, item) => Object.assign(result, {
+            [item.name]: item,
+          }), {});
+        console.log('lastExecuteVariableMap = ', this.planId, lastExecuteVariableMap);
+
+        const replaceVariableValue = (variableList, lastExecuteVariableMap) => {
+          const variableListResult = [...variableList];
+          variableListResult.forEach((variable) => {
+            if (lastExecuteVariableMap[variable.name]) {
+              if (variable.type === 3) {
+                variable.defaultTargetValue.executeObjectsInfo = lastExecuteVariableMap[variable.name].targetValue.executeObjectsInfo;
+              } else {
+                variable.defaultValue = lastExecuteVariableMap[variable.name].value;
+              }
+            }
+          });
+          return variableListResult;
+        };
+        this.usedList = Object.freeze(replaceVariableValue(this.usedList, lastExecuteVariableMap));
+        this.unusedList = Object.freeze(replaceVariableValue(this.unusedList, lastExecuteVariableMap));
+        this.allHostVariable = Object.freeze(replaceVariableValue(this.allHostVariable, lastExecuteVariableMap));
+        this.refreshKey = Date.now();
+      },
       /**
        * @desc 路由回退
        */
@@ -294,7 +334,7 @@
               templateId: this.templateId,
             },
             query: {
-              viewPlanId: this.taskId,
+              viewPlanId: this.planId,
             },
           });
           return;
@@ -303,7 +343,7 @@
           name: 'planList',
           query: {
             viewTemplateId: this.templateId,
-            viewPlanId: this.taskId,
+            viewPlanId: this.planId,
           },
         });
       },
@@ -311,15 +351,13 @@
   };
 </script>
 <style lang='postcss'>
-  .setting-variable-page {
-    .action-wraper {
-      display: flex;
-      align-items: center;
-      width: 960px;
+  .setting-variable-action-wraper{
+    display: flex;
+    align-items: center;
+    width: 960px;
 
-      .remove-all {
-        margin-left: 40px;
-      }
+    .remove-all {
+      margin-left: 40px;
     }
   }
 </style>

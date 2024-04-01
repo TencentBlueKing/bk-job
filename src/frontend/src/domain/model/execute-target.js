@@ -31,7 +31,7 @@ export default class ExecuteObjectsInfo {
       dynamicGroupList,
       hostList,
       nodeList,
-      containerList,
+      containerList = [],
     } = executeObjectsInfo;
 
     return dynamicGroupList.length < 1
