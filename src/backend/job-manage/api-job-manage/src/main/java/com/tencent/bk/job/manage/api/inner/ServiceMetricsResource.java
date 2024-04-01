@@ -40,6 +40,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
+
 @Api(tags = {"job-manage:service:Metrics"})
 @SmartFeignClient(value = "job-manage", contextId = "manageMetricsResource")
 @InternalAPI
@@ -145,6 +147,10 @@ public interface ServiceMetricsResource {
         @RequestParam(value = "osType", required = false)
             String osType
     );
+
+    @ApiOperation(value = "主机的操作系统类型分布数据", produces = "application/json")
+    @GetMapping("/service/metrics/hosts/groupByOsType")
+    InternalResponse<Map<String, Integer>> groupHostByOsType();
 
     @ApiOperation(value = "某个标签在某业务下的被引数量", produces = "application/json")
     @GetMapping("/service/metrics/tags/citedCount")

@@ -150,10 +150,14 @@ public class StatisticsConstants {
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_LINUX = "LINUX";
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_WINDOWS = "WINDOWS";
     public static final String DIMENSION_VALUE_ACCOUNT_TYPE_DB = "DB";
-    // 维度取值：主机系统类型
+    // 维度取值：Job关注的主机系统类型
     public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_LINUX = "LINUX";
     public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_WINDOWS = "WINDOWS";
     public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_AIX = "AIX";
+    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_UNIX = "UNIX";
+    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_SOLARIS = "SOLARIS";
+    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_FREEBSD = "FREEBSD";
+    public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_MACOS = "MACOS";
     public static final String DIMENSION_VALUE_HOST_SYSTEM_TYPE_OTHERS = "OTHERS";
     // 维度取值：任务启动方式
     public static final String DIMENSION_VALUE_TASK_STARTUP_MODE_NORMAL = "NORMAL";
