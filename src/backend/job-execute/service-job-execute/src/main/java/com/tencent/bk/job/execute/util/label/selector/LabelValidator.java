@@ -52,7 +52,10 @@ public class LabelValidator {
         "characters, '-', '_' or '.', and must start and end with an alphanumeric character";
 
     /**
-     * Validate label key
+     * 校验 label key,并返回校验错误信息
+     *
+     * @param labelKey label  key
+     * @return 校验错误信息
      */
     public static List<String> validateLabelKey(String labelKey) {
         return isQualifiedName(labelKey);
@@ -145,6 +148,12 @@ public class LabelValidator {
         return msgs;
     }
 
+    /**
+     * 校验 label value,并返回校验错误信息
+     *
+     * @param value label value
+     * @return 校验错误信息
+     */
     public static List<String> validateLabelValue(String value) {
         List<String> errs = new ArrayList<>();
 

@@ -22,17 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.util.label.selector;
+package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import org.junit.jupiter.api.Test;
 
-/**
- * Label selector 解析异常
- */
-public class LabelSelectorParseException extends InternalException {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public LabelSelectorParseException(String message) {
-        super(message, null, ErrorCode.INVALID_LABEL_SELECTOR);
+public class PathTest {
+
+    @Test
+    void pathTest() {
+        Path p = Path.newPath("root");
+        assertThat(p.toString()).isEqualTo("root");
+        p = p.child("first");
+        assertThat(p.toString()).isEqualTo("root.first");
+        p = p.child("second");
+        assertThat(p.toString()).isEqualTo("root.first.second");
+        p = p.index(0);
+        assertThat(p.toString()).isEqualTo("root.first.second[0]");
+        p = p.child("third");
+        p = p.index(93);
+        assertThat(p.toString()).isEqualTo("root.first.second[0].third[93]");
+        p = p.parent();
+        assertThat(p.toString()).isEqualTo("root.first.second[0].third");
+        p = p.parent();
+        assertThat(p.toString()).isEqualTo("root.first.second[0]");
+        p = p.key("key");
+        assertThat(p.toString()).isEqualTo("root.first.second[0][key]");
     }
 }

@@ -40,9 +40,11 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,6 +61,7 @@ import java.util.stream.Collectors;
 @Data
 @PersistenceObject
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Slf4j
 public class ExecuteTargetDTO implements Cloneable {
     /**
      * 如果执行目标是通过全局变量-主机列表定义的，variable 表示变量 name
@@ -588,6 +591,9 @@ public class ExecuteTargetDTO implements Cloneable {
                     // 解析 label selector 表达式
                     List<LabelSelectExprDTO> labelSelectExprList = LabelSelectorParse.parseToLabelSelectExprList(
                         originContainerFilter.getPodFilter().getLabelSelectorExpr());
+                    log.info("Parse kubernetes label selector expr, expr: {}, result: {}",
+                        originContainerFilter.getPodFilter().getLabelSelectorExpr(),
+                        JsonUtils.toJson(labelSelectExprList));
                     podFilter.setLabelSelector(labelSelectExprList);
                 }
                 containerFilter.setPodFilter(podFilter);

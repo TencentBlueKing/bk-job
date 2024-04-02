@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.util.label.selector.Requirement;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -72,65 +73,76 @@ public class K8sLabelSelectorTest {
     @Test
     void testParseToRequirements() {
         expectMatch(LabelSelectorParse.parse("app=nginx"),
-            Requirements.build(Requirement.newRequirement("app", Operator.Equals, "nginx")));
+            Requirements.build(newRequirement("app", Operator.Equals, "nginx")));
         expectMatch(LabelSelectorParse.parse("app==nginx"),
-            Requirements.build(Requirement.newRequirement("app", Operator.DoubleEquals, "nginx")));
+            Requirements.build(newRequirement("app", Operator.DoubleEquals, "nginx")));
         expectMatch(LabelSelectorParse.parse("version==1.0"),
-            Requirements.build(Requirement.newRequirement("version", Operator.DoubleEquals, "1.0")));
+            Requirements.build(newRequirement("version", Operator.DoubleEquals, "1.0")));
         expectMatch(LabelSelectorParse.parse("version=1.0"),
-            Requirements.build(Requirement.newRequirement("version", Operator.Equals, "1.0")));
+            Requirements.build(newRequirement("version", Operator.Equals, "1.0")));
 
 
         expectMatch(LabelSelectorParse.parse("app!=nginx"),
-            Requirements.build(Requirement.newRequirement("app", Operator.NotEquals, "nginx")));
+            Requirements.build(newRequirement("app", Operator.NotEquals, "nginx")));
 
         expectMatch(LabelSelectorParse.parse("app in (nginx, redis)"),
-            Requirements.build(Requirement.newRequirement("app", Operator.In, new String[]{"nginx", "redis"})));
+            Requirements.build(newRequirement("app", Operator.In, new String[]{"nginx", "redis"})));
         expectMatch(LabelSelectorParse.parse("version in (1.0, 2.0)"),
-            Requirements.build(Requirement.newRequirement("version", Operator.In, new String[]{"1.0", "2.0"})));
+            Requirements.build(newRequirement("version", Operator.In, new String[]{"1.0", "2.0"})));
 
         expectMatch(LabelSelectorParse.parse("app notin (nginx, redis)"),
-            Requirements.build(Requirement.newRequirement("app", Operator.NotIn, new String[]{"nginx", "redis"})));
+            Requirements.build(newRequirement("app", Operator.NotIn, new String[]{"nginx", "redis"})));
 
         expectMatch(LabelSelectorParse.parse("app"),
-            Requirements.build(Requirement.newRequirement("app", Operator.Exists, Collections.emptyList())));
+            Requirements.build(newRequirement("app", Operator.Exists)));
         expectMatch(LabelSelectorParse.parse("release-version"),
-            Requirements.build(Requirement.newRequirement("release-version", Operator.Exists,
-                Collections.emptyList())));
+            Requirements.build(newRequirement("release-version", Operator.Exists)));
 
         expectMatch(LabelSelectorParse.parse("!app"),
-            Requirements.build(Requirement.newRequirement("app", Operator.DoesNotExist, Collections.emptyList())));
+            Requirements.build(newRequirement("app", Operator.DoesNotExist)));
 
         expectMatch(LabelSelectorParse.parse("version > 10"),
-            Requirements.build(Requirement.newRequirement("version", Operator.GreaterThan, "10")));
+            Requirements.build(newRequirement("version", Operator.GreaterThan, "10")));
         expectMatch(LabelSelectorParse.parse("version < 10"),
-            Requirements.build(Requirement.newRequirement("version", Operator.LessThan, "10")));
+            Requirements.build(newRequirement("version", Operator.LessThan, "10")));
 
         expectMatch(LabelSelectorParse.parse("app=nginx, tier=frontend"),
             Requirements.build(
-                Requirement.newRequirement("app", Operator.Equals, "nginx"),
-                Requirement.newRequirement("tier", Operator.Equals, "frontend"))
+                newRequirement("app", Operator.Equals, "nginx"),
+                newRequirement("tier", Operator.Equals, "frontend"))
         );
         expectMatch(LabelSelectorParse.parse("env=production,version!=1.0"),
             Requirements.build(
-                Requirement.newRequirement("env", Operator.Equals, "production"),
-                Requirement.newRequirement("version", Operator.NotEquals, "1.0"))
+                newRequirement("env", Operator.Equals, "production"),
+                newRequirement("version", Operator.NotEquals, "1.0"))
         );
         expectMatch(LabelSelectorParse.parse("app in (nginx, redis),tier=backend"),
             Requirements.build(
-                Requirement.newRequirement("app", Operator.In, new String[]{"nginx", "redis"}),
-                Requirement.newRequirement("tier", Operator.Equals, "backend"))
+                newRequirement("app", Operator.In, new String[]{"nginx", "redis"}),
+                newRequirement("tier", Operator.Equals, "backend"))
         );
         expectMatch(LabelSelectorParse.parse("!beta-version,app!=mysql"),
             Requirements.build(
-                Requirement.newRequirement("beta-version", Operator.DoesNotExist, Collections.emptyList()),
-                Requirement.newRequirement("app", Operator.NotEquals, "mysql"))
+                newRequirement("beta-version", Operator.DoesNotExist),
+                newRequirement("app", Operator.NotEquals, "mysql"))
         );
 
         expectMatch(LabelSelectorParse.parse("val in (in, notin)"),
             Requirements.build(
-                Requirement.newRequirement("val", Operator.In, new String[]{"in", "notin"}))
+                newRequirement("val", Operator.In, new String[]{"in", "notin"}))
         );
+    }
+
+    private Requirement newRequirement(String key, Operator op, String val) {
+        return new Requirement(key, op, Collections.singletonList(val));
+    }
+
+    private Requirement newRequirement(String key, Operator op) {
+        return new Requirement(key, op, null);
+    }
+
+    private Requirement newRequirement(String key, Operator op, String[] vals) {
+        return new Requirement(key, op, Arrays.asList(vals));
     }
 
     private void expectMatch(List<Requirement> actualRequirementList,

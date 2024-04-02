@@ -48,7 +48,7 @@ public class LabelSelectorParse {
         Parser parser = new Parser(selector);
         List<Requirement> requirements = parser.parse();
 
-        if (CollectionUtils.isNotEmpty(requirements)) {
+        if (CollectionUtils.isEmpty(requirements)) {
             return Collections.emptyList();
         }
 

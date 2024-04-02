@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.execute.util.label.selector;
 
+import com.tencent.bk.job.common.validation.FieldError;
+import com.tencent.bk.job.common.validation.FieldErrors;
+import com.tencent.bk.job.common.validation.Path;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -42,11 +45,13 @@ public class Parser {
     private final Lexer lexer;
     private final List<ScannedItem> scannedItems;
     private int position;
+    private final Path rootPath;
 
     public Parser(String selector) {
         this.lexer = new Lexer(selector);
         this.scannedItems = new ArrayList<>();
         this.position = 0;
+        rootPath = Path.newPath("labelSelector");
     }
 
     /**
@@ -141,7 +146,7 @@ public class Parser {
         Operator operator = keyAndOperator.getOperator();
 
         if (operator == Operator.Exists || operator == Operator.DoesNotExist) {
-            return Requirement.newRequirement(key, operator, Collections.emptyList());
+            return newRequirement(key, operator, null);
         }
 
         Operator op = parseOperator();
@@ -163,7 +168,79 @@ public class Parser {
                     + "', expected: " + Arrays.stream(Operator.values())
                     .map(Operator::getSymbol).collect(Collectors.joining(", ")));
         }
-        return Requirement.newRequirement(key, op, values);
+        return newRequirement(key, op, values);
+    }
+
+    private Requirement newRequirement(String key, Operator op, List<String> vals) {
+        FieldErrors fieldErrors = new FieldErrors();
+
+        List<String> labelKeyValidateErrors = LabelValidator.validateLabelKey(key);
+        if (CollectionUtils.isNotEmpty(labelKeyValidateErrors)) {
+            fieldErrors.add(FieldError.invalid(rootPath.child("key"), vals,
+                String.join("; ", labelKeyValidateErrors)));
+        }
+
+        Path valuePath = rootPath.child("values");
+        switch (op) {
+            case In:
+            case NotIn:
+                if (vals.size() == 0) {
+                    fieldErrors.add(FieldError.invalid(valuePath, vals,
+                        "for 'in', 'notin' operators, values set can't be empty"));
+                }
+                break;
+            case Equals:
+            case DoubleEquals:
+            case NotEquals:
+                if (vals.size() != 1) {
+                    fieldErrors.add(FieldError.invalid(valuePath, vals,
+                        "exact-match compatibility requires one single value"));
+                }
+                break;
+            case Exists:
+            case DoesNotExist:
+                if (CollectionUtils.isNotEmpty(vals)) {
+                    fieldErrors.add(FieldError.invalid(valuePath, vals,
+                        "values set must be empty for exists and does not exist"));
+                }
+                break;
+            case GreaterThan:
+            case LessThan:
+                if (vals.size() != 1) {
+                    fieldErrors.add(FieldError.invalid(valuePath, vals,
+                        "for 'Gt', 'Lt' operators, exactly one value is required"));
+                }
+                for (int i = 0; i < vals.size(); i++) {
+                    String val = vals.get(i);
+                    try {
+                        Long.parseLong(val);
+                    } catch (NumberFormatException e) {
+                        fieldErrors.add(FieldError.invalid(valuePath.index(i), val,
+                            "for 'Gt', 'Lt' operators, the value must be an integer"));
+                    }
+                }
+                break;
+            default:
+                fieldErrors.add(FieldError.notSupported(rootPath.child("operator"), op,
+                    Operator.allOperators()));
+        }
+
+        if (CollectionUtils.isNotEmpty(vals)) {
+            for (int i = 0; i < vals.size(); i++) {
+                String val = vals.get(i);
+
+                List<String> valueErrors = LabelValidator.validateLabelValue(val);
+                if (CollectionUtils.isNotEmpty(valueErrors)) {
+                    fieldErrors.add(FieldError.invalid(valuePath.index(i), val,
+                        String.join("; ", valueErrors)));
+                }
+            }
+        }
+
+        if (fieldErrors.hasError()) {
+            throw new LabelSelectorParseException("Validate label selector fail, errors:" + fieldErrors.toString());
+        }
+        return new Requirement(key, op, vals);
     }
 
     private Operator parseOperator() throws LabelSelectorParseException {
@@ -295,9 +372,10 @@ public class Parser {
             throw new LabelSelectorParseException(String.format("found '%s', expected: identifier", literal));
         }
 
-        List<String> errors = LabelValidator.validateLabelKey(literal);
-        if (CollectionUtils.isNotEmpty(errors)) {
-            throw new LabelSelectorParseException("Invalid label key, errors:" + errors);
+        List<String> labelKeyValidateErrors = LabelValidator.validateLabelKey(literal);
+        if (CollectionUtils.isNotEmpty(labelKeyValidateErrors)) {
+            throw new LabelSelectorParseException("Invalid label key, errors:"
+                + String.join("; ", labelKeyValidateErrors));
         }
 
         ScannedItem lookaheadScanItem = lookahead(Values);

@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.execute.util.label.selector;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Label selector 操作符
  */
@@ -56,4 +60,9 @@ public enum Operator {
         }
         throw new IllegalArgumentException("No Operator constant: " + operator);
     }
+
+    public static List<String> allOperators() {
+        return Arrays.stream(values()).map(Operator::getSymbol).collect(Collectors.toList());
+    }
+
 }

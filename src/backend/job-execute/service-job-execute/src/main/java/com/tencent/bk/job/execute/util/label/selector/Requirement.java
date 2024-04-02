@@ -24,10 +24,7 @@
 
 package com.tencent.bk.job.execute.util.label.selector;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,70 +85,6 @@ public class Requirement {
         }
     }
 
-    public static Requirement newRequirement(String key, Operator op, List<String> vals) {
-        List<String> allErrs = LabelValidator.validateLabelKey(key);
-        if (CollectionUtils.isNotEmpty(allErrs)) {
-            throw new LabelSelectorParseException("Invalid label key, errors:" + allErrs);
-        }
-        allErrs = new ArrayList<>();
-        switch (op) {
-            case In:
-            case NotIn:
-                if (vals.size() == 0) {
-                    allErrs.add("values:" + vals + "for 'in', 'notin' operators, values set can't be empty");
-                }
-                break;
-            case Equals:
-            case DoubleEquals:
-            case NotEquals:
-                if (vals.size() != 1) {
-                    allErrs.add("values:" + vals + "exact-match compatibility requires one single value");
-                }
-                break;
-            case Exists:
-            case DoesNotExist:
-                if (vals.size() != 0) {
-                    allErrs.add("values:" + vals + "values set must be empty for exists and does not exist");
-                }
-                break;
-            case GreaterThan:
-            case LessThan:
-                if (vals.size() != 1) {
-                    allErrs.add("values:" + vals + "for 'Gt', 'Lt' operators, exactly one value is required");
-                }
-                for (String val : vals) {
-                    try {
-                        Long.parseLong(val);
-                    } catch (NumberFormatException e) {
-                        allErrs.add("Value for " + val + "for 'Gt', 'Lt' operators, the " +
-                            "value must be an integer");
-                    }
-                }
-                break;
-            default:
-                allErrs.add("Not support operator: " + op);
-        }
-        for (String val : vals) {
-            List<String> valueErrors = LabelValidator.validateLabelValue(val);
-            if (CollectionUtils.isNotEmpty(valueErrors)) {
-                allErrs.addAll(valueErrors);
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(allErrs)) {
-            throw new LabelSelectorParseException("Validate label selector fail, errors:" + allErrs);
-        }
-        return new Requirement(key, op, vals);
-    }
-
-    public static Requirement newRequirement(String key, Operator op, String val) {
-        return new Requirement(key, op, Collections.singletonList(val));
-    }
-
-    public static Requirement newRequirement(String key, Operator op, String[] vals) {
-        return new Requirement(key, op, Arrays.asList(vals));
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -200,8 +133,17 @@ public class Requirement {
         if (o == null || getClass() != o.getClass()) return false;
         Requirement that = (Requirement) o;
         return key.equals(that.key) &&
-            operator == that.operator &&
-            values.equals(that.values);
+            operator == that.operator && listEquals(values, that.values);
+    }
+
+    private boolean listEquals(List<String> thisList, List<String> thatList) {
+        if (thisList == null && thatList == null) {
+            return true;
+        } else if (thisList != null && thatList != null) {
+            return thisList.equals(thatList);
+        } else {
+            return false;
+        }
     }
 
     @Override

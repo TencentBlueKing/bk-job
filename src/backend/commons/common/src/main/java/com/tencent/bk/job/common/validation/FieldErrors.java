@@ -22,17 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.util.label.selector;
+package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import org.apache.commons.collections4.CollectionUtils;
 
-/**
- * Label selector 解析异常
- */
-public class LabelSelectorParseException extends InternalException {
+import java.util.ArrayList;
+import java.util.List;
 
-    public LabelSelectorParseException(String message) {
-        super(message, null, ErrorCode.INVALID_LABEL_SELECTOR);
+public class FieldErrors {
+    private final List<FieldError> errorList = new ArrayList<>();
+
+    public List<FieldError> getErrorList() {
+        return errorList;
+    }
+
+    public FieldErrors add(FieldError fieldError) {
+        if (fieldError == null) {
+            return this;
+        }
+        this.errorList.add(fieldError);
+        return this;
+    }
+
+    public boolean hasError() {
+        return CollectionUtils.isNotEmpty(errorList);
+    }
+
+    @Override
+    public String toString() {
+        return "errors: " + errorList.toString();
+
     }
 }
