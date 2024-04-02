@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @since 4/11/2019 15:01
@@ -141,6 +142,8 @@ public interface ApplicationHostDAO {
     long countAllHosts();
 
     long countHostsByOsType(String osType);
+
+    Map<String, Integer> groupHostByOsType();
 
     List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips);
 

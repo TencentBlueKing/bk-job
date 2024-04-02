@@ -200,13 +200,24 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                 log.warn("status {} given by {}", response.getStatus(), handler);
             }
             if (ex != null) {
-                log.error("After completion|{}|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                    JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                    request.getRequestURI(), ex.getMessage());
+                log.error(
+                    "After completion|{}|{}|{}|{}|{}|{}",
+                    JobContextUtil.getRequestId(),
+                    response.getStatus(),
+                    JobContextUtil.getUsername(),
+                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    request.getRequestURI(),
+                    ex.getMessage()
+                );
             } else {
-                log.debug("After completion|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(), response.getStatus(),
-                    JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                    request.getRequestURI());
+                log.debug(
+                    "After completion|{}|{}|{}|{}|{}",
+                    JobContextUtil.getRequestId(),
+                    response.getStatus(),
+                    JobContextUtil.getUsername(),
+                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    request.getRequestURI()
+                );
             }
         } finally {
             if (spanInScope != null) {

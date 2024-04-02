@@ -142,7 +142,7 @@ public interface WebStatisticsResource {
         @RequestHeader("username")
             String username,
         @ApiParam("统计量Code，取值：(\n" +
-            "HOST_SYSTEM_TYPE:主机操作系统类型（结果label取值：LINUX，WINDOWS，AIX，OTHERS）\n" +
+            "HOST_SYSTEM_TYPE:主机操作系统类型（结果label取值：LINUX，WINDOWS，AIX，UNIX，SOLARIS，FREEBSD，MACOS，OTHERS）\n" +
             "STEP_TYPE:作业步骤类型（结果label取值：FILE_LOCAL，FILE_SERVER，SCRIPT_MANUAL，SCRIPT_REF，CONFIRM）\n" +
             "SCRIPT_TYPE:脚本类型（结果label取值：Bat，Shell，Perl，Powershell，Python，SQL）\n" +
             "SCRIPT_VERSION_STATUS:脚本版本状态（结果label取值：ONLINE，OFFLINE，PREPARING，FORBIDDEN）\n" +

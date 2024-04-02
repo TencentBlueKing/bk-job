@@ -278,6 +278,11 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
+    public Map<String, Integer> groupHostByOsType() {
+        return applicationHostDAO.groupHostByOsType();
+    }
+
+    @Override
     public List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                              Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
