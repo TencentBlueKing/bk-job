@@ -91,7 +91,7 @@ ext {
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
     set('lombokVersion', "1.18.10")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    set('jacksonVersion', "2.13.4")
+    set('jacksonVersion', "2.13.5")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
     set('logbackVersion', "1.2.10")
@@ -116,7 +116,7 @@ ext {
     set('h2Version', "1.4.199")
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
-    set('apacheHttpClientVersion', "4.5.10")
+    set('apacheHttpClientVersion', "4.5.13")
     set('apacheThriftVersion', "0.15.0")
     set('commonsIOVersion', "2.6")
     set('javaxServletVersion', "4.0.1")
@@ -127,7 +127,7 @@ ext {
     set('micrometerPrometheusVersion', "1.5.1")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.64")
+    set('bcprovVersion', "1.70")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")

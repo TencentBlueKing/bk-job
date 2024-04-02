@@ -26,7 +26,7 @@ dependencies {
     api project(':commons:common')
     api project(':commons:common-crypto')
     api project(':commons:esb-sdk')
-    api files('libs/ee-gse-task-3.1.jar')
+    api files('libs/ee-gse-task-3.2.jar')
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.core:jackson-annotations'

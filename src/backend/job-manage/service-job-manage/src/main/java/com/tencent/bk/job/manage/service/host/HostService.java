@@ -86,6 +86,8 @@ public interface HostService {
 
     long countHostsByOsType(String osType);
 
+    Map<String, Integer> groupHostByOsType();
+
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,
                                                       List<InstanceTopologyDTO> nodeList);
