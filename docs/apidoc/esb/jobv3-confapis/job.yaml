@@ -291,6 +291,17 @@
   dest_http_method: POST
   is_hidden: True
 
+- path: /v2/jobv3/get_credential_detail/
+  name: get_credential_detail
+  label: 查询凭据详情
+  label_en: get credential detail
+  suggest_method: POST
+  api_type: query
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-manage/get_credential_detail/
+  dest_http_method: POST
+  is_hidden: True
+
 - path: /v2/jobv3/create_file_source/
   name: create_file_source
   label: 新建文件源
@@ -310,6 +321,17 @@
   api_type: operate
   comp_codename: generic.v2.jobv3.job_component
   dest_path: /api/job/v3/job-file-gateway/update_file_source/
+  dest_http_method: POST
+  is_hidden: True
+
+- path: /v2/jobv3/get_file_source_detail/
+  name: get_file_source_detail
+  label: 查询文件源详情
+  label_en: get file source detail
+  suggest_method: POST
+  api_type: query
+  comp_codename: generic.v2.jobv3.job_component
+  dest_path: /api/job/v3/job-file-gateway/get_file_source_detail/
   dest_http_method: POST
   is_hidden: True
 

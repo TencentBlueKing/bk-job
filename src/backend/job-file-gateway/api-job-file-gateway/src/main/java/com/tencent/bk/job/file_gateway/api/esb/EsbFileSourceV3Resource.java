@@ -28,12 +28,16 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
+import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
+import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -62,4 +66,26 @@ public interface EsbFileSourceV3Resource {
             EsbCreateOrUpdateFileSourceV3Req req
     );
 
+    @GetMapping("/get_file_source_detail")
+    EsbResp<EsbFileSourceV3DTO> getFileSourceDetail(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @RequestParam(value = "code") String code);
+
+    /**
+     * 获取文件源详情
+     *
+     * @param req 查询请求
+     * @return 文件源详情
+     */
+    @PostMapping("/get_file_source_detail")
+    EsbResp<EsbFileSourceV3DTO> getFileSourceDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            EsbGetFileSourceDetailV3Req req);
 }

@@ -1,5 +1,7 @@
 package com.tencent.bk.job.api.util;
 
+import com.tencent.bk.job.api.constant.CredentialTypeEnum;
+import com.tencent.bk.job.api.constant.FileSourceTypeEnum;
 import com.tencent.bk.job.api.constant.HighRiskGrammarActionEnum;
 import com.tencent.bk.job.api.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.api.constant.ScriptTypeEnum;
@@ -7,8 +9,10 @@ import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.api.v3.model.EsbCredentialSimpleInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
+import com.tencent.bk.job.api.v3.model.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbFileSourceV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbPageDataV3;
@@ -17,6 +21,8 @@ import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import com.tencent.bk.job.api.v3.model.HostDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbDeleteCronV3Request;
@@ -35,7 +41,9 @@ import io.restassured.common.mapper.TypeRef;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.tencent.bk.job.api.constant.Constant.SHELL_SCRIPT_CONTENT_BASE64;
 import static io.restassured.RestAssured.given;
@@ -363,6 +371,54 @@ public class Operations {
             return planBasicInfoV3DTO.getId();
         }
         return null;
+    }
+
+    public static EsbFileSourceSimpleInfoV3DTO createFileSource() {
+        EsbCreateOrUpdateFileSourceV3Req req = new EsbCreateOrUpdateFileSourceV3Req();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setCode(TestValueGenerator.generateUniqueStrValue("file_source_code", 50));
+        req.setAlias(TestValueGenerator.generateUniqueStrValue("file_source_alias", 50));
+        req.setType(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name());
+        Map<String, Object> accessParams = new HashMap<>();
+        accessParams.put("base_url", "https://bkrepo.com");
+        req.setAccessParams(accessParams);
+        req.setCredentialId(TestValueGenerator.generateUniqueStrValue("credential_id", 50));
+        EsbFileSourceSimpleInfoV3DTO fileSourceSimpleInfoV3DTO = given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.CREATE_FILE_SOURCE)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbFileSourceSimpleInfoV3DTO>>() {
+            })
+            .getData();
+        fileSourceSimpleInfoV3DTO.setCode(req.getCode());
+        return fileSourceSimpleInfoV3DTO;
+    }
+
+    public static EsbCredentialSimpleInfoV3DTO createCredential() {
+        EsbCreateOrUpdateCredentialV3Req req = new EsbCreateOrUpdateCredentialV3Req();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setName(TestValueGenerator.generateUniqueStrValue("credential_name", 50));
+        req.setDescription(TestValueGenerator.generateUniqueStrValue("credential_desc", 50));
+        req.setType(CredentialTypeEnum.USERNAME_PASSWORD.name());
+        req.setCredentialUsername("admin");
+        req.setCredentialPassword("password");
+        return given()
+                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+                .body(JsonUtil.toJson(req))
+                .post(APIV3Urls.CREATE_CREDENTIAL)
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbCredentialSimpleInfoV3DTO>>() {
+                })
+                .getData();
     }
 
     private static String buildJobName() {

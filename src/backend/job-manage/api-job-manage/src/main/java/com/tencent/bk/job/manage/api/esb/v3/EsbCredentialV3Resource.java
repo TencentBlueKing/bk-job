@@ -28,12 +28,16 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetCredentialDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -61,5 +65,28 @@ public interface EsbCredentialV3Resource {
         @Validated
             EsbCreateOrUpdateCredentialV3Req req
     );
+
+    @GetMapping("/get_credential_detail")
+    EsbResp<EsbCredentialV3DTO> getCredentialDetail(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
+        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
+        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @RequestParam(value = "id") String id);
+
+    /**
+     * 获取凭据详情
+     *
+     * @param req 查询请求
+     * @return 凭据详情
+     */
+    @PostMapping("/get_credential_detail")
+    EsbResp<EsbCredentialV3DTO> getCredentialDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            EsbGetCredentialDetailV3Req req);
 
 }

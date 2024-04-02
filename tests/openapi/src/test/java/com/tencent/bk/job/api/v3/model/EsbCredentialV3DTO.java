@@ -22,11 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.resp.esb.v3;
+package com.tencent.bk.job.api.v3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -34,54 +33,31 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
+public class EsbCredentialV3DTO extends EsbAppScopeDTO {
+
     /**
      * id
      */
-    @JsonPropertyDescription("File source id")
-    private Integer id;
-    /**
-     * 文件源标识
-     */
-    @JsonPropertyDescription("File source code")
-    private String code;
+    @JsonPropertyDescription("Credential id")
+    private String id;
 
     /**
-     * 文件源别名
+     * 凭证名称
      */
-    @JsonPropertyDescription("File source alias")
-    private String alias;
-    /**
-     * 状态
-     */
-    @JsonPropertyDescription("File source status")
-    private Integer status;
-    /**
-     * 类型
-     */
-    @JsonProperty("file_source_type")
-    @JsonPropertyDescription("File source type")
-    private Integer fileSourceType;
+    @JsonPropertyDescription("Credential name")
+    private String name;
 
     /**
-     * 是否为公共文件源
+     * 凭证类型
      */
-    @JsonProperty("is_public")
-    @JsonPropertyDescription("Is public file source")
-    private boolean publicFlag;
+    @JsonPropertyDescription("Credential type")
+    private String type;
 
     /**
-     * 凭据Id
+     * 描述
      */
-    @JsonPropertyDescription("File source credential id")
-    @JsonProperty("credential_id")
-    private String credentialId;
-
-    /**
-     * 是否启用
-     */
-    @JsonPropertyDescription("Is file source enabled")
-    private Boolean enable;
+    @JsonPropertyDescription("Credential name")
+    private String description;
 
     /**
      * 创建人
@@ -107,5 +83,4 @@ public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
     @JsonProperty("last_modify_time")
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;
-
 }

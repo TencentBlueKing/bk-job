@@ -73,4 +73,12 @@ public interface APIV3Urls {
 
 
     String GET_JOB_PLAN_LIST = "/api/job/v3/job-manage/get_job_plan_list";
+
+    String CREATE_FILE_SOURCE = "/api/job/v3/job-file-gateway/create_file_source";
+    String UPDATE_FILE_SOURCE = "/api/job/v3/job-file-gateway/update_file_source";
+    String GET_FILE_SOURCE_DETAIL = "/api/job/v3/job-file-gateway/get_file_source_detail";
+
+    String CREATE_CREDENTIAL = "/api/job/v3/job-manage/create_credential";
+    String UPDATE_CREDENTIAL = "/api/job/v3/job-manage/update_credential";
+    String GET_CREDENTIAL_DETAIL = "/api/job/v3/job-manage/get_credential_detail";
 }
