@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util.http;
 
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -35,6 +36,15 @@ import org.apache.http.client.methods.HttpRequestBase;
 public interface HttpHelper {
 
     Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
+
+    /**
+     * 发起 http 请求。如果返回的 http 状态码 >= 400, 抛出 HttpStatusException
+     *
+     * @param request 请求
+     * @return 响应
+     * @throws HttpStatusException 如果返回的 http 状态码 >= 400, 抛出 HttpStatusException
+     */
+    HttpResponse requestForSuccessResp(HttpRequest request) throws HttpStatusException;
 
     /**
      * 发起 http 请求

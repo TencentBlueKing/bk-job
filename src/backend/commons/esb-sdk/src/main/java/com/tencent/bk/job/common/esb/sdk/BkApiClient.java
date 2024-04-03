@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.esb.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
@@ -152,8 +153,9 @@ public class BkApiClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractBkApiClient] Response|method={}|uri={}|success={}|costTime={}|resp={}",
-                        httpMethod.name(), requestInfo.getUri(), apiContext.isSuccess(),
+                    log.info("[AbstractBkApiClient] Response|requestId={}|method={}|uri={}|success={}"
+                            + "|costTime={}|resp={}",
+                        apiContext.getRequestId(), httpMethod.name(), requestInfo.getUri(), apiContext.isSuccess(),
                         apiContext.getCostTime(), apiContext.getOriginResp());
                 }
             }
@@ -171,13 +173,16 @@ public class BkApiClient {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         long start = System.currentTimeMillis();
         try {
-            respStr = requestApi(httpHelper, requestInfo);
-            apiContext.setOriginResp(respStr);
+            HttpResponse response = requestApi(httpHelper, requestInfo);
+            apiContext.setRequestId(extractBkApiRequestId(response));
+            respStr = response.getEntity();
+            apiContext.setOriginResp(response.getEntity());
 
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
                     + uri + ", error: " + "Response is blank";
-                log.error(errorMsg);
+                log.warn("[AbstractBkApiClient] fail: Response is blank| requestId={}|method={}|uri={}",
+                    apiContext.getRequestId(), httpMethod.name(), uri);
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
@@ -188,7 +193,7 @@ public class BkApiClient {
                 log.warn(
                     "[AbstractBkApiClient] fail:response code!=0" +
                         "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
-                    esbResp.getRequestId(),
+                    apiContext.getRequestId(),
                     esbResp.getCode(),
                     esbResp.getMessage(),
                     httpMethod.name(),
@@ -202,7 +207,7 @@ public class BkApiClient {
                 log.warn(
                     "[AbstractBkApiClient] warn: response data is null" +
                         "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
-                    esbResp.getRequestId(),
+                    apiContext.getRequestId(),
                     esbResp.getCode(),
                     esbResp.getMessage(),
                     httpMethod.name(),
@@ -230,6 +235,18 @@ public class BkApiClient {
         }
     }
 
+    private String extractBkApiRequestId(HttpResponse response) {
+        if (response.getHeaders() == null || response.getHeaders().length == 0) {
+            return "";
+        }
+        for (Header header : response.getHeaders()) {
+            if (JobCommonHeaders.BK_GATEWAY_REQUEST_ID.equalsIgnoreCase(header.getName())) {
+                return header.getValue();
+            }
+        }
+        return "";
+    }
+
     private Iterable<Tag> buildMetricTags(String uri, String status) {
         Tags tags = Tags.of(EsbMetricTags.KEY_API_NAME, uri).and(EsbMetricTags.KEY_STATUS, status);
         Collection<Tag> extraTags = getExtraMetricsTags();
@@ -239,7 +256,7 @@ public class BkApiClient {
         return tags;
     }
 
-    private <T> String requestApi(HttpHelper httpHelper, OpenApiRequestInfo<T> requestInfo) {
+    private <T> HttpResponse requestApi(HttpHelper httpHelper, OpenApiRequestInfo<T> requestInfo) {
         String url = buildApiUrl(requestInfo.buildFinalUri());
 
         Header[] headers = buildBkApiRequestHeaders(requestInfo.getAuthorization());
@@ -251,8 +268,7 @@ public class BkApiClient {
             .setStringEntity(requestInfo.getBody() != null ? jsonMapper.toJson(requestInfo.getBody()) : null)
             .build();
 
-        HttpResponse httpResponse = chooseHttpHelper(httpHelper).request(httpRequest);
-        return httpResponse.getEntity();
+        return chooseHttpHelper(httpHelper).requestForSuccessResp(httpRequest);
     }
 
     private HttpHelper chooseHttpHelper(HttpHelper httpHelper) {

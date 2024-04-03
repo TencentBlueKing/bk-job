@@ -99,7 +99,7 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         headers[1] = new BasicHeader("Content-Type", "application/json");
 
         try {
-            String respStr = HTTP_HELPER.request(
+            String respStr = HTTP_HELPER.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
                 .getEntity();
             log.info("Post {}, content: {}, response: {}", url, content, respStr);

@@ -93,6 +93,12 @@ public class ContainerServiceImpl implements ContainerService {
         List<Container> containers = containerDetailList.stream()
             .map(ContainerDetailDTO::toContainer).collect(Collectors.toList());
 
+        fillNodeHostInfo(appId, containers);
+
+        return containers;
+    }
+
+    private void fillNodeHostInfo(long appId, List<Container> containers) {
         ServiceListAppHostResultDTO hostResult =
             hostService.batchGetAppHosts(
                 appId,
@@ -105,14 +111,16 @@ public class ContainerServiceImpl implements ContainerService {
 
         containers.forEach(container -> {
             HostDTO nodeHost = hostMap.get(container.getNodeHostId());
+            if (nodeHost == null) {
+                log.error("Could not found node host for container: {}", container.getId());
+                return;
+            }
             container.setNodeAgentId(nodeHost.getAgentId());
         });
-
-        return containers;
     }
 
     @Override
-    public List<ContainerDetailDTO> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
+    public List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
         long bizId = convertToBizId(appId);
         List<KubeNodeID> kubeNodeIDS = computeKubeTopoNode(bizId, filter);
 
@@ -155,10 +163,16 @@ public class ContainerServiceImpl implements ContainerService {
             req.setContainerFilter(containerFilter);
         }
 
-        List<ContainerDetailDTO> containers = cmdbClient.listKubeContainerByTopo(req);
-        if (CollectionUtils.isEmpty(containers)) {
-            return containers;
+        List<ContainerDetailDTO> containerDetailList = cmdbClient.listKubeContainerByTopo(req);
+        if (CollectionUtils.isEmpty(containerDetailList)) {
+            return Collections.emptyList();
         }
+
+        List<Container> containers = containerDetailList.stream()
+            .map(ContainerDetailDTO::toContainer).collect(Collectors.toList());
+
+        fillNodeHostInfo(appId, containers);
+
         if (filter.isFetchAnyOneContainer()) {
             return Collections.singletonList(containers.get(0));
         } else {

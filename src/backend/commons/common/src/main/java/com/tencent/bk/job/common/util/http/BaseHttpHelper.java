@@ -81,7 +81,12 @@ public class BaseHttpHelper implements HttpHelper {
     }
 
     @Override
-    public HttpResponse request(HttpRequest request) {
+    public HttpResponse requestForSuccessResp(HttpRequest request) throws HttpStatusException {
+        return requestInternal(request, true);
+    }
+
+    private HttpResponse requestInternal(HttpRequest request,
+                                         boolean throwExceptionWhenClientOrServerError) {
         HttpMethodEnum method = request.getMethod();
         HttpContext httpContext = buildHttpContext(request);
         HttpRequestBase httpClientRequest;
@@ -102,7 +107,12 @@ public class BaseHttpHelper implements HttpHelper {
                 log.warn("Unsupported http method : {}", method);
                 throw new NotImplementedException(ErrorCode.API_ERROR);
         }
-        return execute(httpClientRequest, httpContext);
+        return execute(httpClientRequest, httpContext, throwExceptionWhenClientOrServerError);
+    }
+
+    @Override
+    public HttpResponse request(HttpRequest request) {
+        return requestInternal(request, false);
     }
 
     private HttpGet buildHttpGet(HttpRequest request) {
@@ -170,7 +180,9 @@ public class BaseHttpHelper implements HttpHelper {
         }
     }
 
-    private HttpResponse execute(HttpRequestBase httpClientRequest, HttpContext context) {
+    private HttpResponse execute(HttpRequestBase httpClientRequest,
+                                 HttpContext context,
+                                 boolean throwExceptionWhenClientOrServerError) {
         int httpStatusCode = -1;
         String respStr = null;
         try (CloseableHttpResponse httpResponse = httpClient.execute(httpClientRequest, context)) {
@@ -190,9 +202,13 @@ public class BaseHttpHelper implements HttpHelper {
                     reasonPhrase,
                     respStr
                 );
-                throw new HttpStatusException(httpClientRequest.getURI().toString(), httpStatusCode, reasonPhrase);
+                if (throwExceptionWhenClientOrServerError) {
+                    throw new HttpStatusException(httpClientRequest.getURI().toString(), httpStatusCode, reasonPhrase);
+                } else {
+                    return new HttpResponse(httpStatusCode, respStr, httpResponse.getAllHeaders());
+                }
             } else {
-                return new HttpResponse(httpStatusCode, respStr);
+                return new HttpResponse(httpStatusCode, respStr, httpResponse.getAllHeaders());
             }
         } catch (IOException e) {
             log.error("Request fail", e);

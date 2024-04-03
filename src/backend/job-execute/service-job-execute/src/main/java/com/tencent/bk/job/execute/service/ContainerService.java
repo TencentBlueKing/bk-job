@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
 
@@ -50,5 +49,5 @@ public interface ContainerService {
      * @param filter 容器过滤器
      * @return 查询到的容器列表
      */
-    List<ContainerDetailDTO> listContainerByContainerFilter(long appId, KubeContainerFilter filter);
+    List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter);
 }

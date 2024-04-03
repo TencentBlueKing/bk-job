@@ -167,8 +167,10 @@ public class ExecuteObject implements Cloneable {
     public boolean isAgentIdEmpty() {
         if (isHostExecuteObject()) {
             return StringUtils.isEmpty(getHost().getAgentId());
-        } else {
+        } else if (isContainerExecuteObject()) {
             return StringUtils.isEmpty(getContainer().getNodeAgentId());
+        } else {
+            throw new IllegalArgumentException("Invalid execute object type: " + type);
         }
     }
 

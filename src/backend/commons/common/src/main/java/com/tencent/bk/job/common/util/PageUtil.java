@@ -277,4 +277,48 @@ public class PageUtil {
         }
         return elements;
     }
+
+    /**
+     * 查询全量 - 按指定顺序循环分页查询
+     *
+     * @param pageLimit               每页限制大小
+     * @param queryInputGen           分页查询参数生成。输入: 当前页的最后一个排序后元素；输出：下一页查询输入
+     * @param query                   查询操作
+     * @param extractElementsFunction 从分页查询结果提取返回的对象列表
+     * @param elementConverter        分页查询对象转换为最终对象
+     * @param <T1>                    分页查询返回的对象
+     * @param <T2>                    转换之后作为方法返回值的对象
+     * @param <R>                     分页查询结果
+     * @param <Q>                     分页查询输入参数
+     * @return 全量对象列表
+     */
+    public static <T1, T2, R, Q> List<T2> loopPageQueryInOrder(int pageLimit,
+                                                               Function<T1, Q> queryInputGen,
+                                                               Function<Q, R> query,
+                                                               Function<R, List<T1>> extractElementsFunction,
+                                                               Function<T1, T2> elementConverter) {
+        List<T2> elements = new ArrayList<>();
+        T1 latestElement = null;
+        while (true) {
+            Q queryInput = queryInputGen.apply(latestElement);
+            R result = query.apply(queryInput);
+
+            List<T1> originElements = extractElementsFunction.apply(result);
+            if (CollectionUtils.isEmpty(originElements)) {
+                // 如果本次没有获取到数据记录，说明数据已经全部拉取完成
+                break;
+            }
+            elements.addAll(originElements.stream()
+                .map(elementConverter)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+            latestElement = originElements.get(originElements.size() - 1);
+
+            if (originElements.size() < pageLimit) {
+                // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
+                break;
+            }
+        }
+        return elements;
+    }
 }

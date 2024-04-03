@@ -54,6 +54,7 @@ import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
 import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.IRule;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
@@ -1504,16 +1505,60 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         setSupplierAccount(req);
         req.setContainerFields(ContainerDTO.Fields.ALL);
         req.setPodFields(PodDTO.Fields.ALL);
+        Page page = new Page();
+        page.setStart(0);
+        page.setLimit(500);
+        // 根据容器 ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+        page.setSort(ContainerDTO.Fields.ID);
+        req.setPage(page);
 
-        return PageUtil.queryAllWithLoopPageQuery(
+        return PageUtil.loopPageQueryInOrder(
             500,
-            page -> {
-                req.setPage(new Page(page.getStart(), page.getLength()));
-                return listPageKubeContainerByTopo(req, false);
+            (ContainerDetailDTO latestElement) -> {
+                if (latestElement == null) {
+                    // 第一页使用原始的请求
+                    return req;
+                } else {
+                    // 从第二页开始，需要传入容器 ID 的起始位置，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+                    return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
+                }
             },
+            pageReq -> listPageKubeContainerByTopo(pageReq, false),
             PageData::getData,
             container -> container
         );
+    }
+
+    private ListKubeContainerByTopoReq buildNextPageListKubeContainerByTopoReq(
+        ListKubeContainerByTopoReq originReq,
+        long lastIdForCurrentPage
+    ) {
+        ListKubeContainerByTopoReq nextPageReq = new ListKubeContainerByTopoReq();
+        nextPageReq.setPage(originReq.getPage());
+        nextPageReq.setNodeIdList(originReq.getNodeIdList());
+        nextPageReq.setPodFilter(originReq.getPodFilter());
+        nextPageReq.setBizId(originReq.getBizId());
+        nextPageReq.setBkSupplierAccount(originReq.getBkSupplierAccount());
+        nextPageReq.setPodFields(originReq.getPodFields());
+        nextPageReq.setContainerFields(originReq.getContainerFields());
+
+        PropertyFilterDTO rewriteContainerFilter = new PropertyFilterDTO();
+        rewriteContainerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        List<IRule> rewriteRules = new ArrayList<>();
+        if (originReq.getContainerFilter() != null) {
+            PropertyFilterDTO originContainerFilter = originReq.getContainerFilter();
+            if (originContainerFilter.getCondition().equals(RuleConditionEnum.OR.getCondition())) {
+                // 目前容器属性过滤仅仅支持 AND
+                throw new IllegalStateException("Unexpected condition for container filter");
+            }
+            rewriteRules.addAll(originContainerFilter.getRules());
+        }
+        // 添加分页查询容器 ID 起始位置查询条件
+        rewriteRules.add(BaseRuleDTO.greaterThan(ContainerDTO.Fields.ID, lastIdForCurrentPage));
+        rewriteContainerFilter.setRules(rewriteRules);
+        nextPageReq.setContainerFilter(rewriteContainerFilter);
+
+        return nextPageReq;
     }
 
     private void setSupplierAccount(EsbReq esbReq) {
@@ -1700,6 +1745,12 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         // 查询条件
         req.setBizId(query.getBizId());
         req.setKind(query.getKind());
+        Page page = new Page();
+        page.setStart(0);
+        page.setLimit(500);
+        // 根据 Workload ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+        page.setSort(KubeWorkloadDTO.Fields.ID);
+        req.setPage(page);
 
         PropertyFilterDTO workloadPropFilter = new PropertyFilterDTO();
         workloadPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
@@ -1720,28 +1771,33 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             req.setFilter(workloadPropFilter);
         }
 
-
         // 返回参数设置
         req.setFields(KubeWorkloadDTO.Fields.ALL);
 
         String requestUrl = LIST_KUBE_WORKLOAD.replace("{kind}", query.getKind());
 
-        return PageUtil.queryAllWithLoopPageQuery(
+        return PageUtil.loopPageQueryInOrder(
             500,
-            page -> {
-                req.setPage(new Page(page.getStart(), page.getLength()));
-                return listPage(
-                    req,
-                    false,
-                    cmdbPageReq -> requestCmdbApi(
-                        ApiGwType.BK_APIGW,
-                        HttpMethodEnum.POST,
-                        requestUrl,
-                        null,
-                        cmdbPageReq,
-                        new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
-                        }));
+            (KubeWorkloadDTO latestElement) -> {
+                if (latestElement == null) {
+                    // 第一页使用原始的请求
+                    return req;
+                } else {
+                    // 从第二页开始，需要传入Workload ID 的起始位置，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+                    return buildNextPageListKubeWorkloadReq(req, latestElement.getId());
+                }
             },
+            pageReq -> listPage(
+                req,
+                false,
+                cmdbPageReq -> requestCmdbApi(
+                    ApiGwType.BK_APIGW,
+                    HttpMethodEnum.POST,
+                    requestUrl,
+                    null,
+                    cmdbPageReq,
+                    new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
+                    })),
             PageData::getData,
             workload -> {
                 // cmdb API 返回的数据没有包含 kind 信息，需要补全
@@ -1749,5 +1805,33 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                 return workload;
             }
         );
+    }
+
+    private ListKubeWorkloadReq buildNextPageListKubeWorkloadReq(ListKubeWorkloadReq originReq,
+                                                                 long lastIdForCurrentPage) {
+        ListKubeWorkloadReq nextPageReq = new ListKubeWorkloadReq();
+        nextPageReq.setPage(originReq.getPage());
+        nextPageReq.setBkSupplierAccount(originReq.getBkSupplierAccount());
+        nextPageReq.setKind(originReq.getKind());
+        nextPageReq.setBizId(originReq.getBizId());
+        nextPageReq.setFields(originReq.getFields());
+
+        PropertyFilterDTO rewriteContainerFilter = new PropertyFilterDTO();
+        rewriteContainerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        List<IRule> rewriteRules = new ArrayList<>();
+        if (originReq.getFilter() != null) {
+            PropertyFilterDTO originPropFilter = originReq.getFilter();
+            if (originPropFilter.getCondition().equals(RuleConditionEnum.OR.getCondition())) {
+                // 目前属性过滤仅支持 AND
+                throw new IllegalStateException("Unexpected condition for workload filter");
+            }
+            rewriteRules.addAll(originPropFilter.getRules());
+        }
+        // 添加分页查询 Workload ID 起始位置查询条件
+        rewriteRules.add(BaseRuleDTO.greaterThan(KubeWorkloadDTO.Fields.ID, lastIdForCurrentPage));
+        rewriteContainerFilter.setRules(rewriteRules);
+        nextPageReq.setFilter(rewriteContainerFilter);
+
+        return nextPageReq;
     }
 }

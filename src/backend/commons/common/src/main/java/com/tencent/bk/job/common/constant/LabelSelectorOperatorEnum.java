@@ -46,11 +46,11 @@ public enum LabelSelectorOperatorEnum {
         this.op = op;
     }
 
+    @JsonValue
     public String getOp() {
         return op;
     }
 
-    @JsonValue
     public static LabelSelectorOperatorEnum valOf(String op) {
         for (LabelSelectorOperatorEnum operatorEnum : values()) {
             if (operatorEnum.getOp().equals(op)) {
