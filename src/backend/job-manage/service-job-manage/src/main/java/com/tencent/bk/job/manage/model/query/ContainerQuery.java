@@ -94,8 +94,6 @@ public class ContainerQuery {
         return ContainerQuery.builder()
             .bizId(bizId)
             .containerUIDs(req.getContainerUidList())
-            .containerNames(req.getContainerNameKeywordList())
-            .podNames(req.getPodNameKeywordList())
             .containerNameKeywords(req.getContainerNameKeywordList())
             .podNameKeywords(req.getPodNameKeywordList())
             .nodes(CollectionUtils.isNotEmpty(req.getNodeList()) ?
