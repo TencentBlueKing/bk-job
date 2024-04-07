@@ -47,11 +47,11 @@ public class ListContainerByTopologyNodesReq {
     @ApiModelProperty(value = "筛选条件：容器ID列表")
     private List<String> containerUidList;
 
-    @ApiModelProperty(value = "筛选条件：容器名称列表")
-    private List<String> containerNameList;
+    @ApiModelProperty(value = "筛选条件：容器名称列表, 支持模糊检索")
+    private List<String> containerNameKeywordList;
 
-    @ApiModelProperty(value = "筛选条件：Pod名称列表")
-    private List<String> podNameList;
+    @ApiModelProperty(value = "筛选条件：Pod名称列表, 支持模糊检索")
+    private List<String> podNameKeywordList;
 
     @ApiModelProperty(value = "筛选条件：Pod label")
     private Map<String, String> podLabels;
