@@ -50,7 +50,7 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.6'
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
     testImplementation("org.apache.commons:commons-collections4:4.4")
-    testImplementation 'org.bouncycastle:bcprov-jdk15:1.70'
+    testImplementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     testImplementation 'org.projectlombok:lombok:1.18.8'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok'
