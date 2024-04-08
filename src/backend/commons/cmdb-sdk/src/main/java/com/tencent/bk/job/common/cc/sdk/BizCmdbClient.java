@@ -1510,44 +1510,33 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         req.setPage(new Page(0, 500, ContainerDTO.Fields.ID));
 
         if (req.getNodeIdList().size() <= 200) {
-            return PageUtil.queryAllWithLoopPageQueryInOrder(
-                500,
-                (ContainerDetailDTO latestElement) -> {
-                    if (latestElement == null) {
-                        // 第一页使用原始的请求
-                        return req;
-                    } else {
-                        // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-                        return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
-                    }
-                },
-                pageReq -> listPageKubeContainerByTopo(pageReq, false),
-                PageData::getData,
-                container -> container
-            );
+            return loopPageListKubeContainerByTopo(req);
         } else {
             // 超过 cmdb API 单次查询最大 node 数量限制，需要按照拓扑节点分批
             List<ListKubeContainerByTopoReq> batchReqs = partitionListKubeContainerByTopoReq(req);
-            return batchReqs.stream().flatMap(batchReq ->
-                PageUtil.queryAllWithLoopPageQueryInOrder(
-                    500,
-                    (ContainerDetailDTO latestElement) -> {
-                        if (latestElement == null) {
-                            // 第一页使用原始的请求
-                            return batchReq;
-                        } else {
-                            // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-                            return buildNextPageListKubeContainerByTopoReq(
-                                batchReq, latestElement.getContainer().getId());
-                        }
-                    },
-                    pageReq -> listPageKubeContainerByTopo(pageReq, false),
-                    PageData::getData,
-                    container -> container
-                ).stream())
+            return batchReqs.stream()
+                .flatMap(batchReq -> loopPageListKubeContainerByTopo(batchReq).stream())
                 .distinct()
                 .collect(Collectors.toList());
         }
+    }
+
+    private List<ContainerDetailDTO> loopPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        return PageUtil.queryAllWithLoopPageQueryInOrder(
+            500,
+            (ContainerDetailDTO latestElement) -> {
+                if (latestElement == null) {
+                    // 第一页使用原始的请求
+                    return req;
+                } else {
+                    // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+                    return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
+                }
+            },
+            pageReq -> listPageKubeContainerByTopo(pageReq, false),
+            PageData::getData,
+            container -> container
+        );
     }
 
     private List<ListKubeContainerByTopoReq> partitionListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
