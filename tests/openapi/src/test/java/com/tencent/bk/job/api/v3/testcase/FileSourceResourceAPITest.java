@@ -147,7 +147,7 @@ class FileSourceResourceAPITest extends BaseTest {
                 .body("data.id", greaterThan(0))
                 .body("data.code", equalTo(req.getCode()))
                 .body("data.alias", notNullValue())
-                .body("data.file_source_type", notNullValue())
+                .body("data.file_source_type_code", notNullValue())
                 .body("data.is_public", notNullValue())
                 .body("data.credential_id", notNullValue())
                 .body("data.enable", notNullValue())

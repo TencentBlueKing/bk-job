@@ -90,7 +90,7 @@ public interface FileSourceService {
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
 
-    FileSourceDTO getFileSourceByCode(String code);
+    FileSourceDTO getFileSourceByCode(Long appId, String code);
 
     List<FileSourceStaticParam> getFileSourceParams(Long appId, String fileSourceTypeCode);
 

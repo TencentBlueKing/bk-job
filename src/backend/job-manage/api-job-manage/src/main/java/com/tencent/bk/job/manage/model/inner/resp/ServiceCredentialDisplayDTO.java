@@ -29,7 +29,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@ApiModel("凭据")
+@ApiModel("凭证")
 @AllArgsConstructor
 @Data
 public class ServiceCredentialDisplayDTO {

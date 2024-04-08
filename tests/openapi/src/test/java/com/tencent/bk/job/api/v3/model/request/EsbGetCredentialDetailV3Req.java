@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 public class EsbGetCredentialDetailV3Req extends EsbAppScopeReq {
 
     /**
-     * 凭据id
+     * 凭证id
      */
     private String id;
 }

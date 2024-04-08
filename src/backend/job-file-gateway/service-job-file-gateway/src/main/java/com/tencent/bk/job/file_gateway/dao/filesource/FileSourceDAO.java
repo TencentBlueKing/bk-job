@@ -45,7 +45,7 @@ public interface FileSourceDAO {
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
 
-    FileSourceDTO getFileSourceByCode(String code);
+    FileSourceDTO getFileSourceByCode(Long appId, String code);
 
     Integer countAvailableLikeFileSource(Long appId, String credentialId, String alias);
 

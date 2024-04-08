@@ -11,9 +11,9 @@ import lombok.EqualsAndHashCode;
 public class EsbGetCredentialDetailV3Req extends EsbAppScopeReq {
 
     /**
-     * 凭据id
+     * 凭证id
      */
-    @ApiModelProperty(value = "凭据id")
+    @ApiModelProperty(value = "凭证id")
     @NotBlankField(fieldName = "id")
     private String id;
 }

@@ -39,8 +39,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ServiceFileSourceResource {
 
     @ApiOperation(value = "获取文件源ID", produces = "application/json")
-    @GetMapping("/service/fileSource/getFileSourceIdByCode/codes/{code}")
+    @GetMapping("/service/app/{appId}/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
+        @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
 
     @ApiOperation(value = "判断是否存在文件源引用了指定凭证", produces = "application/json")

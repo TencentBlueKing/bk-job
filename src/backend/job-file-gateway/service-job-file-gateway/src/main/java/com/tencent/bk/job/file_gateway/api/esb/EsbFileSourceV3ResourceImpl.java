@@ -96,7 +96,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetFileSourceDetailV3Req req) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(req.getCode());
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(req.getAppId(), req.getCode());
         return EsbResp.buildSuccessResp(FileSourceDTO.toEsbFileSourceV3DTO(fileSourceDTO));
     }
 

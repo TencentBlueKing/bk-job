@@ -312,10 +312,11 @@ public class FileSourceDAOImpl extends BaseDAOImpl implements FileSourceDAO {
     }
 
     @Override
-    public FileSourceDTO getFileSourceByCode(String code) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.CODE.eq(code)
-        ).fetchOne();
+    public FileSourceDTO getFileSourceByCode(Long appId, String code) {
+        val record = dslContext.selectFrom(defaultTable)
+            .where(defaultTable.CODE.eq(code))
+            .and(defaultTable.APP_ID.eq(appId))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {

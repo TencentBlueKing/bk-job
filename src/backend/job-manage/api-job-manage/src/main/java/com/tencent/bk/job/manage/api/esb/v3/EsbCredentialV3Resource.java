@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 凭据API-V3
+ * 凭证API-V3
  */
 @RequestMapping("/esb/api/v3")
 @RestController
@@ -76,10 +76,10 @@ public interface EsbCredentialV3Resource {
         @RequestParam(value = "id") String id);
 
     /**
-     * 获取凭据详情
+     * 获取凭证详情
      *
      * @param req 查询请求
-     * @return 凭据详情
+     * @return 凭证详情
      */
     @PostMapping("/get_credential_detail")
     EsbResp<EsbCredentialV3DTO> getCredentialDetailUsingPost(

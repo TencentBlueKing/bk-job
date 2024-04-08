@@ -27,7 +27,7 @@
 
 - GET
 ```json
-/api/v3/get_file_source_detail?bk_scope_type=biz&bk_scope_id=1&code=1
+/api/v3/get_file_source_detail?bk_scope_type=biz&bk_scope_id=2&code=bkrepo-1
 ```
 
 ### 返回结果示例
@@ -40,11 +40,11 @@
     "data": {
         "bk_scope_type": "biz",
         "bk_scope_id": "2",
-        "id": 0,
-        "code": "xxx",
+        "id": 10001,
+        "code": "bkrepo-1",
         "alias": "xxx",
         "status": 0,
-        "file_source_type": 3,
+        "file_source_type_code": "BLUEKING_ARTIFACTORY",
         "is_public": false,
         "credential_id": "xxx",
         "enable": true,
@@ -75,11 +75,11 @@
 | code             | string | 文件源code                                                   |
 | alias            | string | 文件源别名                                                   |
 | status           | int    | 状态                                                         |
-| file_source_type | int    | 类型。可选值：蓝鲸制品库 |
+| file_source_type_code | string    | 文件源类型code。可选值：BLUEKING_ARTIFACTORY |
 | is_public        | bool   | 是否为公用文件源                                             |
-| credential_id    | string | 凭据ID                                                       |
+| credential_id    | string | 凭证ID                                                       |
 | enable           | bool   | 是否启用                                                     |
 | creator          | string | 作业创建人账号                                               |
-| create_time      | long   | 创建时间，Unix 时间戳                                        |
+| create_time      | long   | 创建时间，Unix时间戳（ms）                                        |
 | last_modify_user | string | 作业修改人账号                                               |
-| last_modify_time | long   | 最后修改时间，Unix 时间戳                                    |
+| last_modify_time | long   | 最后修改时间，Unix时间戳（ms）                                   |

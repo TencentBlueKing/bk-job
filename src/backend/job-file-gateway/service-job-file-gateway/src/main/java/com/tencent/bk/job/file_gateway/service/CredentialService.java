@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.dto.CommonCredential;
 
 public interface CredentialService {
     /**
-     * 获取凭据
+     * 获取凭证
      *
      * @param id
      * @return

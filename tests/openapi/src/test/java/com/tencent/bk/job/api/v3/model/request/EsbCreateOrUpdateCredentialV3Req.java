@@ -30,24 +30,24 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * 新建凭据请求
+ * 新建凭证请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class EsbCreateOrUpdateCredentialV3Req extends EsbAppScopeReq {
 
     /**
-     * 凭据ID
+     * 凭证ID
      */
     private String id;
 
     /**
-     * 凭据名称
+     * 凭证名称
      */
     private String name;
 
     /**
-     * 凭据类型
+     * 凭证类型
      */
     private String type;
 

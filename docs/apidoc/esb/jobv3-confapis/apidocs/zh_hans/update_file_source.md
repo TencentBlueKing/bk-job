@@ -16,7 +16,7 @@
 | alias           |  string    | 否     | 文件源别名 |
 | type            |  string    | 否     | 文件源类型，当前仅支持蓝鲸制品库，BLUEKING_ARTIFACTORY |
 | access_params   |  object    | 否     | 文件源接入参数，根据type传入不同的对象，见后续说明 |
-| credential_id   |  string    | 否     | 文件源使用的凭据Id |
+| credential_id   |  string    | 否     | 文件源使用的凭证Id |
 | file_prefix     |  string    | 否     | Job对从该文件源分发的文件加上的前缀，不传默认不加前缀 |
 
 ### access_params
