@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.Container;
 import lombok.Data;
 
+import java.util.Objects;
+
 /**
  * CMDB 容器详细信息
  */
@@ -62,5 +64,18 @@ public class ContainerDetailDTO {
             container.setNodeHostId(topo.getHostId());
         }
         return container;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContainerDetailDTO that = (ContainerDetailDTO) o;
+        return Objects.equals(container, that.container);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(container);
     }
 }
