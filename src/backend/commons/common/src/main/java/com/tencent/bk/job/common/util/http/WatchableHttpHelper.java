@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 
@@ -70,21 +69,19 @@ public class WatchableHttpHelper implements HttpHelper {
                                          Function<HttpRequest, HttpResponse> requestImpl) {
         String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
-        int httpStatus = HttpStatus.SC_OK;
+        String httpStatusTagValue = null;
         try {
             HttpResponse response = requestImpl.apply(request);
-            httpStatus = response.getStatusCode();
+            httpStatusTagValue = String.valueOf(response.getStatusCode());
             return response;
         } catch (HttpStatusException t) {
-            httpStatus = t.getHttpStatus();
-            throw t;
-        } catch (Throwable t) {
-            httpStatus = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+            httpStatusTagValue = String.valueOf(t.getHttpStatus());
             throw t;
         } finally {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
-            httpMetricTags.add(Tag.of("http_status", String.valueOf(httpStatus)));
+            httpMetricTags.add(Tag.of("http_status",
+                StringUtils.isNotEmpty(httpStatusTagValue) ? httpStatusTagValue : "UNKNOWN"));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
