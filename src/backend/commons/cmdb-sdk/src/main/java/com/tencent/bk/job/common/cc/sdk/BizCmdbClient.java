@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNodeID;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
@@ -1508,24 +1509,67 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         // 根据容器 ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
         req.setPage(new Page(0, 500, ContainerDTO.Fields.ID));
 
-        return PageUtil.queryAllWithLoopPageQueryInOrder(
-            500,
-            (ContainerDetailDTO latestElement) -> {
-                if (latestElement == null) {
-                    // 第一页使用原始的请求
-                    return req;
-                } else {
-                    // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-                    return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
-                }
-            },
-            pageReq -> listPageKubeContainerByTopo(pageReq, false),
-            PageData::getData,
-            container -> container
-        );
+        if (req.getNodeIdList().size() <= 200) {
+            return PageUtil.queryAllWithLoopPageQueryInOrder(
+                500,
+                (ContainerDetailDTO latestElement) -> {
+                    if (latestElement == null) {
+                        // 第一页使用原始的请求
+                        return req;
+                    } else {
+                        // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+                        return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
+                    }
+                },
+                pageReq -> listPageKubeContainerByTopo(pageReq, false),
+                PageData::getData,
+                container -> container
+            );
+        } else {
+            // 超过 cmdb API 单次查询最大 node 数量限制，需要按照拓扑节点分批
+            List<ListKubeContainerByTopoReq> batchReqs = partitionListKubeContainerByTopoReq(req);
+            return batchReqs.stream().flatMap(batchReq ->
+                PageUtil.queryAllWithLoopPageQueryInOrder(
+                    500,
+                    (ContainerDetailDTO latestElement) -> {
+                        if (latestElement == null) {
+                            // 第一页使用原始的请求
+                            return batchReq;
+                        } else {
+                            // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
+                            return buildNextPageListKubeContainerByTopoReq(
+                                batchReq, latestElement.getContainer().getId());
+                        }
+                    },
+                    pageReq -> listPageKubeContainerByTopo(pageReq, false),
+                    PageData::getData,
+                    container -> container
+                ).stream())
+                .distinct()
+                .collect(Collectors.toList());
+        }
     }
 
-    private ListKubeContainerByTopoReq  buildNextPageListKubeContainerByTopoReq(
+    private List<ListKubeContainerByTopoReq> partitionListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
+        List<ListKubeContainerByTopoReq> reqs = new ArrayList<>();
+        List<List<KubeNodeID>> nodeIDListBatches =
+            CollectionUtil.partitionCollection(req.getNodeIdList(), 200);
+        nodeIDListBatches.forEach(nodeIDListBatch -> {
+            ListKubeContainerByTopoReq newReq = new ListKubeContainerByTopoReq();
+            newReq.setBkSupplierAccount(req.getBkSupplierAccount());
+            newReq.setBizId(req.getBizId());
+            newReq.setNodeIdList(nodeIDListBatch);
+            newReq.setContainerFilter(req.getContainerFilter());
+            newReq.setPodFilter(req.getPodFilter());
+            newReq.setPage(req.getPage());
+            newReq.setContainerFields(req.getContainerFields());
+            newReq.setPodFields(req.getPodFields());
+            reqs.add(newReq);
+        });
+        return reqs;
+    }
+
+    private ListKubeContainerByTopoReq buildNextPageListKubeContainerByTopoReq(
         ListKubeContainerByTopoReq originReq,
         long lastIdForCurrentPage
     ) {
