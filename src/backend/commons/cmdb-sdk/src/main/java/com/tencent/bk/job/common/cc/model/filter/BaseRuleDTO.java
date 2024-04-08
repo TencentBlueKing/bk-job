@@ -61,8 +61,16 @@ public class BaseRuleDTO implements IRule {
         return new BaseRuleDTO(field, RuleOperatorEnum.IN.getOperator(), value);
     }
 
+    public static BaseRuleDTO notIn(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_IN.getOperator(), value);
+    }
+
     public static BaseRuleDTO equals(String field, Object value) {
         return new BaseRuleDTO(field, RuleOperatorEnum.EQUAL.getOperator(), value);
+    }
+
+    public static BaseRuleDTO notEquals(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_EQUAL.getOperator(), value);
     }
 
     public static BaseRuleDTO contains(String field, Object value) {
@@ -73,5 +81,26 @@ public class BaseRuleDTO implements IRule {
         return new BaseRuleDTO(field, RuleOperatorEnum.FILTER_OBJECT.getOperator(), value);
     }
 
+    public static BaseRuleDTO exists(String field) {
+        // cmdb 统一解析逻辑会解析value，没填的话会报错;传入 true(对过滤结果没有影响)临时规避该问题
+        return new BaseRuleDTO(field, RuleOperatorEnum.EXIST.getOperator(), true);
+    }
 
+    public static BaseRuleDTO notExists(String field) {
+        // cmdb 统一解析逻辑会解析value，没填的话会报错;传入 true(对过滤结果没有影响)临时规避该问题
+        return new BaseRuleDTO(field, RuleOperatorEnum.NOT_EXIST.getOperator(), true);
+    }
+
+    public static BaseRuleDTO greaterThan(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.GREATER.getOperator(), value);
+    }
+
+    public static BaseRuleDTO lessThan(String field, Object value) {
+        return new BaseRuleDTO(field, RuleOperatorEnum.LESS.getOperator(), value);
+    }
+
+    @Override
+    protected BaseRuleDTO clone() {
+        return new BaseRuleDTO(field, operator, value);
+    }
 }

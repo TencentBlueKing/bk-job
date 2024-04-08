@@ -22,50 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * Label selector 操作符
  */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public enum LabelSelectorOperatorEnum {
+    NOT_EXISTS("not_exists"),
+    EQUALS("equals"),
+    IN("in"),
+    NOT_EQUALS("not_equals"),
+    NOT_IN("not_in"),
+    EXISTS("exists"),
+    GREATER_THAN("gt"),
+    LESS_THAN("lt");
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
+    private final String op;
 
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
-
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
-
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
-        }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
+    LabelSelectorOperatorEnum(String op) {
+        this.op = op;
     }
 
+    @JsonValue
+    public String getOp() {
+        return op;
+    }
+
+    public static LabelSelectorOperatorEnum valOf(String op) {
+        for (LabelSelectorOperatorEnum operatorEnum : values()) {
+            if (operatorEnum.getOp().equals(op)) {
+                return operatorEnum;
+            }
+        }
+        throw new IllegalArgumentException("No LabelSelectorOperatorEnum constant: " + op);
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static LabelSelectorOperatorEnum forOp(String op) {
+        return LabelSelectorOperatorEnum.valOf(op);
+    }
 }

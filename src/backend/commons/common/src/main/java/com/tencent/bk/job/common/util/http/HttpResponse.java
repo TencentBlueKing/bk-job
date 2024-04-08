@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.util.http;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.http.Header;
 
 @NoArgsConstructor
 @Getter
@@ -41,8 +42,11 @@ public class HttpResponse {
      */
     private String entity;
 
-    public HttpResponse(int statusCode, String entity) {
+    private Header[] headers;
+
+    public HttpResponse(int statusCode, String entity, Header[] headers) {
         this.statusCode = statusCode;
         this.entity = entity;
+        this.headers = headers;
     }
 }

@@ -83,7 +83,7 @@ public class OpService {
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
         String respStr;
         try {
-            respStr = httpHelper.request(
+            respStr = httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.POST, url)
                     .setStringEntity(req.getBody())
                     .setHeaders(req.getHeaders())

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util.http;
 
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 
 import java.util.AbstractList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * 对Http请求状态码与异常情况进行统计便于监控
@@ -54,21 +56,32 @@ public class WatchableHttpHelper implements HttpHelper {
     }
 
     @Override
+    public HttpResponse requestForSuccessResp(HttpRequest request) throws HttpStatusException {
+        return requestInternal(request, httpHelper::requestForSuccessResp);
+    }
+
+    @Override
     public HttpResponse request(HttpRequest request) {
+        return requestInternal(request, httpHelper::request);
+    }
+
+    private HttpResponse requestInternal(HttpRequest request,
+                                         Function<HttpRequest, HttpResponse> requestImpl) {
         String httpMetricName = HttpMetricUtil.getHttpMetricName();
         long start = System.nanoTime();
-        String httpStatus = null;
+        String httpStatusTagValue = null;
         try {
-            HttpResponse response = httpHelper.request(request);
-            httpStatus = "" + response.getStatusCode();
+            HttpResponse response = requestImpl.apply(request);
+            httpStatusTagValue = String.valueOf(response.getStatusCode());
             return response;
-        } catch (Throwable t) {
-            httpStatus = "error";
+        } catch (HttpStatusException t) {
+            httpStatusTagValue = String.valueOf(t.getHttpStatus());
             throw t;
         } finally {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
-            httpMetricTags.add(Tag.of("http_status", httpStatus));
+            httpMetricTags.add(Tag.of("http_status",
+                StringUtils.isNotEmpty(httpStatusTagValue) ? httpStatusTagValue : "UNKNOWN"));
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);

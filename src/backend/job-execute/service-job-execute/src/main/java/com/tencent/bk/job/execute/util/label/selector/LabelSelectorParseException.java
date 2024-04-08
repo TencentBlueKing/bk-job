@@ -22,50 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.util.label.selector;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * Label selector 解析异常
  */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public class LabelSelectorParseException extends InternalException {
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
-
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
-
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
-
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
-        }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
+    public LabelSelectorParseException(String message) {
+        super(message, null, ErrorCode.INVALID_LABEL_SELECTOR);
     }
-
 }

@@ -99,16 +99,16 @@
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
 | pod_name_list | array | 否 | pod 名称列表 |
-| label_selector | array | 否 | label 选择计算表达式列表，多个表达式之间为 AND 关系。表达式 见 label_select_expr 定义 |
+| label_selector | array | 否 | Job 定义的label selector，由多个 Requirement 构成。多个 Requirement 之间为 AND 关系。表达式 见 requirement 定义 |
+| label_selector_expr | string | 否 | k8s 官方定义的 label selector 表达式，[lable selector doc](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) |
 
-##### label_select_expr
+##### requirement
 
 | 字段 | 类型 | 必选 | 描述 |
 |-----------|------------|--------|------------|
-| label_key | string | 是 | label key |
-| operator |  string | 是 | 计算操作符, 支持 equals、not_equals、in、not_in、exists |
-| label_value | string | 否 | label value, 当计算操作符为 equals、not_equals 时候需要设置 |
-| label_values | string | 否 | label value 列表, 当计算操作符为 in、not_in 时候需要设置 |
+| key | string | 是 | label key |
+| operator |  string | 是 | 计算操作符, 支持 equals、not_equals、in、not_in、exists、not_exists |
+| values | array | 否 | label value 列表, 当计算操作符为 in、not_in、equals、not_equals 时需要设置 |
 
 ##### kube_container_prop_filter
 

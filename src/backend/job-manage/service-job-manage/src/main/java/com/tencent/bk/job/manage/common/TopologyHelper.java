@@ -228,7 +228,7 @@ public class TopologyHelper {
             if (BIZ_NODE_TYPE_NAME_MAP.get(appId) == null) {
                 BIZ_NODE_TYPE_NAME_MAP.put(appId, new ConcurrentHashMap<>(3));
             }
-            // Root node, app, find all child
+            // root node, app, find all child
             if (CollectionUtils.isNotEmpty(topology.getChild())) {
                 topology.getChild().forEach(child -> processTopologyNodeName(child, BIZ_NODE_TYPE_NAME_MAP.get(appId)));
             }

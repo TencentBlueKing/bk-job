@@ -22,50 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.util.label.selector;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * lexical token
  */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public enum Token {
+    ErrorToken,
+    EndOfStringToken,
+    ClosedParToken,
+    CommaToken,
+    DoesNotExistToken,
+    DoubleEqualsToken,
+    EqualsToken,
+    GreaterThanToken,
+    IdentifierToken,
+    InToken,
+    LessThanToken,
+    NotEqualsToken,
+    NotInToken,
+    OpenParToken;
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
-
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
-
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
-
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
-        }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
-    }
-
+    public static final Map<String, Token> string2token = new HashMap<String, Token>() {{
+        put(")", ClosedParToken);
+        put(",", CommaToken);
+        put("!", DoesNotExistToken);
+        put("==", DoubleEqualsToken);
+        put("=", EqualsToken);
+        put(">", GreaterThanToken);
+        put("in", InToken);
+        put("<", LessThanToken);
+        put("!=", NotEqualsToken);
+        put("notin", NotInToken);
+        put("(", OpenParToken);
+    }};
 }

@@ -57,8 +57,8 @@ public class BaseHttpHelperTest {
             }));
         HttpHelper httpHelper = new BaseHttpHelper(retryableHttpClient);
         assertThrows(InternalException.class,
-            () -> httpHelper.request(HttpRequest.builder(HttpMethodEnum.GET, "http://localhost:8080/test")
-                .build()));
+            () -> httpHelper.requestForSuccessResp(
+                HttpRequest.builder(HttpMethodEnum.GET, "http://localhost:8080/test").build()));
 
         // GET + NoHttpResponseException 会被重试
         Mockito.verify(mockedRetryHandler, Mockito.times(4))

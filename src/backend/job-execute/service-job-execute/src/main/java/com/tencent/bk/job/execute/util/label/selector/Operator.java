@@ -22,50 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.util.label.selector;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * Label selector 操作符
  */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public enum Operator {
+    DoesNotExist("!"),
+    Equals("="),
+    DoubleEquals("=="),
+    In("in"),
+    NotEquals("!="),
+    NotIn("notin"),
+    Exists("exists"),
+    GreaterThan("gt"),
+    LessThan("lt");
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
+    private final String symbol;
 
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
+    Operator(String symbol) {
+        this.symbol = symbol;
+    }
 
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
+    public String getSymbol() {
+        return symbol;
+    }
 
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
+    public static Operator valOf(String operator) {
+        for (Operator operatorEnum : values()) {
+            if (operatorEnum.getSymbol().equals(operator)) {
+                return operatorEnum;
+            }
         }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
+        throw new IllegalArgumentException("No Operator constant: " + operator);
+    }
+
+    public static List<String> allOperators() {
+        return Arrays.stream(values()).map(Operator::getSymbol).collect(Collectors.toList());
     }
 
 }

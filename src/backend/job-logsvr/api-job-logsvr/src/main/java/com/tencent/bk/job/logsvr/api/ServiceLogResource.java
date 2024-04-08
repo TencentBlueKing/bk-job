@@ -67,17 +67,6 @@ public interface ServiceLogResource {
         @RequestBody ServiceBatchSaveLogRequest request
     );
 
-    /**
-     * 批量保存执行日志-临时，发布完成删除
-     *
-     * @param request 保存日志请求
-     */
-    @PostMapping("/batch")
-    InternalResponse<?> tmpSaveLogs(
-        @ApiParam("批量保存日志请求报文")
-        @RequestBody ServiceBatchSaveLogRequest request
-    );
-
     @ApiOperation("根据目标主机ID获取脚本任务对应的执行日志")
     @GetMapping(value = {
         "/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"

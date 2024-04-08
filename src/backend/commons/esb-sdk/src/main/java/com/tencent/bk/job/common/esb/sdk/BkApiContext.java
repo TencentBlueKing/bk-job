@@ -58,6 +58,10 @@ public class BkApiContext<T, R> {
      * API 是否调用成功并正确响应
      */
     private boolean success;
+    /**
+     * 网关 request_id
+     */
+    private String requestId;
 
     public BkApiContext(String method,
                         String uri,

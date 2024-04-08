@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -40,8 +42,14 @@ import java.util.List;
 public class StepExecutionVO {
     @ApiModelProperty("步骤实例ID")
     private Long stepInstanceId;
-    @ApiModelProperty("执行次数,默认为0")
+
+    @ApiModelProperty(value = "重试次数", hidden = true)
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "使用 executeCount 参数替换。发布完成后可以删除")
     private Integer retryCount;
+
+    @ApiModelProperty("执行次数,默认为0")
+    private Integer executeCount;
     @ApiModelProperty("步骤名称")
     private String name;
     @ApiModelProperty("步骤类型,1-脚本，2-文件，3-人工确认")

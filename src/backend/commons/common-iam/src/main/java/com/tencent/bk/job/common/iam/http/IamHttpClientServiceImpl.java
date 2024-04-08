@@ -58,7 +58,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.request(
+            return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
                     .setHeaders(buildAuthHeader())
                     .build())
@@ -75,7 +75,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.request(
+            return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
                     .setHeaders(buildAuthHeader())
                     .setStringEntity(JsonUtils.toJson(body))
@@ -94,7 +94,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.request(
+            return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
                     .setHeaders(buildAuthHeader())
                     .setStringEntity(JsonUtils.toJson(body))
@@ -113,7 +113,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.request(
+            return httpHelper.requestForSuccessResp(
                 HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
                     .setHeaders(buildAuthHeader())
                     .build())

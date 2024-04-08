@@ -54,7 +54,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本执行任务名称
      */
     @JsonProperty("task_name")
-    @Length(max = 60, message = "{validation.constraints.TaskName_outOfLength.message}")
+    @Length(max = 512, message = "{validation.constraints.TaskName_outOfLength.message}")
     private String name;
 
     /**

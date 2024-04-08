@@ -22,50 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 执行目标-容器选择过滤器-按 POD 过滤
- */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public class PathTest {
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
-
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
-
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
-
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
-        }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
+    @Test
+    void pathTest() {
+        Path p = Path.newPath("root");
+        assertThat(p.toString()).isEqualTo("root");
+        p = p.child("first");
+        assertThat(p.toString()).isEqualTo("root.first");
+        p = p.child("second");
+        assertThat(p.toString()).isEqualTo("root.first.second");
+        p = p.index(0);
+        assertThat(p.toString()).isEqualTo("root.first.second[0]");
+        p = p.child("third");
+        p = p.index(93);
+        assertThat(p.toString()).isEqualTo("root.first.second[0].third[93]");
+        p = p.parent();
+        assertThat(p.toString()).isEqualTo("root.first.second[0].third");
+        p = p.parent();
+        assertThat(p.toString()).isEqualTo("root.first.second[0]");
+        p = p.key("key");
+        assertThat(p.toString()).isEqualTo("root.first.second[0][key]");
     }
-
 }

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
-import com.tencent.bk.job.common.cc.model.container.LabelSelectExprDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
@@ -41,9 +40,13 @@ import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +61,7 @@ import java.util.stream.Collectors;
 @Data
 @PersistenceObject
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Slf4j
 public class ExecuteTargetDTO implements Cloneable {
     /**
      * 如果执行目标是通过全局变量-主机列表定义的，variable 表示变量 name
@@ -573,16 +577,24 @@ public class ExecuteTargetDTO implements Cloneable {
                 KubePodFilter podFilter = new KubePodFilter();
                 podFilter.setPodNames(originContainerFilter.getPodFilter().getPodNames());
                 if (CollectionUtils.isNotEmpty(originContainerFilter.getPodFilter().getLabelSelector())) {
+                    // 优先解析自定义的 Label Selector
                     podFilter.setLabelSelector(
                         originContainerFilter.getPodFilter().getLabelSelector()
                             .stream()
                             .map(labelSelectExpr -> new LabelSelectExprDTO(
                                 labelSelectExpr.getKey(),
                                 labelSelectExpr.getOperator(),
-                                labelSelectExpr.getValue(),
                                 labelSelectExpr.getValues()))
                             .collect(Collectors.toList()));
 
+                } else if (StringUtils.isNotBlank(originContainerFilter.getPodFilter().getLabelSelectorExpr())) {
+                    // 解析 label selector 表达式
+                    List<LabelSelectExprDTO> labelSelectExprList = LabelSelectorParse.parseToLabelSelectExprList(
+                        originContainerFilter.getPodFilter().getLabelSelectorExpr());
+                    log.info("Parse kubernetes label selector expr, expr: {}, result: {}",
+                        originContainerFilter.getPodFilter().getLabelSelectorExpr(),
+                        JsonUtils.toJson(labelSelectExprList));
+                    podFilter.setLabelSelector(labelSelectExprList);
                 }
                 containerFilter.setPodFilter(podFilter);
             }

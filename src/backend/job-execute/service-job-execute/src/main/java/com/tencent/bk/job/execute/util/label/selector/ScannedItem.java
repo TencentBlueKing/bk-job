@@ -22,50 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
-
-import com.tencent.bk.job.common.annotation.PersistenceObject;
-import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
+package com.tencent.bk.job.execute.util.label.selector;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * ScannedItem contains the Token and the literal produced by the lexer.
  */
-@Data
-@PersistenceObject
-public class KubePodFilter implements Cloneable {
+public class ScannedItem {
+    private final Token token;
+    private final String literal;
 
-    /**
-     * k8s pod 名称列表
-     */
-    private List<String> podNames;
-
-    /**
-     * label selector
-     */
-    private List<LabelSelectExprDTO> labelSelector;
-
-    /**
-     * pod label selector expression
-     */
-    private String labelSelectorExpr;
-
-    @Override
-    public KubePodFilter clone() {
-        KubePodFilter clone = new KubePodFilter();
-        if (CollectionUtils.isNotEmpty(podNames)) {
-            clone.setPodNames(new ArrayList<>(podNames));
-        }
-        if (CollectionUtils.isNotEmpty(labelSelector)) {
-            List<LabelSelectExprDTO> cloneLabelSelectExprList = new ArrayList<>(labelSelector.size());
-            labelSelector.forEach(labelSelectExpr -> cloneLabelSelectExprList.add(labelSelectExpr.clone()));
-            clone.setLabelSelector(cloneLabelSelectExprList);
-        }
-        clone.setLabelSelectorExpr(labelSelectorExpr);
-        return clone;
+    public ScannedItem() {
+        this.token = null;
+        this.literal = null;
     }
 
+    public ScannedItem(Token token, String literal) {
+        this.token = token;
+        this.literal = literal;
+    }
+
+    public Token getToken() {
+        return token;
+    }
+
+    public String getLiteral() {
+        return literal;
+    }
 }

@@ -72,7 +72,7 @@ public abstract class AbstractHttpClient {
             } else {
                 url = hostUrl + uri + params.toUrlParams();
             }
-            responseBody = httpHelper.request(HttpRequest.builder(HttpMethodEnum.GET, url)
+            responseBody = httpHelper.requestForSuccessResp(HttpRequest.builder(HttpMethodEnum.GET, url)
                 .setHeaders(toHeaderArray(getBasicHeaders())).build()).getEntity();
             return responseBody;
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public abstract class AbstractHttpClient {
             }
             List<Header> headerList = getBasicHeaders();
             headerList.add(new BasicHeader(HDR_CONTENT_TYPE, "application/json"));
-            responseBody = httpHelper.request(HttpRequest.builder(HttpMethodEnum.POST, url)
+            responseBody = httpHelper.requestForSuccessResp(HttpRequest.builder(HttpMethodEnum.POST, url)
                 .setStringEntity(buildPostBody(params)).setHeaders(toHeaderArray(headerList)).build()).getEntity();
             return responseBody;
         } catch (Exception e) {

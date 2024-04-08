@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -538,13 +537,11 @@ public class TaskInstanceExecuteObjectProcessor {
             stepInstance.forEachExecuteObjects(executeObjects -> {
                 if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
                     executeObjects.getContainerFilters().forEach(containerFilter -> {
-                        List<ContainerDetailDTO> filteredContainers =
+                        List<Container> filteredContainers =
                             containerService.listContainerByContainerFilter(taskInstance.getAppId(), containerFilter);
                         if (CollectionUtils.isNotEmpty(filteredContainers)) {
-                            List<Container> containers = filteredContainers.stream()
-                                .map(ContainerDetailDTO::toContainer).collect(Collectors.toList());
-                            taskInstanceExecuteObjects.addContainers(containers);
-                            containerFilter.setContainers(containers);
+                            taskInstanceExecuteObjects.addContainers(filteredContainers);
+                            containerFilter.setContainers(filteredContainers);
                         }
                     });
                 }
