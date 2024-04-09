@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 
@@ -44,6 +46,11 @@ public interface FileSourceDAO {
     FileSourceDTO getFileSourceById(Integer id);
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
+
+    @Deprecated
+    @CompatibleImplementation(name = "fileSourceId", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
+        explain = "文件源标识仅在appId下唯一，发布完成后可删除")
+    FileSourceDTO getFileSourceByCode(String code);
 
     FileSourceDTO getFileSourceByCode(Long appId, String code);
 
