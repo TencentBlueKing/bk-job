@@ -38,7 +38,7 @@ public class BaseReq {
     // 文件源类型编码
     String fileSourceTypeCode;
 
-    // 凭据信息
+    // 凭证信息
     @SkipLogFields
     CommonCredential credential;
 

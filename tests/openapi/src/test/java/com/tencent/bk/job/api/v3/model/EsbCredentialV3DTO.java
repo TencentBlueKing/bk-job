@@ -22,30 +22,65 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.resp;
+package com.tencent.bk.job.api.v3.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@ApiModel("凭证")
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ServiceCredentialDisplayDTO {
+@NoArgsConstructor
+public class EsbCredentialV3DTO extends EsbAppScopeDTO {
+
     /**
-     * 主键Id
+     * id
      */
-    @ApiModelProperty("主键Id")
+    @JsonPropertyDescription("Credential id")
     private String id;
+
     /**
-     * 业务Id
+     * 凭证名称
      */
-    @ApiModelProperty("业务Id")
-    private Long appId;
-    /**
-     * 名称
-     */
-    @ApiModelProperty("名称")
+    @JsonPropertyDescription("Credential name")
     private String name;
+
+    /**
+     * 凭证类型
+     */
+    @JsonPropertyDescription("Credential type")
+    private String type;
+
+    /**
+     * 描述
+     */
+    @JsonPropertyDescription("Credential name")
+    private String description;
+
+    /**
+     * 创建人
+     */
+    @JsonPropertyDescription("Creator")
+    private String creator;
+    /**
+     * 创建时间
+     */
+    @JsonProperty("create_time")
+    @JsonPropertyDescription("Create time")
+    private Long createTime;
+    /**
+     * 更新人
+     */
+    @JsonProperty("last_modify_user")
+    @JsonPropertyDescription("Last modify user")
+    private String lastModifyUser;
+
+    /**
+     * 更新时间
+     */
+    @JsonProperty("last_modify_time")
+    @JsonPropertyDescription("Last modify time")
+    private Long lastModifyTime;
 }

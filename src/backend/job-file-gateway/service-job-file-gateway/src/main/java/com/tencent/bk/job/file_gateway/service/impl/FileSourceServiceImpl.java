@@ -313,6 +313,11 @@ public class FileSourceServiceImpl implements FileSourceService {
         return fileSourceDAO.getFileSourceByCode(code);
     }
 
+    @Override
+    public FileSourceDTO getFileSourceByCode(Long appId, String code) {
+        return fileSourceDAO.getFileSourceByCode(appId, code);
+    }
+
     private Long chooseAvailableWorker(String fileSourceTypeCode) {
         List<FileSourceTypeDTO> fileSourceTypeDTOList =
             fileSourceTypeDAO.listByCodeOrderByVersion(fileSourceTypeCode);

@@ -22,30 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.resp;
+package com.tencent.bk.job.api.v3.model.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@ApiModel("凭证")
-@AllArgsConstructor
+/**
+ * 新建凭证请求
+ */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ServiceCredentialDisplayDTO {
+public class EsbCreateOrUpdateCredentialV3Req extends EsbAppScopeReq {
+
     /**
-     * 主键Id
+     * 凭证ID
      */
-    @ApiModelProperty("主键Id")
     private String id;
+
     /**
-     * 业务Id
+     * 凭证名称
      */
-    @ApiModelProperty("业务Id")
-    private Long appId;
-    /**
-     * 名称
-     */
-    @ApiModelProperty("名称")
     private String name;
+
+    /**
+     * 凭证类型
+     */
+    private String type;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * AccessKey
+     */
+    @JsonProperty("credential_access_key")
+    private String credentialAccessKey;
+
+    /**
+     * SecretKey
+     */
+    @JsonProperty("credential_secret_key")
+    private String credentialSecretKey;
+
+    /**
+     * Username
+     */
+    @JsonProperty("credential_username")
+    private String credentialUsername;
+
+    /**
+     * Password
+     */
+    @JsonProperty("credential_password")
+    private String credentialPassword;
 }

@@ -22,11 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.model.resp.esb.v3;
+package com.tencent.bk.job.api.v3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -34,7 +33,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
+public class EsbFileSourceDetailV3DTO extends EsbAppScopeDTO {
     /**
      * id
      */
@@ -61,7 +60,7 @@ public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
      */
     @JsonProperty("file_source_type_code")
     @JsonPropertyDescription("File source type code")
-    private String fileSourceTypeCode;
+    private Integer fileSourceTypeCode;
 
     /**
      * 是否为公共文件源

@@ -22,30 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.resp;
+package com.tencent.bk.job.api.constant;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+public enum CredentialTypeEnum {
+    APP_ID_SECRET_KEY(1, "AccessKey+SecretKey"),
+    PASSWORD(2, "单一密码"),
+    USERNAME_PASSWORD(3, "用户名+密码"),
+    SECRET_KEY(4, "单一SecretKey");
 
-@ApiModel("凭证")
-@AllArgsConstructor
-@Data
-public class ServiceCredentialDisplayDTO {
-    /**
-     * 主键Id
-     */
-    @ApiModelProperty("主键Id")
-    private String id;
-    /**
-     * 业务Id
-     */
-    @ApiModelProperty("业务Id")
-    private Long appId;
-    /**
-     * 名称
-     */
-    @ApiModelProperty("名称")
-    private String name;
+    private final Integer value;
+    private final String description;
+
+    public static String getAllNameStr() {
+        StringBuilder sb = new StringBuilder();
+        CredentialTypeEnum[] values = CredentialTypeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            sb.append(values[i].name());
+            if (i < values.length - 1) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
+
+    CredentialTypeEnum(Integer type, String description) {
+        this.value = type;
+        this.description = description;
+    }
 }

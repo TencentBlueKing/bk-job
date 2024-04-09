@@ -132,7 +132,7 @@
         "id": "ticket",
         "name": "凭证",
         "name_en": "Tickets",
-        "description": "用于文件源访问认证的凭据",
+        "description": "用于文件源访问认证的凭证",
         "description_en": "Tickets for file-source access authentication",
         "parents": [
           {

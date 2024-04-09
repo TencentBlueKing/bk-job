@@ -30,7 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel("凭据基本信息")
+@ApiModel("凭证基本信息")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

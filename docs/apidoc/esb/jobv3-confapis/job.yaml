@@ -271,7 +271,7 @@
 
 - path: /v2/jobv3/create_credential/
   name: create_credential
-  label: 新建凭据
+  label: 新建凭证
   label_en: Create credential
   suggest_method: POST
   api_type: operate
@@ -282,7 +282,7 @@
 
 - path: /v2/jobv3/update_credential/
   name: update_credential
-  label: 更新凭据
+  label: 更新凭证
   label_en: Update credential
   suggest_method: POST
   api_type: operate

@@ -36,13 +36,13 @@ import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.
 import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.USERNAME_PASSWORD;
 
 @Data
-@ApiModel("凭据创建/更新请求")
+@ApiModel("凭证创建/更新请求")
 public class CredentialCreateUpdateReq {
 
     /**
-     * 凭据ID
+     * 凭证ID
      */
-    @ApiModelProperty(value = "凭据 ID", hidden = true)
+    @ApiModelProperty(value = "凭证 ID", hidden = true)
     private String id;
     /**
      * 名称

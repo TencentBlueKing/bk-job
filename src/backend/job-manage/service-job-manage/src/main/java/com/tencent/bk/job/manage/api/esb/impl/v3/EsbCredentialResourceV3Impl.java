@@ -27,14 +27,19 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetCredentialDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +52,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
     private final CredentialService credentialService;
+    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbCredentialResourceV3Impl(CredentialService credentialService) {
+    public EsbCredentialResourceV3Impl(CredentialService credentialService,
+                                       AppScopeMappingService appScopeMappingService) {
         this.credentialService = credentialService;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -98,6 +106,34 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(updateCredential.toEsbCredentialSimpleInfoV3DTO());
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "get_credential_detail"})
+    public EsbResp<EsbCredentialV3DTO> getCredentialDetail(
+        String username,
+        String appCode,
+        Long bizId,
+        String scopeType,
+        String scopeId,
+        String id) {
+        EsbGetCredentialDetailV3Req req = new EsbGetCredentialDetailV3Req();
+        req.setBizId(bizId);
+        req.setScopeType(scopeType);
+        req.setScopeId(scopeId);
+        req.setId(id);
+        req.fillAppResourceScope(appScopeMappingService);
+        return getCredentialDetailUsingPost(username, appCode, req);
+    }
+
+    @Override
+    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "get_credential_detail"})
+    public EsbResp<EsbCredentialV3DTO> getCredentialDetailUsingPost(
+        String username,
+        String appCode,
+        @AuditRequestBody EsbGetCredentialDetailV3Req req) {
+        CredentialDTO credentialDTO = credentialService.getCredentialById(req.getId());
+        return EsbResp.buildSuccessResp(credentialDTO.toEsbCredentialV3DTO());
     }
 
     private void checkUpdateParam(EsbCreateOrUpdateCredentialV3Req req) {

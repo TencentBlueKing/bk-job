@@ -1,6 +1,6 @@
 ### 功能描述
 
-更新凭据。
+更新凭证。
 
 ### 请求参数
 
@@ -12,14 +12,14 @@
 |----------------------------|------------|--------|------------|
 | bk_scope_type | string | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| id                         |  string    | 是     | 凭据 ID     |
-| name                       |  string    | 否     | 凭据名称     |
-| type                       |  string    | 否     | 凭据类型，取值可为ACCESS_KEY_SECRET_KEY,PASSWORD,USERNAME_PASSWORD,SECRET_KEY |
-| description                |  string    | 否     | 凭据描述 |
-| credential_access_key      |  string    | 否     | 凭据类型为ACCESS_KEY_SECRET_KEY时填写 |
-| credential_secret_key      |  string    | 否     | 凭据类型为ACCESS_KEY_SECRET_KEY/SECRET_KEY时填写 |
-| credential_username        |  string    | 否     | 凭据类型为USERNAME_PASSWORD时填写 |
-| credential_password        |  string    | 否     | 凭据类型为USERNAME_PASSWORD/PASSWORD时填写 |
+| id                         |  string    | 是     | 凭证 ID     |
+| name                       |  string    | 否     | 凭证名称     |
+| type                       |  string    | 否     | 凭证类型，取值可为ACCESS_KEY_SECRET_KEY,PASSWORD,USERNAME_PASSWORD,SECRET_KEY |
+| description                |  string    | 否     | 凭证描述 |
+| credential_access_key      |  string    | 否     | 凭证类型为ACCESS_KEY_SECRET_KEY时填写 |
+| credential_secret_key      |  string    | 否     | 凭证类型为ACCESS_KEY_SECRET_KEY/SECRET_KEY时填写 |
+| credential_username        |  string    | 否     | 凭证类型为USERNAME_PASSWORD时填写 |
+| credential_password        |  string    | 否     | 凭证类型为USERNAME_PASSWORD/PASSWORD时填写 |
 
 
 ### 请求参数示例
@@ -69,4 +69,4 @@
 
 | 字段      | 类型    |字段是否一定存在  | 描述      |
 |-----------|-------|---------------|---------|
-| id        | string |是             | 凭据ID |
+| id        | string |是             | 凭证ID |

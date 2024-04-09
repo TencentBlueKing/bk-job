@@ -22,30 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.resp;
+package com.tencent.bk.job.api.constant;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@ApiModel("凭证")
-@AllArgsConstructor
-@Data
-public class ServiceCredentialDisplayDTO {
-    /**
-     * 主键Id
-     */
-    @ApiModelProperty("主键Id")
-    private String id;
-    /**
-     * 业务Id
-     */
-    @ApiModelProperty("业务Id")
-    private Long appId;
-    /**
-     * 名称
-     */
-    @ApiModelProperty("名称")
-    private String name;
+public enum FileSourceTypeEnum {
+    TENCENT_CLOUD_COS,
+    BLUEKING_ARTIFACTORY
 }

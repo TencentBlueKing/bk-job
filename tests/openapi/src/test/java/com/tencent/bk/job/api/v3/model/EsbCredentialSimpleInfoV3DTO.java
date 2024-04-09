@@ -22,30 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.resp;
+package com.tencent.bk.job.api.v3.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@ApiModel("凭证")
-@AllArgsConstructor
 @Data
-public class ServiceCredentialDisplayDTO {
-    /**
-     * 主键Id
-     */
-    @ApiModelProperty("主键Id")
+@NoArgsConstructor
+public class EsbCredentialSimpleInfoV3DTO {
+    @JsonPropertyDescription("Credential id")
     private String id;
-    /**
-     * 业务Id
-     */
-    @ApiModelProperty("业务Id")
-    private Long appId;
-    /**
-     * 名称
-     */
-    @ApiModelProperty("名称")
+
+    @JsonPropertyDescription("Credential name")
     private String name;
+
+    public EsbCredentialSimpleInfoV3DTO(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }
