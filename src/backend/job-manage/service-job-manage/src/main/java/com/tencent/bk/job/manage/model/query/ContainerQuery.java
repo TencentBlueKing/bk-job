@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.query;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.PodDTO;
 import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
+import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
@@ -61,6 +62,10 @@ public class ContainerQuery {
 
     private final List<String> podNames;
 
+    private final List<String> containerNameKeywords;
+
+    private final List<String> podNameKeywords;
+
     private final PageCondition pageCondition;
 
     private final OrderCondition orderCondition;
@@ -73,6 +78,8 @@ public class ContainerQuery {
         containerUIDs = builder.containerUIDs;
         containerNames = builder.containerNames;
         podNames = builder.podNames;
+        containerNameKeywords = builder.containerNameKeywords;
+        podNameKeywords = builder.podNameKeywords;
         pageCondition = builder.pageCondition;
         orderCondition = builder.orderCondition;
     }
@@ -87,8 +94,8 @@ public class ContainerQuery {
         return ContainerQuery.builder()
             .bizId(bizId)
             .containerUIDs(req.getContainerUidList())
-            .containerNames(req.getContainerNameList())
-            .podNames(req.getPodNameList())
+            .containerNameKeywords(req.getContainerNameKeywordList())
+            .podNameKeywords(req.getPodNameKeywordList())
             .nodes(CollectionUtils.isNotEmpty(req.getNodeList()) ?
                 req.getNodeList().stream()
                     .filter(node -> !CcNodeTypeEnum.BIZ.getType().equals(node.getObjectId()))
@@ -122,36 +129,43 @@ public class ContainerQuery {
     }
 
     private void setContainerFilterIfNecessary(ListKubeContainerByTopoReq req) {
-        if (isExistContainerPropCondition()) {
-            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+        PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+        containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
 
-            if (CollectionUtils.isNotEmpty(ids)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.ID, ids));
-            }
+        if (CollectionUtils.isNotEmpty(ids)) {
+            containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.ID, ids));
+        }
 
-            if (CollectionUtils.isNotEmpty(containerUIDs)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.CONTAINER_UID, containerUIDs));
-            }
+        if (CollectionUtils.isNotEmpty(containerUIDs)) {
+            containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.CONTAINER_UID, containerUIDs));
+        }
 
-            if (CollectionUtils.isNotEmpty(containerNames)) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME, containerNames));
-            }
+        if (CollectionUtils.isNotEmpty(containerNames)) {
+            containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME, containerNames));
+        } else if (CollectionUtils.isNotEmpty(containerNameKeywords)) {
+            ComposeRuleDTO containerNameKeywordRule = new ComposeRuleDTO(RuleConditionEnum.OR);
+            containerNameKeywords.forEach(containerNameKeyword ->
+                containerNameKeywordRule.addRule(BaseRuleDTO.contains(ContainerDTO.Fields.NAME, containerNameKeyword)));
+            containerFilter.addRule(containerNameKeywordRule);
+        }
+
+        if (containerFilter.hasRule()) {
             req.setContainerFilter(containerFilter);
         }
     }
 
-    private boolean isExistContainerPropCondition() {
-        return CollectionUtils.isNotEmpty(ids)
-            || CollectionUtils.isNotEmpty(containerUIDs)
-            || CollectionUtils.isNotEmpty(containerNames);
-    }
-
     private void setPodFilterIfNecessary(ListKubeContainerByTopoReq req) {
+        PropertyFilterDTO podFilter = new PropertyFilterDTO();
+        podFilter.setCondition(RuleConditionEnum.AND.getCondition());
         if (CollectionUtils.isNotEmpty(podNames)) {
-            PropertyFilterDTO podFilter = new PropertyFilterDTO();
-            podFilter.setCondition(RuleConditionEnum.AND.getCondition());
             podFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, podNames));
+        } else if (CollectionUtils.isNotEmpty(podNameKeywords)) {
+            ComposeRuleDTO podNameKeywordRule = new ComposeRuleDTO(RuleConditionEnum.OR);
+            podNameKeywords.forEach(podNameKeyword ->
+                podNameKeywordRule.addRule(BaseRuleDTO.contains(PodDTO.Fields.NAME, podNameKeyword)));
+            podFilter.addRule(podNameKeywordRule);
+        }
+        if (podFilter.hasRule()) {
             req.setPodFilter(podFilter);
         }
     }
@@ -178,6 +192,8 @@ public class ContainerQuery {
         private List<String> containerUIDs;
         private List<String> containerNames;
         private List<String> podNames;
+        private List<String> containerNameKeywords;
+        private List<String> podNameKeywords;
         private PageCondition pageCondition;
         private OrderCondition orderCondition;
 
@@ -215,6 +231,16 @@ public class ContainerQuery {
 
         public Builder podNames(List<String> podNames) {
             this.podNames = podNames;
+            return this;
+        }
+
+        public Builder containerNameKeywords(List<String> containerNameKeywords) {
+            this.containerNameKeywords = containerNameKeywords;
+            return this;
+        }
+
+        public Builder podNameKeywords(List<String> podNameKeywords) {
+            this.podNameKeywords = podNameKeywords;
             return this;
         }
 

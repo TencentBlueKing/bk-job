@@ -53,6 +53,10 @@ public class ComposeRuleDTO implements IRule {
         this.condition = condition;
     }
 
+    public ComposeRuleDTO(RuleConditionEnum condition) {
+        this.condition = condition.getCondition();
+    }
+
     /**
      * 新增过滤规则
      *
