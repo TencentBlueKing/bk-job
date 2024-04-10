@@ -66,6 +66,13 @@ public class OpenApiKubeContainerFilterDTO {
     private OpenApiKubeContainerPropFilterDTO containerPropFilter;
 
     /**
+     * 标识一个没有设置任何条件的过滤器；默认值为 false。如果设置为 true, 将忽略其他的条件（kube_cluster_filter/kube_namespace_filter
+     * /kube_workload_filter/kube_pod_filter/kube_container_prop_filter)，返回业务下的所有容器
+     */
+    @JsonProperty("is_empty_filter")
+    private boolean emptyFilter;
+
+    /**
      * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
      */
     @JsonProperty("fetch_any_one_container")

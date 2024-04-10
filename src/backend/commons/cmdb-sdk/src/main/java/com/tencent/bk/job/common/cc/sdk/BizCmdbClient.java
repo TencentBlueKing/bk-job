@@ -1509,7 +1509,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         // 根据容器 ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
         req.setPage(new Page(0, 500, ContainerDTO.Fields.ID));
 
-        if (req.getNodeIdList().size() <= 200) {
+        if (req.getNodeIdList() == null || req.getNodeIdList().size() <= 200) {
             return loopPageListKubeContainerByTopo(req);
         } else {
             // 超过 cmdb API 单次查询最大 node 数量限制，需要按照拓扑节点分批
