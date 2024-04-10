@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.dto.Container;
 import lombok.Data;
@@ -65,6 +66,11 @@ public class KubeContainerFilter implements Cloneable {
     private KubeContainerPropFilter containerPropFilter;
 
     /**
+     * 标识一个没有设置任何条件的过滤器
+     */
+    private boolean emptyFilter;
+
+    /**
      * 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）
      */
     private boolean fetchAnyOneContainer;
@@ -100,5 +106,13 @@ public class KubeContainerFilter implements Cloneable {
         }
 
         return clone;
+    }
+
+    /**
+     * 是否包含容器拓扑(cluster/namespace/workload)相关的 filter
+     */
+    @JsonIgnore
+    public boolean hasKubeNodeFilter() {
+        return !isEmptyFilter() && (clusterFilter != null || namespaceFilter != null || workloadFilter != null);
     }
 }

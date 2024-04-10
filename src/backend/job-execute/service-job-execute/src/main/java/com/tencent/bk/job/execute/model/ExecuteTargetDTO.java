@@ -604,6 +604,7 @@ public class ExecuteTargetDTO implements Cloneable {
                     originContainerFilter.getContainerPropFilter().getContainerNames());
                 containerFilter.setContainerPropFilter(containerPropFilter);
             }
+            containerFilter.setEmptyFilter(originContainerFilter.isEmptyFilter());
             containerFilter.setFetchAnyOneContainer(originContainerFilter.isFetchAnyOneContainer());
 
             kubeContainerFilters.add(containerFilter);

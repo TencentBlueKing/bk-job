@@ -121,46 +121,51 @@ public class ContainerServiceImpl implements ContainerService {
 
     @Override
     public List<Container> listContainerByContainerFilter(long appId, KubeContainerFilter filter) {
-        long bizId = convertToBizId(appId);
-        List<KubeNodeID> kubeNodeIDS = computeKubeTopoNode(bizId, filter);
-
         ListKubeContainerByTopoReq req = new ListKubeContainerByTopoReq();
+        long bizId = convertToBizId(appId);
         req.setBizId(bizId);
-        if (CollectionUtils.isNotEmpty(kubeNodeIDS)) {
-            req.setNodeIdList(kubeNodeIDS);
-        }
-
-        if (filter.getPodFilter() != null) {
-            KubePodFilter kubePodFilter = filter.getPodFilter();
-
-            PropertyFilterDTO podPropFilter = new PropertyFilterDTO();
-            podPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
-
-            if (CollectionUtils.isNotEmpty(kubePodFilter.getPodNames())) {
-                podPropFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, kubePodFilter.getPodNames()));
-            }
-            if (CollectionUtils.isNotEmpty(kubePodFilter.getLabelSelector())) {
-                ComposeRuleDTO labelsComposeRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
-                kubePodFilter.getLabelSelector().forEach(
-                    labelSelectExpr -> labelsComposeRule.addRule(buildLabelFilterRule(labelSelectExpr)));
-
-                podPropFilter.addRule(BaseRuleDTO.filterObject(PodDTO.Fields.LABELS, labelsComposeRule));
+        if (!filter.isEmptyFilter()) {
+            if (filter.hasKubeNodeFilter()) {
+                List<KubeNodeID> kubeNodeIDS = computeKubeTopoNode(bizId, filter);
+                if (CollectionUtils.isEmpty(kubeNodeIDS)) {
+                    // 如果根据条件查询，没有匹配的容器拓扑节点，无需进一步处理；直接返回空的容器列表
+                    return Collections.emptyList();
+                }
+                req.setNodeIdList(kubeNodeIDS);
             }
 
-            req.setPodFilter(podPropFilter);
-        }
+            if (filter.getPodFilter() != null) {
+                KubePodFilter kubePodFilter = filter.getPodFilter();
 
-        if (filter.getContainerPropFilter() != null) {
-            KubeContainerPropFilter containerPropFilter = filter.getContainerPropFilter();
+                PropertyFilterDTO podPropFilter = new PropertyFilterDTO();
+                podPropFilter.setCondition(RuleConditionEnum.AND.getCondition());
 
-            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
-            if (CollectionUtils.isNotEmpty(containerPropFilter.getContainerNames())) {
-                containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME,
-                    containerPropFilter.getContainerNames()));
+                if (CollectionUtils.isNotEmpty(kubePodFilter.getPodNames())) {
+                    podPropFilter.addRule(BaseRuleDTO.in(PodDTO.Fields.NAME, kubePodFilter.getPodNames()));
+                }
+                if (CollectionUtils.isNotEmpty(kubePodFilter.getLabelSelector())) {
+                    ComposeRuleDTO labelsComposeRule = new ComposeRuleDTO(RuleConditionEnum.AND.getCondition());
+                    kubePodFilter.getLabelSelector().forEach(
+                        labelSelectExpr -> labelsComposeRule.addRule(buildLabelFilterRule(labelSelectExpr)));
+
+                    podPropFilter.addRule(BaseRuleDTO.filterObject(PodDTO.Fields.LABELS, labelsComposeRule));
+                }
+
+                req.setPodFilter(podPropFilter);
             }
 
-            req.setContainerFilter(containerFilter);
+            if (filter.getContainerPropFilter() != null) {
+                KubeContainerPropFilter containerPropFilter = filter.getContainerPropFilter();
+
+                PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+                containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+                if (CollectionUtils.isNotEmpty(containerPropFilter.getContainerNames())) {
+                    containerFilter.addRule(BaseRuleDTO.in(ContainerDTO.Fields.NAME,
+                        containerPropFilter.getContainerNames()));
+                }
+
+                req.setContainerFilter(containerFilter);
+            }
         }
 
         List<ContainerDetailDTO> containerDetailList = cmdbClient.listKubeContainerByTopo(req);
@@ -222,7 +227,7 @@ public class ContainerServiceImpl implements ContainerService {
         } else if (filter.getClusterFilter() != null) {
             kubeNodes = computeKubeClusterTopoNodes(bizId, filter.getClusterFilter());
         } else {
-            kubeNodes = Collections.emptyList();
+            throw new IllegalStateException("Invalid KubeContainerFilter for compute kube topo node");
         }
         return kubeNodes;
     }
