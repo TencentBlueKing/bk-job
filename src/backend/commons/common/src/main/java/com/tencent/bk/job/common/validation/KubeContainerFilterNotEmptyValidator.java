@@ -34,11 +34,12 @@ public class KubeContainerFilterNotEmptyValidator
 
     @Override
     public boolean isValid(OpenApiKubeContainerFilterDTO value, ConstraintValidatorContext context) {
-        return value.getClusterFilter() != null
-            || value.getNamespaceFilter() != null
-            || value.getWorkloadFilter() != null
-            || value.getPodFilter() != null
-            || value.getContainerPropFilter() != null;
+        return value.isEmptyFilter() ||
+            (value.getClusterFilter() != null
+                || value.getNamespaceFilter() != null
+                || value.getWorkloadFilter() != null
+                || value.getPodFilter() != null
+                || value.getContainerPropFilter() != null);
     }
 
     @Override
