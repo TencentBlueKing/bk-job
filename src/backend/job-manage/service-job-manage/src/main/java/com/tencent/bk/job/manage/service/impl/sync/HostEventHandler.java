@@ -60,7 +60,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                      HostService hostService,
                      @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                         AgentStateClient agentStateClient) {
+                     AgentStateClient agentStateClient) {
         super(queue, tracer, cmdbEventSampler);
         this.hostService = hostService;
         this.agentStateClient = agentStateClient;
@@ -110,7 +110,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                     break;
                 }
                 // 尝试设置Agent状态
-                tryToUpdateAgentStatus(hostInfoDTO);
+                Integer agentStatus = tryToUpdateAgentStatus(hostInfoDTO);
                 // 更新DB与缓存中的主机数据
                 Pair<Boolean, Integer> pair = hostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
                 int affectedNum = pair.getRight();
@@ -125,6 +125,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                     );
                     if (CollectionUtils.isNotEmpty(hostList)) {
                         hostInfoDTO = hostList.get(0);
+                        hostInfoDTO.setGseAgentStatus(agentStatus);
                         affectedNum = hostService.updateHostAttrsByHostId(hostInfoDTO);
                         log.info("update host attrs:{}, affectedNum={}", hostInfoDTO, affectedNum);
                     } else {
@@ -148,7 +149,13 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
         }
     }
 
-    private void tryToUpdateAgentStatus(ApplicationHostDTO hostInfoDTO) {
+    /**
+     * 尝试更新主机的Agent状态
+     *
+     * @param hostInfoDTO 主机信息
+     * @return 最终主机的Agent状态
+     */
+    private Integer tryToUpdateAgentStatus(ApplicationHostDTO hostInfoDTO) {
         try {
             AgentState agentState = agentStateClient.getAgentState(HostAgentStateQuery.from(hostInfoDTO));
             if (agentState != null) {
@@ -161,6 +168,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
             );
             log.warn(msg.getMessage(), e);
         }
+        return hostInfoDTO.getGseAgentStatus();
     }
 
 }
