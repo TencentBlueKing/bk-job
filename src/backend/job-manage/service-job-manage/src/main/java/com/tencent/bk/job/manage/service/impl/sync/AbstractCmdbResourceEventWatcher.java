@@ -26,8 +26,9 @@ package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -89,19 +90,17 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     @Override
     public final void run() {
         log.info("Watching {} event start", this.watcherResourceName);
-        RedisKeyHeartBeatThread redisKeyHeartBeatThread = null;
+        LockResult lockResult = null;
         while (true) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                boolean lockGotten = tryGetTaskLockPeriodically();
-                if (!lockGotten) {
+                HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
+                lockResult = redisLock.lock();
+                if (!lockResult.isLockGotten()) {
                     // 30s之后重试
                     ThreadUtils.sleep(30_000);
                     continue;
                 }
-
-                // 获取任务锁之后通过心跳线程维持锁的占有
-                redisKeyHeartBeatThread = startRedisKeyHeartBeatThread();
 
                 // 事件处理前的初始化
                 tryToInitBeforeWatch();
@@ -113,50 +112,14 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 span.error(t);
             } finally {
                 span.end();
-                if (redisKeyHeartBeatThread != null) {
-                    redisKeyHeartBeatThread.stopAtOnce();
+                if (lockResult != null) {
+                    lockResult.tryToRelease();
                 }
                 LockUtils.releaseDistributedLock(redisLockKey, machineIp);
                 // 过5s后重新尝试监听事件
                 ThreadUtils.sleep(5000);
             }
         }
-    }
-
-    private boolean tryGetTaskLockPeriodically() {
-        boolean lockGotten = false;
-        try {
-            lockGotten = LockUtils.tryGetReentrantLock(redisLockKey, machineIp, 5_000);
-            if (!lockGotten) {
-                String runningMachine =
-                    redisTemplate.opsForValue().get(redisLockKey);
-                log.info(
-                    "Get lock {} fail, {} watch thread already running on {}",
-                    this.redisLockKey,
-                    this.watcherResourceName,
-                    runningMachine
-                );
-                return false;
-            }
-            lockGotten = true;
-        } catch (Throwable t) {
-            log.error("Get lock caught exception", t);
-        }
-        return lockGotten;
-    }
-
-    private RedisKeyHeartBeatThread startRedisKeyHeartBeatThread() {
-        // 开一个心跳子线程，维护当前机器正在WatchResource的状态
-        RedisKeyHeartBeatThread redisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-            redisTemplate,
-            redisLockKey,
-            machineIp,
-            5_000L,
-            2_000L
-        );
-        redisKeyHeartBeatThread.setName("[" + watcherResourceName + "]-redisKeyHeartBeatThread");
-        redisKeyHeartBeatThread.start();
-        return redisKeyHeartBeatThread;
     }
 
     private void watchAndHandleEvent() {
