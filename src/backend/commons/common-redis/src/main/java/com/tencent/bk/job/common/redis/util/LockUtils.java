@@ -72,8 +72,16 @@ public class LockUtils {
      * @return 是否获取成功
      */
     public static boolean tryGetDistributedLock(String lockKey, String requestId, long expireTimeMillis) {
-        Boolean result = redisTemplate.opsForValue().setIfAbsent(LOCK_KEY_PREFIX + lockKey, requestId, expireTimeMillis,
-            TimeUnit.MILLISECONDS);
+        String realKey = LOCK_KEY_PREFIX + lockKey;
+        Boolean result = redisTemplate.opsForValue()
+            .setIfAbsent(realKey, requestId, expireTimeMillis, TimeUnit.MILLISECONDS);
+        log.debug(
+            "set redis key {} to {}, expireTimeMillis={}, result={}",
+            realKey,
+            requestId,
+            expireTimeMillis,
+            result
+        );
         if (result != null) {
             return result;
         } else {

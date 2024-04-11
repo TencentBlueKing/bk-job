@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.redis.util;
 
 
 import com.tencent.bk.job.common.util.ThreadUtils;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -34,14 +35,18 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisKeyHeartBeatThread extends Thread {
     private final RedisTemplate<String, String> redisTemplate;
+    @Setter
     private volatile boolean runFlag;
     private final String redisKey;
     private final String redisValue;
     private final Long expireTimeMillis;
     private final Long periodMillis;
 
-    public RedisKeyHeartBeatThread(RedisTemplate<String, String> redisTemplate, String redisKey, String redisValue,
-                                   Long expireTimeMillis, Long periodMillis) {
+    public RedisKeyHeartBeatThread(RedisTemplate<String, String> redisTemplate,
+                                   String redisKey,
+                                   String redisValue,
+                                   Long expireTimeMillis,
+                                   Long periodMillis) {
         this.redisTemplate = redisTemplate;
         this.redisKey = redisKey;
         this.redisValue = redisValue;
@@ -52,12 +57,9 @@ public class RedisKeyHeartBeatThread extends Thread {
 
     public void stopAtOnce() {
         setRunFlag(false);
-        redisTemplate.delete(redisKey);
+        Boolean result = redisTemplate.delete(redisKey);
+        log.debug("stopAtOnce, delete redis key:{}, result={}", redisKey, result);
         interrupt();
-    }
-
-    public void setRunFlag(boolean runFlag) {
-        this.runFlag = runFlag;
     }
 
     @Override
@@ -76,7 +78,8 @@ public class RedisKeyHeartBeatThread extends Thread {
 
     private void deleteRedisKeySafely() {
         try {
-            redisTemplate.delete(redisKey);
+            Boolean result = redisTemplate.delete(redisKey);
+            log.debug("delete redis key:{}, result={}", redisKey, result);
         } catch (Throwable e) {
             log.error("Delete redis key fail", e);
         }
