@@ -36,6 +36,7 @@ import TaskPlanService from '@service/task-plan';
 import { getURLSearchParams } from '@utils/assist';
 import { scopeCache } from '@utils/cache-helper';
 import EntryTask from '@utils/entry-task';
+import { subEnv } from '@blueking/sub-saas'
 
 import App from '@/App';
 import i18n from '@/i18n';
@@ -110,7 +111,7 @@ const entryTask = new EntryTask();
  * 通过浏览器直接访问：App
  * 通过 iframe 访问任务详情：IframeApp
  */
-let EntryApp = App;
+let EntryApp = subEnv ? IframeApp : App;
 
 /**
  * @desc 解析路由 scopeType、scopeId

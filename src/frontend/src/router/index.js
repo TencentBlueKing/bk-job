@@ -28,6 +28,7 @@ import Vue, {
   customRef,
 } from 'vue';
 import VueRouter from 'vue-router';
+import { rootPath, connectToMain } from '@blueking/sub-saas'
 
 import {
   leaveConfirm,
@@ -103,7 +104,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   // 生成路由配置
   const routes = [
     {
-      path: '/',
+      path: rootPath,
       component: Entry,
       redirect: {
         name: 'home',
@@ -111,7 +112,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       children: systemManageRoute,
     },
     {
-      path: noScope ? '/' : `/${scopeType}/${scopeId}`,
+      path: noScope ? rootPath : `${rootPath}${scopeType}/${scopeId}`,
       component: Entry,
       redirect: {
         name: 'home',
@@ -236,30 +237,32 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     }
   });
 
-  router.afterEach(() => {
-    history.pushState(null, null, document.URL);
-    const callback = () => {
-      leaveConfirm()
-        .then(() => {
-          window.removeEventListener('popstate', callback);
-          window.history.go(-2);
-        })
-        .catch(() => {
-          history.pushState(null, null, document.URL);
-        });
-    };
-    window.addEventListener('popstate', callback);
+  connectToMain(router)
 
-    const currentRoute = _.last(router.currentRoute.matched);
-    if (currentRoute && currentRoute.instances.default) {
-      const routerDefault = currentRoute.instances.default;
-      setTimeout(() => {
-        routerDefault.$once('hook:beforeDestroy', () => {
-          window.removeEventListener('popstate', callback);
-        });
-      });
-    }
-  });
+  // router.afterEach(() => {
+  //   history.pushState(null, null, document.URL);
+  //   const callback = () => {
+  //     leaveConfirm()
+  //       .then(() => {
+  //         window.removeEventListener('popstate', callback);
+  //         window.history.go(-2);
+  //       })
+  //       .catch(() => {
+  //         history.pushState(null, null, document.URL);
+  //       });
+  //   };
+  //   window.addEventListener('popstate', callback);
+
+  //   const currentRoute = _.last(router.currentRoute.matched);
+  //   if (currentRoute && currentRoute.instances.default) {
+  //     const routerDefault = currentRoute.instances.default;
+  //     setTimeout(() => {
+  //       routerDefault.$once('hook:beforeDestroy', () => {
+  //         window.removeEventListener('popstate', callback);
+  //       });
+  //     });
+  //   }
+  // });
   return router;
 };
 
