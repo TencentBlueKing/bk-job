@@ -68,6 +68,10 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
     private static final String URI_GET_EXECUTE_SCRIPT_RESULT = "/api/v2/task/extensions/get_execute_script_result";
     private static final String URI_ASYNC_TRANSFER_FILE = "/api/v2/task/extensions/async_transfer_file";
     private static final String URI_GET_TRANSFER_FILE_RESULT = "/api/v2/task/extensions/get_transfer_file_result";
+    private static final String URI_ASYNC_TERMINATE_TRANSFER_FILE =
+        "/api/v2/task/extensions/async_terminate_transfer_file";
+    private static final String URI_ASYNC_TERMINATE_EXECUTE_SCRIPT =
+        "/api/v2/task/extensions/async_terminate_execute_script";
     private final BkApiAuthorization gseBkApiAuthorization;
 
     public GseV2ApiClient(MeterRegistry meterRegistry,
@@ -215,7 +219,7 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
     @Override
     public GseTaskResponse terminateGseFileTask(TerminateGseTaskRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            requestGseApi("/api/v2/task/async_terminate_transfer_file",
+            requestGseApi(URI_ASYNC_TERMINATE_TRANSFER_FILE,
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
@@ -227,7 +231,7 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
     @Override
     public GseTaskResponse terminateGseScriptTask(TerminateGseTaskRequest request) {
         EsbResp<AsyncGseTaskResult> resp =
-            requestGseApi("/api/v2/task/async_terminate_execute_script",
+            requestGseApi(URI_ASYNC_TERMINATE_EXECUTE_SCRIPT,
                 request,
                 new TypeReference<EsbResp<AsyncGseTaskResult>>() {
                 },
