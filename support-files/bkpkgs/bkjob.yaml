@@ -15,8 +15,8 @@ relations:
 - rationale: "支持hostid"
   requires:
   - "bk-cmdb^3.10.10"
-- rationale: "命令及文件传输网络"
-  description: "GSE v2，只有v2才支持IPv6。"
+- rationale: "脚本执行及文件分发管道"
+  description: "GSE v2"
   requires:
-  - "bk-gse^2.0.0"
+  - "bk-gse^2.1.6"
 bkimports:
