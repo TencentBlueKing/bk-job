@@ -593,10 +593,40 @@ Return the Job Storage Env Content
 {{- end -}}
 
 {{/*
+Return the Job Config Env Content
+*/}}
+{{- define "job.config.env" -}}
+- name: BK_JOB_PROFILE
+  value: {{ include "job.profile" . }}
+- name: JOB_COMMON_CONFIGMAP_NAME
+  value: {{ include "common.names.fullname" . }}-common
+- name: spring_cloud_kubernetes_secrets_paths
+  value: /etc/secrets
+{{- end -}}
+
+{{/*
+Return the Job Deploy Env Content
+*/}}
+{{- define "job.deploy.env" -}}
+- name: KUBERNETES_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+- name: BK_JOB_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: BK_JOB_RELEASE_NAME
+  value: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
 Return the Job Common Env Content
 */}}
 {{- define "job.common.env" -}}
 {{ include "job.storage.env" . }}
+{{ include "job.config.env" . }}
+{{ include "job.deploy.env" . }}
 {{- end -}}
 
 {{/*

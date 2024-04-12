@@ -73,26 +73,12 @@ spec:
               value: "job-logsvr"
             - name: BK_JOB_JVM_OPTION
               value: {{ .Values.logsvrConfig.jvmOptions | quote }}
-            - name: BK_JOB_PROFILE
-              value: {{ include "job.profile" . }}
             - name: BK_JOB_JAR
               value: job-logsvr.jar
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-logsvr
-            - name: JOB_COMMON_CONFIGMAP_NAME
-              value: {{ include "common.names.fullname" . }}-common
             - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-common-refreshable
-            - name: spring_cloud_kubernetes_secrets_paths
-              value: /etc/secrets
-            - name: KUBERNETES_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: BK_JOB_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
           ports:
             - name: http
               containerPort: {{ .Values.logsvrConfig.containerPort }}

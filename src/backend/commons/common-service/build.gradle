@@ -24,6 +24,7 @@
 dependencies {
     api project(':commons:common')
     api project(':commons:common-log')
+    api project(':commons:common-task')
     api project(':commons:common-security')
     api project(':commons:common-otel')
     api 'org.hibernate.validator:hibernate-validator'
