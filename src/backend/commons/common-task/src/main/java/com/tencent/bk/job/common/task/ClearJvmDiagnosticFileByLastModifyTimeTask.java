@@ -93,7 +93,7 @@ public class ClearJvmDiagnosticFileByLastModifyTimeTask {
             releaseName,
             jvmDiagnosticFileDirPath
         );
-        Date thresholdDate = new Date(System.currentTimeMillis() - keepHours * 3600 * 1000);
+        Date thresholdDate = new Date(System.currentTimeMillis() - keepHours * 3600L * 1000L);
         Iterator<File> fileIterator = FileUtils.iterateFiles(
             new File(jvmDiagnosticFileDirPath),
             new AgeFileFilter(thresholdDate),
