@@ -162,3 +162,10 @@ data:
         enabled: {{ .Values.log.clearByVolumeUsage.enabled }}
         # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
         max-volume: {{ .Values.log.clearByVolumeUsage.maxVolume }}
+    jvm-diagnostic-file:
+      # 根据最后修改时间清理
+      clear-by-last-modify-time:
+        # 是否开启自动清理任务，默认开启
+        enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
+        # JVM诊断文件保留的小时数，默认168小时（7天）
+        keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}

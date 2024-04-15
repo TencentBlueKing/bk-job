@@ -22,23 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":commons:common-log")
-    api project(":commons:common-task")
-    api project(":commons:common-i18n")
-    api project(":commons:common-otel")
-    api project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    api "org.springframework.boot:spring-boot-starter-web"
-    api "ch.qos.logback:logback-core"
-    api "ch.qos.logback:logback-classic"
-    api "org.slf4j:slf4j-api"
-    api "org.apache.commons:commons-collections4"
-    api 'org.apache.httpcomponents:httpclient'
-    api group: 'org.apache.thrift', name: 'libthrift'
-    api "commons-io:commons-io"
-    api "commons-codec:commons-codec"
-    api 'io.springfox:springfox-boot-starter'
-    api 'net.coobird:thumbnailator:0.4.14'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.apache.commons:commons-lang3'
+package com.tencent.bk.job.common.task.config;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * JVM诊断文件留存相关配置
+ */
+@ConfigurationProperties(prefix = "jvm-diagnostic-file.clear-by-last-modify-time")
+@Getter
+@Setter
+public class JvmDiagnosticFileClearByLastModifyTimeProperties {
+
+    /**
+     * 是否开启自动清理任务，默认开启
+     */
+    private boolean enabled = true;
+
+    /**
+     * JVM诊断文件保留的小时数，默认168小时（7天）
+     */
+    private Integer keepHours = 168;
 }
