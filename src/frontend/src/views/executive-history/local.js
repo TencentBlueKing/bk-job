@@ -231,5 +231,6 @@ export default {
     容器名称: 'Container name',
     '容器 ID': 'Container ID',
     '所属 Pod 名称': 'Pod name',
+    没有可复制的容器名称: 'Container name not found',
   },
 };
