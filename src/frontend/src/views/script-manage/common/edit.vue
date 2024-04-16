@@ -79,7 +79,8 @@
           :height="contentHeight"
           :lang="formData.typeName"
           :options="formData.typeName"
-          :readonly="!scriptInfo.isDraft" />
+          :readonly="!scriptInfo.isDraft"
+          :tips="$t('请注意！脚本输出的内容大小上限为5M，超过可能导致日志被丢弃。')" />
       </jb-form>
     </div>
     <template #footer>

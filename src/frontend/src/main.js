@@ -36,7 +36,8 @@ import TaskPlanService from '@service/task-plan';
 import { getURLSearchParams } from '@utils/assist';
 import { scopeCache } from '@utils/cache-helper';
 import EntryTask from '@utils/entry-task';
-import { subEnv } from '@blueking/sub-saas'
+
+import { subEnv } from '@blueking/sub-saas';
 
 import App from '@/App';
 import i18n from '@/i18n';

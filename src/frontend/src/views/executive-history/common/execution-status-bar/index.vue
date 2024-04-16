@@ -170,7 +170,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 500px;
+      min-width: 500px;
       transform: translateX(-50%);
     }
 

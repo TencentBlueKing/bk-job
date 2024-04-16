@@ -38,15 +38,26 @@
       :style="boxStyle">
       <div
         v-if="showTabHeader"
-        class="jb-ace-title"
-        :style="{ height: `${tabHeight}px` }">
+        class="jb-ace-header">
         <div
-          v-for="(val, key) in tabList"
-          :key="val"
-          class="jb-ace-mode-item"
-          :class="{ 'active': currentLang === key }"
-          @click="handleLangChange(key)">
-          {{ key }}
+          class="jb-ace-title"
+          :style="{ height: `${tabHeight}px` }">
+          <div
+            v-for="(val, key) in tabList"
+            :key="val"
+            class="jb-ace-mode-item"
+            :class="{ 'active': currentLang === key }"
+            @click="handleLangChange(key)">
+            {{ key }}
+          </div>
+        </div>
+        <div
+          v-if="tips"
+          class="jb-ace-tips">
+          <icon
+            style="margin-right: 4px;"
+            type="info" />
+          {{ tips }}
         </div>
       </div>
       <div class="jb-ace-main">
@@ -250,6 +261,9 @@
       beforeLangChange: {
         type: Function,
         default: () => Promise.resolve(),
+      },
+      tips: {
+        type: String,
       },
     },
     data() {
@@ -850,13 +864,18 @@
     }
   }
 
-  .jb-ace-title {
+  .jb-ace-header{
     display: flex;
     font-size: 14px;
     color: #fff;
     background: #202024;
+  }
+
+  .jb-ace-title {
+    display: flex;
 
     .jb-ace-mode-item {
+      position: relative;
       display: flex;
       padding: 0 22px;
       color: #979ba5;
@@ -869,8 +888,29 @@
         color: #fff;
         background: #313238;
         border-top: 2px solid #3a84ff;
+
+        &::after{
+          content: none;
+        }
+      }
+
+      &::after{
+        position: absolute;
+        right: -1px;
+        width: 1px;
+        height: 20px;
+        background: #45464D;
+        content: '';
       }
     }
+  }
+
+  .jb-ace-tips{
+    display: flex;
+    align-items: center;
+    padding-left: 18px;
+    font-size: 12px;
+    color: #979BA5;
   }
 
   .jb-ace-main {

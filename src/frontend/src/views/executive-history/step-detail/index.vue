@@ -147,7 +147,7 @@
         <icon
           style="margin-right: 4px; color: #C4C6CC;"
           type="circle-back-filled" />
-        {{ $t('去重做') }}
+        {{ $t('history.去重做') }}
       </div>
     </execution-status-bar>
   </div>
@@ -408,6 +408,7 @@
         this.isTask = payload.isTask;
         this.taskStepList = Object.freeze(payload.taskStepList);
         this.taskExecution = payload.taskExecution;
+
         appendURLParams({
           executeCount: payload.executeCount,
           stepInstanceId: payload.stepInstanceId,
