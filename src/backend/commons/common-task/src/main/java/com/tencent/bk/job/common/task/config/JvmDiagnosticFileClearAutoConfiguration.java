@@ -22,23 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":commons:common-log")
-    api project(":commons:common-task")
-    api project(":commons:common-i18n")
-    api project(":commons:common-otel")
-    api project(":job-file-worker-sdk:api-job-file-worker-sdk")
-    api "org.springframework.boot:spring-boot-starter-web"
-    api "ch.qos.logback:logback-core"
-    api "ch.qos.logback:logback-classic"
-    api "org.slf4j:slf4j-api"
-    api "org.apache.commons:commons-collections4"
-    api 'org.apache.httpcomponents:httpclient'
-    api group: 'org.apache.thrift', name: 'libthrift'
-    api "commons-io:commons-io"
-    api "commons-codec:commons-codec"
-    api 'io.springfox:springfox-boot-starter'
-    api 'net.coobird:thumbnailator:0.4.14'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.apache.commons:commons-lang3'
+package com.tencent.bk.job.common.task.config;
+
+import com.tencent.bk.job.common.task.JvmDiagnosticFileClearScheduledTasks;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(
+    name = "jvm-diagnostic-file.clear-by-last-modify-time.enabled",
+    havingValue = "true",
+    matchIfMissing = true)
+@EnableConfigurationProperties(JvmDiagnosticFileClearByLastModifyTimeProperties.class)
+public class JvmDiagnosticFileClearAutoConfiguration {
+
+    @Bean
+    public JvmDiagnosticFileClearScheduledTasks jvmDiagnosticFileClearScheduledTasks(
+        JvmDiagnosticFileClearByLastModifyTimeProperties jvmDiagnosticFileClearByLastModifyTimeProperties
+    ) {
+        return new JvmDiagnosticFileClearScheduledTasks(jvmDiagnosticFileClearByLastModifyTimeProperties);
+    }
 }

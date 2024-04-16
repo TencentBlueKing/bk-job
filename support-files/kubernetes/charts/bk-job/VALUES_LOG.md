@@ -16,6 +16,20 @@ job:
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 ```
 
+## 0.5.8
+1. 增加JVM诊断文件留存配置
+
+```yaml
+# JVM诊断文件留存配置
+jvmDiagnosticFile:
+  # 根据最后修改时间清理
+  clearByLastModifyTime:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # JVM诊断文件保留的小时数，默认168小时（7天）
+    keepHours: 168
+```
+
 ## 0.5.7
 1. 增加日志留存配置
 

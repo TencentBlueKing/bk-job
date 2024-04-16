@@ -40,13 +40,13 @@ public class EnvironmentService implements ApplicationContextAware {
     }
 
     private String getAccessHostInK8s() {
-        String podName = System.getenv("BK_JOB_FILE_WORKER_POD_NAME");
+        String podName = System.getenv("BK_JOB_POD_NAME");
         if (StringUtils.isBlank(podName)) {
-            String message = "ENV BK_JOB_FILE_WORKER_POD_NAME cannot be blank!";
+            String message = "ENV BK_JOB_POD_NAME cannot be blank!";
             throw new IncorrectConfigException(
                 message,
                 ErrorCode.INVALID_CONFIG,
-                new String[]{"ENV:BK_JOB_FILE_WORKER_POD_NAME"}
+                new String[]{"ENV:BK_JOB_POD_NAME"}
             );
         }
         String fileWorkerServiceName = System.getenv("BK_JOB_FILE_WORKER_SERVICE_NAME");
