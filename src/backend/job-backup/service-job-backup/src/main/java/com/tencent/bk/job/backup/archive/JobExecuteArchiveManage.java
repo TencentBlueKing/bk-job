@@ -308,227 +308,227 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
             log.info("Archive task execute completed.");
         }
-    }
 
-    private void addTaskInstanceArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new TaskInstanceArchivist(
-                taskInstanceRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveTaskInstanceId,
-                countDownLatch
-            ).archive());
-    }
+        private void addTaskInstanceArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new TaskInstanceArchivist(
+                    taskInstanceRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveTaskInstanceId,
+                    countDownLatch
+                ).archive());
+        }
 
-    private void addStepInstanceArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceArchivist(
-                stepInstanceRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceArchivist(
+                    stepInstanceRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addStepInstanceConfirmArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceConfirmArchivist(
-                stepInstanceConfirmRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceConfirmArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceConfirmArchivist(
+                    stepInstanceConfirmRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addStepInstanceFileArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceFileArchivist(
-                stepInstanceFileRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceFileArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceFileArchivist(
+                    stepInstanceFileRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addStepInstanceScriptArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceScriptArchivist(
-                stepInstanceScriptRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceScriptArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceScriptArchivist(
+                    stepInstanceScriptRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addFileSourceTaskLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new FileSourceTaskLogArchivist(
-                fileSourceTaskLogRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addFileSourceTaskLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new FileSourceTaskLogArchivist(
+                    fileSourceTaskLogRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addGseTaskLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new GseTaskLogArchivist(
-                gseTaskLogRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addGseTaskLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new GseTaskLogArchivist(
+                    gseTaskLogRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addGseTaskIpLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new GseTaskIpLogArchivist(
-                gseTaskIpLogRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addGseTaskIpLogArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new GseTaskIpLogArchivist(
+                    gseTaskIpLogRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addTaskInstanceVariableArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new TaskInstanceVariableArchivist(
-                taskInstanceVariableRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveTaskInstanceId,
-                countDownLatch
-            ).archive());
-    }
+        private void addTaskInstanceVariableArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new TaskInstanceVariableArchivist(
+                    taskInstanceVariableRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveTaskInstanceId,
+                    countDownLatch
+                ).archive());
+        }
 
-    private void addStepInstanceVariableArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceVariableArchivist(
-                stepInstanceVariableRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceVariableArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceVariableArchivist(
+                    stepInstanceVariableRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addOperationLogArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new OperationLogArchivist(
-                operationLogRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveTaskInstanceId,
-                countDownLatch
-            ).archive());
-    }
+        private void addOperationLogArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new OperationLogArchivist(
+                    operationLogRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveTaskInstanceId,
+                    countDownLatch
+                ).archive());
+        }
 
-    private void addGseTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new GseTaskArchivist(
-                gseTaskRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addGseTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new GseTaskArchivist(
+                    gseTaskRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addGseScriptAgentTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new GseScriptAgentTaskArchivist(
-                gseScriptAgentTaskRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addGseScriptAgentTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new GseScriptAgentTaskArchivist(
+                    gseScriptAgentTaskRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addGseFileAgentTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new GseFileAgentTaskArchivist(
-                gseFileAgentTaskRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addGseFileAgentTaskArchiveTask(Long maxNeedArchiveStepInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new GseFileAgentTaskArchivist(
+                    gseFileAgentTaskRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addStepInstanceRollingTaskArchiveTask(Long maxNeedArchiveStepInstanceId,
-                                                       CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new StepInstanceRollingTaskArchivist(
-                stepInstanceRollingTaskRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveStepInstanceId,
-                countDownLatch)
-                .archive());
-    }
+        private void addStepInstanceRollingTaskArchiveTask(Long maxNeedArchiveStepInstanceId,
+                                                           CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new StepInstanceRollingTaskArchivist(
+                    stepInstanceRollingTaskRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveStepInstanceId,
+                    countDownLatch)
+                    .archive());
+        }
 
-    private void addRollingConfigArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new RollingConfigArchivist(
-                rollingConfigRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveTaskInstanceId,
-                countDownLatch
-            ).archive());
-    }
+        private void addRollingConfigArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new RollingConfigArchivist(
+                    rollingConfigRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveTaskInstanceId,
+                    countDownLatch
+                ).archive());
+        }
 
-    private void addTaskInstanceHostArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
-        archiveExecutor.execute(() ->
-            new TaskInstanceHostArchivist(
-                taskInstanceHostRecordDAO,
-                executeArchiveDAO,
-                archiveProgressService,
-                archiveDBProperties,
-                archiveTaskLock,
-                maxNeedArchiveTaskInstanceId,
-                countDownLatch
-            ).archive());
+        private void addTaskInstanceHostArchiveTask(Long maxNeedArchiveTaskInstanceId, CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new TaskInstanceHostArchivist(
+                    taskInstanceHostRecordDAO,
+                    executeArchiveDAO,
+                    archiveProgressService,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    maxNeedArchiveTaskInstanceId,
+                    countDownLatch
+                ).archive());
+        }
     }
 }

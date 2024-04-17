@@ -271,11 +271,13 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         List<T> records;
         do {
             // 选取start<recordId<=stop的数据
+            long readStartTime = System.currentTimeMillis();
             records = listRecord(startId, stop, offset, (long) readRowLimit);
             readRows += records.size();
+            long readCostTime = System.currentTimeMillis() - readStartTime;
             log.info(
-                "Read {}({}-{}) rows from {}, start={}, stop={}",
-                records.size(), offset, offset + readRowLimit, tableName, startId, stop
+                "Read {}({}-{}) rows from {}, start={}, stop={}, cost={} ms",
+                records.size(), offset, offset + readRowLimit, tableName, startId, stop, readCostTime
             );
 
             if (CollectionUtils.isNotEmpty(records)) {
@@ -283,7 +285,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             }
 
             if (recordList.size() >= batchInsertRowSize) {
-                int insertRows = insertAndReset(stop, recordList);
+                int insertRows = insertAndReset(recordList);
                 backupRows += insertRows;
             }
             offset += readRowLimit;
@@ -292,16 +294,11 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
         if (CollectionUtils.isNotEmpty(recordList)) {
             // 处理没有达到批量插入阈值的最后一个批次的数据
-            int insertRows = insertAndReset(stop, recordList);
+            int insertRows = insertAndReset(recordList);
             backupRows += insertRows;
         }
 
         updateBackupProgress(stop);
-
-        if (readRows != backupRows) {
-            log.warn("Backup rows are unexpected, table: {}, expected: {}, actual: {}", tableName, readRows,
-                backupRows);
-        }
 
         return Pair.of(readRows, backupRows);
     }
@@ -371,20 +368,21 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         return deleteCount;
     }
 
-    private int insertAndReset(long lastArchivedInstanceId, List<T> recordList) throws IOException {
+    private int insertAndReset(List<T> recordList) throws IOException {
         if (CollectionUtils.isEmpty(recordList)) {
             return 0;
         }
+        long startTime = System.currentTimeMillis();
         int recordSize = recordList.size();
         int insertRows = batchInsert(recordList);
         recordList.clear();
-        boolean insertError = false;
         if (insertRows != recordSize) {
-            insertError = true;
+            throw new ArchiveException(String.format("Insert rows not expected, expect: %s, actual: %s",
+                recordSize, insertRows));
         }
-        log.info("Batch insert {}, lastArchivedInstanceId: {}, maxBatchSize: {}, insertError: {}, expected insert " +
-                "rows: {}, actual insert rows: {}",
-            tableName, lastArchivedInstanceId, batchInsertRowSize, insertError, recordSize, insertRows);
+        long costTime = System.currentTimeMillis() - startTime;
+        log.info("Batch insert {}, maxBatchSize: {}, insert rows: {}, cost: {}",
+            tableName, batchInsertRowSize, insertRows, costTime);
         return insertRows;
     }
 

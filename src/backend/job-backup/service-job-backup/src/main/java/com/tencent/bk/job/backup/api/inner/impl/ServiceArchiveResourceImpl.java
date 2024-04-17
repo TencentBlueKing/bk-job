@@ -31,6 +31,7 @@ import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.model.InternalResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
+@Profile("dev")
 public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
 
     private final JobExecuteArchiveManage jobExecuteArchiveManage;
@@ -47,7 +49,7 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     }
 
     @Override
-    public InternalResponse<ArchiveDBProperties> archive(ServiceArchiveDBRequest request) {
+    public InternalResponse<?> archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
         ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
         archiveDBProperties.setEnabled(true);
