@@ -33,6 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @Slf4j
 public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
@@ -44,14 +47,33 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     }
 
     @Override
-    public InternalResponse archive(ServiceArchiveDBRequest request) {
+    public InternalResponse<ArchiveDBProperties> archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
         ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
-        archiveDBProperties.setEnabled(request.isArchiveEnabled());
-        archiveDBProperties.setKeepDays(request.getDataKeepDays());
+        archiveDBProperties.setEnabled(true);
+        archiveDBProperties.setKeepDays(request.getKeepDays());
         archiveDBProperties.setMode(request.getMode());
+        archiveDBProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
+        archiveDBProperties.setDeleteLimitRowCount(request.getDeleteLimitRowCount());
+        archiveDBProperties.setReadIdStepSize(request.getReadIdStepSize());
+        archiveDBProperties.setReadRowLimit(request.getReadRowLimit());
+
+        if (request.getTableConfigs() != null) {
+            Map<String, ArchiveDBProperties.TableConfig> tableConfigMap = new HashMap<>();
+
+            request.getTableConfigs().forEach((table, config) -> {
+                ArchiveDBProperties.TableConfig tableConfig = new ArchiveDBProperties.TableConfig();
+                tableConfig.setBatchInsertRowSize(config.getBatchInsertRowSize());
+                tableConfig.setDeleteLimitRowCount(config.getDeleteLimitRowCount());
+                tableConfig.setReadIdStepSize(config.getReadIdStepSize());
+                tableConfig.setReadRowLimit(config.getReadRowLimit());
+                tableConfigMap.put(table, tableConfig);
+            });
+
+            archiveDBProperties.setTableConfigs(tableConfigMap);
+        }
 
         jobExecuteArchiveManage.archive(archiveDBProperties);
-        return InternalResponse.buildSuccessResp(null);
+        return InternalResponse.buildSuccessResp(archiveDBProperties);
     }
 }

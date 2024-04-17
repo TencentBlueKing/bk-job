@@ -25,10 +25,13 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.Map;
 
 @Getter
 @Setter
@@ -66,5 +69,41 @@ public class ArchiveDBProperties {
      * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
      */
     private int batchInsertRowSize = 1000;
+
+    /**
+     * 每次执行删除的最大行数
+     */
+    private int deleteLimitRowCount = 1000;
+
+    /**
+     * 每批次从 db 表中读取的记录数量
+     */
+    private int readRowLimit = 10000;
+
+    private Map<String, TableConfig> tableConfigs;
+
+    @Data
+    public static class TableConfig {
+        /**
+         * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+         */
+        private Integer readIdStepSize;
+
+        /**
+         * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+         */
+        private Integer batchInsertRowSize;
+
+        /**
+         * 每次执行删除的最大行数
+         */
+        private Integer deleteLimitRowCount;
+
+        /**
+         * 每批次从 db 表中读取的记录数量
+         */
+        private int readRowLimit;
+    }
+
 
 }

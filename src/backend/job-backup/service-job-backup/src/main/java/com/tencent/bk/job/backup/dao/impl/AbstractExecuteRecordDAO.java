@@ -18,10 +18,12 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
 
     protected final DSLContext context;
     protected final ArchiveDBProperties archiveDBProperties;
+    private final int maxLimitedDeleteRows;
 
     public AbstractExecuteRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
         this.context = context;
         this.archiveDBProperties = archiveDBProperties;
+        this.maxLimitedDeleteRows = computeDeleteRowLimit();
     }
 
     @Override
@@ -44,7 +46,6 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
 
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
         int totalDeleteRows = 0;
-        int maxLimitedDeleteRows = 5000;
         while (true) {
             int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
             totalDeleteRows += deletedRows;
@@ -53,6 +54,19 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
             }
         }
         return totalDeleteRows;
+    }
+
+    private int computeDeleteRowLimit() {
+        int maxLimitedDeleteRows = archiveDBProperties.getDeleteLimitRowCount();
+        String tableName = getTable().getName();
+        if (archiveDBProperties.getTableConfigs() != null
+            && archiveDBProperties.getTableConfigs().containsKey(tableName)) {
+            ArchiveDBProperties.TableConfig tableConfig = archiveDBProperties.getTableConfigs().get(tableName);
+            if (tableConfig.getDeleteLimitRowCount() != null) {
+                maxLimitedDeleteRows = tableConfig.getDeleteLimitRowCount();
+            }
+        }
+        return maxLimitedDeleteRows;
     }
 
     private Result<Record> query(Table<?> table, List<Condition> conditions, Long offset, Long limit) {

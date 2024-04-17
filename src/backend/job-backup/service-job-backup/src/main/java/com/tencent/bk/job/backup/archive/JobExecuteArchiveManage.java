@@ -260,7 +260,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             String tableName = executeRecordDAO.getTable().getName().toLowerCase();
             ArchiveProgressDTO archiveProgress =
                 archiveProgressService.queryArchiveProgress(tableName);
-            return archiveProgress != null ? archiveProgress.getLastArchivedId() : 0L;
+            return archiveProgress != null ? archiveProgress.getLastBackupId() : 0L;
         }
 
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)
