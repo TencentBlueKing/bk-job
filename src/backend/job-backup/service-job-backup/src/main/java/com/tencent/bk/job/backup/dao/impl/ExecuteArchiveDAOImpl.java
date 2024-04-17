@@ -53,18 +53,20 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
     @Override
     public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws IOException {
         long start = System.currentTimeMillis();
-        int executeResult = 0;
+        int storedRecords = 0;
         String table = recordList.get(0).getTable().getName();
         boolean success = true;
         try {
             Loader<?> loader =
                 context.loadInto(recordList.get(0).getTable())
-                    .onDuplicateKeyUpdate()
+                    // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
+                    // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
+                    .onDuplicateKeyError()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
                     .fieldsCorresponding()
                     .execute();
-            executeResult = loader.stored();
+            storedRecords = loader.stored();
             log.info("Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
                 loader.executed(), loader.processed(), loader.stored(), loader.ignored(), loader.errors().size());
             if (CollectionUtils.isNotEmpty(loader.errors())) {
@@ -72,6 +74,8 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                     ARCHIVE_FAILED_LOGGER.error("Error while load {} data, error row: {}, exception: {}", table,
                         error.row(), error.exception().getMessage());
                 }
+                // 尝试不使用批量插入功能
+                storedRecords = insertEach(recordList);
             }
         } catch (IOException e) {
             String errorMsg = String.format("Error while batch loading %s data!", table);
@@ -80,9 +84,37 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
             throw e;
         } finally {
             log.info("Batch insert to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
-                recordList.size(), executeResult, System.currentTimeMillis() - start);
+                recordList.size(), storedRecords, System.currentTimeMillis() - start);
         }
 
-        return executeResult;
+        return storedRecords;
+    }
+
+    private int insertEach(List<? extends TableRecord<?>> recordList) throws IOException {
+        log.info("Try insert record one by one");
+        int storedRecords;
+        String table = recordList.get(0).getTable().getName();
+        try {
+            Loader<?> loader =
+                context.loadInto(recordList.get(0).getTable())
+                    .onDuplicateKeyIgnore()
+                    .loadRecords(recordList)
+                    .fieldsCorresponding()
+                    .execute();
+            storedRecords = loader.stored();
+            log.info("InsertEach: Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
+                loader.executed(), loader.processed(), loader.stored(), loader.ignored(), loader.errors().size());
+            if (CollectionUtils.isNotEmpty(loader.errors())) {
+                for (LoaderError error : loader.errors()) {
+                    ARCHIVE_FAILED_LOGGER.error("InsertEach: Error while load {} data, error row: {}, exception: {}",
+                        table, error.row(), error.exception().getMessage());
+                }
+            }
+        } catch (IOException e) {
+            String errorMsg = String.format("Error while single loading %s data!", table);
+            log.error(errorMsg, e);
+            throw e;
+        }
+        return storedRecords;
     }
 }

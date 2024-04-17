@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -17,13 +16,9 @@ import static org.jooq.impl.DSL.min;
 public abstract class AbstractExecuteRecordDAO<T extends Record> implements ExecuteRecordDAO<T> {
 
     protected final DSLContext context;
-    protected final ArchiveDBProperties archiveDBProperties;
-    private final int maxLimitedDeleteRows;
 
-    public AbstractExecuteRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
+    public AbstractExecuteRecordDAO(DSLContext context) {
         this.context = context;
-        this.archiveDBProperties = archiveDBProperties;
-        this.maxLimitedDeleteRows = computeDeleteRowLimit();
     }
 
     @Override
@@ -33,8 +28,8 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     }
 
     @Override
-    public int deleteRecords(Long start, Long end) {
-        return deleteWithLimit(getTable(), buildConditions(start, end));
+    public int deleteRecords(Long start, Long end, long maxLimitedDeleteRows) {
+        return deleteWithLimit(getTable(), buildConditions(start, end), maxLimitedDeleteRows);
     }
 
     private List<Condition> buildConditions(Long start, Long end) {
@@ -44,7 +39,7 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
         return conditions;
     }
 
-    private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions) {
+    private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions, long maxLimitedDeleteRows) {
         int totalDeleteRows = 0;
         while (true) {
             int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
@@ -54,19 +49,6 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
             }
         }
         return totalDeleteRows;
-    }
-
-    private int computeDeleteRowLimit() {
-        int maxLimitedDeleteRows = archiveDBProperties.getDeleteLimitRowCount();
-        String tableName = getTable().getName();
-        if (archiveDBProperties.getTableConfigs() != null
-            && archiveDBProperties.getTableConfigs().containsKey(tableName)) {
-            ArchiveDBProperties.TableConfig tableConfig = archiveDBProperties.getTableConfigs().get(tableName);
-            if (tableConfig.getDeleteLimitRowCount() != null) {
-                maxLimitedDeleteRows = tableConfig.getDeleteLimitRowCount();
-            }
-        }
-        return maxLimitedDeleteRows;
     }
 
     private Result<Record> query(Table<?> table, List<Condition> conditions, Long offset, Long limit) {

@@ -27,9 +27,11 @@ package com.tencent.bk.job.backup.api.inner.impl;
 import com.tencent.bk.job.backup.api.inner.ServiceArchiveResource;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.model.InternalResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,9 +54,13 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     public InternalResponse<?> archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
         ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
+        if (StringUtils.isNotEmpty(request.getMode())) {
+            archiveDBProperties.setMode(request.getMode());
+        } else {
+            archiveDBProperties.setMode(ArchiveModeEnum.BACKUP_THEN_DELETE.getMode());
+        }
         archiveDBProperties.setEnabled(true);
         archiveDBProperties.setKeepDays(request.getKeepDays());
-        archiveDBProperties.setMode(request.getMode());
         archiveDBProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
         archiveDBProperties.setDeleteLimitRowCount(request.getDeleteLimitRowCount());
         archiveDBProperties.setReadIdStepSize(request.getReadIdStepSize());

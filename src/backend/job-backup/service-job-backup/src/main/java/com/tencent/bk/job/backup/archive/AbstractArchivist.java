@@ -94,6 +94,10 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
      * 删除数据ID增加步长
      */
     protected int deleteIdStepSize = 10_000;
+    /**
+     * 每次执行删除的最大行数
+     */
+    protected int deleteLimitRowCount;
     protected String tableName;
     private ArchiveSummary archiveSummary;
     private boolean isAcquireLock;
@@ -118,6 +122,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ArchiveDBProperties.TableConfig::getBatchInsertRowSize);
         this.readRowLimit = computeValuePreferTableConfig(archiveDBProperties.getReadRowLimit(),
             ArchiveDBProperties.TableConfig::getReadRowLimit);
+        this.deleteLimitRowCount = computeValuePreferTableConfig(archiveDBProperties.getDeleteLimitRowCount(),
+            ArchiveDBProperties.TableConfig::getDeleteLimitRowCount);
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
         this.archiveSummary = new ArchiveSummary(this.tableName);
@@ -162,6 +168,10 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             log.info("[{}] Start archive", tableName);
 
             initArchiveIdSettings();
+
+            log.info("[{}] Archive record config, readIdStepSize: {}, readRowLimit: {}, batchInsertRowSize: {}, " +
+                    "deleteLimitRowCount: {}",
+                tableName, readIdStepSize, readRowLimit, batchInsertRowSize, deleteLimitRowCount);
 
             if (minExistedRecordArchiveId == null) {
                 // min 查询返回 null，说明是空表，无需归档
@@ -399,6 +409,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private int deleteRecord(Long start, Long stop) {
-        return executeRecordDAO.deleteRecords(start, stop);
+        return executeRecordDAO.deleteRecords(start, stop, deleteLimitRowCount);
     }
 }
