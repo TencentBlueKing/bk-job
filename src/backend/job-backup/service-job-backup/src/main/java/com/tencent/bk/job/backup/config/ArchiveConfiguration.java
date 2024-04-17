@@ -79,137 +79,120 @@ public class ArchiveConfiguration {
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
-        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
-                                                           ArchiveDBProperties archiveDBProperties) {
+        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init TaskInstanceRecordDAO");
-            return new TaskInstanceRecordDAO(context, archiveDBProperties);
+            return new TaskInstanceRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceRecordDAO")
-        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context,
-                                                           ArchiveDBProperties archiveDBProperties) {
+        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceRecordDAO");
-            return new StepInstanceRecordDAO(context, archiveDBProperties);
+            return new StepInstanceRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceScriptRecordDAO")
         public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceScriptRecordDAO");
-            return new StepInstanceScriptRecordDAO(context, archiveDBProperties);
+            return new StepInstanceScriptRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceFileRecordDAO")
         public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceFileRecordDAO");
-            return new StepInstanceFileRecordDAO(context, archiveDBProperties);
+            return new StepInstanceFileRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceConfirmRecordDAO")
         public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceConfirmRecordDAO");
-            return new StepInstanceConfirmRecordDAO(context, archiveDBProperties);
+            return new StepInstanceConfirmRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceVariableRecordDAO")
         public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceVariableRecordDAO");
-            return new StepInstanceVariableRecordDAO(context, archiveDBProperties);
+            return new StepInstanceVariableRecordDAO(context);
         }
 
         @Bean(name = "taskInstanceVariableRecordDAO")
         public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init TaskInstanceVariableRecordDAO");
-            return new TaskInstanceVariableRecordDAO(context, archiveDBProperties);
+            return new TaskInstanceVariableRecordDAO(context);
         }
 
         @Bean(name = "operationLogRecordDAO")
         public OperationLogRecordDAO operationLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init OperationLogRecordDAO");
-            return new OperationLogRecordDAO(context, archiveDBProperties);
+            return new OperationLogRecordDAO(context);
         }
 
         @Bean(name = "gseTaskLogRecordDAO")
         public GseTaskLogRecordDAO gseTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init GseTaskLogRecordDAO");
-            return new GseTaskLogRecordDAO(context, archiveDBProperties);
+            return new GseTaskLogRecordDAO(context);
         }
 
         @Bean(name = "gseTaskIpLogRecordDAO")
         public GseTaskIpLogRecordDAO gseTaskIpLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init GseTaskIpLogRecordDAO");
-            return new GseTaskIpLogRecordDAO(context, archiveDBProperties);
+            return new GseTaskIpLogRecordDAO(context);
         }
 
         @Bean(name = "fileSourceTaskLogRecordDAO")
         public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init FileSourceTaskRecordDAO");
-            return new FileSourceTaskLogRecordDAO(context, archiveDBProperties);
+            return new FileSourceTaskLogRecordDAO(context);
         }
 
         @Bean(name = "gseTaskRecordDAO")
         public GseTaskRecordDAO gseTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init GseTaskRecordDAO");
-            return new GseTaskRecordDAO(context, archiveDBProperties);
+            return new GseTaskRecordDAO(context);
         }
 
         @Bean(name = "gseScriptAgentTaskRecordDAO")
         public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init GseScriptAgentTaskRecordDAO");
-            return new GseScriptAgentTaskRecordDAO(context, archiveDBProperties);
+            return new GseScriptAgentTaskRecordDAO(context);
         }
 
         @Bean(name = "gseFileAgentTaskRecordDAO")
         public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init GseFileAgentTaskRecordDAO");
-            return new GseFileAgentTaskRecordDAO(context, archiveDBProperties);
+            return new GseFileAgentTaskRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceRollingTaskRecordDAO")
         public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init StepInstanceRollingTaskRecordDAO");
-            return new StepInstanceRollingTaskRecordDAO(context, archiveDBProperties);
+            return new StepInstanceRollingTaskRecordDAO(context);
         }
 
         @Bean(name = "rollingConfigRecordDAO")
         public RollingConfigRecordDAO rollingConfigRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init RollingConfigRecordDAO");
-            return new RollingConfigRecordDAO(context, archiveDBProperties);
+            return new RollingConfigRecordDAO(context);
         }
 
         @Bean(name = "taskInstanceHostRecordDAO")
         public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context,
-            ArchiveDBProperties archiveDBProperties) {
+            @Qualifier("job-execute-dsl-context") DSLContext context) {
             log.info("Init TaskInstanceHostRecordDAO");
-            return new TaskInstanceHostRecordDAO(context, archiveDBProperties);
+            return new TaskInstanceHostRecordDAO(context);
         }
 
     }

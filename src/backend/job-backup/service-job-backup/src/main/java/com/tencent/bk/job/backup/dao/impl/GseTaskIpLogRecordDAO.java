@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.GseTaskIpLog;
 import com.tencent.bk.job.execute.model.tables.records.GseTaskIpLogRecord;
 import org.jooq.DSLContext;
@@ -14,8 +13,8 @@ public class GseTaskIpLogRecordDAO extends AbstractExecuteRecordDAO<GseTaskIpLog
 
     private static final GseTaskIpLog TABLE = GseTaskIpLog.GSE_TASK_IP_LOG;
 
-    public GseTaskIpLogRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public GseTaskIpLogRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override
