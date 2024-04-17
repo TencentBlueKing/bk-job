@@ -165,7 +165,8 @@ public class FileSourceDTO {
         fileSource.setAlias(fileSourceDTO.getAlias());
         fileSource.setCredentialId(fileSourceDTO.getCredentialId());
         fileSource.setEnable(fileSourceDTO.getEnable());
-        fileSource.setFileSourceTypeCode(fileSourceDTO.getFileSourceType().getCode());
+        fileSource.setFileSourceTypeCode(fileSourceDTO.getFileSourceType() != null ?
+            fileSourceDTO.getFileSourceType().getCode() : null);
         fileSource.setPublicFlag(fileSourceDTO.getPublicFlag());
         fileSource.setStatus(fileSourceDTO.getStatus());
         fileSource.setCreateTime(fileSourceDTO.getCreateTime());
