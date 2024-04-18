@@ -28,9 +28,13 @@ import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.backup.metrics.MetricConstants;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import com.tencent.bk.job.common.service.metrics.GlobalMeterRegister;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -104,6 +108,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private ArchiveTaskLock archiveTaskLock;
 
+    private final MeterRegistry meterRegistry;
+
     public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
                              ExecuteArchiveDAO executeArchiveDAO,
                              ArchiveProgressService archiveProgressService,
@@ -128,6 +134,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         this.countDownLatch = countDownLatch;
         this.archiveSummary = new ArchiveSummary(this.tableName);
         this.archiveTaskLock = archiveTaskLock;
+        this.meterRegistry = GlobalMeterRegister.get();
     }
 
     /**
@@ -154,12 +161,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     public void archive() {
+        boolean success = true;
         try {
             if (!acquireLock()) {
+                archiveSummary.setSkip(!isAcquireLock);
                 return;
             }
 
             if (!archiveDBProperties.isEnabled()) {
+                archiveSummary.setSkip(true);
                 log.info("[{}] Archive is disabled, skip archive", tableName);
                 return;
             }
@@ -175,6 +185,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
             if (minExistedRecordArchiveId == null) {
                 // min 查询返回 null，说明是空表，无需归档
+                archiveSummary.setSkip(true);
+                archiveSummary.setSuccess(true);
                 log.info("[{}] Empty table, do not need archive!", tableName);
                 return;
             }
@@ -182,6 +194,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             if (maxNeedArchiveId < this.minNeedArchiveId) {
                 log.info("[{}] MinNeedArchiveId {} is greater than maxNeedArchiveId {}, skip archive table!",
                     tableName, minNeedArchiveId, maxNeedArchiveId);
+                archiveSummary.setSkip(true);
+                archiveSummary.setSuccess(true);
                 return;
             }
 
@@ -194,7 +208,14 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 tableName
             ).getMessage();
             log.error(msg, e);
+            success = false;
         } finally {
+            meterRegistry.gauge(
+                MetricConstants.ARCHIVE_TASK_STATUS,
+                Tags.of(MetricConstants.TAG_ARCHIVE_TASK_NAME, tableName),
+                success ? MetricConstants.TASK_STATUS_SUCCESS : MetricConstants.TASK_STATUS_ERROR
+            );
+
             archiveSummary.setArchiveMode(archiveDBProperties.getMode());
             storeArchiveSummary();
             if (this.isAcquireLock) {
@@ -204,7 +225,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         }
     }
 
-    private void backupAndDelete() {
+    private void backupAndDelete() throws IOException {
         boolean backupEnabled = isBackupEnable(archiveDBProperties);
         long backupRows = 0;
         long readRows = 0;
@@ -229,18 +250,22 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 start = stop;
             }
         } catch (Throwable e) {
-            String msg = MessageFormatter.format(
-                "Error while archiving {}",
-                tableName
-            ).getMessage();
-            log.error(msg, e);
             success = false;
+            throw e;
         } finally {
             long archiveCost = System.currentTimeMillis() - startTime;
-            log.info("Archive {} finished, result: {}, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
+            log.info(
+                "Archive {} finished, result: {}, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
                     "backupRows: {}, deleteRows: {}, cost: {}ms",
-                tableName, success ? "success" : "fail", minNeedArchiveId, maxNeedArchiveId, readRows,
-                backupRows, deleteRows, archiveCost);
+                tableName,
+                success ? "success" : "fail",
+                minNeedArchiveId,
+                maxNeedArchiveId,
+                readRows,
+                backupRows,
+                deleteRows,
+                archiveCost
+            );
             setArchiveSummary(minNeedArchiveId, maxNeedArchiveId, readRows, backupRows, deleteRows,
                 stop, archiveCost, success);
         }
@@ -253,7 +278,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private boolean acquireLock() {
         this.isAcquireLock = archiveTaskLock.lock(tableName);
-        archiveSummary.setSkip(!isAcquireLock);
         if (!isAcquireLock) {
             log.info("[{}] Acquire lock fail", tableName);
         }

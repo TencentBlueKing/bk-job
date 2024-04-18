@@ -61,7 +61,8 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                 context.loadInto(recordList.get(0).getTable())
                     // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
                     // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
-                    // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步处理错误数据
+                    // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步判断是否是主键冲突错误
+                    // issue 参考：https://github.com/jOOQ/jOOQ/issues/12740
                     .onDuplicateKeyError()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
@@ -85,17 +86,17 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                         error.exception().getMessage(), error.row());
                 }
                 if (hasDuplicateError(loader.errors())) {
-                    // 尝试每一条记录单独插入，可以使用 onDuplicateKeyIgnore 错误处理方式
+                    // 如果存在主键冲突的数据，尝试每一条记录单独插入，就可以使用 onDuplicateKeyIgnore 错误处理方式
                     successInsertedRecords = insertSingle(recordList);
                 }
             }
         } catch (IOException e) {
-            String errorMsg = String.format("Error while batch loading %s data!", table);
+            String errorMsg = String.format("Error while loading %s data!", table);
             log.error(errorMsg, e);
             success = false;
             throw e;
         } finally {
-            log.info("Batch insert to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
+            log.info("Load data to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
                 recordList.size(), successInsertedRecords, System.currentTimeMillis() - start);
         }
 
@@ -138,7 +139,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                 }
             }
         } catch (IOException e) {
-            String errorMsg = String.format("Error while single loading %s data!", table);
+            String errorMsg = String.format("Error while loading %s data!", table);
             log.error(errorMsg, e);
             throw e;
         }
