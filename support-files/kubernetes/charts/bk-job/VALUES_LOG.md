@@ -1,8 +1,8 @@
 # chart values 更新日志
 
-## 0.5.8
-1. 新增备份服务中的数据归档相关配置
+## 0.5.9
 
+1. 新增备份服务中的数据归档相关配置
 
 ```yaml
 backupConfig:
@@ -46,6 +46,20 @@ backupConfig:
           batch_insert_row_size: 2000
           # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
           delete_row_limit: 2000
+```
+
+## 0.5.8
+1. 增加JVM诊断文件留存配置
+
+```yaml
+# JVM诊断文件留存配置
+jvmDiagnosticFile:
+  # 根据最后修改时间清理
+  clearByLastModifyTime:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # JVM诊断文件保留的小时数，默认168小时（7天）
+    keepHours: 168
 ```
 
 ## 0.5.7

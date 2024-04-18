@@ -632,3 +632,36 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-add-script:before {
 	content: "\e215";
 }
+.job-icon-output:before {
+	content: "\e217";
+}
+.job-icon-warning-2:before {
+	content: "\e219";
+}
+.job-icon-circle-back-filled:before {
+	content: "\e21a";
+}
+.job-icon-os-aix:before {
+	content: "\e220";
+}
+.job-icon-os-freebsd:before {
+	content: "\e21d";
+}
+.job-icon-os-linux:before {
+	content: "\e222";
+}
+.job-icon-os-macos:before {
+	content: "\e21e";
+}
+.job-icon-os-solaris:before {
+	content: "\e21c";
+}
+.job-icon-os-unknown:before {
+	content: "\e21b";
+}
+.job-icon-os-win:before {
+	content: "\e221";
+}
+.job-icon-os-unix:before {
+	content: "\e21f";
+}
