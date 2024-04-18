@@ -170,7 +170,7 @@ public class HostServiceImpl implements HostService {
                 } while (end < size);
                 watch.stop();
                 watch.start("updateHostsCache");
-                simpleHostList.forEach(simpleHost -> hostCache.addOrUpdateHost(simpleHost.convertToHostDTO()));
+                deleteOrUpdateHostCache(simpleHostList);
                 watch.stop();
             }
         } catch (Throwable throwable) {
@@ -181,6 +181,51 @@ public class HostServiceImpl implements HostService {
         }
         log.debug("Performance:updateHostsStatus:{}", watch);
         return updateCount;
+    }
+
+    private void deleteOrUpdateHostCache(List<HostSimpleDTO> simpleHostList) {
+        if (CollectionUtils.isEmpty(simpleHostList)) {
+            return;
+        }
+        int maxDeleteNum = 10000;
+        if (simpleHostList.size() <= maxDeleteNum) {
+            // 需要更新的主机数量较少，直接删缓存
+            deleteHostCache(simpleHostList);
+        } else {
+            // 需要更新的主机数量较多，从DB加载最新数据到缓存，防止缓存穿透
+            loadDBHostToCache(simpleHostList);
+        }
+    }
+
+    private void deleteHostCache(List<HostSimpleDTO> simpleHostList) {
+        Collection<ApplicationHostDTO> hosts = simpleHostList.stream()
+            .map(HostSimpleDTO::convertToHostDTO)
+            .collect(Collectors.toList());
+        Collection<Long> hostIds = hosts.stream()
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        hostCache.batchDeleteHost(hosts);
+        log.debug(
+            "{} hosts deleted from cache, hostIds:{}",
+            hostIds.size(),
+            hostIds
+        );
+    }
+
+    private void loadDBHostToCache(List<HostSimpleDTO> simpleHostList) {
+        Collection<Long> hostIds = simpleHostList.stream()
+            .map(HostSimpleDTO::getHostId)
+            .collect(Collectors.toList());
+        List<ApplicationHostDTO> hosts = applicationHostDAO.listHostInfoByHostIds(hostIds);
+        Collection<Long> existHostIds = hosts.stream()
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        hostCache.batchAddOrUpdateHosts(hosts);
+        log.debug(
+            "{} hosts from db loaded to cache, hostIds:{}",
+            existHostIds.size(),
+            existHostIds
+        );
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
