@@ -212,6 +212,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long startTime = System.currentTimeMillis();
         long start = this.minNeedArchiveId - 1;
         long stop = start;
+        boolean success = true;
         try {
             while (maxNeedArchiveId > start) {
                 // start < id <= stop
@@ -233,12 +234,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 tableName
             ).getMessage();
             log.error(msg, e);
+            success = false;
         } finally {
             long archiveCost = System.currentTimeMillis() - startTime;
-            log.info("Archive {} finished, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
+            log.info("Archive {} finished, result: {}, minNeedArchiveId: {}, maxNeedArchiveId: {}, readRows: {}, " +
                     "backupRows: {}, deleteRows: {}, cost: {}ms",
-                tableName, minNeedArchiveId, maxNeedArchiveId, readRows, backupRows, deleteRows, archiveCost);
-            setArchiveSummary(minNeedArchiveId, maxNeedArchiveId, readRows, backupRows, deleteRows, stop, archiveCost);
+                tableName, success ? "success" : "fail", minNeedArchiveId, maxNeedArchiveId, readRows,
+                backupRows, deleteRows, archiveCost);
+            setArchiveSummary(minNeedArchiveId, maxNeedArchiveId, readRows, backupRows, deleteRows,
+                stop, archiveCost, success);
         }
     }
 
@@ -319,7 +323,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                                    long backupRows,
                                    long deleteRows,
                                    long stop,
-                                   long archiveCost) {
+                                   long archiveCost,
+                                   boolean success) {
         archiveSummary.setArchiveIdStart(minNeedArchiveId);
         archiveSummary.setArchiveIdEnd(maxNeedArchiveId);
         archiveSummary.setNeedArchiveRecordSize(readRows);
@@ -328,6 +333,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         archiveSummary.setLastBackupId(stop);
         archiveSummary.setLastDeletedId(stop);
         archiveSummary.setArchiveCost(archiveCost);
+        archiveSummary.setSuccess(success);
     }
 
     /**

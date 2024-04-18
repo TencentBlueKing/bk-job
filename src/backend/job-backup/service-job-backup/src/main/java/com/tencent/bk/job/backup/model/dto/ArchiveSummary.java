@@ -36,6 +36,7 @@ public class ArchiveSummary {
     private String tableName;
     private String archiveEndDate;
     private boolean skip;
+    private boolean success;
 
     private String archiveMode;
     private Long archiveCost;

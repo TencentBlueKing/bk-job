@@ -31,6 +31,7 @@ import org.jooq.DSLContext;
 import org.jooq.Loader;
 import org.jooq.LoaderError;
 import org.jooq.TableRecord;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,29 +54,41 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
     @Override
     public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws IOException {
         long start = System.currentTimeMillis();
-        int storedRecords = 0;
+        int successInsertedRecords = 0;
         String table = recordList.get(0).getTable().getName();
         boolean success = true;
         try {
             Loader<?> loader =
-                context.loadInto(recordList.get(0).getTable())
+                context.loadInto(DSL.table(table))
                     // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
                     // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
+                    // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步处理错误数据
                     .onDuplicateKeyError()
                     .bulkAfter(bulkSize)
                     .loadRecords(recordList)
                     .fieldsCorresponding()
                     .execute();
-            storedRecords = loader.stored();
-            log.info("Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
-                loader.executed(), loader.processed(), loader.stored(), loader.ignored(), loader.errors().size());
+            successInsertedRecords = loader.stored();
+            String bulkInsertResult = successInsertedRecords == recordList.size() ? "success" : "fail";
+            log.info(
+                "InsertBulk: Load {} data|result|{}|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}",
+                table,
+                bulkInsertResult,
+                loader.executed(),
+                loader.processed(),
+                loader.stored(),
+                loader.ignored(),
+                loader.errors().size()
+            );
             if (CollectionUtils.isNotEmpty(loader.errors())) {
                 for (LoaderError error : loader.errors()) {
-                    ARCHIVE_FAILED_LOGGER.error("Error while load {} data, error row: {}, exception: {}", table,
-                        error.row(), error.exception().getMessage());
+                    ARCHIVE_FAILED_LOGGER.error("Error while load {} data, exception: {}， error row: {}", table,
+                        error.exception().getMessage(), error.row());
                 }
-                // 尝试不使用批量插入功能
-                storedRecords = insertEach(recordList);
+                if (hasDuplicateError(loader.errors())) {
+                    // 尝试每一条记录单独插入，可以使用 onDuplicateKeyIgnore 错误处理方式
+                    successInsertedRecords = insertSingle(recordList);
+                }
             }
         } catch (IOException e) {
             String errorMsg = String.format("Error while batch loading %s data!", table);
@@ -84,29 +97,44 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
             throw e;
         } finally {
             log.info("Batch insert to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
-                recordList.size(), storedRecords, System.currentTimeMillis() - start);
+                recordList.size(), successInsertedRecords, System.currentTimeMillis() - start);
         }
 
-        return storedRecords;
+        return successInsertedRecords;
     }
 
-    private int insertEach(List<? extends TableRecord<?>> recordList) throws IOException {
-        log.info("Try insert record one by one");
-        int storedRecords;
+    private boolean hasDuplicateError(List<LoaderError> errors) {
+        // 通过 mysql 执行的错误消息判断是否是由于数据唯一性冲突引起的
+        return errors.stream().anyMatch(
+            error -> error.exception().getMessage() != null
+                && error.exception().getMessage().contains("Duplicate entry"));
+    }
+
+    private int insertSingle(List<? extends TableRecord<?>> recordList) throws IOException {
+        int successInsertedRecords;
         String table = recordList.get(0).getTable().getName();
         try {
             Loader<?> loader =
-                context.loadInto(recordList.get(0).getTable())
+                context.loadInto(DSL.table(table))
                     .onDuplicateKeyIgnore()
                     .loadRecords(recordList)
                     .fieldsCorresponding()
                     .execute();
-            storedRecords = loader.stored();
-            log.info("InsertEach: Load {} data result|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}", table,
-                loader.executed(), loader.processed(), loader.stored(), loader.ignored(), loader.errors().size());
+            successInsertedRecords = loader.stored() + loader.ignored();
+            String bulkInsertResult = successInsertedRecords == recordList.size() ? "success" : "fail";
+            log.info(
+                "InsertSingle: Load {} data|result|{}|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}",
+                table,
+                bulkInsertResult,
+                loader.executed(),
+                loader.processed(),
+                loader.stored(),
+                loader.ignored(),
+                loader.errors().size()
+            );
             if (CollectionUtils.isNotEmpty(loader.errors())) {
                 for (LoaderError error : loader.errors()) {
-                    ARCHIVE_FAILED_LOGGER.error("InsertEach: Error while load {} data, error row: {}, exception: {}",
+                    ARCHIVE_FAILED_LOGGER.error("InsertSingle: Error while load {} data, exception: {}, error row: {}",
                         table, error.row(), error.exception().getMessage());
                 }
             }
@@ -115,6 +143,6 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
             log.error(errorMsg, e);
             throw e;
         }
-        return storedRecords;
+        return successInsertedRecords;
     }
 }
