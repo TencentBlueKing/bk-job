@@ -172,6 +172,7 @@ class FileSourceResourceAPITest extends BaseTest {
             req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
             req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
             req.setCode(fileSourceSimpleInfoV3DTO.getCode());
+            req.setType(FileSourceTypeEnum.BLUEKING_ARTIFACTORY.name());
             req.setAlias(TestValueGenerator.generateUniqueStrValue("update_file_source_alias", 50));
             given().spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
