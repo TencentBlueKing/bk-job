@@ -205,11 +205,13 @@ public class HostServiceImpl implements HostService {
             .map(ApplicationHostDTO::getHostId)
             .collect(Collectors.toList());
         hostCache.batchDeleteHost(hosts);
-        log.debug(
-            "{} hosts deleted from cache, hostIds:{}",
-            hostIds.size(),
-            hostIds
-        );
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "{} hosts deleted from cache, hostIds:{}",
+                hostIds.size(),
+                hostIds
+            );
+        }
     }
 
     private void loadDBHostToCache(List<HostSimpleDTO> simpleHostList) {
@@ -221,11 +223,13 @@ public class HostServiceImpl implements HostService {
             .map(ApplicationHostDTO::getHostId)
             .collect(Collectors.toList());
         hostCache.batchAddOrUpdateHosts(hosts);
-        log.debug(
-            "{} hosts from db loaded to cache, hostIds:{}",
-            existHostIds.size(),
-            existHostIds
-        );
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "{} hosts from db loaded to cache, hostIds:{}",
+                existHostIds.size(),
+                existHostIds
+            );
+        }
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
