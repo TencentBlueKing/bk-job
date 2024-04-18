@@ -46,7 +46,6 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbStepInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -88,9 +87,6 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         List<ResultGroupDTO> resultGroups = executionResult.getResultGroups();
         for (ResultGroupDTO resultGroup : resultGroups) {
             List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
-            if (CollectionUtils.isEmpty(executeObjectTasks)) {
-                continue;
-            }
             EsbStepInstanceStatusV3DTO.StepResultGroup stepResultGroup =
                 new EsbStepInstanceStatusV3DTO.StepResultGroup();
             stepResultGroup.setResultType(resultGroup.getStatus());
@@ -101,23 +97,25 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             stepResultGroup.setTag(resultGroup.getTag());
             stepResultGroup.setHostSize(resultGroup.getTotal());
             List<EsbStepInstanceStatusV3DTO.HostResult> hostResults = new ArrayList<>();
-            for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
-                EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
-                HostDTO host = executeObjectTask.getExecuteObject().getHost();
-                stepHostResult.setHostId(host.getHostId());
-                stepHostResult.setIp(host.getIp());
-                stepHostResult.setIpv6(host.getIpv6());
-                stepHostResult.setCloudAreaId(host.getBkCloudId());
-                stepHostResult.setAgentId(host.getAgentId());
-                stepHostResult.setCloudAreaName(host.getBkCloudName());
-                stepHostResult.setStatus(executeObjectTask.getStatus().getValue());
-                stepHostResult.setStatusDesc(messageI18nService.getI18n(executeObjectTask.getStatus().getI18nKey()));
-                stepHostResult.setTag(executeObjectTask.getTag());
-                stepHostResult.setExitCode(executeObjectTask.getExitCode());
-                stepHostResult.setStartTime(executeObjectTask.getStartTime());
-                stepHostResult.setEndTime(executeObjectTask.getEndTime());
-                stepHostResult.setTotalTime(executeObjectTask.getTotalTime());
-                hostResults.add(stepHostResult);
+            if (executeObjectTasks != null) {
+                for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
+                    EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
+                    HostDTO host = executeObjectTask.getExecuteObject().getHost();
+                    stepHostResult.setHostId(host.getHostId());
+                    stepHostResult.setIp(host.getIp());
+                    stepHostResult.setIpv6(host.getIpv6());
+                    stepHostResult.setCloudAreaId(host.getBkCloudId());
+                    stepHostResult.setAgentId(host.getAgentId());
+                    stepHostResult.setCloudAreaName(host.getBkCloudName());
+                    stepHostResult.setStatus(executeObjectTask.getStatus().getValue());
+                    stepHostResult.setStatusDesc(messageI18nService.getI18n(executeObjectTask.getStatus().getI18nKey()));
+                    stepHostResult.setTag(executeObjectTask.getTag());
+                    stepHostResult.setExitCode(executeObjectTask.getExitCode());
+                    stepHostResult.setStartTime(executeObjectTask.getStartTime());
+                    stepHostResult.setEndTime(executeObjectTask.getEndTime());
+                    stepHostResult.setTotalTime(executeObjectTask.getTotalTime());
+                    hostResults.add(stepHostResult);
+                }
             }
             stepResultGroup.setHostResultList(hostResults);
             stepResultGroupList.add(stepResultGroup);
