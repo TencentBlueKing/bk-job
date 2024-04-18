@@ -31,7 +31,6 @@ import org.jooq.DSLContext;
 import org.jooq.Loader;
 import org.jooq.LoaderError;
 import org.jooq.TableRecord;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
         boolean success = true;
         try {
             Loader<?> loader =
-                context.loadInto(DSL.table(table))
+                context.loadInto(recordList.get(0).getTable())
                     // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
                     // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
                     // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步处理错误数据
@@ -115,7 +114,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
         String table = recordList.get(0).getTable().getName();
         try {
             Loader<?> loader =
-                context.loadInto(DSL.table(table))
+                context.loadInto(recordList.get(0).getTable())
                     .onDuplicateKeyIgnore()
                     .loadRecords(recordList)
                     .fieldsCorresponding()
