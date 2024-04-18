@@ -73,7 +73,7 @@ public class ArchiveDBProperties {
     /**
      * 每次执行删除的最大行数
      */
-    private int deleteLimitRowCount = 1000;
+    private int deleteRowLimit = 1000;
 
     /**
      * 每批次从 db 表中读取的记录数量
@@ -97,7 +97,7 @@ public class ArchiveDBProperties {
         /**
          * 每次执行删除的最大行数
          */
-        private Integer deleteLimitRowCount;
+        private Integer deleteRowLimit;
 
         /**
          * 每批次从 db 表中读取的记录数量

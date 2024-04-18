@@ -62,7 +62,7 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
         archiveDBProperties.setEnabled(true);
         archiveDBProperties.setKeepDays(request.getKeepDays());
         archiveDBProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
-        archiveDBProperties.setDeleteLimitRowCount(request.getDeleteLimitRowCount());
+        archiveDBProperties.setDeleteRowLimit(request.getDeleteRowLimit());
         archiveDBProperties.setReadIdStepSize(request.getReadIdStepSize());
         archiveDBProperties.setReadRowLimit(request.getReadRowLimit());
 
@@ -72,7 +72,7 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
             request.getTableConfigs().forEach((table, config) -> {
                 ArchiveDBProperties.TableConfig tableConfig = new ArchiveDBProperties.TableConfig();
                 tableConfig.setBatchInsertRowSize(config.getBatchInsertRowSize());
-                tableConfig.setDeleteLimitRowCount(config.getDeleteLimitRowCount());
+                tableConfig.setDeleteRowLimit(config.getDeleteRowLimit());
                 tableConfig.setReadIdStepSize(config.getReadIdStepSize());
                 tableConfig.setReadRowLimit(config.getReadRowLimit());
                 tableConfigMap.put(table, tableConfig);

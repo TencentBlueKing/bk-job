@@ -126,8 +126,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ArchiveDBProperties.TableConfig::getBatchInsertRowSize);
         this.readRowLimit = computeValuePreferTableConfig(archiveDBProperties.getReadRowLimit(),
             ArchiveDBProperties.TableConfig::getReadRowLimit);
-        this.deleteLimitRowCount = computeValuePreferTableConfig(archiveDBProperties.getDeleteLimitRowCount(),
-            ArchiveDBProperties.TableConfig::getDeleteLimitRowCount);
+        this.deleteLimitRowCount = computeValuePreferTableConfig(archiveDBProperties.getDeleteRowLimit(),
+            ArchiveDBProperties.TableConfig::getDeleteRowLimit);
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
         this.archiveSummary = new ArchiveSummary(this.tableName);
