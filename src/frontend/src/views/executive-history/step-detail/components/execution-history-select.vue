@@ -36,7 +36,7 @@
       type="down-small" />
     <div
       ref="content"
-      class="dropdown-menu">
+      class="history-wrapper">
       <div
         v-for="item in executionList"
         :key="item.executeCount"
@@ -222,6 +222,12 @@
   }
 
   .step-execution-history-menu-theme {
+    .history-wrapper{
+      max-height: 350px;
+      overflow: auto;
+      background: #fff !important;
+    }
+
     .menu-item {
       display: flex;
       align-items: center;
