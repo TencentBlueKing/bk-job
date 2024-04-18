@@ -29,74 +29,31 @@
   <div
     v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
     class="platform-dashboard">
-    <card-layout title="Linux OS">
-      <div class="container">
-        <div class="nums">
-          {{ data.LINUX | formatNumber }}
+    <template v-for="item in systemList">
+      <card-layout
+        :key="item.key"
+        :title="item.name">
+        <div class="container">
+          <div class="nums">
+            {{ data[item.key] | formatNumber }}
+          </div>
+          <div
+            :ref="item.key"
+            v-bk-tooltips.right="calcPercentage(data[item.key])"
+            class="dashboard"
+            style="width: 24px; height: 24px;" />
         </div>
-        <div
-          ref="LINUX"
-          v-bk-tooltips.right="calcPercentage(data.LINUX)"
-          class="dashboard"
-          style="width: 24px; height: 24px;" />
-      </div>
-      <icon
-        class="platform-flag"
-        style="font-size: 38px;"
-        type="linux" />
-    </card-layout>
-    <card-layout title="Windows OS">
-      <div class="container">
-        <div class="nums">
-          {{ data.WINDOWS | formatNumber }}
-        </div>
-        <div
-          ref="WINDOWS"
-          v-bk-tooltips.right="calcPercentage(data.WINDOWS)"
-          class="dashboard"
-          style="width: 24px; height: 24px;" />
-      </div>
-      <icon
-        class="platform-flag"
-        style="font-size: 28px;"
-        type="windows" />
-    </card-layout>
-    <card-layout title="AIX OS">
-      <div class="container">
-        <div class="nums">
-          {{ data.AIX | formatNumber }}
-        </div>
-        <div
-          ref="AIX"
-          v-bk-tooltips.right="calcPercentage(data.AIX)"
-          class="dashboard"
-          style="width: 24px; height: 24px;" />
-      </div>
-      <icon
-        class="platform-flag"
-        style="font-size: 24px;"
-        type="aix" />
-    </card-layout>
-    <card-layout :title="$t('dashboard.未知 OS')">
-      <div class="container">
-        <div class="nums">
-          {{ data.OTHERS | formatNumber }}
-        </div>
-        <div
-          ref="OTHERS"
-          v-bk-tooltips.right="calcPercentage(data.OTHERS)"
-          class="dashboard"
-          style="width: 24px; height: 24px;" />
-      </div>
-      <icon
-        class="platform-flag"
-        style="font-size: 28px;"
-        type="others" />
-    </card-layout>
+        <icon
+          class="platform-flag"
+          style="font-size: 38px;"
+          :type="item.icon" />
+      </card-layout>
+    </template>
   </div>
 </template>
 <script>
   import * as echarts from 'echarts';
+  import _ from 'lodash';
 
   import StatisticsService from '@service/statistics';
 
@@ -104,7 +61,15 @@
     formatNumber,
   } from '@utils/assist';
 
+  import I18n from '@/i18n';
+
   import CardLayout from '../card-layout';
+
+  const getOtherTotal = (data, curKey) => {
+    const other = { ...data };
+    delete other[curKey];
+    return _.sum(Object.values(other));
+  };
 
   export default {
     name: '',
@@ -127,9 +92,13 @@
         isLoading: true,
         data: {
           AIX: 0,
+          FREEBSD: 0,
           LINUX: 0,
           OTHERS: 0,
+          SOLARIS: 0,
+          UNIX: 0,
           WINDOWS: 0,
+          MAC: 0,
         },
       };
     },
@@ -137,6 +106,50 @@
       date() {
         this.fetchData();
       },
+    },
+    created() {
+      this.systemList = [
+        {
+          name: I18n.t('Linux 数量'),
+          key: 'LINUX',
+          icon: 'os-linux',
+        },
+        {
+          name: I18n.t('Windows 数量'),
+          key: 'WINDOWS',
+          icon: 'os-win',
+        },
+        {
+          name: I18n.t('AIX 数量'),
+          key: 'AIX',
+          icon: 'os-aix',
+        },
+        {
+          name: I18n.t('UNIX 数量'),
+          key: 'UNIX',
+          icon: 'os-unix',
+        },
+        {
+          name: I18n.t('Solaris 数量'),
+          key: 'SOLARIS',
+          icon: 'os-solaris',
+        },
+        {
+          name: I18n.t('Free BSD 数量'),
+          key: 'FREEBSD',
+          icon: 'os-freebsd',
+        },
+        {
+          name: I18n.t('MacOS 数量'),
+          key: 'MAC',
+          icon: 'os-macos',
+        },
+        {
+          name: I18n.t('未知数量'),
+          key: 'OTHERS',
+          icon: 'os-unknown',
+        },
+      ];
     },
     mounted() {
       this.fetchData();
@@ -148,7 +161,7 @@
           date: this.date,
           metric: 'HOST_SYSTEM_TYPE',
         }).then((data) => {
-          this.data = data.labelAmountMap;
+          this.data = Object.assign({}, this.data, data.labelAmountMap);
           this.init();
         })
           .finally(() => {
@@ -156,24 +169,16 @@
           });
       },
       init() {
-        const typeList = [
-          'LINUX',
-          'WINDOWS',
-          'AIX',
-          'OTHERS',
-        ];
-
-        typeList.forEach((typeItem) => {
+        this.systemList.forEach((systemItem) => {
           if (!this.$refs.LINUX) {
             return;
           }
-          const other = typeList.reduce((result, item) => {
-            if (item === typeItem) {
-              return result;
-            }
-            return result + this.data[item];
-          }, 0);
-          const myChart = echarts.init(this.$refs[typeItem]);
+
+          const other = getOtherTotal(this.data, systemItem.key);
+          if (!this.$refs[systemItem.key]) {
+            return;
+          }
+          const myChart = echarts.init(this.$refs[systemItem.key][0]);
           myChart.setOption({
             series: [
               {
@@ -188,7 +193,7 @@
                 },
                 data: [
                   {
-                    value: this.data[typeItem],
+                    value: this.data[systemItem.key],
                     itemStyle: {
                       color: '#85CCA8',
                     },
@@ -211,17 +216,11 @@
         });
       },
       calcPercentage(value) {
-        const {
-          AIX,
-          LINUX,
-          OTHERS,
-          WINDOWS,
-        } = this.data;
-        const total = parseInt(AIX, 10) + parseInt(LINUX, 10) + parseInt(OTHERS, 10) + parseInt(WINDOWS, 10);
+        const total = _.sum(Object.values(this.data));
         if (!total) {
           return '0 %';
         }
-        return `${Math.round(value / total * 100).toFixed(2)} %`;
+        return `${(value / total * 100).toFixed(2)} %`;
       },
     },
   };
@@ -231,17 +230,25 @@
     display: flex;
     height: 100%;
     color: #e5e6eb;
+    flex-wrap: wrap;
 
     .dashboard-card-layout {
       position: relative;
-      flex: 1;
+      padding: 12px 16px;
       border: none;
+      border-bottom: 1px solid #f0f1f5;
+      flex: 0 0 25%;
 
       &:nth-child(n+2) {
         border-left: 1px solid #f0f1f5;
       }
 
+      &:nth-child(n+5) {
+        border-bottom-color: transparent;
+      }
+
       .card-title {
+        margin-bottom: 12px;
         color: #979ba5;
       }
     }
@@ -263,8 +270,8 @@
 
     .platform-flag {
       position: absolute;
-      bottom: 24px;
-      left: 20px;
+      top: 14px;
+      right: 12px;
     }
   }
 </style>
