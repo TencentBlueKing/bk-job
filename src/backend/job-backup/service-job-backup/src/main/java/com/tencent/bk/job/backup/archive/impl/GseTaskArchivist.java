@@ -29,6 +29,7 @@ import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.GseTaskRecord;
 
@@ -45,14 +46,16 @@ public class GseTaskArchivist extends AbstractArchivist<GseTaskRecord> {
                             ArchiveDBProperties archiveDBProperties,
                             ArchiveTaskLock archiveTaskLock,
                             Long maxNeedArchiveId,
-                            CountDownLatch countDownLatch) {
+                            CountDownLatch countDownLatch,
+                            ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveDBProperties,
             archiveTaskLock,
             maxNeedArchiveId,
-            countDownLatch);
+            countDownLatch,
+            archiveErrorTaskCounter);
         this.deleteIdStepSize = 10_000;
     }
 }

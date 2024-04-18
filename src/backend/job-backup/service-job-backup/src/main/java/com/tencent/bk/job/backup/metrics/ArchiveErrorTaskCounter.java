@@ -24,11 +24,26 @@
 
 package com.tencent.bk.job.backup.metrics;
 
-public class MetricConstants {
-    /**
-     * Job 执行历史归档异常任务总数
-     */
-    public static final String ARCHIVE_ERROR_TASK_TOTAL = "job.history.archive.error.task.total";
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+public class ArchiveErrorTaskCounter {
+
+    private final Counter archiveErrorTaskCounter;
+
+    @Autowired
+    public ArchiveErrorTaskCounter(MeterRegistry meterRegistry) {
+        this.archiveErrorTaskCounter = meterRegistry.counter(MetricConstants.ARCHIVE_ERROR_TASK_TOTAL);
+    }
+
+    /**
+     * 计数+1
+     */
+    public void increment() {
+        this.archiveErrorTaskCounter.increment();
+    }
 
 }

@@ -45,6 +45,7 @@ import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -242,7 +243,8 @@ public class ArchiveConfiguration {
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveDBProperties archiveDBProperties,
-        ArchiveTaskLock archiveTaskLock) {
+        ArchiveTaskLock archiveTaskLock,
+        ArchiveErrorTaskCounter archiveErrorTaskCounter) {
 
         log.info("Init JobExecuteArchiveManage");
         return new JobExecuteArchiveManage(
@@ -267,6 +269,7 @@ public class ArchiveConfiguration {
             archiveProgressService,
             archiveDBProperties,
             archiveExecutor,
-            archiveTaskLock);
+            archiveTaskLock,
+            archiveErrorTaskCounter);
     }
 }

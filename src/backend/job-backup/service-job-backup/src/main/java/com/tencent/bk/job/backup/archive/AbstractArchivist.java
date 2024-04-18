@@ -28,13 +28,10 @@ import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
-import com.tencent.bk.job.backup.metrics.MetricConstants;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.common.service.metrics.GlobalMeterRegister;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -108,7 +105,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private ArchiveTaskLock archiveTaskLock;
 
-    private final MeterRegistry meterRegistry;
+    private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
 
     public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
                              ExecuteArchiveDAO executeArchiveDAO,
@@ -116,7 +113,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                              ArchiveDBProperties archiveDBProperties,
                              ArchiveTaskLock archiveTaskLock,
                              Long maxNeedArchiveId,
-                             CountDownLatch countDownLatch) {
+                             CountDownLatch countDownLatch,
+                             ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         this.executeRecordDAO = executeRecordDAO;
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveProgressService = archiveProgressService;
@@ -134,7 +132,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         this.countDownLatch = countDownLatch;
         this.archiveSummary = new ArchiveSummary(this.tableName);
         this.archiveTaskLock = archiveTaskLock;
-        this.meterRegistry = GlobalMeterRegister.get();
+        this.archiveErrorTaskCounter = archiveErrorTaskCounter;
     }
 
     /**
@@ -161,7 +159,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     public void archive() {
-        boolean success = true;
         try {
             if (!acquireLock()) {
                 archiveSummary.setSkip(!isAcquireLock);
@@ -208,14 +205,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 tableName
             ).getMessage();
             log.error(msg, e);
-            success = false;
+            archiveErrorTaskCounter.increment();
         } finally {
-            meterRegistry.gauge(
-                MetricConstants.ARCHIVE_TASK_STATUS,
-                Tags.of(MetricConstants.TAG_ARCHIVE_TASK_NAME, tableName),
-                success ? MetricConstants.TASK_STATUS_SUCCESS : MetricConstants.TASK_STATUS_ERROR
-            );
-
             archiveSummary.setArchiveMode(archiveDBProperties.getMode());
             storeArchiveSummary();
             if (this.isAcquireLock) {
