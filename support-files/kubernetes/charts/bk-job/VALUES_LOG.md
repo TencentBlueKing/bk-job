@@ -1,5 +1,53 @@
 # chart values 更新日志
 
+## 0.5.8
+1. 新增备份服务中的数据归档相关配置
+
+
+```yaml
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      host: ""
+      port: ""
+      username: "job"
+      password: "job"
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    # job-execute模块的归档配置
+    execute:
+      # 是否启用 DB 归档
+      enabled: true
+      # 归档模式。deleteOnly: 仅删除； backupThenDelete: 先备份数据再删除。默认 deleteOnly
+      mode: backupThenDelete
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron: 0 0 4 * * *
+      # 热库中的数据保留时间（天）
+      keep_days: 30
+      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+      read_id_step_size: 1000
+      # 每次从 db 表中读取的行数
+      read_row_limit: 10000
+      # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+      batch_insert_row_size: 1000
+      # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+      delete_row_limit: 1000
+      # 表作用域的归档配置，会覆盖全局配置
+      tableConfigs:
+        # 表名
+        task_instance:
+          # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+          read_id_step_size: 2000
+          # 每次从 db 表中读取的行数
+          read_row_limit: 20000
+          # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+          batch_insert_row_size: 2000
+          # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+          delete_row_limit: 2000
+```
+
 ## 0.5.7
 1. 增加日志留存配置
 
