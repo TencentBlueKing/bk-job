@@ -207,6 +207,9 @@
        * @desc 展示效果初始化
        */
       initRender() {
+        if (!this.$refs.box) {
+          return;
+        }
         const $listEL = this.$refs.box;
         const $itemList = $listEL.querySelectorAll('.batch-item');
         const allBtnWidth = this.$refs.allBtn.getBoundingClientRect().width;

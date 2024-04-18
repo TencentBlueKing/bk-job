@@ -57,6 +57,7 @@
         v-if="allShowColumn.includes('uid')"
         :label="$t('history.容器 ID')"
         prop="uid"
+        :render-header="renderContainerIdHeader"
         :width="600">
         <template slot-scope="{ row }">
           {{ row.executeObject.container.uid || '--' }}
@@ -86,6 +87,7 @@
         v-if="allShowColumn.includes('podName')"
         :label="$t('history.所属 Pod 名称')"
         prop="podName"
+        :render-header="renderPodNameHeader"
         show-overflow-tooltip
         :width="240">
         <template slot-scope="{ row }">
@@ -279,13 +281,59 @@
         if (containerNameList.length < 1) {
           this.$bkMessage({
             theme: 'warning',
-            message: I18n.t('history.容器名称'),
+            message: I18n.t('history.没有可复制的容器名称'),
             limit: 1,
           });
           return;
         }
         const successMessage = `${I18n.t('history.复制成功')}（${containerNameList.length} ${I18n.t('history.个')} ${I18n.t('history.容器名称')}）`;
         execCopy(containerNameList.join('\n'), successMessage);
+      });
+  };
+
+  const handleCopyContainerId = () => {
+    props.getAllTaskList()
+      .then((data) => {
+        const containerIdList = data.reduce((result, item) => {
+          if (item.container.uid) {
+            result.push(item.container.uid);
+          }
+          return result;
+        }, []);
+
+        if (containerIdList.length < 1) {
+          this.$bkMessage({
+            theme: 'warning',
+            message: I18n.t('history.容器 ID'),
+            limit: 1,
+          });
+          return;
+        }
+        const successMessage = `${I18n.t('history.复制成功')}（${containerIdList.length} ${I18n.t('history.个')} ${I18n.t('history.容器 ID')}）`;
+        execCopy(containerIdList.join('\n'), successMessage);
+      });
+  };
+
+  const handleCopyContainerPodName = () => {
+    props.getAllTaskList()
+      .then((data) => {
+        const containerPodNameList = data.reduce((result, item) => {
+          if (item.container.podName) {
+            result.push(item.container.podName);
+          }
+          return result;
+        }, []);
+
+        if (containerPodNameList.length < 1) {
+          this.$bkMessage({
+            theme: 'warning',
+            message: I18n.t('history.没有可复制的所属 Pod 名称'),
+            limit: 1,
+          });
+          return;
+        }
+        const successMessage = `${I18n.t('history.复制成功')}（${containerPodNameList.length} ${I18n.t('history.个')} ${I18n.t('history.所属 Pod 名称')}）`;
+        execCopy(containerPodNameList.join('\n'), successMessage);
       });
   };
 
@@ -296,9 +344,38 @@
     <div>
       {column.label}
       <span
-        v-bk-tooltips={I18n.t('history.容器名称')}
+        v-bk-tooltips={I18n.t('history.没有可复制的容器名称')}
         class="copy-ip-btn"
         onClick={handleCopyContainerName}>
+        <icon type="step-copy" />
+      </span>
+    </div>
+  );
+  /**
+   * @desc 自定义 containerName 列的头
+   */
+  const renderContainerIdHeader = (h, { column }) => (
+    <div>
+      {column.label}
+      <span
+        v-bk-tooltips={I18n.t('history.容器 ID')}
+        class="copy-ip-btn"
+        onClick={handleCopyContainerId}>
+        <icon type="step-copy" />
+      </span>
+    </div>
+  );
+
+  /**
+   * @desc 自定义所属 Pod 名称列的头
+   */
+  const renderPodNameHeader = (h, { column }) => (
+    <div>
+      {column.label}
+      <span
+        v-bk-tooltips={I18n.t('history.所属 Pod 名称')}
+        class="copy-ip-btn"
+        onClick={handleCopyContainerPodName}>
         <icon type="step-copy" />
       </span>
     </div>

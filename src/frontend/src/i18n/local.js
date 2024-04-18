@@ -603,4 +603,6 @@ export default {
   返回上一级: 'Back',
   'Job 小贴士：': 'JOB Tips:',
   '想要再次查阅「版本日志」也可以从此处进入喔～': 'Click here to access all the \'Release notes\', to stay updated on all changes and improvements.',
+  '已成功保存到历史缓存！': 'Successful',
+  '请注意！脚本输出的内容大小上限为5M，超过可能导致日志被丢弃。': 'The maximum size limit for script output is 5MB, Exceeding the limit may loss the logs.',
 };

@@ -98,7 +98,7 @@
           SOLARIS: 0,
           UNIX: 0,
           WINDOWS: 0,
-          MAC: 0,
+          MACOS: 0,
         },
       };
     },
@@ -110,42 +110,42 @@
     created() {
       this.systemList = [
         {
-          name: I18n.t('Linux 数量'),
+          name: I18n.t('dashboard.Linux 数量'),
           key: 'LINUX',
           icon: 'os-linux',
         },
         {
-          name: I18n.t('Windows 数量'),
+          name: I18n.t('dashboard.Windows 数量'),
           key: 'WINDOWS',
           icon: 'os-win',
         },
         {
-          name: I18n.t('AIX 数量'),
+          name: I18n.t('dashboard.AIX 数量'),
           key: 'AIX',
           icon: 'os-aix',
         },
         {
-          name: I18n.t('UNIX 数量'),
+          name: I18n.t('dashboard.UNIX 数量'),
           key: 'UNIX',
           icon: 'os-unix',
         },
         {
-          name: I18n.t('Solaris 数量'),
+          name: I18n.t('dashboard.Solaris 数量'),
           key: 'SOLARIS',
           icon: 'os-solaris',
         },
         {
-          name: I18n.t('Free BSD 数量'),
+          name: I18n.t('dashboard.Free BSD 数量'),
           key: 'FREEBSD',
           icon: 'os-freebsd',
         },
         {
-          name: I18n.t('MacOS 数量'),
-          key: 'MAC',
+          name: I18n.t('dashboard.MacOS 数量'),
+          key: 'MACOS',
           icon: 'os-macos',
         },
         {
-          name: I18n.t('未知数量'),
+          name: I18n.t('dashboard.未知数量'),
           key: 'OTHERS',
           icon: 'os-unknown',
         },

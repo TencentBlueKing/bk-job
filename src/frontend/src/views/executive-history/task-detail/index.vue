@@ -96,6 +96,14 @@
         name="forced"
         @on-cancel="handleCancelForceTask"
         @on-show="handleStartForceTask" />
+      <div
+        class="task-redo-btn"
+        @click="handleGoRetry">
+        <icon
+          style="margin-right: 4px; color: #C4C6CC;"
+          type="circle-back-filled" />
+        {{ $t('history.去重做') }}
+      </div>
     </execution-status-bar>
     <jb-sideslider
       :is-show.sync="isShowGlobalVariable"
@@ -438,6 +446,23 @@
           color: #3a84ff;
         }
       }
+    }
+  }
+
+  .task-redo-btn{
+    display: inline-flex;
+    height: 32px;
+    padding: 0 12px;
+    color: #63656E;
+    cursor: pointer;
+    background: #FFF;
+    border: 1px solid #C4C6CC;
+    border-radius: 16px;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      border-color: #3a84ff;
     }
   }
 </style>

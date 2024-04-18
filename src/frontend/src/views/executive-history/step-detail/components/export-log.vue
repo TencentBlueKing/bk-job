@@ -35,11 +35,11 @@
     }"
     class="step-execute-log-export"
     @click="handleShow">
-    <div
-      ref="download"
-      style="padding: 0 15px;">
-      {{ $t('history.导出日志') }}
-    </div>
+    <span ref="download">
+      <bk-button :disabled="isFile">
+        {{ $t('history.导出日志') }}
+      </bk-button>
+    </span>
     <div
       v-if="isShowThumProcess"
       class="thum-precess-bar"
@@ -341,15 +341,8 @@
 <style lang='postcss'>
   .step-execute-log-export {
     position: relative;
-    height: 32px;
     margin-left: 10px;
-    font-size: 14px;
-    line-height: 32px;
-    color: #63656e;
     cursor: pointer;
-    background: #fafbfd;
-    border: 1px solid #c4c6cc;
-    border-radius: 2px;
     user-select: none;
     flex: 0 0 auto;
 

@@ -141,6 +141,14 @@
         name="forced"
         @on-cancel="handleCancelForceTask"
         @on-show="handleStartForceTask" />
+      <div
+        class="task-redo-btn"
+        @click="handleGoRetry">
+        <icon
+          style="margin-right: 4px; color: #C4C6CC;"
+          type="circle-back-filled" />
+        {{ $t('history.去重做') }}
+      </div>
     </execution-status-bar>
   </div>
 </template>
@@ -400,6 +408,7 @@
         this.isTask = payload.isTask;
         this.taskStepList = Object.freeze(payload.taskStepList);
         this.taskExecution = payload.taskExecution;
+
         appendURLParams({
           executeCount: payload.executeCount,
           stepInstanceId: payload.stepInstanceId,
@@ -544,6 +553,81 @@
           this.fetchStep();
           return true;
         });
+      },
+      handleGoRetry() {
+        this.isLoading = true;
+        if (this.isTask) {
+          TaskExecuteService.fetchTaskInstance({
+            id: this.taskInstanceId,
+          }).then(({ variables }) => {
+            if (variables.length > 0) {
+              // 有变量，去设置变量
+              this.$router.push({
+                name: 'redoTask',
+                params: {
+                  taskInstanceId: this.taskInstanceId,
+                },
+              });
+              return;
+            }
+            // 没有变量直接执行
+            this.$bkInfo({
+              title: I18n.t('history.确认执行？'),
+              subTitle: I18n.t('history.该方案未设置全局变量，点击确认将直接执行。'),
+              confirmFn: () => {
+                this.isLoading = true;
+                TaskExecuteService.redoTask({
+                  taskInstanceId: this.taskInstanceId,
+                  taskVariables: [],
+                }).then(({ taskInstanceId }) => {
+                  this.$bkMessage({
+                    theme: 'success',
+                    message: I18n.t('history.执行成功'),
+                  });
+                  this.$router.push({
+                    name: 'historyTask',
+                    params: {
+                      id: taskInstanceId,
+                    },
+                  });
+                  this.taskInstanceId = taskInstanceId;
+                })
+                  .finally(() => {
+                    this.isLoading = false;
+                  });
+              },
+            });
+          })
+            .finally(() => {
+              this.isLoading = false;
+            });
+        }
+        // 快速分发文件
+        // 去快速执行分发文件页面重做
+        if (this.data.isFile) {
+          this.$router.push({
+            name: 'fastPushFile',
+            params: {
+              taskInstanceId: this.taskInstanceId,
+            },
+            query: {
+              from: 'executiveHistory',
+            },
+          });
+        } else {
+          // 快速执行脚本
+          // 去快速执行脚本页面重做
+          this.$router.push({
+            name: 'fastExecuteScript',
+            params: {
+              taskInstanceId: this.taskInstanceId,
+            },
+            query: {
+              from: 'executiveHistory',
+            },
+          });
+          return;
+        }
       },
       /**
        * @desc 日志搜若
@@ -753,6 +837,23 @@
           color: #3a84ff;
         }
       }
+    }
+  }
+
+  .task-redo-btn{
+    display: inline-flex;
+    height: 32px;
+    padding: 0 12px;
+    color: #63656E;
+    cursor: pointer;
+    background: #FFF;
+    border: 1px solid #C4C6CC;
+    border-radius: 16px;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      border-color: #3a84ff;
     }
   }
 </style>

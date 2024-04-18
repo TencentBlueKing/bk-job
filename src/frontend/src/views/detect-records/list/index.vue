@@ -237,6 +237,10 @@
           name: I18n.t('detectRecords.拦截ID'),
           id: 'id',
           default: true,
+          validate(values) {
+            const validate = (values || []).every(_ => /^(\d*)$/.test(_.name));
+            return !validate ? I18n.t('detectRecords.ID只支持数字') : true;
+          },
         },
         {
           name: I18n.t('detectRecords.表达式.label'),

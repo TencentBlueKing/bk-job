@@ -123,5 +123,13 @@ export default {
     截图: 'Screenshot',
     '未知 OS': 'Unknown OS',
     滚动执行: 'Rolling Exec.',
+    'Linux 数量': 'Linux',
+    'Windows 数量': 'Windows',
+    'AIX 数量': 'AIX',
+    'UNIX 数量': 'UNIX',
+    'Solaris 数量': 'Solaris',
+    'Free BSD 数量': 'Free BSD',
+    'MacOS 数量': 'MacOS',
+    未知数量: 'Unknown',
   },
 };

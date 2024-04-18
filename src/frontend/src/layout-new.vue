@@ -330,7 +330,6 @@
         return;
       }
     }
-    routerGroup.value = 'business';
   }, {
     immediate: true,
   });

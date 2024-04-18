@@ -166,7 +166,6 @@
           this.ipSelectorValue = {
             hostList,
           };
-          this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
         },
         immediate: true,
       },
@@ -242,7 +241,6 @@
                 },
               ];
             }
-            this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
           });
       },
       /**

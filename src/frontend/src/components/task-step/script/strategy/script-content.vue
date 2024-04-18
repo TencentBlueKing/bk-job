@@ -39,6 +39,7 @@
       :lang="lang"
       :readonly="isReadonly"
       :readonly-tips="$t('引用的脚本不支持编辑')"
+      :tips="$t('请注意！脚本输出的内容大小上限为5M，超过可能导致日志被丢弃。')"
       :value="formData[contentField]"
       @change="handleChange"
       @on-mode-change="handleTypeChange" />
