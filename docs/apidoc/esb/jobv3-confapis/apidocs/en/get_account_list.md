@@ -49,6 +49,7 @@ Query the list of executive accounts to which users have access under the busine
                 "category": 1,
                 "type": 1,
                 "os": "Linux",
+                "description":"xxx",
                 "creator": "admin",
                 "bk_scope_type": "biz",
                 "bk_scope_id": "1",
@@ -88,6 +89,7 @@ Query the list of executive accounts to which users have access under the busine
 | type                  |  int       | Account type (1: Linux, 2: Windows，9：MySQL，10： Oracle，11：DB2）|
 | db_system_account_id  | long      | This field takes effect when the account usage is DB account, indicating the system account ID corresponding to DB account|
 | os                    |  string    | This field takes effect when the account is used as a system account. The OS corresponding to the account|
+| description           |  string    | Account description|
 | creator               |  string    | creator|
 | create_time           |  long      | Creation time Unix timestamp (ms)|
 | last_modify_user      |  string    | Last modify user|
