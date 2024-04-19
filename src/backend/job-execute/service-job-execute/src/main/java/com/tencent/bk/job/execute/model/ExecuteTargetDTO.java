@@ -612,4 +612,11 @@ public class ExecuteTargetDTO implements Cloneable {
 
         return kubeContainerFilters;
     }
+
+    /**
+     * 执行目标中是否包含容器执行对象
+     */
+    public boolean hasContainerExecuteObject() {
+        return staticContainerList != null || containerFilters != null;
+    }
 }

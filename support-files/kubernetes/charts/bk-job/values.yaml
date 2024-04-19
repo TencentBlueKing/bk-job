@@ -613,6 +613,9 @@ job:
     # 是否支持执行对象。如果 Job 需要支持容器内作业的执行，需要开启该特性
     executeObject:
       enabled: true
+    # 是否支持容器执行
+    containerExecution:
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
