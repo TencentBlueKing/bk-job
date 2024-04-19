@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
 import org.jooq.DSLContext;
@@ -15,8 +14,8 @@ public class StepInstanceConfirmRecordDAO extends AbstractExecuteRecordDAO<StepI
 
     private static final StepInstanceConfirm TABLE = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
 
-    public StepInstanceConfirmRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public StepInstanceConfirmRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

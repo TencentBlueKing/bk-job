@@ -32,24 +32,24 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
 public class ArchiveSummary {
+    private boolean enabled;
     private String tableName;
     private String archiveEndDate;
     private boolean skip;
+    private boolean success;
 
     private String archiveMode;
+    private Long archiveCost;
 
     private Long archiveIdStart;
     private Long archiveIdEnd;
-    private Long lastArchivedId;
     private Long needArchiveRecordSize;
-    private Long archivedRecordSize;
-    private Long archiveCost;
 
-    private Long deleteIdStart;
-    private Long deleteIdEnd;
+    private Long lastBackupId;
+    private Long backupRecordSize;
+
     private Long lastDeletedId;
     private Long deleteRecordSize;
-    private Long deleteCost;
 
     public ArchiveSummary(String tableName) {
         this.tableName = tableName;

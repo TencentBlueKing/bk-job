@@ -49,8 +49,8 @@ public class ArchiveProgressServiceImpl implements ArchiveProgressService {
 
     @Override
     public void saveArchiveProgress(ArchiveProgressDTO archiveProgress) {
-        if (archiveProgress.getLastArchiveTime() == null) {
-            archiveProgress.setLastArchiveTime(System.currentTimeMillis());
+        if (archiveProgress.getLastBackupTime() == null) {
+            archiveProgress.setLastBackupTime(System.currentTimeMillis());
         }
         archiveProgressDAO.saveArchiveProgress(archiveProgress);
     }

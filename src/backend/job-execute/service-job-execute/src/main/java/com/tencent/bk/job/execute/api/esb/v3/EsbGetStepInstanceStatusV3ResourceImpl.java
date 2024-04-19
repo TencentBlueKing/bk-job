@@ -84,9 +84,11 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         stepInst.setTotalTime(executionResult.getTotalTime());
 
         List<EsbStepInstanceStatusV3DTO.StepResultGroup> stepResultGroupList = new ArrayList<>();
+
         List<ResultGroupDTO> resultGroups = executionResult.getResultGroups();
         for (ResultGroupDTO resultGroup : resultGroups) {
             List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
+
             EsbStepInstanceStatusV3DTO.StepResultGroup stepResultGroup =
                 new EsbStepInstanceStatusV3DTO.StepResultGroup();
             stepResultGroup.setResultType(resultGroup.getStatus());
@@ -97,6 +99,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             stepResultGroup.setTag(resultGroup.getTag());
             stepResultGroup.setHostSize(resultGroup.getTotal());
             List<EsbStepInstanceStatusV3DTO.HostResult> hostResults = new ArrayList<>();
+
             if (executeObjectTasks != null) {
                 for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
                     EsbStepInstanceStatusV3DTO.HostResult stepHostResult = new EsbStepInstanceStatusV3DTO.HostResult();
@@ -116,8 +119,8 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
                     stepHostResult.setTotalTime(executeObjectTask.getTotalTime());
                     hostResults.add(stepHostResult);
                 }
+                stepResultGroup.setHostResultList(hostResults);
             }
-            stepResultGroup.setHostResultList(hostResults);
             stepResultGroupList.add(stepResultGroup);
         }
         stepInst.setStepResultGroupList(stepResultGroupList);

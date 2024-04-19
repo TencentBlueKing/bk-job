@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
 import org.jooq.DSLContext;
@@ -14,8 +13,8 @@ public class RollingConfigRecordDAO extends AbstractExecuteRecordDAO<RollingConf
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
 
-    public RollingConfigRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public RollingConfigRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

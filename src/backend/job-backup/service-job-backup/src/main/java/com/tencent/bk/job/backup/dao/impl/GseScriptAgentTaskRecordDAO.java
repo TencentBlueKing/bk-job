@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 import org.jooq.DSLContext;
@@ -14,8 +13,8 @@ public class GseScriptAgentTaskRecordDAO extends AbstractExecuteRecordDAO<GseScr
 
     private static final GseScriptAgentTask TABLE = GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK;
 
-    public GseScriptAgentTaskRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public GseScriptAgentTaskRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override
