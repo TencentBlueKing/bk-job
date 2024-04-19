@@ -92,9 +92,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
             // 业务集暂时不支持容器拓扑
             return Response.buildSuccessResp(buildEmptyTopoTree(scopeType, scopeId));
         }
-        if (!FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
-            FeatureExecutionContext.builder().addContextParam(
-                ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope))) {
+        if (!isContainerExecuteSupport(appResourceScope)) {
             // 未开启"容器执行"特性的灰度，返回空的容器拓扑
             return Response.buildSuccessResp(buildEmptyTopoTree(scopeType, scopeId));
         }
@@ -121,6 +119,13 @@ public class WebContainerResourceImpl implements WebContainerResource {
                 topoVO
             )
         );
+    }
+
+    private boolean isContainerExecuteSupport(AppResourceScope appResourceScope) {
+        return FeatureToggle.checkFeature(
+            FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
+            FeatureExecutionContext.builder().addContextParam(
+                ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope));
     }
 
     public ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNodeDTO node) {
@@ -162,6 +167,10 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                                         String scopeType,
                                                                         String scopeId,
                                                                         ListContainerByTopologyNodesReq req) {
+        if (!isContainerExecuteSupport(appResourceScope)) {
+            // 未开启"容器执行"特性的灰度，返回空的容器拓扑
+            return Response.buildSuccessResp(PageData.emptyPageData(req.getStart(), req.getPageSize()));
+        }
         ContainerQuery containerQuery =
             ContainerQuery.fromListContainerByTopologyNodesReq(Long.parseLong(scopeId), req);
 
@@ -196,7 +205,10 @@ public class WebContainerResourceImpl implements WebContainerResource {
         String scopeId,
         ListContainerByTopologyNodesReq req
     ) {
-
+        if (!isContainerExecuteSupport(appResourceScope)) {
+            // 未开启"容器执行"特性的灰度，返回空的容器拓扑
+            return Response.buildSuccessResp(PageData.emptyPageData(req.getStart(), req.getPageSize()));
+        }
         ContainerQuery containerQuery =
             ContainerQuery.fromListContainerByTopologyNodesReq(Long.parseLong(scopeId), req);
 
@@ -221,6 +233,10 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        ContainerCheckReq req) {
+        if (!isContainerExecuteSupport(appResourceScope)) {
+            // 未开启"容器执行"特性的灰度，返回空的容器拓扑
+            return Response.buildSuccessResp(Collections.emptyList());
+        }
         List<ContainerDetailDTO> containers =
             containerService.listKubeContainerByUIds(Long.parseLong(scopeId), req.getUidList());
 
