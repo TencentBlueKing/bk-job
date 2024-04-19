@@ -108,4 +108,18 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
 
         return true;
     }
+
+    /**
+     * 判断是否命中配置的管理空间列表
+     *
+     * @param scope 管理空间
+     */
+    protected boolean hitResourceScopeList(ResourceScope scope) {
+        ResourceScope checkScope = scope;
+        if (!scope.getClass().equals(ResourceScope.class)) {
+            // 需要转换为 ResourceScope 类型，避免后面 contains() 判断因为 class 不同出现预期之外的结果
+            checkScope = new ResourceScope(scope.getType(), scope.getId());
+        }
+        return this.resourceScopes.contains(checkScope);
+    }
 }
