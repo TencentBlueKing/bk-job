@@ -34,6 +34,10 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
 import com.tencent.bk.job.manage.model.mapper.ContainerMapper;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
@@ -86,7 +90,13 @@ public class WebContainerResourceImpl implements WebContainerResource {
                                                                      ListTopologyTreesReq req) {
         if (appResourceScope.isBizSet()) {
             // 业务集暂时不支持容器拓扑
-            return Response.buildSuccessResp(buildTreeForBizSet(scopeType, scopeId));
+            return Response.buildSuccessResp(buildEmptyTopoTree(scopeType, scopeId));
+        }
+        if (!FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
+            FeatureExecutionContext.builder().addContextParam(
+                ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope))) {
+            // 未开启"容器执行"特性的灰度，返回空的容器拓扑
+            return Response.buildSuccessResp(buildEmptyTopoTree(scopeType, scopeId));
         }
 
         KubeTopologyDTO topo = containerService.getBizKubeCacheTopo(Long.parseLong(scopeId));
@@ -130,13 +140,18 @@ public class WebContainerResourceImpl implements WebContainerResource {
         return nodeVO;
     }
 
-    private List<ContainerTopologyNodeVO> buildTreeForBizSet(String scopeType, String scopeId) {
+    private List<ContainerTopologyNodeVO> buildEmptyTopoTree(String scopeType, String scopeId) {
         ContainerTopologyNodeVO topo = new ContainerTopologyNodeVO();
         ApplicationDTO bizSetApp = applicationService.getAppByScope(scopeType, scopeId);
         topo.setInstanceId(bizSetApp.getId());
         topo.setInstanceName(bizSetApp.getName());
-        topo.setObjectId("biz_set");
-        topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        if (bizSetApp.isBiz()) {
+            topo.setObjectId("biz");
+            topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz"));
+        } else if (bizSetApp.isBizSet()) {
+            topo.setObjectId("biz_set");
+            topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        }
         topo.setCount(0);
         return Collections.singletonList(topo);
     }

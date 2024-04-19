@@ -53,4 +53,8 @@ public interface FeatureIdConstants {
      * 特性: 执行对象
      */
     String FEATURE_EXECUTE_OBJECT = "executeObject";
+    /**
+     * 特性: 容器执行
+     */
+    String FEATURE_CONTAINER_EXECUTE = "containerExecution";
 }

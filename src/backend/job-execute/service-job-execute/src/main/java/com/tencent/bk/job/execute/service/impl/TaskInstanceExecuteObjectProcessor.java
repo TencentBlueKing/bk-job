@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
@@ -122,6 +123,13 @@ public class TaskInstanceExecuteObjectProcessor {
 
         StopWatch watch = new StopWatch("processExecuteObjects");
         try {
+            if (!isContainerExecuteFeatureEnabled(taskInstance.getAppId())
+                && isContainerExecuteJob(stepInstanceList, variables)) {
+                // 未开启"容器执行"特性的灰度,返回错误
+                throw new NotImplementedException(
+                    "ContainerExecute is not support", ErrorCode.NOT_SUPPORT_FEATURE);
+            }
+
             long appId = taskInstance.getAppId();
             // 获取执行对象
             watch.start("acquireAndSetExecuteObjects");
@@ -162,6 +170,38 @@ public class TaskInstanceExecuteObjectProcessor {
                 log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
         }
+    }
+
+    private boolean isContainerExecuteFeatureEnabled(long appId) {
+        return FeatureToggle.checkFeature(
+            FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
+            FeatureExecutionContext.builder()
+                .addContextParam(
+                    ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
+                    appScopeMappingService.getScopeByAppId(appId)
+                )
+        );
+    }
+
+    private boolean isContainerExecuteJob(List<StepInstanceDTO> stepInstanceList,
+                                          Collection<TaskVariableDTO> variables) {
+        boolean isContainerExecuteJob = stepInstanceList.stream()
+            .anyMatch(stepInstance ->
+                (stepInstance.getTargetExecuteObjects() != null &&
+                    stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()) ||
+                    CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
+                        stepInstance.getFileSourceList().stream()
+                            .anyMatch(fileSource -> fileSource.getServers().hasContainerExecuteObject()));
+        if (isContainerExecuteJob) {
+            return true;
+        }
+
+        if (CollectionUtils.isNotEmpty(variables)) {
+            isContainerExecuteJob = variables.stream()
+                .anyMatch(variable ->
+                    variable.getExecuteTarget() != null && variable.getExecuteTarget().hasContainerExecuteObject());
+        }
+        return isContainerExecuteJob;
     }
 
     private void acquireAndSetHosts(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
