@@ -22,24 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.archive;
 
-import lombok.Data;
-import lombok.ToString;
+import com.tencent.bk.job.common.exception.InternalException;
 
-@Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
-    /**
-     * 最后备份ID
-     */
-    private Long lastBackupId;
+/**
+ * 数据归档异常
+ */
+public class ArchiveException extends InternalException {
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
+    public ArchiveException(String message) {
+        super(message, (Throwable) null);
+    }
+
+    public ArchiveException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+
 }

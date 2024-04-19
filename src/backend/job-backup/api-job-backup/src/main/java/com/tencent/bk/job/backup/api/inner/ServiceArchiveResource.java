@@ -39,5 +39,5 @@ import org.springframework.web.bind.annotation.RestController;
 @InternalAPI
 public interface ServiceArchiveResource {
     @PostMapping
-    InternalResponse archive(@RequestBody ServiceArchiveDBRequest request);
+    InternalResponse<?> archive(@RequestBody ServiceArchiveDBRequest request);
 }

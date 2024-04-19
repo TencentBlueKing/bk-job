@@ -27,14 +27,21 @@ package com.tencent.bk.job.backup.api.inner.impl;
 import com.tencent.bk.job.backup.api.inner.ServiceArchiveResource;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.model.InternalResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @Slf4j
+@Profile("dev")
 public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
 
     private final JobExecuteArchiveManage jobExecuteArchiveManage;
@@ -44,14 +51,37 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     }
 
     @Override
-    public InternalResponse archive(ServiceArchiveDBRequest request) {
+    public InternalResponse<?> archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
         ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
-        archiveDBProperties.setEnabled(request.isArchiveEnabled());
-        archiveDBProperties.setKeepDays(request.getDataKeepDays());
-        archiveDBProperties.setMode(request.getMode());
+        if (StringUtils.isNotEmpty(request.getMode())) {
+            archiveDBProperties.setMode(request.getMode());
+        } else {
+            archiveDBProperties.setMode(ArchiveModeEnum.BACKUP_THEN_DELETE.getMode());
+        }
+        archiveDBProperties.setEnabled(true);
+        archiveDBProperties.setKeepDays(request.getKeepDays());
+        archiveDBProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
+        archiveDBProperties.setDeleteRowLimit(request.getDeleteRowLimit());
+        archiveDBProperties.setReadIdStepSize(request.getReadIdStepSize());
+        archiveDBProperties.setReadRowLimit(request.getReadRowLimit());
+
+        if (request.getTableConfigs() != null) {
+            Map<String, ArchiveDBProperties.TableConfig> tableConfigMap = new HashMap<>();
+
+            request.getTableConfigs().forEach((table, config) -> {
+                ArchiveDBProperties.TableConfig tableConfig = new ArchiveDBProperties.TableConfig();
+                tableConfig.setBatchInsertRowSize(config.getBatchInsertRowSize());
+                tableConfig.setDeleteRowLimit(config.getDeleteRowLimit());
+                tableConfig.setReadIdStepSize(config.getReadIdStepSize());
+                tableConfig.setReadRowLimit(config.getReadRowLimit());
+                tableConfigMap.put(table, tableConfig);
+            });
+
+            archiveDBProperties.setTableConfigs(tableConfigMap);
+        }
 
         jobExecuteArchiveManage.archive(archiveDBProperties);
-        return InternalResponse.buildSuccessResp(null);
+        return InternalResponse.buildSuccessResp(archiveDBProperties);
     }
 }

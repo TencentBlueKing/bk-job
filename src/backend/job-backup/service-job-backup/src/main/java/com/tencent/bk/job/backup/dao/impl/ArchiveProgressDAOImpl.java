@@ -61,8 +61,8 @@ public class ArchiveProgressDAOImpl implements ArchiveProgressDAO {
         }
         ArchiveProgressDTO archiveProgress = new ArchiveProgressDTO();
         archiveProgress.setTableName(record.get(T.TABLE_NAME));
-        archiveProgress.setLastArchivedId(record.get(T.LAST_ARCHIVED_ID));
-        archiveProgress.setLastArchiveTime(record.get(T.LAST_ARCHIVE_TIME));
+        archiveProgress.setLastBackupId(record.get(T.LAST_ARCHIVED_ID));
+        archiveProgress.setLastBackupTime(record.get(T.LAST_ARCHIVE_TIME));
         archiveProgress.setLastDeletedId(record.get(T.LAST_DELETED_ID));
         archiveProgress.setLastDeleteTime(record.get(T.LAST_DELETE_TIME));
         return archiveProgress;
@@ -71,11 +71,11 @@ public class ArchiveProgressDAOImpl implements ArchiveProgressDAO {
     @Override
     public void saveArchiveProgress(ArchiveProgressDTO archiveProgress) {
         ctx.insertInto(T, T.TABLE_NAME, T.LAST_ARCHIVED_ID, T.LAST_ARCHIVE_TIME)
-            .values(archiveProgress.getTableName(), archiveProgress.getLastArchivedId(),
-                archiveProgress.getLastArchiveTime())
+            .values(archiveProgress.getTableName(), archiveProgress.getLastBackupId(),
+                archiveProgress.getLastBackupTime())
             .onDuplicateKeyUpdate()
-            .set(T.LAST_ARCHIVED_ID, archiveProgress.getLastArchivedId())
-            .set(T.LAST_ARCHIVE_TIME, archiveProgress.getLastArchiveTime())
+            .set(T.LAST_ARCHIVED_ID, archiveProgress.getLastBackupId())
+            .set(T.LAST_ARCHIVE_TIME, archiveProgress.getLastBackupTime())
             .execute();
     }
 

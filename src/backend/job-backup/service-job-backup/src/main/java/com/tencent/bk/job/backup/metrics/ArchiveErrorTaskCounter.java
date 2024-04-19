@@ -22,24 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.metrics;
 
-import lombok.Data;
-import lombok.ToString;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-@Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
+@Component
+public class ArchiveErrorTaskCounter {
+
+    private final Counter archiveErrorTaskCounter;
+
+    @Autowired
+    public ArchiveErrorTaskCounter(MeterRegistry meterRegistry) {
+        this.archiveErrorTaskCounter = meterRegistry.counter(MetricConstants.ARCHIVE_ERROR_TASK_TOTAL);
+    }
+
     /**
-     * 最后备份ID
+     * 计数+1
      */
-    private Long lastBackupId;
+    public void increment() {
+        this.archiveErrorTaskCounter.increment();
+    }
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
 }
