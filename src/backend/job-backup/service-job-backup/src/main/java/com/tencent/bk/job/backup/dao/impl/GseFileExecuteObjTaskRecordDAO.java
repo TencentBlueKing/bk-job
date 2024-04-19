@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.GseFileExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
 import org.jooq.DSLContext;
@@ -14,8 +13,8 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractExecuteRecordDAO<Gse
 
     private static final GseFileExecuteObjTask TABLE = GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK;
 
-    public GseFileExecuteObjTaskRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public GseFileExecuteObjTaskRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

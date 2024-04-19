@@ -56,4 +56,8 @@ public enum ArchiveModeEnum {
         }
         return null;
     }
+
+    public String getMode() {
+        return mode;
+    }
 }

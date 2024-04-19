@@ -22,24 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.metrics;
 
-import lombok.Data;
-import lombok.ToString;
-
-@Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
+public class MetricConstants {
     /**
-     * 最后备份ID
+     * Job 执行历史归档异常任务总数
      */
-    private Long lastBackupId;
+    public static final String ARCHIVE_ERROR_TASK_TOTAL = "job.history.archive.error.task.total";
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
+
 }

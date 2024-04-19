@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import org.jooq.DSLContext;
@@ -17,8 +16,8 @@ public class TaskInstanceRecordDAO extends AbstractExecuteRecordDAO<TaskInstance
 
     private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
 
-    public TaskInstanceRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public TaskInstanceRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

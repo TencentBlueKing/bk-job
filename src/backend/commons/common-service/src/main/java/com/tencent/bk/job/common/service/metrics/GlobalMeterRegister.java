@@ -22,24 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.common.service.metrics;
 
-import lombok.Data;
-import lombok.ToString;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 
-@Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
-    /**
-     * 最后备份ID
-     */
-    private Long lastBackupId;
+@Slf4j
+public class GlobalMeterRegister {
+    private static volatile MeterRegistry globalMeterRegistry;
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
+    private static final Object lock = new Object();
+
+    private GlobalMeterRegister() {
+
+    }
+
+    public static MeterRegistry get() {
+        MeterRegistry meterRegistry = globalMeterRegistry;
+        if (meterRegistry == null) {
+            synchronized (lock) {
+                meterRegistry = globalMeterRegistry;
+                if (meterRegistry == null) {
+                    meterRegistry = ApplicationContextRegister.getBean(MeterRegistry.class);
+                }
+            }
+        }
+        return meterRegistry;
+    }
 }

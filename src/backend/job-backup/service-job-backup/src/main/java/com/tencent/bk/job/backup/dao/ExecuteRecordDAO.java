@@ -41,11 +41,12 @@ public interface ExecuteRecordDAO<T extends Record> {
     /**
      * 根据起始/结束ID删除表记录
      *
-     * @param start 起始ID(exclude)
-     * @param end   结束ID(include)
+     * @param start                起始ID(exclude)
+     * @param end                  结束ID(include)
+     * @param maxLimitedDeleteRows 批量删除每批次limit
      * @return 删除的记录数量
      */
-    int deleteRecords(Long start, Long end);
+    int deleteRecords(Long start, Long end, long maxLimitedDeleteRows);
 
     /**
      * 获取表中最小归档ID
