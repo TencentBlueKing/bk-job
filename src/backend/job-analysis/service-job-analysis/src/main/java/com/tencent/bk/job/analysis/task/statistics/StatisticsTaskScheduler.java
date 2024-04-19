@@ -35,7 +35,6 @@ import com.tencent.bk.job.analysis.task.statistics.task.WatchableTask;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
 import com.tencent.bk.job.common.redis.util.LockResult;
-import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -77,7 +76,6 @@ import java.util.stream.Collectors;
 public class StatisticsTaskScheduler {
 
     private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final String REDIS_KEY_STATISTIC_JOB_LOCK = "statistic-job-lock";
     private static final String REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE = "statistic-job-running-machine";
     public static final AtomicLong rejectedStatisticsTaskNum = new AtomicLong(0);
     private static final String REDIS_KEY_STATISTIC_JOB_INIT_MACHINE = "statistic-job-init-machine";
@@ -96,18 +94,6 @@ public class StatisticsTaskScheduler {
 
     private ThreadPoolExecutor currentStatisticsTaskExecutor;
     private ThreadPoolExecutor pastStatisticsTaskExecutor;
-
-    static {
-        List<String> keyList = Collections.singletonList(REDIS_KEY_STATISTIC_JOB_LOCK);
-        keyList.forEach(key -> {
-            try {
-                //进程重启首先尝试释放上次加上的锁避免死锁
-                LockUtils.releaseDistributedLock(key, machineIp);
-            } catch (Throwable t) {
-                log.info("Redis key:" + key + " does not need to be released, ignore");
-            }
-        });
-    }
 
     private final StatisticConfig statisticConfig;
     private final RedisTemplate<String, String> redisTemplate;
@@ -174,7 +160,7 @@ public class StatisticsTaskScheduler {
         if (currentStatisticThreadsNum != null && currentStatisticThreadsNum > 0) {
             log.info("reconfig currentStatisticsTaskExecutor to {} threads", currentStatisticThreadsNum);
             List<Runnable> canceledRunnableList = currentStatisticsTaskExecutor.shutdownNow();
-            if (canceledRunnableList.size() > 0) {
+            if (!canceledRunnableList.isEmpty()) {
                 log.warn("{} threads of  canceled", canceledRunnableList.size());
             }
             currentStatisticsTaskExecutor = new ThreadPoolExecutor(
@@ -193,7 +179,7 @@ public class StatisticsTaskScheduler {
             log.info("reconfig pastStatisticsTaskExecutor to {} threads", pastStatisticThreadsNum);
             pastStatisticsMakeupTask.setRunFlag(false);
             List<Runnable> canceledRunnableList = pastStatisticsTaskExecutor.shutdownNow();
-            if (canceledRunnableList.size() > 0) {
+            if (!canceledRunnableList.isEmpty()) {
                 log.warn("{} threads of pastStatisticsTaskExecutor canceled", canceledRunnableList.size());
             }
             pastStatisticsTaskExecutor = new ThreadPoolExecutor(
@@ -265,7 +251,7 @@ public class StatisticsTaskScheduler {
         }
         int count = 0;
         int maxPreviousDays = 1000;
-        while (targetDate.compareTo(startDate) >= 0 && count < maxPreviousDays) {
+        while (!targetDate.isBefore(startDate) && count < maxPreviousDays) {
             startByTaskNameList(taskNameList, targetDate, startedTaskNames);
             targetDate = targetDate.minusDays(1);
             count += 1;
@@ -465,7 +451,7 @@ public class StatisticsTaskScheduler {
             futureList.forEach(future -> {
                 try {
                     // 最长统计任务耗时约30min
-                    int timeoutMinutes = 50;
+                    int timeoutMinutes = 60;
                     future.get(timeoutMinutes, TimeUnit.MINUTES);
                     updateDataUpdateTime(TimeUtil.getCurrentTimeStr());
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
