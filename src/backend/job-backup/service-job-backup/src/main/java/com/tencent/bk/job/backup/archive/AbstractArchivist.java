@@ -426,7 +426,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private int batchInsert(List<T> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(recordList, 1000);
+        return executeArchiveDAO.batchInsert(recordList, batchInsertRowSize);
     }
 
     private int deleteRecord(Long start, Long stop) {
