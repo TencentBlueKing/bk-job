@@ -32,6 +32,9 @@ import com.tencent.bk.job.analysis.task.statistics.task.IStatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.PastStatisticsMakeupTask;
 import com.tencent.bk.job.analysis.task.statistics.task.TaskInfo;
 import com.tencent.bk.job.analysis.task.statistics.task.WatchableTask;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
@@ -115,9 +118,9 @@ public class StatisticsTaskScheduler {
     @Autowired
     public StatisticsTaskScheduler(MeterRegistry meterRegistry,
                                    @Qualifier("currentStatisticsTaskExecutor")
-                                       ThreadPoolExecutor currentStatisticsTaskExecutor,
+                                   ThreadPoolExecutor currentStatisticsTaskExecutor,
                                    @Qualifier("pastStatisticsTaskExecutor")
-                                       ThreadPoolExecutor pastStatisticsTaskExecutor,
+                                   ThreadPoolExecutor pastStatisticsTaskExecutor,
                                    StatisticConfig statisticConfig,
                                    RedisTemplate<String, String> redisTemplate,
                                    PastStatisticsMakeupTask pastStatisticsMakeupTask,
@@ -399,19 +402,6 @@ public class StatisticsTaskScheduler {
                 statisticConfig.getIntervalHours());
             currentCycleHours = 1;
         }
-
-        // 分布式唯一性保证
-        boolean lockGotten = LockUtils.tryGetDistributedLock(REDIS_KEY_STATISTIC_JOB_LOCK, machineIp, 50);
-        if (!lockGotten) {
-            log.info("lock {} gotten by another machine, return", REDIS_KEY_STATISTIC_JOB_LOCK);
-            return false;
-        }
-        String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE);
-        if (StringUtils.isNotBlank(runningMachine)) {
-            //已有同步线程在跑，不再同步
-            log.info("StatisticsTaskScheduler thread already running on {}", runningMachine);
-            return false;
-        }
         return true;
     }
 
@@ -422,18 +412,25 @@ public class StatisticsTaskScheduler {
         if (!needToRunStatisticTasks()) {
             return;
         }
-        // 开一个心跳子线程，维护当前机器正在执行后台统计任务的状态
-        long expireTimeMillis = 5000L;
-        long periodTimeMillis = 4000L;
-        RedisKeyHeartBeatThread statisticTaskSchedulerRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
+
+        // 分布式唯一性保证
+        HeartBeatRedisLockConfig config = HeartBeatRedisLockConfig.getDefault();
+        config.setHeartBeatThreadName("statisticTaskSchedulerRedisKeyHeartBeatThread");
+        HeartBeatRedisLock lock = new HeartBeatRedisLock(
             redisTemplate,
             REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE,
             machineIp,
-            expireTimeMillis,
-            periodTimeMillis
+            config
         );
-        statisticTaskSchedulerRedisKeyHeartBeatThread.setName("statisticTaskSchedulerRedisKeyHeartBeatThread");
-        statisticTaskSchedulerRedisKeyHeartBeatThread.start();
+        LockResult lockResult = lock.lock();
+        if (!lockResult.isLockGotten()) {
+            log.info(
+                "lock {} gotten by another machine: {}, return",
+                REDIS_KEY_STATISTIC_JOB_RUNNING_MACHINE,
+                lockResult.getLockValue()
+            );
+            return;
+        }
 
         // 统计任务开始
         log.info("start StatisticsTaskScheduler at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
@@ -467,20 +464,26 @@ public class StatisticsTaskScheduler {
             // 等待所有统计任务结束
             futureList.forEach(future -> {
                 try {
-                    int timeoutMinutes = 10;
+                    // 最长统计任务耗时约30min
+                    int timeoutMinutes = 50;
                     future.get(timeoutMinutes, TimeUnit.MINUTES);
+                    updateDataUpdateTime(TimeUtil.getCurrentTimeStr());
                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                     log.error("Exception in statistic task", e);
+                    updateDataUpdateTime("After " + TimeUtil.getCurrentTimeStr());
                 }
             });
-            // 向Redis写入统计数据更新时间，不过期
-            redisTemplate.opsForValue().set(StatisticsConstants.KEY_DATA_UPDATE_TIME, TimeUtil.getCurrentTimeStr());
         } catch (Throwable t) {
             log.error("Exception in StatisticsTaskScheduler", t);
         } finally {
-            statisticTaskSchedulerRedisKeyHeartBeatThread.setRunFlag(false);
+            lockResult.tryToRelease();
             stopWatch.stop();
             log.info(stopWatch.prettyPrint());
         }
+    }
+
+    private void updateDataUpdateTime(String updateTimeStr) {
+        // 向Redis写入统计数据更新时间，不过期
+        redisTemplate.opsForValue().set(StatisticsConstants.KEY_DATA_UPDATE_TIME, updateTimeStr);
     }
 }
