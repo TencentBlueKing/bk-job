@@ -47,7 +47,7 @@ public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeT
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
-        return hitResourceScopeRange(scope);
+        return hitResourceScopeList(scope);
     }
 
     @Override

@@ -114,7 +114,7 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
      *
      * @param scope 管理空间
      */
-    protected boolean hitResourceScopeRange(ResourceScope scope) {
+    protected boolean hitResourceScopeList(ResourceScope scope) {
         ResourceScope checkScope = scope;
         if (!scope.getClass().equals(ResourceScope.class)) {
             // 需要转换为 ResourceScope 类型，避免后面 contains() 判断因为 class 不同出现预期之外的结果
