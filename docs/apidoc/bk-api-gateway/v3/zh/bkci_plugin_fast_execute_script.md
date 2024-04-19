@@ -72,7 +72,7 @@
 | kube_workload_filter | object | 否 |  workload 过滤器. 过滤器定义见 kube_workload_filter |
 | kube_pod_filter | object | 否 | pod 属性过滤器，过滤器定义见 kube_pod_filter |
 | kube_container_prop_filter | object | 是 | 容器属性过滤器，过滤器定义见 kube_container_prop_filter |
-| is_empty_filter | boolean | false | 标识一个没有设置任何条件的过滤器；默认值为 false。如果为 true, 将忽略其他的条件（kube_cluster_filter/kube_namespace_filter/kube_workload_filter/kube_pod_filter/kube_container_prop_filter)，返回业务下的所有容器 |
+| is_empty_filter | boolean | 是 | 标识一个没有设置任何条件的过滤器；默认值为 false。如果为 true, 将忽略其他的条件（kube_cluster_filter/kube_namespace_filter/kube_workload_filter/kube_pod_filter/kube_container_prop_filter)，返回业务下的所有容器 |
 | fetch_any_one_container | boolean | 否 | 是否从过滤结果集中选择任意一个容器作为执行对象（只有一个容器会被执行）；默认为 false |
 
 ##### kube_cluster_filter
