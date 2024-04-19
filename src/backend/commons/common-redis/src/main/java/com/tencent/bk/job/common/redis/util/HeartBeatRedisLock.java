@@ -60,19 +60,19 @@ public class HeartBeatRedisLock {
     public LockResult lock() {
         boolean lockGotten;
         try {
-            lockGotten = LockUtils.tryGetReentrantLock(key, value, config.getExpireTimeMillis());
+            lockGotten = LockUtils.tryGetDistributedLock(key, value, config.getExpireTimeMillis());
             if (!lockGotten) {
                 String realLockKey = getRealLockKey();
                 String realLockKeyValue = redisTemplate.opsForValue().get(realLockKey);
                 log.info("Get lock {} fail, already held by {}", realLockKey, realLockKeyValue);
-                return LockResult.fail();
+                return LockResult.fail(realLockKeyValue);
             }
             RedisKeyHeartBeatThread heartBeatThread = startRedisKeyHeartBeatThread();
-            return LockResult.succeed(heartBeatThread);
+            return LockResult.succeed(value, heartBeatThread);
         } catch (Throwable t) {
             log.error("Get lock caught exception", t);
         }
-        return LockResult.fail();
+        return LockResult.fail(null);
     }
 
     private String getRealLockKey() {
