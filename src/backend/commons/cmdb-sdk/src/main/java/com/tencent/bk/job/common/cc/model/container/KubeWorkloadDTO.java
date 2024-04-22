@@ -63,7 +63,7 @@ public class KubeWorkloadDTO {
     private Long bizId;
 
     /**
-     * namespace 资源 ID（namespace 在 cmdb 中注册资源的 ID）
+     * workload 资源 ID（wordload 在 cmdb 中注册资源的 ID）
      */
     private Long id;
 
