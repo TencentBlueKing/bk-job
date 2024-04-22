@@ -200,5 +200,5 @@ data:
             root-path: {{ .Values.fileDistribute.hostPath }}/local
         script-task:
           query:
-            content-size-limit: {{ printf "%d" .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+            content-size-limit: {{ printf "%d" (.Values.executeConfig.scriptTask.query.contentSizeLimit | int ) }}
 {{- end }}

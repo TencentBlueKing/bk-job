@@ -353,7 +353,7 @@ data:
             repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
         script-task:
           query:
-            content-size-limit: {{ printf "%d" .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+            content-size-limit: {{ printf "%d" (.Values.executeConfig.scriptTask.query.contentSizeLimit | int ) }}
       crontab:
         notification-policy:
           failed:
