@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -175,6 +176,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                 StepInstanceService stepInstanceService,
                                 GseClient gseClient,
+                                JobExecuteConfig jobExecuteConfig,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -195,6 +197,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             fileExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

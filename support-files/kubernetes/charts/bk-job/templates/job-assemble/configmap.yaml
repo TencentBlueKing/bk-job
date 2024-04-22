@@ -351,6 +351,9 @@ data:
           storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
           artifactory:
             repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+        script-task:
+          query:
+            content-size-limit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
       crontab:
         notification-policy:
           failed:

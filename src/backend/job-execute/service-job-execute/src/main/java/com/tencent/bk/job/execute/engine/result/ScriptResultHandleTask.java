@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -90,7 +91,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     /**
      * GSE日志查询支持的每一批次的脚本执行输出日志长度(单位byte)
      */
-    private static final int MAX_QUERY_CONTENT_TOTAL_BYTES = 512 * 1024 * 1024;
+    private final int maxQueryContentSizeLimit;
     /**
      * GSE 每个脚本执行原子任务对应的最大日志大小，5MB
      */
@@ -137,6 +138,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
+                                  JobExecuteConfig jobExecuteConfig,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -155,6 +157,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -162,6 +165,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             gseTask,
             requestId,
             executeObjectTasks);
+        this.maxQueryContentSizeLimit = jobExecuteConfig.getScriptTaskQueryContentSizeLimit();
         initLogPullProcess(executeObjectTaskMap.values());
     }
 
@@ -210,7 +214,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         request.setTaskId(gseTask.getGseTaskId());
 
         int executeObjectSize = executeObjectGseKeys.size();
-        int limit = MAX_QUERY_CONTENT_TOTAL_BYTES / executeObjectSize;
+        int limit = maxQueryContentSizeLimit / executeObjectSize;
         // 如果计算出来的 limit 值大于 GSE 本身的任务限制，不需要传入 limit
         boolean enableLimitContentRequestParam = limit < MAX_GSE_ATOMIC_TASK_CONTENT_BYTES;
 

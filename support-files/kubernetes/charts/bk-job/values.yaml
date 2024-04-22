@@ -878,6 +878,10 @@ executeConfig:
     artifactory:
       # 存储后端使用制品库时使用的仓库代码
       repo: backup
+  scriptTask:
+    query:
+      # GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度（单位 byte)
+      contentSizeLimit: 536870912
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute

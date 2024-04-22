@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -210,6 +211,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected String gseTaskInfo;
 
+    protected JobExecuteConfig jobExecuteConfig;
 
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
                                        GseTaskService gseTaskService,
@@ -222,6 +224,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        ExecuteObjectTaskService executeObjectTaskService,
                                        StepInstanceService stepInstanceService,
                                        GseClient gseClient,
+                                       JobExecuteConfig jobExecuteConfig,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -240,6 +243,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.executeObjectTaskService = executeObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
+        this.jobExecuteConfig = jobExecuteConfig;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
