@@ -191,7 +191,8 @@ public class TaskInstanceExecuteObjectProcessor {
                     stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()) ||
                     CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
                         stepInstance.getFileSourceList().stream()
-                            .anyMatch(fileSource -> fileSource.getServers().hasContainerExecuteObject()));
+                            .anyMatch(fileSource -> fileSource.getServers() != null &&
+                                fileSource.getServers().hasContainerExecuteObject()));
         if (isContainerExecuteJob) {
             return true;
         }
