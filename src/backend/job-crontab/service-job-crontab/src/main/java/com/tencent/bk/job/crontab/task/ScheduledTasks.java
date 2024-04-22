@@ -44,11 +44,24 @@ public class ScheduledTasks {
     }
 
     /**
-     * 每间隔30min更新一次定时任务数据到Quartz内存
+     * 启动时更新一次定时任务数据到Quartz内存
      */
-    @Scheduled(initialDelay = 5 * 1000, fixedDelay = 30 * 60 * 1000)
+    @Scheduled(initialDelay = 5 * 1000)
+    public void loadCronToQuartzOnStartup() {
+        log.info("loadCronToQuartzOnStartup");
+        loadCronToQuartz();
+    }
+
+    /**
+     * 每天早上9:30更新一次定时任务数据到Quartz内存
+     */
+    @Scheduled(cron = "0 30 9 * * *")
+    public void loadCronToQuartzPeriodically() {
+        log.info("loadCronToQuartzPeriodically");
+        loadCronToQuartz();
+    }
+
     public void loadCronToQuartz() {
-        log.info("loadCronToQuartz");
         long start = System.currentTimeMillis();
         try {
             cronJobLoadingService.loadAllCronJob();
