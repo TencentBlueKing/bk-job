@@ -61,4 +61,11 @@ public class JobExecuteConfig {
 
     @Value("${gse.script.rootPath:/tmp/bkjob}")
     private String gseScriptFileRootPath;
+
+    /**
+     * GSE 脚本任务执行结果查询 API 单次返回
+     * 默认值：512M
+     */
+    @Value("${gse.script.task.query.contentSizeLimit:536870912}")
+    private int gseScriptTaskQueryMaxContentSize;
 }

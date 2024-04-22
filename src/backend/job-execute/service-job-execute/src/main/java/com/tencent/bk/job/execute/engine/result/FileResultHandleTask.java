@@ -267,10 +267,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         FileTaskResult result = gseClient.getTransferFileResult(request);
         GseLogBatchPullResult<FileTaskResult> pullResult;
         if (result != null) {
-            pullResult = new GseLogBatchPullResult<>(
-                true, true, new FileGseTaskResult(result), null);
+            pullResult = new GseLogBatchPullResult<>(true, new FileGseTaskResult(result));
         } else {
-            pullResult = new GseLogBatchPullResult<>(true, true, null, null);
+            pullResult = new GseLogBatchPullResult<>(true, null);
         }
         return pullResult;
     }

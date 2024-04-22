@@ -84,7 +84,7 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
             HttpHelperFactory.createHttpHelper(
                 15000,
                 15000,
-                15000,
+                60000,
                 1000,
                 2000,
                 60,
