@@ -1701,7 +1701,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         ListKubeClusterReq nextPageReq = new ListKubeClusterReq();
         nextPageReq.setPage(originReq.getPage());
         nextPageReq.setBizId(originReq.getBizId());
-        originReq.setFields(originReq.getFields());
+        nextPageReq.setFields(originReq.getFields());
         nextPageReq.setBkSupplierAccount(originReq.getBkSupplierAccount());
 
         // 添加 cluster ID 作为分页查询 offset 条件
@@ -1790,7 +1790,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
         ListKubeNamespaceReq nextPageReq = new ListKubeNamespaceReq();
         nextPageReq.setPage(originReq.getPage());
         nextPageReq.setBizId(originReq.getBizId());
-        originReq.setFields(originReq.getFields());
+        nextPageReq.setFields(originReq.getFields());
         nextPageReq.setBkSupplierAccount(originReq.getBkSupplierAccount());
 
         // 添加 namespace ID 作为分页查询 offset 条件
@@ -1845,18 +1845,15 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                     return buildNextPageListKubeWorkloadReq(req, latestElement.getId());
                 }
             },
-            pageReq -> listPage(
-                req,
-                false,
-                cmdbPageReq -> requestCmdbApi(
-                    ApiGwType.BK_APIGW,
-                    HttpMethodEnum.POST,
-                    requestUrl,
-                    null,
-                    cmdbPageReq,
-                    new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
-                    })),
-            PageData::getData,
+            cmdbPageReq -> requestCmdbApi(
+                ApiGwType.BK_APIGW,
+                HttpMethodEnum.POST,
+                requestUrl,
+                null,
+                cmdbPageReq,
+                new TypeReference<EsbResp<BaseCcSearchResult<KubeWorkloadDTO>>>() {
+                }),
+            resp -> resp.getData().getInfo(),
             workload -> {
                 // cmdb API 返回的数据没有包含 kind 信息，需要补全
                 workload.setKind(req.getKind());
