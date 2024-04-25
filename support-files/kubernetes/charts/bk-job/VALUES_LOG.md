@@ -20,6 +20,10 @@ backupConfig:
     execute:
       # 是否启用 DB 归档
       enabled: true
+      # 被归档 DB 的配置
+      mariadb:
+        connection:
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       # 归档模式。deleteOnly: 仅删除； backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: backupThenDelete
       # 归档任务运行的cron表达式，默认每天凌晨04:00
