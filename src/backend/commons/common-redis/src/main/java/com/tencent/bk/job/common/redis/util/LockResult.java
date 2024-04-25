@@ -29,15 +29,20 @@ import lombok.Data;
 @Data
 public class LockResult {
     private boolean lockGotten;
+    private String lockValue;
     private RedisKeyHeartBeatThread heartBeatThread;
 
-    public LockResult(boolean lockGotten, RedisKeyHeartBeatThread heartBeatThread) {
+    public LockResult(boolean lockGotten,
+                      String lockValue,
+                      RedisKeyHeartBeatThread heartBeatThread) {
         this.lockGotten = lockGotten;
+        this.lockValue = lockValue;
         this.heartBeatThread = heartBeatThread;
     }
 
-    public LockResult(boolean lockGotten) {
+    public LockResult(boolean lockGotten, String lockValue) {
         this.lockGotten = lockGotten;
+        this.lockValue = lockValue;
     }
 
     public void tryToRelease() {
@@ -46,12 +51,12 @@ public class LockResult {
         }
     }
 
-    public static LockResult fail() {
-        return new LockResult(false);
+    public static LockResult fail(String lockValue) {
+        return new LockResult(false, lockValue);
     }
 
-    public static LockResult succeed(RedisKeyHeartBeatThread heartBeatThread) {
-        return new LockResult(true, heartBeatThread);
+    public static LockResult succeed(String lockValue, RedisKeyHeartBeatThread heartBeatThread) {
+        return new LockResult(true, lockValue, heartBeatThread);
     }
 
 }
