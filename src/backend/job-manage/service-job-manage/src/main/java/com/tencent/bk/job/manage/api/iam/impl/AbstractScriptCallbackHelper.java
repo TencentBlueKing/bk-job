@@ -91,7 +91,7 @@ public abstract class AbstractScriptCallbackHelper extends BaseIamCallbackServic
         Map<Long, ResourceScope> appIdScopeMap = applicationService.getScopeByAppIds(appIdSet);
         for (String id : queryScriptIdList) {
             ScriptBasicDTO scriptBasicDTO = scriptBasicDTOMap.get(id);
-            if (scriptBasicDTO == null || scriptBasicDTO.isPublicScript()) {
+            if (scriptBasicDTO == null) {
                 logNotExistId(id);
                 continue;
             }
