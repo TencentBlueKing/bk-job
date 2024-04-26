@@ -851,11 +851,11 @@ public class CronJobServiceImpl implements CronJobService {
             }
             return true;
         } catch (ServiceException e) {
-            informAllToDeleteJobFromQuartz(appId, cronJobId);
+            deleteJobFromQuartz(appId, cronJobId);
             log.debug("Error while schedule job", e);
             throw e;
         } catch (Exception e) {
-            informAllToDeleteJobFromQuartz(appId, cronJobId);
+            deleteJobFromQuartz(appId, cronJobId);
             log.error("Unknown exception while process cron status change!", e);
             throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
         }

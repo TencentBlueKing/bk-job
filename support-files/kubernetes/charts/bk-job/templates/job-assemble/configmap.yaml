@@ -351,6 +351,9 @@ data:
           storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
           artifactory:
             repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+        file:
+          distribute:
+            root-path: {{ .Values.fileDistribute.hostPath }}/local
       crontab:
         notification-policy:
           failed:
