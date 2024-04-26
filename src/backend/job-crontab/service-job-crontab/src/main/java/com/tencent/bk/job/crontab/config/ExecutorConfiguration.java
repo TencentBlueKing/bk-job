@@ -22,33 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.task;
+package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.crontab.service.CronJobLoadingService;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Component("jobCrontabScheduledTasks")
-@EnableScheduling
-public class ScheduledTasks {
+@Configuration(value = "jobCrontabExecutorConfig")
+public class ExecutorConfiguration {
 
-    private final CronJobLoadingService cronJobLoadingService;
-
-    @Autowired
-    public ScheduledTasks(CronJobLoadingService cronJobLoadingService) {
-        this.cronJobLoadingService = cronJobLoadingService;
+    @Bean("crontabInitRunnerExecutor")
+    public ThreadPoolExecutor crontabInitRunnerExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "initRunnerExecutor",
+            0,
+            5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
     }
 
-    /**
-     * 每天早上9:30更新一次定时任务数据到Quartz内存
-     */
-    @Scheduled(cron = "0 30 9 * * *")
-    public void loadCronToQuartzPeriodically() {
-        log.info("loadCronToQuartzPeriodically");
-        cronJobLoadingService.loadAllCronJob();
-    }
 }
