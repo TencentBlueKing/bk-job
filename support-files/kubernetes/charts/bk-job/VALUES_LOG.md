@@ -45,27 +45,27 @@ backupConfig:
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
-      keep_days: 30
+      keeyDays: 30
       # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-      read_id_step_size: 1000
+      readIdStepSize: 1000
       # 每次从 db 表中读取的行数
-      read_row_limit: 10000
+      readRowLimit: 10000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
-      batch_insert_row_size: 1000
+      batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
-      delete_row_limit: 1000
+      deleteRowLimit: 1000
       # 表作用域的归档配置，会覆盖全局配置
       tableConfigs:
         # 表名
         task_instance:
           # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-          read_id_step_size: 2000
+          readIdStepSize: 2000
           # 每次从 db 表中读取的行数
-          read_row_limit: 20000
+          readRowLimit: 20000
           # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
-          batch_insert_row_size: 2000
+          batchInsertRowSize: 2000
           # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
-          delete_row_limit: 2000
+          deleteRowLimit: 2000
 ```
 
 ## 0.5.8
