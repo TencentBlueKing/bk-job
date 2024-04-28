@@ -106,7 +106,7 @@
       this.fetchTaskOperationLog();
     },
     methods: {
-      fetchTaskOperationLog(id) {
+      fetchTaskOperationLog() {
         this.$request(TaskExecuteService.fetchTaskOperationLog({
           id: this.id,
         }), () => {

@@ -45,9 +45,13 @@ const sacnDialog = (resolve, reject) => {
   const h = vm.$createElement;
   confirmInfo = vm.$bkInfo({
     title: I18n.t('脚本中出现高危语句'),
+    maskClose: false,
+    escClose: false,
+    draggable: false,
     showFooter: false,
+    closeIcon: false,
     width: 450,
-    subHeader: (h => (
+    subHeader: (() => (
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
           <span style="color: red; font-weight: bold">{ I18n.t('警告！') }</span>
@@ -92,9 +96,13 @@ const preventDialog = (resolve, reject) => {
   const h = vm.$createElement;
   confirmInfo = vm.$bkInfo({
     title: I18n.t('脚本中出现高危语句'),
+    maskClose: false,
+    escClose: false,
+    draggable: false,
     showFooter: false,
+    closeIcon: false,
     width: 450,
-    subHeader: (h => (
+    subHeader: (() => (
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
           <span>{ I18n.t('请按脚本编辑框左侧') } </span>

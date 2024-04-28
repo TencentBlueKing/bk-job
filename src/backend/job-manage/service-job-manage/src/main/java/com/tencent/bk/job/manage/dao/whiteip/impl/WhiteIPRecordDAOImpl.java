@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -71,7 +72,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,21 +81,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_ID_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_NAME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_APP_TYPE;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CLOUD_AREA_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATE_TIME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_CREATOR;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_HOST_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_ID;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IPV6;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_IP_LIST;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_TIME;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_LAST_MODIFY_USER;
-import static com.tencent.bk.job.manage.common.consts.whiteip.Keys.KEY_REMARK;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_ID_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_NAME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_APP_TYPE;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CLOUD_AREA_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CREATE_TIME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_CREATOR;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_HOST_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_ID;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IP;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IPV6;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_IP_LIST;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_LAST_MODIFY_TIME;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_LAST_MODIFY_USER;
+import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_REMARK;
 
 @Slf4j
 @Repository
@@ -142,7 +142,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
     }
 
     @SuppressWarnings("all")
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public Long insertWhiteIPRecord(WhiteIPRecordDTO whiteIPRecordDTO) {
         //插入Record表
@@ -194,7 +194,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return recordId;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int deleteWhiteIPRecordById(Long id) {
         //删关联表
@@ -435,7 +435,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         return query.fetchOne(0, Long.class);
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int updateWhiteIPRecordById(WhiteIPRecordDTO whiteIPRecordDTO) {
         //更新Record表
@@ -614,7 +614,7 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
                 val hostId = (Long) record.get(KEY_HOST_ID);
                 val cloudId = (Long) record.get(KEY_CLOUD_AREA_ID);
                 val ip = (String) record.get(KEY_IP);
-                return HostDTO.fromHostIdOrCloudIp(hostId, cloudId, ip);
+                return new HostDTO(hostId, cloudId, ip);
             });
         } catch (Exception e) {
             log.error("error query={}", query.getSQL(ParamType.INLINED));

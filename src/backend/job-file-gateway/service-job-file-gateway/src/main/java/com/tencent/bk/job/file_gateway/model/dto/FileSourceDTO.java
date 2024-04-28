@@ -92,7 +92,7 @@ public class FileSourceDTO {
      */
     private Boolean shareToAllApp;
     /**
-     * 凭据Id
+     * 凭证Id
      */
     private String credentialId;
     /**
@@ -165,7 +165,8 @@ public class FileSourceDTO {
         fileSource.setAlias(fileSourceDTO.getAlias());
         fileSource.setCredentialId(fileSourceDTO.getCredentialId());
         fileSource.setEnable(fileSourceDTO.getEnable());
-        fileSource.setFileSourceType(fileSourceDTO.getFileSourceType().getId());
+        fileSource.setFileSourceTypeCode(fileSourceDTO.getFileSourceType() != null ?
+            fileSourceDTO.getFileSourceType().getCode() : null);
         fileSource.setPublicFlag(fileSourceDTO.getPublicFlag());
         fileSource.setStatus(fileSourceDTO.getStatus());
         fileSource.setCreateTime(fileSourceDTO.getCreateTime());

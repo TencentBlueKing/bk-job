@@ -42,7 +42,7 @@
           }
           return false;
         };
-        const txtTwo = (currentHour, currentMin) => {
+        const txtTwo = (currentHour) => {
           if (currentHour === 4) {
             return I18n.t('home.感谢你来见证凌晨4点的作业平台，Mamba Forever！曼巴精神！共勉！');
           }

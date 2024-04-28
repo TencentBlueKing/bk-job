@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.NotifyDTO;
@@ -39,17 +38,18 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
@@ -91,9 +91,10 @@ public class NotifyServiceImpl implements NotifyService {
     private final ApplicationService applicationService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public NotifyServiceImpl(JobCommonConfig jobCommonConfig,
@@ -102,18 +103,20 @@ public class NotifyServiceImpl implements NotifyService {
                              ApplicationService applicationService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
-                             ScriptAgentTaskService scriptAgentTaskService,
-                             FileAgentTaskService fileAgentTaskService,
-                             TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
+                             ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                             FileExecuteObjectTaskService fileExecuteObjectTaskService,
+                             TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                             StepInstanceService stepInstanceService) {
         this.jobCommonConfig = jobCommonConfig;
         this.notificationResource = notificationResource;
         this.userResource = userResource;
         this.applicationService = applicationService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.stepInstanceService = stepInstanceService;
     }
 
     private static void loadNotifyTemplate() {
@@ -249,11 +252,11 @@ public class NotifyServiceImpl implements NotifyService {
         TaskInstanceDTO taskInstanceDTO = taskInstanceService.getTaskInstance(taskNotifyDTO.getTaskInstanceId());
         variablesMap.put("task.start_time", DateUtils.formatUnixTimestampWithZone(taskInstanceDTO.getStartTime(),
             ChronoUnit.MILLIS));
-        List<Long> stepIdList = taskInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
+        List<Long> stepIdList = stepInstanceService.getTaskStepIdList(taskInstanceDTO.getId());
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
         long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
-        StepInstanceDTO stepInstanceDTO = taskInstanceService.getStepInstanceDetail(currentStepId);
+        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
             if (stepInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.step.duration", "" + stepInstanceDTO.getTotalTime() / 1000.0);
@@ -261,17 +264,17 @@ public class NotifyServiceImpl implements NotifyService {
             if (taskInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.total_duration", "" + taskInstanceDTO.getTotalTime() / 1000.0);
             }
-            int totalTargetIpCount = stepInstanceDTO.getTargetServers().getIpList().size();
+            int totalTargetIpCount = stepInstanceDTO.getTargetExecuteObjectCount();
             if (executeStatus == ExecuteStatusEnum.SUCCESS) {
                 variablesMap.put("task.step.success_cnt", "" + totalTargetIpCount);
                 variablesMap.put("task.step.failed_cnt", "" + 0);
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = fileAgentTaskService.getSuccessAgentTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
@@ -380,7 +383,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
                                                StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
+        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
         if (stepInstanceDetail == null) {
             log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
             return;
@@ -407,9 +410,9 @@ public class NotifyServiceImpl implements NotifyService {
         Long taskPlanId = taskInstance.getPlanId();
         taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
         if (taskPlanId == -1L) {
-            if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())) {
+            if (stepInstance.isScriptStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());
-            } else if (stepInstance.getExecuteType().equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
+            } else if (stepInstance.isFileStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.FILE.getType());
             } else {
                 log.warn("notify resourceType not supported yet:{}, use Job", stepInstance.getExecuteType());

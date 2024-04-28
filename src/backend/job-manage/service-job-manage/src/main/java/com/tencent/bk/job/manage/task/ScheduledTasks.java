@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.task;
 
-import com.tencent.bk.job.manage.common.client.PAASClientFactory;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
@@ -133,16 +132,6 @@ public class ScheduledTasks {
         log.info("Clean user upload file task finished");
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void resetTodayStatistics() {
-        log.info("resetTodayStatistics begin");
-        try {
-            PAASClientFactory.resetTodayStatistics();
-        } catch (Exception e) {
-            log.error("resetTodayStatistics failed!", e);
-        }
-        log.info("resetTodayStatistics finished");
-    }
 
     @Scheduled(cron = "0 10 * * * ?")
     public void clearDeletedHosts() {

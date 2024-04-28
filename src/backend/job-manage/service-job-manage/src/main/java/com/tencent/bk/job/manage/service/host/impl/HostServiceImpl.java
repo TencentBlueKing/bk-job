@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -51,7 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -170,7 +170,7 @@ public class HostServiceImpl implements HostService {
                 } while (end < size);
                 watch.stop();
                 watch.start("updateHostsCache");
-                simpleHostList.forEach(simpleHost -> hostCache.addOrUpdateHost(simpleHost.convertToHostDTO()));
+                deleteOrUpdateHostCache(simpleHostList);
                 watch.stop();
             }
         } catch (Throwable throwable) {
@@ -183,23 +183,74 @@ public class HostServiceImpl implements HostService {
         return updateCount;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    private void deleteOrUpdateHostCache(List<HostSimpleDTO> simpleHostList) {
+        if (CollectionUtils.isEmpty(simpleHostList)) {
+            return;
+        }
+        int maxDeleteNum = 10000;
+        if (simpleHostList.size() <= maxDeleteNum) {
+            // 需要更新的主机数量较少，直接删缓存
+            deleteHostCache(simpleHostList);
+        } else {
+            // 需要更新的主机数量较多，从DB加载最新数据到缓存，防止缓存穿透
+            loadDBHostToCache(simpleHostList);
+        }
+    }
+
+    private void deleteHostCache(List<HostSimpleDTO> simpleHostList) {
+        Collection<ApplicationHostDTO> hosts = simpleHostList.stream()
+            .map(HostSimpleDTO::convertToHostDTO)
+            .collect(Collectors.toList());
+        Collection<Long> hostIds = hosts.stream()
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        hostCache.batchDeleteHost(hosts);
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "{} hosts deleted from cache, hostIds:{}",
+                hostIds.size(),
+                hostIds
+            );
+        }
+    }
+
+    private void loadDBHostToCache(List<HostSimpleDTO> simpleHostList) {
+        Collection<Long> hostIds = simpleHostList.stream()
+            .map(HostSimpleDTO::getHostId)
+            .collect(Collectors.toList());
+        List<ApplicationHostDTO> hosts = applicationHostDAO.listHostInfoByHostIds(hostIds);
+        Collection<Long> existHostIds = hosts.stream()
+            .map(ApplicationHostDTO::getHostId)
+            .collect(Collectors.toList());
+        hostCache.batchAddOrUpdateHosts(hosts);
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "{} hosts from db loaded to cache, hostIds:{}",
+                existHostIds.size(),
+                existHostIds
+            );
+        }
+    }
+
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
-    public int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+    public Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+        boolean needToCreate = false;
         try {
             if (applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
-                applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
-                return 0;
+                int affectedNum = applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                return Pair.of(needToCreate, affectedNum);
             } else {
+                needToCreate = true;
                 hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
                 int affectedNum = applicationHostDAO.insertHostWithoutTopo(hostInfoDTO);
                 log.info("insert host: id={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
-                return affectedNum;
+                return Pair.of(needToCreate, affectedNum);
             }
         } catch (Throwable t) {
             log.error("createOrUpdateHostBeforeLastTime fail", t);
-            return 0;
+            return Pair.of(needToCreate, 0);
         } finally {
             // 从拓扑表向主机表同步拓扑数据
             int affectedNum = applicationHostDAO.syncHostTopo(hostInfoDTO.getHostId());
@@ -209,13 +260,17 @@ public class HostServiceImpl implements HostService {
         }
     }
 
+    public int updateHostAttrsByHostId(ApplicationHostDTO hostInfoDTO) {
+        return applicationHostDAO.updateHostAttrsByHostId(hostInfoDTO);
+    }
+
     public int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
         return applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
     }
 
     @Override
-    public void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
-        int affectedRowNum = applicationHostDAO.deleteHostBeforeLastTime(
+    public int deleteHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
+        int affectedRowNum = applicationHostDAO.deleteHostBeforeOrEqualLastTime(
             null,
             hostInfoDTO.getHostId(),
             hostInfoDTO.getLastTime()
@@ -229,6 +284,7 @@ public class HostServiceImpl implements HostService {
         if (affectedRowNum > 0) {
             hostCache.deleteHost(hostInfoDTO);
         }
+        return affectedRowNum;
     }
 
     private void updateHostCache(ApplicationHostDTO hostInfoDTO) {
@@ -268,6 +324,11 @@ public class HostServiceImpl implements HostService {
     @Override
     public long countHostsByOsType(String osType) {
         return applicationHostDAO.countHostsByOsType(osType);
+    }
+
+    @Override
+    public Map<String, Integer> groupHostByOsType() {
+        return applicationHostDAO.groupHostByOsType();
     }
 
     @Override
@@ -476,7 +537,8 @@ public class HostServiceImpl implements HostService {
 
         Map<Long, String> hostIdAndAgentIdMap = cmdbHosts.stream()
             .filter(host -> StringUtils.isNotEmpty(host.getAgentId()))
-            .collect(Collectors.toMap(ApplicationHostDTO::getHostId, ApplicationHostDTO::getAgentId));
+            .collect(Collectors.toMap(ApplicationHostDTO::getHostId,
+                ApplicationHostDTO::getAgentId, (oldValue, newValue) -> newValue));
         hosts.forEach(host -> {
             if (StringUtils.isEmpty(host.getAgentId())) {
                 host.setAgentId(hostIdAndAgentIdMap.get(host.getHostId()));
@@ -752,7 +814,8 @@ public class HostServiceImpl implements HostService {
     public Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds) {
         Pair<List<Long>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(hostIds),
             new ListHostByHostIdsStrategy());
-        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getHostId, host -> host));
+        return result.getRight().stream().collect(
+            Collectors.toMap(ApplicationHostDTO::getHostId, host -> host, (oldValue, newValue) -> newValue));
     }
 
     /**
@@ -777,6 +840,7 @@ public class HostServiceImpl implements HostService {
     public Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps) {
         Pair<List<String>, List<ApplicationHostDTO>> result = listHostsByStrategy(new ArrayList<>(cloudIps),
             new ListHostByIpsStrategy());
-        return result.getRight().stream().collect(Collectors.toMap(ApplicationHostDTO::getCloudIp, host -> host));
+        return result.getRight().stream().collect(
+            Collectors.toMap(ApplicationHostDTO::getCloudIp, host -> host, (oldValue, newValue) -> newValue));
     }
 }

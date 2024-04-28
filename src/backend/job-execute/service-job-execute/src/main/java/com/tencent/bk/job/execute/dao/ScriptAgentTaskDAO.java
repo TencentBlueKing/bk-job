@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.execute.dao;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.model.AgentTaskDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupBaseDTO;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,20 +36,22 @@ import java.util.List;
 /**
  * ScriptAgentTaskDAO
  */
+@Deprecated
+@CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
 public interface ScriptAgentTaskDAO {
     /**
      * 批量保存Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchSaveAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 批量更新Agent任务
      *
      * @param agentTasks Agent任务
      */
-    void batchUpdateAgentTasks(Collection<AgentTaskDTO> agentTasks);
+    void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks);
 
     /**
      * 获取步骤成功执行的Agent任务数量
@@ -66,7 +70,7 @@ public interface ScriptAgentTaskDAO {
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<AgentTaskResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
+    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 根据执行结果查询Agent任务
@@ -78,11 +82,11 @@ public interface ScriptAgentTaskDAO {
      * @param tag            用户自定义分组标签
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status,
-                                                  String tag);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status,
+                                                       String tag);
 
     /**
      * 根据执行结果查询Agent任务(排序、限制返回数量)
@@ -97,14 +101,14 @@ public interface ScriptAgentTaskDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status,
-                                                  String tag,
-                                                  Integer limit,
-                                                  String orderField,
-                                                  Order order);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status,
+                                                       String tag,
+                                                       Integer limit,
+                                                       String orderField,
+                                                       Order order);
 
     /**
      * 获取Agent任务
@@ -114,9 +118,9 @@ public interface ScriptAgentTaskDAO {
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @return Agent任务信息
      */
-    List<AgentTaskDTO> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount,
-                                      Integer batch);
+    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch);
 
     /**
      * 根据GSE任务ID获取Agent任务
@@ -124,7 +128,7 @@ public interface ScriptAgentTaskDAO {
      * @param gseTaskId GSE任务ID
      * @return Agent任务
      */
-    List<AgentTaskDTO> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
 
     /**
      * 根据hostId查询Agent任务
@@ -135,17 +139,10 @@ public interface ScriptAgentTaskDAO {
      * @param hostId         主机ID
      * @return Agent任务
      */
-    AgentTaskDTO getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId);
+    ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId);
 
     /**
-     * 判断步骤实例的Agent Task 记录是否存在
-     *
-     * @param stepInstanceId 步骤实例ID
-     */
-    boolean isStepInstanceRecordExist(long stepInstanceId);
-
-    /**
-     * 批量更新AgentTask的字段
+     * 部分更新AgentTask的字段
      *
      * @param stepInstanceId     条件 - 步骤实例ID
      * @param executeCount       条件 - 重试次数

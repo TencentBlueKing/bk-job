@@ -9,8 +9,9 @@ COPY ./ /data/job/exec/
 RUN yum -y install mysql
 RUN yum install -y epel-release
 RUN yum install -y python-pip
+RUN mkdir -p /root/.pip
+RUN echo -e "[global]\nindex-url = https://pypi.tuna.tsinghua.edu.cn/simple\n[install]\ntrusted-host=pypi.tuna.tsinghua.edu.cn" > /root/.pip/pip.conf
 RUN pip install requests==2.6.0
-
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
     chmod +x /data/job/exec/runUpgrader.sh && \

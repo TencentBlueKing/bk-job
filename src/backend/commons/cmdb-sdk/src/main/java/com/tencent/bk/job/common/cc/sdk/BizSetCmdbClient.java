@@ -36,22 +36,27 @@ import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
+import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.esb.sdk.AbstractEsbSdkClient;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
+import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.HttpPost;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,26 +69,17 @@ import java.util.Set;
  * cmdb API Client - 业务集相关
  */
 @Slf4j
-public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmdbClient {
+public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbClient {
 
-    private final String cmdbSupplierAccount;
-
-    private static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
-    private static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
-    private static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
 
     public BizSetCmdbClient(AppProperties appProperties,
                             EsbProperties esbProperties,
-                            CmdbConfig cmdbConfig) {
-        super(esbProperties.getService().getUrl(),
-            appProperties.getCode(),
-            appProperties.getSecret(),
-            null);
-        this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
-    }
-
-    public <T extends EsbReq> T makeCmdbBaseReq(Class<T> reqClass) {
-        return makeBaseReqByWeb(reqClass, null, "admin", cmdbSupplierAccount);
+                            BkApiGatewayProperties bkApiGatewayProperties,
+                            CmdbConfig cmdbConfig,
+                            FlowController flowController,
+                            MeterRegistry meterRegistry) {
+        super(flowController, appProperties, esbProperties,
+            bkApiGatewayProperties, cmdbConfig, meterRegistry, null);
     }
 
     /**
@@ -92,7 +88,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
      * @return 业务集数量
      */
     public int searchBizSetCount() {
-        SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
+        SearchBizSetReq req = EsbReq.buildRequest(SearchBizSetReq.class, cmdbSupplierAccount);
         Page page = new Page();
         page.setStart(0);
         page.setLimit(0);
@@ -100,9 +96,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setPage(page);
         req.setFilter(null);
         try {
-            EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<SearchBizSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
@@ -137,6 +135,36 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     /**
      * 查询业务集信息
      *
+     * @return 业务集信息列表
+     */
+    public List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds) {
+        BizSetFilter filter = new BizSetFilter();
+        filter.setCondition(BizSetFilter.CONDITION_AND);
+        Rule bizSetIdRule = new Rule();
+        bizSetIdRule.setField("bk_biz_set_id");
+        bizSetIdRule.setOperator(RuleOperatorEnum.IN.getOperator());
+        bizSetIdRule.setValue(bizSetIds);
+        filter.setRules(Collections.singletonList(bizSetIdRule));
+        List<BizSetInfo> bizSetInfoList = searchBizSet(filter, 0, bizSetIds.size());
+
+        if (bizSetInfoList == null) {
+            return new ArrayList<>();
+        }
+
+        bizSetInfoList.forEach(bizSetInfo -> {
+            // 查询业务集下包含的子业务(全业务除外)
+            BizSetScope scope = bizSetInfo.getScope();
+            if (scope != null && !scope.isMatchAll()) {
+                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                bizSetInfo.setBizList(bizList);
+            }
+        });
+        return bizSetInfoList;
+    }
+
+    /**
+     * 查询业务集信息
+     *
      * @param filter 查询条件
      * @param start  分页起始
      * @param limit  每页大小
@@ -151,9 +179,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setPage(page);
         req.setFilter(filter);
         try {
-            EsbResp<SearchBizSetResp> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<SearchBizSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
                 });
@@ -181,9 +211,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         page.setLimit(0);
         req.setPage(page);
         try {
-            EsbResp<SearchBizInBusinessSetResp> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
@@ -224,9 +256,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         page.setLimit(limit);
         req.setPage(page);
         try {
-            EsbResp<SearchBizInBusinessSetResp> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
+                null,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
                 });
@@ -263,9 +297,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setCursor(cursor);
         req.setStartTime(startTime);
         try {
-            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 RESOURCE_WATCH,
+                null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
                 },
@@ -287,9 +323,11 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
         req.setCursor(cursor);
         req.setStartTime(startTime);
         try {
-            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = getEsbRespByReq(
-                HttpPost.METHOD_NAME,
+            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
+                ApiGwType.ESB,
+                HttpMethodEnum.POST,
                 RESOURCE_WATCH,
+                null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
                 },
@@ -332,7 +370,7 @@ public class BizSetCmdbClient extends AbstractEsbSdkClient implements IBizSetCmd
     @Override
     public BizSetInfo queryBizSet(Long bizSetId) {
         BizSetFilter filter = new BizSetFilter();
-        filter.setCondition("AND");
+        filter.setCondition(RuleConditionEnum.AND.getCondition());
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");
         bizSetIdRule.setOperator("equal");

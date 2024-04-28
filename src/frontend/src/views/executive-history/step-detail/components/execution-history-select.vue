@@ -36,15 +36,15 @@
       type="down-small" />
     <div
       ref="content"
-      class="dropdown-menu">
+      class="history-wrapper">
       <div
         v-for="item in executionList"
-        :key="item.retryCount"
+        :key="item.executeCount"
         class="menu-item"
         :class="{
-          active: item.retryCount === retryCount,
+          active: item.executeCount === executeCount,
         }"
-        @click="handleSelectRetryCount(item.retryCount)">
+        @click="handleSelectRetryCount(item.executeCount)">
         <div class="retry-count">
           {{ item.text }}
         </div>
@@ -69,7 +69,7 @@
         type: Number,
         required: true,
       },
-      retryCount: {
+      executeCount: {
         type: [Number, String],
         default: 0,
       },
@@ -88,7 +88,7 @@
       retryCountText() {
         // eslint-disable-next-line no-plusplus
         for (let i = 0; i < this.executionList.length; i++) {
-          if (this.executionList[i].retryCount === this.retryCount) {
+          if (this.executionList[i].executeCount === this.executeCount) {
             return this.executionList[i].text;
           }
         }
@@ -140,12 +140,12 @@
           const num = data.length;
           const result = data.map((item, index) => {
             const {
-              retryCount,
+              executeCount,
               createTime,
             } = item;
 
             return {
-              retryCount,
+              executeCount,
               createTime,
               text: index === 0 ? 'LATEST' : ordinalSuffixOf(num - index),
             };
@@ -158,7 +158,7 @@
           // 切换批次导致的数据刷新，需要获取最新重试次数
           if (from === 'batch') {
             const first = _.first(result);
-            this.$emit('on-change', first ? first.retryCount : 0);
+            this.$emit('on-change', first ? first.executeCount : 0);
           }
 
           if (this.isNeedRender) {
@@ -192,15 +192,15 @@
       },
       /**
        * @desc 切换重试次数
-       * @param retryCount [Number] 重试记录
+       * @param executeCount [Number] 重试记录
        *
        * 切换成功后需要将retryCount的最新值更新到url上
        */
-      handleSelectRetryCount(retryCount) {
+      handleSelectRetryCount(executeCount) {
         this.popperInstance && this.popperInstance.hide();
-        this.$emit('on-change', retryCount);
+        this.$emit('on-change', executeCount);
         const searchParams = new URLSearchParams(window.location.search);
-        searchParams.set('retryCount', retryCount);
+        searchParams.set('executeCount', executeCount);
         window.history.replaceState({}, '', `?${searchParams.toString()}`);
       },
     },
@@ -222,6 +222,12 @@
   }
 
   .step-execution-history-menu-theme {
+    .history-wrapper{
+      max-height: 350px;
+      overflow: auto;
+      background: #fff !important;
+    }
+
     .menu-item {
       display: flex;
       align-items: center;

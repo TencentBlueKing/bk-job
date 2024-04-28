@@ -25,16 +25,18 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceHostRecord;
 
 import java.util.concurrent.CountDownLatch;
 
 /**
- * gse_task 表归档
+ * task_instance_host 表归档
  */
 public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHostRecord> {
 
@@ -42,14 +44,23 @@ public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHos
                                      ExecuteArchiveDAO executeArchiveDAO,
                                      ArchiveProgressService archiveProgressService,
                                      ArchiveDBProperties archiveDBProperties,
+                                     ArchiveTaskLock archiveTaskLock,
                                      Long maxNeedArchiveId,
-                                     CountDownLatch countDownLatch) {
+                                     CountDownLatch countDownLatch,
+                                     ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveDBProperties,
+            archiveTaskLock,
             maxNeedArchiveId,
-            countDownLatch);
+            countDownLatch,
+            archiveErrorTaskCounter);
         this.deleteIdStepSize = 10_000;
+    }
+
+    protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
+        // task_instance_host 属于检索表，用于根据主机ip查询作业执行历史。该表数据较大，归档慢，且归档之后冷数据并无价值，无需归档
+        return false;
     }
 }

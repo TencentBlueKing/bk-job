@@ -1,3 +1,27 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 package com.tencent.bk.job.common.gse.v1;
 
 import com.tencent.bk.gse.cacheapi.AgentStatusRequestInfo;
@@ -42,7 +66,7 @@ import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
-import com.tencent.bk.job.common.gse.v2.model.ScriptAgentTaskResult;
+import com.tencent.bk.job.common.gse.v2.model.ScriptExecuteObjectTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
@@ -63,6 +87,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -282,10 +307,10 @@ public class GseV1ApiClient implements IGseClient {
     private ScriptTaskResult toScriptTaskResult(api_task_detail_result resultV1) {
         ScriptTaskResult result = new ScriptTaskResult();
         if (CollectionUtils.isNotEmpty(resultV1.getResult())) {
-            List<ScriptAgentTaskResult> agentTaskResults =
+            List<ScriptExecuteObjectTaskResult> agentTaskResults =
                 resultV1.getResult().stream()
                     .map(agentTaskResultV1 -> {
-                        ScriptAgentTaskResult agentTaskResult = new ScriptAgentTaskResult();
+                        ScriptExecuteObjectTaskResult agentTaskResult = new ScriptExecuteObjectTaskResult();
                         agentTaskResult.setAgentId(agentTaskResultV1.getGse_composite_id() + ":"
                             + agentTaskResultV1.getIp());
                         agentTaskResult.setAtomicTaskId(agentTaskResultV1.getAtomic_task_id());
@@ -308,19 +333,31 @@ public class GseV1ApiClient implements IGseClient {
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        List<String> cloudIps = req.getAgentIdList();
-        AgentStatusResponse agentStatusResponse = queryAgentStatusFromCacheApi(cloudIps);
+        StopWatch watch = new StopWatch("listAgentState");
 
+        watch.start("queryAgentStatusFromCacheApi");
+        List<String> cloudIps = req.getAgentIdList();
+        if (CollectionUtils.isEmpty(cloudIps)) {
+            log.info("cloudIps is empty");
+            return Collections.emptyList();
+        }
+        AgentStatusResponse agentStatusResponse = queryAgentStatusFromCacheApi(cloudIps);
+        watch.stop();
+
+        watch.start("parseResult");
         List<AgentState> agentStates = new ArrayList<>();
         if (agentStatusResponse.getResult() != null && !agentStatusResponse.getResult().isEmpty()) {
             agentStatusResponse.getResult().forEach((agentId, stateStr) -> {
-
                 AgentState agentState = new AgentState();
                 agentState.setStatusCode(parseCacheAgentStatus(stateStr).getValue());
                 agentState.setAgentId(agentId);
                 agentStates.add(agentState);
             });
+        }
+        watch.stop();
 
+        if (watch.getTotalTimeMillis() > 1000) {
+            log.warn("listAgentState slow, statistics: " + watch.prettyPrint());
         }
         return agentStates;
     }
@@ -338,7 +375,11 @@ public class GseV1ApiClient implements IGseClient {
     }
 
     private AgentStatusResponse queryAgentStatusFromCacheApi(Collection<String> agentIds) {
+        StopWatch watch = new StopWatch("queryAgentStatusFromCacheApi");
+
+        watch.start("gseCacheClientFactory.getClient");
         GseCacheClient gseClient = gseCacheClientFactory.getClient();
+        watch.stop();
         if (null == gseClient) {
             log.error("Get GSE cache client connection failed");
             throw new InternalException(ErrorCode.GSE_API_DATA_ERROR,
@@ -352,8 +393,10 @@ public class GseV1ApiClient implements IGseClient {
             AgentStatusRequestInfo request = buildQueryAgentStatusRequest(agentIds);
 
             log.debug("QueryAgentStatus request: {}", request);
+            watch.start("quireAgentStatus");
             AgentStatusResponse response = gseClient.getCacheClient().quireAgentStatus(request);
-            log.debug("QueryAgentStatus response: {}", response);
+            watch.stop();
+            log.debug("QueryAgentStatus response: {}", getResponseLogStr(response));
             return response;
         } catch (Throwable e) {
             log.error("QueryAgentStatus error", e);
@@ -363,10 +406,21 @@ public class GseV1ApiClient implements IGseClient {
             long end = System.currentTimeMillis();
             log.info("BatchGetAgentStatus {} agentIds, cost: {}ms", agentIds.size(), (end - start));
             if (this.meterRegistry != null) {
+                watch.start("reportMetric");
                 meterRegistry.timer(GseMetricNames.GSE_API_METRICS_NAME_PREFIX, "api_name", "quireAgentStatus",
                     "status", status).record(end - start, TimeUnit.MICROSECONDS);
+                watch.stop();
             }
+
+            watch.start("gseClient.tearDown");
             gseClient.tearDown();
+            watch.stop();
+
+            if (watch.getTotalTimeMillis() > 1000) {
+                log.warn("queryAgentStatusFromCacheApi slow, statistics: " + watch.prettyPrint());
+            } else {
+                log.info("queryAgentStatusFromCacheApi end");
+            }
         }
     }
 
@@ -397,6 +451,10 @@ public class GseV1ApiClient implements IGseClient {
         return request;
     }
 
+    private String getResponseLogStr(AgentStatusResponse response) {
+        return response == null ? null : response.toString().replace("\n", "");
+    }
+
     @Override
     public GseTaskResponse asyncTransferFile(TransferFileRequest request) {
         List<api_copy_fileinfoV2> copyFileV1Request = toV1CopyFileInfoRequest(request);
@@ -413,8 +471,9 @@ public class GseV1ApiClient implements IGseClient {
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
         api_map_rsp rsp;
-        if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
-            rsp = pullCopyFileResult(request.getTaskId(), request.getAgentIds());
+        if (CollectionUtils.isNotEmpty(request.getAgents())) {
+            rsp = pullCopyFileResult(request.getTaskId(),
+                request.getAgents().stream().map(Agent::getAgentId).collect(Collectors.toList()));
         } else if (StringUtils.isNotBlank(request.getTaskId())) {
             rsp = pullCopyFileResult(request.getTaskId());
         } else {
@@ -596,11 +655,11 @@ public class GseV1ApiClient implements IGseClient {
                                                       GseTaskTypeEnum taskType) {
         api_stop_task_request stopRequest = new api_stop_task_request();
         stopRequest.setStop_task_id(request.getTaskId());
-        if (CollectionUtils.isNotEmpty(request.getAgentIds())) {
-            stopRequest.setAgents(request.getAgentIds().stream()
-                .map(agentId ->
+        if (CollectionUtils.isNotEmpty(request.getAgents())) {
+            stopRequest.setAgents(request.getAgents().stream()
+                .map(agent ->
                     // 终止任务并不不需要账号密码,此处传入为了绕过thrift协议的校验
-                    buildAgent(agentId, buildEmptyApiAuth()))
+                    buildAgent(agent.getAgentId(), buildEmptyApiAuth()))
                 .collect(Collectors.toList()));
         }
         stopRequest.setType(taskType.getValue());

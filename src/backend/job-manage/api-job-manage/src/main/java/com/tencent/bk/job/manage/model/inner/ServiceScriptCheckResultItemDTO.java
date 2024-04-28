@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum;
+import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptCheckErrorLevelEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

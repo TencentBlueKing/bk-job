@@ -33,7 +33,7 @@
     <ip-selector
       readonly
       show-view
-      :value="data.defaultTargetValue.hostNodeInfo" />
+      :value="data.defaultTargetValue.executeObjectsInfo" />
   </div>
 </template>
 <script>

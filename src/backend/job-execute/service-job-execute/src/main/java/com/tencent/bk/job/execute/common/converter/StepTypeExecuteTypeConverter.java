@@ -25,21 +25,9 @@
 package com.tencent.bk.job.execute.common.converter;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 
 public class StepTypeExecuteTypeConverter {
-    public static Integer convertToStepType(Integer executeType) {
-        if (executeType.equals(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue())
-            || executeType.equals(StepExecuteTypeEnum.EXECUTE_SQL.getValue())) {
-            return TaskStepTypeEnum.SCRIPT.getValue();
-        } else if (executeType.equals(StepExecuteTypeEnum.SEND_FILE.getValue())) {
-            return TaskStepTypeEnum.FILE.getValue();
-        } else if (executeType.equals(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue())) {
-            return TaskStepTypeEnum.APPROVAL.getValue();
-        } else {
-            throw new IllegalArgumentException("executeType");
-        }
-    }
 
     public static TaskStepTypeEnum convertToStepType(StepExecuteTypeEnum executeType) {
         switch (executeType) {

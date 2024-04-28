@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.auth;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 
 import java.util.Collection;
@@ -41,20 +41,22 @@ public interface ExecuteAuthService {
      *
      * @param username         用户名
      * @param appResourceScope 业务范围
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ServersDTO servers);
+    AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget);
 
     /**
      * 快速执行脚本鉴权
      *
      * @param username         用户名
      * @param appResourceScope 业务范围
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authFastExecuteScript(String username, AppResourceScope appResourceScope, ServersDTO servers);
+    AuthResult authFastExecuteScript(String username,
+                                     AppResourceScope appResourceScope,
+                                     ExecuteTargetDTO executeTarget);
 
     /**
      * 执行业务脚本鉴权
@@ -63,11 +65,14 @@ public interface ExecuteAuthService {
      * @param appResourceScope 业务范围
      * @param scriptId         脚本ID
      * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
-                                    String scriptId, String scriptName, ServersDTO servers);
+    AuthResult authExecuteAppScript(String username,
+                                    AppResourceScope appResourceScope,
+                                    String scriptId,
+                                    String scriptName,
+                                    ExecuteTargetDTO executeTarget);
 
     /**
      * 执行公共脚本鉴权
@@ -76,11 +81,14 @@ public interface ExecuteAuthService {
      * @param appResourceScope 业务范围
      * @param scriptId         脚本ID
      * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecutePublicScript(String username, AppResourceScope appResourceScope,
-                                       String scriptId, String scriptName, ServersDTO servers);
+    AuthResult authExecutePublicScript(String username,
+                                       AppResourceScope appResourceScope,
+                                       String scriptId,
+                                       String scriptName,
+                                       ExecuteTargetDTO executeTarget);
 
     /**
      * 执行执行方案鉴权
@@ -89,11 +97,15 @@ public interface ExecuteAuthService {
      * @param appResourceScope 业务范围
      * @param planId           执行方案ID
      * @param planName         执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecutePlan(String username, AppResourceScope appResourceScope, Long templateId,
-                               Long planId, String planName, ServersDTO servers);
+    AuthResult authExecutePlan(String username,
+                               AppResourceScope appResourceScope,
+                               Long templateId,
+                               Long planId,
+                               String planName,
+                               ExecuteTargetDTO executeTarget);
 
     /**
      * 作业模板调试鉴权
@@ -101,11 +113,13 @@ public interface ExecuteAuthService {
      * @param username         用户名
      * @param appResourceScope 业务范围
      * @param templateId       作业模板ID
-     * @param servers          服务器
+     * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope,
-                                 Long templateId, ServersDTO servers);
+    AuthResult authDebugTemplate(String username,
+                                 AppResourceScope appResourceScope,
+                                 Long templateId,
+                                 ExecuteTargetDTO executeTarget);
 
     /**
      * 作业执行实例查看权限鉴权

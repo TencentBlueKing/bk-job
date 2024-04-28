@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;

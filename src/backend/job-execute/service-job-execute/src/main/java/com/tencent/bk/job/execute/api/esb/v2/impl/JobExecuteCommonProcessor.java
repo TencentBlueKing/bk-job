@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -49,44 +49,44 @@ public class JobExecuteCommonProcessor {
      * @param dynamicGroupIdList
      * @return
      */
-    protected ServersDTO convertToStandardServers(EsbServerDTO requestTargetServers, List<EsbIpDTO> ipList,
-                                                  List<String> dynamicGroupIdList) {
+    protected ExecuteTargetDTO convertToStandardServers(EsbServerDTO requestTargetServers, List<EsbIpDTO> ipList,
+                                                        List<String> dynamicGroupIdList) {
         // 优先使用servers参数
         if (requestTargetServers != null) {
-            ServersDTO serversDTO = new ServersDTO();
+            ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
             if (requestTargetServers.getTopoNodes() != null) {
                 List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
                 requestTargetServers.getTopoNodes().forEach(
                     topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getNodeType())));
-                serversDTO.setTopoNodes(topoNodes);
+                executeTargetDTO.setTopoNodes(topoNodes);
             }
             if (requestTargetServers.getDynamicGroupIds() != null) {
                 List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
                 requestTargetServers.getDynamicGroupIds().forEach(
                     groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-                serversDTO.setDynamicServerGroups(dynamicServerGroups);
+                executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
             }
             if (requestTargetServers.getIps() != null) {
                 List<HostDTO> staticIpList = new ArrayList<>();
                 requestTargetServers.getIps().forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(),
                     ip.getIp())));
-                serversDTO.setStaticIpList(staticIpList);
+                executeTargetDTO.setStaticIpList(staticIpList);
             }
-            return serversDTO;
+            return executeTargetDTO;
         } else {
             // 兼容历史版本API
-            ServersDTO serversDTO = new ServersDTO();
+            ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
             if (ipList != null) {
                 List<HostDTO> staticIpList = new ArrayList<>();
                 ipList.forEach(ip -> staticIpList.add(new HostDTO(ip.getBkCloudId(), ip.getIp())));
-                serversDTO.setStaticIpList(staticIpList);
+                executeTargetDTO.setStaticIpList(staticIpList);
             }
             if (dynamicGroupIdList != null) {
                 List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
                 dynamicGroupIdList.forEach(groupId -> dynamicServerGroups.add(new DynamicServerGroupDTO(groupId)));
-                serversDTO.setDynamicServerGroups(dynamicServerGroups);
+                executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
             }
-            return serversDTO;
+            return executeTargetDTO;
         }
     }
 }

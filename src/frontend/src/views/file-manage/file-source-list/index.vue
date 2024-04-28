@@ -354,7 +354,7 @@
         FileManageService.toggleSourceEnable({
           flag: value,
           id: row.id,
-        }).then((res) => {
+        }).then(() => {
           this.messageSuccess(value ? I18n.t('file.开启成功') : I18n.t('file.关闭成功'));
         })
           .catch(() => {
@@ -393,7 +393,7 @@
        */
       handleDelete(id) {
         FileManageService.removeSource(id)
-          .then((res) => {
+          .then(() => {
             this.messageSuccess(I18n.t('file.删除成功'));
             this.fetchData();
           });

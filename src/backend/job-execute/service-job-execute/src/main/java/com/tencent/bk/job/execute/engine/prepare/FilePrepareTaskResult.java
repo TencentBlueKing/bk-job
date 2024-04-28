@@ -39,7 +39,7 @@ public class FilePrepareTaskResult {
         return taskContext;
     }
 
-    FilePrepareTaskResult(int status, JobTaskContext taskContext) {
+    public FilePrepareTaskResult(int status, JobTaskContext taskContext) {
         this.status = status;
         this.taskContext = taskContext;
     }

@@ -285,7 +285,7 @@
       /**
        * @desc 列表过滤
        */
-      statusFilterMethod(value, row, column) {
+      statusFilterMethod(value, row) {
         return row.scriptStatus === value;
       },
       /**

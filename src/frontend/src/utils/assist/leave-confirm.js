@@ -48,6 +48,8 @@ export const leaveConfirm = (message = I18n.t('离开将会导致未保存信息
           textAlign: 'center',
         },
       }, message),
+      okText: I18n.t('确定'),
+      cancelText: I18n.t('取消'),
       confirmFn: () => {
         window.changeFlag = false;
         resolve(true);

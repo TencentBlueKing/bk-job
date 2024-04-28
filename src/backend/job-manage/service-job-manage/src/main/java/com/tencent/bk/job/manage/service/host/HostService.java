@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,9 +63,11 @@ public interface HostService {
      * 创建或更新主机（仅更新时间戳在当前数据之前的数据）
      *
      * @param hostInfoDTO 主机信息
-     * @return 新增主机数量
+     * @return Pair<是否创建 ， 受影响主机数量>
      */
-    int createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+
+    int updateHostAttrsByHostId(ApplicationHostDTO hostInfoDTO);
 
     /**
      * 更新主机属性（仅更新时间戳在当前数据之前的数据）
@@ -75,13 +78,15 @@ public interface HostService {
     int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO);
 
     /**
-     * 删除主机（仅删除时间戳在当前数据之前的数据）
+     * 删除主机（仅删除时间戳等于或在当前数据之前的数据）
      *
      * @param hostInfoDTO 主机信息
      */
-    void deleteHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    int deleteHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
     long countHostsByOsType(String osType);
+
+    Map<String, Integer> groupHostByOsType();
 
     List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
                                                       Long bizId,

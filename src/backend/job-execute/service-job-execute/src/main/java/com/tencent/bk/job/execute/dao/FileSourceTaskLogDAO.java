@@ -27,16 +27,13 @@ package com.tencent.bk.job.execute.dao;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 
 public interface FileSourceTaskLogDAO {
-    FileSourceTaskLogDTO getStepLastExecuteLog(long stepInstanceId);
 
-    void saveFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
+    void insertOrUpdateFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
 
     FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
 
     FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
 
     int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
-    void deleteFileSourceTaskLog(long stepInstanceId, int executeCount);
 
 }

@@ -111,18 +111,51 @@ public class IpUtilsTest {
         ipv4OrCloudIpv4List.add("127.0.0.1");
         ipv4OrCloudIpv4List.add(" 127.0.0.1");
         ipv4OrCloudIpv4List.add("0:127 .0.0.1");
+        ipv4OrCloudIpv4List.add("0:[127 .0.0.2]");
         ipv4OrCloudIpv4List.add("127.0.0.2");
         ipv4OrCloudIpv4List.add("  127.0.0.2  \n");
-        ipv4OrCloudIpv4List.add("1:127.0.0.1 \r\n");
+        ipv4OrCloudIpv4List.add("1:[127.0.0.3] \r\n");
         Pair<Set<String>, Set<String>> pair = IpUtils.parseCleanIpv4AndCloudIpv4s(ipv4OrCloudIpv4List);
         Set<String> ipv4Set = pair.getLeft();
         Set<String> cloudIpv4Set = pair.getRight();
         assertThat(ipv4Set.size()).isEqualTo(2);
         assertThat(ipv4Set.contains("127.0.0.1")).isTrue();
         assertThat(ipv4Set.contains("127.0.0.2")).isTrue();
-        assertThat(cloudIpv4Set.size()).isEqualTo(2);
+        assertThat(cloudIpv4Set.size()).isEqualTo(3);
         assertThat(cloudIpv4Set.contains("0:127.0.0.1")).isTrue();
-        assertThat(cloudIpv4Set.contains("1:127.0.0.1")).isTrue();
+        assertThat(cloudIpv4Set.contains("0:127.0.0.2")).isTrue();
+        assertThat(cloudIpv4Set.contains("1:127.0.0.3")).isTrue();
+    }
+
+    @Test
+    void testParseCleanIpv6AndCloudIpv6s() {
+        Pair<Set<String>, Set<Pair<Long, String>>> emptyPair = IpUtils.parseFullIpv6AndCloudIpv6s(null);
+        assertThat(emptyPair.getLeft().size()).isEqualTo(0);
+        assertThat(emptyPair.getRight().size()).isEqualTo(0);
+
+        emptyPair = IpUtils.parseFullIpv6AndCloudIpv6s(new ArrayList<>());
+        assertThat(emptyPair.getLeft().size()).isEqualTo(0);
+        assertThat(emptyPair.getRight().size()).isEqualTo(0);
+
+        List<String> ipv6OrCloudIpv6List = new ArrayList<>();
+        ipv6OrCloudIpv6List.add("FFFF::1");
+        ipv6OrCloudIpv6List.add(" FFFF:ABCD::1");
+        ipv6OrCloudIpv6List.add("0:[FFFF::1]");
+        ipv6OrCloudIpv6List.add("0:[FFFF:1234::2]");
+        ipv6OrCloudIpv6List.add("[FFFF:1234::2]");
+        ipv6OrCloudIpv6List.add("  FFFF:1234::2  \n");
+        ipv6OrCloudIpv6List.add("1:[[FFFF:1234::2]] \r\n");
+        Pair<Set<String>, Set<Pair<Long, String>>> pair = IpUtils.parseFullIpv6AndCloudIpv6s(ipv6OrCloudIpv6List);
+        Set<String> ipv6Set = pair.getLeft();
+        Set<Pair<Long, String>> cloudIpv6Set = pair.getRight();
+        assertThat(ipv6Set.size()).isEqualTo(3);
+        assertThat(ipv6Set.contains("FFFF:0000:0000:0000:0000:0000:0000:0001")).isTrue();
+        assertThat(ipv6Set.contains("FFFF:ABCD:0000:0000:0000:0000:0000:0001")).isTrue();
+        assertThat(ipv6Set.contains("FFFF:1234:0000:0000:0000:0000:0000:0002")).isTrue();
+        assertThat(cloudIpv6Set.size()).isEqualTo(3);
+        assertThat(cloudIpv6Set.contains(Pair.of(0L, "FFFF:0000:0000:0000:0000:0000:0000:0001"))).isTrue();
+        assertThat(cloudIpv6Set.contains(Pair.of(0L, "FFFF:1234:0000:0000:0000:0000:0000:0002"))).isTrue();
+        assertThat(cloudIpv6Set.contains(Pair.of(1L, "FFFF:1234:0000:0000:0000:0000:0000:0002"))).isTrue();
     }
 
     @Test

@@ -14,5 +14,5 @@ public class ScriptTaskResult {
     /**
      * 执行结果
      */
-    private List<ScriptAgentTaskResult> result;
+    private List<ScriptExecuteObjectTaskResult> result;
 }

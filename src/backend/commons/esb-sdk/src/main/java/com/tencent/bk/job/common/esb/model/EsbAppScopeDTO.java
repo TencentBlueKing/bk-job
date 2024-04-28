@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.esb.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -41,7 +42,8 @@ public class EsbAppScopeDTO {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID
      */
-    @CompatibleImplementation(explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
+    @CompatibleImplementation(name = "bizId", type = CompatibleType.API,
+        explain = "兼容字段,表示业务ID或者业务集ID", deprecatedVersion = "3.6.x")
     @JsonProperty("bk_biz_id")
     @JsonPropertyDescription("bk_biz_id")
     private Long bizId;

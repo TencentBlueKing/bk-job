@@ -55,27 +55,26 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
     implements EsbGetJobInstanceGlobalVarValueV3Resource {
 
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
-    private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final AppScopeMappingService appScopeMappingService;
 
 
     public EsbGetJobInstanceGlobalVarValueV3ResourceImpl(
         StepInstanceVariableValueService stepInstanceVariableValueService,
-        AppScopeMappingService appScopeMappingService,
-        TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+        TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+        AppScopeMappingService appScopeMappingService) {
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_var_value"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceGlobalVarValueV3DTO> getJobInstanceGlobalVarValueUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceGlobalVarValueV3Request request) {
-
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance global var value, request is illegal!");
@@ -83,7 +82,7 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(request.getUserName(),
+        taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         EsbJobInstanceGlobalVarValueV3DTO result = new EsbJobInstanceGlobalVarValueV3DTO();
@@ -132,12 +131,11 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
                                                                                    String scopeId,
                                                                                    Long taskInstanceId) {
         EsbGetJobInstanceGlobalVarValueV3Request request = new EsbGetJobInstanceGlobalVarValueV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
-        return getJobInstanceGlobalVarValueUsingPost(request);
+        request.fillAppResourceScope(appScopeMappingService);
+        return getJobInstanceGlobalVarValueUsingPost(username, appCode, request);
     }
 }

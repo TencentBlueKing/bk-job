@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.StepInstance;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import org.jooq.DSLContext;
@@ -17,8 +16,8 @@ public class StepInstanceRecordDAO extends AbstractExecuteRecordDAO<StepInstance
 
     private static final StepInstance TABLE = StepInstance.STEP_INSTANCE;
 
-    public StepInstanceRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public StepInstanceRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

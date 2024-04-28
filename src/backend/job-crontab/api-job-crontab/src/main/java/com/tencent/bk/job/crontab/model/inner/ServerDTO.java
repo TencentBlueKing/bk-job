@@ -25,13 +25,16 @@
 package com.tencent.bk.job.crontab.model.inner;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
-import com.tencent.bk.job.common.esb.model.job.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
@@ -81,23 +84,31 @@ public class ServerDTO implements Cloneable {
         }
         TaskTargetVO taskTarget = new TaskTargetVO();
         taskTarget.setVariable(server.getVariable());
+        TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
         TaskHostNodeVO taskHostNode = new TaskHostNodeVO();
+        taskTarget.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
+        taskTarget.setHostNodeInfo(taskHostNode);
+
         // 聚合通过hostId与IP指定的主机信息
         List<HostInfoVO> hostInfoVOList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(server.getIps())) {
             hostInfoVOList.addAll(server.getIps().stream().map(HostDTO::toHostInfoVO).collect(Collectors.toList()));
         }
         if (!hostInfoVOList.isEmpty()) {
+            taskExecuteObjectsInfoVO.setHostList(hostInfoVOList);
             taskHostNode.setHostList(hostInfoVOList);
         }
         if (CollectionUtils.isNotEmpty(server.getDynamicGroupIds())) {
+            taskExecuteObjectsInfoVO.setDynamicGroupList(
+                server.getDynamicGroupIds().stream().map(DynamicGroupIdWithMeta::new).collect(Collectors.toList()));
             taskHostNode.setDynamicGroupIdList(server.getDynamicGroupIds());
         }
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
-            taskHostNode.setNodeList(server.getTopoNodes().stream()
-                .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList()));
+            List<TargetNodeVO> nodeList = server.getTopoNodes().stream()
+                .map(CmdbTopoNodeDTO::toVO).collect(Collectors.toList());
+            taskExecuteObjectsInfoVO.setNodeList(nodeList);
+            taskHostNode.setNodeList(nodeList);
         }
-        taskTarget.setHostNodeInfo(taskHostNode);
         return taskTarget;
     }
 
@@ -107,17 +118,18 @@ public class ServerDTO implements Cloneable {
         }
         ServerDTO server = new ServerDTO();
         server.setVariable(taskTarget.getVariable());
-        if (taskTarget.getHostNodeInfo() != null) {
-            TaskHostNodeVO hostNodeInfo = taskTarget.getHostNodeInfo();
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getHostList())) {
-                server.setIps(hostNodeInfo.getHostList().stream()
+        if (taskTarget.getExecuteObjectsInfoCompatibly() != null) {
+            TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = taskTarget.getExecuteObjectsInfoCompatibly();
+            if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getHostList())) {
+                server.setIps(taskExecuteObjectsInfoVO.getHostList().stream()
                     .map(HostDTO::fromHostInfoVO).collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getDynamicGroupIdList())) {
-                server.setDynamicGroupIds(hostNodeInfo.getDynamicGroupIdList());
+            if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getDynamicGroupList())) {
+                server.setDynamicGroupIds(taskExecuteObjectsInfoVO.getDynamicGroupList().stream()
+                    .map(DynamicGroupIdWithMeta::getId).collect(Collectors.toList()));
             }
-            if (CollectionUtils.isNotEmpty(hostNodeInfo.getNodeList())) {
-                server.setTopoNodes(hostNodeInfo.getNodeList().stream()
+            if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getNodeList())) {
+                server.setTopoNodes(taskExecuteObjectsInfoVO.getNodeList().stream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
             }
         }

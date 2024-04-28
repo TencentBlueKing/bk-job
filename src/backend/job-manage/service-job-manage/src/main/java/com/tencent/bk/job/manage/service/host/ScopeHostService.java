@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.host;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +36,16 @@ import java.util.List;
  * 资源范围主机相关服务
  */
 public interface ScopeHostService {
+
+    /**
+     * 根据 资源范围 过滤出在该资源范围下的hostIds
+     *
+     * @param appResourceScope 资源范围
+     * @param hostIds          主机ID集合
+     * @return 主机ID列表
+     */
+    List<Long> filterScopeHostIds(AppResourceScope appResourceScope,
+                                  Collection<Long> hostIds);
 
     /**
      * 根据 HostId 列表查询主机信息

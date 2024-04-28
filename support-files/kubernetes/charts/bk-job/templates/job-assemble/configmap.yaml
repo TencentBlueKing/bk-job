@@ -40,7 +40,7 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
-          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback
+          source: task;step;gseTask;resultHandleTaskResume;notifyMsg;callback;crontabFanout
           bindings:
             handleJobEvent-in-0:
               destination: task
@@ -114,6 +114,16 @@ data:
               binder: jobCommon
               consumer:
                 concurrency: 5
+            handleCrontabFanoutEvent-in-0:
+              destination: crontab.fanout
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            crontabFanout-out-0:
+              destination: crontab.fanout
+              binder: jobCommon
+              consumer:
+                concurrency: 5
           rabbit:
             bindings:
               handleJobEvent-in-0:
@@ -152,8 +162,18 @@ data:
               callback-out-0:
                 consumer:
                   maxConcurrency: 10
+              handleCrontabFanoutEvent-in-0:
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
+              crontabFanout-out-0:
+                producer:
+                  exchangeType: fanout
+                consumer:
+                  maxConcurrency: 5
+                  exchangeType: fanout
         function:
-          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+          definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent
       datasource:
         job-manage:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -189,7 +209,7 @@ data:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
           {{- include "job.crontab.databaseConfig" . | nindent 10 }}
-          maximum-pool-size: 100
+          maximum-pool-size: {{ .Values.crontabConfig.database.maxPoolSize }}
           minimum-idle: 20
           idle-timeout: 600000
           poolName: "job-crontab"
@@ -267,22 +287,13 @@ data:
           uri: {{ include "job.mongodb.connect.uri" . | quote }}
           database: "joblog"
       quartz:
-        # 使用数据库存储
-        job-store-type: jdbc
-        jdbc:
-          # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
-          initialize-schema: never
+        job-store-type: MEMORY
         properties:
           org:
             quartz:
               jobStore:
-                class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
-                clusterCheckinInterval: 20000
-                driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-                isClustered: true
-                selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
-                tablePrefix: QRTZ_
-                useProperties: true
+                class: org.quartz.simpl.RAMJobStore
+                misfireThreshold: 60000
               plugin:
                 shutdownhook:
                   class: org.quartz.plugins.management.ShutdownHookPlugin
@@ -340,6 +351,9 @@ data:
           storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
           artifactory:
             repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+        file:
+          distribute:
+            root-path: {{ .Values.fileDistribute.hostPath }}/local
       crontab:
         notification-policy:
           failed:
@@ -360,5 +374,4 @@ data:
         root: {{ .Values.bkFeedBackUrl }}
     deploy:
       mode: lite    
-
 {{- end }}

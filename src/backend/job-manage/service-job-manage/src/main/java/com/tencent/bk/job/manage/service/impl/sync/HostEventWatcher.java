@@ -112,7 +112,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     }
 
     @Override
-    protected void handleEvent(ResourceEvent<HostEventDetail> event) {
+    public void handleEvent(ResourceEvent<HostEventDetail> event) {
         dispatchEventToHandler(event);
     }
 

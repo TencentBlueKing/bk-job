@@ -34,7 +34,7 @@ import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 
 import java.util.List;
 
@@ -182,6 +182,15 @@ public interface StepInstanceDAO {
     Long getStepInstanceId(long taskInstanceId);
 
     /**
+     * 根据 appId,stepInstanceId 获取所属任务实例ID
+     *
+     * @param appId          Job业务ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 任务实例ID
+     */
+    Long getTaskInstanceId(long appId, long stepInstanceId);
+
+    /**
      * 根据stepInstanceId获取脚本类型
      *
      * @param stepInstanceId 步骤实例ID
@@ -212,4 +221,6 @@ public interface StepInstanceDAO {
      * @param rollingConfigId 滚动配置ID
      */
     void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId);
+
+    List<Long> getTaskStepInstanceIdList(long taskInstanceId);
 }

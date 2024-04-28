@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.dao.plan.impl;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.json.JsonMapper;
-import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.template.impl;
 
-import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.TaskApprovalStepDAO;
 import com.tencent.bk.job.manage.dao.TaskFileInfoDAO;

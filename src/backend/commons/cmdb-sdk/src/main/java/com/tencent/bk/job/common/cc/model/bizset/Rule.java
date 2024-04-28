@@ -40,26 +40,13 @@ import lombok.ToString;
 @ToString
 public class Rule {
 
-    public static final String OPERATOR_EQUAL = "equal";
-    public static final String OPERATOR_NOT_EQUAL = "not_equal";
-    public static final String OPERATOR_IN = "in";
-    public static final String OPERATOR_NOT_IN = "not_in";
-    public static final String OPERATOR_LESS = "less";
-    public static final String OPERATOR_LESS_OR_EQUAL = "less_or_equal";
-    public static final String OPERATOR_GREATER = "greater";
-    public static final String OPERATOR_GREATER_OR_EQUAL = "greater_or_equal";
-    public static final String OPERATOR_BETWEEN = "between";
-    public static final String OPERATOR_NOT_BETWEEN = "not_between";
-
     /**
      * 业务字段名
      */
     private String field;
 
     /**
-     * 操作符，可选值 equal,not_equal,in,not_in,
-     * less,less_or_equal,greater,greater_or_equal,
-     * between,not_between
+     * 操作符
      */
     private String operator;
 

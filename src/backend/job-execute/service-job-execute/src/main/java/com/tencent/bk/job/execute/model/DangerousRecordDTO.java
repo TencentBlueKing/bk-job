@@ -65,7 +65,7 @@ public class DangerousRecordDTO {
     /**
      * 脚本语言
      *
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     private Integer scriptLanguage;
     /**

@@ -163,6 +163,36 @@ class HostManage extends ModuleBase {
       params,
     });
   }
+
+  getAllContainerWithCount(params = {}) {
+    return Request.post(`${this.path}/topology/container`, {
+      params,
+    });
+  }
+
+  getTopologyContainer(params = {}) {
+    return Request.post(`${this.path}/topology/containers/nodes`, {
+      params,
+    });
+  }
+
+  getAllContainerIdList(params = {}) {
+    return Request.post(`${this.path}/topology/containerIds/nodes`, {
+      params,
+    });
+  }
+
+  getContainerInfoById(params = {}) {
+    return Request.post(`${this.path}/containers/details`, {
+      params,
+    });
+  }
+
+  getInputParseContainerList(params = {}) {
+    return Request.post(`${this.path}/container/check`, {
+      params,
+    });
+  }
 }
 
 export default new HostManage();

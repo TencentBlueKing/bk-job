@@ -33,6 +33,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -129,11 +130,16 @@ public class GseTaskDAOImpl implements GseTaskDAO {
 
     @Override
     public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
-        Record record = dslContext.select(ALL_FIELDS).from(TABLE)
-            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(TABLE.EXECUTE_COUNT.eq((short) executeCount))
-            .and(TABLE.BATCH.eq(batch == null ? 0 : batch.shortValue()))
-            .fetchOne();
+        SelectConditionStep<?> selectConditionStep =
+            dslContext.select(ALL_FIELDS).from(TABLE)
+                .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(TABLE.EXECUTE_COUNT.eq((short) executeCount));
+        if (batch != null && batch > 0) {
+            // 滚动执行批次，传入null或者0将忽略该参数
+            selectConditionStep.and(TABLE.BATCH.eq(batch.shortValue()));
+        }
+        selectConditionStep.limit(1);
+        Record record = selectConditionStep.fetchOne();
         return extractInfo(record);
     }
 

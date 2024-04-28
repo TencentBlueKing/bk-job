@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.iam.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
@@ -53,6 +54,7 @@ import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.RelatedResourceTypeDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,11 +77,14 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     public AuthServiceImpl(AuthHelper authHelper,
                            IamConfiguration iamConfiguration,
                            EsbProperties esbProperties,
-                           MessageI18nService i18nService) {
+                           MessageI18nService i18nService,
+                           MeterRegistry meterRegistry) {
         this.authHelper = authHelper;
         this.i18nService = i18nService;
-        this.iamClient = new EsbIamClient(esbProperties.getService().getUrl(), iamConfiguration.getAppCode(),
-            iamConfiguration.getAppSecret());
+        this.iamClient = new EsbIamClient(
+            meterRegistry,
+            new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
+            esbProperties);
     }
 
     @Override

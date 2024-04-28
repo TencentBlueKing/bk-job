@@ -4,7 +4,7 @@
 
     <property name="APP_NAME" value="${APP_NAME:-job-backup}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-backup}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-backup}" scope="context"/>
     <property name="APP_LOG_NAME" value="backup.log"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ARCHIVE_ERROR_LOG_FILE" value="${APP_LOG_DIR}/archive_error.log"/>
@@ -16,8 +16,9 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${ARCHIVE_ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>168</maxHistory>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>

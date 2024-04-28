@@ -218,7 +218,7 @@
       // 页面回退时返回列表选择（url标记listSelectIds）
       const { listSelectIds } = this.$route.query;
       if (listSelectIds) {
-        listSelectIds.split(',').forEach((id) => {
+        listSelectIds.split(',').forEach(() => {
           this.rowSelectMemo[this.primaryKey] = true;
         });
         setTimeout(() => {
@@ -386,7 +386,7 @@
       /**
        * @desc 自定义表头
        */
-      renderHeader(h) {
+      renderHeader() {
         const renderCheckbox = () => {
           if (this.isWholeChecked) {
             return (

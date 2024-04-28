@@ -206,7 +206,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     /**
-     * 查询符合条件的凭据数量
+     * 查询符合条件的凭证数量
      */
     private long getPageCredentialCount(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(credentialQuery, baseSearchCondition);
@@ -214,7 +214,7 @@ public class CredentialDAOImpl implements CredentialDAO {
     }
 
     /**
-     * 查询符合条件的凭据数量
+     * 查询符合条件的凭证数量
      */
     private long getPageCredentialCount(Collection<Condition> conditions) {
         Long count = dslContext

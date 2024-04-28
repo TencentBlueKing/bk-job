@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
@@ -58,7 +59,6 @@ import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -442,7 +442,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+        @JobTransactional(transactionManager = "jobManageTransactionManager")
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;
@@ -648,7 +648,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         }
 
         @Override
-        @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+        @JobTransactional(transactionManager = "jobManageTransactionManager")
         public void updateTaskTargets(List<TaskTargetRecord> records) {
             if (CollectionUtils.isEmpty(records)) {
                 return;

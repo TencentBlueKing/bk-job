@@ -31,7 +31,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.AgentTaskService;
+import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected final AgentService agentService;
     protected final AccountService accountService;
     protected final GseTaskService gseTaskService;
-    protected final AgentTaskService agentTaskService;
+    protected final ExecuteObjectTaskService executeObjectTaskService;
     protected final Tracer tracer;
     protected final GseClient gseClient;
 
@@ -91,7 +91,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     public AbstractGseTaskCommand(AgentService agentService,
                                   AccountService accountService,
                                   GseTaskService gseTaskService,
-                                  AgentTaskService agentTaskService,
+                                  ExecuteObjectTaskService executeObjectTaskService,
                                   Tracer tracer,
                                   GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
@@ -100,7 +100,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.agentService = agentService;
         this.accountService = accountService;
         this.gseTaskService = gseTaskService;
-        this.agentTaskService = agentTaskService;
+        this.executeObjectTaskService = executeObjectTaskService;
         this.tracer = tracer;
         this.gseClient = gseClient;
         this.taskInstance = taskInstance;

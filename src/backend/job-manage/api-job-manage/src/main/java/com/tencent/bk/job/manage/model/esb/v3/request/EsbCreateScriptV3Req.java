@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -61,7 +61,7 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
 
     /**
      * 脚本类型
-     * @see com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     @JsonProperty("script_language")
     @NotNull(message = "{validation.constraints.ScriptType_empty.message}",groups = Create.class)

@@ -124,7 +124,7 @@ export default class TaskExecutionResultStep {
 
   constructor(payload) {
     this.stepInstanceId = payload.stepInstanceId;
-    this.retryCount = payload.retryCount;
+    this.executeCount = payload.executeCount;
     this.name = payload.name;
     this.type = payload.type;
     this.confirmMessage = payload.confirmMessage;

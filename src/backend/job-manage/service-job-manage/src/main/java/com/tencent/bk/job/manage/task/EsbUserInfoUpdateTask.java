@@ -25,12 +25,13 @@
 package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
-import com.tencent.bk.job.manage.service.PaaSService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -40,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -77,13 +77,14 @@ public class EsbUserInfoUpdateTask {
 
     private final String REDIS_KEY_SYNC_USER_JOB_RUNNING_MACHINE = "sync-user-job-running-machine";
     private final RedisTemplate<String, String> redisTemplate;
-    private PaaSService paaSService;
-    private EsbUserInfoDAO esbUserInfoDAO;
+    private UserMgrApiClient userMgrApiClient;
+    private final EsbUserInfoDAO esbUserInfoDAO;
 
     @Autowired
-    public EsbUserInfoUpdateTask(PaaSService paaSService, EsbUserInfoDAO esbUserInfoDAO,
+    public EsbUserInfoUpdateTask(UserMgrApiClient userMgrApiClient,
+                                 EsbUserInfoDAO esbUserInfoDAO,
                                  RedisTemplate<String, String> redisTemplate) {
-        this.paaSService = paaSService;
+        this.userMgrApiClient = userMgrApiClient;
         this.esbUserInfoDAO = esbUserInfoDAO;
         this.redisTemplate = redisTemplate;
     }
@@ -117,7 +118,7 @@ public class EsbUserInfoUpdateTask {
         watch.start("total");
         try {
             // 1.接口数据拉取
-            List<BkUserDTO> userList = paaSService.getAllUserList("", "100");
+            List<BkUserDTO> userList = userMgrApiClient.getAllUserList();
             if (null == userList) {
                 userList = new ArrayList<>();
             }
@@ -153,7 +154,7 @@ public class EsbUserInfoUpdateTask {
         return true;
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveEsbUserInfos(Set<EsbUserInfoDTO> deleteSet, Set<EsbUserInfoDTO> insertSet) {
         deleteSet.forEach(esbUserInfoDTO -> esbUserInfoDAO.deleteEsbUserInfoById(
             esbUserInfoDTO.getId()));

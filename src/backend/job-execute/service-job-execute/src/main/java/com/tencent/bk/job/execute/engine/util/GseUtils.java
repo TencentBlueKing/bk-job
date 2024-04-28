@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.Consts;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 
 /**
  * 处理 GSE 工具类
@@ -70,13 +70,13 @@ public class GseUtils {
     /**
      * 根据gse ErrorCode返回 Status
      */
-    public static AgentTaskStatusEnum getStatusByGseErrorCode(int gseErrorCode) {
-        AgentTaskStatusEnum status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
+    public static ExecuteObjectTaskStatusEnum getStatusByGseErrorCode(int gseErrorCode) {
+        ExecuteObjectTaskStatusEnum status = Consts.GSE_ERROR_CODE_2_STATUS_MAP.get(gseErrorCode);
         if (status == null) {
             if (gseErrorCode == 0) {
-                status = AgentTaskStatusEnum.SUCCESS;
+                status = ExecuteObjectTaskStatusEnum.SUCCESS;
             } else {
-                status = AgentTaskStatusEnum.UNKNOWN_ERROR;
+                status = ExecuteObjectTaskStatusEnum.UNKNOWN_ERROR;
             }
         }
         return status;

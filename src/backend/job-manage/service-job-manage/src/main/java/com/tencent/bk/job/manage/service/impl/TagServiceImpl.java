@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -55,7 +56,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
@@ -228,6 +228,11 @@ public class TagServiceImpl implements TagService {
             if (tagIdList.contains(tag.getId())) {
                 tagIterator.remove();
             } else {
+                TagDTO existTag = getTagInfoById(appId, tag.getId());
+                if (existTag == null) {
+                    throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                        new String[]{"tagId", String.format("tag (id=%s, app_id=%s) not exist", tag.getId(), appId)});
+                }
                 tagIdList.add(tag.getId());
             }
         }
@@ -248,7 +253,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_TAG,
         instance = @AuditInstanceRecord(
@@ -292,11 +297,14 @@ public class TagServiceImpl implements TagService {
     }
 
     private void checkTags(Long appId, List<TagDTO> tags) {
-        tags.forEach(tag -> {
+        Iterator<TagDTO> iterator = tags.iterator();
+        while (iterator.hasNext()) {
+            TagDTO tag = iterator.next();
             if (!tag.getAppId().equals(appId) && !tag.getAppId().equals(JobConstants.PUBLIC_APP_ID)) {
-                throw new InternalException("Tag is not exist", ErrorCode.INTERNAL_ERROR);
+                log.info("Tag is not exist, appId={}, tagId={}", appId, tag.getId());
+                iterator.remove();
             }
-        });
+        }
     }
 
     @Override
@@ -352,7 +360,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void batchPatchResourceTags(List<ResourceTagDTO> addResourceTags,
                                        List<ResourceTagDTO> deleteResourceTags) {
         StopWatch watch = new StopWatch("batchPatchResourceTags");

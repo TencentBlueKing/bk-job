@@ -25,6 +25,7 @@
 package com.tencent.bk.job.logsvr.model.service;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -50,12 +51,16 @@ public class ServiceFileLogQueryRequest {
     @ApiModelProperty(value = "滚动执行批次")
     private Integer batch;
 
-    @ApiModelProperty("主机ID列表")
+    /**
+     * 查询的主机ID列表
+     */
+    @ApiModelProperty("查询的主机ID列表")
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private List<Long> hostIds;
 
-    @ApiModelProperty("IP列表;如果hostIds参数不为空，那么忽略ips参数")
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
-    private List<String> ips;
+    @ApiModelProperty("查询的执行对象ID列表")
+    private List<String> executeObjectIds;
 
     /**
      * @see com.tencent.bk.job.logsvr.consts.FileTaskModeEnum

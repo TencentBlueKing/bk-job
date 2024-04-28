@@ -1,4 +1,122 @@
 # chart values 更新日志
+## 0.6.0
+1. 增加额外定义的前端页面访问URL
+
+```yaml
+# 额外定义的前端页面访问URL
+job:
+  web:
+    extraWebUrls: "http://my.job.example.com"
+```
+
+2. 增加 cmdb API 蓝鲸网关配置
+
+```yaml
+# cmdb API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+```
+
+## 0.5.9
+
+1. 新增备份服务中的数据归档相关配置
+
+```yaml
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      host: ""
+      port: ""
+      username: "job"
+      password: "job"
+      connection:
+        properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    # job-execute模块的归档配置
+    execute:
+      # 是否启用 DB 归档
+      enabled: true
+      # 被归档 DB 的配置
+      mariadb:
+        connection:
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      # 归档模式。deleteOnly: 仅删除； backupThenDelete: 先备份数据再删除。默认 deleteOnly
+      mode: backupThenDelete
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron: 0 0 4 * * *
+      # 热库中的数据保留时间（天）
+      keeyDays: 30
+      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+      readIdStepSize: 1000
+      # 每次从 db 表中读取的行数
+      readRowLimit: 10000
+      # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+      batchInsertRowSize: 1000
+      # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+      deleteRowLimit: 1000
+      # 表作用域的归档配置，会覆盖全局配置
+      tableConfigs:
+        # 表名
+        task_instance:
+          # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+          readIdStepSize: 2000
+          # 每次从 db 表中读取的行数
+          readRowLimit: 20000
+          # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+          batchInsertRowSize: 2000
+          # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+          deleteRowLimit: 2000
+```
+
+## 0.5.8
+1. 增加JVM诊断文件留存配置
+
+```yaml
+# JVM诊断文件留存配置
+jvmDiagnosticFile:
+  # 根据最后修改时间清理
+  clearByLastModifyTime:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # JVM诊断文件保留的小时数，默认168小时（7天）
+    keepHours: 168
+```
+
+## 0.5.7
+1. 增加日志留存配置
+
+```yaml
+# 日志留存配置
+log:
+  # 服务后台日志保留的小时数，默认48小时（2天）
+  keepHours: 48
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clearByVolumeUsage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
+    maxVolume: 40GB
+```
+
+## 0.5.6
+1. 增加消息通知中心配置
+
+```yaml
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
+```
+
+## 0.5.5
+1. 增加权限中心web地址配置
+
+```yaml
+# 蓝鲸 IAM url
+bkIamUrl: "http://bkiam.example.com"
+```
 
 ## 0.5.4
 1. 增加定时任务服务独立数据库配置（若不配置该项则使用与其他服务共用的公共数据库），默认无需配置

@@ -48,8 +48,14 @@ public class CcHostInfoDTO {
     private String hostName;
     @JsonProperty("bk_os_name")
     private String os;
+    @JsonProperty("bk_os_type")
+    private String osType;
     @JsonProperty("bk_cloud_id")
     private Long cloudId;
+    @JsonProperty("bk_cloud_vendor")
+    private String cloudVendorId;
+    @JsonProperty("last_time")
+    private String lastTime;
 
     @JsonIgnore
     public String getFirstIp() {

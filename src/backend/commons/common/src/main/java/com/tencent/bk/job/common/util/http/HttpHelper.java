@@ -24,21 +24,33 @@
 
 package com.tencent.bk.job.common.util.http;
 
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 
+/**
+ * Job http 调用基础实现
+ */
 public interface HttpHelper {
 
     Pair<HttpRequestBase, CloseableHttpResponse> getRawResp(boolean keepAlive, String url, Header[] header);
 
-    Pair<Integer, String> get(boolean keepAlive, String url, Header[] header);
+    /**
+     * 发起 http 请求。如果返回的 http 状态码 >= 400, 抛出 HttpStatusException
+     *
+     * @param request 请求
+     * @return 响应
+     * @throws HttpStatusException 如果返回的 http 状态码 >= 400, 抛出 HttpStatusException
+     */
+    HttpResponse requestForSuccessResp(HttpRequest request) throws HttpStatusException;
 
-    Pair<Integer, byte[]> post(String url, HttpEntity requestEntity, Header... headers);
-
-    Pair<Integer, String> put(String url, HttpEntity requestEntity, Header... headers);
-
-    Pair<Integer, String> delete(String url, String content, Header... headers);
+    /**
+     * 发起 http 请求
+     *
+     * @param request 请求
+     * @return 响应
+     */
+    HttpResponse request(HttpRequest request);
 }

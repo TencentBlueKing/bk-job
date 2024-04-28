@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -71,15 +72,18 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.jooq.impl.DSL.count;
 
 /**
  * 主机DAO
@@ -252,9 +256,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             conditions = Collections.emptyList();
         }
         val query = context.select(
-            TABLE.HOST_ID,
-            TABLE.LAST_TIME
-        ).from(TABLE)
+                TABLE.HOST_ID,
+                TABLE.LAST_TIME
+            ).from(TABLE)
             .where(conditions);
         Result<Record2<ULong, Long>> records = query.fetch();
         List<BasicHostDTO> basicHostInfoList = new ArrayList<>();
@@ -724,7 +728,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         String finalModuleTypeStr = applicationHostDTO.getModuleTypeStr();
         ULong bizId = ULong.valueOf(applicationHostDTO.getBizId());
         String ip = applicationHostDTO.getIp();
-        String ipv6 = applicationHostDTO.getIpv6();
+        String ipv6 = applicationHostDTO.preferFullIpv6();
         String agentId = applicationHostDTO.getAgentId();
         String ipDesc = applicationHostDTO.getHostName();
         ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
@@ -856,7 +860,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     JooqDataTypeUtil.buildULong(applicationHostDTO.getHostId()),
                     JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()),
                     applicationHostDTO.getIp(),
-                    applicationHostDTO.getIpv6(),
+                    applicationHostDTO.preferFullIpv6(),
                     applicationHostDTO.getAgentId(),
                     applicationHostDTO.getHostName(),
                     applicationHostDTO.getSetIdsStr(),
@@ -896,7 +900,23 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO) {
+        checkHostId(applicationHostDTO);
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+        return updateHostAttrsByConditions(applicationHostDTO, conditions);
+    }
+
+    @Override
     public int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO) {
+        checkHostId(applicationHostDTO);
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
+        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+        return updateHostAttrsByConditions(applicationHostDTO, conditions);
+    }
+
+    private void checkHostId(ApplicationHostDTO applicationHostDTO) {
         Long hostId = applicationHostDTO.getHostId();
         if (hostId == null || hostId <= 0) {
             FormattingTuple msg = MessageFormatter.format(
@@ -906,13 +926,13 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             log.error(msg.getMessage());
             throw new InternalException(msg.getMessage(), ErrorCode.INTERNAL_ERROR);
         }
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+    }
+
+    public int updateHostAttrsByConditions(ApplicationHostDTO applicationHostDTO, Collection<Condition> conditions) {
         val query = context.update(TABLE)
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
-            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
@@ -936,7 +956,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return context.update(TABLE)
             .set(TABLE.APP_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getBizId()))
             .set(TABLE.IP, applicationHostDTO.getIp())
-            .set(TABLE.IP_V6, applicationHostDTO.getIpv6())
+            .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
             .set(TABLE.CLOUD_IP, applicationHostDTO.getCloudIp())
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
@@ -982,9 +1002,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
-    public int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime) {
+    public int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime) {
         int affectedNum;
         List<Condition> conditions = new ArrayList<>();
         if (bizId != null) {
@@ -1003,7 +1023,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         return affectedNum;
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int batchDeleteHostById(List<Long> hostIdList) {
         if (CollectionUtils.isEmpty(hostIdList)) {
@@ -1020,7 +1040,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .execute();
     }
 
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
     public int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {
         int affectedNum = 0;
@@ -1163,6 +1183,28 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     }
 
     @Override
+    public Map<String, Integer> groupHostByOsType() {
+        Map<String, Integer> groupMap = new HashMap<>();
+        context.select(
+                TABLE.OS_TYPE,
+                count()
+            )
+            .from(TABLE)
+            .groupBy(TABLE.OS_TYPE)
+            .fetch()
+            .map(record -> {
+                String osType = record.get(0, String.class);
+                if (StringUtils.isNotBlank(osType)) {
+                    groupMap.put(osType, record.get(1, Integer.class));
+                } else {
+                    groupMap.put("null", record.get(1, Integer.class));
+                }
+                return record;
+            });
+        return groupMap;
+    }
+
+    @Override
     public int syncHostTopo(Long hostId) {
         ApplicationHostDTO hostInfoDTO = getHostById(hostId);
         if (hostInfoDTO != null) {
@@ -1273,9 +1315,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
         }
         var query = context.select(
-            TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
-            DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
-        ).from(TABLE)
+                TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
+                DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
+            ).from(TABLE)
             .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
             .where(conditions)
             .groupBy(TABLE.IS_AGENT_ALIVE);

@@ -25,8 +25,12 @@
 package com.tencent.bk.job.manage.model.dto;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
-import com.tencent.bk.job.manage.common.consts.CredentialTypeEnum;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
@@ -115,6 +119,24 @@ public class CredentialDTO {
         serviceCredentialDTO.setType(type);
         serviceCredentialDTO.setCredential(credential);
         return serviceCredentialDTO;
+    }
+
+    public EsbCredentialV3DTO toEsbCredentialV3DTO() {
+        EsbCredentialV3DTO esbCredentialV3DTO = new EsbCredentialV3DTO();
+        esbCredentialV3DTO.setId(id);
+        esbCredentialV3DTO.setName(name);
+        esbCredentialV3DTO.setType(type);
+        esbCredentialV3DTO.setDescription(description);
+        AppScopeMappingService appScopeMappingService =
+            ApplicationContextRegister.getBean(AppScopeMappingService.class);
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        esbCredentialV3DTO.setScopeType(resourceScope.getType().getValue());
+        esbCredentialV3DTO.setScopeId(resourceScope.getId());
+        esbCredentialV3DTO.setCreator(creator);
+        esbCredentialV3DTO.setCreateTime(createTime);
+        esbCredentialV3DTO.setLastModifyUser(lastModifyUser);
+        esbCredentialV3DTO.setLastModifyTime(lastModifyTime);
+        return esbCredentialV3DTO;
     }
 
     public EsbCredentialSimpleInfoV3DTO toEsbCredentialSimpleInfoV3DTO() {

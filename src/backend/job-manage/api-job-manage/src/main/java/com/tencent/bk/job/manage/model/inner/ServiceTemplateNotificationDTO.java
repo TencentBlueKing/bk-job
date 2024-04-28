@@ -57,7 +57,7 @@ public class ServiceTemplateNotificationDTO {
      * 触发通知的资源类型
      * 用于获取【资源所属者】角色对应用户
      *
-     * @see com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
      */
     private Integer resourceType;
 

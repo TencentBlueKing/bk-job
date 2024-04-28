@@ -106,6 +106,14 @@ public class BizHostServiceImpl implements BizHostService {
     }
 
     @Override
+    public List<Long> filterHostIdsByBiz(Collection<Long> bizIds, Collection<Long> hostIds) {
+        if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyList();
+        }
+        return hostTopoDAO.listHostIdByBizAndHostIds(bizIds, hostIds);
+    }
+
+    @Override
     public List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
         return applicationHostDAO.listHostInfoByBizAndIps(bizIds, ips);
     }

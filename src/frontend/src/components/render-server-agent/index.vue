@@ -36,16 +36,16 @@
       v-else
       class="agent-text"
       @click="handleShowDetail">
-      <div v-if="data.normalNum > 0">
-        {{ $t('正常') }}:<span class="success number">{{ data.normalNum }}</span>
+      <div v-if="data.aliveCount > 0">
+        {{ $t('正常') }}:<span class="success number">{{ data.aliveCount }}</span>
       </div>
-      <div v-if="data.abnormalNum > 0">
+      <div v-if="data.notAliveCount > 0">
         <span
-          v-if="data.normalNum > 0"
+          v-if="data.aliveCount > 0"
           class="splite" />
-        {{ $t('异常') }}:<span class="error number">{{ data.abnormalNum }}</span>
+        {{ $t('异常') }}:<span class="error number">{{ data.notAliveCount }}</span>
       </div>
-      <span v-if="isEmpty">--</span>
+      <span v-if="data.aliveCount < 1 && data.notAliveCount < 1">--</span>
     </div>
     <lower-component
       :custom="isShowDetail"
@@ -68,7 +68,7 @@
             <ip-selector
               readonly
               show-view
-              :value="hostNodeInfo" />
+              :value="executeObjectsInfo" />
           </scroll-faker>
         </div>
         <template #footer>
@@ -83,7 +83,7 @@
 <script>
   import HostManageService from '@service/host-manage';
 
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   export default {
     name: '',
@@ -92,7 +92,7 @@
         type: String,
         required: true,
       },
-      hostNodeInfo: {
+      executeObjectsInfo: {
         type: Object,
         required: true,
       },
@@ -106,18 +106,18 @@
         isLoading: false,
         isShowDetail: false,
         data: {
-          normalNum: 0,
-          abnormalNum: 0,
+          aliveCount: 0,
+          notAliveCount: 0,
         },
       };
     },
     computed: {
       isEmpty() {
-        return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
+        return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.executeObjectsInfo);
       },
     },
     watch: {
-      hostNodeInfo() {
+      executeObjectsInfo() {
         this.fetchData();
       },
     },
@@ -130,8 +130,19 @@
           this.isLoading = false;
           return;
         }
+
+        const {
+          dynamicGroupList,
+          hostList,
+          nodeList,
+        } = this.executeObjectsInfo;
+
+        if (dynamicGroupList.length < 1 && hostList.length < 1 && nodeList.length < 1) {
+          return;
+        }
+
         this.isLoading = true;
-        const { dynamicGroupList, hostList, nodeList } = this.hostNodeInfo;
+
         HostManageService.fetchHostStatistics({
           nodeList,
           dynamicGroupList,

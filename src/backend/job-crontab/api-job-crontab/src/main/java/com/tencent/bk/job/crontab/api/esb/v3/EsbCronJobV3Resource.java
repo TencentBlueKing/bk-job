@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.crontab.model.esb.v3.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronDetailV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbSaveCronV3Request;
@@ -85,6 +86,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping("/get_cron_list")
     EsbResp<EsbPageDataV3<EsbCronInfoV3DTO>> getCronListUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetCronListV3Request request
@@ -98,6 +101,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping("/get_cron_detail")
     EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbGetCronDetailV3Request request
@@ -111,6 +116,8 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping(value = "/update_cron_status")
     EsbResp<EsbCronInfoV3DTO> updateCronStatus(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbUpdateCronStatusV3Request request
@@ -124,8 +131,22 @@ public interface EsbCronJobV3Resource {
      */
     @PostMapping(value = "/save_cron")
     EsbResp<EsbCronInfoV3DTO> saveCron(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
             EsbSaveCronV3Request request
+    );
+
+    /**
+     * 删除定时任务
+     */
+    @PostMapping(value = "/delete_cron")
+    EsbResp deleteCron(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            EsbDeleteCronV3Request request
     );
 }

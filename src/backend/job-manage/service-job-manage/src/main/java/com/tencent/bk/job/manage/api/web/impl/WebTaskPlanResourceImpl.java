@@ -37,9 +37,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -59,12 +56,8 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskFileStepVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -338,62 +331,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             planId, taskPlan.getName())
             .isPass());
 
-        fillTaskPlanHostIdIfMissing(taskPlanVO);
-
         return Response.buildSuccessResp(taskPlanVO);
-    }
-
-    /**
-     * 填充主机Id
-     * tmp: 发布兼容代码。由于前段无法兼容没有hostId的主机信息，所以这里需要通过云区域+ip获取到hostId并设置。发布完成后可以删除
-     *
-     * @param taskPlan 执行方案
-     */
-    private void fillTaskPlanHostIdIfMissing(TaskPlanVO taskPlan) {
-        boolean isMissingHostId = false;
-        for (TaskStepVO step : taskPlan.getStepList()) {
-            if (step.getScriptStepInfo() != null) {
-                isMissingHostId = fillHostId(step.getScriptStepInfo().getExecuteTarget()) || isMissingHostId;
-            } else if (step.getFileStepInfo() != null) {
-                TaskFileStepVO fileStep = step.getFileStepInfo();
-                isMissingHostId = fillHostId(fileStep.getFileDestination().getServer()) || isMissingHostId;
-                if (CollectionUtils.isNotEmpty(fileStep.getFileSourceList())) {
-                    for (TaskFileSourceInfoVO source : fileStep.getFileSourceList()) {
-                        if (source.getHost() != null) {
-                            isMissingHostId = fillHostId(source.getHost()) || isMissingHostId;
-                        }
-                    }
-                }
-            }
-        }
-        if (CollectionUtils.isNotEmpty(taskPlan.getVariableList())) {
-            for (TaskVariableVO var : taskPlan.getVariableList()) {
-                if (var.getDefaultTargetValue() != null) {
-                    isMissingHostId = fillHostId(var.getDefaultTargetValue()) || isMissingHostId;
-                }
-            }
-        }
-        if (isMissingHostId) {
-            log.warn("Task plan missing hostId, planId: {}", taskPlan.getId());
-        }
-    }
-
-    private boolean fillHostId(TaskTargetVO executeTarget) {
-        boolean isMissingHostId = false;
-        if (executeTarget != null && executeTarget.getHostNodeInfo() != null &&
-            CollectionUtils.isNotEmpty(executeTarget.getHostNodeInfo().getHostList())) {
-            for (HostInfoVO host : executeTarget.getHostNodeInfo().getHostList()) {
-                if (host.getHostId() == null) {
-                    isMissingHostId = true;
-                    ApplicationHostDTO hostInfo =
-                        hostService.getHostByIp(host.getCloudArea().getId() + ":" + host.getIp());
-                    if (hostInfo != null) {
-                        host.setHostId(hostInfo.getHostId());
-                    }
-                }
-            }
-        }
-        return isMissingHostId;
     }
 
     @Override

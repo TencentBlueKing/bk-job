@@ -59,6 +59,21 @@ public interface IGseClient {
     }
 
     /**
+     * 设置 Agent 认证信息
+     *
+     * @param agents   agent列表
+     * @param user     用户
+     * @param password 密码
+     * @return Agent
+     */
+    default List<Agent> fillAgentAuthInfo(Collection<Agent> agents, String user, String password) {
+        return agents.stream().peek(agent -> {
+            agent.setUser(user);
+            agent.setPwd(password);
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * 构建目标Agent
      *
      * @param agentId  agentId

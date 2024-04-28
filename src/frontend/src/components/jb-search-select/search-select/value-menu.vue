@@ -256,7 +256,7 @@
         }
       },
 
-      handleKeydown(e) {
+      handleKeydown() {
         if (!this.needRender) {
           return;
         }
@@ -275,7 +275,7 @@
         this.scrollActiveToView(event);
       },
 
-      handleSubmit(e) {
+      handleSubmit() {
         this.$emit('select-check', Object.values(this.checkeMap));
 
         this.$emit('change');
@@ -305,7 +305,7 @@
           );
         }
 
-        const renderList = (h) => {
+        const renderList = () => {
           const { displayKey } = this.searchSelect;
           const { primaryKey } = this.searchSelect;
 
@@ -323,7 +323,7 @@
                                 }}>
                                     <div
                                         class="item-name"
-                                        onClick={e => this.handleClick(item, index, id)}>
+                                        onClick={() => this.handleClick(item, index, id)}>
                                         { item[displayKey] }
                                     </div>
                                     { this.isMultiable && !!this.checkeMap[item.id]
@@ -336,7 +336,7 @@
           );
         };
 
-        const renderFooter = (h) => {
+        const renderFooter = () => {
           // 多选的时候显示底部操作按钮
           if (!this.isMultiable) {
             return '';

@@ -38,9 +38,14 @@
         <div id="siteHeaderStatusBar" />
       </div>
     </div>
-    <div class="container-content">
-      <router-view />
+    <div class="jb-navigation-main">
+      <scroll-faker>
+        <div class="container-content">
+          <router-view />
+        </div>
+      </scroll-faker>
     </div>
+
   </div>
 </template>
 <script>

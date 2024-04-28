@@ -39,3 +39,4 @@ dist
 *.env.*
 .history
 .swc
+.codecc

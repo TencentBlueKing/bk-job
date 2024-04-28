@@ -25,6 +25,7 @@
 package com.tencent.bk.job.logsvr.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -42,14 +43,15 @@ public class ScriptLogQuery {
      */
     private Long stepInstanceId;
     /**
-     * 执行任务的主机ip列表
-     */
-    @CompatibleImplementation(name = "rolling_execute", explain = "兼容字段，后续用hostIds替换", deprecatedVersion = "3.7.x")
-    private List<String> ips;
-    /**
      * 执行任务的主机ID列表
      */
+    @Deprecated
+    @CompatibleImplementation(name = "execute_object", type = CompatibleType.HISTORY_DATA, deprecatedVersion = "3.9.x")
     private List<Long> hostIds;
+    /**
+     * 执行对象实例 ID
+     */
+    private List<String> executeObjectIds;
     /**
      * 执行次数
      */
@@ -63,13 +65,13 @@ public class ScriptLogQuery {
                           Long stepInstanceId,
                           Integer executeCount,
                           Integer batch,
-                          List<Long> hostIds,
-                          List<String> ips) {
+                          List<String> executeObjectIds,
+                          List<Long> hostIds) {
         this.jobCreateDate = jobCreateDate;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
+        this.executeObjectIds = executeObjectIds;
         this.hostIds = hostIds;
-        this.ips = ips;
     }
 }

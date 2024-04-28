@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.execute.api.esb.v3;
 
+import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
@@ -43,19 +43,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EsbOperateStepInstanceV3ResourceImpl implements EsbOperateStepInstanceV3Resource {
     private final TaskExecuteService taskExecuteService;
-    private final AppScopeMappingService appScopeMappingService;
 
-    public EsbOperateStepInstanceV3ResourceImpl(TaskExecuteService taskExecuteService,
-                                                AppScopeMappingService appScopeMappingService) {
+    public EsbOperateStepInstanceV3ResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_operate_step_instance"})
-    public EsbResp<EsbJobExecuteV3DTO> operateStepInstance(EsbOperateStepInstanceV3Request request) {
+    public EsbResp<EsbJobExecuteV3DTO> operateStepInstance(String username,
+                                                           String appCode,
+                                                           @AuditRequestBody EsbOperateStepInstanceV3Request request) {
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
-        request.fillAppResourceScope(appScopeMappingService);
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -63,7 +61,7 @@ public class EsbOperateStepInstanceV3ResourceImpl implements EsbOperateStepInsta
         StepOperationDTO stepOperation = new StepOperationDTO();
         stepOperation.setStepInstanceId(request.getStepInstanceId());
         stepOperation.setOperation(operationEnum);
-        taskExecuteService.doStepOperation(request.getAppId(), request.getUserName(), stepOperation);
+        taskExecuteService.doStepOperation(request.getAppId(), username, stepOperation);
 
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

@@ -45,7 +45,7 @@ import java.util.Map;
 @Slf4j
 public class CustomLoginClient implements ILoginClient {
     private static final String API_GET_USER_INFO = "/user/get_info/";
-    private String customLoginApiUrl;
+    private final String customLoginApiUrl;
 
     public CustomLoginClient(String customLoginApiUrl) {
         if (customLoginApiUrl.endsWith("/")) {
@@ -143,11 +143,6 @@ public class CustomLoginClient implements ILoginClient {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("encode failed");
         }
-    }
-
-    @Override
-    public BkUserDTO getUserInfoByUserName(String userName) {
-        return null;
     }
 
     @Getter

@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -55,18 +55,18 @@ public class JobExecuteCommonV3Processor {
         return ValidateResult.pass();
     }
 
-    protected ServersDTO convertToServersDTO(EsbServerV3DTO server) {
+    protected ExecuteTargetDTO convertToServersDTO(EsbServerV3DTO server) {
         if (server == null) {
             return null;
         }
-        ServersDTO serversDTO = new ServersDTO();
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
 
         // 拓扑节点
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
             server.getTopoNodes().forEach(topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
                 topoNode.getNodeType())));
-            serversDTO.setTopoNodes(topoNodes);
+            executeTargetDTO.setTopoNodes(topoNodes);
         }
 
         // 动态分组
@@ -74,20 +74,20 @@ public class JobExecuteCommonV3Processor {
             List<DynamicServerGroupDTO> dynamicServerGroups = new ArrayList<>();
             server.getDynamicGroups().forEach(
                 group -> dynamicServerGroups.add(new DynamicServerGroupDTO(group.getId())));
-            serversDTO.setDynamicServerGroups(dynamicServerGroups);
+            executeTargetDTO.setDynamicServerGroups(dynamicServerGroups);
         }
 
         // 主机列表，优先使用hostId
         if (CollectionUtils.isNotEmpty(server.getHostIds())) {
-            serversDTO.setStaticIpList(
+            executeTargetDTO.setStaticIpList(
                 server.getHostIds().stream().map(HostDTO::fromHostId).collect(Collectors.toList()));
         } else if (CollectionUtils.isNotEmpty(server.getIps())) {
-            serversDTO.setStaticIpList(
+            executeTargetDTO.setStaticIpList(
                 server.getIps().stream()
                     .map(host -> new HostDTO(host.getBkCloudId(), host.getIp()))
                     .collect(Collectors.toList()));
         }
 
-        return serversDTO;
+        return executeTargetDTO;
     }
 }

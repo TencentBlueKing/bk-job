@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.model.ServersDTO;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,8 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
             for (TaskVariableDTO taskVariable : taskVarList) {
                 if (taskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
                     && taskVariable.getValue() != null) {
-                    taskVariable.setTargetServers(JsonUtils.fromJson(taskVariable.getValue(), ServersDTO.class));
+                    taskVariable.setExecuteTarget(
+                        JsonUtils.fromJson(taskVariable.getValue(), ExecuteTargetDTO.class));
                 }
             }
         }
@@ -76,8 +77,8 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
         }
         for (TaskVariableDTO taskVariable : taskVarList) {
             if (taskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
-                && taskVariable.getTargetServers() != null) {
-                taskVariable.setValue(JsonUtils.toJson(taskVariable.getTargetServers()));
+                && taskVariable.getExecuteTarget() != null) {
+                taskVariable.setValue(JsonUtils.toJson(taskVariable.getExecuteTarget()));
             }
         }
         taskInstanceVariableDAO.saveTaskInstanceVariables(taskVarList);

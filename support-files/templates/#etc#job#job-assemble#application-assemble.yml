@@ -35,7 +35,7 @@ spring:
                 username: __BK_JOB_RABBITMQ_USERNAME__
                 password: __BK_JOB_RABBITMQ_PASSWORD__
                 virtual-host: __BK_JOB_RABBITMQ_VHOST__
-      source: task;step;gseTask;resultHandleResume;notifyMsg;callback
+      source: task;step;gseTask;resultHandleResume;notifyMsg;callback;crontabFanout
       bindings:
         handleJobEvent-in-0:
           destination: task
@@ -109,6 +109,16 @@ spring:
           binder: jobCommon
           consumer:
             concurrency: 5
+        handleCrontabFanoutEvent-in-0:
+          destination: crontab.fanout
+          binder: jobCommon
+          consumer:
+            concurrency: 5
+        crontabFanout-out-0:
+          destination: crontab.fanout
+          binder: jobCommon
+          consumer:
+            concurrency: 5
       rabbit:
         bindings:
           handleJobEvent-in-0:
@@ -147,8 +157,18 @@ spring:
           callback-out-0:
             consumer:
               maxConcurrency: 10
+          handleCrontabFanoutEvent-in-0:
+            consumer:
+              maxConcurrency: 5
+              exchangeType: fanout
+          crontabFanout-out-0:
+            producer:
+              exchangeType: fanout
+            consumer:
+              maxConcurrency: 5
+              exchangeType: fanout
     function:
-      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
+      definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer;handleCrontabFanoutEvent
   datasource:
     job-manage:
       driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver
@@ -264,22 +284,14 @@ spring:
     mongodb:
       uri: __BK_JOB_MONGODB_URI__
   quartz:
-    # 使用数据库存储
-    job-store-type: jdbc
-    jdbc:
-      # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
-      initialize-schema: never
+    # 使用内存存储
+    job-store-type: MEMORY
     properties:
       org:
         quartz:
           jobStore:
-            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
-            clusterCheckinInterval: 20000
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-            isClustered: true
-            selectWithLockSQL: SELECT * FROM {0}LOCKS WHERE LOCK_NAME = ? FOR UPDATE
-            tablePrefix: QRTZ_
-            useProperties: true
+            class: org.quartz.simpl.RAMJobStore
+            misfireThreshold: 60000
           plugin:
             shutdownhook:
               class: org.quartz.plugins.management.ShutdownHookPlugin

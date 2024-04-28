@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -42,9 +42,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.validation.Valid;
 import java.util.List;
 
-/**
- * @since 16/10/2019 10:37
- */
 @Data
 @ApiModel("任务步骤信息")
 @Slf4j

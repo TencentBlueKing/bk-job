@@ -154,7 +154,7 @@
        * @desc 移除选中的文件源数据
        * @param {Number} index 已选中的文件源数据数组对应下标
        */
-      handlerRemove(index) {
+      handlerRemove() {
         const newData = [...this.list];
         newData.splice(this.editSourceFileIndex, 1);
         this.list = Object.freeze(newData);

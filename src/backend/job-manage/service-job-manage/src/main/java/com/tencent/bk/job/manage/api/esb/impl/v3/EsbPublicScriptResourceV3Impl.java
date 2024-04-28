@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
@@ -36,9 +37,9 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptVersionV3Req;
@@ -58,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -89,13 +91,11 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
                                                                       Integer start,
                                                                       Integer length) {
         EsbGetPublicScriptListV3Request request = new EsbGetPublicScriptListV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setName(name);
         request.setScriptLanguage(scriptLanguage);
         request.setStart(start);
         request.setLength(length);
-        return getPublicScriptListUsingPost(request);
+        return getPublicScriptListUsingPost(username, appCode, request);
     }
 
     @Override
@@ -107,13 +107,11 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
                                                                                           Integer start,
                                                                                           Integer length) {
         EsbGetPublicScriptVersionListV3Request request = new EsbGetPublicScriptVersionListV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setScriptId(scriptId);
         request.setReturnScriptContent(returnScriptContent);
         request.setStart(start);
         request.setLength(length);
-        return getPublicScriptVersionListUsingPost(request);
+        return getPublicScriptVersionListUsingPost(username, appCode, request);
     }
 
     @Override
@@ -124,17 +122,17 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
                                                                              String scriptId,
                                                                              String version) {
         EsbGetPublicScriptVersionDetailV3Request request = new EsbGetPublicScriptVersionDetailV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setId(scriptVersionId);
         request.setScriptId(scriptId);
         request.setVersion(version);
-        return getPublicScriptVersionDetailUsingPost(request);
+        return getPublicScriptVersionDetailUsingPost(username, appCode, request);
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getPublicScriptListUsingPost(
+        String username,
+        String appCode,
         EsbGetPublicScriptListV3Request request) {
         checkEsbGetPublicScriptListV3Req(request);
 
@@ -163,6 +161,8 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_version_list"})
     public EsbResp<EsbPageDataV3<EsbScriptVersionDetailV3DTO>> getPublicScriptVersionListUsingPost(
+        String username,
+        String appCode,
         EsbGetPublicScriptVersionListV3Request request) {
         checkEsbGetPublicScriptVersionListV3Req(request);
 
@@ -190,6 +190,8 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_public_script_version_detail"})
     public EsbResp<EsbScriptVersionDetailV3DTO> getPublicScriptVersionDetailUsingPost(
+        String username,
+        String appCode,
         EsbGetPublicScriptVersionDetailV3Request request) {
         checkEsbGetPublicScriptVersionDetailV3Req(request);
 
@@ -215,8 +217,10 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_create_public_script"})
     @AuditEntry(actionId = ActionId.CREATE_PUBLIC_SCRIPT)
     public EsbResp<EsbScriptVersionDetailV3DTO> createPublicScript(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreatePublicScriptV3Req request) {
-        String userName = request.getUserName();
+        String userName = username;
 
         ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
         script.setAppId(PUBLIC_APP_ID);
@@ -237,8 +241,10 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_create_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public EsbResp<EsbScriptVersionDetailV3DTO> createPublicScriptVersion(
+        String username,
+        String appCode,
         @AuditRequestBody EsbCreatePublicScriptVersionV3Req request) {
-        String userName = request.getUserName();
+        String userName = username;
 
         ScriptDTO script = scriptDTOBuilder.buildFromEsbCreateReq(request);
         script.setAppId(PUBLIC_APP_ID);
@@ -256,16 +262,20 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_public_script"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
-    public EsbResp deletePublicScript(@AuditRequestBody EsbDeletePublicScriptV3Req request) {
-        publicScriptService.deleteScript(request.getUserName(), request.getScriptId());
+    public EsbResp deletePublicScript(String username,
+                                      String appCode,
+                                      @AuditRequestBody EsbDeletePublicScriptV3Req request) {
+        publicScriptService.deleteScript(username, request.getScriptId());
         return EsbResp.buildSuccessResp(null);
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_delete_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
-    public EsbResp deletePublicScriptVersion(@AuditRequestBody EsbDeletePublicScriptVersionV3Req request) {
-        publicScriptService.deleteScriptVersion(request.getUserName(), request.getScriptVersionId());
+    public EsbResp deletePublicScriptVersion(String username,
+                                             String appCode,
+                                             @AuditRequestBody EsbDeletePublicScriptVersionV3Req request) {
+        publicScriptService.deleteScriptVersion(username, request.getScriptVersionId());
         return EsbResp.buildSuccessResp(null);
     }
 
@@ -273,8 +283,10 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_disable_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public EsbResp<EsbScriptVersionDetailV3DTO> disablePublicScriptVersion(
+        String username,
+        String appCode,
         @AuditRequestBody EsbManagePublicScriptVersionV3Req request) {
-        publicScriptService.disableScript(request.getUserName(), request.getScriptId(), request.getScriptVersionId());
+        publicScriptService.disableScript(username, request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = publicScriptService.getScriptVersion(request.getScriptVersionId());
         return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
     }
@@ -283,8 +295,10 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_publish_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public EsbResp<EsbScriptVersionDetailV3DTO> publishPublicScriptVersion(
+        String username,
+        String appCode,
         @AuditRequestBody EsbManagePublicScriptVersionV3Req request) {
-        publicScriptService.publishScript(request.getUserName(), request.getScriptId(), request.getScriptVersionId());
+        publicScriptService.publishScript(username, request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = publicScriptService.getScriptVersion(request.getScriptVersionId());
         return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
     }
@@ -293,12 +307,13 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_public_script_basic"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public EsbResp<EsbScriptV3DTO> updatePublicScriptBasic(
+        String username,
+        String appCode,
         @AuditRequestBody EsbUpdatePublicScriptBasicV3Req request) {
-        String userName = request.getUserName();
         String scriptId = request.getScriptId();
-        publicScriptService.updateScriptName(userName, scriptId, request.getName());
+        publicScriptService.updateScriptName(username, scriptId, request.getName());
         if (StringUtils.isNotEmpty(request.getDescription())) {
-            publicScriptService.updateScriptDesc(userName, scriptId, request.getDescription());
+            publicScriptService.updateScriptDesc(username, scriptId, request.getDescription());
         }
 
         ScriptDTO scriptDTO = publicScriptService.getScript(scriptId);
@@ -310,14 +325,15 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_update_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public EsbResp<EsbScriptVersionDetailV3DTO> updatePublicScriptVersion(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @AuditRequestBody EsbUpdatePublicScriptVersionV3Req request) {
-        String userName = request.getUserName();
         ScriptDTO scriptVersionDTO = scriptDTOBuilder.buildFromCreateUpdateReq(request);
         scriptVersionDTO.setAppId(PUBLIC_APP_ID);
         scriptVersionDTO.setPublicScript(true);
-        scriptVersionDTO.setCreator(userName);
-        scriptVersionDTO.setLastModifyUser(userName);
-        publicScriptService.updateScriptVersion(request.getUserName(), scriptVersionDTO);
+        scriptVersionDTO.setCreator(username);
+        scriptVersionDTO.setLastModifyUser(username);
+        publicScriptService.updateScriptVersion(username, scriptVersionDTO);
         ScriptDTO scriptDTO = publicScriptService.getScriptVersion(request.getScriptVersionId());
         return EsbResp.buildSuccessResp(scriptDTO.toEsbCreateScriptV3DTO());
     }
@@ -327,7 +343,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         // 如果script_type=0,表示查询所有类型
         if (request.getScriptLanguage() != null
             && request.getScriptLanguage() > 0
-            && ScriptTypeEnum.valueOf(request.getScriptLanguage()) == null) {
+            && ScriptTypeEnum.valOf(request.getScriptLanguage()) == null) {
             log.warn("Param [type]:[{}] is illegal!", request.getScriptLanguage());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
         }

@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.FileTaskTypeEnum;
@@ -31,6 +32,12 @@ public class AtomicFileTaskResultContent {
     private String sourceAgentId;
 
     /**
+     * 文件源 container id
+     */
+    @JsonProperty("source_container_id")
+    private String sourceContainerId;
+
+    /**
      * 源文件目录，下发任务时指定的源文件路径
      */
     @JsonProperty("source_file_dir")
@@ -43,10 +50,16 @@ public class AtomicFileTaskResultContent {
     private String sourceFileName;
 
     /**
-     * 分发目标主机 agent id
+     * 分发目标 agent id
      */
     @JsonProperty("dest_agent_id")
     private String destAgentId;
+
+    /**
+     * 分发目标容器 container id
+     */
+    @JsonProperty("dest_container_id")
+    private String destContainerId;
 
     /**
      * 目标目录
@@ -130,6 +143,10 @@ public class AtomicFileTaskResultContent {
      */
     private FileTaskTypeEnum taskType;
 
+    @JsonIgnore
+    private ExecuteObjectGseKey sourceExecuteObjectGseKey;
+    @JsonIgnore
+    private ExecuteObjectGseKey destExecuteObjectGseKey;
 
     public boolean isDownloadMode() {
         return FileDistModeEnum.DOWNLOAD.getValue().equals(this.mode);
@@ -162,20 +179,25 @@ public class AtomicFileTaskResultContent {
 
     public String getTaskId() {
         if (taskId == null) {
-            this.taskId = buildTaskId(mode, sourceAgentId, getStandardSourceFilePath(), destAgentId,
-                getStandardDestFilePath());
+            this.taskId = buildTaskId(mode, getSourceExecuteObjectGseKey(), getStandardSourceFilePath(),
+                getDestExecuteObjectGseKey(), getStandardDestFilePath());
         }
         return taskId;
     }
 
-    public static String buildTaskId(Integer mode, String sourceAgentId, String sourceFilePath, String destAgentId,
+    public static String buildTaskId(Integer mode,
+                                     ExecuteObjectGseKey sourceExecuteObjectGseKey,
+                                     String sourceFilePath,
+                                     ExecuteObjectGseKey destExecuteObjectGseKey,
                                      String destFilePath) {
         String taskId;
         if (FileDistModeEnum.getFileDistMode(mode) == FileDistModeEnum.DOWNLOAD) {
-            taskId = concat(mode.toString(), sourceAgentId, GseFilePathUtils.standardizedGSEFilePath(sourceFilePath),
-                destAgentId, destFilePath);
+            taskId = concat(mode.toString(), sourceExecuteObjectGseKey.getKey(),
+                GseFilePathUtils.standardizedGSEFilePath(sourceFilePath),
+                destExecuteObjectGseKey.getKey(), destFilePath);
         } else {
-            taskId = concat(mode.toString(), sourceAgentId, GseFilePathUtils.standardizedGSEFilePath(sourceFilePath));
+            taskId = concat(mode.toString(), sourceExecuteObjectGseKey.getKey(),
+                GseFilePathUtils.standardizedGSEFilePath(sourceFilePath));
         }
         return taskId;
     }
@@ -198,5 +220,33 @@ public class AtomicFileTaskResultContent {
      */
     public boolean isApiProtocolBeforeV2() {
         return this.protocolVersion == null || this.protocolVersion < 2;
+    }
+
+    @JsonIgnore
+    public ExecuteObjectGseKey getDestExecuteObjectGseKey() {
+        if (destExecuteObjectGseKey != null) {
+            return destExecuteObjectGseKey;
+        }
+        if (StringUtils.isNotEmpty(destContainerId)) {
+            // bk_container_id 不为空，说明是容器执行对象
+            destExecuteObjectGseKey = ExecuteObjectGseKey.ofContainer(destAgentId, destContainerId);
+        } else {
+            destExecuteObjectGseKey = ExecuteObjectGseKey.ofHost(destAgentId);
+        }
+        return destExecuteObjectGseKey;
+    }
+
+    @JsonIgnore
+    public ExecuteObjectGseKey getSourceExecuteObjectGseKey() {
+        if (sourceExecuteObjectGseKey != null) {
+            return sourceExecuteObjectGseKey;
+        }
+        if (StringUtils.isNotEmpty(sourceContainerId)) {
+            // bk_container_id 不为空，说明是容器执行对象
+            sourceExecuteObjectGseKey = ExecuteObjectGseKey.ofContainer(sourceAgentId, sourceContainerId);
+        } else {
+            sourceExecuteObjectGseKey = ExecuteObjectGseKey.ofHost(sourceAgentId);
+        }
+        return sourceExecuteObjectGseKey;
     }
 }

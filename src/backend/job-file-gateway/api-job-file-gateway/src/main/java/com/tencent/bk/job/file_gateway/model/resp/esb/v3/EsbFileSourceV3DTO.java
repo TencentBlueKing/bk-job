@@ -26,9 +26,7 @@ package com.tencent.bk.job.file_gateway.model.resp.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -59,11 +57,11 @@ public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
     @JsonPropertyDescription("File source status")
     private Integer status;
     /**
-     * 类型
+     * 文件源类型code
      */
-    @JsonProperty("file_source_type")
-    @JsonPropertyDescription("File source type")
-    private Integer fileSourceType;
+    @JsonProperty("file_source_type_code")
+    @JsonPropertyDescription("File source type code")
+    private String fileSourceTypeCode;
 
     /**
      * 是否为公共文件源
@@ -73,7 +71,7 @@ public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
     private boolean publicFlag;
 
     /**
-     * 凭据Id
+     * 凭证Id
      */
     @JsonPropertyDescription("File source credential id")
     @JsonProperty("credential_id")
@@ -106,7 +104,6 @@ public class EsbFileSourceV3DTO extends EsbAppScopeDTO {
     /**
      * 更新时间
      */
-    @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonProperty("last_modify_time")
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;

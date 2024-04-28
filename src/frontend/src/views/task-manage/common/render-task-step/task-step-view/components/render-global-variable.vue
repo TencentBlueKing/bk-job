@@ -55,7 +55,7 @@
           <ip-selector
             readonly
             show-view
-            :value="hostNodeInfo" />
+            :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
       <template #footer>
@@ -67,7 +67,7 @@
   </div>
 </template>
 <script>
-  import TaskHostNodeModel from '@model/task-host-node';
+  import ExecuteTargetModel from '@model/execute-target';
 
   import Empty from '@components/empty';
   import ScrollFaker from '@components/scroll-faker';
@@ -95,11 +95,11 @@
       },
     },
     data() {
-      const { hostNodeInfo } = new TaskHostNodeModel({});
+      const { executeObjectsInfo } = new ExecuteTargetModel({});
 
       return {
         isShowDetail: false,
-        hostNodeInfo,
+        executeObjectsInfo,
       };
     },
     computed: {
@@ -110,13 +110,13 @@
         return `${I18n.t('template.全局变量.label')} - ${this.name}`;
       },
       isEmpty() {
-        return TaskHostNodeModel.isHostNodeInfoEmpty(this.hostNodeInfo);
+        return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.executeObjectsInfo);
       },
     },
     methods: {
       handlerView() {
         const curVariable = this.data.find(item => item.name === this.name);
-        this.hostNodeInfo = Object.freeze(curVariable.defaultTargetValue.hostNodeInfo);
+        this.executeObjectsInfo = Object.freeze(curVariable.defaultTargetValue.executeObjectsInfo);
 
         this.isShowDetail = true;
       },

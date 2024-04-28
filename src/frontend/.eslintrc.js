@@ -73,7 +73,7 @@ module.exports = {
     'no-param-reassign': 'off',
     'max-len': 'off',
     'vue/multi-word-component-names': 'off',
-    'no-unused-vars': 'off',
+    'no-unused-vars': 'error',
   },
   overrides: [
     {

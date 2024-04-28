@@ -32,14 +32,14 @@ import lombok.ToString;
 public class ArchiveProgressDTO {
     private String tableName;
     /**
-     * 最后归档ID
+     * 最后备份ID
      */
-    private Long lastArchivedId;
+    private Long lastBackupId;
 
     /**
      * 最后删除ID
      */
     private Long lastDeletedId;
-    private Long lastArchiveTime;
+    private Long lastBackupTime;
     private Long lastDeleteTime;
 }

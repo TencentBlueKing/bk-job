@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
@@ -52,7 +51,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,17 +66,14 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
     private final TaskExecuteService taskExecuteService;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final MessageI18nService i18nService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public EsbFastExecuteScriptV3ResourceImpl(TaskExecuteService taskExecuteService,
                                               TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                              MessageI18nService i18nService,
-                                              AppScopeMappingService appScopeMappingService) {
+                                              MessageI18nService i18nService) {
         this.taskExecuteService = taskExecuteService;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.i18nService = i18nService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
@@ -88,9 +84,10 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             ExecuteMetricsConstants.TAG_KEY_TASK_TYPE, ExecuteMetricsConstants.TAG_VALUE_TASK_TYPE_FAST_SCRIPT
         })
     @AuditEntry
-    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(@AuditRequestBody EsbFastExecuteScriptV3Request request)
+    public EsbResp<EsbJobExecuteV3DTO> fastExecuteScript(String username,
+                                                         String appCode,
+                                                         @AuditRequestBody EsbFastExecuteScriptV3Request request)
         throws ServiceException {
-        request.fillAppResourceScope(appScopeMappingService);
         ValidateResult checkResult = checkFastExecuteScriptRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast execute script request is illegal!");
@@ -99,11 +96,8 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
 
         request.trimIps();
 
-        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(request);
-        if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
-            return EsbResp.buildCommonFailResp(ErrorCode.TASK_ABANDONED);
-        }
-        StepInstanceDTO stepInstance = buildFastScriptStepInstance(request);
+        TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
+        StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
         StepRollingConfigDTO rollingConfig = null;
         if (request.getRollingConfig() != null) {
             rollingConfig = StepRollingConfigDTO.fromEsbRollingConfig(request.getRollingConfig());
@@ -164,7 +158,9 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         return ValidateResult.pass();
     }
 
-    private TaskInstanceDTO buildFastScriptTaskInstance(EsbFastExecuteScriptV3Request request) {
+    private TaskInstanceDTO buildFastScriptTaskInstance(String username,
+                                                        String appCode,
+                                                        EsbFastExecuteScriptV3Request request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         if (StringUtils.isNotBlank(request.getName())) {
             taskInstance.setName(request.getName());
@@ -178,16 +174,16 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         taskInstance.setAppId(request.getAppId());
         taskInstance.setStartupMode(TaskStartupModeEnum.API.getValue());
         taskInstance.setStatus(RunStatusEnum.BLANK);
-        taskInstance.setOperator(request.getUserName());
+        taskInstance.setOperator(username);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
         taskInstance.setType(TaskTypeEnum.SCRIPT.getValue());
         taskInstance.setCurrentStepInstanceId(0L);
         taskInstance.setCallbackUrl(request.getCallbackUrl());
-        taskInstance.setAppCode(request.getAppCode());
+        taskInstance.setAppCode(appCode);
         return taskInstance;
     }
 
-    private StepInstanceDTO buildFastScriptStepInstance(EsbFastExecuteScriptV3Request request) {
+    private StepInstanceDTO buildFastScriptStepInstance(String username, EsbFastExecuteScriptV3Request request) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setAppId(request.getAppId());
         if (StringUtils.isNotBlank(request.getName())) {
@@ -203,7 +199,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             stepInstance.setScriptId(request.getScriptId());
         } else if (StringUtils.isNotBlank(request.getContent())) {
             stepInstance.setScriptContent(Base64Util.decodeContentToStr(request.getContent()));
-            stepInstance.setScriptType(request.getScriptLanguage());
+            stepInstance.setScriptType(ScriptTypeEnum.valOf(request.getScriptLanguage()));
         }
 
         if (StringUtils.isNotEmpty(request.getScriptParam())) {
@@ -217,12 +213,12 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
         stepInstance.setTimeout(
             request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 
-        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue());
+        stepInstance.setExecuteType(StepExecuteTypeEnum.EXECUTE_SCRIPT);
         stepInstance.setStatus(RunStatusEnum.BLANK);
-        stepInstance.setTargetServers(convertToServersDTO(request.getTargetServer()));
+        stepInstance.setTargetExecuteObjects(convertToServersDTO(request.getTargetServer()));
         stepInstance.setAccountId(request.getAccountId());
         stepInstance.setAccountAlias(request.getAccountAlias());
-        stepInstance.setOperator(request.getUserName());
+        stepInstance.setOperator(username);
         stepInstance.setCreateTime(DateUtils.currentTimeMillis());
 
         return stepInstance;

@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.dto.script;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTemplateVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

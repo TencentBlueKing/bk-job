@@ -38,6 +38,90 @@ public class ErrorCode {
      */
     public static final int RESULT_OK = 0;
 
+    // ==================================== 系统级错误 ================================================//
+
+    // ======= 系统错误-平台服务错误 =======//
+    // LICENSE 不可用
+    public static final int LICENSE_ERROR = 1210101;
+    // GSE 不可用
+    public static final int GSE_ERROR = 1210001;
+    // GSE数据异常：{0}
+    public static final int GSE_API_DATA_ERROR = 1210002;
+
+    // CMDB错误
+    // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
+    public static final int CMDB_UNREACHABLE_SERVER = 1211001;
+    // CMDB接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
+    public static final int CMDB_API_DATA_ERROR = 1211002;
+    // 根据动态分组ID查找主机失败，动态分组ID：{0}，原因：{1}，请确认指定的动态分组在业务下是否存在
+    public static final int FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP = 1211003;
+    // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
+    public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
+
+    // PaaS异常
+    // CMSI接口访问异常
+    public static final int CMSI_API_ACCESS_ERROR = 1213001;
+    // 用户管理接口访问异常
+    public static final int USER_MANAGE_API_ACCESS_ERROR = 1213002;
+    // 调用CMSI接口获取通知渠道数据异常
+    public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
+    // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
+    public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+
+    // 制品库异常
+    // Artifactory接口返回数据结构异常
+    public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
+    // 制品库中找不到节点:{0}，请到制品库核实
+    public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
+
+    // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
+    public static final int IAM_API_DATA_ERROR = 1215001;
+    // 用户({0})账号已被冻结，请处理后再重试
+    public static final int IAM_USER_ACCOUNT_FROZEN = 1215002;
+
+    // 第三方API请求错误
+    public static final int API_ERROR = 1216001;
+
+    // 消息通知中心异常
+    // 消息通知中心API不存在:{0}
+    public static final int BK_NOTICE_API_NOT_FOUND = 1217001;
+    // 消息通知中心接口数据异常
+    public static final int BK_NOTICE_API_DATA_ERROR = 1217002;
+
+    // ======== 系统错误-权限错误 ==================//
+    // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
+    public static final int PERMISSION_DENIED = 1238001;
+    // 蓝鲸统一权限错误码，用户({0})权限不足，请前往权限中心确认并申请补充后重试
+    public static final int BK_PERMISSION_DENIED = 9900403;
+
+    // ========= 系统错误-请求 ====================//
+    // 内部服务异常
+    public static final int INTERNAL_ERROR = 1240002;
+    // 错误的请求
+    public static final int BAD_REQUEST = 1240003;
+    // Cookie过期或者不存在
+    public static final int COOKIE_ILLEGAL = 1240004;
+    // 服务不可用
+    public static final int SERVICE_UNAVAILABLE = 1240001;
+    // 服务认证失败
+    public static final int SERVICE_AUTH_FAIL = 1240005;
+    // 配置异常：{0}
+    public static final int INVALID_CONFIG = 1240006;
+    // 命令行参数异常：{0}
+    public static final int INVALID_CMD_ARGS = 1240007;
+
+    // ======= 系统错误-公共组件错误 =======//
+    // Redis服务不可用，连接不上 - IP不存在或者配置错误
+    public static final int REDIS_CONNECT_FAIL = 1250001;
+    // Redis服务内存满或者其他问题 - 内存不足够
+    public static final int REDIS_DATA_EXCEPTION = 1250002;
+    // DB 不可用
+    public static final int DB_ERROR = 1252001;
+    // MQ 不可用
+    public static final int MQ_ERROR = 1255001;
+    // NFS存储 不可用
+    public static final int NFS_ERROR = 1259001;
+
     // ==================================== 业务级错误 ================================================//
     /*
      * 业务通用-1241xxx
@@ -200,7 +284,7 @@ public class ErrorCode {
     // 作业执行 start
     // 主机为空
     public static final int SERVER_EMPTY = 1244001;
-    // 主机无效，请检查源或目标主机的IPv4或AgentID字段值是否存在于配置平台；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。无效的{0}台主机：[{1}]
+    // 主机无效，请检查源或目标主机的是否存在于配置平台的业务[{0}]下；另外，主机需跨业务执行请联系作业平台管理员将其添加到主机白名单。无效的{1}台主机：[{2}]
     public static final int HOST_INVALID = 1244002;
     // 账号不存在
     public static final int ACCOUNT_NOT_EXIST = 1244003;
@@ -250,10 +334,13 @@ public class ErrorCode {
     public static final int INVALID_ROLLING_EXPR = 1244026;
     // 滚动批次不能大于{}
     public static final int EXCEED_MAX_ALLOWED_BATCH_SIZE = 1244027;
-    // 步骤：{} 的目标主机为空
-    public static final int STEP_TARGET_HOST_EMPTY = 1244028;
-    // 步骤：{} 的源文件主机为空
-    public static final int STEP_SOURCE_HOST_EMPTY = 1244029;
+    // 步骤：{} 的目标执行对象为空
+    public static final int STEP_TARGET_EXECUTE_OBJECT_EMPTY = 1244028;
+    // 步骤：{} 的源文件执行对象为空
+    public static final int STEP_SOURCE_EXECUTE_OBJECT_EMPTY = 1244029;
+    // 执行对象不存在。无效的{0}个执行对象：[{1}]
+    public static final int EXECUTE_OBJECT_NOT_EXIST = 1244030;
+    public static final int INVALID_LABEL_SELECTOR = 1244031;
     // 作业执行 end
 
     // 定时作业 start
@@ -264,6 +351,7 @@ public class ErrorCode {
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;
     public static final int END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED = 1245007;
+    public static final int DELETE_CRON_FAILED = 1245008;
     // 定时作业 end
 
     // 日志服务
@@ -290,6 +378,10 @@ public class ErrorCode {
     // 从制品库下载文件失败
     public static final int FAIL_TO_DOWNLOAD_NODE_FROM_ARTIFACTORY = 1249002;
     // 备份服务 end
+
+    // ======= 系统错误-公共组件错误 =======//
+    // 1250xxx-1259xxx被【系统错误-公共组件错误】占用
+    // ======= 系统错误-公共组件错误 =======//
 
     // 文件网关 start
     // 文件源不存在:{0}
@@ -329,6 +421,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ID_NOT_IN_BIZ = 1260017;
     // 接入点响应异常，详情：{0}
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
+    // 文件源code不可为空
+    public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
 
     // 文件网关 end
     // 文件代理 start
@@ -351,82 +445,5 @@ public class ErrorCode {
     // 迁移升级
     // 迁移失败，任务: {0}, 详情: {1}
     public static final int MIGRATION_FAIL = 1263001;
-
-    // ==================================== 系统级错误 ================================================//
-    // ======== 系统错误-权限错误 ==================//
-    // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
-    public static final int PERMISSION_DENIED = 1238001;
-    // 蓝鲸统一权限错误码，用户({0})权限不足，请前往权限中心确认并申请补充后重试
-    public static final int BK_PERMISSION_DENIED = 9900403;
-
-    // ========= 系统错误-请求 ====================//
-    // 内部服务异常
-    public static final int INTERNAL_ERROR = 1240002;
-    // 错误的请求
-    public static final int BAD_REQUEST = 1240003;
-    // Cookie过期或者不存在
-    public static final int COOKIE_ILLEGAL = 1240004;
-    // 服务不可用
-    public static final int SERVICE_UNAVAILABLE = 1240001;
-    // 服务认证失败
-    public static final int SERVICE_AUTH_FAIL = 1240005;
-    // 配置异常：{0}
-    public static final int INVALID_CONFIG = 1240006;
-    // 命令行参数异常：{0}
-    public static final int INVALID_CMD_ARGS = 1240007;
-
-    // ======= 系统错误-公共组件错误 =======//
-    // Redis服务不可用，连接不上 - IP不存在或者配置错误
-    public static final int REDIS_CONNECT_FAIL = 1250001;
-    // Redis服务内存满或者其他问题 - 内存不足够
-    public static final int REDIS_DATA_EXCEPTION = 1250002;
-    // NFS存储 不可用
-    public static final int NFS_ERROR = 1259001;
-    // DB 不可用
-    public static final int DB_ERROR = 1252001;
-    // MQ 不可用
-    public static final int MQ_ERROR = 1255001;
-
-    // ======= 系统错误-平台服务错误 =======//
-    // LICENSE 不可用
-    public static final int LICENSE_ERROR = 1210101;
-    // GSE 不可用
-    public static final int GSE_ERROR = 1210001;
-    // GSE数据异常：{0}
-    public static final int GSE_API_DATA_ERROR = 1210002;
-
-    // CMDB错误
-    // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
-    public static final int CMDB_UNREACHABLE_SERVER = 1211001;
-    // CMDB接口返回数据结构异常- 一般是被网关防火墙重定向返回统一登录页面
-    public static final int CMDB_API_DATA_ERROR = 1211002;
-    // 根据动态分组ID查找主机失败，动态分组ID：{0}，原因：{1}，请确认指定的动态分组在业务下是否存在
-    public static final int FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP = 1211003;
-    // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
-    public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
-
-    // PaaS异常
-    // CMSI接口访问异常
-    public static final int CMSI_API_ACCESS_ERROR = 1213001;
-    // 用户管理接口访问异常
-    public static final int USER_MANAGE_API_ACCESS_ERROR = 1213002;
-    // 调用CMSI接口获取通知渠道数据异常
-    public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
-    // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
-    public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
-
-    // 制品库异常
-    // Artifactory接口返回数据结构异常
-    public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
-    // 制品库中找不到节点:{0}，请到制品库核实
-    public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
-
-    // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
-    public static final int IAM_API_DATA_ERROR = 1215001;
-    // 用户({0})账号已被冻结，请处理后再重试
-    public static final int IAM_USER_ACCOUNT_FROZEN = 1215002;
-
-    // 第三方API请求错误
-    public static final int API_ERROR = 1216001;
 
 }

@@ -77,12 +77,12 @@ public class PageData<T> {
         if (CollectionUtils.isEmpty(pageData.getData())) {
             return emptyPageData(pageData.getStart(), pageData.getPageSize());
         }
-        PageData<T> esbPageData = new PageData<>();
-        esbPageData.setTotal(pageData.getTotal());
-        esbPageData.setStart(pageData.getStart());
-        esbPageData.setPageSize(pageData.getPageSize());
-        esbPageData.setData(pageData.getData().stream().map(converter).collect(Collectors.toList()));
-        return esbPageData;
+        PageData<T> newPageData = new PageData<>();
+        newPageData.setTotal(pageData.getTotal());
+        newPageData.setStart(pageData.getStart());
+        newPageData.setPageSize(pageData.getPageSize());
+        newPageData.setData(pageData.getData().stream().map(converter).collect(Collectors.toList()));
+        return newPageData;
     }
 
     public static <T> PageData<T> emptyPageData(Integer start, Integer length) {

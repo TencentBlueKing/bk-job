@@ -38,17 +38,17 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
-import com.tencent.bk.job.execute.engine.consts.AgentTaskStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
-import com.tencent.bk.job.execute.model.AgentTaskResultGroupDTO;
+import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbStepInstanceStatusDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbGetStepInstanceStatusRequest;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,18 +65,15 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceStatusResource {
-    private final TaskInstanceService taskInstanceService;
+    private final StepInstanceService stepInstanceService;
     private final TaskResultService taskResultService;
     private final MessageI18nService i18nService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetStepInstanceStatusResourceImpl(MessageI18nService i18nService,
-                                                TaskInstanceService taskInstanceService,
-                                                AppScopeMappingService appScopeMappingService,
+                                                StepInstanceService stepInstanceService,
                                                 TaskResultService taskResultService) {
         this.i18nService = i18nService;
-        this.taskInstanceService = taskInstanceService;
-        this.appScopeMappingService = appScopeMappingService;
+        this.stepInstanceService = stepInstanceService;
         this.taskResultService = taskResultService;
     }
 
@@ -84,9 +81,9 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_step_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbStepInstanceStatusDTO> getJobStepInstanceStatus(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetStepInstanceStatusRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get step instance status request is illegal!");
@@ -97,13 +94,13 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(request.getStepInstanceId()).build();
-        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(request.getUserName(),
+        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(username,
             request.getAppId(), query);
 
         resultData.setIsFinished(stepExecutionDetail.isFinished());
         resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
-        StepInstanceBaseDTO stepInstance = taskInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             log.warn("Get step instance status by taskInstanceId:{}, stepInstanceId:{}, stepInstance is null!",
                 request.getTaskInstanceId(), request.getStepInstanceId());
@@ -120,7 +117,13 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         stepInst.setId(stepInstance.getId());
         stepInst.setEndTime(stepInstance.getEndTime());
         stepInst.setStartTime(stepInstance.getStartTime());
-        stepInst.setIpList(convertToIpListStr(stepInstance.getTargetServers().getIpList()));
+        stepInst.setIpList(
+            convertToIpListStr(
+                stepInstance.getTargetExecuteObjects()
+                    .getExecuteObjectsCompatibly()
+                    .stream()
+                    .map(ExecuteObject::getHost)
+                    .collect(Collectors.toList())));
         stepInst.setName(stepInstance.getName());
         stepInst.setOperator(stepInstance.getOperator());
         stepInst.setExecuteCount(stepInstance.getExecuteCount());
@@ -128,7 +131,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         stepInst.setStepId(stepInstance.getStepId());
         stepInst.setTaskInstanceId(stepInstance.getTaskInstanceId());
         stepInst.setTotalTime(stepInstance.getTotalTime());
-        stepInst.setType(stepInstance.getExecuteType());
+        stepInst.setType(stepInstance.getExecuteType().getValue());
 
         return stepInst;
     }
@@ -153,19 +156,21 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
     private List<Map<String, Object>> convertToStandardAnalyseResult(StepExecutionDetailDTO stepExecutionDetail) {
         List<Map<String, Object>> standardStepAnalyseResultList = new ArrayList<>();
-        List<AgentTaskResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
+        List<ResultGroupDTO> resultGroups = stepExecutionDetail.getResultGroups();
         if (resultGroups == null || resultGroups.isEmpty()) {
             return standardStepAnalyseResultList;
         }
 
-        for (AgentTaskResultGroupDTO resultGroup : resultGroups) {
+        for (ResultGroupDTO resultGroup : resultGroups) {
             Map<String, Object> standardStepAnalyseResult = new HashMap<>();
-            List<AgentTaskDetailDTO> agentTasks = resultGroup.getAgentTasks();
-            standardStepAnalyseResult.put("count", CollectionUtils.isEmpty(agentTasks) ? 0 : agentTasks.size());
-            if (CollectionUtils.isNotEmpty(agentTasks)) {
+            List<ExecuteObjectTask> executeObjectTasks = resultGroup.getExecuteObjectTasks();
+            standardStepAnalyseResult.put("count",
+                CollectionUtils.isEmpty(executeObjectTasks) ? 0 : executeObjectTasks.size());
+            if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
                 List<EsbIpDTO> ips = new ArrayList<>();
-                for (AgentTaskDetailDTO agentTask : agentTasks) {
-                    ips.add(new EsbIpDTO(agentTask.getHostId(), agentTask.getBkCloudId(), agentTask.getIp()));
+                for (ExecuteObjectTask executeObjectTask : executeObjectTasks) {
+                    HostDTO host = executeObjectTask.getExecuteObject().getHost();
+                    ips.add(new EsbIpDTO(host.getHostId(), host.getBkCloudId(), host.getIp()));
                 }
                 standardStepAnalyseResult.put("ip_list", ips);
 
@@ -173,7 +178,7 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
 
             standardStepAnalyseResult.put("result_type", resultGroup.getStatus());
             standardStepAnalyseResult.put("result_type_text",
-                i18nService.getI18n(AgentTaskStatusEnum.valueOf(resultGroup.getStatus()).getI18nKey()));
+                i18nService.getI18n(ExecuteObjectTaskStatusEnum.valOf(resultGroup.getStatus()).getI18nKey()));
 
             standardStepAnalyseResultList.add(standardStepAnalyseResult);
         }

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -42,7 +43,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * 主机通用表示-内部服务使用
+ * 作业执行对象-主机模型
  */
 @Setter
 @Getter
@@ -130,6 +131,16 @@ public class HostDTO implements Cloneable {
         this.ip = ip;
     }
 
+    public HostDTO(Long hostId) {
+        this.hostId = hostId;
+    }
+
+    public HostDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public static HostDTO fromHostId(Long hostId) {
         HostDTO hostDTO = new HostDTO();
         hostDTO.setHostId(hostId);
@@ -154,15 +165,6 @@ public class HostDTO implements Cloneable {
             host.setBkCloudId(Long.valueOf(ipProps[0]));
             host.setIp(ipProps[1]);
         }
-        return host;
-    }
-
-    @Deprecated
-    public static HostDTO fromHostIdOrCloudIp(Long hostId, Long bkCloudId, String ip) {
-        HostDTO host = new HostDTO();
-        host.setHostId(hostId);
-        host.setBkCloudId(bkCloudId);
-        host.setIp(ip);
         return host;
     }
 
@@ -295,6 +297,9 @@ public class HostDTO implements Cloneable {
     }
 
     public void updateByHost(HostDTO host) {
+        if (host == null) {
+            return;
+        }
         this.hostId = host.getHostId();
         this.agentId = host.getAgentId();
         this.bkCloudId = host.getBkCloudId();
@@ -308,5 +313,17 @@ public class HostDTO implements Cloneable {
         this.cloudVendorId = host.getCloudVendorId();
         this.cloudVendorName = host.getCloudVendorName();
         this.hostname = host.getHostname();
+    }
+
+    public OpenApiHostDTO toOpenApiHostDTO() {
+        OpenApiHostDTO openApiHostDTO = new OpenApiHostDTO();
+        openApiHostDTO.setHostId(hostId);
+        openApiHostDTO.setBkCloudId(bkCloudId);
+        openApiHostDTO.setBkCloudName(bkCloudName);
+        openApiHostDTO.setIp(ip);
+        openApiHostDTO.setIpv6(ipv6);
+        openApiHostDTO.setAlive(alive);
+        openApiHostDTO.setAgentId(agentId);
+        return openApiHostDTO;
     }
 }

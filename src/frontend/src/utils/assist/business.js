@@ -77,13 +77,15 @@ export const compareHost = (preHost, nextHost) => {
   const {
     hostList: preIPList,
     nodeList: preNodeList,
-    dynamicGroupList: preGroupList,
-  } = preHost.hostNodeInfo;
+    dynamicGroupList: preDynamicGroupList,
+    containerList: preContainerList = [],
+  } = preHost.executeObjectsInfo;
   const {
     hostList: nextIPList,
     nodeList: nextNodeList,
-    dynamicGroupList: nextGroupList,
-  } = nextHost.hostNodeInfo;
+    dynamicGroupList: nextDynamicGroupList,
+    containerList: nextContainerList = [],
+  } = nextHost.executeObjectsInfo;
     // 对比主机
   if (preIPList.length !== nextIPList.length) {
     return false;
@@ -114,16 +116,29 @@ export const compareHost = (preHost, nextHost) => {
     }
   }
   // 对比分组
-  if (preGroupList.length !== nextGroupList.length) {
+  if (preDynamicGroupList.length !== nextDynamicGroupList.length) {
     return false;
   }
-  const preGroupMap = preGroupList.reduce((result, groupId) => {
-    result[groupId] = true;
+  const preGroupMap = preDynamicGroupList.reduce((result, dynamicGroup) => {
+    result[dynamicGroup.id] = true;
     return result;
   }, {});
     // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < nextGroupList.length; i++) {
-    if (!preGroupMap[nextGroupList[i]]) {
+  for (let i = 0; i < nextDynamicGroupList.length; i++) {
+    if (!preGroupMap[nextDynamicGroupList[i]]) {
+      return false;
+    }
+  }
+  // 对比容器
+  if (preContainerList.length !== nextContainerList.length) {
+    return false;
+  }
+  const preContainerMap = preContainerList.reduce((result, container) => {
+    result[container.id] = true;
+    return result;
+  }, {});
+  for (let i = 0; i < nextContainerList.length; i++) {
+    if (!preContainerMap[nextContainerList[i].id]) {
       return false;
     }
   }

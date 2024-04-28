@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.notNullValue;
  * 公共脚本管理 API 测试
  */
 @DisplayName("v3.PublicScriptResourceAPITest")
-class PublicScriptResourceAPITest {
+class PublicScriptResourceAPITest extends BaseTest {
 
     private static final List<EsbScriptVersionDetailV3DTO> createdPublicScriptList = new ArrayList<>();
 
@@ -58,7 +58,7 @@ class PublicScriptResourceAPITest {
     }
 
     @Nested
-    class CreateTest {
+    class PublicScriptCreateTest {
         @Test
         @DisplayName("测试公共脚本脚本正常创建")
         void testCreatePublicScript() {
@@ -252,7 +252,7 @@ class PublicScriptResourceAPITest {
     }
 
     @Nested
-    class GetTest {
+    class PublicScriptGetTest {
         @Test
         @DisplayName("测试获取公共脚本版本列表")
         void testGetPublicScriptVersionList() {
@@ -271,7 +271,7 @@ class PublicScriptResourceAPITest {
     }
 
     @Nested
-    class UpdateTest {
+    class PublicScriptUpdateTest {
         // 更新操作
         @Test
         @DisplayName("测试更新公共脚本基础信息")
@@ -326,7 +326,7 @@ class PublicScriptResourceAPITest {
     }
 
     @Nested
-    class OperationTest {
+    class PublicScriptOperationTest {
         // 上线、下线等操作
         @Test
         @DisplayName("测试上线公共脚本版本")
@@ -390,7 +390,7 @@ class PublicScriptResourceAPITest {
     }
 
     @Nested
-    class DeleteTest {
+    class PublicScriptDeleteTest {
         @Test
         @DisplayName("测试公共脚本删除")
         void testDeletePublicScript() {

@@ -30,12 +30,10 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
 import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsContributor;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@Component
 public class ApiTypeTagsContributor implements WebMvcTagsContributor {
 
     @Override

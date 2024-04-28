@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.MissingParameterException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -158,6 +159,15 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
         return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
+    }
+
+    @ExceptionHandler({MissingParameterException.class})
+    @ResponseBody
+    ResponseEntity<?> handleMissingParameterException (HttpServletRequest request,
+                                                       MissingParameterException ex) {
+        String errorMsg = "Handle MissingParameterException , uri: " + request.getRequestURI();
+        log.warn(errorMsg, ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.BAD_REQUEST);
     }
 
     @Override

@@ -92,7 +92,7 @@ public class HostInfoVO {
     @JsonProperty("cloudVendor")
     private String cloudVendorName;
 
-    public void validate(boolean isCreate) throws InvalidParamException {
+    public void validate() throws InvalidParamException {
         if (!JobContextUtil.isAllowMigration() && (hostId == null || hostId <= 0)) {
             log.warn("Missing host_id!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

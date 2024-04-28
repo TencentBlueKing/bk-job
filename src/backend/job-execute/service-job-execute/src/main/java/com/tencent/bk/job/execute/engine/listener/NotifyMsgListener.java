@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.NotifyService;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

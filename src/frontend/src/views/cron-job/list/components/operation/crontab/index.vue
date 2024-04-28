@@ -345,8 +345,7 @@
         color: #979ba5;
         text-align: center;
         transition: height 0.2s linear;
-        align-content: center;
-        justify-content: center;
+        place-content: center center;
 
         &.active {
           height: 90px;

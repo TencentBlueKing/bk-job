@@ -1,9 +1,34 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -65,19 +90,17 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     @Override
     public final void run() {
         log.info("Watching {} event start", this.watcherResourceName);
-        RedisKeyHeartBeatThread redisKeyHeartBeatThread = null;
+        LockResult lockResult = null;
         while (true) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                boolean lockGotten = tryGetTaskLockPeriodically();
-                if (!lockGotten) {
+                HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
+                lockResult = redisLock.lock();
+                if (!lockResult.isLockGotten()) {
                     // 30s之后重试
                     ThreadUtils.sleep(30_000);
                     continue;
                 }
-
-                // 获取任务锁之后通过心跳线程维持锁的占有
-                redisKeyHeartBeatThread = startRedisKeyHeartBeatThread();
 
                 // 事件处理前的初始化
                 tryToInitBeforeWatch();
@@ -89,50 +112,14 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 span.error(t);
             } finally {
                 span.end();
-                if (redisKeyHeartBeatThread != null) {
-                    redisKeyHeartBeatThread.stopAtOnce();
+                if (lockResult != null) {
+                    lockResult.tryToRelease();
                 }
                 LockUtils.releaseDistributedLock(redisLockKey, machineIp);
                 // 过5s后重新尝试监听事件
                 ThreadUtils.sleep(5000);
             }
         }
-    }
-
-    private boolean tryGetTaskLockPeriodically() {
-        boolean lockGotten = false;
-        try {
-            lockGotten = LockUtils.tryGetReentrantLock(redisLockKey, machineIp, 5_000);
-            if (!lockGotten) {
-                String runningMachine =
-                    redisTemplate.opsForValue().get(redisLockKey);
-                log.info(
-                    "Get lock {} fail, {} watch thread already running on {}",
-                    this.redisLockKey,
-                    this.watcherResourceName,
-                    runningMachine
-                );
-                return false;
-            }
-            lockGotten = true;
-        } catch (Throwable t) {
-            log.error("Get lock caught exception", t);
-        }
-        return lockGotten;
-    }
-
-    private RedisKeyHeartBeatThread startRedisKeyHeartBeatThread() {
-        // 开一个心跳子线程，维护当前机器正在WatchResource的状态
-        RedisKeyHeartBeatThread redisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-            redisTemplate,
-            redisLockKey,
-            machineIp,
-            5_000L,
-            2_000L
-        );
-        redisKeyHeartBeatThread.setName("[" + watcherResourceName + "]-redisKeyHeartBeatThread");
-        redisKeyHeartBeatThread.start();
-        return redisKeyHeartBeatThread;
     }
 
     private void watchAndHandleEvent() {
@@ -250,7 +237,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      *
      * @param event cmdb事件
      */
-    protected abstract void handleEvent(ResourceEvent<E> event);
+    public abstract void handleEvent(ResourceEvent<E> event);
 
     /**
      * 获取CMDB事件指标标签

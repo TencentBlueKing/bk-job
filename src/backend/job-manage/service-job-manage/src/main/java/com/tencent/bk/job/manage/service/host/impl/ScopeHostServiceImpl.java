@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.model.query.HostQuery;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +73,24 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         this.bizHostService = bizHostService;
         this.bkNetClient = bkNetClient;
         this.bizTopoService = bizTopoService;
+    }
+
+    @Override
+    public List<Long> filterScopeHostIds(AppResourceScope appResourceScope,
+                                         Collection<Long> hostIds) {
+        ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
+        if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return new ArrayList<>(hostIds);
+        } else if (applicationDTO.isBizSet()) {
+            // 业务集
+            List<Long> bizIds = applicationDTO.getSubBizIds();
+            return bizHostService.filterHostIdsByBiz(bizIds, hostIds);
+        } else {
+            // 普通业务
+            Long bizId = Long.parseLong(applicationDTO.getScope().getId());
+            return bizHostService.filterHostIdsByBiz(Collections.singletonList(bizId), hostIds);
+        }
     }
 
     @Override

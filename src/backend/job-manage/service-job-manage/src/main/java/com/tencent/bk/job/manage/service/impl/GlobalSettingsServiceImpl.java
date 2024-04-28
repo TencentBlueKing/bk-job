@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -41,12 +43,12 @@ import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.common.consts.globalsetting.GlobalSettingKeys;
-import com.tencent.bk.job.manage.common.consts.globalsetting.OSTypeEnum;
-import com.tencent.bk.job.manage.common.consts.globalsetting.RelatedUrlKeys;
-import com.tencent.bk.job.manage.common.consts.globalsetting.RestrictModeEnum;
-import com.tencent.bk.job.manage.common.consts.globalsetting.StorageUnitEnum;
-import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
+import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.RelatedUrlKeys;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.RestrictModeEnum;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.StorageUnitEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
@@ -94,7 +96,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -126,6 +127,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final MessageI18nService i18nService;
     private final JobManageConfig jobManageConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
+    private final BkNoticeProperties bkNoticeProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
@@ -142,6 +144,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      MessageI18nService i18nService,
                                      JobManageConfig jobManageConfig,
                                      LocalFileConfigForManage localFileConfigForManage,
+                                     BkNoticeProperties bkNoticeProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
                                      BuildProperties buildProperties) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
@@ -154,6 +157,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.i18nService = i18nService;
         this.jobManageConfig = jobManageConfig;
         this.localFileConfigForManage = localFileConfigForManage;
+        this.bkNoticeProperties = bkNoticeProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
     }
@@ -670,17 +674,31 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         );
     }
 
+    private void addEnableBkNoticeConfig(Map<String, Object> configMap) {
+        configMap.put(
+            GlobalSettingKeys.KEY_ENABLE_BK_NOTICE,
+            bkNoticeProperties.isEnabled() && bkNoticeRegisteredSuccess()
+        );
+    }
+
+    private boolean bkNoticeRegisteredSuccess() {
+        GlobalSettingDTO globalSettingDTO =
+            globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS);
+        return globalSettingDTO != null && "true".equals(globalSettingDTO.getValue().toLowerCase());
+    }
+
     @Override
     public Map<String, Object> getJobConfig(String username) {
         Map<String, Object> configMap = new HashMap<>();
         addFileUploadConfig(configMap);
         addEnableFeatureFileManageConfig(configMap);
         addEnableUploadToArtifactoryConfig(configMap);
+        addEnableBkNoticeConfig(configMap);
         return configMap;
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.GLOBAL_SETTINGS,
         content = EventContentConstants.EDIT_GLOBAL_SETTINGS

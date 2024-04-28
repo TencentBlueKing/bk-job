@@ -302,3 +302,30 @@ export const userSearchCache = {
     return JSON.parse(localStorage.getItem(userSearchCache.key) || '[]');
   },
 };
+
+export const execTaskPlanVariableCache = {
+  key: 'TASK_PLAN_VARIABLE',
+  setItem(planId, variableList) {
+    const records = execTaskPlanVariableCache.getItem();
+    localStorage.setItem(execTaskPlanVariableCache.key, JSON.stringify({
+      ...records,
+      [planId]: {
+        expire: Date.now(),
+        variableList,
+      },
+    }));
+  },
+  getItem(planId) {
+    const records = JSON.parse(localStorage.getItem(execTaskPlanVariableCache.key) || '{}');
+    if (!planId) {
+      return records;
+    }
+    if (!records[planId]) {
+      return [];
+    }
+    if (Number(records[planId].expire) < Date.now() - 86400000) {
+      return [];
+    }
+    return records[planId].variableList;
+  },
+};

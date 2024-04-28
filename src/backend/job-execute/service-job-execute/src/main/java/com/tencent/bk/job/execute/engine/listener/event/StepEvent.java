@@ -199,7 +199,7 @@ public class StepEvent extends Event {
     }
 
     /**
-     * 构造`第三方文件源文件拉取完成后继续GSE分发`事件
+     * 构造`文件准备完成后继续GSE分发`事件
      *
      * @param stepInstanceId 步骤实例ID
      * @return 事件
@@ -208,6 +208,20 @@ public class StepEvent extends Event {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
+        stepEvent.setTime(LocalDateTime.now());
+        return stepEvent;
+    }
+
+    /**
+     * 构造`准备文件`事件
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 事件
+     */
+    public static StepEvent prepareFile(long stepInstanceId) {
+        StepEvent stepEvent = new StepEvent();
+        stepEvent.setStepInstanceId(stepInstanceId);
+        stepEvent.setAction(StepActionEnum.PREPARE_FILE.getValue());
         stepEvent.setTime(LocalDateTime.now());
         return stepEvent;
     }

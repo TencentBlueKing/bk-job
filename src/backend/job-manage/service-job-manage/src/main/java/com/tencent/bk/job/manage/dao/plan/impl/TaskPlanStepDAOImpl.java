@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.plan.impl;
 
-import com.tencent.bk.job.manage.common.consts.task.TaskTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
 import com.tencent.bk.job.manage.dao.AbstractTaskStepDAO;
 import com.tencent.bk.job.manage.dao.TaskStepDAO;

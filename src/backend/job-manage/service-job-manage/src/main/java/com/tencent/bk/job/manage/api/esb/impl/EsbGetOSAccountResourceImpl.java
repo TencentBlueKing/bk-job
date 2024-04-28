@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetOSAccountResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
@@ -49,19 +48,17 @@ import java.util.List;
 @Slf4j
 public class EsbGetOSAccountResourceImpl implements EsbGetOSAccountResource {
     private final AccountService accountService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbGetOSAccountResourceImpl(AccountService accountService,
-                                       AppScopeMappingService appScopeMappingService) {
+    public EsbGetOSAccountResourceImpl(AccountService accountService) {
         this.accountService = accountService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_os_account"})
-    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(EsbGetOSAccountListRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<List<EsbAccountDTO>> getAppOsAccountList(String username,
+                                                            String appCode,
+                                                            EsbGetOSAccountListRequest request) {
         long appId = request.getAppId();
         List<AccountDTO> systemAccounts = accountService.listAppAccount(appId, AccountCategoryEnum.SYSTEM);
         return EsbResp.buildSuccessResp(convertToEsbAccountDTOList(systemAccounts));

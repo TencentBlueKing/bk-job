@@ -30,11 +30,14 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,7 @@ import java.util.stream.Collectors;
 /**
  * 主机
  */
+@Slf4j
 @PersistenceObject
 @Data
 @EqualsAndHashCode
@@ -312,4 +316,28 @@ public class ApplicationHostDTO {
         return host;
     }
 
+    public String preferFullIpv6() {
+        try {
+            if (StringUtils.isNotBlank(ipv6) && IpUtils.checkIpv6(ipv6)) {
+                return IpUtils.getFullIpv6ByCompressedOne(ipv6);
+            }
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "Fail to getFullIpv6ByCompressedOne by {}",
+                ipv6
+            ).getMessage();
+            log.warn(msg, e);
+        }
+        return ipv6;
+    }
+
+    /**
+     * 获取主机的ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryIp() {
+        return StringUtils.isNotEmpty(ip) ? ip : ipv6;
+    }
 }

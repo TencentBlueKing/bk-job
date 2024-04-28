@@ -31,16 +31,17 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
-import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
@@ -83,7 +84,6 @@ import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
@@ -264,7 +264,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager")
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Long saveAppDefaultNotifyPoliciesToLocal(String operator, Long appId, String triggerUser,
                                                     NotifyPoliciesCreateUpdateReq createUpdateReq) {
         val policyList = createUpdateReq.getTriggerPoliciesList();
@@ -391,7 +391,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));
@@ -428,13 +428,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Set<String> findJobResourceOwners(Integer resourceType, String resourceIdStr) {
         Set<String> userSet = new HashSet<>();
-        if (resourceType == ResourceTypeEnum.SCRIPT.getType()) {
-            userSet.add(scriptDAO.getScriptByScriptId(resourceIdStr).getLastModifyUser());
-        } else if (resourceType == ResourceTypeEnum.JOB.getType()) {
+        if (resourceType == ResourceTypeEnum.JOB.getType()) {
             long resourceId = Long.parseLong(resourceIdStr);
             userSet.add(taskPlanDAO.getTaskPlanById(resourceId).getLastModifyUser());
         } else {
-            log.warn("Unknown resourceType:{}", resourceType);
+            // 没有资源的任务不通知"资源所属者"
         }
         return userSet;
     }

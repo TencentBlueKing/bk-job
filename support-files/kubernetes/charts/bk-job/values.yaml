@@ -415,6 +415,8 @@ bkPaasUrl: "http://paas.example.com"
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
 bkCmdbUrl: "http://cmdb.example.com"
+# 蓝鲸 IAM url
+bkIamUrl: "http://bkiam.example.com"
 # 蓝鲸 IAM 后台 url
 bkIamApiUrl: "http://bkiam-api.example.com"
 # 蓝鲸制品库 url
@@ -423,6 +425,10 @@ bkRepoUrl: "http://bkrepo.example.com"
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
 bkGseApiGatewayUrl: "http://bkapi.example.com"
+# 蓝鲸消息通知中心 API Gateway url
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+# 蓝鲸 CMDB API Gateway url
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -474,8 +480,10 @@ gse:
     rootPath: "/tmp/bkjob"
   query:
     threads:
-      # 向GSE查询Agent状态的并发数
+      # 向GSE查询Agent状态的核心并发数
       num: 5
+      # 向GSE查询Agent状态的最大并发数
+      maxNum: 20
     # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
@@ -565,6 +573,11 @@ login:
     # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
     tokenName: "bk_token"
 
+# 消息通知中心配置
+bkNotice:
+  # 是否对接消息通知中心
+  enabled: true
+
 ## Job Common Config
 job:
   # 作业平台运行所有环境(prod,dev)与模式(kubernetes)，默认生产环境(prod)、K8s容器模式(kubernetes)
@@ -596,6 +609,12 @@ job:
       enabled: true
     gseV2:
       # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
+      enabled: true
+    # 是否支持执行对象。如果 Job 需要支持容器内作业的执行，需要开启该特性
+    executeObject:
+      enabled: true
+    # 是否支持容器执行
+    containerExecution:
       enabled: true
   trace:
     report:
@@ -647,6 +666,26 @@ persistence:
     enabled: true
     # 临时文件根路径（使用HostPath作为本地存储时同时也是宿主机根路径）
     path: /data/job_temp_file
+
+# JVM诊断文件留存配置
+jvmDiagnosticFile:
+  # 根据最后修改时间清理
+  clearByLastModifyTime:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # JVM诊断文件保留的小时数，默认168小时（7天）
+    keepHours: 168
+
+# 日志留存配置
+log:
+  # 服务后台日志保留的小时数，默认48小时（2天）
+  keepHours: 48
+  # 根据磁盘占用量自动清理后台日志相关配置
+  clearByVolumeUsage:
+    # 是否开启自动清理任务，默认开启
+    enabled: true
+    # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
+    maxVolume: 40GB
 
 ## 蓝鲸日志采集配置
 bkLogConfig:
@@ -965,6 +1004,7 @@ crontabConfig:
       properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: "job"
     password: "job"
+    maxPoolSize: 100
   # Quartz相关配置
   quartz:
     # 调度器配置
@@ -1067,16 +1107,22 @@ backupConfig:
     execute:
       # 是否启用 DB 归档
       enabled: false
+      # 被归档 DB 的配置
+      mariadb:
+        connection:
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
-      keep_days: 30
+      keeyDays: 30
       # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-      read_id_step_size: 1000
+      readIdStepSize: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
-      batch_insert_row_size: 1000
+      batchInsertRowSize: 1000
+      # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+      deleteRowLimit: 1000
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

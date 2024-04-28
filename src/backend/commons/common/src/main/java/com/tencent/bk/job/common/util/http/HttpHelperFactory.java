@@ -2,20 +2,9 @@ package com.tencent.bk.job.common.util.http;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
-import org.apache.http.ssl.SSLContexts;
 import org.springframework.stereotype.Service;
-
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Http请求基础工厂类
@@ -30,106 +19,81 @@ public class HttpHelperFactory {
     private static final CloseableHttpClient RETRYABLE_HTTP_CLIENT;
     private static final CloseableHttpClient LONG_RETRYABLE_HTTP_CLIENT;
 
-    private static CloseableHttpClient getHttpClient(@SuppressWarnings("SameParameterValue") int connRequestTimeout,
-                                                     @SuppressWarnings("SameParameterValue") int connTimeout,
-                                                     int socketTimeout,
-                                                     boolean canRetry) {
-        return getHttpClient(
-            connRequestTimeout,
-            connTimeout,
-            socketTimeout,
+    static {
+        DEFAULT_HTTP_CLIENT = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
             500,
             1000,
-            canRetry
-        );
-    }
-
-    private static CloseableHttpClient getHttpClient(int connRequestTimeout,
-                                                     int connTimeout,
-                                                     int socketTimeout,
-                                                     @SuppressWarnings("SameParameterValue") int maxConnPerRoute,
-                                                     @SuppressWarnings("SameParameterValue") int maxConnTotal,
-                                                     boolean canRetry) {
-        HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
-            .setDefaultRequestConfig(
-                RequestConfig.custom()
-                    .setConnectionRequestTimeout(connRequestTimeout)
-                    .setConnectTimeout(connTimeout)
-                    .setSocketTimeout(socketTimeout)
-                    .build()
-            )
-            .evictExpiredConnections()
-            .evictIdleConnections(5, TimeUnit.SECONDS)
-            .disableAutomaticRetries()
-            .disableAuthCaching()
-            .disableCookieManagement();
-        if (canRetry) {
-            httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler());
-        }
-        CloseableHttpClient httpClient;
-        LayeredConnectionSocketFactory sslSocketFactory = null;
-        try {
-            sslSocketFactory = new SSLConnectionSocketFactory(
-                SSLContexts.custom()
-                    .loadTrustMaterial(null, new TrustSelfSignedStrategy())
-                    .build()
-            );
-        } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-            log.error("", e);
-        }
-        httpClientBuilder.setConnectionManager(
-            // esb的keep-alive时间为90s，需要<90s,防止连接超时抛出org.apache.http.NoHttpResponseException:
-            // The target server failed to respond
-            // 因此，timeToLive使用34s
-            JobHttpClientConnectionManagerFactory.createWatchableConnectionManager(
-                maxConnPerRoute,
-                maxConnTotal,
-                34,
-                TimeUnit.SECONDS,
-                sslSocketFactory
-            ));
-        httpClient = httpClientBuilder.build();
-        return httpClient;
-    }
-
-    static {
-        DEFAULT_HTTP_CLIENT = getHttpClient(
-            15000, 15000, 15000, false
-        );
-        RETRYABLE_HTTP_CLIENT = getHttpClient(
-            15000, 15000, 15000, true
-        );
-        LONG_RETRYABLE_HTTP_CLIENT = getHttpClient(
-            15000, 15000, 30000, true
-        );
+            60,
+            false,
+            null);
+        RETRYABLE_HTTP_CLIENT = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            15000,
+            500,
+            1000,
+            60,
+            true,
+            new JobHttpRequestRetryHandler());
+        LONG_RETRYABLE_HTTP_CLIENT = JobHttpClientFactory.createHttpClient(
+            15000,
+            15000,
+            30000,
+            500,
+            1000,
+            60,
+            true,
+            new JobHttpRequestRetryHandler());
     }
 
     public static void setMeterRegistry(MeterRegistry meterRegistry) {
         HttpHelperFactory.meterRegistry = meterRegistry;
     }
 
-    private static HttpHelper getWatchableHttpHelper(HttpHelper httpHelper) {
+    private static WatchableHttpHelper getWatchableHttpHelper(HttpHelper httpHelper) {
         return new WatchableHttpHelper(httpHelper, meterRegistry);
     }
 
-    private static ExtHttpHelper getWatchableExtHelper(HttpHelper httpHelper) {
-        HttpHelper watchableHttpHelper = getWatchableHttpHelper(httpHelper);
-        return new ExtHttpHelper(watchableHttpHelper);
+    private static WatchableHttpHelper getWatchableExtHelper(HttpHelper httpHelper) {
+        return getWatchableHttpHelper(httpHelper);
     }
 
-    public static ExtHttpHelper getDefaultHttpHelper() {
+    public static WatchableHttpHelper getDefaultHttpHelper() {
         HttpHelper baseHttpHelper = new BaseHttpHelper(DEFAULT_HTTP_CLIENT);
         return getWatchableExtHelper(baseHttpHelper);
     }
 
     @SuppressWarnings("unused")
-    public static ExtHttpHelper getRetryableHttpHelper() {
+    public static WatchableHttpHelper getRetryableHttpHelper() {
         HttpHelper baseHttpHelper = new BaseHttpHelper(RETRYABLE_HTTP_CLIENT);
         return getWatchableExtHelper(baseHttpHelper);
     }
 
-    public static ExtHttpHelper getLongRetryableHttpHelper() {
+    public static WatchableHttpHelper getLongRetryableHttpHelper() {
         HttpHelper baseHttpHelper = new BaseHttpHelper(LONG_RETRYABLE_HTTP_CLIENT);
         return getWatchableExtHelper(baseHttpHelper);
+    }
+
+    public static HttpHelper createHttpHelper(int connRequestTimeout,
+                                              int connTimeout,
+                                              int socketTimeout,
+                                              int maxConnPerRoute,
+                                              int maxConnTotal,
+                                              int timeToLive,
+                                              boolean allowRetry,
+                                              HttpRequestRetryHandler retryHandler) {
+        CloseableHttpClient httpClient = JobHttpClientFactory.createHttpClient(
+            connRequestTimeout,
+            connTimeout,
+            socketTimeout,
+            maxConnPerRoute,
+            maxConnTotal,
+            timeToLive,
+            allowRetry,
+            retryHandler);
+        return new BaseHttpHelper(httpClient);
     }
 }

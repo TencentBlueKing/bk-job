@@ -25,11 +25,10 @@
 package com.tencent.bk.job.file.worker.task.clear;
 
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.file.FileSizeUtil;
+import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,13 +36,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -92,37 +84,6 @@ public class ClearFileTask {
     }
 
     /**
-     * 删除文件，若删除失败则记录路径
-     *
-     * @param file          文件
-     * @param failedPathSet 删除失败时用于记录路径的Set
-     * @return 是否删除成功
-     */
-    private boolean deleteFileAndRecordIfFail(File file, Set<String> failedPathSet) {
-        try {
-            FileUtils.deleteQuietly(file);
-            return true;
-        } catch (Exception e) {
-            failedPathSet.add(file.getAbsolutePath());
-            FormattingTuple message = MessageFormatter.format(
-                "Fail to delete file {}",
-                file.getAbsolutePath()
-            );
-            log.warn(message.getMessage(), e);
-            return false;
-        }
-    }
-
-    private void showVolumeUsage(String path, long maxSizeBytes, long currentSize) {
-        log.info(
-            "{},currentSize={},maxSizeBytes={}",
-            path,
-            FileSizeUtil.getFileSizeStr(currentSize),
-            FileSizeUtil.getFileSizeStr(maxSizeBytes)
-        );
-    }
-
-    /**
      * 检查磁盘容量并清理最旧的文件
      */
     public void checkVolumeAndClear() {
@@ -143,45 +104,10 @@ public class ClearFileTask {
 
     private void doCheckVolumeAndClear() {
         long maxSizeBytes = workerConfig.getMaxSizeGB() * 1024L * 1024L * 1024L;
-        File workDirFile = new File(workerConfig.getWorkspaceDirPath());
-        long currentSize = FileUtils.sizeOfDirectory(workDirFile);
-        if (log.isDebugEnabled()) {
-            showVolumeUsage(workDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
-        }
-        File[] files = workDirFile.listFiles();
-        if (files == null || files.length == 0) return;
-        List<File> fileList = new ArrayList<>(Arrays.asList(files));
-        fileList.sort(Comparator.comparingLong(File::lastModified));
-        // 记录删除失败的文件，下次不再列出
-        Set<String> deleteFailedFilePathSet = new HashSet<>();
-        int count = 0;
-        while (currentSize > maxSizeBytes) {
-            if (fileList.isEmpty()) {
-                // 上一次拿到的文件列表已删完，空间依然超限，说明删除过程中又新产生了许多文件，重新列出
-                files = workDirFile.listFiles();
-                if (files == null || files.length == 0) return;
-                fileList.addAll(Arrays.stream(files)
-                    .filter(file -> !deleteFailedFilePathSet.contains(file.getAbsolutePath()))
-                    .collect(Collectors.toList())
-                );
-                fileList.sort(Comparator.comparingLong(File::lastModified));
-            }
-            if (fileList.isEmpty()) {
-                log.warn("volume still overlimit after clear, deleteFailedFilePathSet={}", deleteFailedFilePathSet);
-                return;
-            }
-            File oldestFile = fileList.remove(0);
-            if (deleteFileAndRecordIfFail(oldestFile, deleteFailedFilePathSet)) {
-                count += 1;
-                log.info("delete file {} because of volume overlimit", oldestFile.getAbsolutePath());
-            }
-            currentSize = FileUtils.sizeOfDirectory(workDirFile);
-            showVolumeUsage(workDirFile.getAbsolutePath(), maxSizeBytes, currentSize);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("{} files deleted because of volume overlimit", count);
-        } else if (count > 0) {
-            log.info("{} files deleted because of volume overlimit", count);
+        int count = FileUtil.checkVolumeAndClearOldestFiles(maxSizeBytes, workerConfig.getWorkspaceDirPath());
+        if (count > 0) {
+            log.info("{} file cleared", count);
         }
     }
+
 }

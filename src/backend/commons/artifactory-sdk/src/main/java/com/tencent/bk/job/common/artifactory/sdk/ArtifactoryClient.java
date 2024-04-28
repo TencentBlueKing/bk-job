@@ -51,15 +51,17 @@ import com.tencent.bk.job.common.artifactory.model.req.SearchNodePageReq;
 import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -111,8 +113,8 @@ public class ArtifactoryClient {
     private final String password;
     private final MeterRegistry meterRegistry;
 
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
-    private final ExtHttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
+    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper longHttpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
 
     public ArtifactoryClient(String baseUrl, String username, String password, MeterRegistry meterRegistry) {
         this.baseUrl = StringUtil.removeSuffix(baseUrl, "/");
@@ -171,28 +173,30 @@ public class ArtifactoryClient {
         return headerList.toArray(headers);
     }
 
-    private String doHttpGet(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
-        if (null == reqBody) {
-            return httpHelper.get(url, getJsonHeaders());
-        } else {
-            return httpHelper.get(url + reqBody.toUrlParams(), getJsonHeaders());
-        }
+    private String doHttpGet(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return httpHelper.requestForSuccessResp(
+            HttpRequest.builder(HttpMethodEnum.GET, reqBody == null ? url : url + reqBody.toUrlParams())
+                .setHeaders(getJsonHeaders())
+                .build())
+            .getEntity();
     }
 
-    private String doHttpPost(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
-        if (null == reqBody) {
-            return httpHelper.post(url, "{}", getJsonHeaders());
-        } else {
-            return httpHelper.post(url, JsonUtils.toJson(reqBody), getJsonHeaders());
-        }
+    private String doHttpPost(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return httpHelper.requestForSuccessResp(
+            HttpRequest.builder(HttpMethodEnum.POST, url)
+                .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
+                .setHeaders(getJsonHeaders())
+                .build())
+            .getEntity();
     }
 
-    private String doHttpDelete(String url, ArtifactoryReq reqBody, ExtHttpHelper httpHelper) {
-        if (null == reqBody) {
-            return httpHelper.delete(url, "{}", getJsonHeaders());
-        } else {
-            return httpHelper.delete(url + reqBody.toUrlParams(), JsonUtils.toJson(reqBody), getJsonHeaders());
-        }
+    private String doHttpDelete(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return httpHelper.requestForSuccessResp(
+            HttpRequest.builder(HttpMethodEnum.DELETE, reqBody == null ? url : url + reqBody.toUrlParams())
+                .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
+                .setHeaders(getJsonHeaders())
+                .build())
+            .getEntity();
     }
 
     @SuppressWarnings("unchecked")
@@ -237,7 +241,7 @@ public class ArtifactoryClient {
         String urlTemplate,
         ArtifactoryReq reqBody,
         TypeReference<R> typeReference,
-        ExtHttpHelper httpHelper
+        HttpHelper httpHelper
     ) throws ServiceException {
         // URL模板变量替换
         String url = StringUtil.replacePathVariables(urlTemplate, reqBody);
@@ -552,7 +556,13 @@ public class ArtifactoryClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
-            respStr = longHttpHelper.put(url, reqEntity, getUploadFileHeaders());
+
+            respStr = longHttpHelper.requestForSuccessResp(
+                HttpRequest.builder(HttpMethodEnum.PUT, url)
+                    .setHttpEntity(reqEntity)
+                    .setHeaders(getUploadFileHeaders())
+                    .build())
+                .getEntity();
             if (log.isDebugEnabled()) {
                 log.debug("respStr={}", getSimplifiedStrForLog(respStr));
             }

@@ -34,15 +34,7 @@ public interface ILoginClient {
      * 根据token获取用户信息
      *
      * @param token 用户登录token
-     * @return
+     * @return 用户信息
      */
     BkUserDTO getUserInfoByToken(String token);
-
-    /**
-     * 根据用户名获取用户信息
-     *
-     * @param userName 用户名
-     * @return
-     */
-    BkUserDTO getUserInfoByUserName(String userName);
 }

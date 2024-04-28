@@ -39,9 +39,10 @@ allprojects {
 
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.10.0'
-    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.9.9'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
-    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.9'
+    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
+    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.5'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.13.5'
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'com.google.guava:guava:28.2-jre'
     testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
@@ -49,11 +50,12 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.6'
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
     testImplementation("org.apache.commons:commons-collections4:4.4")
-    testImplementation 'org.bouncycastle:bcprov-jdk15:1.46'
+    testImplementation 'org.bouncycastle:bcprov-jdk15on:1.70'
     testImplementation 'org.projectlombok:lombok:1.18.8'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'io.rest-assured:rest-assured:5.3.2'
+    testImplementation 'org.assertj:assertj-core:3.21.0'
 }
 
 test {

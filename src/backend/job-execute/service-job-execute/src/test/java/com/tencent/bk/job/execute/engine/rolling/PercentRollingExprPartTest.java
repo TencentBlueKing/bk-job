@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.rolling;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.exception.RollingExprParseException;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -72,63 +73,63 @@ class PercentRollingExprPartTest {
     }
 
     @Nested
-    @DisplayName("验证根据百分比计算服务器分批大小")
+    @DisplayName("验证根据百分比计算执行对象分批大小")
     class ComputeTest {
 
         @Test
         @DisplayName("验证100%表达式")
         void compute() {
-            List<HostDTO> rollingServers = new ArrayList<>();
-            rollingServers.add(new HostDTO(0L, "127.0.0.1"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.2"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.3"));
+            List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("100%");
-            RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
-            List<HostDTO> serversOnBatch = percentRollingExprPart.compute(context);
-            assertThat(serversOnBatch).hasSize(3);
-            assertThat(serversOnBatch).containsSequence(
-                new HostDTO(0L, "127.0.0.1"),
-                new HostDTO(0L, "127.0.0.2"),
-                new HostDTO(0L, "127.0.0.3")
+            RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
+            List<ExecuteObject> executeObjectsOnBatch = percentRollingExprPart.compute(context);
+            assertThat(executeObjectsOnBatch).hasSize(3);
+            assertThat(executeObjectsOnBatch).containsSequence(
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L))
             );
         }
 
         @Test
         @DisplayName("验证批次计算向上取整")
         void testCeil() {
-            List<HostDTO> rollingServers = new ArrayList<>();
-            rollingServers.add(new HostDTO(0L, "127.0.0.1"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.2"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.3"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.4"));
-            rollingServers.add(new HostDTO(0L, "127.0.0.5"));
-            RollingServerBatchContext context = new RollingServerBatchContext(rollingServers);
+            List<ExecuteObject> rollingExecuteObjects = new ArrayList<>();
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(3L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(4L)));
+            rollingExecuteObjects.add(ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(5L)));
+            RollingExecuteObjectBatchContext context = new RollingExecuteObjectBatchContext(rollingExecuteObjects);
 
             PercentRollingExprPart percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("10%");
-            List<HostDTO> serversOnBatch = percentRollingExprPart.compute(context);
-            assertThat(serversOnBatch).hasSize(1);
-            assertThat(serversOnBatch).containsSequence(
-                new HostDTO(0L, "127.0.0.1")
+            List<ExecuteObject> executeObjectsOnBatch = percentRollingExprPart.compute(context);
+            assertThat(executeObjectsOnBatch).hasSize(1);
+            assertThat(executeObjectsOnBatch).containsSequence(
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
             );
 
             percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("20%");
-            serversOnBatch = percentRollingExprPart.compute(context);
-            assertThat(serversOnBatch).hasSize(1);
-            assertThat(serversOnBatch).containsSequence(
-                new HostDTO(0L, "127.0.0.1")
+            executeObjectsOnBatch = percentRollingExprPart.compute(context);
+            assertThat(executeObjectsOnBatch).hasSize(1);
+            assertThat(executeObjectsOnBatch).containsSequence(
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L))
             );
 
             percentRollingExprPart =
                 (PercentRollingExprPart) PERCENT_ROLLING_EXPR_PART.parseExpr("30%");
-            serversOnBatch = percentRollingExprPart.compute(context);
-            assertThat(serversOnBatch).hasSize(2);
-            assertThat(serversOnBatch).containsSequence(
-                new HostDTO(0L, "127.0.0.1"),
-                new HostDTO(0L, "127.0.0.2")
+            executeObjectsOnBatch = percentRollingExprPart.compute(context);
+            assertThat(executeObjectsOnBatch).hasSize(2);
+            assertThat(executeObjectsOnBatch).containsSequence(
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(1L)),
+                ExecuteObject.buildCompatibleExecuteObject(HostDTO.fromHostId(2L))
             );
         }
     }

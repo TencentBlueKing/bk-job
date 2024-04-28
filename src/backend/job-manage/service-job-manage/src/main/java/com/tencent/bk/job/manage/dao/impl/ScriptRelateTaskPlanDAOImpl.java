@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskPlanTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskPlanTypeEnum;
 import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ScriptRelateTaskPlanDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptRelatedTaskPlanDTO;
@@ -77,9 +77,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())));
         try {
             Result<Record1<Integer>> records = query.fetch();
-            if (records != null) {
-                return records.get(0).value1();
-            }
+            return records.get(0).value1();
         } catch (Exception e) {
             log.error(String.format("error SQL=%s", query.getSQL(ParamType.INLINED)), e);
         }
@@ -98,9 +96,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .and(T_TASK_PLAN.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getValue())));
         try {
             Result<Record1<Integer>> records = query.fetch();
-            if (records != null) {
-                return records.get(0).value1();
-            }
+            return records.get(0).value1();
         } catch (Exception e) {
             log.error(String.format("error SQL=%s", query.getSQL(ParamType.INLINED)), e);
         }

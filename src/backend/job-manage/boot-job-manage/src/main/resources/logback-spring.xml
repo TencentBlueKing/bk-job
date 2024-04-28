@@ -4,10 +4,11 @@
 
     <property name="APP_NAME" value="${APP_NAME:-job-manage}"/>
     <property name="BK_LOG_DIR" value="${job.log.dir:-/data/bkee/logs/job}"/>
-    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-manage}"/>
+    <property name="APP_LOG_DIR" value="${BK_LOG_DIR}/job-manage}" scope="context"/>
     <property name="APP_LOG_NAME" value="manage.log"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="SYNC_APP_HOST_LOG_FILE" value="${APP_LOG_DIR}/sync_app_host.log"/>
+    <property name="NOTICE_LOG_FILE" value="${APP_LOG_DIR}/notice.log"/>
 
     <include resource="logback-default.xml"/>
 
@@ -16,8 +17,25 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${SYNC_APP_HOST_LOG_FILE}-%d{yyyyMMdd_HH}.log.%i</fileNamePattern>
             <maxFileSize>1GB</maxFileSize>
-            <maxHistory>120</maxHistory>
+            <maxHistory>${LOG_KEEP_HOURS}</maxHistory>
             <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- BK-NOTICE 日志 -->
+    <appender name="notice-appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${NOTICE_LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${NOTICE_LOG_FILE}-%d{yyyyMMdd}.log.%i</fileNamePattern>
+            <maxFileSize>1GB</maxFileSize>
+            <maxHistory>${LOG_KEEP_DAYS}</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+            <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
@@ -29,22 +47,43 @@
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
+            <appender-ref ref="notice-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
     </springProfile>
+
     <springProfile name="prod &amp; !kubernetes">
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
+            <appender-ref ref="notice-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
     </springProfile>
+
     <springProfile name="dev &amp; kubernetes">
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="notice-appender"/>
+            <appender-ref ref="error-appender"/>
+        </logger>
     </springProfile>
+
     <springProfile name="prod &amp; kubernetes">
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
+        </logger>
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="notice-appender"/>
+            <appender-ref ref="error-appender"/>
         </logger>
     </springProfile>
 </configuration>

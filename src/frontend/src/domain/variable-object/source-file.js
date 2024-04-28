@@ -21,11 +21,11 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
 import _ from 'lodash';
 
-import TaskHostNodeModel from '@model/task-host-node';
+import ExecuteTargetModel from '@model/execute-target';
 
 import { bytePretty } from '@utils/assist';
 
@@ -58,7 +58,7 @@ export default class SourceFile {
     // 文件名(路径)
     this.fileLocation = payload.fileLocation || [];
     // 执行目标信息（全局变量和服务器主机二选一）—— 服务器文件
-    this.host = new TaskHostNodeModel(payload.host || {});
+    this.host = new ExecuteTargetModel(payload.host || {});
     // 服务器账号——服务器文件
     this.account = payload.account;
     // 文件源ID——文件源文件
@@ -88,15 +88,15 @@ export default class SourceFile {
      * @returns {Boolean}
      *
      * 服务列表为空则使用的是全局变量
-    */
+     */
   get isVar() {
-    return TaskHostNodeModel.isHostNodeInfoEmpty(this.host.hostNodeInfo);
+    return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo);
   }
 
   /**
      * @desc 服务器文件
      * @returns {Boolean}
-    */
+     */
   get isServerFile() {
     return this.fileType === FILE_TYPE_SERVER;
   }
@@ -104,7 +104,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件
      * @returns {Boolean}
-    */
+     */
   get isLocalFile() {
     return this.fileType === FILE_TYPE_LOCAL;
   }
@@ -112,7 +112,7 @@ export default class SourceFile {
   /**
      * @desc 文件源文件
      * @returns {Boolean}
-    */
+     */
   get isSourceFile() {
     return this.fileType === FILE_TYPE_SOURCE;
   }
@@ -120,7 +120,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件——文件大小
      * @returns {String}
-    */
+     */
   get fileSizeText() {
     return bytePretty(this.fileSize);
   }
@@ -128,7 +128,7 @@ export default class SourceFile {
   /**
      * @desc 本地文件——上传进度
      * @returns {Number}
-    */
+     */
   get uploadProgress() {
     return this.loaded / this.loadTotal;
   }
@@ -136,9 +136,9 @@ export default class SourceFile {
   /**
      * @desc 服务器文件——主机为空
      * @returns {Boolean}
-    */
+     */
   get isHostEmpty() {
-    return TaskHostNodeModel.isHostNodeInfoEmpty(this.host.hostNodeInfo);
+    return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo);
   }
 
   /**
@@ -180,8 +180,7 @@ export default class SourceFile {
       return true;
     }
     // 服务器列表为空
-    if (TaskHostNodeModel.isHostNodeInfoEmpty(this.host.hostNodeInfo)
-            && this.host.variable === '') {
+    if (ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.host.executeObjectsInfo) && this.host.variable === '') {
       return true;
     }
     return false;
@@ -207,7 +206,8 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const { dynamicGroupList, hostList, nodeList } = this.host.hostNodeInfo;
+    const { dynamicGroupList, hostList, nodeList, containerList = [] } = this.host.executeObjectsInfo;
+
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
     if (hostList.length > 0) {
@@ -219,6 +219,10 @@ export default class SourceFile {
     if (dynamicGroupList.length > 0) {
       textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组.result')));
     }
+    if (containerList.length > 0) {
+      textArr.push(getHtml(containerList.length, I18n.t('个容器.result')));
+    }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }
 }
+

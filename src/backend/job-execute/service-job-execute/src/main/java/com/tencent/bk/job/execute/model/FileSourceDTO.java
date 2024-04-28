@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import java.util.List;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@PersistenceObject
 public class FileSourceDTO implements Cloneable {
 
     /**
@@ -72,7 +74,7 @@ public class FileSourceDTO implements Cloneable {
      * 文件源服务器
      */
     @JsonProperty("servers")
-    private ServersDTO servers;
+    private ExecuteTargetDTO servers;
 
     /**
      * 文件源ID

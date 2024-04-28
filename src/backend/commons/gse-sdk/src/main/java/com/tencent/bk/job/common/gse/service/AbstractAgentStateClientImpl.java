@@ -24,16 +24,17 @@
 
 package com.tencent.bk.job.common.gse.service;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
-import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,11 +48,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
 
     private final AgentStateQueryConfig agentStateQueryConfig;
-    private final GseClient gseClient;
+    private final IGseClient gseClient;
     private final ThreadPoolExecutor threadPoolExecutor;
 
     public AbstractAgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                        GseClient gseClient,
+                                        IGseClient gseClient,
                                         ThreadPoolExecutor threadPoolExecutor) {
         this.agentStateQueryConfig = agentStateQueryConfig;
         this.gseClient = gseClient;
@@ -59,6 +60,9 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
     }
 
     protected AgentState getAgentState(String agentId) {
+        if (StringUtils.isBlank(agentId)) {
+            return null;
+        }
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(Collections.singletonList(agentId));
         List<AgentState> agentStateList = gseClient.listAgentState(req);
@@ -81,8 +85,10 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
         return agentStateList.get(0);
     }
 
-    protected Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
-        long startTime = System.currentTimeMillis();
+    public Map<String, AgentState> batchGetAgentStateConcurrent(List<String> agentIdList) {
+        StopWatch watch = new StopWatch("batchGetAgentStateConcurrent");
+
+        watch.start("splitToBatch");
         Map<String, AgentState> resultMap = new HashMap<>();
         if (CollectionUtils.isEmpty(agentIdList)) {
             return resultMap;
@@ -90,7 +96,6 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
 
         // 分批
         int batchSize = agentStateQueryConfig.getGseQueryBatchSize();
-        int threadNum = agentStateQueryConfig.getGseQueryThreadsNum();
         int start = 0;
         int end;
         int size = agentIdList.size();
@@ -102,45 +107,53 @@ public abstract class AbstractAgentStateClientImpl implements AgentStateClient {
             ipSubListList.add(ipSubList);
             start += batchSize;
         }
+        watch.stop();
+
         // 并发查询
+        watch.start("ConcurrencyUtil.getResultWithThreads");
         Collection<Map<String, AgentState>> maps = ConcurrencyUtil.getResultWithThreads(
             ipSubListList,
             threadPoolExecutor,
             ipList1 -> Collections.singletonList(batchGetAgentStatusWithoutLimit(ipList1))
         );
+        watch.stop();
+
+        watch.start("collectResult");
         maps.forEach(resultMap::putAll);
-        long duration = System.currentTimeMillis() - startTime;
+        watch.stop();
+
+        long duration = watch.getTotalTimeMillis();
         FormattingTuple msg = MessageFormatter.format(
             "Get status of {} ips, time consuming: {}ms",
             resultMap.size(),
             duration
         );
         if (duration > 1000L) {
-            log.warn(msg.getMessage());
+            log.warn(msg.getMessage() + ", statistics: " + watch.prettyPrint());
         } else {
             log.debug(msg.getMessage());
         }
         return resultMap;
     }
 
-    protected Map<String, Boolean> batchGetAgentAliveStatus(Map<String, AgentState> agentStateMap) {
-        Map<String, Boolean> agentAliveStatusMap = new HashMap<>();
-        for (Map.Entry<String, AgentState> entry : agentStateMap.entrySet()) {
-            String agentId = entry.getKey();
-            AgentState agentState = entry.getValue();
-            agentAliveStatusMap.put(agentId,
-                AgentAliveStatusEnum.fromAgentState(agentState) == AgentAliveStatusEnum.ALIVE);
-        }
-        return agentAliveStatusMap;
-    }
-
     private Map<String, AgentState> batchGetAgentStatusWithoutLimit(List<String> agentIdList) {
+        StopWatch watch = new StopWatch("batchGetAgentStatusWithoutLimit");
+
+        watch.start("listAgentState");
         Map<String, AgentState> resultMap = new HashMap<>();
         ListAgentStateReq req = new ListAgentStateReq();
         req.setAgentIdList(agentIdList);
         List<AgentState> agentStateList = gseClient.listAgentState(req);
+        watch.stop();
+
+        watch.start("collectResult");
         for (AgentState agentState : agentStateList) {
             resultMap.put(agentState.getAgentId(), agentState);
+        }
+        watch.stop();
+
+        if (watch.getTotalTimeMillis() > 1000) {
+            log.warn("batchGetAgentStatusWithoutLimit slow, statistics: " + watch.prettyPrint());
         }
         return resultMap;
     }

@@ -33,13 +33,15 @@ import java.util.List;
 
 import static com.tencent.bk.job.api.constant.Constant.SHELL_SCRIPT_CONTENT_BASE64;
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * 业务脚本管理 API 测试
  */
 @DisplayName("v3.ScriptResourceAPITest")
-class ScriptResourceAPITest {
+class ScriptResourceAPITest extends BaseTest {
 
     private static final List<EsbScriptVersionDetailV3DTO> createdScriptList = new ArrayList<>();
 
@@ -59,7 +61,7 @@ class ScriptResourceAPITest {
     }
 
     @Nested
-    class CreateTest {
+    class ScriptCreateTest {
         @Test
         @DisplayName("测试脚本正常创建")
         void testCreateScript() {
@@ -264,7 +266,7 @@ class ScriptResourceAPITest {
     }
 
     @Nested
-    class GetTest {
+    class ScriptGetTest {
         @Test
         @DisplayName("测试获取脚本版本列表")
         void testGetScriptVersionList() {
@@ -285,7 +287,7 @@ class ScriptResourceAPITest {
     }
 
     @Nested
-    class UpdateTest {
+    class ScriptUpdateTest {
         // 更新操作
         @Test
         @DisplayName("测试更新脚本基础信息")
@@ -348,7 +350,7 @@ class ScriptResourceAPITest {
     }
 
     @Nested
-    class OperationTest {
+    class ScriptOperationTest {
         // 上线、下线等操作
         @Test
         @DisplayName("测试上线脚本版本")
@@ -420,7 +422,7 @@ class ScriptResourceAPITest {
     }
 
     @Nested
-    class DeleteTest {
+    class ScriptDeleteTest {
         @Test
         @DisplayName("测试脚本删除")
         void testDeleteScript() {

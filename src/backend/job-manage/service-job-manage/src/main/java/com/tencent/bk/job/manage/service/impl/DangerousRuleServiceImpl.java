@@ -26,8 +26,11 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.manage.common.consts.EnableStatusEnum;
+import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
@@ -39,7 +42,6 @@ import com.tencent.bk.job.manage.service.DangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,7 +113,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
 
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
@@ -171,7 +173,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     @ActionAuditRecord(
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.DELETE_HIGH_RISK_DETECT_RULE
@@ -188,17 +190,22 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 break;
             }
         }
-        //每次删除后维持有序
-        dangerousRuleDAO.deleteDangerousRuleById(id);
-        for (int i = 0; i < dangerousRuleDTOList.size(); i++) {
-            DangerousRuleDTO dangerousRuleDTO = dangerousRuleDTOList.get(i);
-            dangerousRuleDTO.setPriority(i + 1);
-            dangerousRuleDAO.updateDangerousRule(dangerousRuleDTO);
+        try {
+            //每次删除后维持有序
+            dangerousRuleDAO.deleteDangerousRuleById(id);
+            for (int i = 0; i < dangerousRuleDTOList.size(); i++) {
+                DangerousRuleDTO dangerousRuleDTO = dangerousRuleDTOList.get(i);
+                dangerousRuleDTO.setPriority(i + 1);
+                dangerousRuleDAO.updateDangerousRule(dangerousRuleDTO);
+                dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                    DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
+            }
             dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
-                DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
+                DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
+        } catch (Exception e) {
+            log.error(String.format("delete dangerous rule fail! id: %s", id), e);
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
-        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
-            DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
         return id.intValue();
     }
 
@@ -208,5 +215,18 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
             .stream()
             .map(DangerousRuleDTO::toVO)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    @ActionAuditRecord(
+        actionId = ActionId.HIGH_RISK_DETECT_RULE,
+        content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
+    )
+    public DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status) {
+        dangerousRuleDAO.updateDangerousRuleStatus(userName, id, status);
+        DangerousRuleDTO dangerousRuleDTO = getDangerousRuleById(id);
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
+        return dangerousRuleDTO;
     }
 }

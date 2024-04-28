@@ -41,4 +41,6 @@ public interface EsbUserInfoDAO {
 
     List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
 
+    List<String> listExistUserName(Collection<String> userNames);
+
 }

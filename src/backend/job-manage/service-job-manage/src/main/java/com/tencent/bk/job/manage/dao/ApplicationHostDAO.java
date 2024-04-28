@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @since 4/11/2019 15:01
@@ -142,6 +143,8 @@ public interface ApplicationHostDAO {
 
     long countHostsByOsType(String osType);
 
+    Map<String, Integer> groupHostByOsType();
+
     List<ApplicationHostDTO> listHostInfoByBizAndIps(Collection<Long> bizIds, Collection<String> ips);
 
     List<ApplicationHostDTO> listHostInfoByBizAndCloudIps(Collection<Long> bizIds, Collection<String> cloudIps);
@@ -178,6 +181,8 @@ public interface ApplicationHostDAO {
 
     int batchInsertHost(List<ApplicationHostDTO> applicationHostDTOList);
 
+    int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO);
+
     int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO);
 
     int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> applicationHostDTOList);
@@ -186,7 +191,7 @@ public interface ApplicationHostDAO {
 
 
     // 删除类操作
-    int deleteHostBeforeLastTime(Long bizId, Long hostId, Long lastTime);
+    int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime);
 
     /**
      * 根据传入的主机ID批量删除主机

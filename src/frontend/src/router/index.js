@@ -60,6 +60,8 @@ import TaskManage from '@views/task-manage/routes';
 import TicketManage from '@views/ticket-manage/routes';
 import WhiteIP from '@views/white-ip/routes';
 
+import { connectToMain, rootPath } from '@blueking/sub-saas';
+
 Vue.use(VueRouter);
 
 let router;
@@ -103,7 +105,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   // 生成路由配置
   const routes = [
     {
-      path: '/',
+      path: rootPath,
       component: Entry,
       redirect: {
         name: 'home',
@@ -111,7 +113,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       children: systemManageRoute,
     },
     {
-      path: noScope ? '/' : `/${scopeType}/${scopeId}`,
+      path: noScope ? rootPath : `${rootPath}${scopeType}/${scopeId}`,
       component: Entry,
       redirect: {
         name: 'home',
@@ -176,7 +178,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
   const routerReplace = router.replace;
 
   // window.routerFlashBack === true 时查找路由缓存参数
-  const routerFlaskBack = (params, currentRoute) => {
+  const routerFlaskBack = (params) => {
     /* eslint-disable no-param-reassign */
     params = _.cloneDeep(params);
     if (window.routerFlashBack) {
@@ -236,30 +238,8 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     }
   });
 
-  router.afterEach(() => {
-    history.pushState(null, null, document.URL);
-    const callback = () => {
-      leaveConfirm()
-        .then(() => {
-          window.removeEventListener('popstate', callback);
-          window.history.go(-2);
-        })
-        .catch(() => {
-          history.pushState(null, null, document.URL);
-        });
-    };
-    window.addEventListener('popstate', callback);
+  connectToMain(router);
 
-    const currentRoute = _.last(router.currentRoute.matched);
-    if (currentRoute && currentRoute.instances.default) {
-      const routerDefault = currentRoute.instances.default;
-      setTimeout(() => {
-        routerDefault.$once('hook:beforeDestroy', () => {
-          window.removeEventListener('popstate', callback);
-        });
-      });
-    }
-  });
   return router;
 };
 

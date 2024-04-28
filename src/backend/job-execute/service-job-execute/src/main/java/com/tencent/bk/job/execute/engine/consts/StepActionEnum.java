@@ -83,7 +83,11 @@ public enum StepActionEnum {
     /**
      * 刷新步骤状态
      */
-    REFRESH(14);
+    REFRESH(14),
+    /**
+     * 准备文件
+     */
+    PREPARE_FILE(15);
 
     private final int value;
 

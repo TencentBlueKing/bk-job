@@ -117,6 +117,14 @@ public interface IBizCmdbClient {
     ApplicationDTO getBizAppById(long bizId);
 
     /**
+     * 查询业务列表
+     *
+     * @param bizIds cmdb业务ID
+     * @return 业务
+     */
+    List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds);
+
+    /**
      * 查询业务下的动态分组
      *
      * @param bizId cmdb业务ID
@@ -182,7 +190,7 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
 
     /**
-     * 根据IP批量获取主机
+     * 根据HostId批量获取主机
      *
      * @param hostIds 主机ID列表
      * @return 主机列表

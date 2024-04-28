@@ -35,10 +35,10 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.DangerousRecordService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptCheckErrorLevelEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceCheckScriptResource;
-import com.tencent.bk.job.manage.common.consts.RuleMatchHandleActionEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptCheckErrorLevelEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -141,7 +141,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
             record.setClient("bk_job");
         }
         record.setOperator(taskInstance.getOperator());
-        record.setScriptLanguage(stepInstance.getScriptType());
+        record.setScriptLanguage(stepInstance.getScriptType().getValue());
         record.setScriptContent(stepInstance.getScriptContent());
 
         List<ScriptCheckItemDTO> checkItems = new ArrayList<>(1);

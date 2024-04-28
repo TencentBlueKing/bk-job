@@ -55,6 +55,76 @@ public class ScheduleMeasureService {
         this.registry = registry;
     }
 
+    /**
+     * 记录定时任务执行过程耗时
+     *
+     * @param name               定时任务名称
+     * @param context            定时任务上下文
+     * @param timeConsumingMills 定时任务执行耗时
+     * @param tags               额外的标签
+     */
+    public void recordCronTimeConsuming(String name,
+                                        JobExecutionContext context,
+                                        long timeConsumingMills,
+                                        Tag... tags) {
+        try {
+            recordCronTimeConsumingIndeed(name, context, timeConsumingMills, tags);
+        } catch (Exception e) {
+            log.warn("Fail to recordCronTimeConsuming", e);
+        }
+    }
+
+    private void recordCronTimeConsumingIndeed(String name,
+                                               JobExecutionContext context,
+                                               long timeConsumingMills,
+                                               Tag... tags) {
+        Tags finalTags = parseKeyNameAndAppIdTags(name, context);
+        finalTags = finalTags.and(tags);
+        record(
+            CronMetricsConstants.NAME_JOB_CRON_TIME_CONSUMING,
+            "cron execute time consuming",
+            timeConsumingMills,
+            finalTags,
+            Duration.ofMillis(10),
+            Duration.ofSeconds(30)
+        );
+    }
+
+    /**
+     * 记录用户侧感知到的定时任务实际执行时的延迟
+     *
+     * @param name              定时任务名称
+     * @param context           定时任务上下文
+     * @param executeDelayMills 定时任务实际执行时的延迟
+     */
+    public void recordCronExecuteDelay(String name, JobExecutionContext context, long executeDelayMills) {
+        try {
+            recordCronExecuteDelayIndeed(name, context, executeDelayMills);
+        } catch (Exception e) {
+            log.warn("Fail to recordCronExecuteDelay", e);
+        }
+    }
+
+    private void recordCronExecuteDelayIndeed(String name,
+                                              JobExecutionContext context,
+                                              long executeDelayMills) {
+        Tags finalTags = parseKeyNameAndAppIdTags(name, context);
+        record(
+            CronMetricsConstants.NAME_JOB_CRON_EXECUTE_DELAY,
+            "cron execute delay",
+            executeDelayMills,
+            finalTags,
+            Duration.ofSeconds(1),
+            Duration.ofSeconds(90)
+        );
+    }
+
+    /**
+     * 记录定时任务调度延迟
+     *
+     * @param name    定时任务名称
+     * @param context 定时任务上下文
+     */
     public void recordCronScheduleDelay(String name, JobExecutionContext context) {
         try {
             recordCronScheduleDelayIndeed(name, context);
@@ -63,11 +133,23 @@ public class ScheduleMeasureService {
         }
     }
 
-    public void recordCronScheduleDelayIndeed(String name, JobExecutionContext context) {
+    private void recordCronScheduleDelayIndeed(String name, JobExecutionContext context) {
+        Tags tags = parseKeyNameAndAppIdTags(name, context);
+        record(
+            CronMetricsConstants.NAME_JOB_CRON_SCHEDULE_DELAY,
+            "cron schedule delay",
+            context.getFireTime().getTime() - context.getScheduledFireTime().getTime(),
+            tags,
+            Duration.ofSeconds(1),
+            Duration.ofSeconds(60)
+        );
+    }
+
+    private Tags parseKeyNameAndAppIdTags(String name, JobExecutionContext context) {
         Tag tag = Tag.of(CommonMetricTags.KEY_NAME, name);
         Tags tags = Tags.of(tag);
         tags = tags.and(parseTagsFromJobExecutionContext(context));
-        record(context.getFireTime().getTime() - context.getScheduledFireTime().getTime(), tags);
+        return tags;
     }
 
     private Tags parseTagsFromJobExecutionContext(JobExecutionContext context) {
@@ -79,14 +161,19 @@ public class ScheduleMeasureService {
         }
     }
 
-    private void record(long delayMillis, Tags tags) {
-        Timer.builder(CronMetricsConstants.NAME_JOB_CRON_SCHEDULE_DELAY)
-            .description("cron schedule delay")
+    private void record(String metricName,
+                        String description,
+                        long timeMillis,
+                        Tags tags,
+                        Duration minimumExpectedValue,
+                        Duration maximumExpectedValue) {
+        Timer.builder(metricName)
+            .description(description)
             .tags(tags)
             .publishPercentileHistogram(true)
-            .minimumExpectedValue(Duration.ofMillis(10))
-            .maximumExpectedValue(Duration.ofSeconds(30))
+            .minimumExpectedValue(minimumExpectedValue)
+            .maximumExpectedValue(maximumExpectedValue)
             .register(registry)
-            .record(delayMillis, TimeUnit.MILLISECONDS);
+            .record(timeMillis, TimeUnit.MILLISECONDS);
     }
 }

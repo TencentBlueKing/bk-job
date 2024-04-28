@@ -111,12 +111,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null,
                 fileSourceCreateUpdateReq);
             FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
-            boolean registerResult = fileSourceAuthService.registerFileSource(
-                username, createdFileSource.getId(), fileSourceDTO.getAlias());
-            if (!registerResult) {
-                log.warn("Fail to register file_source to iam:({},{})", createdFileSource.getId(),
-                    fileSourceDTO.getAlias());
-            }
             return Response.buildSuccessResp(FileSourceDTO.toVO(createdFileSource));
         } catch (ServiceException e) {
             return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());

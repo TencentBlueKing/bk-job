@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TagUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptScopeEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptScopeEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -311,7 +311,6 @@ public class ScriptDAOImpl implements ScriptDAO {
         if (scriptQuery != null) {
             if (StringUtils.isNotBlank(scriptQuery.getId())) {
                 conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getId()));
-                return conditions;
             } else if (CollectionUtils.isNotEmpty(scriptQuery.getIds())) {
                 if (scriptQuery.getIds().size() == 1) {
                     conditions.add(TB_SCRIPT.ID.eq(scriptQuery.getIds().get(0)));

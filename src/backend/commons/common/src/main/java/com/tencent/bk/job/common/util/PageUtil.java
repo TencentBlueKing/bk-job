@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.model.PageCondition;
 import com.tencent.bk.job.common.model.PageData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -224,7 +227,7 @@ public class PageUtil {
         if (srcPageData == null) {
             return null;
         }
-        PageData<R> targetPageData = new PageData<R>();
+        PageData<R> targetPageData = new PageData<>();
         targetPageData.setStart(srcPageData.getStart());
         targetPageData.setPageSize(srcPageData.getPageSize());
         targetPageData.setTotal(srcPageData.getTotal());
@@ -232,5 +235,98 @@ public class PageUtil {
         targetPageData.setExistAny(srcPageData.getExistAny());
         targetPageData.setData(newDataList);
         return targetPageData;
+    }
+
+    /**
+     * 查询全量 - 通过循环分页查询
+     * <p>
+     * 注意：如果多次分页查询期间原始数据发生变化，使用该方法可能出现数据重复/遗漏的情况。该方法仅适用于对数据准确度要求不高的场景！！！
+     * 如果需要准确的查询结果，可以使用 queryAllWithLoopPageQueryInOrder 代替
+     *
+     * @param pageLimit               每页限制大小
+     * @param pageQuery               查询操作
+     * @param extractElementsFunction 从分页查询结果提取返回的对象列表
+     * @param elementConverter        分页查询对象转换为最终对象
+     * @param <T1>                    分页查询返回的对象
+     * @param <T2>                    转换之后作为方法返回值的对象
+     * @param <R>                     分页查询结果
+     * @return 全量对象列表
+     * @see #queryAllWithLoopPageQueryInOrder
+     */
+    public static <T1, T2, R> List<T2> queryAllWithLoopPageQuery(int pageLimit,
+                                                                 Function<PageCondition, R> pageQuery,
+                                                                 Function<R, Collection<T1>> extractElementsFunction,
+                                                                 Function<T1, T2> elementConverter) {
+        int start = 0;
+        List<T2> elements = new ArrayList<>();
+        while (true) {
+            PageCondition pageCondition = PageCondition.build(start, pageLimit);
+            R result = pageQuery.apply(pageCondition);
+
+            Collection<T1> originElements = extractElementsFunction.apply(result);
+            if (CollectionUtils.isEmpty(originElements)) {
+                // 如果本次没有获取到数据记录，说明数据已经全部拉取完成
+                break;
+            }
+            elements.addAll(originElements.stream()
+                .map(elementConverter)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+
+            if (originElements.size() < pageLimit) {
+                // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
+                break;
+            }
+            start += pageLimit;
+        }
+        return elements;
+    }
+
+    /**
+     * 查询全量 - 按指定顺序循环分页查询
+     *
+     * @param pageLimit               每页限制大小
+     * @param queryInputGenerator     分页查询参数生成。输入: 当前页的最后一个元素；输出：下一页查询输入
+     * @param query                   查询操作
+     * @param extractElementsFunction 从分页查询结果提取返回的对象列表
+     * @param elementConverter        分页查询对象转换为最终对象
+     * @param <T1>                    分页查询返回的对象类型
+     * @param <T2>                    转换之后作为方法返回值的对象类型
+     * @param <R>                     分页查询结果
+     * @param <Q>                     分页查询输入参数
+     * @return 全量对象列表
+     */
+    public static <T1, T2, R, Q> List<T2> queryAllWithLoopPageQueryInOrder(
+        int pageLimit,
+        Function<T1, Q> queryInputGenerator,
+        Function<Q, R> query,
+        Function<R, List<T1>> extractElementsFunction,
+        Function<T1, T2> elementConverter) {
+
+        // 查询结果
+        List<T2> elements = new ArrayList<>();
+
+        T1 latestElement = null;  // 排序之后的最后一个元素，用于作为下一次分页查询的 offset 条件
+        while (true) {
+            Q queryInput = queryInputGenerator.apply(latestElement);
+            R result = query.apply(queryInput);
+
+            List<T1> originElements = extractElementsFunction.apply(result);
+            if (CollectionUtils.isEmpty(originElements)) {
+                // 如果本次没有获取到数据记录，说明数据已经全部拉取完成
+                break;
+            }
+            elements.addAll(originElements.stream()
+                .map(elementConverter)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+            latestElement = originElements.get(originElements.size() - 1);
+
+            if (originElements.size() < pageLimit) {
+                // 如果实际查询数据记录的数量小于分页大小，说明数据已经全部拉取完成
+                break;
+            }
+        }
+        return elements;
     }
 }

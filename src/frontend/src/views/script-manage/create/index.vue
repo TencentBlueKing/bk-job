@@ -81,6 +81,7 @@
             v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
             :height="contentHeight"
             :lang="scriptType"
+            :tips="$t('请注意！脚本输出的内容大小上限为5M，超过可能导致日志被丢弃。')"
             @on-mode-change="handleTypeChange" />
         </div>
       </jb-form-item>

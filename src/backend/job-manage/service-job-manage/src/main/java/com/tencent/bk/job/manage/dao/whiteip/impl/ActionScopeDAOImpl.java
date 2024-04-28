@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.dao.whiteip.impl;
 
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.manage.common.consts.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
 import com.tencent.bk.job.manage.model.tables.ActionScope;

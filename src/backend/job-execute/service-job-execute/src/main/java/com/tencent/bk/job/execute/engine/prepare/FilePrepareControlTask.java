@@ -25,17 +25,22 @@
 package com.tencent.bk.job.execute.engine.prepare;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class FilePrepareControlTask implements ContinuousScheduledTask {
 
     /**
@@ -46,40 +51,36 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
      * 任务是否已停止
      */
     private volatile boolean isStopped = false;
+    private volatile boolean isRunning = false;
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
     private final FilePrepareService filePrepareService;
     private final TaskInstanceService taskInstanceService;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StepInstanceDTO stepInstance;
     private final CountDownLatch latch;
     private final List<FilePrepareTaskResult> resultList;
     private final FilePrepareTaskResultHandler filePrepareTaskResultHandler;
+    private final StepInstanceService stepInstanceService;
     private final long startTimeMills;
-    // 默认30分钟
-    private long timeoutMills = 30 * 60 * 1000L;
 
     public FilePrepareControlTask(
         FilePrepareService filePrepareService,
         TaskInstanceService taskInstanceService,
+        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         StepInstanceDTO stepInstance,
         CountDownLatch latch,
         List<FilePrepareTaskResult> resultList,
-        FilePrepareTaskResultHandler filePrepareTaskResultHandler
-    ) {
-        this.startTimeMills = System.currentTimeMillis();
+        FilePrepareTaskResultHandler filePrepareTaskResultHandler,
+        StepInstanceService stepInstanceService) {
         this.filePrepareService = filePrepareService;
         this.taskInstanceService = taskInstanceService;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.stepInstance = stepInstance;
         this.latch = latch;
         this.resultList = resultList;
         this.filePrepareTaskResultHandler = filePrepareTaskResultHandler;
-    }
-
-    public void setDoneStatus() {
-        isDoneWrapper.set(true);
-    }
-
-    public void setTimeoutMills(long timeoutMills) {
-        this.timeoutMills = timeoutMills;
+        this.stepInstanceService = stepInstanceService;
+        this.startTimeMills = System.currentTimeMillis();
     }
 
     @Override
@@ -94,26 +95,16 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     }
 
     @Override
-    public void stop() {
-        synchronized (stopMonitor) {
-            if (!isStopped) {
-                StopTaskCounter.getInstance().decrement(getTaskId());
-                this.isStopped = true;
-            }
+    public void execute() {
+        try {
+            isRunning = true;
+            doExecute();
+        } catch (Throwable t) {
+            filePrepareTaskResultHandler.onException(stepInstance, t);
+            setDoneStatus();
+        } finally {
+            isRunning = false;
         }
-    }
-
-    private boolean needToStop(StepInstanceDTO stepInstance) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
-        // 刷新步骤状态
-        stepInstance = taskInstanceService.getStepInstanceDetail(stepInstance.getId());
-        // 如果任务处于“终止中”状态，触发任务终止
-        if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
-            // 已经发送过停止命令的就不再重复发送了
-            return !(RunStatusEnum.STOPPING == stepInstance.getStatus()
-                || RunStatusEnum.STOP_SUCCESS == stepInstance.getStatus());
-        }
-        return false;
     }
 
     private void doExecute() {
@@ -128,19 +119,54 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
             setDoneStatus();
         }
         // 超时判定
+        // 默认30分钟
+        long timeoutMills = 30 * 60 * 1000L;
         if (System.currentTimeMillis() - startTimeMills >= timeoutMills) {
             filePrepareTaskResultHandler.onTimeout(stepInstance);
             setDoneStatus();
         }
     }
 
+    private boolean needToStop(StepInstanceDTO stepInstance) {
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+        // 刷新步骤状态
+        stepInstance = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
+        // 如果任务处于“终止中”状态，触发任务终止
+        if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
+            // 已经发送过停止命令的就不再重复发送了
+            return !(RunStatusEnum.STOPPING == stepInstance.getStatus()
+                || RunStatusEnum.STOP_SUCCESS == stepInstance.getStatus());
+        }
+        return false;
+    }
+
+    public void setDoneStatus() {
+        isDoneWrapper.set(true);
+    }
+
     @Override
-    public void execute() {
-        try {
-            doExecute();
-        } catch (Throwable t) {
-            filePrepareTaskResultHandler.onException(stepInstance, t);
-            setDoneStatus();
+    public void stop() {
+        synchronized (stopMonitor) {
+            if (!isStopped) {
+                gracefulStop();
+            } else {
+                log.info("{} already stopped, ignore", getTaskId());
+            }
+        }
+    }
+
+    private void gracefulStop() {
+        if (!this.isRunning) {
+            log.info("gracefulStop begin:{}", getTaskId());
+            // 1.停止正在进行的所有文件准备任务
+            filePrepareService.stopPrepareFile(stepInstance);
+            // 2.MQ消息通知其他实例准备文件
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.prepareFile(stepInstance.getId()));
+            this.isStopped = true;
+            StopTaskCounter.getInstance().decrement(getTaskId());
+            log.info("gracefulStop end:{}", getTaskId());
+        } else {
+            log.info("{} is running, wait for next schedule to gracefulStop", getTaskId());
         }
     }
 

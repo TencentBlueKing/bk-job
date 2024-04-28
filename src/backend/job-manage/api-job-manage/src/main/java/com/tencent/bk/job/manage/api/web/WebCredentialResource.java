@@ -53,7 +53,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @WebAPI
 public interface WebCredentialResource {
 
-    @ApiOperation(value = "获取凭据列表", produces = "application/json")
+    @ApiOperation(value = "获取凭证列表", produces = "application/json")
     @GetMapping("/list")
     Response<PageData<CredentialVO>> listCredentials(
         @ApiParam("用户名，网关自动传入")
@@ -91,7 +91,7 @@ public interface WebCredentialResource {
             Integer pageSize
     );
 
-    @ApiOperation(value = "分页获取凭据基础信息", produces = "application/json")
+    @ApiOperation(value = "分页获取凭证基础信息", produces = "application/json")
     @GetMapping("/basicInfo/list")
     Response<PageData<CredentialBasicVO>> listCredentialBasicInfo(
         @ApiParam("用户名，网关自动传入")
@@ -115,7 +115,7 @@ public interface WebCredentialResource {
     );
 
 
-    @ApiOperation(value = "新增凭据", produces = "application/json")
+    @ApiOperation(value = "新增凭证", produces = "application/json")
     @PostMapping
     Response<CredentialVO> createCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
@@ -135,7 +135,7 @@ public interface WebCredentialResource {
             CredentialCreateUpdateReq createUpdateReq
     );
 
-    @ApiOperation(value = "更新凭据", produces = "application/json")
+    @ApiOperation(value = "更新凭证", produces = "application/json")
     @PutMapping("/{credentialId}")
     Response<CredentialVO> updateCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
@@ -159,7 +159,7 @@ public interface WebCredentialResource {
     );
 
 
-    @ApiOperation(value = "删除凭据", produces = "application/json")
+    @ApiOperation(value = "删除凭证", produces = "application/json")
     @DeleteMapping("/ids/{id}")
     Response<Integer> deleteCredentialById(
         @ApiParam("用户名，网关自动传入")
@@ -174,7 +174,7 @@ public interface WebCredentialResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("凭据ID")
+        @ApiParam("凭证ID")
         @PathVariable("id")
             String id
     );

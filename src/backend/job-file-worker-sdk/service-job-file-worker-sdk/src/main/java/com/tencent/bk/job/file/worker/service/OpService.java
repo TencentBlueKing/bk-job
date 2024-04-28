@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.file.worker.service;
 
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
@@ -45,7 +47,7 @@ import java.util.List;
 @Service
 public class OpService {
 
-    private final ExtHttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final WorkerConfig workerConfig;
     private final FileTaskService fileTaskService;
     private final GatewayInfoService gatewayInfoService;
@@ -81,7 +83,12 @@ public class OpService {
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
         String respStr;
         try {
-            respStr = httpHelper.post(url, req.getBody(), req.getHeaders());
+            respStr = httpHelper.requestForSuccessResp(
+                HttpRequest.builder(HttpMethodEnum.POST, url)
+                    .setStringEntity(req.getBody())
+                    .setHeaders(req.getHeaders())
+                    .build())
+                .getEntity();
             log.info(String.format("respStr=%s", respStr));
             // 停止任务
             Integer allStoppedFileCount = fileTaskService.stopTasksAtOnce(runningTaskIdList,

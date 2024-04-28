@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.web.config;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
-import com.tencent.bk.job.common.web.interceptor.EsbReqRewriteInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import org.springframework.cloud.sleuth.Tracer;
@@ -48,11 +47,6 @@ public class WebInterceptorAutoConfiguration {
     @Bean
     public EsbApiLogInterceptor esbApiLogInterceptor() {
         return new EsbApiLogInterceptor();
-    }
-
-    @Bean
-    public EsbReqRewriteInterceptor esbReqRewriteInterceptor() {
-        return new EsbReqRewriteInterceptor();
     }
 
     @Bean

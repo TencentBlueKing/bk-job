@@ -228,5 +228,9 @@ export default {
     '没有可复制的 IPv4': 'IPv4 address not found',
     '没有可复制的 IPv6': 'IPv6 address not found',
     'IP 与 IPv6 至少需保留一个': 'At least one of IP or IPv6 must be selected',
+    容器名称: 'Container name',
+    '容器 ID': 'Container ID',
+    '所属 Pod 名称': 'Pod name',
+    没有可复制的容器名称: 'Container name not found',
   },
 };

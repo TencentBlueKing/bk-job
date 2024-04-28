@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `file_source`  (
   `custom_info` text CHARACTER SET utf8mb4 NULL COMMENT '各不同文件源的差异性自定义信息Json串',
   `public` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否为公共存储',
   `share_to_all_app` bit(1) NOT NULL DEFAULT b'0' COMMENT '是否共享至全业务',
-  `credential_id` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '凭据Id',
+  `credential_id` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '凭证Id',
   `file_prefix` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件前缀名',
   `worker_select_scope` varchar(255) CHARACTER SET utf8mb4 NOT NULL DEFAULT 'ALL' COMMENT '接入点选择范畴：APP/PUBLIC/ALL',
   `worker_select_mode` varchar(255) CHARACTER SET utf8mb4 NOT NULL DEFAULT 'AUTO' COMMENT '接入点选择模式：AUTO/MANUAL',

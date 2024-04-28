@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

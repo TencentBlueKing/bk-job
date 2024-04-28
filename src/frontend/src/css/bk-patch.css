@@ -25,12 +25,13 @@
  */
 .bk-table {
   &.bk-table-scrollable-y .bk-table-body-wrapper {
-    @mixin scroller;
-  }
-
-  &.bk-table-scrollable-x .bk-table-body-wrapper {
     &::-webkit-scrollbar {
-      height: 6px;
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #c4c6cc;
+      border-radius: 3px;
     }
   }
 
@@ -173,7 +174,7 @@
   }
 
   .bk-dialog {
-    top: unset;
+    top: unset !important;
     display: inline-block;
     margin: unset;
     text-align: initial;

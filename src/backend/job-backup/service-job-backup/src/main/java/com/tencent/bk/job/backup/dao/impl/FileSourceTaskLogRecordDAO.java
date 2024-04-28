@@ -1,7 +1,6 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
 import org.jooq.DSLContext;
@@ -15,8 +14,8 @@ public class FileSourceTaskLogRecordDAO extends AbstractExecuteRecordDAO<FileSou
 
     private static final FileSourceTaskLog TABLE = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
 
-    public FileSourceTaskLogRecordDAO(DSLContext context, ArchiveDBProperties archiveDBProperties) {
-        super(context, archiveDBProperties);
+    public FileSourceTaskLogRecordDAO(DSLContext context) {
+        super(context);
     }
 
     @Override

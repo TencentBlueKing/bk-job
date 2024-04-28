@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.upgrader.client;
 
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.util.http.BasicHttpReq;
-import com.tencent.bk.job.common.util.http.ExtHttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.model.IamReq;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -40,7 +43,7 @@ import static com.tencent.bk.job.common.constant.HttpHeader.HDR_CONTENT_TYPE;
 @Slf4j
 public abstract class AbstractHttpClient {
     private String hostUrl;
-    private ExtHttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private HttpHelper defaultHttpHelper = HttpHelperFactory.getDefaultHttpHelper();
 
     public AbstractHttpClient(String hostUrl) {
         this.hostUrl = hostUrl;
@@ -52,7 +55,7 @@ public abstract class AbstractHttpClient {
 
     abstract List<Header> getBasicHeaders();
 
-    public String doHttpGet(String uri, BasicHttpReq params, ExtHttpHelper httpHelper) throws Exception {
+    public String doHttpGet(String uri, BasicHttpReq params, HttpHelper httpHelper) throws Exception {
         if (params == null) {
             params = new BasicHttpReq();
         }
@@ -62,14 +65,15 @@ public abstract class AbstractHttpClient {
         boolean error = false;
         long start = System.currentTimeMillis();
         String responseBody = null;
-        String url = hostUrl;
+        String url;
         try {
             if (!hostUrl.endsWith("/") && !uri.startsWith("/")) {
                 url = hostUrl + "/" + uri + params.toUrlParams();
             } else {
                 url = hostUrl + uri + params.toUrlParams();
             }
-            responseBody = httpHelper.get(url, getBasicHeaders());
+            responseBody = httpHelper.requestForSuccessResp(HttpRequest.builder(HttpMethodEnum.GET, url)
+                .setHeaders(toHeaderArray(getBasicHeaders())).build()).getEntity();
             return responseBody;
         } catch (Exception e) {
             log.error("Get url {}| params={}| exception={}", hostUrl + uri,
@@ -83,13 +87,24 @@ public abstract class AbstractHttpClient {
         }
     }
 
+    private Header[] toHeaderArray(List<Header> headerList) {
+        if (CollectionUtils.isEmpty(headerList)) {
+            return new Header[0];
+        }
+        Header[] headerArray = new Header[headerList.size()];
+        for (int i = 0; i < headerList.size(); i++) {
+            headerArray[i] = headerList.get(i);
+        }
+        return headerArray;
+    }
+
     protected <T extends BasicHttpReq> String doHttpPost(String uri, T params) throws Exception {
         return doHttpPost(uri, params, defaultHttpHelper);
     }
 
     protected <T extends BasicHttpReq> String doHttpPost(
         String uri, T params,
-        ExtHttpHelper httpHelper
+        HttpHelper httpHelper
     ) throws Exception {
         if (httpHelper == null) {
             httpHelper = defaultHttpHelper;
@@ -106,7 +121,8 @@ public abstract class AbstractHttpClient {
             }
             List<Header> headerList = getBasicHeaders();
             headerList.add(new BasicHeader(HDR_CONTENT_TYPE, "application/json"));
-            responseBody = httpHelper.post(url, "UTF-8", buildPostBody(params), headerList);
+            responseBody = httpHelper.requestForSuccessResp(HttpRequest.builder(HttpMethodEnum.POST, url)
+                .setStringEntity(buildPostBody(params)).setHeaders(toHeaderArray(headerList)).build()).getEntity();
             return responseBody;
         } catch (Exception e) {
             log.warn("Post url {}| params={}| exception={}", uri, JsonUtils.toJsonWithoutSkippedFields(params),

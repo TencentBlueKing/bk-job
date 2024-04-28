@@ -38,12 +38,11 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.esb.EsbGetJobDetailResource;
-import com.tencent.bk.job.manage.common.consts.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskScriptSourceEnum;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
@@ -82,26 +81,23 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
     private final ScriptService scriptService;
     private final PublicScriptService publicScriptService;
     private final AccountService accountService;
-    private final AppScopeMappingService appScopeMappingService;
 
     public EsbGetJobDetailResourceImpl(TaskPlanService taskPlanService,
                                        ScriptService scriptService,
                                        PublicScriptService publicScriptService,
-                                       AccountService accountService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AccountService accountService) {
         this.taskPlanService = taskPlanService;
         this.scriptService = scriptService;
         this.publicScriptService = publicScriptService;
         this.accountService = accountService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_job_detail"})
     @AuditEntry(actionId = ActionId.VIEW_JOB_PLAN)
-    public EsbResp<EsbJobDetailDTO> getJobDetail(@AuditRequestBody EsbGetJobDetailRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
+    public EsbResp<EsbJobDetailDTO> getJobDetail(String username,
+                                                 String appCode,
+                                                 @AuditRequestBody EsbGetJobDetailRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job detail, request is illegal!");
@@ -110,7 +106,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         Long appId = request.getAppId();
         Long jobId = request.getPlanId();
 
-        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(request.getUserName(), appId, jobId);
+        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(username, appId, jobId);
 
         return EsbResp.buildSuccessResp(buildJobDetail(taskPlan));
     }

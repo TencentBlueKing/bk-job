@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

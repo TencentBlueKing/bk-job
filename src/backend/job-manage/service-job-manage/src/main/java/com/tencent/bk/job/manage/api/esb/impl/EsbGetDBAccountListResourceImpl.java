@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetDBAccountListResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
@@ -53,19 +52,17 @@ import java.util.List;
 @Slf4j
 public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResource {
     private final AccountService accountService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public EsbGetDBAccountListResourceImpl(AccountService accountService,
-                                           AppScopeMappingService appScopeMappingService) {
+    public EsbGetDBAccountListResourceImpl(AccountService accountService) {
         this.accountService = accountService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v2_get_own_db_account_list"})
-    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(EsbGetDBAccountListRequest request) {
-        request.fillAppResourceScope(appScopeMappingService);
+    public EsbResp<List<EsbDBAccountDTO>> getUserOwnDbAccountList(String username,
+                                                                  String appCode,
+                                                                  EsbGetDBAccountListRequest request) {
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get db account list, request is illegal!");
@@ -79,7 +76,7 @@ public class EsbGetDBAccountListResourceImpl implements EsbGetDBAccountListResou
                 grantedDbAccounts.add(dbAccount);
             } else {
                 List<String> grantees = Arrays.asList(dbAccount.getGrantees().split(","));
-                if (grantees.contains(request.getUserName())) {
+                if (grantees.contains(username)) {
                     grantedDbAccounts.add(dbAccount);
                 }
             }

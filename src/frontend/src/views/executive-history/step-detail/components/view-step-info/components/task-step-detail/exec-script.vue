@@ -50,7 +50,7 @@
         :lang="language"
         :options="languageOption"
         readonly
-        :value="stepInfo.content" />
+        :value="scriptContent" />
     </detail-item>
     <div>
       <detail-item :label="$t('template.脚本参数：')">
@@ -73,7 +73,8 @@
       :label="$t('template.执行目标：')"
       layout="vertical">
       <ip-selector
-        :complete-host-list="hostsDetails(stepInfo.executeTarget.hostNodeInfo.hostList)"
+        :complete-container-list="containerDetail(stepInfo.executeTarget.executeObjectsInfo.containerList)"
+        :complete-host-list="hostsDetails(stepInfo.executeTarget.executeObjectsInfo.hostList)"
         readonly
         show-view />
     </detail-item>
@@ -98,8 +99,12 @@
 
   import AceEditor from '@components/ace-editor';
   import DetailItem from '@components/detail-layout/item';
-  import { hostsDetails } from '@components/ip-selector/adapter';
   import JbEditTextarea from '@components/jb-edit/textarea';
+
+  import {
+    containerDetail,
+    hostsDetails,
+  } from '@blueking/ip-selector/dist/adapter';
 
   const props = defineProps({
     data: {
@@ -114,8 +119,10 @@
   const languageOption = [language];
 
   const stepInfo = shallowRef(props.data.scriptStepInfo);
+
   const executeAccountText = ref('');
   const scriptName = ref('');
+  const scriptContent = ref(stepInfo.value.content);
   const scriptInfo = shallowRef({});
   const requestQueue = ref([]);
 
@@ -132,10 +139,7 @@
       id: stepInfo.value.scriptVersionId,
     }).then((data) => {
       scriptName.value = data.name;
-      stepInfo.value = {
-        ...stepInfo.value,
-        content: data.content,
-      };
+      scriptContent.value = data.content;
       scriptInfo.value = data;
     })
       .finally(() => {

@@ -23,7 +23,7 @@
  */
 
 dependencies {
-    api(files("libs/innercos-java-sdk-5.6.9.jar"))
+    api(files("libs/innercos-java-sdk-5.6.10.jar"))
     api project(":commons:artifactory-sdk")
     api project(":job-file-worker:api-job-file-worker")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")

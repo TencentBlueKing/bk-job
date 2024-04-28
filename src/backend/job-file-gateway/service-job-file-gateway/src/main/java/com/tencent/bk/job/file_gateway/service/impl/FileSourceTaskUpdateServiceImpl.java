@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.file.PathUtil;
@@ -53,7 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -95,7 +95,7 @@ public class FileSourceTaskUpdateServiceImpl implements FileSourceTaskUpdateServ
     }
 
     @Override
-    @Transactional(value = "jobFileGatewayTransactionManager", rollbackFor = {Throwable.class})
+    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public String updateFileSourceTask(String batchTaskId,
                                        String fileSourceTaskId,
                                        Long fileTaskId,

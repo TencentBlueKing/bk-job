@@ -28,9 +28,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
+import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonMapper;
@@ -78,7 +80,15 @@ public class TaskTargetDTO {
         }
         TaskTargetVO taskTargetVO = new TaskTargetVO();
         taskTargetVO.setVariable(executeTarget.getVariable());
-        taskTargetVO.setHostNodeInfo(TaskHostNodeDTO.toVO(executeTarget.getHostNodeList()));
+        TaskHostNodeVO taskHostNodeVO = TaskHostNodeDTO.toVO(executeTarget.getHostNodeList());
+        if (taskHostNodeVO != null) {
+            taskTargetVO.setHostNodeInfo(taskHostNodeVO);
+            TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
+            taskExecuteObjectsInfoVO.setHostList(taskHostNodeVO.getHostList());
+            taskExecuteObjectsInfoVO.setNodeList(taskHostNodeVO.getNodeList());
+            taskExecuteObjectsInfoVO.setDynamicGroupList(taskHostNodeVO.getDynamicGroupList());
+            taskTargetVO.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
+        }
         return taskTargetVO;
     }
 
@@ -90,7 +100,7 @@ public class TaskTargetDTO {
         if (StringUtils.isNotBlank(taskTargetVO.getVariable())) {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
-        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getHostNodeInfo()));
+        taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getExecuteObjectsInfoCompatibly()));
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }

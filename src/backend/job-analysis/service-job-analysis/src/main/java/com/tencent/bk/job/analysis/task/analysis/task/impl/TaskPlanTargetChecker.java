@@ -47,7 +47,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.common.consts.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
@@ -56,7 +56,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
-import com.tencent.bk.job.manage.model.web.request.ipchooser.BizTopoNode;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -508,7 +508,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         //noinspection deprecation
         List<HostDTO> hostList = serviceHostList.stream().map(serviceHost ->
             // TODO:执行方案数据迁移添加hostId后此处可去除cloudAreaId与ip
-            HostDTO.fromHostIdOrCloudIp(
+            new HostDTO(
                 serviceHost.getHostId(),
                 serviceHost.getCloudAreaId(),
                 serviceHost.getIp()

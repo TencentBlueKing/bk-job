@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsScriptTemplateResource;
 import com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateDTO;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateVariableRenderDTO;
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateCreateUpdateReq;
@@ -139,7 +139,7 @@ public class WebCustomSettingsScriptTemplateResourceImpl implements WebCustomSet
     }
 
     private ValidateResult checkScriptTemplateCreateUpdateReq(ScriptTemplateCreateUpdateReq req) {
-        if (req.getScriptLanguage() == null || ScriptTypeEnum.valueOf(req.getScriptLanguage()) == null) {
+        if (req.getScriptLanguage() == null || ScriptTypeEnum.valOf(req.getScriptLanguage()) == null) {
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM);
         }
         if (req.getScriptContent() == null) {

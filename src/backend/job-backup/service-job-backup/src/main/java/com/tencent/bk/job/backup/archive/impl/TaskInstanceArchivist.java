@@ -25,9 +25,11 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
+import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 
@@ -42,14 +44,18 @@ public class TaskInstanceArchivist extends AbstractArchivist<TaskInstanceRecord>
                                  ExecuteArchiveDAO executeArchiveDAO,
                                  ArchiveProgressService archiveProgressService,
                                  ArchiveDBProperties archiveDBProperties,
+                                 ArchiveTaskLock archiveTaskLock,
                                  Long maxNeedArchiveId,
-                                 CountDownLatch countDownLatch) {
+                                 CountDownLatch countDownLatch,
+                                 ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         super(executeRecordDAO,
             executeArchiveDAO,
             archiveProgressService,
             archiveDBProperties,
+            archiveTaskLock,
             maxNeedArchiveId,
-            countDownLatch);
+            countDownLatch,
+            archiveErrorTaskCounter);
         this.deleteIdStepSize = 10_000;
     }
 }

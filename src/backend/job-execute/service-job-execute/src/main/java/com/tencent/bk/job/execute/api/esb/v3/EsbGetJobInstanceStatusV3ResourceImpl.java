@@ -37,13 +37,15 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.AgentTaskDetailDTO;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
-import com.tencent.bk.job.execute.service.FileAgentTaskService;
-import com.tencent.bk.job.execute.service.ScriptAgentTaskService;
+import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -59,27 +61,30 @@ import java.util.stream.Collectors;
 public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceStatusV3Resource {
 
     private final TaskInstanceService taskInstanceService;
+    private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final AppScopeMappingService appScopeMappingService;
-    private final ScriptAgentTaskService scriptAgentTaskService;
-    private final FileAgentTaskService fileAgentTaskService;
+    private final StepInstanceService stepInstanceService;
 
     public EsbGetJobInstanceStatusV3ResourceImpl(TaskInstanceService taskInstanceService,
+                                                 ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                                  AppScopeMappingService appScopeMappingService,
-                                                 ScriptAgentTaskService scriptAgentTaskService,
-                                                 FileAgentTaskService fileAgentTaskService) {
+                                                 StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
+        this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
+        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.appScopeMappingService = appScopeMappingService;
-        this.scriptAgentTaskService = scriptAgentTaskService;
-        this.fileAgentTaskService = fileAgentTaskService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_job_instance_status"})
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public EsbResp<EsbJobInstanceStatusV3DTO> getJobInstanceStatusUsingPost(
+        String username,
+        String appCode,
         @AuditRequestBody EsbGetJobInstanceStatusV3Request request) {
-        request.fillAppResourceScope(appScopeMappingService);
-
         ValidateResult checkResult = checkRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Get job instance status request is illegal!");
@@ -89,9 +94,10 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
-            request.getUserName(), request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
+            username, request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
-        List<StepInstanceBaseDTO> stepInstances = taskInstanceService.listStepInstanceByTaskInstanceId(taskInstanceId);
+        List<StepInstanceBaseDTO> stepInstances =
+            stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);
         if (stepInstances == null || stepInstances.isEmpty()) {
             log.warn("Get job instance status by taskInstanceId:{}, stepInstanceList is empty!", taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
@@ -137,40 +143,42 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
             stepInst.setCreateTime(stepInstance.getCreateTime());
             stepInst.setEndTime(stepInstance.getEndTime());
             stepInst.setStartTime(stepInstance.getStartTime());
-            stepInst.setType(stepInstance.getExecuteType());
+            stepInst.setType(stepInstance.getExecuteType().getValue());
             stepInst.setExecuteCount(stepInstance.getExecuteCount());
             stepInst.setStatus(stepInstance.getStatus().getValue());
             stepInst.setTotalTime(stepInstance.getTotalTime());
 
             if (isReturnIpResult) {
                 List<EsbJobInstanceStatusV3DTO.IpResult> stepIpResults = new ArrayList<>();
-                List<AgentTaskDetailDTO> agentTaskList = null;
+                List<ExecuteObjectTask> executeObjectTaskList = null;
                 if (stepInstance.isScriptStep()) {
-                    agentTaskList = scriptAgentTaskService.listAgentTaskDetail(stepInstance,
+                    executeObjectTaskList = scriptExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
                 } else if (stepInstance.isFileStep()) {
-                    agentTaskList = fileAgentTaskService.listAgentTaskDetail(stepInstance,
+                    executeObjectTaskList = fileExecuteObjectTaskService.listTasks(stepInstance,
                         stepInstance.getExecuteCount(), null);
-                    if (CollectionUtils.isNotEmpty(agentTaskList)) {
+                    if (CollectionUtils.isNotEmpty(executeObjectTaskList)) {
                         // 如果是文件分发任务，只返回目标Agent结果
-                        agentTaskList = agentTaskList.stream()
-                            .filter(agentTask -> agentTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
+                        executeObjectTaskList = executeObjectTaskList.stream()
+                            .filter(executeObjectTask ->
+                                executeObjectTask.getFileTaskMode() == FileTaskModeEnum.DOWNLOAD)
                             .collect(Collectors.toList());
                     }
                 }
-                if (CollectionUtils.isNotEmpty(agentTaskList)) {
-                    for (AgentTaskDetailDTO agentTask : agentTaskList) {
+                if (CollectionUtils.isNotEmpty(executeObjectTaskList)) {
+                    for (ExecuteObjectTask executeObjectTask : executeObjectTaskList) {
+                        ExecuteObject executeObject = executeObjectTask.getExecuteObject();
                         EsbJobInstanceStatusV3DTO.IpResult stepIpResult = new EsbJobInstanceStatusV3DTO.IpResult();
-                        stepIpResult.setHostId(agentTask.getHostId());
-                        stepIpResult.setCloudAreaId(agentTask.getBkCloudId());
-                        stepIpResult.setIp(agentTask.getIp());
-                        stepIpResult.setExitCode(agentTask.getExitCode());
-                        stepIpResult.setErrorCode(agentTask.getErrorCode());
-                        stepIpResult.setStartTime(agentTask.getStartTime());
-                        stepIpResult.setEndTime(agentTask.getEndTime());
-                        stepIpResult.setTotalTime(agentTask.getTotalTime());
-                        stepIpResult.setTag(agentTask.getTag());
-                        stepIpResult.setStatus(agentTask.getStatus().getValue());
+                        stepIpResult.setHostId(executeObject.getHost().getHostId());
+                        stepIpResult.setCloudAreaId(executeObject.getHost().getBkCloudId());
+                        stepIpResult.setIp(executeObject.getHost().getIp());
+                        stepIpResult.setExitCode(executeObjectTask.getExitCode());
+                        stepIpResult.setErrorCode(executeObjectTask.getErrorCode());
+                        stepIpResult.setStartTime(executeObjectTask.getStartTime());
+                        stepIpResult.setEndTime(executeObjectTask.getEndTime());
+                        stepIpResult.setTotalTime(executeObjectTask.getTotalTime());
+                        stepIpResult.setTag(executeObjectTask.getTag());
+                        stepIpResult.setStatus(executeObjectTask.getStatus().getValue());
                         stepIpResults.add(stepIpResult);
                     }
                 }
@@ -193,13 +201,12 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
                                                                    Long taskInstanceId,
                                                                    boolean returnIpResult) {
         EsbGetJobInstanceStatusV3Request request = new EsbGetJobInstanceStatusV3Request();
-        request.setUserName(username);
-        request.setAppCode(appCode);
         request.setBizId(bizId);
         request.setScopeType(scopeType);
         request.setScopeId(scopeId);
         request.setTaskInstanceId(taskInstanceId);
         request.setReturnIpResult(returnIpResult);
-        return getJobInstanceStatusUsingPost(request);
+        request.fillAppResourceScope(appScopeMappingService);
+        return getJobInstanceStatusUsingPost(username, appCode, request);
     }
 }

@@ -26,11 +26,12 @@ package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.paas.login.CustomLoginClient;
-import com.tencent.bk.job.common.paas.login.EELoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
+import com.tencent.bk.job.common.paas.login.StandardLoginClient;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -43,43 +44,25 @@ import org.springframework.context.annotation.Primary;
 @Import(LoginConfiguration.class)
 public class LoginAutoConfiguration {
 
-    @Bean(name = "enLoginClient")
+    @Bean
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient innerEnLoginClient(@Autowired LoginConfiguration loginConfiguration) {
-        log.info("Init custom en login client");
+    public ILoginClient customLoginClient(@Autowired LoginConfiguration loginConfiguration) {
+        log.info("Init CustomLoginClient");
         return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
     }
 
-    @Bean(name = "cnLoginClient")
-    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient innerCnLoginClient(@Autowired LoginConfiguration loginConfiguration) {
-        log.info("Init custom cn login client");
-        return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
-    }
-
-    @Bean(name = "enLoginClient")
+    @Bean
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
     @Primary
-    public ILoginClient enLoginClient(AppProperties appProperties, EsbProperties esbProperties) {
-        log.info("Init standard en login client");
-        return new EELoginClient(
-            esbProperties.getService().getUrl(),
-            appProperties.getCode(),
-            appProperties.getSecret(),
-            LocaleUtils.LANG_EN
-        );
-    }
+    public ILoginClient standardLoginClient(AppProperties appProperties,
+                                            EsbProperties esbProperties,
+                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
 
-    @Bean(name = "cnLoginClient")
-    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
-    @Primary
-    public ILoginClient cnLoginClient(AppProperties appProperties, EsbProperties esbProperties) {
-        log.info("Init standard cn login client");
-        return new EELoginClient(
-            esbProperties.getService().getUrl(),
-            appProperties.getCode(),
-            appProperties.getSecret(),
-            LocaleUtils.LANG_ZH_CN
+        log.info("Init StandardLoginClient");
+        return new StandardLoginClient(
+            esbProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable()
         );
     }
 }

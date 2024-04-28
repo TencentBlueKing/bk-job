@@ -24,13 +24,15 @@
 
 package com.tencent.bk.job.manage.config.listener;
 
+import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.manage.common.consts.notify.ExecuteStatusEnum;
-import com.tencent.bk.job.manage.common.consts.notify.JobRoleEnum;
-import com.tencent.bk.job.manage.common.consts.notify.NotifyConsts;
-import com.tencent.bk.job.manage.common.consts.notify.ResourceTypeEnum;
-import com.tencent.bk.job.manage.common.consts.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
@@ -39,17 +41,15 @@ import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.TriggerPolicy;
 import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.PaaSService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,24 +57,25 @@ import java.util.List;
 
 @Slf4j
 @Component
+@Profile("!test")
 public class NotifyInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
-    final PaaSService paaSService;
-    final GlobalSettingsService globalSettingsService;
-    final NotifyService notifyService;
-    final AvailableEsbChannelDAO availableEsbChannelDAO;
-    final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
+    private final CmsiApiClient cmsiApiClient;
+    private final GlobalSettingsService globalSettingsService;
+    private final NotifyService notifyService;
+    private final AvailableEsbChannelDAO availableEsbChannelDAO;
+    private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
-    public NotifyInitListener(PaaSService paaSService,
+    public NotifyInitListener(CmsiApiClient cmsiApiClient,
                               GlobalSettingsService globalSettingsService,
                               NotifyService notifyService,
                               AvailableEsbChannelDAO availableEsbChannelDAO,
                               NotifyTriggerPolicyDAO notifyTriggerPolicyDAO) {
-        this.paaSService = paaSService;
+        this.cmsiApiClient = cmsiApiClient;
         this.globalSettingsService = globalSettingsService;
         this.notifyService = notifyService;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
@@ -124,22 +125,16 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     }
 
     private void initDefaultNotifyChannels() {
-        try {
-            log.info("init default notify channels");
-            List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = paaSService.getAllChannelList("", "100");
-            if (esbNotifyChannelDTOList == null) {
-                log.error("Fail to get notify channels from esb, null");
-                return;
-            }
-            saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
-        } catch (IOException e) {
-            log.error("Fail to get notify channels from esb", e);
-        } catch (Exception e) {
-            log.error("Fail to init default notify channels", e);
+        log.info("init default notify channels");
+        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList();
+        if (esbNotifyChannelDTOList == null) {
+            log.error("Fail to get notify channels from esb, null");
+            return;
         }
+        saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
         if (!globalSettingsService.isNotifyChannelConfiged()) {
             globalSettingsService.setNotifyChannelConfiged();

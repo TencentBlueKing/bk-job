@@ -37,12 +37,13 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
-import com.tencent.bk.job.manage.common.consts.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.consts.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.ScriptCitedTaskTemplateDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.ScriptRelateJobTemplateDAO;
@@ -74,7 +75,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -370,7 +370,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = Throwable.class)
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Pair<String, Long> createScriptWithVersionId(
         Long appId,
         ScriptDTO script,
@@ -447,7 +447,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void deleteScriptVersion(Long appId, Long scriptVersionId) {
         ScriptDTO existScript = scriptDAO.getScriptVersionById(scriptVersionId);
         checkDeleteScriptPermission(appId, existScript);
@@ -469,7 +469,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void deleteScript(Long appId, String scriptId) {
         ScriptDTO existScript = getScript(appId, scriptId);
         checkDeleteScriptPermission(appId, existScript);
@@ -915,7 +915,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
     }
 
-    @Transactional(value = "jobManageTransactionManager", rollbackFor = {Throwable.class, Error.class})
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public boolean updateTemplateRefScript(long appId, long templateId, long stepId, long syncScriptVersionId) {
         boolean success = taskScriptStepDAO.updateScriptStepRefScriptVersionId(
             templateId,
@@ -1000,11 +1000,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         if (citeCount > 0 && scriptVersionId != null) {
             ScriptDTO scriptVersion = getScriptVersion(scriptVersionId);
-            if (scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue())) {
-                return true;
-            } else {
-                return false;
-            }
+            return scriptVersion != null && scriptVersion.getStatus().equals(JobResourceStatusEnum.ONLINE.getValue());
         }
         return citeCount > 0;
     }
