@@ -238,11 +238,11 @@
           id: 'actionScopeStr',
           children: [
             {
-              id: 'SCRIPT_EXECUTE',
+              id: '1',
               name: I18n.t('脚本执行'),
             },
             {
-              id: 'FILE_DISTRIBUTIO',
+              id: '2',
               name: I18n.t('文件分发'),
             },
           ]
