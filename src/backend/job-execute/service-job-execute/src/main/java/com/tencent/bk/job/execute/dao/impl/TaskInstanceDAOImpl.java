@@ -75,14 +75,20 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
-        Record record = ctx.insertInto(TASK_INSTANCE, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
+        Record record = ctx.insertInto(
+            TASK_INSTANCE,
+            TASK_INSTANCE.ID,
+            TASK_INSTANCE.TASK_ID,
+            TASK_INSTANCE.CRON_TASK_ID,
             TASK_INSTANCE.TASK_TEMPLATE_ID,
             TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
             TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
             TASK_INSTANCE.STATUS, TASK_INSTANCE.START_TIME,
             TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME, TASK_INSTANCE.CALLBACK_URL,
             TASK_INSTANCE.TYPE, TASK_INSTANCE.APP_CODE)
-            .values(taskInstance.getPlanId(),
+            .values(
+                taskInstance.getId(),
+                taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
                 taskInstance.isDebugTask() ? (byte) 1 : (byte) 0,
@@ -184,7 +190,6 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();
     }
-
 
 
     @Override

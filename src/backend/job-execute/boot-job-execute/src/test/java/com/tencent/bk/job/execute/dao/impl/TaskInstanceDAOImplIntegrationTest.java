@@ -343,4 +343,27 @@ class TaskInstanceDAOImplIntegrationTest {
         taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
 
+    @Test
+    void testAddTaskInstanceWithShardingMode() {
+        TaskInstanceDTO taskInstance1 = new TaskInstanceDTO();
+        taskInstance1.setId(1000000001L);
+        taskInstance1.setPlanId(3L);
+        taskInstance1.setTaskTemplateId(3L);
+        taskInstance1.setAppId(2L);
+        taskInstance1.setName("task3");
+        taskInstance1.setOperator("user1");
+        taskInstance1.setType(TaskTypeEnum.NORMAL.getValue());
+        taskInstance1.setCreateTime(1572955200000L);
+        taskInstance1.setStatus(RunStatusEnum.BLANK);
+        taskInstance1.setStartupMode(TaskStartupModeEnum.API.getValue());
+        taskInstance1.setCallbackUrl("http://bkjob.com");
+        taskInstance1.setAppCode("bk_monitor");
+        Long taskInstanceId1 = taskInstanceDAO.addTaskInstance(taskInstance1);
+
+
+        TaskInstanceDTO returnTaskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId1);
+
+        assertThat(returnTaskInstance.getId()).isEqualTo(1000000001L);
+    }
+
 }

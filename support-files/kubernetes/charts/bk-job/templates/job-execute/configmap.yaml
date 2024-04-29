@@ -160,6 +160,10 @@ data:
         function:
           definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
+        {{ if .Values.executeConfig.sharding.mariadb.enabled }}
+        driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+        url: jdbc:shardingsphere:classpath:xxx.yaml
+        {{- else -}}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -175,6 +179,8 @@ data:
           idle-timeout: 600000
           poolName: "job-execute"
           validationTimeout: 5000
+        {{- end }}
+
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -198,4 +204,7 @@ data:
         file:
           distribute:
             root-path: {{ .Values.fileDistribute.hostPath }}/local
+        mariadb:
+          sharding:
+            enabled: {{ .Values.executeConfig.sharding.mariadb.enabled }}
 {{- end }}

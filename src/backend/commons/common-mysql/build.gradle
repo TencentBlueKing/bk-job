@@ -25,6 +25,7 @@
 dependencies {
     api project(':commons:common-utils')
     api project(':commons:common')
+    api project(':commons:common-sharding')
     api 'org.springframework.boot:spring-boot-starter-jdbc'
     api 'org.springframework.boot:spring-boot-configuration-processor'
     api 'org.jooq:jooq'

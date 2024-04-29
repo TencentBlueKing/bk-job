@@ -27,7 +27,9 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework:spring-web'
-    implementation 'org.apache.shardingsphere:shardingsphere-jdbc-core'
+    api 'org.apache.shardingsphere:shardingsphere-jdbc-core'
+    api 'org.yaml:snakeyaml'
+//    api 'org.apache.shardingsphere:shardingsphere-sql-translator-jooq-provider'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.junit.jupiter:junit-jupiter'

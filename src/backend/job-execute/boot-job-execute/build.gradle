@@ -31,6 +31,7 @@ dependencies {
     runtimeOnly 'mysql:mysql-connector-java'
 
     testImplementation("com.h2database:h2")
+    testImplementation("org.apache.shardingsphere:shardingsphere-jdbc-core")
 }
 springBoot {
     getMainClass().set("com.tencent.bk.job.execute.JobExecuteBootApplication")
