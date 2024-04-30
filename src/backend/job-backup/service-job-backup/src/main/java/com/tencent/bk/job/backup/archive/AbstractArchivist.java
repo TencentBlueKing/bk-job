@@ -229,14 +229,21 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             while (maxNeedArchiveId > start) {
                 // start < id <= stop
                 stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
-
+                Pair<Long, Long> backupResult = null;
                 if (backupEnabled) {
-                    Pair<Long, Long> backupResult = backupRecords(start, stop);
+                    backupResult = backupRecords(start, stop);
                     readRows += backupResult.getLeft();
                     backupRows += backupResult.getRight();
                 }
 
-                deleteRows += delete(start, stop);
+                if (backupResult != null) {
+                    if (backupResult.getLeft() > 0) {
+                        // 降低 delete 执行次数：备份过程中读取的数据行数大于 0，才会执行 delete 操作
+                        deleteRows += delete(start, stop);
+                    }
+                } else {
+                    deleteRows += delete(start, stop);
+                }
 
                 start = stop;
             }
