@@ -102,7 +102,7 @@ public class ArchiveDBProperties {
         /**
          * 每批次从 db 表中读取的记录数量
          */
-        private int readRowLimit;
+        private Integer readRowLimit;
     }
 
 
