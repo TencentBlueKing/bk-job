@@ -22,40 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.archive.impl;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.backup.archive.AbstractMongoDBArchivist;
+import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
+import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.constant.MongoDBLogTypeEnum;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveSummary {
-    private boolean enabled;
-    private String tableName;
-    private String archiveEndDate;
-    private boolean skip;
-    private boolean success;
+import java.util.concurrent.CountDownLatch;
 
-    private String archiveMode;
-    private Long archiveCost;
+/**
+ * mongodb 文件日志归档
+ */
+public class MongoDBFileLogArchivist extends AbstractMongoDBArchivist {
 
-    private Long archiveIdStart;
-    private Long archiveIdEnd;
-    private Long needArchiveRecordSize;
-
-    private Long lastBackupId;
-    private Long backupRecordSize;
-
-    private Long lastDeletedId;
-    private Long deleteRecordSize;
-
-    private Long deleteCollectionSize;
-    private Long backupCollectionSize;
-    private Long totalCollectionSize;
-
-    public ArchiveSummary(String tableName) {
-        this.tableName = tableName;
+    public MongoDBFileLogArchivist(MongoTemplate mongoTemplate,
+                                   ArchiveDBProperties archiveDBProperties,
+                                   ArchiveTaskLock archiveTaskLock,
+                                   CountDownLatch countDownLatch,
+                                   ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                                   MongoDBLogTypeEnum mongoDBLogTypeEnum) {
+        super(mongoTemplate,
+            archiveDBProperties,
+            archiveTaskLock,
+            countDownLatch,
+            archiveErrorTaskCounter,
+            mongoDBLogTypeEnum);
     }
 }
