@@ -153,12 +153,16 @@ public class UserUploadFileCleanTask {
                     continue;
                 }
                 // 从制品库删除有效日期前创建的节点
-                LocalDateTime endNodeLastDate = DateUtils.convertFromStringDate(
-                    endNode.getLastModifiedDate(), "yyyy-MM-dd'T'HH:mm:ss.SSS"
+                LocalDateTime endNodeLastDate = DateUtils.convertFromStringDateByPatterns(
+                    endNode.getLastModifiedDate(),
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                    "yyyy-MM-dd'T'HH:mm:ss.SS",
+                    "yyyy-MM-dd'T'HH:mm:ss.S",
+                    "yyyy-MM-dd'T'HH:mm:ss.",
+                    "yyyy-MM-dd'T'HH:mm:ss"
                 );
                 if (endNodeLastDate
-                    .plusDays(localFileConfigForManage.getExpireDays())
-                    .compareTo(LocalDateTime.now()) < 0) {
+                    .plusDays(localFileConfigForManage.getExpireDays()).isBefore(LocalDateTime.now())) {
                     artifactoryClient.deleteNode(
                         artifactoryConfig.getArtifactoryJobProject(),
                         localFileConfigForManage.getLocalUploadRepo(),
