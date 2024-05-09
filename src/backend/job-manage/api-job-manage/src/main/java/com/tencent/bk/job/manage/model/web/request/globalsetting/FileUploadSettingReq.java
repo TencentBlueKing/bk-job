@@ -62,7 +62,7 @@ public class FileUploadSettingReq {
     private Integer restrictMode;
 
     @ApiModelProperty("后缀列表")
-    private List<@Pattern(regexp = "^\\.[A-Za-z0-9_-]{1,24}$",
+    private List<@Pattern(regexp = "^(\\.[A-Za-z0-9_-]{1,24})+$",
         message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
 
 }
