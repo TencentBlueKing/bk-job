@@ -1,14 +1,18 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.jooq.impl.DSL.min;
@@ -51,12 +55,19 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
         return totalDeleteRows;
     }
 
-    private Result<Record> query(Table<?> table, List<Condition> conditions, Long offset, Long limit) {
-        return context.select()
+    private Result<Record> query(Table<?> table,
+                                 List<Condition> conditions,
+                                 Long offset,
+                                 Long limit) {
+        SelectConditionStep<Record> selectConditionStep = context.select()
             .from(table)
-            .where(conditions)
-            .limit(offset, limit)
-            .fetch();
+            .where(conditions);
+
+        if (CollectionUtils.isNotEmpty(getListRecordsOrderFields())) {
+            return selectConditionStep.orderBy(getListRecordsOrderFields()).limit(offset, limit).fetch();
+        } else {
+            return selectConditionStep.limit(offset, limit).fetch();
+        }
     }
 
     @Override
@@ -69,4 +80,8 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     }
 
     public abstract Table<T> getTable();
+
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return null;
+    }
 }
