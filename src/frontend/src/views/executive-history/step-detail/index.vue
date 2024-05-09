@@ -226,7 +226,7 @@
           id: 0,
           batch: '',
           executeCount: '',
-          maxIpsPerResultGroup: 0,
+          maxTasksPerResultGroup: 0,
           keyword: '', // 日志的筛选值
           searchIp: '', // ip的筛选值
           orderField: '', // 排序字段
@@ -326,7 +326,7 @@
        * 2，分组信息在执行过程中会变，如果已选中的分组不存在了自动选中第一个分组
        */
       fetchStep: _.debounce(function () {
-        if (this.params.id < 1 || this.params.maxIpsPerResultGroup < 1) {
+        if (this.params.id < 1 || this.params.maxTasksPerResultGroup < 1) {
           return;
         }
 
@@ -474,7 +474,7 @@
        * @param {Number} pageSize 每页条数
        */
       handlePaginationChange(pageSize) {
-        this.params.maxIpsPerResultGroup = pageSize;
+        this.params.maxTasksPerResultGroup = pageSize;
         this.paginationChangeLoading = true;
         this.fetchStep();
       },

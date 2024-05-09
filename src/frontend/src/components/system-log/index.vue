@@ -242,7 +242,11 @@
     }
 
     .bk-dialog-body {
-      padding: 0;
+      padding: 0 !important;
+    }
+
+    .bk-dialog-footer {
+      display: none
     }
   }
 

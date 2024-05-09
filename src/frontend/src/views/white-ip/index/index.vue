@@ -234,6 +234,20 @@
           default: true,
         },
         {
+          name: I18n.t('whiteIP.生效范围.colHead'),
+          id: 'actionScopeStr',
+          children: [
+            {
+              id: '1',
+              name: I18n.t('脚本执行'),
+            },
+            {
+              id: '2',
+              name: I18n.t('文件分发'),
+            },
+          ]
+        },
+        {
           name: I18n.t('whiteIP.目标业务.colHead'),
           id: 'appIdStr',
           remoteMethod: this.fetchAppList,
