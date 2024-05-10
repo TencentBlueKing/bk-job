@@ -147,6 +147,8 @@ data:
         download:
           concurrency: {{ .Values.localFile.artifactory.download.concurrency }}
         repo: {{ .Values.localFile.artifactory.repo }}
+      expire-delete: {{ .Values.localFile.artifactory.repo }}
+      expire-days: {{ .Values.localFile.expireDays }}
     swagger:
       url: {{ .Values.swagger.url }}
     management:

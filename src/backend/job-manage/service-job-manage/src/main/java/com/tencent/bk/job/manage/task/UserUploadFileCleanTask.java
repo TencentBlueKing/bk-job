@@ -181,7 +181,7 @@ public class UserUploadFileCleanTask {
         int deletedNum = 0;
         // 1.先处理子节点
         PageData<NodeDTO> nodePage;
-        int pageNumber = 0;
+        int pageNumber = 1;
         int pageSize = 100;
         do {
             nodePage = artifactoryClient.listNode(
@@ -216,6 +216,7 @@ public class UserUploadFileCleanTask {
         if (isDirNodeEmpty(node)) {
             if (deleteNode(node)) {
                 deletedNum += 1;
+                log.info("Delete empty dirNode: {}", node.getFullPath());
                 return new DeleteNodeResult(deletedNum, true);
             } else {
                 log.warn("Fail to delete empty dirNode:{}", node.getFullPath());
@@ -229,7 +230,7 @@ public class UserUploadFileCleanTask {
             artifactoryConfig.getArtifactoryJobProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             dirNode.getFullPath(),
-            0,
+            1,
             1
         );
         return nodePage != null && (nodePage.getRecords() == null || nodePage.getRecords().isEmpty());
@@ -271,13 +272,18 @@ public class UserUploadFileCleanTask {
     }
 
     private boolean deleteNode(NodeDTO nodeDTO) {
-        boolean deleted = artifactoryClient.deleteNode(
-            artifactoryConfig.getArtifactoryJobProject(),
-            localFileConfigForManage.getLocalUploadRepo(),
-            nodeDTO.getFullPath()
-        );
-        log.info("Delete localUpload node {} in artifactory, result={}", nodeDTO.getFullPath(), deleted);
-        return deleted;
+        if (localFileConfigForManage.isExpireDelete()) {
+            boolean deleted = artifactoryClient.deleteNode(
+                artifactoryConfig.getArtifactoryJobProject(),
+                localFileConfigForManage.getLocalUploadRepo(),
+                nodeDTO.getFullPath()
+            );
+            log.info("Delete localUpload node {} in artifactory, result={}", nodeDTO.getFullPath(), deleted);
+            return deleted;
+        } else {
+            log.info("Fake Delete localUpload node {} in artifactory, result={}", nodeDTO.getFullPath(), false);
+            return false;
+        }
     }
 
     /**
@@ -314,17 +320,19 @@ public class UserUploadFileCleanTask {
                 if (log.isDebugEnabled()) {
                     log.debug("Skip file {}", aFile.getPath());
                 }
-                continue;
             } else {
-                log.info("Delete file {}", aFile.getPath());
-                FileUtils.deleteQuietly(aFile);
-            }
-
-            try {
-                FileUtil.deleteEmptyDirectory(aFile.getParentFile());
-                FileUtil.deleteEmptyDirectory(aFile.getParentFile().getParentFile());
-            } catch (Exception e) {
-                log.warn("Error while delete empty parent of file {}", aFile.getPath());
+                if (localFileConfigForManage.isExpireDelete()) {
+                    log.info("Delete file {}", aFile.getPath());
+                    FileUtils.deleteQuietly(aFile);
+                    try {
+                        FileUtil.deleteEmptyDirectory(aFile.getParentFile());
+                        FileUtil.deleteEmptyDirectory(aFile.getParentFile().getParentFile());
+                    } catch (Exception e) {
+                        log.warn("Error while delete empty parent of file {}", aFile.getPath());
+                    }
+                } else {
+                    log.info("Fake Delete file {}", aFile.getPath());
+                }
             }
         }
     }
