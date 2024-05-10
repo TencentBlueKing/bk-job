@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -197,10 +198,19 @@ public class UserUploadFileCleanTask {
             List<NodeDTO> subNodeList = nodePage.getRecords();
             int subNodeDeletedNum = 0;
             for (NodeDTO subNode : subNodeList) {
-                DeleteNodeResult result = checkAndDeleteExpiredNodeAndChild(subNode, skipPath);
-                deletedNum += result.getDeletedNodeNum();
-                if (result.currentNodeDeleted) {
-                    subNodeDeletedNum += 1;
+                // 单个节点处理失败后直接跳过，继续处理后续节点。
+                try {
+                    DeleteNodeResult result = checkAndDeleteExpiredNodeAndChild(subNode, skipPath);
+                    deletedNum += result.getDeletedNodeNum();
+                    if (result.currentNodeDeleted) {
+                        subNodeDeletedNum += 1;
+                    }
+                } catch (Exception e) {
+                    String msg = MessageFormatter.format(
+                        "Fail to checkAndDelete node:{}",
+                        subNode.getFullPath()
+                    ).getMessage();
+                    log.warn(msg, e);
                 }
             }
             if (subNodeDeletedNum == 0) {
@@ -212,8 +222,9 @@ public class UserUploadFileCleanTask {
         if ("/".equals(node.getFullPath().trim())) {
             return new DeleteNodeResult(deletedNum);
         }
-        // 3.非根目录再判断是否为空目录，若为空也删除
-        if (isDirNodeEmpty(node)) {
+        // 3.非根目录再判断是否为空目录，若为空且创建日期过期了也删除
+        //   此处的目录过期需要用创建时间判断，因为子目录/文件删除会导致父目录的最后修改时间更新
+        if (isNodeCreatedTimeExpired(node) && isDirNodeEmpty(node)) {
             if (deleteNode(node)) {
                 deletedNum += 1;
                 log.info("Delete empty dirNode: {}", node.getFullPath());
@@ -237,7 +248,7 @@ public class UserUploadFileCleanTask {
     }
 
     private DeleteNodeResult checkAndDeleteFileNode(NodeDTO node) {
-        if (isExpired(node)) {
+        if (isNodeLastModifyTimeExpired(node)) {
             if (deleteNode(node)) {
                 return new DeleteNodeResult(1, true);
             } else {
@@ -251,17 +262,9 @@ public class UserUploadFileCleanTask {
         return nodePage == null || nodePage.getRecords() == null || nodePage.getRecords().isEmpty();
     }
 
-    private boolean isExpired(NodeDTO nodeDTO) {
-        LocalDateTime endNodeLastDate = DateUtils.convertFromStringDateByPatterns(
-            nodeDTO.getLastModifiedDate(),
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            "yyyy-MM-dd'T'HH:mm:ss.SS",
-            "yyyy-MM-dd'T'HH:mm:ss.S",
-            "yyyy-MM-dd'T'HH:mm:ss.",
-            "yyyy-MM-dd'T'HH:mm:ss"
-        );
-        boolean result = endNodeLastDate
-            .plusDays(localFileConfigForManage.getExpireDays()).isBefore(LocalDateTime.now());
+    private boolean isNodeLastModifyTimeExpired(NodeDTO nodeDTO) {
+        LocalDateTime lastModifyDateTime = parseLastModifyDateTime(nodeDTO);
+        boolean result = isExpired(lastModifyDateTime);
         log.debug(
             "check node {}, lastModify={}, expired={}",
             nodeDTO.getFullPath(),
@@ -269,6 +272,41 @@ public class UserUploadFileCleanTask {
             result
         );
         return result;
+    }
+
+    private boolean isNodeCreatedTimeExpired(NodeDTO nodeDTO) {
+        LocalDateTime createdDateTime = parseCreatedDateTime(nodeDTO);
+        boolean result = isExpired(createdDateTime);
+        log.debug(
+            "check node {}, createdDateTime={}, expired={}",
+            nodeDTO.getFullPath(),
+            nodeDTO.getCreatedDate(),
+            result
+        );
+        return result;
+    }
+
+    private LocalDateTime parseLastModifyDateTime(NodeDTO nodeDTO) {
+        return parseDateTimeFromStr(nodeDTO.getLastModifiedDate());
+    }
+
+    private LocalDateTime parseCreatedDateTime(NodeDTO nodeDTO) {
+        return parseDateTimeFromStr(nodeDTO.getCreatedDate());
+    }
+
+    private LocalDateTime parseDateTimeFromStr(String dateTimeStr) {
+        return DateUtils.convertFromStringDateByPatterns(
+            dateTimeStr,
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss.SS",
+            "yyyy-MM-dd'T'HH:mm:ss.S",
+            "yyyy-MM-dd'T'HH:mm:ss.",
+            "yyyy-MM-dd'T'HH:mm:ss"
+        );
+    }
+
+    private boolean isExpired(LocalDateTime dateTime) {
+        return dateTime.plusDays(localFileConfigForManage.getExpireDays()).isBefore(LocalDateTime.now());
     }
 
     private boolean deleteNode(NodeDTO nodeDTO) {
