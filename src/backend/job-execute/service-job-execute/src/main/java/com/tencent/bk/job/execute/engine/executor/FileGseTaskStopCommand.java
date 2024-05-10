@@ -38,6 +38,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.List;
@@ -73,6 +74,7 @@ public class FileGseTaskStopCommand extends AbstractGseTaskCommand {
             executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
         List<Agent> agents = executeObjectTasks.stream()
             .map(executeObjectTask -> executeObjectTask.getExecuteObject().toGseAgent())
+            .filter(agent -> agent != null && StringUtils.isNotEmpty(agent.getAgentId()))
             .distinct()
             .collect(Collectors.toList());
 
