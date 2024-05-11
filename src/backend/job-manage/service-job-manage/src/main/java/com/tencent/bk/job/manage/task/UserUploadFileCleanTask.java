@@ -30,22 +30,26 @@ import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.FileUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.config.StorageSystemConfig;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AgeFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -54,7 +58,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * @since 25/1/2021 21:19
@@ -63,6 +66,7 @@ import java.util.UUID;
 @Component
 public class UserUploadFileCleanTask {
 
+    private static final String machineIp = IpUtils.getFirstMachineIP();
     private static final String FILE_CLEAN_TASK_LOCK_KEY = "user:upload:file:clean";
     private final String uploadPath;
     private final File uploadDirectory;
@@ -71,6 +75,7 @@ public class UserUploadFileCleanTask {
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public UserUploadFileCleanTask(
         StorageSystemConfig storageSystemConfig,
@@ -78,7 +83,8 @@ public class UserUploadFileCleanTask {
         TaskPlanService taskPlanService,
         ArtifactoryConfig artifactoryConfig,
         LocalFileConfigForManage localFileConfigForManage,
-        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient
+        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
+        RedisTemplate<String, String> redisTemplate
     ) {
         this.uploadPath = storageSystemConfig.getJobStorageRootPath() + "/localupload/";
         this.taskTemplateService = taskTemplateService;
@@ -87,22 +93,34 @@ public class UserUploadFileCleanTask {
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
         this.uploadDirectory = new File(uploadPath);
+        this.redisTemplate = redisTemplate;
     }
 
     public void execute() {
-        String executeId = UUID.randomUUID().toString();
-
+        HeartBeatRedisLockConfig config = HeartBeatRedisLockConfig.getDefault();
+        config.setHeartBeatThreadName("UserUploadFileCleanRedisKeyHeartBeatThread");
+        HeartBeatRedisLock lock = new HeartBeatRedisLock(
+            redisTemplate,
+            FILE_CLEAN_TASK_LOCK_KEY,
+            machineIp,
+            config
+        );
+        LockResult lockResult = lock.lock();
+        if (!lockResult.isLockGotten()) {
+            log.info(
+                "lock {} gotten by another machine: {}, return",
+                FILE_CLEAN_TASK_LOCK_KEY,
+                lockResult.getLockValue()
+            );
+            return;
+        }
         try {
-            if (LockUtils.tryGetDistributedLock(FILE_CLEAN_TASK_LOCK_KEY, executeId, 3600_000L)) {
-                Set<String> skipFile = loadFileListFromDb();
-                processFile(skipFile);
-            } else {
-                log.info("Some one else is running this task! Skip!");
-            }
+            Set<String> skipFile = loadFileListFromDb();
+            processFile(skipFile);
         } catch (Exception e) {
             log.error("Error while running user upload file clean task!", e);
         } finally {
-            LockUtils.releaseDistributedLock(FILE_CLEAN_TASK_LOCK_KEY, executeId);
+            lockResult.tryToRelease();
         }
     }
 
@@ -120,62 +138,190 @@ public class UserUploadFileCleanTask {
         }
     }
 
-    private NodeDTO getEndNode(NodeDTO nodeDTO) {
-        if (nodeDTO == null) return null;
-        PageData<NodeDTO> nodePage = artifactoryClient.listNode(
-            artifactoryConfig.getArtifactoryJobProject(),
-            localFileConfigForManage.getLocalUploadRepo(),
-            nodeDTO.getFullPath(),
-            0,
-            1
-        );
-        if (nodePage == null || nodePage.getRecords() == null || nodePage.getRecords().isEmpty()) {
-            return nodeDTO;
+    @Getter
+    @AllArgsConstructor
+    static class DeleteNodeResult {
+        // 删除的节点总数，含子节点
+        int deletedNodeNum;
+        // 当前节点是否被删除
+        boolean currentNodeDeleted;
+
+        public DeleteNodeResult(int deletedNodeNum) {
+            this.deletedNodeNum = deletedNodeNum;
+            this.currentNodeDeleted = false;
         }
-        return getEndNode(nodePage.getRecords().get(0));
     }
 
     /**
-     * 从制品库中删除nodeList内指定的过期节点
+     * 检查并删除过期的节点及其子节点
      *
-     * @param nodeList 需要检查的节点列表
+     * @param node     目标节点
      * @param skipPath 需要跳过的路径
-     * @return 删除的节点数
+     * @return 节点删除结果
      */
-    private int deleteExpiredNodes(List<NodeDTO> nodeList, Set<String> skipPath) {
-        int deletedNodeNum = 0;
-        for (NodeDTO nodeDTO : nodeList) {
-            try {
-                NodeDTO endNode = getEndNode(nodeDTO);
-                String endNodePath = StringUtil.removePrefix(endNode.getFullPath(), "/");
-                if (skipPath.contains(endNodePath)) {
-                    log.info("Skip artifactory file {}", endNodePath);
-                    continue;
+    private DeleteNodeResult checkAndDeleteExpiredNodeAndChild(NodeDTO node, Set<String> skipPath) {
+        if (node == null) {
+            return new DeleteNodeResult(0);
+        }
+        String nodePath = StringUtil.removePrefix(node.getFullPath(), "/");
+        if (skipPath.contains(nodePath)) {
+            log.info("Skip artifactory node {}", nodePath);
+            return new DeleteNodeResult(0);
+        }
+        boolean isFolder = node.getFolder() != null && node.getFolder();
+        if (!isFolder) {
+            // 文件节点，直接检查并删除
+            return checkAndDeleteFileNode(node);
+        } else {
+            // 目录节点，需要递归遍历检查并删除
+            return checkAndDeleteDirNode(node, skipPath);
+        }
+    }
+
+    private DeleteNodeResult checkAndDeleteDirNode(NodeDTO node, Set<String> skipPath) {
+        int deletedNum = 0;
+        // 1.先处理子节点
+        PageData<NodeDTO> nodePage;
+        int pageNumber = 1;
+        int pageSize = 100;
+        do {
+            nodePage = artifactoryClient.listNode(
+                artifactoryConfig.getArtifactoryJobProject(),
+                localFileConfigForManage.getLocalUploadRepo(),
+                node.getFullPath(),
+                pageNumber,
+                pageSize
+            );
+            if (isEmpty(nodePage)) {
+                break;
+            }
+            List<NodeDTO> subNodeList = nodePage.getRecords();
+            int subNodeDeletedNum = 0;
+            for (NodeDTO subNode : subNodeList) {
+                // 单个节点处理失败后直接跳过，继续处理后续节点。
+                try {
+                    DeleteNodeResult result = checkAndDeleteExpiredNodeAndChild(subNode, skipPath);
+                    deletedNum += result.getDeletedNodeNum();
+                    if (result.currentNodeDeleted) {
+                        subNodeDeletedNum += 1;
+                    }
+                } catch (Exception e) {
+                    String msg = MessageFormatter.format(
+                        "Fail to checkAndDelete node:{}",
+                        subNode.getFullPath()
+                    ).getMessage();
+                    log.warn(msg, e);
                 }
-                // 从制品库删除有效日期前创建的节点
-                LocalDateTime endNodeLastDate = DateUtils.convertFromStringDate(
-                    endNode.getLastModifiedDate(), "yyyy-MM-dd'T'HH:mm:ss.SSS"
-                );
-                if (endNodeLastDate
-                    .plusDays(localFileConfigForManage.getExpireDays())
-                    .compareTo(LocalDateTime.now()) < 0) {
-                    artifactoryClient.deleteNode(
-                        artifactoryConfig.getArtifactoryJobProject(),
-                        localFileConfigForManage.getLocalUploadRepo(),
-                        nodeDTO.getFullPath()
-                    );
-                    log.info("localFile {} in artifactory deleted", endNode.getFullPath());
-                    deletedNodeNum += 1;
-                }
-            } catch (Throwable t) {
-                FormattingTuple msg = MessageFormatter.format(
-                    "Fail to check and process expire node {}",
-                    nodeDTO.getFullPath()
-                );
-                log.warn(msg.getMessage(), t);
+            }
+            if (subNodeDeletedNum == 0) {
+                // 所有子节点本身都没有被删除，页码数才增加，否则当前页需要重新检查处理
+                pageNumber += 1;
+            }
+        } while (!isEmpty(nodePage));
+        // 2.根目录不删除
+        if ("/".equals(node.getFullPath().trim())) {
+            return new DeleteNodeResult(deletedNum);
+        }
+        // 3.非根目录再判断是否为空目录，若为空且创建日期过期了也删除
+        //   此处的目录过期需要用创建时间判断，因为子目录/文件删除会导致父目录的最后修改时间更新
+        if (isNodeCreatedTimeExpired(node) && isDirNodeEmpty(node)) {
+            if (deleteNode(node)) {
+                deletedNum += 1;
+                log.info("Delete empty dirNode: {}", node.getFullPath());
+                return new DeleteNodeResult(deletedNum, true);
+            } else {
+                log.warn("Fail to delete empty dirNode:{}", node.getFullPath());
             }
         }
-        return deletedNodeNum;
+        return new DeleteNodeResult(deletedNum);
+    }
+
+    private boolean isDirNodeEmpty(NodeDTO dirNode) {
+        PageData<NodeDTO> nodePage = artifactoryClient.listNode(
+            artifactoryConfig.getArtifactoryJobProject(),
+            localFileConfigForManage.getLocalUploadRepo(),
+            dirNode.getFullPath(),
+            1,
+            1
+        );
+        return nodePage != null && (nodePage.getRecords() == null || nodePage.getRecords().isEmpty());
+    }
+
+    private DeleteNodeResult checkAndDeleteFileNode(NodeDTO node) {
+        if (isNodeLastModifyTimeExpired(node)) {
+            if (deleteNode(node)) {
+                return new DeleteNodeResult(1, true);
+            } else {
+                return new DeleteNodeResult(0);
+            }
+        }
+        return new DeleteNodeResult(0);
+    }
+
+    private boolean isEmpty(PageData<NodeDTO> nodePage) {
+        return nodePage == null || nodePage.getRecords() == null || nodePage.getRecords().isEmpty();
+    }
+
+    private boolean isNodeLastModifyTimeExpired(NodeDTO nodeDTO) {
+        LocalDateTime lastModifyDateTime = parseLastModifyDateTime(nodeDTO);
+        boolean result = isExpired(lastModifyDateTime);
+        log.debug(
+            "check node {}, lastModify={}, expired={}",
+            nodeDTO.getFullPath(),
+            nodeDTO.getLastModifiedDate(),
+            result
+        );
+        return result;
+    }
+
+    private boolean isNodeCreatedTimeExpired(NodeDTO nodeDTO) {
+        LocalDateTime createdDateTime = parseCreatedDateTime(nodeDTO);
+        boolean result = isExpired(createdDateTime);
+        log.debug(
+            "check node {}, createdDateTime={}, expired={}",
+            nodeDTO.getFullPath(),
+            nodeDTO.getCreatedDate(),
+            result
+        );
+        return result;
+    }
+
+    private LocalDateTime parseLastModifyDateTime(NodeDTO nodeDTO) {
+        return parseDateTimeFromStr(nodeDTO.getLastModifiedDate());
+    }
+
+    private LocalDateTime parseCreatedDateTime(NodeDTO nodeDTO) {
+        return parseDateTimeFromStr(nodeDTO.getCreatedDate());
+    }
+
+    private LocalDateTime parseDateTimeFromStr(String dateTimeStr) {
+        return DateUtils.convertFromStringDateByPatterns(
+            dateTimeStr,
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss.SS",
+            "yyyy-MM-dd'T'HH:mm:ss.S",
+            "yyyy-MM-dd'T'HH:mm:ss.",
+            "yyyy-MM-dd'T'HH:mm:ss"
+        );
+    }
+
+    private boolean isExpired(LocalDateTime dateTime) {
+        return dateTime.plusDays(localFileConfigForManage.getExpireDays()).isBefore(LocalDateTime.now());
+    }
+
+    private boolean deleteNode(NodeDTO nodeDTO) {
+        if (localFileConfigForManage.isExpireDelete()) {
+            boolean deleted = artifactoryClient.deleteNode(
+                artifactoryConfig.getArtifactoryJobProject(),
+                localFileConfigForManage.getLocalUploadRepo(),
+                nodeDTO.getFullPath()
+            );
+            log.info("Delete localUpload node {} in artifactory, result={}", nodeDTO.getFullPath(), deleted);
+            return deleted;
+        } else {
+            log.info("Fake Delete localUpload node {} in artifactory, result={}", nodeDTO.getFullPath(), false);
+            return false;
+        }
     }
 
     /**
@@ -184,30 +330,15 @@ public class UserUploadFileCleanTask {
      * @param skipFile 需要跳过的文件
      */
     private void processArtifactoryFile(Set<String> skipFile) {
-        int start = 0;
-        int pageSize = 100;
-        int deletedNodeNum;
-        List<NodeDTO> nodeList;
-        do {
-            PageData<NodeDTO> nodePage = artifactoryClient.listNode(
-                artifactoryConfig.getArtifactoryJobProject(),
-                localFileConfigForManage.getLocalUploadRepo(),
-                "/",
-                start,
-                pageSize
-            );
-            if (nodePage == null) {
-                log.warn("nodePage is null");
-                return;
-            }
-            nodeList = nodePage.getRecords();
-            if (CollectionUtils.isNotEmpty(nodeList)) {
-                deletedNodeNum = deleteExpiredNodes(nodeList, skipFile);
-                start += pageSize - deletedNodeNum;
-            } else {
-                deletedNodeNum = 0;
-            }
-        } while (deletedNodeNum != 0 || (CollectionUtils.isNotEmpty(nodeList)));
+        NodeDTO localUploadNode = artifactoryClient.queryNodeDetail(
+            artifactoryConfig.getArtifactoryJobProject(),
+            localFileConfigForManage.getLocalUploadRepo(),
+            "/"
+        );
+        DeleteNodeResult result = checkAndDeleteExpiredNodeAndChild(localUploadNode, skipFile);
+        if (result.deletedNodeNum > 0) {
+            log.info("processArtifactoryFile finished, deletedNodeNum={}", result.deletedNodeNum);
+        }
     }
 
     /**
@@ -227,17 +358,19 @@ public class UserUploadFileCleanTask {
                 if (log.isDebugEnabled()) {
                     log.debug("Skip file {}", aFile.getPath());
                 }
-                continue;
             } else {
-                log.info("Delete file {}", aFile.getPath());
-                FileUtils.deleteQuietly(aFile);
-            }
-
-            try {
-                FileUtil.deleteEmptyDirectory(aFile.getParentFile());
-                FileUtil.deleteEmptyDirectory(aFile.getParentFile().getParentFile());
-            } catch (Exception e) {
-                log.warn("Error while delete empty parent of file {}", aFile.getPath());
+                if (localFileConfigForManage.isExpireDelete()) {
+                    log.info("Delete file {}", aFile.getPath());
+                    FileUtils.deleteQuietly(aFile);
+                    try {
+                        FileUtil.deleteEmptyDirectory(aFile.getParentFile());
+                        FileUtil.deleteEmptyDirectory(aFile.getParentFile().getParentFile());
+                    } catch (Exception e) {
+                        log.warn("Error while delete empty parent of file {}", aFile.getPath());
+                    }
+                } else {
+                    log.info("Fake Delete file {}", aFile.getPath());
+                }
             }
         }
     }

@@ -26,8 +26,11 @@ package com.tencent.bk.job.common.redis.util;
 
 
 import com.tencent.bk.job.common.util.ThreadUtils;
+import io.lettuce.core.RedisCommandInterruptedException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.concurrent.TimeUnit;
@@ -70,7 +73,16 @@ public class RedisKeyHeartBeatThread extends Thread {
                 ThreadUtils.sleep(periodMillis, false);
             }
         } catch (Throwable t) {
-            log.error("RedisKeyHeartBeatThread {} quit unexpectedly:", this.getName(), t);
+            String msg = MessageFormatter.format(
+                "RedisKeyHeartBeatThread {} quit unexpectedly:",
+                this.getName()
+            ).getMessage();
+            // 主动终止线程产生的异常只打印调试级别日志
+            if (!causeByStopAtOnceInterrupt(t)) {
+                log.error(msg, t);
+            } else {
+                log.debug(msg, t);
+            }
         } finally {
             deleteRedisKeySafely();
         }
@@ -81,7 +93,24 @@ public class RedisKeyHeartBeatThread extends Thread {
             Boolean result = redisTemplate.delete(redisKey);
             log.debug("delete redis key:{}, result={}", redisKey, result);
         } catch (Throwable e) {
-            log.error("Delete redis key fail", e);
+            // 主动终止线程产生的异常只打印调试级别日志
+            if (!causeByStopAtOnceInterrupt(e)) {
+                log.error("Delete redis key fail", e);
+            } else {
+                log.debug("Delete redis key fail", e);
+            }
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean causeByStopAtOnceInterrupt(Throwable t) {
+        if (runFlag) {
+            return false;
+        }
+        if (t instanceof RedisSystemException) {
+            Throwable cause = t.getCause();
+            return cause instanceof RedisCommandInterruptedException;
+        }
+        return false;
     }
 }

@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class DateUtilsTest {
 
@@ -73,5 +74,42 @@ public class DateUtilsTest {
         long endTime4 = DateUtils.getUTCDayEndTimestamp(dateTime4.toLocalDate());
         // 2023-07-14 00:00:00 UTC
         assertThat(endTime4).isEqualTo(1689292800000L);
+    }
+
+    @Test
+    void convertFromStringDateByPatterns() {
+        String[] patterns = new String[]{
+            "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "yyyy-MM-dd'T'HH:mm:ss.SS",
+            "yyyy-MM-dd'T'HH:mm:ss.S",
+            "yyyy-MM-dd'T'HH:mm:ss.",
+            "yyyy-MM-dd'T'HH:mm:ss"
+        };
+        LocalDateTime localDateTime = DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54.655", patterns
+        );
+        assertThat(localDateTime).isNotNull();
+        localDateTime = DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54.65", patterns
+        );
+        assertThat(localDateTime).isNotNull();
+        localDateTime = DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54.6", patterns
+        );
+        assertThat(localDateTime).isNotNull();
+        localDateTime = DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54.", patterns
+        );
+        assertThat(localDateTime).isNotNull();
+        localDateTime = DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54", patterns
+        );
+        assertThat(localDateTime).isNotNull();
+        assertThatThrownBy(() -> DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21T10:55:54.65"
+        )).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> DateUtils.convertFromStringDateByPatterns(
+            "2022-04-21 10:55:54.65"
+        )).isInstanceOf(IllegalArgumentException.class);
     }
 }

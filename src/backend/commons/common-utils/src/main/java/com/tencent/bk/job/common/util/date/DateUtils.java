@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util.date;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
@@ -41,8 +42,13 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 时间处理
@@ -213,6 +219,45 @@ public class DateUtils {
     public static LocalDateTime convertFromMillSeconds(long millSeconds) {
         return LocalDateTime.ofEpochSecond(millSeconds / 1000, (int) (millSeconds % 1000) * 1_000_000,
             ZoneOffset.systemDefault().getRules().getOffset(Instant.now()));
+    }
+
+    /**
+     * 尝试使用多种格式来解析字符串中的时间，只要有任意一种格式匹配即可成功解析
+     *
+     * @param dateTime 日期时间字符串
+     * @param patterns 多个可能的日期时间格式
+     * @return 本地日期时间对象
+     */
+    public static LocalDateTime convertFromStringDateByPatterns(String dateTime, String... patterns) {
+        if (patterns.length == 0) {
+            throw new IllegalArgumentException("patterns must not be empty");
+        }
+        LocalDateTime localDateTime;
+        Map<String, Exception> exceptionMap = new HashMap<>();
+        for (String pattern : patterns) {
+            try {
+                localDateTime = convertFromStringDate(dateTime, pattern);
+                if (localDateTime != null) {
+                    return localDateTime;
+                }
+            } catch (Exception e) {
+                exceptionMap.put(pattern, e);
+            }
+        }
+        String patternsInvalidMsg = MessageFormatter.format(
+            "Fail to convertFromStringDateByPatterns: dateTime={}, patterns={}, exceptions: ",
+            dateTime,
+            patterns
+        ).getMessage();
+        log.warn(patternsInvalidMsg);
+        exceptionMap.forEach((pattern, e) -> {
+            String patternInvalidMsg = MessageFormatter.format(
+                "pattern: {}, exception: ",
+                pattern
+            ).getMessage();
+            log.warn(patternInvalidMsg, e);
+        });
+        throw new IllegalArgumentException(patternsInvalidMsg);
     }
 
     public static LocalDateTime convertFromStringDate(String dateTime, String pattern) {

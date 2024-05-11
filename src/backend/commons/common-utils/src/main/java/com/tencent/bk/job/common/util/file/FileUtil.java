@@ -313,11 +313,12 @@ public class FileUtil {
      * 删除空目录
      *
      * @param directory 目录文件
+     * @return 是否删除了目录
      */
-    public static void deleteEmptyDirectory(File directory) {
+    public static boolean deleteEmptyDirectory(File directory) {
         if (directory == null) {
             log.warn("Directory is null!");
-            return;
+            return false;
         }
 
         if (isEmpty(directory.toPath())) {
@@ -327,8 +328,10 @@ public class FileUtil {
             } else {
                 log.warn("Delete directory {} failed!", directory.getPath());
             }
+            return delete;
         } else {
             log.debug("Directory {} not empty!", directory.getPath());
+            return false;
         }
     }
 
