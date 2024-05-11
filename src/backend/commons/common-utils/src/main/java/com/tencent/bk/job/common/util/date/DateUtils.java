@@ -232,32 +232,32 @@ public class DateUtils {
         if (patterns.length == 0) {
             throw new IllegalArgumentException("patterns must not be empty");
         }
-        LocalDateTime localDateTime = null;
+        LocalDateTime localDateTime;
         Map<String, Exception> exceptionMap = new HashMap<>();
         for (String pattern : patterns) {
             try {
                 localDateTime = convertFromStringDate(dateTime, pattern);
+                if (localDateTime != null) {
+                    return localDateTime;
+                }
             } catch (Exception e) {
                 exceptionMap.put(pattern, e);
             }
         }
-        if (localDateTime == null) {
-            String patternsInvalidMsg = MessageFormatter.format(
-                "Fail to convertFromStringDateByPatterns: dateTime={}, patterns={}, exceptions: ",
-                dateTime,
-                patterns
+        String patternsInvalidMsg = MessageFormatter.format(
+            "Fail to convertFromStringDateByPatterns: dateTime={}, patterns={}, exceptions: ",
+            dateTime,
+            patterns
+        ).getMessage();
+        log.warn(patternsInvalidMsg);
+        exceptionMap.forEach((pattern, e) -> {
+            String patternInvalidMsg = MessageFormatter.format(
+                "pattern: {}, exception: ",
+                pattern
             ).getMessage();
-            log.warn(patternsInvalidMsg);
-            exceptionMap.forEach((pattern, e) -> {
-                String patternInvalidMsg = MessageFormatter.format(
-                    "pattern: {}, exception: ",
-                    pattern
-                ).getMessage();
-                log.warn(patternInvalidMsg, e);
-            });
-            throw new IllegalArgumentException(patternsInvalidMsg);
-        }
-        return localDateTime;
+            log.warn(patternInvalidMsg, e);
+        });
+        throw new IllegalArgumentException(patternsInvalidMsg);
     }
 
     public static LocalDateTime convertFromStringDate(String dateTime, String pattern) {
