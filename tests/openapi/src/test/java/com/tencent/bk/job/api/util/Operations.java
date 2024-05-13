@@ -1,5 +1,7 @@
 package com.tencent.bk.job.api.util;
 
+import com.tencent.bk.job.api.constant.AccountCategoryEnum;
+import com.tencent.bk.job.api.constant.AccountTypeEnum;
 import com.tencent.bk.job.api.constant.CredentialTypeEnum;
 import com.tencent.bk.job.api.constant.FileSourceTypeEnum;
 import com.tencent.bk.job.api.constant.HighRiskGrammarActionEnum;
@@ -9,6 +11,7 @@ import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.api.v3.model.EsbAccountV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbCredentialSimpleInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
@@ -20,11 +23,13 @@ import com.tencent.bk.job.api.v3.model.EsbPlanBasicInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.v3.model.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateCredentialV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptVersionV3Req;
@@ -419,6 +424,41 @@ public class Operations {
                 .as(new TypeRef<EsbResp<EsbCredentialSimpleInfoV3DTO>>() {
                 })
                 .getData();
+    }
+
+    public static EsbAccountV3DTO createAccount(AccountTypeEnum accountTypeEnum) {
+        EsbCreateAccountV3Req req = new EsbCreateAccountV3Req();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setAccount(TestValueGenerator.generateUniqueStrValue("account", 50));
+        req.setAlias(TestValueGenerator.generateUniqueStrValue("alias", 50));
+        req.setRemark(TestValueGenerator.generateUniqueStrValue("remark", 50));
+        req.setCategory(AccountCategoryEnum.SYSTEM.getValue());
+        req.setType(AccountTypeEnum.LINUX.getType());
+        if (accountTypeEnum == AccountTypeEnum.WINDOW) {
+            req.setType(AccountTypeEnum.WINDOW.getType());
+            req.setPassword(TestValueGenerator.generateUniqueStrValue("password", 50));
+        }
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.CREATE_ACCOUNT)
+            .then()
+            .statusCode(200)
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbAccountV3DTO>>() {
+            })
+            .getData();
+    }
+
+    public static void deleteAccount(EsbDeleteAccountV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_ACCOUNT)
+            .then()
+            .statusCode(200);
     }
 
     private static String buildJobName() {

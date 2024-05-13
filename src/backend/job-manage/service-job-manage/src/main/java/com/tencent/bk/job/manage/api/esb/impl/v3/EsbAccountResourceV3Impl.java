@@ -41,6 +41,7 @@ import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import com.tencent.bk.job.manage.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
@@ -199,5 +200,27 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         AccountDTO accountDTO = accountService.getAccount(appId, req.getId());
         accountService.deleteAccount(username, appId, req.getId());
         return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
+    }
+
+
+    @Override
+    @AuditEntry(actionId = ActionId.MANAGE_ACCOUNT)
+    public EsbResp<EsbAccountV3DTO> updateAccount(String username,
+                                                  String appCode,
+                                                  @AuditRequestBody EsbUpdateAccountV3Req req) {
+        AccountDTO updateAccount = buildUpdateAccountDTO(username, req.getAppId(), req);
+        AccountDTO updatedAccountDTO = accountService.updateAccount(username, updateAccount);
+        return EsbResp.buildSuccessResp(updatedAccountDTO.toEsbAccountV3DTO());
+    }
+
+    public AccountDTO buildUpdateAccountDTO(String operator, long appId, EsbUpdateAccountV3Req req) {
+        AccountDTO updateAccount = new AccountDTO();
+        updateAccount.setId(req.getId());
+        updateAccount.setAppId(appId);
+        updateAccount.setPassword(req.getPassword());
+        updateAccount.setRemark(req.getRemark());
+        updateAccount.setAlias(req.getAlias());
+        updateAccount.setLastModifyUser(operator);
+        return updateAccount;
     }
 }

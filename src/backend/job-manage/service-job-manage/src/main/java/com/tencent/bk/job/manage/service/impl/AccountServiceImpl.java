@@ -231,9 +231,12 @@ public class AccountServiceImpl implements AccountService {
         authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
-
+        String updateAlias = updateAccount.getAlias();
+        if (StringUtils.isEmpty(updateAlias)) {
+            updateAlias = originAccount.getAlias();
+        }
         checkAccountAliasExist(updateAccount.getAppId(), updateAccount.getId(),
-            originAccount.getCategory(), updateAccount.getAlias());
+            originAccount.getCategory(), updateAlias);
 
         if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
             updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
