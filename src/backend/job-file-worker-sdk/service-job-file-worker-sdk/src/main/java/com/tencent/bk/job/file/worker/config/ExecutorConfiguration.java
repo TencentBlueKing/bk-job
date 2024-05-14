@@ -47,7 +47,7 @@ public class ExecutorConfiguration {
             40,
             1,
             TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(1000), (r, executor) -> {
+            new LinkedBlockingQueue<>(10000), (r, executor) -> {
             log.error("fileTaskWorkerPool rejected a task, use current thread now, plz add more threads");
             r.run();
         });
@@ -62,7 +62,7 @@ public class ExecutorConfiguration {
             40,
             1,
             TimeUnit.MINUTES
-            , new LinkedBlockingQueue<>(1000), (r, executor) ->
+            , new LinkedBlockingQueue<>(10000), (r, executor) ->
             log.error("watchingTaskExecutor rejected a task, ignore, plz add more threads")
         );
     }
