@@ -112,6 +112,11 @@ public class ReDispatchTimeoutTask {
             0,
             -1
         );
+        watch.stop();
+        if (timeoutFileSourceTaskIdList.isEmpty()) {
+            log.info("no fileSourceTask need to be reDispatch");
+            return;
+        }
         log.info(
             "find {} fileSourceTask between [{},{}] to reDispatch: {}",
             timeoutFileSourceTaskIdList.size(),
@@ -119,7 +124,6 @@ public class ReDispatchTimeoutTask {
             TimeUtil.formatTime(intervalEnd),
             timeoutFileSourceTaskIdList
         );
-        watch.stop();
         watch.start("reDispatch Tasks");
         // 进行超时重调度
         for (String fileSourceTaskId : timeoutFileSourceTaskIdList) {
