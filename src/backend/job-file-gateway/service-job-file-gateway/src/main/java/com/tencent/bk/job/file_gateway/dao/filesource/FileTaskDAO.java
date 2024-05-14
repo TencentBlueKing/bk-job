@@ -44,7 +44,9 @@ public interface FileTaskDAO {
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId, Integer start, Integer pageSize);
 
-    List<String> listTimeoutFileSourceTaskIds(Long expireTimeMills, Collection<Byte> statusSet, Integer start,
+    List<String> listTimeoutFileSourceTaskIds(Long startTimeMills,
+                                              Long endTimeMills,
+                                              Collection<Byte> statusSet, Integer start,
                                               Integer pageSize);
 
     List<FileTaskDTO> listFileTasks(String fileSourceTaskId);

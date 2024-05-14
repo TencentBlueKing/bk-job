@@ -27,6 +27,7 @@ package com.tencent.bk.job.file_gateway.task.dispatch;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
 import com.tencent.bk.job.common.redis.util.LockResult;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
@@ -101,16 +102,21 @@ public class ReDispatchTimeoutTask {
         StopWatch watch = new StopWatch("reDispatchFileSourceTasks");
         watch.start("listTimeoutFileSourceTaskIds");
         // 找出未结束且长时间无响应的任务，无响应且未结束的任务就应当被重调度了
-        long fileSourceTaskStatusExpireTimeMills = reDispatchTaskTimeoutSeconds * 1000L;
+
+        long intervalStart = computeReDispatchIntervalStart();
+        long intervalEnd = computeReDispatchIntervalEnd();
         List<String> timeoutFileSourceTaskIdList = fileTaskDAO.listTimeoutFileSourceTaskIds(
-            fileSourceTaskStatusExpireTimeMills,
+            intervalStart,
+            intervalEnd,
             TaskStatusEnum.getRunningStatusSet(),
             0,
             -1
         );
         log.info(
-            "find {} fileSourceTask to reDispatch: {}",
+            "find {} fileSourceTask between [{},{}] to reDispatch: {}",
             timeoutFileSourceTaskIdList.size(),
+            TimeUtil.formatTime(intervalStart),
+            TimeUtil.formatTime(intervalEnd),
             timeoutFileSourceTaskIdList
         );
         watch.stop();
@@ -139,5 +145,27 @@ public class ReDispatchTimeoutTask {
                 watch.getTotalTimeSeconds()
             );
         }
+    }
+
+    /**
+     * 计算重调度区间开始时间
+     *
+     * @return 重调度区间开始时间(ms)
+     */
+    private long computeReDispatchIntervalStart() {
+        // 只对最近半小时内的任务进行重调度
+        long reDispatchStartIntervalMills = 30 * 60 * 1000L;
+        return System.currentTimeMillis() - reDispatchStartIntervalMills;
+    }
+
+    /**
+     * 计算重调度区间结束时间
+     *
+     * @return 重调度区间结束时间(ms)
+     */
+    private long computeReDispatchIntervalEnd() {
+        // 对已经超时未更新状态的任务进行重调度
+        long fileSourceTaskStatusExpireTimeMills = reDispatchTaskTimeoutSeconds * 1000L;
+        return System.currentTimeMillis() - fileSourceTaskStatusExpireTimeMills;
     }
 }
