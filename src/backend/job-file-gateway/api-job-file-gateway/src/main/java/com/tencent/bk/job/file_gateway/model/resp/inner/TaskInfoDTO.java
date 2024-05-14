@@ -36,5 +36,6 @@ public class TaskInfoDTO {
     String fileSourceName;
     boolean fileSourcePublic;
     Long cloudId;
+    String ipProtocol;
     String ip;
 }
