@@ -68,6 +68,11 @@ public class ReDispatchTimeoutTask {
             0,
             -1
         );
+        log.info(
+            "find {} fileSourceTask to reDispatch: {}",
+            timeoutFileSourceTaskIdList.size(),
+            timeoutFileSourceTaskIdList
+        );
         // 进行超时重调度
         for (String fileSourceTaskId : timeoutFileSourceTaskIdList) {
             boolean result = reDispatchService.reDispatchByGateway(fileSourceTaskId, 0L, 5000L);
