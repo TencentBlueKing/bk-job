@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.util.List;
 
@@ -97,6 +98,8 @@ public class ReDispatchTimeoutTask {
     }
 
     private void reDispatchFileSourceTasks() {
+        StopWatch watch = new StopWatch("reDispatchFileSourceTasks");
+        watch.start("listTimeoutFileSourceTaskIds");
         // 找出未结束且长时间无响应的任务，无响应且未结束的任务就应当被重调度了
         long fileSourceTaskStatusExpireTimeMills = reDispatchTaskTimeoutSeconds * 1000L;
         List<String> timeoutFileSourceTaskIdList = fileTaskDAO.listTimeoutFileSourceTaskIds(
@@ -110,6 +113,8 @@ public class ReDispatchTimeoutTask {
             timeoutFileSourceTaskIdList.size(),
             timeoutFileSourceTaskIdList
         );
+        watch.stop();
+        watch.start("reDispatch Tasks");
         // 进行超时重调度
         for (String fileSourceTaskId : timeoutFileSourceTaskIdList) {
             boolean result = reDispatchService.reDispatchByGateway(fileSourceTaskId, 0L, 5000L);
@@ -118,6 +123,20 @@ public class ReDispatchTimeoutTask {
                 reDispatchTaskTimeoutSeconds,
                 fileSourceTaskId,
                 result
+            );
+        }
+        watch.stop();
+        if (watch.getTotalTimeSeconds() > 10) {
+            log.warn(
+                "SLOW: reDispatched {} fileSourceTask, timeConsuming:{}",
+                timeoutFileSourceTaskIdList.size(),
+                watch.prettyPrint()
+            );
+        } else {
+            log.info(
+                "reDispatched {} fileSourceTask, timeConsuming: {}s",
+                timeoutFileSourceTaskIdList.size(),
+                watch.getTotalTimeSeconds()
             );
         }
     }
