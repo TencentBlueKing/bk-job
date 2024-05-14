@@ -1088,8 +1088,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 whiteHostAllowActions);
             authServers.merge(stepTargetServers);
             if (!CollectionUtils.isEmpty(stepInstance.getFileSourceList())) {
-                stepInstance.getFileSourceList().stream().filter(fileSource -> !fileSource.isLocalUpload())
+                stepInstance.getFileSourceList().stream()
+                    .filter(fileSource -> !fileSource.isLocalUpload())
                     .forEach(fileSource -> {
+                            if (fileSource.getServers() == null) {
+                                return;
+                            }
                             ExecuteTargetDTO stepFileSourceServers = fileSource.getServers().clone();
                             filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
                                 whiteHostAllowActions);
@@ -1500,7 +1504,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 fileSource.setFiles(fileList);
             } else if (originFile.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType()) {
                 fileSource.setLocalUpload(false);
-                fileSource.setServers(ExecuteTargetDTO.emptyInstance());
                 // 文件源文件只需要fileSourceId与文件路径
                 List<FileDetailDTO> fileList = new ArrayList<>();
                 originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
