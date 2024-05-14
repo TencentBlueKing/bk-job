@@ -56,7 +56,6 @@ public class FileWorkerHostService {
         this.hostService = hostService;
     }
 
-
     // 查询file-worker对应主机信息使用60s缓存，避免短时间内多次重复查询
     private final LoadingCache<Triple<Long, String, String>, HostDTO> fileWorkerHostCache = CacheBuilder.newBuilder()
         .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
@@ -93,7 +92,9 @@ public class FileWorkerHostService {
         } else {
             hostDTO = ServiceHostDTO.toHostDTO(hostService.getHost(new HostDTO(cloudAreaId, ip)));
         }
-        log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);
+        if (log.isDebugEnabled()) {
+            log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);
+        }
         return hostDTO;
     }
 }
