@@ -56,7 +56,7 @@ public class DispatchServiceImpl implements DispatchService {
     private final FileWorkerDAO fileWorkerDAO;
     private final FileWorkerService fileWorkerService;
 
-    private final AtomicLong dispatchCount = new AtomicLong(0);
+    private final AtomicLong roundRobinCount = new AtomicLong(0);
 
     @Autowired
     public DispatchServiceImpl(FileWorkerDAO fileWorkerDAO,
@@ -153,7 +153,6 @@ public class DispatchServiceImpl implements DispatchService {
         } catch (Exception e) {
             log.warn("Fail to findBestFileWorker", e);
         } finally {
-            dispatchCount.incrementAndGet();
             long nanoSeconds = sample.stop(
                 meterRegistry.timer(
                     MetricsConstants.NAME_FILE_GATEWAY_DISPATCH_TIME,
@@ -189,7 +188,7 @@ public class DispatchServiceImpl implements DispatchService {
         String workerSelectScope = fileSourceDTO.getWorkerSelectScope();
         List<String> abilityTagList = abilityTagService.getAbilityTagList(fileSourceDTO);
         List<FileWorkerDTO> fileWorkerDTOList;
-        if (abilityTagList == null || abilityTagList.size() == 0) {
+        if (abilityTagList == null || abilityTagList.isEmpty()) {
             // 无能力标签要求，任选一个FileWorker
             fileWorkerDTOList = getFileWorkerByScope(fileSourceDTO.getAppId(), workerSelectScope);
             if (fileWorkerDTOList.isEmpty()) {
@@ -229,7 +228,7 @@ public class DispatchServiceImpl implements DispatchService {
         }).collect(Collectors.toList());
         if (!fileWorkerDTOList.isEmpty()) {
             // 按策略调度：RoundRobin
-            int index = (int) (dispatchCount.get() % fileWorkerDTOList.size());
+            int index = (int) (roundRobinCount.getAndIncrement() % fileWorkerDTOList.size());
             fileWorkerDTO = fileWorkerDTOList.get(index);
         } else {
             log.error("Cannot find available file worker, abilityTagList={}", abilityTagList);
