@@ -145,7 +145,7 @@ public class DispatchServiceImpl implements DispatchService {
     }
 
     @Override
-    public FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO) {
+    public FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource) {
         Timer.Sample sample = Timer.start(meterRegistry);
         FileWorkerDTO fileWorkerDTO = null;
         try {
@@ -157,7 +157,7 @@ public class DispatchServiceImpl implements DispatchService {
             long nanoSeconds = sample.stop(
                 meterRegistry.timer(
                     MetricsConstants.NAME_FILE_GATEWAY_DISPATCH_TIME,
-                    buildDispatchResult(fileWorkerDTO)
+                    buildDispatchResult(fileWorkerDTO, requestSource)
                 )
             );
             long millis = TimeUnit.NANOSECONDS.toMillis(nanoSeconds);
@@ -168,9 +168,10 @@ public class DispatchServiceImpl implements DispatchService {
         return fileWorkerDTO;
     }
 
-    private Iterable<Tag> buildDispatchResult(FileWorkerDTO fileWorkerDTO) {
+    private Iterable<Tag> buildDispatchResult(FileWorkerDTO fileWorkerDTO, String requestSource) {
         List<Tag> tagList = new ArrayList<>();
         tagList.add(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_GATEWAY));
+        tagList.add(Tag.of(MetricsConstants.TAG_KEY_REQUEST_SOURCE, requestSource));
         if (fileWorkerDTO == null) {
             tagList.add(
                 Tag.of(MetricsConstants.TAG_KEY_DISPATCH_RESULT, MetricsConstants.TAG_VALUE_DISPATCH_RESULT_FALSE)
@@ -229,7 +230,6 @@ public class DispatchServiceImpl implements DispatchService {
         if (!fileWorkerDTOList.isEmpty()) {
             // 按策略调度：RoundRobin
             int index = (int) (dispatchCount.get() % fileWorkerDTOList.size());
-            log.debug("choose fileWorker index: {}", index);
             fileWorkerDTO = fileWorkerDTOList.get(index);
         } else {
             log.error("Cannot find available file worker, abilityTagList={}", abilityTagList);

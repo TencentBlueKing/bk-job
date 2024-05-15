@@ -34,6 +34,7 @@ public class MetricsConstants {
 
     // tag
     public static final String TAG_KEY_MODULE = "module";
+    public static final String TAG_KEY_REQUEST_SOURCE = "requestSource";
     public static final String TAG_KEY_DISPATCH_RESULT = "dispatchResult";
 
     // value
