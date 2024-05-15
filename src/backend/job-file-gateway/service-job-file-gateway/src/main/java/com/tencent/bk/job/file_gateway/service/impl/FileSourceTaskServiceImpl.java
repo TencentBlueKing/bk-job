@@ -121,7 +121,10 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
         }
-        FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
+            fileSourceDTO,
+            "DownloadTask(appId=" + appId + ")"
+        );
         if (fileWorkerDTO == null) {
             throw new RuntimeException(String.format("Cannot match fileWorker for FileSourceTask,appId=%d," +
                     "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,

@@ -35,15 +35,16 @@ import com.tencent.bk.job.file_gateway.service.AbilityTagService;
 import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,6 +55,8 @@ public class DispatchServiceImpl implements DispatchService {
     private final MeterRegistry meterRegistry;
     private final FileWorkerDAO fileWorkerDAO;
     private final FileWorkerService fileWorkerService;
+
+    private final AtomicLong roundRobinCount = new AtomicLong(0);
 
     @Autowired
     public DispatchServiceImpl(FileWorkerDAO fileWorkerDAO,
@@ -142,16 +145,42 @@ public class DispatchServiceImpl implements DispatchService {
     }
 
     @Override
-    public FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO) {
+    public FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource) {
         Timer.Sample sample = Timer.start(meterRegistry);
-        FileWorkerDTO fileWorkerDTO = findBestFileWorkerIndeed(fileSourceDTO);
-        long nanoSeconds = sample.stop(meterRegistry.timer(MetricsConstants.NAME_FILE_GATEWAY_DISPATCH_TIME,
-            MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_GATEWAY));
-        long millis = TimeUnit.NANOSECONDS.toMillis(nanoSeconds);
-        if (millis > 2000) {
-            log.warn("Dispatch time over 2000ms, fileSourceDTO={}", fileSourceDTO.getBasicDesc());
+        FileWorkerDTO fileWorkerDTO = null;
+        try {
+            fileWorkerDTO = findBestFileWorkerIndeed(fileSourceDTO);
+        } catch (Exception e) {
+            log.warn("Fail to findBestFileWorker", e);
+        } finally {
+            long nanoSeconds = sample.stop(
+                meterRegistry.timer(
+                    MetricsConstants.NAME_FILE_GATEWAY_DISPATCH_TIME,
+                    buildDispatchResult(fileWorkerDTO, requestSource)
+                )
+            );
+            long millis = TimeUnit.NANOSECONDS.toMillis(nanoSeconds);
+            if (millis > 2000) {
+                log.warn("SLOW: Dispatch time over 2000ms, fileSourceDTO={}", fileSourceDTO.getBasicDesc());
+            }
         }
         return fileWorkerDTO;
+    }
+
+    private Iterable<Tag> buildDispatchResult(FileWorkerDTO fileWorkerDTO, String requestSource) {
+        List<Tag> tagList = new ArrayList<>();
+        tagList.add(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_FILE_GATEWAY));
+        tagList.add(Tag.of(MetricsConstants.TAG_KEY_REQUEST_SOURCE, requestSource));
+        if (fileWorkerDTO == null) {
+            tagList.add(
+                Tag.of(MetricsConstants.TAG_KEY_DISPATCH_RESULT, MetricsConstants.TAG_VALUE_DISPATCH_RESULT_FALSE)
+            );
+        } else {
+            tagList.add(
+                Tag.of(MetricsConstants.TAG_KEY_DISPATCH_RESULT, MetricsConstants.TAG_VALUE_DISPATCH_RESULT_TRUE)
+            );
+        }
+        return tagList;
     }
 
     private FileWorkerDTO findWorkerByAuto(FileSourceDTO fileSourceDTO) {
@@ -159,7 +188,7 @@ public class DispatchServiceImpl implements DispatchService {
         String workerSelectScope = fileSourceDTO.getWorkerSelectScope();
         List<String> abilityTagList = abilityTagService.getAbilityTagList(fileSourceDTO);
         List<FileWorkerDTO> fileWorkerDTOList;
-        if (abilityTagList == null || abilityTagList.size() == 0) {
+        if (abilityTagList == null || abilityTagList.isEmpty()) {
             // 无能力标签要求，任选一个FileWorker
             fileWorkerDTOList = getFileWorkerByScope(fileSourceDTO.getAppId(), workerSelectScope);
             if (fileWorkerDTOList.isEmpty()) {
@@ -198,10 +227,9 @@ public class DispatchServiceImpl implements DispatchService {
             return onlineStatus != null && onlineStatus.intValue() == 1;
         }).collect(Collectors.toList());
         if (!fileWorkerDTOList.isEmpty()) {
-            // 按策略调度：内存占用最小
-            fileWorkerDTOList.sort(Comparator.comparing(FileWorkerDTO::getMemRate));
-            log.debug("ordered fileWorkerDTOList:{}", fileWorkerDTOList);
-            fileWorkerDTO = fileWorkerDTOList.get(0);
+            // 按策略调度：RoundRobin
+            int index = (int) (roundRobinCount.getAndIncrement() % fileWorkerDTOList.size());
+            fileWorkerDTO = fileWorkerDTOList.get(index);
         } else {
             log.error("Cannot find available file worker, abilityTagList={}", abilityTagList);
         }

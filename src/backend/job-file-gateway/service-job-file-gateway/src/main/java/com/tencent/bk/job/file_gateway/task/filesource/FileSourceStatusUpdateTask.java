@@ -65,7 +65,9 @@ public class FileSourceStatusUpdateTask {
                 pageSize
             );
             for (FileSourceDTO fileSourceDTO : fileSourceDTOList) {
-                FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
+                FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
+                    fileSourceDTO, "FileSourceStatusUpdateTask"
+                );
                 int status;
                 if (fileWorkerDTO == null) {
                     log.info(
