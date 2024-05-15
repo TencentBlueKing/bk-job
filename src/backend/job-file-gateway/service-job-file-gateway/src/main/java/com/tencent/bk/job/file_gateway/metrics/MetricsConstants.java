@@ -34,9 +34,12 @@ public class MetricsConstants {
 
     // tag
     public static final String TAG_KEY_MODULE = "module";
+    public static final String TAG_KEY_DISPATCH_RESULT = "dispatchResult";
 
     // value
     public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
     public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    public static final String TAG_VALUE_DISPATCH_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_DISPATCH_RESULT_FALSE = "false";
 
 }
