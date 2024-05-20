@@ -99,9 +99,6 @@ public class JobListener {
                 case STOP:
                     stopJob(taskInstance);
                     break;
-                case RESTART:
-                    restartJob(taskInstance);
-                    break;
                 case REFRESH:
                     refreshJob(taskInstance);
                     break;
@@ -148,38 +145,10 @@ public class JobListener {
         if (RunStatusEnum.RUNNING == taskStatus || RunStatusEnum.WAITING_USER == taskStatus) {
             taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.stopStep(jobInstanceId, currentStepInstanceId));
         } else {
             log.warn("Unsupported job instance run status for stop task, jobInstanceId={}, status={}",
-                jobInstanceId, taskInstance.getStatus());
-        }
-    }
-
-    /**
-     * 重头执行作业
-     *
-     * @param taskInstance 作业实例
-     */
-    private void restartJob(TaskInstanceDTO taskInstance) {
-        long jobInstanceId = taskInstance.getId();
-        RunStatusEnum taskStatus = taskInstance.getStatus();
-        // 验证作业状态，只有“执行失败”和“等待用户”的作业可以重头执行
-        if (RunStatusEnum.WAITING_USER == taskStatus || RunStatusEnum.FAIL == taskStatus) {
-
-            // 重置作业状态
-            taskInstanceService.resetTaskStatus(jobInstanceId);
-            stepInstanceService.addStepInstanceExecuteCount(jobInstanceId);
-
-            // 重置作业下步骤的状态、开始时间和结束时间等。
-            List<Long> stepInstanceIdList = stepInstanceService.getTaskStepIdList(jobInstanceId);
-            for (long stepInstanceId : stepInstanceIdList) {
-                stepInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
-                stepInstanceService.resetStepStatus(stepInstanceId);
-            }
-
-            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(jobInstanceId));
-        } else {
-            log.warn("Unsupported job instance run status for restart task, jobInstanceId={}, status={}",
                 jobInstanceId, taskInstance.getStatus());
         }
     }
@@ -194,7 +163,8 @@ public class JobListener {
         RunStatusEnum taskStatus = taskInstance.getStatus();
 
         long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
-        StepInstanceBaseDTO currentStepInstance = stepInstanceService.getBaseStepInstance(currentStepInstanceId);
+        StepInstanceBaseDTO currentStepInstance = stepInstanceService.getBaseStepInstance(
+            jobInstanceId, currentStepInstanceId);
         RunStatusEnum stepStatus = currentStepInstance.getStatus();
 
         // 验证作业状态，只有'正在执行'、'强制终止中'的作业可以刷新状态进入下一步或者结束
@@ -242,7 +212,7 @@ public class JobListener {
                     && rollingConfig.isFirstRollingStep(nextStepInstance.getId())) {
                     log.info("Manual mode for rolling step[{}], pause and wait for user confirmation",
                         nextStepInstance.getId());
-                    stepInstanceService.updateStepStatus(nextStepInstance.getId(),
+                    stepInstanceService.updateStepStatus(taskInstance.getId(), nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
                     taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
                 } else {
@@ -320,7 +290,8 @@ public class JobListener {
                         currentStepInstance.getId());
                 }
                 if (nextRollingStepInstanceId != null) {
-                    nextStepInstance = stepInstanceService.getBaseStepInstance(nextRollingStepInstanceId);
+                    nextStepInstance = stepInstanceService.getBaseStepInstance(taskInstance.getId(),
+                        nextRollingStepInstanceId);
                 }
             }
         } else {
@@ -342,12 +313,16 @@ public class JobListener {
     private void startStep(StepInstanceBaseDTO stepInstance) {
         taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
         if (stepInstance.isRollingStep()) {
-            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
+            stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+                stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.startStep(stepInstance.getTaskInstanceId(), stepInstance.getId(),
                 stepInstance.getBatch() + 1));
         } else {
-            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.BLANK.getValue());
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(), null));
+            stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+                stepInstance.getId(), RunStatusEnum.BLANK.getValue());
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.startStep(stepInstance.getTaskInstanceId(), stepInstance.getId(), null));
         }
     }
 

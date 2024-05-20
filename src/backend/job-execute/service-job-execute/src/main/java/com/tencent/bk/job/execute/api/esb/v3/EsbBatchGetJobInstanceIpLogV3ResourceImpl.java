@@ -97,7 +97,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+            request.getTaskInstanceId(), request.getStepInstanceId());
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
@@ -176,7 +177,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
         List<FileExecuteObjectLogContent> ipLogs = logService.batchGetFileExecuteObjectLogContent(
-            stepInstance.getId(), stepInstance.getExecuteCount(), null, null, hostKeys);
+            stepInstance.getTaskInstanceId(), stepInstance.getId(), stepInstance.getExecuteCount(),
+            null, null, hostKeys);
 
         if (CollectionUtils.isEmpty(ipLogs)) {
             return;

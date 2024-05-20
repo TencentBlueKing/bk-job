@@ -89,7 +89,6 @@ import com.tencent.bk.job.execute.model.web.vo.ExecutionResultGroupV2VO;
 import com.tencent.bk.job.execute.model.web.vo.ExecutionResultGroupVO;
 import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailV2VO;
 import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailVO;
-import com.tencent.bk.job.execute.model.web.vo.IpFileLogContentVO;
 import com.tencent.bk.job.execute.model.web.vo.IpScriptLogContentVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingStepBatchTaskVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailV2VO;
@@ -847,60 +846,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return vo;
     }
 
-    @Override
-    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public Response<IpFileLogContentVO> getFileLogContentByHost(String username,
-                                                                AppResourceScope appResourceScope,
-                                                                String scopeType,
-                                                                String scopeId,
-                                                                Long stepInstanceId,
-                                                                Integer executeCount,
-                                                                Long hostId,
-                                                                String mode,
-                                                                Integer batch) {
-        StepInstanceDTO stepInstance =
-            stepInstanceService.getStepInstanceDetail(appResourceScope.getAppId(), stepInstanceId);
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
-
-        IpFileLogContentVO result = new IpFileLogContentVO();
-        List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
-
-        if ("download".equals(mode)) {
-            FileExecuteObjectLogContent downloadLog = logService.getFileExecuteObjectLogContent(stepInstance,
-                executeCount, batch, ExecuteObjectCompositeKey.ofHostId(hostId), FileDistModeEnum.DOWNLOAD.getValue());
-            // downloadLog为null说明步骤还未下发至GSE就被终止
-            if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
-                fileDistDetailVOS =
-                    downloadLog.getFileTaskLogs().stream()
-                        .map(this::convertToFileDistributionDetailVO)
-                        .collect(Collectors.toList());
-                result.setFinished(downloadLog.isFinished());
-            }
-        } else {
-            List<FileExecuteObjectLogContent> executeObjectLogContents =
-                logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
-                    executeCount, batch);
-            if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
-                fileDistDetailVOS =
-                    executeObjectLogContents.stream()
-                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                        .map(this::convertToFileDistributionDetailVO)
-                        .collect(Collectors.toList());
-                result.setFinished(
-                    executeObjectLogContents.stream()
-                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                        .allMatch(fileLog -> FileDistStatusEnum.isFinishedStatus(fileLog.getStatus())));
-            }
-        }
-        Collections.sort(fileDistDetailVOS);
-        result.setFileDistributionDetails(fileDistDetailVOS);
-
-        boolean includingLogContent = !removeFileLogContentIfResultIsLarge(fileDistDetailVOS);
-        result.setIncludingLogContent(includingLogContent);
-
-        return Response.buildSuccessResp(result);
-    }
-
     private boolean removeFileLogContentIfResultIsLarge(List<FileDistributionDetailVO> fileDistDetailVOS) {
         // 超过128K
         boolean removeFileLogContent = calculateFileLogContentLength(fileDistDetailVOS) > 131072L;
@@ -989,28 +934,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         fileDistDetailVO.setStatus(fileLog.getStatus());
         fileDistDetailVO.setLogContent(fileLog.getContent());
         return fileDistDetailVO;
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(String username,
-                                                                                   AppResourceScope appResourceScope,
-                                                                                   String scopeType,
-                                                                                   String scopeId,
-                                                                                   Long stepInstanceId,
-                                                                                   Integer executeCount,
-                                                                                   Integer batch,
-                                                                                   List<String> taskIds) {
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstanceId);
-
-        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId, executeCount,
-            batch, taskIds);
-        if (CollectionUtils.isEmpty(fileTaskLogs)) {
-            return Response.buildSuccessResp(null);
-        }
-        List<FileDistributionDetailVO> fileDistDetailVOS = new ArrayList<>();
-        fileTaskLogs.forEach(fileLog -> fileDistDetailVOS.add(convertToFileDistributionDetailVO(fileLog)));
-        return Response.buildSuccessResp(fileDistDetailVOS);
     }
 
     private void auditAndAuthViewStepInstance(String username,
@@ -1190,7 +1113,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 break;
             case UPLOAD:
                 List<FileExecuteObjectLogContent> executeObjectLogContents =
-                    logService.batchGetFileSourceExecuteObjectLogContent(stepInstanceId,
+                    logService.batchGetFileSourceExecuteObjectLogContent(taskInstanceId, stepInstanceId,
                         actualExecuteCount, batch);
                 if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
                     fileDistDetailVOS =
@@ -1230,7 +1153,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
         int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
-        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(stepInstanceId,
+        List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(taskInstanceId, stepInstanceId,
             actualExecuteCount, batch, taskIds);
         if (CollectionUtils.isEmpty(fileTaskLogs)) {
             return Response.buildSuccessResp(null);

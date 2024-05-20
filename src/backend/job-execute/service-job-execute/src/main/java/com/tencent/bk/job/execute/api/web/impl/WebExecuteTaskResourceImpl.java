@@ -531,6 +531,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
+                                                     Long taskInstanceId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
@@ -538,6 +539,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setTaskInstanceId(taskInstanceId);
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());

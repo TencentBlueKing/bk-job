@@ -230,7 +230,8 @@ public class ThirdFilePrepareService {
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
         fileSourceTaskLogDAO.insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
-        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), fileSourceList);
         // 异步轮询文件下载任务
         ThirdFilePrepareTask task = asyncWatchThirdFilePulling(
             stepInstance,
@@ -250,6 +251,7 @@ public class ThirdFilePrepareService {
     private void continueStepAtOnce(StepInstanceDTO stepInstance) {
         taskExecuteMQEventDispatcher.dispatchGseTaskEvent(
             GseTaskEvent.startGseTask(
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getId(),
                 stepInstance.getExecuteCount(),
                 stepInstance.getBatch(),
@@ -284,8 +286,8 @@ public class ThirdFilePrepareService {
         }
     }
 
-    public void clearPreparedTmpFile(long stepInstanceId) {
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
+    public void clearPreparedTmpFile(long taskInstanceId, long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
         // 找出所有第三方文件源的TaskId进行清理
         List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
         List<String> fileSourceTaskIdList = findFileSourceTaskIds(stepInstanceId, fileSourceList);

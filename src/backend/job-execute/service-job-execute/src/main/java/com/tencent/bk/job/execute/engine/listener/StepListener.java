@@ -60,7 +60,8 @@ public class StepListener {
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+                stepEvent.getJobInstanceId(), stepInstanceId);
             dispatchEvent(stepEvent, stepInstance);
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;

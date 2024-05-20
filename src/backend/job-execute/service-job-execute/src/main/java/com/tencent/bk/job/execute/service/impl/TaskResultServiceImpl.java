@@ -216,7 +216,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             stepInstance.getEndTime(), stepInstance.getTotalTime()));
         stepExecution.setLastStep(stepInstance.isLastStep());
         if (stepInstance.getExecuteType() == StepExecuteTypeEnum.MANUAL_CONFIRM) {
-            ConfirmStepInstanceDTO confirmStepInstance = stepInstanceDAO.getConfirmStepInstance(stepInstance.getId());
+            ConfirmStepInstanceDTO confirmStepInstance = stepInstanceDAO.getConfirmStepInstance(
+                stepInstance.getTaskInstanceId(), stepInstance.getId());
             if (confirmStepInstance != null) {
                 stepExecution.setConfirmMessage(confirmStepInstance.getConfirmMessage());
                 stepExecution.setConfirmReason(confirmStepInstance.getConfirmReason());

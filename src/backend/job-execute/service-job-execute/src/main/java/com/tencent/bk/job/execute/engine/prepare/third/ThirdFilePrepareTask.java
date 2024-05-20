@@ -331,10 +331,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         stepInstance.getUniqueKey(),
                         stepInstance.getAppId()
                     );
-                    stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+                    stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+                        stepInstance.getId(), RunStatusEnum.FAIL.getValue());
                     taskExecuteMQEventDispatcher.dispatchJobEvent(
                         JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                            EventSource.buildStepEventSource(stepInstance.getId())));
+                            EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
                     return;
                 }
                 fileSourceDTO.setAccountId(accountDTO.getId());
@@ -387,7 +388,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
         }
         //更新StepInstance
-        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(
+            stepInstance.getTaskInstanceId(), stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
 

@@ -34,6 +34,10 @@ public class StepOperationDTO {
     /**
      * 步骤实例ID
      */
+    private long taskInstanceId;
+    /**
+     * 步骤实例ID
+     */
     private long stepInstanceId;
     /**
      * 步骤操作

@@ -140,7 +140,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
-    @PostMapping(value = {"/do-step-operation/stepInstanceId/{stepInstanceId}"})
+    @PostMapping(value = {"/do-step-operation/taskInstanceId/{taskInstanceId}/stepInstanceId/{stepInstanceId}"})
     Response<StepOperationVO> doStepOperation(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -154,6 +154,9 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "作业实例ID", required = true, example = "1")
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
         @ApiParam(value = "步骤实例ID", required = true, example = "1")
         @PathVariable("stepInstanceId")
             Long stepInstanceId,

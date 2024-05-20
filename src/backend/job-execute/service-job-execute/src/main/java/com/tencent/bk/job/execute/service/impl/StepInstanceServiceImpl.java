@@ -72,18 +72,13 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public void updateStepCurrentBatch(long stepInstanceId, int batch) {
-        stepInstanceDAO.updateStepCurrentBatch(stepInstanceId, batch);
+    public void updateStepCurrentBatch(long taskInstanceId, long stepInstanceId, int batch) {
+        stepInstanceDAO.updateStepCurrentBatch(taskInstanceId, stepInstanceId, batch);
     }
 
     @Override
-    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
-        stepInstanceDAO.updateStepCurrentExecuteCount(stepInstanceId, executeCount);
-    }
-
-    @Override
-    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
-        stepInstanceDAO.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
+    public void updateStepRollingConfigId(long taskInstanceId, long stepInstanceId, long rollingConfigId) {
+        stepInstanceDAO.updateStepRollingConfigId(taskInstanceId, stepInstanceId, rollingConfigId);
     }
 
     @Override
@@ -110,14 +105,15 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     private void fillStepInstanceDetail(StepInstanceDTO stepInstance) {
+        long taskInstanceId = stepInstance.getTaskInstanceId();
         long stepInstanceId = stepInstance.getId();
         TaskStepTypeEnum stepType = stepInstance.getStepType();
         if (stepType == TaskStepTypeEnum.SCRIPT) {
-            stepInstance.fillScriptStepInfo(stepInstanceDAO.getScriptStepInstance(stepInstanceId));
+            stepInstance.fillScriptStepInfo(stepInstanceDAO.getScriptStepInstance(taskInstanceId, stepInstanceId));
         } else if (stepType == TaskStepTypeEnum.FILE) {
-            stepInstance.fillFileStepInfo(stepInstanceDAO.getFileStepInstance(stepInstanceId));
+            stepInstance.fillFileStepInfo(stepInstanceDAO.getFileStepInstance(taskInstanceId, stepInstanceId));
         } else if (stepType == TaskStepTypeEnum.APPROVAL) {
-            stepInstance.fillConfirmStepInfo(stepInstanceDAO.getConfirmStepInstance(stepInstanceId));
+            stepInstance.fillConfirmStepInfo(stepInstanceDAO.getConfirmStepInstance(taskInstanceId, stepInstanceId));
         }
     }
 
@@ -141,13 +137,23 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
+    public StepInstanceBaseDTO getBaseStepInstance(long taskInstanceId, long stepInstanceId) {
+        return stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
+    }
+
+    @Override
     public StepInstanceBaseDTO getBaseStepInstance(long stepInstanceId) {
         return stepInstanceDAO.getStepInstanceBase(stepInstanceId);
     }
 
     @Override
-    public StepInstanceBaseDTO getBaseStepInstance(long appId, long stepInstanceId) {
-        StepInstanceBaseDTO stepInstance = getBaseStepInstance(stepInstanceId);
+    public StepInstanceBaseDTO getBaseStepInstance(long appId, long taskInstanceId, long stepInstanceId) {
+        StepInstanceBaseDTO stepInstance = getBaseStepInstance(taskInstanceId, stepInstanceId);
+        if (stepInstance == null) {
+            log.warn("Step instance is not exist, taskInstanceId={}, stepInstanceId: {}",
+                taskInstanceId, stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
@@ -156,21 +162,8 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public StepInstanceBaseDTO getBaseStepInstance(long appId,
-                                                   long taskInstanceId,
-                                                   long stepInstanceId) throws NotFoundException {
-        StepInstanceBaseDTO stepInstance = getBaseStepInstance(appId, stepInstanceId);
-        if (!stepInstance.getTaskInstanceId().equals(taskInstanceId)) {
-            log.warn("Step instance is not exist, taskInstanceId={}, stepInstanceId: {}",
-                taskInstanceId, stepInstanceId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        return stepInstance;
-    }
-
-    @Override
-    public StepInstanceDTO getStepInstanceDetail(long stepInstanceId) throws NotFoundException {
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+    public StepInstanceDTO getStepInstanceDetail(long taskInstanceId, long stepInstanceId) throws NotFoundException {
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
         if (stepInstanceBase == null) {
             log.warn("StepInstance:{} not exist", stepInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
@@ -181,22 +174,11 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public StepInstanceDTO getStepInstanceDetail(long appId, long stepInstanceId) throws NotFoundException {
-        StepInstanceDTO stepInstance = getStepInstanceDetail(stepInstanceId);
+    public StepInstanceDTO getStepInstanceDetail(long appId, long taskInstanceId,
+                                                 long stepInstanceId) throws NotFoundException {
+        StepInstanceDTO stepInstance = getStepInstanceDetail(taskInstanceId, stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             log.warn("StepInstance:{} is not in app:{}", stepInstanceId, appId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        return stepInstance;
-    }
-
-    @Override
-    public StepInstanceDTO getStepInstanceDetail(long appId,
-                                                 long taskInstanceId,
-                                                 long stepInstanceId) throws NotFoundException {
-        StepInstanceDTO stepInstance = getStepInstanceDetail(appId, stepInstanceId);
-        if (!stepInstance.getTaskInstanceId().equals(taskInstanceId)) {
-            log.warn("StepInstance:{} is not belong to taskInstance:{}", stepInstanceId, taskInstanceId);
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
         return stepInstance;
@@ -213,80 +195,76 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public void updateStepStatus(long stepInstanceId, int status) {
-        stepInstanceDAO.updateStepStatus(stepInstanceId, status);
+    public void updateStepStatus(long taskInstanceId, long stepInstanceId, int status) {
+        stepInstanceDAO.updateStepStatus(taskInstanceId, stepInstanceId, status);
     }
 
     @Override
-    public void resetStepExecuteInfoForRetry(long stepInstanceId) {
-        stepInstanceDAO.resetStepExecuteInfoForRetry(stepInstanceId);
+    public void resetStepExecuteInfoForRetry(long taskInstanceId, long stepInstanceId) {
+        stepInstanceDAO.resetStepExecuteInfoForRetry(taskInstanceId, stepInstanceId);
     }
 
     @Override
-    public void resetStepStatus(long stepInstanceId) {
-        stepInstanceDAO.resetStepStatus(stepInstanceId);
+    public void resetStepStatus(long taskInstanceId, long stepInstanceId) {
+        stepInstanceDAO.resetStepStatus(taskInstanceId, stepInstanceId);
     }
 
     @Override
-    public void updateStepStartTime(long stepInstanceId, Long startTime) {
-        stepInstanceDAO.updateStepStartTime(stepInstanceId, startTime);
+    public void updateStepStartTimeIfNull(long taskInstanceId, long stepInstanceId, Long startTime) {
+        stepInstanceDAO.updateStepStartTimeIfNull(taskInstanceId, stepInstanceId, startTime);
     }
 
     @Override
-    public void updateStepStartTimeIfNull(long stepInstanceId, Long startTime) {
-        stepInstanceDAO.updateStepStartTimeIfNull(stepInstanceId, startTime);
+    public void updateStepEndTime(long taskInstanceId, long stepInstanceId, Long endTime) {
+        stepInstanceDAO.updateStepEndTime(taskInstanceId, stepInstanceId, endTime);
     }
 
     @Override
-    public void updateStepEndTime(long stepInstanceId, Long endTime) {
-        stepInstanceDAO.updateStepEndTime(stepInstanceId, endTime);
+    public void addStepInstanceExecuteCount(long taskInstanceId, long stepInstanceId) {
+        stepInstanceDAO.addStepInstanceExecuteCount(taskInstanceId, stepInstanceId);
     }
 
     @Override
-    public void addStepInstanceExecuteCount(long stepInstanceId) {
-        stepInstanceDAO.addStepInstanceExecuteCount(stepInstanceId);
-    }
-
-    @Override
-    public void updateStepTotalTime(long stepInstanceId, long totalTime) {
-        stepInstanceDAO.updateStepTotalTime(stepInstanceId, totalTime);
-    }
-
-    @Override
-    public void updateStepExecutionInfo(long stepInstanceId,
+    public void updateStepExecutionInfo(long taskInstanceId,
+                                        long stepInstanceId,
                                         RunStatusEnum status,
                                         Long startTime,
                                         Long endTime,
                                         Long totalTime) {
-        stepInstanceDAO.updateStepExecutionInfo(stepInstanceId, status, startTime, endTime, totalTime);
+        stepInstanceDAO.updateStepExecutionInfo(taskInstanceId, stepInstanceId, status, startTime, endTime, totalTime);
     }
 
     @Override
-    public void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam) {
-        stepInstanceDAO.updateResolvedScriptParam(stepInstanceId, isSecureParam, resolvedScriptParam);
+    public void updateResolvedScriptParam(long taskInstanceId,
+                                          long stepInstanceId,
+                                          boolean isSecureParam,
+                                          String resolvedScriptParam) {
+        stepInstanceDAO.updateResolvedScriptParam(taskInstanceId, stepInstanceId, isSecureParam, resolvedScriptParam);
     }
 
     @Override
-    public void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources) {
+    public void updateResolvedSourceFile(long taskInstanceId,
+                                         long stepInstanceId,
+                                         List<FileSourceDTO> resolvedFileSources) {
         if (log.isDebugEnabled()) {
             log.debug("updateResolvedSourceFile={}", JsonUtils.toJson(resolvedFileSources));
         }
-        stepInstanceDAO.updateResolvedSourceFile(stepInstanceId, resolvedFileSources);
+        stepInstanceDAO.updateResolvedSourceFile(taskInstanceId, stepInstanceId, resolvedFileSources);
     }
 
     @Override
-    public void updateResolvedTargetPath(long stepInstanceId, String resolvedTargetPath) {
-        stepInstanceDAO.updateResolvedTargetPath(stepInstanceId, resolvedTargetPath);
+    public void updateResolvedTargetPath(long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
+        stepInstanceDAO.updateResolvedTargetPath(taskInstanceId, stepInstanceId, resolvedTargetPath);
     }
 
     @Override
-    public void updateConfirmReason(long stepInstanceId, String confirmReason) {
-        stepInstanceDAO.updateConfirmReason(stepInstanceId, confirmReason);
+    public void updateConfirmReason(long taskInstanceId, long stepInstanceId, String confirmReason) {
+        stepInstanceDAO.updateConfirmReason(taskInstanceId, stepInstanceId, confirmReason);
     }
 
     @Override
-    public void updateStepOperator(long stepInstanceId, String operator) {
-        stepInstanceDAO.updateStepOperator(stepInstanceId, operator);
+    public void updateStepOperator(long taskInstanceId, long stepInstanceId, String operator) {
+        stepInstanceDAO.updateStepOperator(taskInstanceId, stepInstanceId, operator);
     }
 
     @Override
@@ -331,7 +309,8 @@ public class StepInstanceServiceImpl implements StepInstanceService {
             if (stepInstance instanceof StepInstanceDTO) {
                 fileSourceList = ((StepInstanceDTO) stepInstance).getFileSourceList();
             } else {
-                FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(stepInstance.getId());
+                FileStepInstanceDTO fileStepInstance = stepInstanceDAO.getFileStepInstance(
+                    stepInstance.getTaskInstanceId(), stepInstance.getId());
                 fileSourceList = fileStepInstance.getFileSourceList();
             }
 
@@ -353,11 +332,6 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         }
 
         return executeObjects;
-    }
-
-    @Override
-    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
-        return stepInstanceDAO.getStepInstanceBase(stepInstanceId);
     }
 
     @Override
@@ -392,7 +366,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         if (stepInstance instanceof StepInstanceDTO) {
             return (StepInstanceDTO) stepInstance;
         } else {
-            return getStepInstanceDetail(stepInstance.getId());
+            return getStepInstanceDetail(stepInstance.getTaskInstanceId(), stepInstance.getId());
         }
     }
 
@@ -424,10 +398,5 @@ public class StepInstanceServiceImpl implements StepInstanceService {
         } else {
             throw new InternalException("Not support method invoke for step", ErrorCode.INTERNAL_ERROR);
         }
-    }
-
-    @Override
-    public Long getStepTaskInstanceId(long appId, long stepInstanceId) {
-        return stepInstanceDAO.getTaskInstanceId(appId, stepInstanceId);
     }
 }

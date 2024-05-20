@@ -256,7 +256,8 @@ public class NotifyServiceImpl implements NotifyService {
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
         long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
-        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(currentStepId);
+        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(
+            taskInstanceDTO.getId(), currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
             if (stepInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.step.duration", "" + stepInstanceDTO.getTotalTime() / 1000.0);
@@ -383,7 +384,8 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
                                                StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
+        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(
+            taskInstance.getId(), stepInstance.getId());
         if (stepInstanceDetail == null) {
             log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
             return;

@@ -26,8 +26,6 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.util.Utils;
@@ -50,25 +48,19 @@ import com.tencent.bk.job.execute.model.tables.StepInstanceScript;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
-import org.jooq.conf.ParamType;
 import org.jooq.types.UByte;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -76,8 +68,10 @@ import java.util.List;
 public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     private static final StepInstance T_STEP_INSTANCE = StepInstance.STEP_INSTANCE;
-    private static final StepInstanceScript TABLE_STEP_INSTANCE_SCRIPT = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-    private static final StepInstanceFile TABLE_STEP_INSTANCE_FILE = StepInstanceFile.STEP_INSTANCE_FILE;
+    private static final StepInstanceScript T_STEP_INSTANCE_SCRIPT = StepInstanceScript.STEP_INSTANCE_SCRIPT;
+    private static final StepInstanceFile T_STEP_INSTANCE_FILE = StepInstanceFile.STEP_INSTANCE_FILE;
+    private static final StepInstanceConfirm T_STEP_INSTANCE_CONFIRM = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
+
     private static final TableField<?, ?>[] T_STEP_INSTANCE_ALL_FIELDS = {
         T_STEP_INSTANCE.ID,
         T_STEP_INSTANCE.STEP_ID,
@@ -98,6 +92,50 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         T_STEP_INSTANCE.STEP_ORDER,
         T_STEP_INSTANCE.BATCH,
         T_STEP_INSTANCE.ROLLING_CONFIG_ID
+    };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_SCRIPT_ALL_FIELDS = {
+        T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_CONTENT,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_PARAM,
+        T_STEP_INSTANCE_SCRIPT.RESOLVED_SCRIPT_PARAM,
+        T_STEP_INSTANCE_SCRIPT.EXECUTION_TIMEOUT,
+        T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT_ID,
+        T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT,
+        T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT_ID,
+        T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT,
+        T_STEP_INSTANCE_SCRIPT.DB_TYPE,
+        T_STEP_INSTANCE_SCRIPT.DB_PASSWORD,
+        T_STEP_INSTANCE_SCRIPT.DB_PORT,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_SOURCE,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_ID,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_VERSION_ID,
+        T_STEP_INSTANCE_SCRIPT.IS_SECURE_PARAM
+    };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_FILE_ALL_FIELDS = {
+        T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_FILE.FILE_SOURCE,
+        T_STEP_INSTANCE_FILE.FILE_TARGET_PATH,
+        T_STEP_INSTANCE_FILE.FILE_TARGET_NAME,
+        T_STEP_INSTANCE_FILE.RESOLVED_FILE_TARGET_PATH,
+        T_STEP_INSTANCE_FILE.FILE_UPLOAD_SPEED_LIMIT,
+        T_STEP_INSTANCE_FILE.FILE_DOWNLOAD_SPEED_LIMIT,
+        T_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE,
+        T_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER,
+        T_STEP_INSTANCE_FILE.EXECUTION_TIMEOUT,
+        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT_ID,
+        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT
+    };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_CONFIRM_ALL_FIELDS = {
+        T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_MESSAGE,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_REASON,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_USERS,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_ROLES,
+        T_STEP_INSTANCE_CONFIRM.NOTIFY_CHANNELS
     };
 
     private final DSLContext CTX;
@@ -168,6 +206,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         CTX.insertInto(t,
             t.STEP_INSTANCE_ID,
+            t.TASK_INSTANCE_ID,
             t.SCRIPT_CONTENT,
             t.SCRIPT_TYPE,
             t.SCRIPT_PARAM,
@@ -186,6 +225,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             t.IS_SECURE_PARAM
         ).values(
             stepInstance.getId(),
+            stepInstance.getTaskInstanceId(),
             stepInstance.getScriptContent(),
             stepInstance.getScriptType().getValue().byteValue(),
             sensitiveParamCryptoService.encryptParamIfNeeded(
@@ -213,6 +253,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         CTX.insertInto(t,
             t.STEP_INSTANCE_ID,
+            t.TASK_INSTANCE_ID,
             t.FILE_SOURCE,
             t.FILE_TARGET_PATH,
             t.FILE_TARGET_NAME,
@@ -225,6 +266,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             t.SYSTEM_ACCOUNT
         ).values(
             stepInstance.getId(),
+            stepInstance.getTaskInstanceId(),
             JsonUtils.toJson(stepInstance.getFileSourceList()),
             stepInstance.getFileTargetPath(),
             stepInstance.getFileTargetName(),
@@ -241,8 +283,16 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     @Override
     public void addConfirmStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        CTX.insertInto(t, t.STEP_INSTANCE_ID, t.CONFIRM_MESSAGE, t.CONFIRM_USERS, t.CONFIRM_ROLES, t.NOTIFY_CHANNELS)
-            .values(stepInstance.getId(),
+        CTX.insertInto(t,
+            t.STEP_INSTANCE_ID,
+            t.TASK_INSTANCE_ID,
+            t.CONFIRM_MESSAGE,
+            t.CONFIRM_USERS,
+            t.CONFIRM_ROLES,
+            t.NOTIFY_CHANNELS)
+            .values(
+                stepInstance.getId(),
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getConfirmMessage(),
                 stepInstance.getConfirmUsers() == null ? null :
                     Utils.concatStringWithSeperator(stepInstance.getConfirmUsers(), ","),
@@ -254,28 +304,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId) {
-        StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        Record record = CTX.select(
-            t.STEP_INSTANCE_ID,
-            t.SCRIPT_CONTENT,
-            t.SCRIPT_TYPE,
-            t.SCRIPT_PARAM,
-            t.RESOLVED_SCRIPT_PARAM,
-            t.EXECUTION_TIMEOUT,
-            t.SYSTEM_ACCOUNT_ID,
-            t.SYSTEM_ACCOUNT,
-            t.DB_ACCOUNT_ID,
-            t.DB_ACCOUNT,
-            t.DB_TYPE,
-            t.DB_PASSWORD,
-            t.DB_PORT,
-            t.SCRIPT_SOURCE,
-            t.SCRIPT_ID,
-            t.SCRIPT_VERSION_ID,
-            t.IS_SECURE_PARAM
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public ScriptStepInstanceDTO getScriptStepInstance(long taskInstanceId, long stepInstanceId) {
+        Record record = CTX.select(T_STEP_INSTANCE_SCRIPT_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_SCRIPT)
+            .where(T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractScriptInfo(record);
     }
 
@@ -285,6 +319,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         }
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
+        stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
         stepInstance.setScriptType(ScriptTypeEnum.valOf(record.get(t.SCRIPT_TYPE).intValue()));
@@ -332,23 +367,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
-        StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        Record record = CTX.select(
-            t.STEP_INSTANCE_ID,
-            t.FILE_SOURCE,
-            t.FILE_TARGET_PATH,
-            t.FILE_TARGET_NAME,
-            t.RESOLVED_FILE_TARGET_PATH,
-            t.FILE_UPLOAD_SPEED_LIMIT,
-            t.FILE_DOWNLOAD_SPEED_LIMIT,
-            t.FILE_DUPLICATE_HANDLE,
-            t.NOT_EXIST_PATH_HANDLER,
-            t.EXECUTION_TIMEOUT,
-            t.SYSTEM_ACCOUNT_ID,
-            t.SYSTEM_ACCOUNT
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public FileStepInstanceDTO getFileStepInstance(long taskInstanceId, long stepInstanceId) {
+        Record record = CTX.select(T_STEP_INSTANCE_FILE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_FILE)
+            .where(T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractFileInfo(record);
     }
 
@@ -358,6 +382,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         }
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         FileStepInstanceDTO stepInstance = new FileStepInstanceDTO();
+        stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
         List<FileSourceDTO> fileSourceList = JsonUtils.fromJson(record.get(t.FILE_SOURCE),
@@ -383,17 +408,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public ConfirmStepInstanceDTO getConfirmStepInstance(long stepInstanceId) {
-        StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        Record record = CTX.select(
-            t.STEP_INSTANCE_ID,
-            t.CONFIRM_MESSAGE,
-            t.CONFIRM_REASON,
-            t.CONFIRM_USERS,
-            t.CONFIRM_ROLES,
-            t.NOTIFY_CHANNELS
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public ConfirmStepInstanceDTO getConfirmStepInstance(long taskInstanceId, long stepInstanceId) {
+        Record record = CTX.select(T_STEP_INSTANCE_CONFIRM_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_CONFIRM)
+            .where(T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractConfirmInfo(record);
     }
 
@@ -403,6 +423,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         }
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         ConfirmStepInstanceDTO stepInstanceDTO = new ConfirmStepInstanceDTO();
+        stepInstanceDTO.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstanceDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstanceDTO.setConfirmMessage(record.get(t.CONFIRM_MESSAGE));
         stepInstanceDTO.setConfirmReason(record.get(t.CONFIRM_REASON));
@@ -416,11 +437,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
+    public StepInstanceBaseDTO getStepInstanceBase(long taskInstanceId, long stepInstanceId) {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .fetchOne();
         return extractBaseInfo(record);
     }
@@ -455,6 +477,16 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         stepInstance.setBatch(record.get(t.BATCH));
         stepInstance.setRollingConfigId(record.get(t.ROLLING_CONFIG_ID));
         return stepInstance;
+    }
+
+    @Override
+    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
+        Record record = CTX
+            .select(T_STEP_INSTANCE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .fetchOne();
+        return extractBaseInfo(record);
     }
 
     @Override
@@ -496,76 +528,106 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void resetStepStatus(long stepInstanceId) {
+    public void resetStepStatus(long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).setNull(t.START_TIME).setNull(t.END_TIME).setNull(t.TOTAL_TIME)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .setNull(t.START_TIME)
+            .setNull(t.END_TIME)
+            .setNull(t.TOTAL_TIME)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void resetStepExecuteInfoForRetry(long stepInstanceId) {
+    public void resetStepExecuteInfoForRetry(long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
-            .where(t.ID.eq(stepInstanceId)).execute();
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void addStepExecuteCount(long stepInstanceId) {
+    public void addStepExecuteCount(long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void updateStepStatus(long stepInstanceId, int status) {
+    public void updateStepStatus(long taskInstanceId, long stepInstanceId, int status) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.STATUS, JooqDataTypeUtil.toByte(status))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .set(t.STATUS, JooqDataTypeUtil.toByte(status))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void updateStepStartTime(long stepInstanceId, Long startTime) {
+    public void updateStepStartTime(long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.START_TIME, startTime)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .set(t.START_TIME, startTime)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void updateStepStartTimeIfNull(long stepInstanceId, Long startTime) {
+    public void updateStepStartTimeIfNull(long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.START_TIME, startTime)
-            .where(t.ID.eq(stepInstanceId))
+        CTX.update(t)
+            .set(t.START_TIME, startTime)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .and(t.START_TIME.isNull())
             .execute();
     }
 
     @Override
-    public void updateStepEndTime(long stepInstanceId, Long endTime) {
+    public void updateStepEndTime(long taskInstanceId, long stepInstanceId, Long endTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.END_TIME, endTime)
-            .where(t.ID.eq(stepInstanceId))
+        CTX.update(t)
+            .set(t.END_TIME, endTime)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void addStepInstanceExecuteCount(long stepInstanceId) {
+    public void addStepInstanceExecuteCount(long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void updateStepTotalTime(long stepInstanceId, long totalTime) {
+    public void updateStepTotalTime(long taskInstanceId, long stepInstanceId, long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        CTX.update(t).set(t.TOTAL_TIME, totalTime)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        CTX.update(t)
+            .set(t.TOTAL_TIME, totalTime)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
-    public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
+    public void updateStepExecutionInfo(long taskInstanceId,
+                                        long stepInstanceId,
+                                        RunStatusEnum status,
+                                        Long startTime,
+                                        Long endTime,
                                         Long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = buildBasicUpdateSetMoreStep(status,
@@ -573,11 +635,16 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         if (updateSetMoreStep == null) {
             return;
         }
-        updateSetMoreStep.where(t.ID.eq(stepInstanceId)).execute();
+        updateSetMoreStep
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
-    private UpdateSetMoreStep<StepInstanceRecord> buildBasicUpdateSetMoreStep(RunStatusEnum status, Long startTime,
-                                                                              Long endTime, Long totalTime) {
+    private UpdateSetMoreStep<StepInstanceRecord> buildBasicUpdateSetMoreStep(RunStatusEnum status,
+                                                                              Long startTime,
+                                                                              Long endTime,
+                                                                              Long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
@@ -608,44 +675,57 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam) {
+    public void updateResolvedScriptParam(long taskInstanceId,
+                                          long stepInstanceId,
+                                          boolean isSecureParam,
+                                          String resolvedScriptParam) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         CTX.update(t)
             .set(t.RESOLVED_SCRIPT_PARAM, sensitiveParamCryptoService.encryptParamIfNeeded(
                 isSecureParam, resolvedScriptParam
-            )).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+            ))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources) {
+    public void updateResolvedSourceFile(long taskInstanceId,
+                                         long stepInstanceId,
+                                         List<FileSourceDTO> resolvedFileSources) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        CTX.update(t).set(t.FILE_SOURCE, JsonUtils.toJson(resolvedFileSources))
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+        CTX.update(t)
+            .set(t.FILE_SOURCE, JsonUtils.toJson(resolvedFileSources))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateResolvedTargetPath(long stepInstanceId, String resolvedTargetPath) {
+    public void updateResolvedTargetPath(long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        CTX.update(t).set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+        CTX.update(t)
+            .set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateConfirmReason(long stepInstanceId, String confirmReason) {
+    public void updateConfirmReason(long taskInstanceId, long stepInstanceId, String confirmReason) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         CTX.update(t).set(t.CONFIRM_REASON, confirmReason)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateStepOperator(long stepInstanceId, String operator) {
+    public void updateStepOperator(long taskInstanceId, long stepInstanceId, String operator) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t).set(t.OPERATOR, operator)
-            .where(t.ID.eq(stepInstanceId))
+            .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .execute();
     }
 
@@ -693,262 +773,44 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public Byte getScriptTypeByStepInstanceId(long stepInstanceId) {
-        Result<Record1<Byte>> records = CTX.select(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
-            .from(TABLE_STEP_INSTANCE_SCRIPT)
-            .where(TABLE_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
+    public Byte getScriptTypeByStepInstanceId(long taskInstanceId, long stepInstanceId) {
+        Result<Record1<Byte>> records = CTX.select(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
+            .from(T_STEP_INSTANCE_SCRIPT)
+            .where(T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
             .limit(1)
             .fetch();
         if (records.isEmpty()) {
             return null;
         } else {
-            return records.get(0).get(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE);
-        }
-    }
-
-    public Integer countStepInstanceByConditions(Collection<Condition> conditions) {
-        Record1<Integer> record = CTX.selectCount().from(T_STEP_INSTANCE)
-            .where(conditions).fetchOne();
-        assert record != null;
-        return record.value1();
-    }
-
-    public Integer countStepInstanceScriptByConditions(Collection<Condition> conditions) {
-        Record1<Integer> record = CTX.selectCount().from(TABLE_STEP_INSTANCE_SCRIPT)
-            .where(conditions).fetchOne();
-        assert record != null;
-        return record.value1();
-    }
-
-    public Integer countStepInstanceFileByConditions(Collection<Condition> conditions) {
-        Record1<Integer> record = CTX.selectCount().from(TABLE_STEP_INSTANCE_FILE)
-            .where(conditions).fetchOne();
-        assert record != null;
-        return record.value1();
-    }
-
-    @Override
-    public Integer count(Long appId, List<Long> stepIdList, StepExecuteTypeEnum stepExecuteType,
-                         ScriptTypeEnum scriptType, RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        List<Condition> stepInstanceConditions = genStepInstanceConditions(appId, stepIdList, stepExecuteType,
-            runStatus, fromTime, toTime);
-        if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepExecuteType && scriptType != null) {
-            int totalCount = 0;
-            int offset = 0;
-            int limit = 10000;
-            List<Long> stepInstanceIds;
-            do {
-                // 1.查stepInstanceId
-                stepInstanceIds = listStepInstanceIds(stepInstanceConditions, offset, limit);
-                if (stepInstanceIds == null || stepInstanceIds.isEmpty()) {
-                    break;
-                }
-                // 2.分批统计脚本步骤实例
-                List<Condition> stepInstanceScriptConditions = new ArrayList<>();
-                stepInstanceScriptConditions.add(TABLE_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.in(stepInstanceIds));
-                stepInstanceScriptConditions.add(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE.eq(scriptType.getValue().byteValue()));
-                totalCount += countStepInstanceScriptByConditions(stepInstanceScriptConditions);
-                offset += limit;
-            } while (stepInstanceIds.size() == limit);
-            return totalCount;
-        } else {
-            return countStepInstanceByConditions(stepInstanceConditions);
-        }
-    }
-
-    private List<Long> listStepInstanceIds(Collection<Condition> conditions, int offset, int limit) {
-        Result<Record1<Long>> records = CTX.select(T_STEP_INSTANCE.ID)
-            .from(T_STEP_INSTANCE)
-            .where(conditions)
-            .limit(offset, limit)
-            .fetch();
-        if (records.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            return records.map(it -> it.get(T_STEP_INSTANCE.ID));
-        }
-    }
-
-    private List<Condition> genStepInstanceConditions(Long appId, List<Long> stepIdList,
-                                                      StepExecuteTypeEnum stepExecuteType, RunStatusEnum runStatus,
-                                                      Long fromTime, Long toTime) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(T_STEP_INSTANCE.APP_ID.eq(appId));
-        }
-        if (stepIdList != null && !stepIdList.isEmpty()) {
-            conditions.add(T_STEP_INSTANCE.STEP_ID.in(stepIdList));
-        }
-        if (stepExecuteType != null) {
-            conditions.add(T_STEP_INSTANCE.TYPE.eq(stepExecuteType.getValue().byteValue()));
-        }
-        if (runStatus != null) {
-            conditions.add(T_STEP_INSTANCE.STATUS.eq(runStatus.getValue().byteValue()));
-        }
-        if (fromTime != null) {
-            conditions.add(T_STEP_INSTANCE.CREATE_TIME.greaterOrEqual(fromTime));
-        }
-        if (toTime != null) {
-            conditions.add(T_STEP_INSTANCE.CREATE_TIME.lessThan(toTime));
-        }
-        return conditions;
-    }
-
-    private List<Condition> genStepInstanceFileConditions(Collection<Long> stepInstanceIds,
-                                                          DuplicateHandlerEnum fileDupliateHandle,
-                                                          Boolean fileDupliateHandleNull,
-                                                          NotExistPathHandlerEnum notExistPathHandler,
-                                                          Boolean notExistPathHandlerNull) {
-        List<Condition> conditions = new ArrayList<>();
-        if (stepInstanceIds != null) {
-            conditions.add(TABLE_STEP_INSTANCE_FILE.STEP_INSTANCE_ID.in(stepInstanceIds));
-        }
-        if (fileDupliateHandle != null) {
-            conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.eq((byte) fileDupliateHandle.getId()));
-        } else {
-            if (fileDupliateHandleNull != null) {
-                if (fileDupliateHandleNull) {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNull());
-                } else {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNotNull());
-                }
-            }
-            // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
-        }
-        if (notExistPathHandler != null) {
-            conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.eq(UByte.valueOf(notExistPathHandler.getValue())));
-        } else {
-            if (notExistPathHandlerNull != null) {
-                if (notExistPathHandlerNull) {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNull());
-                } else {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNotNull());
-                }
-            }
-            // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
-        }
-        return conditions;
-    }
-
-    private List<Condition> genConditions(Long appId, DuplicateHandlerEnum fileDupliateHandle,
-                                          Boolean fileDupliateHandleNull, NotExistPathHandlerEnum notExistPathHandler
-        , Boolean notExistPathHandlerNull, RunStatusEnum runStatus, Long fromTime, Long toTime) {
-        List<Condition> conditions = new ArrayList<>();
-        if (appId != null) {
-            conditions.add(T_STEP_INSTANCE.APP_ID.eq(appId));
-        }
-        if (fileDupliateHandle != null) {
-            conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.eq((byte) fileDupliateHandle.getId()));
-        } else {
-            if (fileDupliateHandleNull != null) {
-                if (fileDupliateHandleNull) {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNull());
-                } else {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE.isNotNull());
-                }
-            }
-            // fileDupliateHandle与fileDupliateHandleNull同时为null表示FILE_DUPLICATE_HANDLE字段不作任何筛选
-        }
-        if (notExistPathHandler != null) {
-            conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.eq(UByte.valueOf(notExistPathHandler.getValue())));
-        } else {
-            if (notExistPathHandlerNull != null) {
-                if (notExistPathHandlerNull) {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNull());
-                } else {
-                    conditions.add(TABLE_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER.isNotNull());
-                }
-            }
-            // notExistPathHandler与notExistPathHandlerNull同时为null表示NOT_EXIST_PATH_HANDLER字段不作任何筛选
-        }
-        if (runStatus != null) {
-            conditions.add(T_STEP_INSTANCE.STATUS.eq(runStatus.getValue().byteValue()));
-        }
-        if (fromTime != null) {
-            conditions.add(T_STEP_INSTANCE.CREATE_TIME.greaterOrEqual(fromTime));
-        }
-        if (toTime != null) {
-            conditions.add(T_STEP_INSTANCE.CREATE_TIME.lessThan(toTime));
-        }
-        return conditions;
-    }
-
-    @Override
-    public List<List<FileSourceDTO>> listFastPushFileSource(Long appId, DuplicateHandlerEnum fileDupliateHandle,
-                                                            Boolean fileDupliateHandleNull,
-                                                            NotExistPathHandlerEnum notExistPathHandler,
-                                                            Boolean notExistPathHandlerNull, RunStatusEnum runStatus,
-                                                            Long fromTime, Long toTime) {
-        List<Condition> conditions = genConditions(appId, fileDupliateHandle, fileDupliateHandleNull,
-            notExistPathHandler, notExistPathHandlerNull, runStatus, fromTime, toTime);
-        val query =
-            CTX.select(TABLE_STEP_INSTANCE_FILE.FILE_SOURCE).from(T_STEP_INSTANCE).join(TABLE_STEP_INSTANCE_FILE)
-                .on(T_STEP_INSTANCE.ID.eq(TABLE_STEP_INSTANCE_FILE.STEP_INSTANCE_ID))
-                .where(conditions);
-        String sql = query.getSQL(ParamType.INLINED);
-        try {
-            Result<Record1<String>> records = query.fetch();
-            List<List<FileSourceDTO>> resultList = new ArrayList<>();
-            records.forEach(record -> resultList.add(convertStringToFileSourceDTO((String) record.get(0))));
-            return resultList;
-        } catch (Exception e) {
-            String msg = MessageFormatter.format(
-                "Fail to query:{}",
-                sql
-            ).getMessage();
-            log.error(msg, e);
-            throw new RuntimeException("Fail to listFastPushFileSource", e);
+            return records.get(0).get(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE);
         }
     }
 
     @Override
-    public Integer countFastPushFile(Long appId, DuplicateHandlerEnum fileDupliateHandle,
-                                     Boolean fileDupliateHandleNull, NotExistPathHandlerEnum notExistPathHandler,
-                                     Boolean notExistPathHandlerNull, RunStatusEnum runStatus, Long fromTime,
-                                     Long toTime) {
-        // 1.查stepInstanceId
-        int totalCount = 0;
-        int offset = 0;
-        int limit = 10000;
-        List<Long> stepInstanceIds;
-        do {
-            stepInstanceIds = listStepInstanceIds(genStepInstanceConditions(appId, null, null, null, fromTime,
-                toTime), offset, limit);
-            if (stepInstanceIds == null || stepInstanceIds.isEmpty()) {
-                break;
-            }
-            // 2.分批统计文件步骤实例
-            List<Condition> stepInstanceFileConditions = genStepInstanceFileConditions(stepInstanceIds,
-                fileDupliateHandle, fileDupliateHandleNull, notExistPathHandler, notExistPathHandlerNull);
-            totalCount += countStepInstanceFileByConditions(stepInstanceFileConditions);
-            offset += limit;
-        } while (stepInstanceIds.size() == limit);
-        return totalCount;
-    }
-
-    private List<FileSourceDTO> convertStringToFileSourceDTO(String str) {
-        return JsonUtils.fromJson(str, new TypeReference<ArrayList<FileSourceDTO>>() {
-        });
-    }
-
-    @Override
-    public void updateStepCurrentBatch(long stepInstanceId, int batch) {
-        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepCurrentBatch(long taskInstanceId, long stepInstanceId, int batch) {
+        CTX.update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
-        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepCurrentExecuteCount(long taskInstanceId, long stepInstanceId, int executeCount) {
+        CTX.update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
-        CTX.update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepRollingConfigId(long taskInstanceId, long stepInstanceId, long rollingConfigId) {
+        CTX.update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
