@@ -520,6 +520,9 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
     @GetMapping(value = {"/step-execution-history/{stepInstanceId}"})
+    @Deprecated
+    @CompatibleImplementation(name = "add_task_instance_id", deprecatedVersion = "3.10.x", type = CompatibleType.DEPLOY,
+        explain = "发布完成后可以删除")
     Response<List<StepExecutionRecordVO>> listStepExecutionHistory(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -533,6 +536,33 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
+    );
+
+
+    @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
+    @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/stepExecutionHistory"})
+    Response<List<StepExecutionRecordVO>> listStepExecutionHistoryV2(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "作业实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
             Long stepInstanceId,

@@ -48,6 +48,11 @@ public interface StepInstanceDAO {
 
     StepInstanceBaseDTO getStepInstanceBase(Long taskInstanceId, long stepInstanceId);
 
+    /**
+     * 获取步骤信息。注意，在分库分表的部署架构下，由于缺少 taskInstanceId （分片键）作为查询条件，该 SQL 执行性能较低；慎用！！
+     *
+     * @param stepInstanceId 步骤实例 ID
+     */
     StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId);
 
     /**

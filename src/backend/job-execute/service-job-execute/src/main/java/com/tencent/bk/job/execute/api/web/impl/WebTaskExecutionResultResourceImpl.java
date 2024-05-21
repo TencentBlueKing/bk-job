@@ -966,7 +966,16 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                         String tag,
                                                         String keyword) {
         List<ExecuteObject> executeObjects = taskResultService.getExecuteObjectsByResultType(
-            username, appResourceScope.getAppId(), stepInstanceId, executeCount, batch, resultType, tag, keyword);
+            username,
+            appResourceScope.getAppId(),
+            null,
+            stepInstanceId,
+            executeCount,
+            batch,
+            resultType,
+            tag,
+            keyword
+        );
         if (CollectionUtils.isEmpty(executeObjects)) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
@@ -987,10 +996,31 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                           Integer batch) {
 
         List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
-            appResourceScope.getAppId(), stepInstanceId, batch);
+            appResourceScope.getAppId(), null, stepInstanceId, batch);
 
         return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
             StepExecutionRecordVO vo = new StepExecutionRecordVO();
+            vo.setStepInstanceId(stepInstanceId);
+            vo.setRetryCount(stepExecutionRecord.getRetryCount());
+            vo.setExecuteCount(stepExecutionRecord.getRetryCount());
+            vo.setCreateTime(stepExecutionRecord.getCreateTime());
+            return vo;
+        }).collect(Collectors.toList()));
+    }
+
+    @Override
+    public Response<List<StepExecutionRecordVO>> listStepExecutionHistoryV2(String username,
+                                                                            AppResourceScope appResourceScope,
+                                                                            String scopeType,
+                                                                            String scopeId,
+                                                                            Long taskInstanceId,
+                                                                            Long stepInstanceId, Integer batch) {
+        List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
+            appResourceScope.getAppId(), taskInstanceId, stepInstanceId, batch);
+
+        return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
+            StepExecutionRecordVO vo = new StepExecutionRecordVO();
+            vo.setTaskInstanceId(taskInstanceId);
             vo.setStepInstanceId(stepInstanceId);
             vo.setRetryCount(stepExecutionRecord.getRetryCount());
             vo.setExecuteCount(stepExecutionRecord.getRetryCount());
@@ -1200,8 +1230,18 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                          Integer resultType,
                                                                          String tag,
                                                                          String keyword) {
-        List<ExecuteObject> executeObjects = taskResultService.getExecuteObjectsByResultType(
-            username, appResourceScope.getAppId(), stepInstanceId, executeCount, batch, resultType, tag, keyword);
+        List<ExecuteObject> executeObjects =
+            taskResultService.getExecuteObjectsByResultType(
+                username,
+                appResourceScope.getAppId(),
+                taskInstanceId,
+                stepInstanceId,
+                executeCount,
+                batch,
+                resultType,
+                tag,
+                keyword
+            );
         if (CollectionUtils.isEmpty(executeObjects)) {
             return Response.buildSuccessResp(Collections.emptyList());
         }

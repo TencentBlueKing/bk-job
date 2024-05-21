@@ -317,7 +317,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     private Condition buildTaskInstanceIdQueryCondition(Table<?> table,
                                                         Long taskInstanceId) {
-        if (table instanceof StepInstanceScript) {
+        if (table instanceof StepInstance) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceScript) {
             return TaskInstanceIdDynamicCondition.build(
                 taskInstanceId,
                 T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID::eq
@@ -466,7 +471,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
-            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
             .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .fetchOne();
         return extractBaseInfo(record);
