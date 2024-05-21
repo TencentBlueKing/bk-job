@@ -49,10 +49,12 @@ import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.types.UByte;
@@ -304,14 +306,37 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public ScriptStepInstanceDTO getScriptStepInstance(long taskInstanceId, long stepInstanceId) {
+    public ScriptStepInstanceDTO getScriptStepInstance(Long taskInstanceId, long stepInstanceId) {
         Record record = CTX.select(T_STEP_INSTANCE_SCRIPT_ALL_FIELDS)
             .from(T_STEP_INSTANCE_SCRIPT)
-            .where(T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
             .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
             .fetchOne();
         return extractScriptInfo(record);
     }
+
+    private Condition buildTaskInstanceIdQueryCondition(Table<?> table,
+                                                        Long taskInstanceId) {
+        if (table instanceof StepInstanceScript) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceFile) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceConfirm) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID::eq
+            );
+        } else {
+            throw new IllegalArgumentException("Invalid table for building task_instance_id query condition");
+        }
+    }
+
 
     private ScriptStepInstanceDTO extractScriptInfo(Record record) {
         if (record == null) {
@@ -367,10 +392,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public FileStepInstanceDTO getFileStepInstance(long taskInstanceId, long stepInstanceId) {
+    public FileStepInstanceDTO getFileStepInstance(Long taskInstanceId, long stepInstanceId) {
         Record record = CTX.select(T_STEP_INSTANCE_FILE_ALL_FIELDS)
             .from(T_STEP_INSTANCE_FILE)
-            .where(T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_FILE, taskInstanceId))
             .and(T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .fetchOne();
         return extractFileInfo(record);
@@ -408,10 +433,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public ConfirmStepInstanceDTO getConfirmStepInstance(long taskInstanceId, long stepInstanceId) {
+    public ConfirmStepInstanceDTO getConfirmStepInstance(Long taskInstanceId, long stepInstanceId) {
         Record record = CTX.select(T_STEP_INSTANCE_CONFIRM_ALL_FIELDS)
             .from(T_STEP_INSTANCE_CONFIRM)
-            .where(T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_CONFIRM, taskInstanceId))
             .and(T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.eq(stepInstanceId))
             .fetchOne();
         return extractConfirmInfo(record);
@@ -437,7 +462,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public StepInstanceBaseDTO getStepInstanceBase(long taskInstanceId, long stepInstanceId) {
+    public StepInstanceBaseDTO getStepInstanceBase(Long taskInstanceId, long stepInstanceId) {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -490,7 +515,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId) {
+    public StepInstanceBaseDTO getFirstStepInstanceBase(Long taskInstanceId) {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -502,7 +527,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder) {
+    public StepInstanceBaseDTO getNextStepInstance(Long taskInstanceId, int currentStepOrder) {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -515,7 +540,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId) {
+    public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(Long taskInstanceId) {
         Result<Record> result = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -528,7 +553,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void resetStepStatus(long taskInstanceId, long stepInstanceId) {
+    public void resetStepStatus(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .setNull(t.START_TIME)
@@ -540,7 +565,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void resetStepExecuteInfoForRetry(long taskInstanceId, long stepInstanceId) {
+    public void resetStepExecuteInfoForRetry(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
@@ -552,7 +577,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void addStepExecuteCount(long taskInstanceId, long stepInstanceId) {
+    public void addStepExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
@@ -562,7 +587,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepStatus(long taskInstanceId, long stepInstanceId, int status) {
+    public void updateStepStatus(Long taskInstanceId, long stepInstanceId, int status) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.STATUS, JooqDataTypeUtil.toByte(status))
@@ -572,7 +597,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepStartTime(long taskInstanceId, long stepInstanceId, Long startTime) {
+    public void updateStepStartTime(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.START_TIME, startTime)
@@ -582,7 +607,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepStartTimeIfNull(long taskInstanceId, long stepInstanceId, Long startTime) {
+    public void updateStepStartTimeIfNull(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.START_TIME, startTime)
@@ -593,7 +618,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepEndTime(long taskInstanceId, long stepInstanceId, Long endTime) {
+    public void updateStepEndTime(Long taskInstanceId, long stepInstanceId, Long endTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.END_TIME, endTime)
@@ -603,7 +628,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void addStepInstanceExecuteCount(long taskInstanceId, long stepInstanceId) {
+    public void addStepInstanceExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
@@ -613,7 +638,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepTotalTime(long taskInstanceId, long stepInstanceId, long totalTime) {
+    public void updateStepTotalTime(Long taskInstanceId, long stepInstanceId, long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t)
             .set(t.TOTAL_TIME, totalTime)
@@ -623,7 +648,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepExecutionInfo(long taskInstanceId,
+    public void updateStepExecutionInfo(Long taskInstanceId,
                                         long stepInstanceId,
                                         RunStatusEnum status,
                                         Long startTime,
@@ -675,7 +700,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateResolvedScriptParam(long taskInstanceId,
+    public void updateResolvedScriptParam(Long taskInstanceId,
                                           long stepInstanceId,
                                           boolean isSecureParam,
                                           String resolvedScriptParam) {
@@ -690,7 +715,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateResolvedSourceFile(long taskInstanceId,
+    public void updateResolvedSourceFile(Long taskInstanceId,
                                          long stepInstanceId,
                                          List<FileSourceDTO> resolvedFileSources) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
@@ -702,7 +727,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateResolvedTargetPath(long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
+    public void updateResolvedTargetPath(Long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         CTX.update(t)
             .set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
@@ -712,7 +737,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateConfirmReason(long taskInstanceId, long stepInstanceId, String confirmReason) {
+    public void updateConfirmReason(Long taskInstanceId, long stepInstanceId, String confirmReason) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         CTX.update(t).set(t.CONFIRM_REASON, confirmReason)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -721,7 +746,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepOperator(long taskInstanceId, long stepInstanceId, String operator) {
+    public void updateStepOperator(Long taskInstanceId, long stepInstanceId, String operator) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         CTX.update(t).set(t.OPERATOR, operator)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -730,7 +755,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public StepInstanceBaseDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId) {
+    public StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId) {
         Record record = CTX
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -744,7 +769,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public Long getStepInstanceId(long taskInstanceId) {
+    public Long getStepInstanceId(Long taskInstanceId) {
         Result<Record1<Long>> records = CTX.select(T_STEP_INSTANCE.ID)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -773,10 +798,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public Byte getScriptTypeByStepInstanceId(long taskInstanceId, long stepInstanceId) {
+    public Byte getScriptTypeByStepInstanceId(Long taskInstanceId, long stepInstanceId) {
         Result<Record1<Byte>> records = CTX.select(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
             .from(T_STEP_INSTANCE_SCRIPT)
-            .where(T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
             .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
             .limit(1)
             .fetch();
@@ -788,7 +813,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepCurrentBatch(long taskInstanceId, long stepInstanceId, int batch) {
+    public void updateStepCurrentBatch(Long taskInstanceId, long stepInstanceId, int batch) {
         CTX.update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -797,7 +822,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepCurrentExecuteCount(long taskInstanceId, long stepInstanceId, int executeCount) {
+    public void updateStepCurrentExecuteCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
         CTX.update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -806,7 +831,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public void updateStepRollingConfigId(long taskInstanceId, long stepInstanceId, long rollingConfigId) {
+    public void updateStepRollingConfigId(Long taskInstanceId, long stepInstanceId, long rollingConfigId) {
         CTX.update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -815,7 +840,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
+    public List<Long> getTaskStepInstanceIdList(Long taskInstanceId) {
         Result result = CTX.select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
             .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(StepInstance.STEP_INSTANCE.ID.asc())

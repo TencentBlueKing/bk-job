@@ -106,7 +106,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         auth(username, appResourceScope);
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTaskDTOS =
-            stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceId);
+            stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceBase.getTaskInstanceId(), stepInstanceId);
         List<GseTaskSimpleDTO> gseTaskDTOList = new ArrayList<>();
         // 是否滚动执行
         if (CollectionUtils.isNotEmpty(stepInstanceRollingTaskDTOS)) {

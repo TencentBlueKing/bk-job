@@ -459,6 +459,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 watch.start("involveFileSourceTaskLog");
                 FileSourceTaskLogDTO fileSourceTaskLog =
                     fileSourceTaskLogDAO.getFileSourceTaskLog(
+                        stepInstance.getTaskInstanceId(),
                         stepInstance.getId(),
                         queryExecuteCount
                     );
@@ -777,6 +778,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
             stepInstanceRollingTaskService.listLatestRollingTasks(
+                stepInstance.getTaskInstanceId(),
                 stepExecutionDetail.getStepInstanceId(),
                 stepExecutionDetail.getExecuteCount())
                 .stream()
@@ -997,7 +999,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             records = queryStepRetryRecords(stepInstance);
         } else {
             // 获取滚动任务维度的重试记录
-            records = queryStepRollingTaskRetryRecords(stepInstanceId, batch);
+            records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
         }
 
         records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
@@ -1037,10 +1039,12 @@ public class TaskResultServiceImpl implements TaskResultService {
         return records;
     }
 
-    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(long stepInstanceId, int batch) {
+    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(Long taskInstanceId,
+                                                                          long stepInstanceId,
+                                                                          int batch) {
         List<StepExecutionRecordDTO> records = new ArrayList<>();
         List<StepInstanceRollingTaskDTO> rollingTasks =
-            stepInstanceRollingTaskService.listRollingTasksByBatch(stepInstanceId, batch);
+            stepInstanceRollingTaskService.listRollingTasksByBatch(taskInstanceId, stepInstanceId, batch);
         rollingTasks.forEach(rollingTask -> {
             StepExecutionRecordDTO record = new StepExecutionRecordDTO();
             record.setStepInstanceId(stepInstanceId);

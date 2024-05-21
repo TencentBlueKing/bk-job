@@ -85,7 +85,7 @@ public class GseTaskEvent extends Event {
      * @param requestId      请求ID,防止重复下发任务
      * @return 事件
      */
-    public static GseTaskEvent startGseTask(long jobInstanceId,
+    public static GseTaskEvent startGseTask(Long jobInstanceId,
                                             Long stepInstanceId,
                                             Integer executeCount,
                                             Integer batch,

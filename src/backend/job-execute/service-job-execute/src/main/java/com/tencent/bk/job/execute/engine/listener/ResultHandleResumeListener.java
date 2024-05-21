@@ -134,7 +134,7 @@ public class ResultHandleResumeListener {
      */
     public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}, duration: {}ms", event, event.duration());
-        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
+        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getJobInstanceId(), event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()
             : UUID.randomUUID().toString();

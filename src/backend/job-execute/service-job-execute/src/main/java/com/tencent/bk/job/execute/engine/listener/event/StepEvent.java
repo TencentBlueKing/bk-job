@@ -50,7 +50,7 @@ public class StepEvent extends Event {
     /**
      * 作业实例ID
      */
-    private long jobInstanceId;
+    private Long jobInstanceId;
     /**
      * 步骤实例ID
      */
@@ -67,7 +67,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent ignoreError(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent ignoreError(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -83,7 +83,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent nextStep(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent nextStep(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -99,7 +99,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepContinue(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepContinue(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -115,7 +115,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepTerminate(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepTerminate(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -131,7 +131,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepRestart(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepRestart(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -148,7 +148,7 @@ public class StepEvent extends Event {
      * @param batch          滚动执行批次
      * @return 事件
      */
-    public static StepEvent startStep(long jobInstanceId, long stepInstanceId, Integer batch) {
+    public static StepEvent startStep(Long jobInstanceId, long stepInstanceId, Integer batch) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -165,7 +165,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent skipStep(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent skipStep(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -181,7 +181,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent stopStep(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent stopStep(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -197,7 +197,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent retryStepFail(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent retryStepFail(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -213,7 +213,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent retryStepAll(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent retryStepAll(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -229,7 +229,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent continueGseFileStep(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent continueGseFileStep(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -245,7 +245,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent prepareFile(long jobInstanceId, long stepInstanceId) {
+    public static StepEvent prepareFile(Long jobInstanceId, long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
@@ -261,7 +261,7 @@ public class StepEvent extends Event {
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent refreshStep(long jobInstanceId, long stepInstanceId, EventSource eventSource) {
+    public static StepEvent refreshStep(Long jobInstanceId, long stepInstanceId, EventSource eventSource) {
         StepEvent stepEvent = new StepEvent();
         stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);

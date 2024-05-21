@@ -146,7 +146,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public int getSuccessTaskCount(long stepInstanceId, int executeCount) {
+    public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
         Integer count = CTX.selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
@@ -154,18 +154,28 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             .and(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq((short) executeCount))
             .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()))
+            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .fetchOne(0, Integer.class);
         return count == null ? 0 : count;
     }
 
+    private Condition buildTaskInstanceIdQueryCondition(Long taskInstanceId) {
+        return TaskInstanceIdDynamicCondition.build(
+            taskInstanceId,
+            T.TASK_INSTANCE_ID::eq
+        );
+    }
+
     @Override
-    public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId,
+    public List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
+                                                     long stepInstanceId,
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
             CTX.select(T.STATUS, count().as("ip_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
                 .and(T.EXECUTE_COUNT.eq((short) executeCount))
                 .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
         if (batch != null && batch > 0) {
@@ -189,13 +199,15 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public List<ExecuteObjectTask> listTaskByResultGroup(Long stepInstanceId,
+    public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
+                                                         Long stepInstanceId,
                                                          Integer executeCount,
                                                          Integer batch,
                                                          Integer status) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
             .and(T.STATUS.eq(status))
             .and(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
@@ -212,7 +224,8 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public List<ExecuteObjectTask> listTaskByResultGroup(Long stepInstanceId,
+    public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
+                                                         Long stepInstanceId,
                                                          Integer executeCount,
                                                          Integer batch,
                                                          Integer status,
@@ -220,6 +233,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                          String orderField,
                                                          Order order) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(buildTaskInstanceIdQueryCondition(taskInstanceId));
         conditions.add(T.STEP_INSTANCE_ID.eq(stepInstanceId));
         conditions.add(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
         conditions.add(T.STATUS.eq(status));
@@ -279,13 +293,15 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public List<ExecuteObjectTask> listTasks(Long stepInstanceId,
+    public List<ExecuteObjectTask> listTasks(Long taskInstanceId,
+                                             Long stepInstanceId,
                                              Integer executeCount,
                                              Integer batch,
                                              FileTaskModeEnum fileTaskMode) {
         SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
         if (batch != null && batch > 0) {
             selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
@@ -328,7 +344,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public List<ExecuteObjectTask> listTasksByGseTaskId(Long gseTaskId) {
+    public List<ExecuteObjectTask> listTasksByGseTaskId(Long taskInstanceId, Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
         }
@@ -338,6 +354,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         Result<?> result = CTX.select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
+            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .fetch();
         if (result.size() > 0) {
             result.forEach(record -> executeObjectList.add(extract(record)));
@@ -346,7 +363,8 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public ExecuteObjectTask getTaskByExecuteObjectId(Long stepInstanceId,
+    public ExecuteObjectTask getTaskByExecuteObjectId(Long taskInstanceId,
+                                                      Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
                                                       FileTaskModeEnum mode,
@@ -355,6 +373,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             CTX.select(ALL_FIELDS)
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
                 .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
                 .and(T.MODE.eq(mode.getValue().byteValue()))
                 .and(T.EXECUTE_OBJ_ID.eq(executeObjectId));
@@ -368,12 +387,17 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    public boolean isStepInstanceRecordExist(long stepInstanceId) {
-        return CTX.fetchExists(T, T.STEP_INSTANCE_ID.eq(stepInstanceId));
+    public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
+        return CTX.fetchExists(
+            T,
+            T.STEP_INSTANCE_ID.eq(stepInstanceId),
+            buildTaskInstanceIdQueryCondition(taskInstanceId)
+        );
     }
 
     @Override
-    public void updateTaskFields(long stepInstanceId,
+    public void updateTaskFields(Long taskInstanceId,
+                                 long stepInstanceId,
                                  int executeCount,
                                  Integer batch,
                                  Integer actualExecuteCount,
@@ -400,6 +424,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         UpdateConditionStep<GseFileExecuteObjTaskRecord> updateConditionStep =
             updateSetMoreStep
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
                 .and(T.EXECUTE_COUNT.eq((short) executeCount));
         if (batch != null) {
             updateConditionStep.and(T.BATCH.eq(batch.shortValue()));

@@ -46,7 +46,7 @@ public interface StepInstanceDAO {
 
     void addConfirmStepInstance(StepInstanceDTO stepInstance);
 
-    StepInstanceBaseDTO getStepInstanceBase(long taskInstanceId, long stepInstanceId);
+    StepInstanceBaseDTO getStepInstanceBase(Long taskInstanceId, long stepInstanceId);
 
     StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId);
 
@@ -56,7 +56,7 @@ public interface StepInstanceDAO {
      * @param taskInstanceId 作业实例ID
      * @return 作业第一个步骤实例
      */
-    StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId);
+    StepInstanceBaseDTO getFirstStepInstanceBase(Long taskInstanceId);
 
     /**
      * 获取下一个步骤实例
@@ -65,25 +65,25 @@ public interface StepInstanceDAO {
      * @param currentStepOrder 当前步骤的顺序
      * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
      */
-    StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
+    StepInstanceBaseDTO getNextStepInstance(Long taskInstanceId, int currentStepOrder);
 
-    ScriptStepInstanceDTO getScriptStepInstance(long taskInstanceId, long stepInstanceId);
+    ScriptStepInstanceDTO getScriptStepInstance(Long taskInstanceId, long stepInstanceId);
 
-    FileStepInstanceDTO getFileStepInstance(long taskInstanceId, long stepInstanceId);
+    FileStepInstanceDTO getFileStepInstance(Long taskInstanceId, long stepInstanceId);
 
-    ConfirmStepInstanceDTO getConfirmStepInstance(long taskInstanceId, long stepInstanceId);
+    ConfirmStepInstanceDTO getConfirmStepInstance(Long taskInstanceId, long stepInstanceId);
 
-    List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId);
+    List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(Long taskInstanceId);
 
-    void resetStepStatus(long taskInstanceId, long stepInstanceId);
+    void resetStepStatus(Long taskInstanceId, long stepInstanceId);
 
-    void resetStepExecuteInfoForRetry(long taskInstanceId, long stepInstanceId);
+    void resetStepExecuteInfoForRetry(Long taskInstanceId, long stepInstanceId);
 
-    void addStepExecuteCount(long taskInstanceId, long stepInstanceId);
+    void addStepExecuteCount(Long taskInstanceId, long stepInstanceId);
 
-    void updateStepStatus(long taskInstanceId, long stepInstanceId, int status);
+    void updateStepStatus(Long taskInstanceId, long stepInstanceId, int status);
 
-    void updateStepStartTime(long taskInstanceId, long stepInstanceId, Long startTime);
+    void updateStepStartTime(Long taskInstanceId, long stepInstanceId, Long startTime);
 
     /**
      * 更新步骤启动时间 - 仅当启动时间为空的的场景
@@ -91,13 +91,13 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @param startTime      启动时间
      */
-    void updateStepStartTimeIfNull(long taskInstanceId, long stepInstanceId, Long startTime);
+    void updateStepStartTimeIfNull(Long taskInstanceId, long stepInstanceId, Long startTime);
 
-    void updateStepEndTime(long taskInstanceId, long stepInstanceId, Long endTime);
+    void updateStepEndTime(Long taskInstanceId, long stepInstanceId, Long endTime);
 
-    void addStepInstanceExecuteCount(long taskInstanceId, long stepInstanceId);
+    void addStepInstanceExecuteCount(Long taskInstanceId, long stepInstanceId);
 
-    void updateStepTotalTime(long taskInstanceId, long stepInstanceId, long totalTime);
+    void updateStepTotalTime(Long taskInstanceId, long stepInstanceId, long totalTime);
 
     /**
      * 更新步骤的执行信息
@@ -109,7 +109,7 @@ public interface StepInstanceDAO {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateStepExecutionInfo(long taskInstanceId,
+    void updateStepExecutionInfo(Long taskInstanceId,
                                  long stepInstanceId,
                                  RunStatusEnum status,
                                  Long startTime,
@@ -124,7 +124,7 @@ public interface StepInstanceDAO {
      * @param isSecureParam       是否为敏感参数
      * @param resolvedScriptParam 解析之后的脚本参数
      */
-    void updateResolvedScriptParam(long taskInstanceId,
+    void updateResolvedScriptParam(Long taskInstanceId,
                                    long stepInstanceId,
                                    boolean isSecureParam,
                                    String resolvedScriptParam);
@@ -136,7 +136,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId      步骤实例ID
      * @param resolvedFileSources 解析后的源文件信息
      */
-    void updateResolvedSourceFile(long taskInstanceId,
+    void updateResolvedSourceFile(Long taskInstanceId,
                                   long stepInstanceId,
                                   List<FileSourceDTO> resolvedFileSources);
 
@@ -147,7 +147,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId     步骤实例ID
      * @param resolvedTargetPath 解析之后的目标路径
      */
-    void updateResolvedTargetPath(long taskInstanceId, long stepInstanceId, String resolvedTargetPath);
+    void updateResolvedTargetPath(Long taskInstanceId, long stepInstanceId, String resolvedTargetPath);
 
     /**
      * 更新确认理由
@@ -156,7 +156,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @param confirmReason  确认理由
      */
-    void updateConfirmReason(long taskInstanceId, long stepInstanceId, String confirmReason);
+    void updateConfirmReason(Long taskInstanceId, long stepInstanceId, String confirmReason);
 
     /**
      * 更新步骤实例操作者
@@ -165,7 +165,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @param operator       操作者
      */
-    void updateStepOperator(long taskInstanceId, long stepInstanceId, String operator);
+    void updateStepOperator(Long taskInstanceId, long stepInstanceId, String operator);
 
     /**
      * 获取前一个可执行步骤实例
@@ -174,7 +174,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 当前步骤实例ID
      * @return 可执行步骤实例
      */
-    StepInstanceBaseDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId);
+    StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 根据taskInstanceId获取一个stepInstanceId，用于快速脚本/文件任务
@@ -182,7 +182,7 @@ public interface StepInstanceDAO {
      * @param taskInstanceId 作业实例ID
      * @return 步骤实例ID
      */
-    Long getStepInstanceId(long taskInstanceId);
+    Long getStepInstanceId(Long taskInstanceId);
 
     /**
      * 根据 appId,stepInstanceId 获取所属任务实例ID
@@ -200,7 +200,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @return 脚本类型
      */
-    Byte getScriptTypeByStepInstanceId(long taskInstanceId, long stepInstanceId);
+    Byte getScriptTypeByStepInstanceId(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 更新步骤实例的当前滚动执行批次
@@ -209,7 +209,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次
      */
-    void updateStepCurrentBatch(long taskInstanceId, long stepInstanceId, int batch);
+    void updateStepCurrentBatch(Long taskInstanceId, long stepInstanceId, int batch);
 
     /**
      * 更新步骤实例的当前滚动执行批次
@@ -218,7 +218,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      */
-    void updateStepCurrentExecuteCount(long taskInstanceId, long stepInstanceId, int executeCount);
+    void updateStepCurrentExecuteCount(Long taskInstanceId, long stepInstanceId, int executeCount);
 
     /**
      * 更新步骤实例的滚动配置ID
@@ -227,7 +227,7 @@ public interface StepInstanceDAO {
      * @param stepInstanceId  步骤实例ID
      * @param rollingConfigId 滚动配置ID
      */
-    void updateStepRollingConfigId(long taskInstanceId, long stepInstanceId, long rollingConfigId);
+    void updateStepRollingConfigId(Long taskInstanceId, long stepInstanceId, long rollingConfigId);
 
-    List<Long> getTaskStepInstanceIdList(long taskInstanceId);
+    List<Long> getTaskStepInstanceIdList(Long taskInstanceId);
 }

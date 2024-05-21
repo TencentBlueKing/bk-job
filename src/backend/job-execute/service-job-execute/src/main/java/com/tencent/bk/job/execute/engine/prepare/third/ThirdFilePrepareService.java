@@ -271,6 +271,7 @@ public class ThirdFilePrepareService {
     private FileSourceTaskLogDTO buildInitFileSourceTaskLog(StepInstanceDTO stepInstance,
                                                             BatchTaskInfoDTO batchTaskInfoDTO) {
         FileSourceTaskLogDTO fileSourceTaskLogDTO = new FileSourceTaskLogDTO();
+        fileSourceTaskLogDTO.setTaskInstanceId(stepInstance.getTaskInstanceId());
         fileSourceTaskLogDTO.setStepInstanceId(stepInstance.getId());
         fileSourceTaskLogDTO.setExecuteCount(stepInstance.getExecuteCount());
         fileSourceTaskLogDTO.setFileSourceBatchTaskId(batchTaskInfoDTO.getBatchTaskId());

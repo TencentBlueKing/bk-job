@@ -48,7 +48,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次
      */
-    void updateStepCurrentBatch(long taskInstanceId, long stepInstanceId, int batch);
+    void updateStepCurrentBatch(Long taskInstanceId, long stepInstanceId, int batch);
 
     /**
      * 更新步骤实例的滚动配置ID
@@ -57,7 +57,7 @@ public interface StepInstanceService {
      * @param stepInstanceId  步骤实例ID
      * @param rollingConfigId 滚动配置ID
      */
-    void updateStepRollingConfigId(long taskInstanceId, long stepInstanceId, long rollingConfigId);
+    void updateStepRollingConfigId(Long taskInstanceId, long stepInstanceId, long rollingConfigId);
 
     /**
      * 获取下一个步骤实例
@@ -66,7 +66,7 @@ public interface StepInstanceService {
      * @param currentStepOrder 当前步骤的顺序
      * @return 步骤实例；如果当前为最后一个步骤实例，那么返回null
      */
-    StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder);
+    StepInstanceBaseDTO getNextStepInstance(Long taskInstanceId, int currentStepOrder);
 
     /**
      * 获取步骤包含的执行对象(源+目标)
@@ -91,7 +91,7 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例 ID
      * @return 步骤实例列表
      */
-    List<StepInstanceBaseDTO> listBaseStepInstanceByTaskInstanceId(long taskInstanceId);
+    List<StepInstanceBaseDTO> listBaseStepInstanceByTaskInstanceId(Long taskInstanceId);
 
     /**
      * 获取作业实例下的所有步骤实例(详细)
@@ -99,7 +99,7 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例 ID
      * @return 步骤实例列表
      */
-    List<StepInstanceDTO> listStepInstanceByTaskInstanceId(long taskInstanceId);
+    List<StepInstanceDTO> listStepInstanceByTaskInstanceId(Long taskInstanceId);
 
     /**
      * 获取步骤基本信息
@@ -108,7 +108,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
-    StepInstanceBaseDTO getBaseStepInstance(long taskInstanceId, long stepInstanceId);
+    StepInstanceBaseDTO getBaseStepInstance(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 获取步骤基本信息
@@ -126,7 +126,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
-    StepInstanceBaseDTO getBaseStepInstance(long appId, long taskInstanceId, long stepInstanceId);
+    StepInstanceBaseDTO getBaseStepInstance(long appId, Long taskInstanceId, long stepInstanceId);
 
     /**
      * 获取步骤基本信息
@@ -135,7 +135,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
-    StepInstanceDTO getStepInstanceDetail(long taskInstanceId, long stepInstanceId) throws NotFoundException;
+    StepInstanceDTO getStepInstanceDetail(Long taskInstanceId, long stepInstanceId) throws NotFoundException;
 
     /**
      * 获取步骤基本信息
@@ -146,7 +146,7 @@ public interface StepInstanceService {
      * @return 步骤基本信息
      */
     StepInstanceDTO getStepInstanceDetail(long appId,
-                                          long taskInstanceId,
+                                          Long taskInstanceId,
                                           long stepInstanceId) throws NotFoundException;
 
     /**
@@ -155,11 +155,11 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例ID
      * @return 作业第一个步骤实例
      */
-    StepInstanceBaseDTO getFirstStepInstance(long taskInstanceId);
+    StepInstanceBaseDTO getFirstStepInstance(Long taskInstanceId);
 
-    List<Long> getTaskStepIdList(long taskInstanceId);
+    List<Long> getTaskStepIdList(Long taskInstanceId);
 
-    void updateStepStatus(long taskInstanceId, long stepInstanceId, int status);
+    void updateStepStatus(Long taskInstanceId, long stepInstanceId, int status);
 
     /**
      * 重试步骤操作-重置步骤执行状态
@@ -167,9 +167,9 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例ID
      * @param stepInstanceId 步骤实例ID
      */
-    void resetStepExecuteInfoForRetry(long taskInstanceId, long stepInstanceId);
+    void resetStepExecuteInfoForRetry(Long taskInstanceId, long stepInstanceId);
 
-    void resetStepStatus(long taskInstanceId, long stepInstanceId);
+    void resetStepStatus(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 更新步骤启动时间 - 仅当启动时间为空
@@ -178,9 +178,9 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @param startTime      启动时间
      */
-    void updateStepStartTimeIfNull(long taskInstanceId, long stepInstanceId, Long startTime);
+    void updateStepStartTimeIfNull(Long taskInstanceId, long stepInstanceId, Long startTime);
 
-    void updateStepEndTime(long taskInstanceId, long stepInstanceId, Long endTime);
+    void updateStepEndTime(Long taskInstanceId, long stepInstanceId, Long endTime);
 
     /**
      * 步骤重试次数+1
@@ -188,7 +188,7 @@ public interface StepInstanceService {
      * @param taskInstanceId 作业实例ID
      * @param stepInstanceId 步骤实例ID
      */
-    void addStepInstanceExecuteCount(long taskInstanceId, long stepInstanceId);
+    void addStepInstanceExecuteCount(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 更新步骤的执行信息
@@ -200,7 +200,7 @@ public interface StepInstanceService {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateStepExecutionInfo(long taskInstanceId,
+    void updateStepExecutionInfo(Long taskInstanceId,
                                  long stepInstanceId,
                                  RunStatusEnum status,
                                  Long startTime,
@@ -216,7 +216,7 @@ public interface StepInstanceService {
      * @param isSecureParam       是否为敏感参数
      * @param resolvedScriptParam 解析之后的脚本参数
      */
-    void updateResolvedScriptParam(long taskInstanceId,
+    void updateResolvedScriptParam(Long taskInstanceId,
                                    long stepInstanceId,
                                    boolean isSecureParam,
                                    String resolvedScriptParam);
@@ -228,7 +228,7 @@ public interface StepInstanceService {
      * @param stepInstanceId      步骤实例ID
      * @param resolvedFileSources 解析后的源文件信息
      */
-    void updateResolvedSourceFile(long taskInstanceId, long stepInstanceId, List<FileSourceDTO> resolvedFileSources);
+    void updateResolvedSourceFile(Long taskInstanceId, long stepInstanceId, List<FileSourceDTO> resolvedFileSources);
 
     /**
      * 更新变量解析之后的目标路径
@@ -237,7 +237,7 @@ public interface StepInstanceService {
      * @param stepInstanceId     步骤实例ID
      * @param resolvedTargetPath 解析之后的目标路径
      */
-    void updateResolvedTargetPath(long taskInstanceId, long stepInstanceId, String resolvedTargetPath);
+    void updateResolvedTargetPath(Long taskInstanceId, long stepInstanceId, String resolvedTargetPath);
 
     /**
      * 更新确认理由
@@ -246,7 +246,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @param confirmReason  确认理由
      */
-    void updateConfirmReason(long taskInstanceId, long stepInstanceId, String confirmReason);
+    void updateConfirmReason(Long taskInstanceId, long stepInstanceId, String confirmReason);
 
     /**
      * 更新步骤操作人
@@ -255,7 +255,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @param operator       操作人
      */
-    void updateStepOperator(long taskInstanceId, long stepInstanceId, String operator);
+    void updateStepOperator(Long taskInstanceId, long stepInstanceId, String operator);
 
     /**
      * 获取上一步骤实例(可执行的，不包含人工确认这种)
@@ -264,7 +264,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 当前步骤实例ID
      * @return 上一步骤实例
      */
-    StepInstanceDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId);
+    StepInstanceDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId);
 
     /**
      * 根据 taskInstanceId 获取快速任务步骤实例详情
@@ -272,7 +272,7 @@ public interface StepInstanceService {
      * @param taskInstanceId 任务实例ID
      * @return 步骤详情
      */
-    StepInstanceDTO getStepInstanceByTaskInstanceId(long taskInstanceId);
+    StepInstanceDTO getStepInstanceByTaskInstanceId(Long taskInstanceId);
 
     /**
      * 根据 executeObjectCompositeKey 获取步骤实例中的执行对象

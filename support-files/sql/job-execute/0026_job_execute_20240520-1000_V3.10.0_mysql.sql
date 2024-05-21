@@ -73,35 +73,35 @@ BEGIN
       ALTER TABLE gse_task ADD INDEX `idx_task_instance_id` (`task_instance_id`);
   END IF;
 
-  IF NOT EXISTS(SELECT 1
-                  FROM information_schema.COLUMNS
-                  WHERE TABLE_SCHEMA = db
-                    AND TABLE_NAME = 'gse_script_agent_task'
-                    AND COLUMN_NAME = 'task_instance_id') THEN
-    ALTER TABLE gse_script_agent_task ADD COLUMN `task_instance_id` bigint(20) NOT NULL DEFAULT '0';
-  END IF;
-  IF NOT EXISTS(SELECT 1
-                FROM information_schema.statistics
-                WHERE TABLE_SCHEMA = db
-                  AND TABLE_NAME = 'gse_script_agent_task'
-                  AND INDEX_NAME = 'idx_task_instance_id') THEN
-      ALTER TABLE gse_script_agent_task ADD INDEX `idx_task_instance_id` (`task_instance_id`);
-  END IF;
+  -- IF NOT EXISTS(SELECT 1
+  --                 FROM information_schema.COLUMNS
+  --                 WHERE TABLE_SCHEMA = db
+  --                   AND TABLE_NAME = 'gse_script_agent_task'
+  --                   AND COLUMN_NAME = 'task_instance_id') THEN
+  --   ALTER TABLE gse_script_agent_task ADD COLUMN `task_instance_id` bigint(20) NOT NULL DEFAULT '0';
+  -- END IF;
+  -- IF NOT EXISTS(SELECT 1
+  --               FROM information_schema.statistics
+  --               WHERE TABLE_SCHEMA = db
+  --                 AND TABLE_NAME = 'gse_script_agent_task'
+  --                 AND INDEX_NAME = 'idx_task_instance_id') THEN
+  --     ALTER TABLE gse_script_agent_task ADD INDEX `idx_task_instance_id` (`task_instance_id`);
+  -- END IF;
 
-  IF NOT EXISTS(SELECT 1
-                  FROM information_schema.COLUMNS
-                  WHERE TABLE_SCHEMA = db
-                    AND TABLE_NAME = 'gse_file_agent_task'
-                    AND COLUMN_NAME = 'task_instance_id') THEN
-    ALTER TABLE gse_file_agent_task ADD COLUMN `task_instance_id` bigint(20) NOT NULL DEFAULT '0';
-  END IF;
-  IF NOT EXISTS(SELECT 1
-                FROM information_schema.statistics
-                WHERE TABLE_SCHEMA = db
-                  AND TABLE_NAME = 'gse_file_agent_task'
-                  AND INDEX_NAME = 'idx_task_instance_id') THEN
-      ALTER TABLE gse_file_agent_task ADD INDEX `idx_task_instance_id` (`task_instance_id`);
-  END IF;
+  -- IF NOT EXISTS(SELECT 1
+  --                 FROM information_schema.COLUMNS
+  --                 WHERE TABLE_SCHEMA = db
+  --                   AND TABLE_NAME = 'gse_file_agent_task'
+  --                   AND COLUMN_NAME = 'task_instance_id') THEN
+  --   ALTER TABLE gse_file_agent_task ADD COLUMN `task_instance_id` bigint(20) NOT NULL DEFAULT '0';
+  -- END IF;
+  -- IF NOT EXISTS(SELECT 1
+  --               FROM information_schema.statistics
+  --               WHERE TABLE_SCHEMA = db
+  --                 AND TABLE_NAME = 'gse_file_agent_task'
+  --                 AND INDEX_NAME = 'idx_task_instance_id') THEN
+  --     ALTER TABLE gse_file_agent_task ADD INDEX `idx_task_instance_id` (`task_instance_id`);
+  -- END IF;
 
   IF NOT EXISTS(SELECT 1
                   FROM information_schema.COLUMNS

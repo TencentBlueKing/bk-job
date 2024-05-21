@@ -38,7 +38,6 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -92,7 +91,6 @@ public class NotifyServiceImpl implements NotifyService {
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
-    private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StepInstanceService stepInstanceService;
 
@@ -104,7 +102,6 @@ public class NotifyServiceImpl implements NotifyService {
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
                              ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                             FileExecuteObjectTaskService fileExecuteObjectTaskService,
                              TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                              StepInstanceService stepInstanceService) {
         this.jobCommonConfig = jobCommonConfig;
@@ -114,7 +111,6 @@ public class NotifyServiceImpl implements NotifyService {
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
-        this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.stepInstanceService = stepInstanceService;
     }
@@ -272,11 +268,17 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
                 variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));

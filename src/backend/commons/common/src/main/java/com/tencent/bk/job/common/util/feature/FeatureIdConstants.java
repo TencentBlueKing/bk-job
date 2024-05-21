@@ -57,4 +57,8 @@ public interface FeatureIdConstants {
      * 特性: 容器执行
      */
     String FEATURE_CONTAINER_EXECUTE = "containerExecution";
+    /**
+     * 特性: 作业执行增加db 所有表增加 task_instance_id 字段作为分库分表 shard_key
+     */
+    String DAO_ADD_TASK_INSTANCE_ID = "daoAddTaskInstanceId";
 }

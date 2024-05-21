@@ -78,7 +78,11 @@ public class GseTaskDTO {
      */
     private String taskUniqueName;
 
-    public GseTaskDTO(Long stepInstanceId, Integer executeCount, int batch) {
+    public GseTaskDTO(Long taskInstanceId,
+                      Long stepInstanceId,
+                      Integer executeCount,
+                      int batch) {
+        this.taskInstanceId = taskInstanceId;
         this.stepInstanceId = stepInstanceId;
         this.executeCount = executeCount;
         this.batch = batch;
