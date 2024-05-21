@@ -43,7 +43,7 @@ public class TaskInstanceIdDynamicCondition {
                                   Function<Long, Condition> taskInstanceIdConditionBuilder) {
         ResourceScope resourceScope = JobContextUtil.getAppResourceScope();
         if (resourceScope == null) {
-            log.warn("Empty resource scope, expected!");
+            log.warn("TaskInstanceIdDynamicCondition : Empty resource scope!");
             // 为了不影响兼容性，忽略错误
             return DSL.trueCondition();
         }
@@ -53,7 +53,8 @@ public class TaskInstanceIdDynamicCondition {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     JobContextUtil.getAppResourceScope()))) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
-                log.warn("Invalid taskInstanceId, ignore task_instance_id condition. taskInstanceId: {}",
+                log.warn("TaskInstanceIdDynamicCondition : Invalid taskInstanceId for building query condition. " +
+                        "taskInstanceId : {}",
                     taskInstanceId);
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
