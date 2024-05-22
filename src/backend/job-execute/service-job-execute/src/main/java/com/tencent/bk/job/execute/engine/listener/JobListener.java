@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -86,8 +87,9 @@ public class JobListener {
      *
      * @param jobEvent 作业执行相关的事件
      */
-    public void handleEvent(JobEvent jobEvent) {
-        log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
+    public void handleEvent(JobEvent jobEvent, TaskInstanceRecordStateDO taskInstanceRecordStateDO) {
+        log.info("Handle job event, event: {}, duration: {}ms, taskInstanceRecordStateDO: {}",
+            jobEvent, jobEvent.duration(), taskInstanceRecordStateDO);
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
         try {

@@ -35,11 +35,13 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
@@ -52,9 +54,10 @@ import java.util.function.Consumer;
 @Slf4j
 public class JobFunctionConfiguration {
     @Bean
-    public Consumer<JobEvent> handleJobEvent(@Autowired JobListener jobListener) {
+    public Consumer<Message<JobEvent>> handleJobEvent(@Autowired JobListener jobListener) {
         log.info("Init handleJobEvent consumer");
-        return jobListener::handleEvent;
+        return message -> jobListener.handleEvent(message.getPayload(), message.getHeaders().get(
+            "TaskInstanceRecordStateDO", TaskInstanceRecordStateDO.class));
     }
 
     @Bean

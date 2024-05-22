@@ -26,10 +26,13 @@ package com.tencent.bk.job.execute.engine.listener.event;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,7 +60,11 @@ public class TaskExecuteMQEventDispatcher {
     public void dispatchJobEvent(JobEvent jobEvent) {
         log.info("Begin to dispatch job event, event: {}", jobEvent);
         String taskOutput = "task-out-0";
-        streamBridge.send(taskOutput, jobEvent);
+        TaskInstanceRecordStateDO taskInstanceRecordStateDO = new TaskInstanceRecordStateDO();
+        taskInstanceRecordStateDO.setTaskInstanceId(jobEvent.getJobInstanceId());
+        Message<JobEvent> message = MessageBuilder.withPayload(jobEvent)
+            .setHeader("TaskInstanceRecordStateDO", taskInstanceRecordStateDO).build();
+        streamBridge.send(taskOutput, message);
         log.info("Dispatch job event successfully, event: {}", jobEvent);
     }
 
