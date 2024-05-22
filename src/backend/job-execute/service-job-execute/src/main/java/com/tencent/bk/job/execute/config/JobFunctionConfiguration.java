@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.listener.CallbackListener;
 import com.tencent.bk.job.execute.engine.listener.GseTaskListener;
 import com.tencent.bk.job.execute.engine.listener.JobListener;
@@ -56,8 +57,13 @@ public class JobFunctionConfiguration {
     @Bean
     public Consumer<Message<JobEvent>> handleJobEvent(@Autowired JobListener jobListener) {
         log.info("Init handleJobEvent consumer");
-        return message -> jobListener.handleEvent(message.getPayload(), message.getHeaders().get(
-            "TaskInstanceRecordStateDO", TaskInstanceRecordStateDO.class));
+
+        return message -> {
+            TaskInstanceRecordStateDO taskInstanceRecordStateDO = JsonUtils.fromJson(
+                message.getHeaders().get("TaskInstanceRecordStateDO", String.class),
+                TaskInstanceRecordStateDO.class);
+            jobListener.handleEvent(message.getPayload(), taskInstanceRecordStateDO);
+        };
     }
 
     @Bean

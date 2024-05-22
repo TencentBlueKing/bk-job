@@ -63,7 +63,8 @@ public class TaskExecuteMQEventDispatcher {
         TaskInstanceRecordStateDO taskInstanceRecordStateDO = new TaskInstanceRecordStateDO();
         taskInstanceRecordStateDO.setTaskInstanceId(jobEvent.getJobInstanceId());
         Message<JobEvent> message = MessageBuilder.withPayload(jobEvent)
-            .setHeader("TaskInstanceRecordStateDO", taskInstanceRecordStateDO).build();
+            .setHeader("TaskInstanceRecordStateDO", JsonUtils.toJson(taskInstanceRecordStateDO))
+            .build();
         streamBridge.send(taskOutput, message);
         log.info("Dispatch job event successfully, event: {}", jobEvent);
     }
