@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@GlobalChannelInterceptor
 public class JobExecuteContextMessageChannelInterceptor implements ChannelInterceptor {
 
     @Override
