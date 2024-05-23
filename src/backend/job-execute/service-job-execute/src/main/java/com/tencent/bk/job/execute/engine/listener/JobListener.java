@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
+import com.tencent.bk.job.execute.engine.listener.event.Event;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
@@ -47,6 +47,7 @@ import com.tencent.bk.job.execute.statistics.StatisticsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -57,7 +58,7 @@ import java.util.List;
  */
 @Component("jobEventListener")
 @Slf4j
-public class JobListener {
+public class JobListener extends BaseJobExecuteMqListener {
 
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StatisticsService statisticsService;
@@ -85,11 +86,12 @@ public class JobListener {
     /**
      * 处理作业执行相关的事件
      *
-     * @param jobEvent 作业执行相关的事件
+     * @param message 消息
      */
-    public void handleEvent(JobEvent jobEvent, TaskInstanceRecordStateDO taskInstanceRecordStateDO) {
-        log.info("Handle job event, event: {}, duration: {}ms, taskInstanceRecordStateDO: {}",
-            jobEvent, jobEvent.duration(), taskInstanceRecordStateDO);
+    @Override
+    public void handleEvent(Message<? extends Event> message) {
+        JobEvent jobEvent = (JobEvent) message.getPayload();
+        log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
         try {
@@ -319,7 +321,7 @@ public class JobListener {
                 stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
             taskExecuteMQEventDispatcher.dispatchStepEvent(
                 StepEvent.startStep(stepInstance.getTaskInstanceId(), stepInstance.getId(),
-                stepInstance.getBatch() + 1));
+                    stepInstance.getBatch() + 1));
         } else {
             stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
                 stepInstance.getId(), RunStatusEnum.BLANK.getValue());

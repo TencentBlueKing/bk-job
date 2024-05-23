@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.listener.event.Event;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -56,6 +57,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -69,7 +71,7 @@ import java.util.UUID;
  */
 @Component
 @Slf4j
-public class ResultHandleResumeListener {
+public class ResultHandleResumeListener extends BaseJobExecuteMqListener {
     private final TaskInstanceService taskInstanceService;
 
     private final ResultHandleManager resultHandleManager;
@@ -132,7 +134,8 @@ public class ResultHandleResumeListener {
     /**
      * 恢复被中断的作业结果处理任务
      */
-    public void handleEvent(ResultHandleTaskResumeEvent event) {
+    public void handleEvent(Message<? extends Event> message) {
+        ResultHandleTaskResumeEvent event = (ResultHandleTaskResumeEvent) message.getPayload();
         log.info("Receive gse task result handle task resume event: {}, duration: {}ms", event, event.duration());
         GseTaskDTO gseTask = gseTaskService.getGseTask(event.getJobInstanceId(), event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();

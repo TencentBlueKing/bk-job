@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.listener.CallbackListener;
 import com.tencent.bk.job.execute.engine.listener.GseTaskListener;
 import com.tencent.bk.job.execute.engine.listener.JobListener;
@@ -36,7 +35,6 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
-import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,31 +56,26 @@ public class JobFunctionConfiguration {
     public Consumer<Message<JobEvent>> handleJobEvent(@Autowired JobListener jobListener) {
         log.info("Init handleJobEvent consumer");
 
-        return message -> {
-            TaskInstanceRecordStateDO taskInstanceRecordStateDO = JsonUtils.fromJson(
-                message.getHeaders().get("TaskInstanceRecordStateDO", String.class),
-                TaskInstanceRecordStateDO.class);
-            jobListener.handleEvent(message.getPayload(), taskInstanceRecordStateDO);
-        };
+        return jobListener::onEvent;
     }
 
     @Bean
-    public Consumer<StepEvent> handleStepEvent(@Autowired StepListener stepListener) {
+    public Consumer<Message<StepEvent>> handleStepEvent(@Autowired StepListener stepListener) {
         log.info("Init handleStepEvent consumer");
-        return stepListener::handleEvent;
+        return stepListener::onEvent;
     }
 
     @Bean
-    public Consumer<GseTaskEvent> handleGseTaskEvent(@Autowired GseTaskListener gseTaskListener) {
+    public Consumer<Message<GseTaskEvent>> handleGseTaskEvent(@Autowired GseTaskListener gseTaskListener) {
         log.info("Init handleGseTaskEvent consumer");
-        return gseTaskListener::handleEvent;
+        return gseTaskListener::onEvent;
     }
 
     @Bean
-    public Consumer<ResultHandleTaskResumeEvent> handleResultHandleResumeEvent(
+    public Consumer<Message<ResultHandleTaskResumeEvent>> handleResultHandleResumeEvent(
         @Autowired ResultHandleResumeListener resultHandleResumeListener) {
         log.info("Init handleResultHandleResumeEvent consumer");
-        return resultHandleResumeListener::handleEvent;
+        return resultHandleResumeListener::onEvent;
     }
 
     @Bean

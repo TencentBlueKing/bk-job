@@ -25,11 +25,13 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.engine.listener.event.Event;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class StepListener {
+public class StepListener extends BaseJobExecuteMqListener {
     private final StepInstanceService stepInstanceService;
     private final GseStepEventHandler gseStepEventHandler;
     private final ConfirmStepEventHandler confirmStepEventHandler;
@@ -54,9 +56,11 @@ public class StepListener {
     /**
      * 处理步骤执行相关的事件
      *
-     * @param stepEvent 步骤执行相关的事件
+     * @param message 消息
      */
-    public void handleEvent(StepEvent stepEvent) {
+    @Override
+    public void handleEvent(Message<? extends Event> message) {
+        StepEvent stepEvent = (StepEvent) message.getPayload();
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
