@@ -34,6 +34,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,11 +46,15 @@ public class JobExecuteContextMessageChannelInterceptor implements ChannelInterc
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         log.info("preSend");
         PropagatedJobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
-        if (context != null) {
-            log.info("setJobExecuteContextMessageHeader");
-            message.getHeaders().put(PropagatedJobExecuteContext.KEY, JsonUtils.toJson(context));
+        if (context == null) {
+            return ChannelInterceptor.super.preSend(message, channel);
         }
-        return ChannelInterceptor.super.preSend(message, channel);
+        log.info("setJobExecuteContextMessageHeader");
+        Message<?> newMessage =
+            MessageBuilder.fromMessage(message)
+                .setHeader(PropagatedJobExecuteContext.KEY, JsonUtils.toJson(context))
+                .build();
+        return ChannelInterceptor.super.preSend(newMessage, channel);
     }
 
     @Override
