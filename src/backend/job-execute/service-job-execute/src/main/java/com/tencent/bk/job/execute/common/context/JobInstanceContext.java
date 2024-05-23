@@ -22,26 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.colddata;
+package com.tencent.bk.job.execute.common.context;
 
-import com.tencent.bk.job.execute.model.TaskInstanceRecordStateDO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.constant.ArchiveFlag;
+import lombok.Data;
 
 /**
- * 作业托管（ThreadLocal方式)
+ * 可传播的Job作业实例上下文，用于在异步线程、跨进程(http/mq 通信等)场景下传递、共享作业实例数据
  */
-public class TaskInstanceRecordStateThreadLocalRepo {
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class JobInstanceContext {
 
-    public static final ThreadLocal<TaskInstanceRecordStateDO> HOLDER = new ThreadLocal<>();
+    private Long taskInstanceId;
 
-    public static void set(TaskInstanceRecordStateDO taskInstanceRecordStateDO) {
-        HOLDER.set(taskInstanceRecordStateDO);
-    }
-
-    public static void unset() {
-        HOLDER.remove();
-    }
-
-    public static TaskInstanceRecordStateDO get() {
-        return HOLDER.get();
-    }
+    /**
+     * 数据归档状态
+     *
+     * @see ArchiveFlag
+     */
+    private int archiveFlag = ArchiveFlag.HOT.getValue();
 }

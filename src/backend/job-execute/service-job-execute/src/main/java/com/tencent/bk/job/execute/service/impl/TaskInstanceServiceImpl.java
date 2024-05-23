@@ -35,7 +35,10 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
+import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.common.context.JobInstanceContext;
+import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -112,6 +115,11 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
         checkTaskInstanceExist(appId, taskInstanceId, taskInstance);
         auditAndAuthViewTaskInstance(username, taskInstance);
+        PropagatedJobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
+        if (jobExecuteContext != null) {
+            JobInstanceContext jobInstanceContext = new JobInstanceContext();
+            jobInstanceContext.setTaskInstanceId(taskInstanceId);
+        }
         return taskInstance;
     }
 
