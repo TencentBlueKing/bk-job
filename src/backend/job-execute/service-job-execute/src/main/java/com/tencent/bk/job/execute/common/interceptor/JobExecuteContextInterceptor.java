@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.AsyncHandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
  * JobContext 初始化
  */
 @Slf4j
+@Component
 @JobInterceptor(order = InterceptorOrder.Init.HIGHEST + 1, pathPatterns = "/**")
 public class JobExecuteContextInterceptor implements AsyncHandlerInterceptor {
 

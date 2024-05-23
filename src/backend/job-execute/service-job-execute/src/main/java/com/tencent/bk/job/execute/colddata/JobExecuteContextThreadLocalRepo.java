@@ -25,15 +25,18 @@
 package com.tencent.bk.job.execute.colddata;
 
 import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 作业执行上下文托管（ThreadLocal方式)
  */
+@Slf4j
 public class JobExecuteContextThreadLocalRepo {
 
     public static final ThreadLocal<PropagatedJobExecuteContext> HOLDER = new ThreadLocal<>();
 
     public static void set(PropagatedJobExecuteContext context) {
+        log.info("SetJobExecuteContextThreadLocalRepo");
         HOLDER.set(context);
     }
 
@@ -42,6 +45,7 @@ public class JobExecuteContextThreadLocalRepo {
     }
 
     public static PropagatedJobExecuteContext get() {
+        log.info("GetJobExecuteContextThreadLocalRepo");
         return HOLDER.get();
     }
 }
