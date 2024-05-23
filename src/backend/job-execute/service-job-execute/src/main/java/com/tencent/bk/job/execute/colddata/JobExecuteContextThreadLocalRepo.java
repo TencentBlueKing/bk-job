@@ -36,16 +36,16 @@ public class JobExecuteContextThreadLocalRepo {
     public static final ThreadLocal<PropagatedJobExecuteContext> HOLDER = new ThreadLocal<>();
 
     public static void set(PropagatedJobExecuteContext context) {
-        log.info("SetJobExecuteContextThreadLocalRepo");
+        log.info("SetJobExecuteContextThreadLocalRepo, context: {}", context);
         HOLDER.set(context);
     }
 
     public static void unset() {
+        log.info("RemoveJobExecuteContext");
         HOLDER.remove();
     }
 
     public static PropagatedJobExecuteContext get() {
-        log.info("GetJobExecuteContextThreadLocalRepo");
         return HOLDER.get();
     }
 }

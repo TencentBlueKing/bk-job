@@ -56,6 +56,7 @@ public class JobExecuteContextInterceptor implements AsyncHandlerInterceptor {
 
         JobContext jobContext = JobContextUtil.getContext();
         if (jobContext != null) {
+            log.info("JobExecuteContextInterceptor -> Set JobExecuteContext");
             PropagatedJobExecuteContext jobExecuteContext = new PropagatedJobExecuteContext();
             jobExecuteContext.setResourceScope(jobContext.getAppResourceScope());
             jobExecuteContext.setUsername(jobContext.getUsername());
