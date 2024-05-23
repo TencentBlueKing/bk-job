@@ -32,47 +32,48 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ExecutorChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 @GlobalChannelInterceptor
-public class JobExecuteContextMessageChannelInterceptor implements ChannelInterceptor {
+public class JobExecuteContextMessageChannelInterceptor implements ExecutorChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         log.info("preSend");
         PropagatedJobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
         if (context == null) {
-            return ChannelInterceptor.super.preSend(message, channel);
+            return ExecutorChannelInterceptor.super.preSend(message, channel);
         }
         log.info("setJobExecuteContextMessageHeader");
         Message<?> newMessage =
             MessageBuilder.fromMessage(message)
                 .setHeader(PropagatedJobExecuteContext.KEY, JsonUtils.toJson(context))
                 .build();
-        return ChannelInterceptor.super.preSend(newMessage, channel);
+        return ExecutorChannelInterceptor.super.preSend(newMessage, channel);
     }
 
     @Override
     public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
         log.info("postSend");
-        ChannelInterceptor.super.postSend(message, channel, sent);
+        ExecutorChannelInterceptor.super.postSend(message, channel, sent);
     }
 
     @Override
     public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
         log.info("afterSendCompletion");
-        ChannelInterceptor.super.afterSendCompletion(message, channel, sent, ex);
+        ExecutorChannelInterceptor.super.afterSendCompletion(message, channel, sent, ex);
     }
 
     @Override
     public boolean preReceive(MessageChannel channel) {
         log.info("preReceive");
-        return ChannelInterceptor.super.preReceive(channel);
+        return ExecutorChannelInterceptor.super.preReceive(channel);
     }
 
     @Override
@@ -85,13 +86,33 @@ public class JobExecuteContextMessageChannelInterceptor implements ChannelInterc
             JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
                 PropagatedJobExecuteContext.class));
         }
-        return ChannelInterceptor.super.postReceive(message, channel);
+        return ExecutorChannelInterceptor.super.postReceive(message, channel);
     }
 
     @Override
     public void afterReceiveCompletion(Message<?> message, MessageChannel channel, Exception ex) {
         log.info("afterReceiveCompletion");
         JobExecuteContextThreadLocalRepo.unset();
-        ChannelInterceptor.super.afterReceiveCompletion(message, channel, ex);
+        ExecutorChannelInterceptor.super.afterReceiveCompletion(message, channel, ex);
+    }
+
+    @Override
+    public Message<?> beforeHandle(Message<?> message, MessageChannel channel, MessageHandler handler) {
+        log.info("beforeHandle");
+        MessageHeaders headers = message.getHeaders();
+        String jobExecuteContextJson = (String) headers.get(PropagatedJobExecuteContext.KEY);
+        if (StringUtils.isNotEmpty(jobExecuteContextJson)) {
+            log.info("setJobExecuteContextThreadLocalRepo");
+            JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
+                PropagatedJobExecuteContext.class));
+        }
+        return ExecutorChannelInterceptor.super.beforeHandle(message, channel, handler);
+    }
+
+    @Override
+    public void afterMessageHandled(Message<?> message, MessageChannel channel, MessageHandler handler, Exception ex) {
+        log.info("afterMessageHandled");
+        JobExecuteContextThreadLocalRepo.unset();
+        ExecutorChannelInterceptor.super.afterMessageHandled(message, channel, handler, ex);
     }
 }
