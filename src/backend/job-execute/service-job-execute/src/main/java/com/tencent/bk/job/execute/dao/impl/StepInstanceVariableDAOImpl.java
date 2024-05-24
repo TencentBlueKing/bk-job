@@ -45,8 +45,8 @@ import java.util.List;
 @Repository
 public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     private static final StepInstanceVariable TABLE = StepInstanceVariable.STEP_INSTANCE_VARIABLE;
-    private DSLContext ctx;
-    private TableField[] FIELDS = {TABLE.TASK_INSTANCE_ID, TABLE.STEP_INSTANCE_ID,
+    private final DSLContext ctx;
+    private final TableField<?, ?>[] FIELDS = {TABLE.TASK_INSTANCE_ID, TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT, TABLE.TYPE, TABLE.PARAM_VALUES};
 
 
@@ -65,11 +65,15 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
-    public StepInstanceVariableValuesDTO getStepVariableValues(long stepInstanceId, int executeCount,
+    public StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
+                                                               long stepInstanceId,
+                                                               int executeCount,
                                                                VariableValueTypeEnum variableValueType) {
         Record record = ctx.select(FIELDS)
                 .from(TABLE)
-                .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
+                        TABLE.TASK_INSTANCE_ID::eq))
+                .and(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(TABLE.EXECUTE_COUNT.eq(executeCount))
                 .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
                 .limit(1)

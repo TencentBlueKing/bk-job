@@ -22,16 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.colddata;
+package com.tencent.bk.job.execute.common.context;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.extern.slf4j.Slf4j;
 
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface JobInstanceRecordQuery {
+/**
+ * 作业执行上下文托管（ThreadLocal方式)
+ */
+@Slf4j
+public class JobExecuteContextThreadLocalRepo {
+
+    public static final ThreadLocal<JobExecuteContext> HOLDER = new ThreadLocal<>();
+
+    public static void set(JobExecuteContext context) {
+        if (log.isDebugEnabled()) {
+            log.info("SetJobExecuteContextThreadLocalRepo, context: {}", context);
+        }
+        HOLDER.set(context);
+    }
+
+    public static void unset() {
+        if (log.isDebugEnabled()) {
+            log.debug("RemoveFromJobExecuteContextThreadLocalRepo");
+        }
+        HOLDER.remove();
+    }
+
+    public static JobExecuteContext get() {
+        return HOLDER.get();
+    }
 }

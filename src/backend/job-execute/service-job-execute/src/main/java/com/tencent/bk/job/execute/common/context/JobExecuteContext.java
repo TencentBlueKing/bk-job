@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.Data;
 
 /**
- * 作业执行上下文
+ * 作业执行上下文信息，用于在全局共享、异步传播(跨线程、跨 mq等场景)
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -38,11 +38,17 @@ public class JobExecuteContext {
     public static final String KEY = "JobExecuteContext";
 
     /**
-     * 业务
+     * 业务信息
      */
     private AppResourceScope resourceScope;
 
+    /**
+     * 用户账号
+     */
     private String username;
 
+    /**
+     * 作业实例
+     */
     private JobInstanceContext jobInstanceContext;
 }

@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.common.interceptor;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
@@ -35,6 +35,9 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Mq 消息全局拦截 - JobExecuteContext 上下文传递
+ */
 @Component
 @Slf4j
 @GlobalChannelInterceptor
@@ -42,12 +45,13 @@ public class JobExecuteContextPropagateMqInterceptor implements ChannelIntercept
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        log.info("preSend");
         JobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
         if (context == null) {
             return ChannelInterceptor.super.preSend(message, channel);
         }
-        log.info("setJobExecuteContextMessageHeader, context: {}", context);
+        if (log.isDebugEnabled()) {
+            log.debug("SetJobExecuteContextMessageHeader, context: {}", context);
+        }
         Message<?> newMessage =
             MessageBuilder.fromMessage(message)
                 .setHeader(JobExecuteContext.KEY, JsonUtils.toJson(context))

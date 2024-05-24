@@ -148,44 +148,44 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
-                          log.info("Get notify roles, resp={}", resp);
-                          if (!resp.isSuccess() || resp.getData() == null) {
-                              return new HashMap<>();
-                          } else {
-                              List<ServiceAppRoleDTO> appRoles = resp.getData();
-                              Map<String, String> codeNameMap = new HashMap<>();
-                              if (appRoles != null) {
-                                  appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
-                              }
-                              return codeNameMap;
+        build(new CacheLoader<String, Map<String, String>>() {
+                  @Override
+                  public Map<String, String> load(String lang) {
+                      InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
+                      log.info("Get notify roles, resp={}", resp);
+                      if (!resp.isSuccess() || resp.getData() == null) {
+                          return new HashMap<>();
+                      } else {
+                          List<ServiceAppRoleDTO> appRoles = resp.getData();
+                          Map<String, String> codeNameMap = new HashMap<>();
+                          if (appRoles != null) {
+                              appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
                           }
+                          return codeNameMap;
                       }
                   }
-            );
+              }
+        );
     private final LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-            build(new CacheLoader<String, Map<String, String>>() {
-                      @Override
-                      public Map<String, String> load(String lang) {
-                          InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
-                          log.info("Get notify channels, resp={}", resp);
-                          if (!resp.isSuccess() || resp.getData() == null) {
-                              return new HashMap<>();
-                          } else {
-                              List<ServiceNotifyChannelDTO> channels = resp.getData();
-                              Map<String, String> typeNameMap = new HashMap<>();
-                              if (channels != null) {
-                                  channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
-                              }
-                              return typeNameMap;
+        build(new CacheLoader<String, Map<String, String>>() {
+                  @Override
+                  public Map<String, String> load(String lang) {
+                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                      log.info("Get notify channels, resp={}", resp);
+                      if (!resp.isSuccess() || resp.getData() == null) {
+                          return new HashMap<>();
+                      } else {
+                          List<ServiceNotifyChannelDTO> channels = resp.getData();
+                          Map<String, String> typeNameMap = new HashMap<>();
+                          if (channels != null) {
+                              channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
                           }
+                          return typeNameMap;
                       }
                   }
-            );
+              }
+        );
 
     @Autowired
     public WebTaskExecutionResultResourceImpl(TaskResultService taskResultService,
@@ -984,17 +984,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                           Long stepInstanceId,
                                                                           Integer batch) {
 
-        List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
-            appResourceScope.getAppId(), null, stepInstanceId, batch);
-
-        return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
-            StepExecutionRecordVO vo = new StepExecutionRecordVO();
-            vo.setStepInstanceId(stepInstanceId);
-            vo.setRetryCount(stepExecutionRecord.getRetryCount());
-            vo.setExecuteCount(stepExecutionRecord.getRetryCount());
-            vo.setCreateTime(stepExecutionRecord.getCreateTime());
-            return vo;
-        }).collect(Collectors.toList()));
+        return listStepExecutionHistoryV2(username, appResourceScope, scopeType, scopeId, null, stepInstanceId, batch);
     }
 
     @Override
@@ -1003,7 +993,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                             String scopeType,
                                                                             String scopeId,
                                                                             Long taskInstanceId,
-                                                                            Long stepInstanceId, Integer batch) {
+                                                                            Long stepInstanceId,
+                                                                            Integer batch) {
         List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
             appResourceScope.getAppId(), taskInstanceId, stepInstanceId, batch);
 

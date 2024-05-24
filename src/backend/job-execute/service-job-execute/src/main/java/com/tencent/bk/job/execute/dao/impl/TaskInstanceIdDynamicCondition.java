@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
-import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
@@ -53,14 +53,16 @@ public class TaskInstanceIdDynamicCondition {
                                   Function<Long, Condition> taskInstanceIdConditionBuilder) {
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
-            log.warn("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
-            // JobExecuteContext 正常应该不会为 null 。为了不影响，忽略错误,直接返回 TRUE Condition
+            log.info("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
+            // JobExecuteContext 正常应该不会为 null 。为了不影响请求正常处理，忽略错误,直接返回 TRUE Condition
+            // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
             return DSL.trueCondition();
         }
         ResourceScope resourceScope = jobExecuteContext.getResourceScope();
         if (resourceScope == null) {
-            log.warn("TaskInstanceIdDynamicCondition : Empty resource scope!");
-            // 为了不影响兼容性，忽略错误
+            log.info("TaskInstanceIdDynamicCondition : Empty resource scope!");
+            // 无法根据业务决定是否使用 task_instance_id 作为查询条件。为了不影响请求正常处理,直接返回 TRUE Condition
+            // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
             return DSL.trueCondition();
         }
         if (FeatureToggle.checkFeature(
@@ -69,7 +71,7 @@ public class TaskInstanceIdDynamicCondition {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     JobContextUtil.getAppResourceScope()))) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
-                log.warn("TaskInstanceIdDynamicCondition : Invalid taskInstanceId {}", taskInstanceId);
+                log.info("TaskInstanceIdDynamicCondition : Invalid taskInstanceId {}", taskInstanceId);
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
             } else {

@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * JobContext 初始化
+ * 在请求处理之前，初始话作业执行上下文(JobExecuteContext）；在请求结束之前，删除 JobExecuteContext
  */
 @Slf4j
 @Component
@@ -56,11 +56,13 @@ public class JobExecuteContextHttpInterceptor implements AsyncHandlerInterceptor
 
         JobContext jobContext = JobContextUtil.getContext();
         if (jobContext != null) {
-            log.info("JobExecuteContextInterceptor -> Set JobExecuteContext");
             JobExecuteContext jobExecuteContext = new JobExecuteContext();
             jobExecuteContext.setResourceScope(jobContext.getAppResourceScope());
             jobExecuteContext.setUsername(jobContext.getUsername());
             JobExecuteContextThreadLocalRepo.set(jobExecuteContext);
+            if (log.isDebugEnabled()) {
+                log.debug("JobExecuteContextInterceptor -> Set JobExecuteContext : {}", jobExecuteContext);
+            }
         }
 
         return true;
