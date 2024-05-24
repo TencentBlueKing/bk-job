@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 @Component
 @JobInterceptor(order = InterceptorOrder.Init.LOWEST, pathPatterns = "/**")
-public class JobExecuteContextInterceptor implements AsyncHandlerInterceptor {
+public class JobExecuteContextHttpInterceptor implements AsyncHandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request,

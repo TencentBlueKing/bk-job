@@ -40,12 +40,13 @@ import java.net.URL;
  */
 @Component
 @Slf4j
-public class CallbackListener {
+public class CallbackListener extends BaseJobMqListener {
 
     /**
      * 处理回调请求
      */
-    public void handleMessage(Message<? extends JobMessage> message) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
         JobCallbackDTO callbackDTO = (JobCallbackDTO) message.getPayload();
         long taskInstanceId = callbackDTO.getId();
         try {

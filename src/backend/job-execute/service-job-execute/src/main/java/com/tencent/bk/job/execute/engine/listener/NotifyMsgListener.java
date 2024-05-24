@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class NotifyMsgListener {
+public class NotifyMsgListener extends BaseJobMqListener {
     private final NotifyService notifyService;
 
     @Autowired
@@ -47,7 +47,8 @@ public class NotifyMsgListener {
         this.notifyService = notifyService;
     }
 
-    public void handleMessage(Message<? extends JobMessage> message) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
         TaskNotifyDTO taskNotifyDTO = (TaskNotifyDTO) message.getPayload();
         log.info("Begin to send msg:{}", JsonUtils.toJson(taskNotifyDTO));
         ExecuteStatusEnum executeStatus = ExecuteStatusEnum.get(taskNotifyDTO.getResourceExecuteStatus());

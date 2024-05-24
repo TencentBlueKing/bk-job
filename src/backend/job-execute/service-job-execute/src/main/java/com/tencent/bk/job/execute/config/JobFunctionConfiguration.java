@@ -81,13 +81,13 @@ public class JobFunctionConfiguration {
     @Bean
     public Consumer<Message<TaskNotifyDTO>> handleNotifyMsg(@Autowired NotifyMsgListener notifyMsgListener) {
         log.info("Init handleNotifyMsg consumer");
-        return notifyMsgListener::handleMessage;
+        return notifyMsgListener::onEvent;
     }
 
     @Bean
     public Consumer<Message<JobCallbackDTO>> handleCallbackMsg(@Autowired CallbackListener callbackListener) {
         log.info("Init handleCallbackMsg consumer");
-        return callbackListener::handleMessage;
+        return callbackListener::onEvent;
     }
 
 }

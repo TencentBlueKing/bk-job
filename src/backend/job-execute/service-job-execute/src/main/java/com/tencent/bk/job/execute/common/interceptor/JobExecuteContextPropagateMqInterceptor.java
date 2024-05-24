@@ -31,39 +31,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.ExecutorChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 @GlobalChannelInterceptor
-public class JobExecuteContextMessageChannelInterceptor implements ExecutorChannelInterceptor {
+public class JobExecuteContextPropagateMqInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         log.info("preSend");
         JobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
         if (context == null) {
-            return ExecutorChannelInterceptor.super.preSend(message, channel);
+            return ChannelInterceptor.super.preSend(message, channel);
         }
         log.info("setJobExecuteContextMessageHeader, context: {}", context);
         Message<?> newMessage =
             MessageBuilder.fromMessage(message)
                 .setHeader(JobExecuteContext.KEY, JsonUtils.toJson(context))
                 .build();
-        return ExecutorChannelInterceptor.super.preSend(newMessage, channel);
-    }
-
-    @Override
-    public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-        log.info("postSend");
-        ExecutorChannelInterceptor.super.postSend(message, channel, sent);
-    }
-
-    @Override
-    public void afterSendCompletion(Message<?> message, MessageChannel channel, boolean sent, Exception ex) {
-        log.info("afterSendCompletion");
-        ExecutorChannelInterceptor.super.afterSendCompletion(message, channel, sent, ex);
+        return ChannelInterceptor.super.preSend(newMessage, channel);
     }
 }
