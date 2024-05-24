@@ -38,6 +38,14 @@ import org.jooq.impl.DSL;
 
 import java.util.function.Function;
 
+/**
+ * task_instance_id DAO 层查询条件动态构造。
+ * 背景：由于分库分表改造，原有的一些表(比如step_instance_script)中需要加入 task_instance_id 字段作为分片键。从数据的唯一性来说，
+ * 查询的时候传入 task_instance_id 条件是多余的，涉及的这些表的唯一业务主键都是(step_instance_id+execute_count+其它字段)。
+ * <p>
+ * 考虑到 db 变更过程中表中 task_instance_id 可能为 0 的情况（历史数据），
+ * 所以，需要通过业务 ID 、task_instance_id 的值动态去构造查询条件，兼容历史数据的查询
+ */
 @Slf4j
 public class TaskInstanceIdDynamicCondition {
 
@@ -46,7 +54,7 @@ public class TaskInstanceIdDynamicCondition {
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
             log.warn("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
-            // 为了不影响兼容性，忽略错误
+            // JobExecuteContext 正常应该不会为 null 。为了不影响，忽略错误,直接返回 TRUE Condition
             return DSL.trueCondition();
         }
         ResourceScope resourceScope = jobExecuteContext.getResourceScope();
@@ -61,9 +69,7 @@ public class TaskInstanceIdDynamicCondition {
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     JobContextUtil.getAppResourceScope()))) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
-                log.warn("TaskInstanceIdDynamicCondition : Invalid taskInstanceId for building query condition. " +
-                        "taskInstanceId : {}",
-                    taskInstanceId);
+                log.warn("TaskInstanceIdDynamicCondition : Invalid taskInstanceId {}", taskInstanceId);
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
             } else {

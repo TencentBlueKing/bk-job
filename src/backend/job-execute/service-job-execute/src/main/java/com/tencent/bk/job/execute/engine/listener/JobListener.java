@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
-import com.tencent.bk.job.execute.engine.listener.event.Event;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
@@ -58,7 +58,7 @@ import java.util.List;
  */
 @Component("jobEventListener")
 @Slf4j
-public class JobListener extends BaseJobExecuteMqListener {
+public class JobListener extends BaseJobMqListener {
 
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StatisticsService statisticsService;
@@ -89,7 +89,7 @@ public class JobListener extends BaseJobExecuteMqListener {
      * @param message 消息
      */
     @Override
-    public void handleEvent(Message<? extends Event> message) {
+    public void handleEvent(Message<? extends JobMessage> message) {
         JobEvent jobEvent = (JobEvent) message.getPayload();
         log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();

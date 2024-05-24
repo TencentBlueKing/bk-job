@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.Event;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
@@ -71,7 +71,7 @@ import java.util.UUID;
  */
 @Component
 @Slf4j
-public class ResultHandleResumeListener extends BaseJobExecuteMqListener {
+public class ResultHandleResumeListener extends BaseJobMqListener {
     private final TaskInstanceService taskInstanceService;
 
     private final ResultHandleManager resultHandleManager;
@@ -134,7 +134,7 @@ public class ResultHandleResumeListener extends BaseJobExecuteMqListener {
     /**
      * 恢复被中断的作业结果处理任务
      */
-    public void handleEvent(Message<? extends Event> message) {
+    public void handleEvent(Message<? extends JobMessage> message) {
         ResultHandleTaskResumeEvent event = (ResultHandleTaskResumeEvent) message.getPayload();
         log.info("Receive gse task result handle task resume event: {}, duration: {}ms", event, event.duration());
         GseTaskDTO gseTask = gseTaskService.getGseTask(event.getJobInstanceId(), event.getGseTaskId());

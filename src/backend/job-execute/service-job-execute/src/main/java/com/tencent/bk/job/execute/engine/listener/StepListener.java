@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.engine.listener.event.Event;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class StepListener extends BaseJobExecuteMqListener {
+public class StepListener extends BaseJobMqListener {
     private final StepInstanceService stepInstanceService;
     private final GseStepEventHandler gseStepEventHandler;
     private final ConfirmStepEventHandler confirmStepEventHandler;
@@ -59,7 +59,7 @@ public class StepListener extends BaseJobExecuteMqListener {
      * @param message 消息
      */
     @Override
-    public void handleEvent(Message<? extends Event> message) {
+    public void handleEvent(Message<? extends JobMessage> message) {
         StepEvent stepEvent = (StepEvent) message.getPayload();
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();

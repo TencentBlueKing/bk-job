@@ -24,32 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.listener.event;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import lombok.Data;
-
-import java.time.LocalDateTime;
-
 /**
- * 执行引擎调度事件基础类
+ * MQ Job消息接口
  */
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class Event implements JobMessage {
-    /**
-     * 事件源
-     */
-    protected EventSource source;
-    /**
-     * 事件发生时间
-     */
-    protected LocalDateTime time;
+public interface JobMessage {
 
-    public long duration() {
-        if (time != null) {
-            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
-        } else {
-            return 0;
-        }
-    }
 }

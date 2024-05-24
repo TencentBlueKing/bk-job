@@ -27,17 +27,17 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
-import com.tencent.bk.job.execute.engine.listener.event.Event;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 @Slf4j
-public abstract class BaseJobExecuteMqListener {
+public abstract class BaseJobMqListener {
 
 
-    public final void onEvent(Message<? extends Event> message) {
+    public final void onEvent(Message<? extends JobMessage> message) {
         beforeHandleMessage(message);
         try {
             handleEvent(message);
@@ -46,7 +46,7 @@ public abstract class BaseJobExecuteMqListener {
         }
     }
 
-    private void beforeHandleMessage(Message<?> message) {
+    private void beforeHandleMessage(Message<? extends JobMessage> message) {
         log.info("beforeHandleMessage");
         MessageHeaders headers = message.getHeaders();
         String jobExecuteContextJson = (String) headers.get(JobExecuteContext.KEY);
@@ -57,10 +57,10 @@ public abstract class BaseJobExecuteMqListener {
         }
     }
 
-    private void afterHandle(Message<?> message) {
+    private void afterHandle(Message<? extends JobMessage> message) {
         log.info("afterHandleMessage");
         JobExecuteContextThreadLocalRepo.unset();
     }
 
-    protected abstract void handleEvent(Message<? extends Event> message);
+    protected abstract void handleEvent(Message<? extends JobMessage> message);
 }
