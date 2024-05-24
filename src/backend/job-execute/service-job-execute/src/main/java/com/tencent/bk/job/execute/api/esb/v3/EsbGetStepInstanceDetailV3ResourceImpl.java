@@ -80,7 +80,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                                                        Long stepInstanceId) {
         long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
         taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
 

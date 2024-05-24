@@ -116,7 +116,7 @@ public interface StepInstanceService {
      * @param stepInstanceId 步骤实例ID
      * @return 步骤基本信息
      */
-    StepInstanceBaseDTO getBaseStepInstance(long stepInstanceId);
+    StepInstanceBaseDTO getBaseStepInstanceById(long stepInstanceId);
 
     /**
      * 获取步骤基本信息

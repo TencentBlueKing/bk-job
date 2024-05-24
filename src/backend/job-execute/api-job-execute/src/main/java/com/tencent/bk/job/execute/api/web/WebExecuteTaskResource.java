@@ -140,7 +140,7 @@ public interface WebExecuteTaskResource {
     );
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
-    @PostMapping(value = {"/do-step-operation/taskInstanceId/{taskInstanceId}/stepInstanceId/{stepInstanceId}"})
+    @PostMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/stepOperation"})
     Response<StepOperationVO> doStepOperation(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

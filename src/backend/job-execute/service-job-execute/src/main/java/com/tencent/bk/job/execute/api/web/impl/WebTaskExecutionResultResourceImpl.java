@@ -677,8 +677,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                     Integer executeCount,
                                                                     Long hostId,
                                                                     Integer batch) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
-            appResourceScope.getAppId(), stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
         ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
@@ -702,7 +701,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                    Long hostId,
                                                                    String ip) {
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-            appResourceScope.getAppId(), stepInstanceId);
+            null, stepInstanceId);
         if (!stepInstance.isScriptStep() || stepInstance.getScriptType() != ScriptTypeEnum.SHELL) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
@@ -943,16 +942,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
     }
 
-    private void auditAndAuthViewStepInstance(String username,
-                                              AppResourceScope appResourceScope,
-                                              Long stepInstanceId) {
-        StepInstanceBaseDTO stepInstance =
-            stepInstanceService.getBaseStepInstance(appResourceScope.getAppId(), stepInstanceId);
-        taskInstanceAccessProcessor.processBeforeAccess(username,
-            appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
-    }
-
-
     @Override
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
     public Response<List<HostDTO>> getHostsByResultType(String username,
@@ -1078,7 +1067,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                  Integer executeCount,
                                                                                  Integer batch) {
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
-            appResourceScope.getAppId(), stepInstanceId);
+            appResourceScope.getAppId(), taskInstanceId, stepInstanceId);
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
         int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
@@ -1114,7 +1103,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                              Integer batch,
                                                                              Integer mode) {
         StepInstanceDTO stepInstance =
-            stepInstanceService.getStepInstanceDetail(appResourceScope.getAppId(), stepInstanceId);
+            stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
         ExecuteObjectFileLogVO result = new ExecuteObjectFileLogVO();
@@ -1179,7 +1168,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                      Integer batch,
                                                                                      List<String> taskIds) {
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
-            appResourceScope.getAppId(), stepInstanceId);
+            taskInstanceId, stepInstanceId);
         auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
 
         int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
@@ -1204,7 +1193,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                             Integer executeObjectType,
                                                                             Long executeObjectResourceId) {
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-            appResourceScope.getAppId(), stepInstanceId);
+            taskInstanceId, stepInstanceId);
         if (!stepInstance.isScriptStep() || stepInstance.getScriptType() != ScriptTypeEnum.SHELL) {
             return Response.buildSuccessResp(Collections.emptyList());
         }

@@ -92,7 +92,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     @Override
     public Response<List<TaskLinkVO>> getTaskLinkByStepId(String username,
                                                           Long stepInstanceId) {
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
         if (stepInstanceBase == null) {
             String errorMsg = "not found StepInstance by " + stepInstanceId;
             log.warn(errorMsg);

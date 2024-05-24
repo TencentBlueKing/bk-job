@@ -142,7 +142,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
     }
 
     @Override
-    public StepInstanceBaseDTO getBaseStepInstance(long stepInstanceId) {
+    public StepInstanceBaseDTO getBaseStepInstanceById(long stepInstanceId) {
         return stepInstanceDAO.getStepInstanceBase(stepInstanceId);
     }
 
