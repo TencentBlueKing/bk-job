@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -164,8 +163,9 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     @Override
-    public TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId,
-                                                       Long taskInstanceId) throws ServiceException {
+    public TaskExecuteResultDTO getTaskExecutionResult(String username,
+                                                       Long appId,
+                                                       Long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(username, appId, taskInstanceId);
 
         TaskExecutionDTO taskExecution = buildTaskExecutionDTO(taskInstance);
@@ -216,7 +216,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             stepInstance.getEndTime(), stepInstance.getTotalTime()));
         stepExecution.setLastStep(stepInstance.isLastStep());
         if (stepInstance.getExecuteType() == StepExecuteTypeEnum.MANUAL_CONFIRM) {
-            ConfirmStepInstanceDTO confirmStepInstance = stepInstanceDAO.getConfirmStepInstance(stepInstance.getId());
+            ConfirmStepInstanceDTO confirmStepInstance = stepInstanceDAO.getConfirmStepInstance(
+                stepInstance.getTaskInstanceId(), stepInstance.getId());
             if (confirmStepInstance != null) {
                 stepExecution.setConfirmMessage(confirmStepInstance.getConfirmMessage());
                 stepExecution.setConfirmReason(confirmStepInstance.getConfirmReason());
@@ -414,14 +415,16 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     @Override
-    public StepExecutionDetailDTO getStepExecutionResult(String username, Long appId,
-                                                         StepExecutionResultQuery query) throws ServiceException {
+    public StepExecutionDetailDTO getStepExecutionResult(String username,
+                                                         Long appId,
+                                                         StepExecutionResultQuery query) {
         StopWatch watch = new StopWatch("getStepExecutionResult");
         try {
             Long stepInstanceId = query.getStepInstanceId();
 
             watch.start("getAndCheckStepInstance");
-            StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
+            StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+                appId, query.getTaskInstanceId(), stepInstanceId);
             preProcessViewStepExecutionResult(username, appId, stepInstance);
 
             int queryExecuteCount = query.getExecuteCount() == null ? stepInstance.getExecuteCount() :
@@ -458,6 +461,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                 watch.start("involveFileSourceTaskLog");
                 FileSourceTaskLogDTO fileSourceTaskLog =
                     fileSourceTaskLogDAO.getFileSourceTaskLog(
+                        stepInstance.getTaskInstanceId(),
                         stepInstance.getId(),
                         queryExecuteCount
                     );
@@ -776,6 +780,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
             stepInstanceRollingTaskService.listLatestRollingTasks(
+                stepInstance.getTaskInstanceId(),
                 stepExecutionDetail.getStepInstanceId(),
                 stepExecutionDetail.getExecuteCount())
                 .stream()
@@ -919,16 +924,19 @@ public class TaskResultServiceImpl implements TaskResultService {
     @Override
     public List<ExecuteObject> getExecuteObjectsByResultType(String username,
                                                              Long appId,
+                                                             Long taskInstanceId,
                                                              Long stepInstanceId,
                                                              Integer executeCount,
                                                              Integer batch,
                                                              Integer resultType,
                                                              String tag,
                                                              String keyword) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+            appId, taskInstanceId, stepInstanceId);
         preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .taskInstanceId(taskInstanceId)
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
             .batch(batch)
@@ -976,9 +984,11 @@ public class TaskResultServiceImpl implements TaskResultService {
     @Override
     public List<StepExecutionRecordDTO> listStepExecutionHistory(String username,
                                                                  Long appId,
+                                                                 Long taskInstanceId,
                                                                  Long stepInstanceId,
                                                                  Integer batch) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(appId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+            appId, taskInstanceId, stepInstanceId);
         preProcessViewStepExecutionResult(username, appId, stepInstance);
 
         // 步骤没有重试执行过
@@ -996,7 +1006,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             records = queryStepRetryRecords(stepInstance);
         } else {
             // 获取滚动任务维度的重试记录
-            records = queryStepRollingTaskRetryRecords(stepInstanceId, batch);
+            records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
         }
 
         records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
@@ -1036,10 +1046,12 @@ public class TaskResultServiceImpl implements TaskResultService {
         return records;
     }
 
-    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(long stepInstanceId, int batch) {
+    private List<StepExecutionRecordDTO> queryStepRollingTaskRetryRecords(Long taskInstanceId,
+                                                                          long stepInstanceId,
+                                                                          int batch) {
         List<StepExecutionRecordDTO> records = new ArrayList<>();
         List<StepInstanceRollingTaskDTO> rollingTasks =
-            stepInstanceRollingTaskService.listRollingTasksByBatch(stepInstanceId, batch);
+            stepInstanceRollingTaskService.listRollingTasksByBatch(taskInstanceId, stepInstanceId, batch);
         rollingTasks.forEach(rollingTask -> {
             StepExecutionRecordDTO record = new StepExecutionRecordDTO();
             record.setStepInstanceId(stepInstanceId);

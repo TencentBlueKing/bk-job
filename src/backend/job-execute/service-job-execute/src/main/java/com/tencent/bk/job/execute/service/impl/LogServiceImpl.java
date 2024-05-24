@@ -414,11 +414,12 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long stepInstanceId,
+    public List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long taskInstanceId,
+                                                                 long stepInstanceId,
                                                                  int executeCount,
                                                                  Integer batch,
                                                                  List<String> taskIds) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<List<ServiceFileTaskLogDTO>> resp = logResource.listTaskFileLogsByTaskIds(
             taskCreateDateStr, stepInstanceId, executeCount, batch, taskIds);
@@ -481,10 +482,11 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
+    public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long taskInstanceId,
+                                                                                       long stepInstanceId,
                                                                                        int executeCount,
                                                                                        Integer batch) {
-        return batchGetFileExecuteObjectLogContent(stepInstanceId, executeCount, batch,
+        return batchGetFileExecuteObjectLogContent(taskInstanceId, stepInstanceId, executeCount, batch,
             FileTaskModeEnum.UPLOAD, null);
     }
 
@@ -540,13 +542,14 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public List<FileExecuteObjectLogContent> batchGetFileExecuteObjectLogContent(
+        long taskInstanceId,
         long stepInstanceId,
         int executeCount,
         Integer batch,
         FileTaskModeEnum mode,
         List<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
         request.setStepInstanceId(stepInstance.getId());

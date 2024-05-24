@@ -184,11 +184,17 @@ public class FileTaskDAOImpl extends BaseDAOImpl implements FileTaskDAO {
     }
 
     @Override
-    public List<String> listTimeoutFileSourceTaskIds(Long expireTimeMills,
-                                                     Collection<Byte> statusSet, Integer start, Integer pageSize) {
+    public List<String> listTimeoutFileSourceTaskIds(Long startTimeMills,
+                                                     Long endTimeMills,
+                                                     Collection<Byte> statusSet,
+                                                     Integer start,
+                                                     Integer pageSize) {
         List<Condition> conditions = new ArrayList<>();
-        if (expireTimeMills != null) {
-            conditions.add(defaultTable.LAST_MODIFY_TIME.le(System.currentTimeMillis() - expireTimeMills));
+        if (startTimeMills != null) {
+            conditions.add(defaultTable.LAST_MODIFY_TIME.greaterOrEqual(startTimeMills));
+        }
+        if (endTimeMills != null) {
+            conditions.add(defaultTable.LAST_MODIFY_TIME.lessOrEqual(endTimeMills));
         }
         if (statusSet != null && !statusSet.isEmpty()) {
             conditions.add(defaultTable.STATUS.in(statusSet));

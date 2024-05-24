@@ -75,9 +75,9 @@ public class FilePrepareServiceImpl implements FilePrepareService {
     }
 
     @Override
-    public void clearPreparedTmpFile(long stepInstanceId) {
-        localFilePrepareService.clearPreparedTmpFile(stepInstanceId);
-        thirdFilePrepareService.clearPreparedTmpFile(stepInstanceId);
+    public void clearPreparedTmpFile(long taskInstanceId, long stepInstanceId) {
+        localFilePrepareService.clearPreparedTmpFile(taskInstanceId, stepInstanceId);
+        thirdFilePrepareService.clearPreparedTmpFile(taskInstanceId, stepInstanceId);
     }
 
     private void startPrepareLocalFileTask(StepInstanceDTO stepInstance,
@@ -153,7 +153,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             new FilePrepareControlTask(
                 this,
                 taskInstanceService,
-                taskExecuteMQEventDispatcher, stepInstance,
+                taskExecuteMQEventDispatcher,
+                stepInstance,
                 latch,
                 resultList,
                 filePrepareTaskResultHandler,

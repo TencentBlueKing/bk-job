@@ -24,14 +24,10 @@
 
 package com.tencent.bk.job.execute.engine.prepare.third;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -51,7 +47,6 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
@@ -64,12 +59,10 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDT
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
-import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -78,8 +71,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -101,7 +92,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
     private ServiceFileSourceTaskResource fileSourceTaskResource;
     private AccountService accountService;
-    private HostService hostService;
+    private FileWorkerHostService fileWorkerHostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
@@ -133,14 +124,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         ServiceFileSourceTaskResource fileSourceTaskResource,
         StepInstanceService stepInstanceService,
         AccountService accountService,
-        HostService hostService,
+        FileWorkerHostService fileWorkerHostService,
         LogService logService,
         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         FileSourceTaskLogDAO fileSourceTaskLogDAO
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.accountService = accountService;
-        this.hostService = hostService;
+        this.fileWorkerHostService = fileWorkerHostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
@@ -264,11 +255,12 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         BatchTaskStatusDTO batchTaskStatusDTO
     ) {
         // 更新文件源拉取任务耗时数据
-        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogDAO.getFileSourceTaskLogByBatchTaskId(batchTaskId);
+        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogDAO.getFileSourceTaskLogByBatchTaskId(
+            stepInstance.getTaskInstanceId(), batchTaskId);
         if (fileSourceTaskLogDTO != null) {
             Long endTime = System.currentTimeMillis();
-            fileSourceTaskLogDAO.updateTimeConsumingByBatchTaskId(batchTaskId, null, endTime,
-                endTime - fileSourceTaskLogDTO.getStartTime());
+            fileSourceTaskLogDAO.updateTimeConsumingByBatchTaskId(stepInstance.getTaskInstanceId(), batchTaskId,
+                null, endTime, endTime - fileSourceTaskLogDTO.getStartTime());
         }
         List<FileSourceTaskStatusDTO> taskStatusList = batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
         if (taskStatusList.isEmpty()) {
@@ -340,17 +332,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                         stepInstance.getUniqueKey(),
                         stepInstance.getAppId()
                     );
-                    stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+                    stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+                        stepInstance.getId(), RunStatusEnum.FAIL.getValue());
                     taskExecuteMQEventDispatcher.dispatchJobEvent(
                         JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                            EventSource.buildStepEventSource(stepInstance.getId())));
+                            EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
                     return;
                 }
                 fileSourceDTO.setAccountId(accountDTO.getId());
                 fileSourceDTO.setLocalUpload(false);
 
                 ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-                HostDTO hostDTO = parseFileWorkerHostWithCache(
+                HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
                     fileSourceTaskStatusDTO.getCloudId(),
                     fileSourceTaskStatusDTO.getIpProtocol(),
                     fileSourceTaskStatusDTO.getIp()
@@ -396,56 +389,18 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
         }
         //更新StepInstance
-        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(
+            stepInstance.getTaskInstanceId(), stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
 
-    // 查询file-worker对应主机信息使用60s缓存，避免短时间内多次重复查询
-    private final LoadingCache<Triple<Long, String, String>, HostDTO> fileWorkerHostCache = CacheBuilder.newBuilder()
-        .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
-            build(new CacheLoader<Triple<Long, String, String>, HostDTO>() {
-                      @SuppressWarnings("all")
-                      @Override
-                      public HostDTO load(Triple<Long, String, String> triple) {
-                          return parseFileWorkerHost(triple.getLeft(), triple.getMiddle(), triple.getRight());
-                      }
-                  }
-            );
-
-    private HostDTO parseFileWorkerHostWithCache(Long cloudAreaId, String ipProtocol, String ip) {
-        try {
-            return fileWorkerHostCache.get(buildCacheKey(cloudAreaId, ipProtocol, ip));
-        } catch (ExecutionException e) {
-            log.error("Fail to parseFileWorkerHostWithCache", e);
-            return null;
-        }
-    }
-
-    private Triple<Long, String, String> buildCacheKey(Long cloudAreaId, String ipProtocol, String ip) {
-        return Triple.of(cloudAreaId, ipProtocol, ip);
-    }
-
-    private HostDTO parseFileWorkerHost(Long cloudAreaId, String ipProtocol, String ip) {
-        if (StringUtils.isBlank(ipProtocol)) {
-            ipProtocol = IpUtils.inferProtocolByIp(ip);
-            log.info("ipProtocol is null or blank, use {} inferred by ip {}", ipProtocol, ip);
-        }
-        HostDTO hostDTO;
-        if (IpUtils.PROTOCOL_IP_V6.equalsIgnoreCase(ipProtocol)) {
-            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHostByCloudIpv6(cloudAreaId, ip));
-        } else {
-            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHost(new HostDTO(cloudAreaId, ip)));
-        }
-        log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);
-        return hostDTO;
-    }
 
     private void writeLogs(StepInstanceDTO stepInstance,
                            FileSourceTaskStatusDTO fileSourceTaskStatusDTO,
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
         List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
-            HostDTO host = parseFileWorkerHostWithCache(
+            HostDTO host = fileWorkerHostService.parseFileWorkerHostWithCache(
                 fileSourceTaskStatusDTO.getCloudId(),
                 fileSourceTaskStatusDTO.getIpProtocol(),
                 fileSourceTaskStatusDTO.getIp()

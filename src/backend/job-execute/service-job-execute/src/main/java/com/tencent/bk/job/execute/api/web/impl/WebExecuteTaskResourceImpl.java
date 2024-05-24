@@ -491,7 +491,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
 
-
     private List<FileSourceDTO> convertFileSource(List<ExecuteFileSourceInfoVO> fileSources) {
         if (fileSources == null) {
             return null;
@@ -533,11 +532,24 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                      String scopeId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
+        return doStepOperationV2(username, appResourceScope, scopeType, scopeId,
+            null, stepInstanceId, operation);
+    }
+
+    @Override
+    public Response<StepOperationVO> doStepOperationV2(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       String scopeType,
+                                                       String scopeId,
+                                                       Long taskInstanceId,
+                                                       Long stepInstanceId,
+                                                       WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setTaskInstanceId(taskInstanceId);
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());

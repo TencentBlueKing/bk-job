@@ -210,7 +210,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected String gseTaskInfo;
 
-
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
                                        GseTaskService gseTaskService,
                                        LogService logService,
@@ -425,7 +424,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                     "task:{}", taskInstance.getId(), gseTaskInfo);
                 taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(
-                    gseTask.getStepInstanceId(), gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId()));
+                    taskInstanceId, gseTask.getStepInstanceId(), gseTask.getExecuteCount(),
+                    gseTask.getBatch(), gseTask.getId()));
                 this.isGseTaskTerminating = true;
                 log.info("Send stop gse step control action successfully!");
             }
@@ -433,7 +433,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private boolean shouldSkipStep() {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 
@@ -565,9 +565,17 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         updateGseTaskExecutionInfo(result, endTime, gseTotalTime);
 
         if (dispatchRefreshEvent) {
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), gseTask.getId())));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.refreshStep(
+                    taskInstanceId,
+                    stepInstanceId,
+                    EventSource.buildGseTaskEventSource(
+                        taskInstanceId,
+                        stepInstanceId,
+                        stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(),
+                        gseTask.getId())
+                ));
         }
     }
 
@@ -645,7 +653,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
-                ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
+                ResultHandleTaskResumeEvent.resume(stepInstance.getTaskInstanceId(), gseTask.getStepInstanceId(),
                     gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
 
             this.isStopped = true;

@@ -56,7 +56,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("根据步骤实例ID、执行次数、滚动批次查询步骤滚动任务")
     void queryRollingTask() {
-        StepInstanceRollingTaskDTO rollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1, 0, 1);
+        StepInstanceRollingTaskDTO rollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1L, 1, 0, 1);
         assertThat(rollingTask).isNotNull();
         assertThat(rollingTask.getStepInstanceId()).isEqualTo(1L);
         assertThat(rollingTask.getExecuteCount()).isEqualTo(0);
@@ -70,7 +70,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("根据步骤实例ID查询步骤滚动任务")
     void listRollingTasks() {
-        List<StepInstanceRollingTaskDTO> rollingTasks = stepInstanceRollingTaskDAO.listRollingTasks(1L, null, null);
+        List<StepInstanceRollingTaskDTO> rollingTasks = stepInstanceRollingTaskDAO.listRollingTasks(1L, 1L, null, null);
         assertThat(rollingTasks).hasSize(2);
 
         StepInstanceRollingTaskDTO rollingTask1 = rollingTasks.get(0);
@@ -105,7 +105,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
         rollingTask.setStartTime(1642247802000L);
         stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
 
-        StepInstanceRollingTaskDTO savedRollingTask = stepInstanceRollingTaskDAO.queryRollingTask(100L, 0, 1);
+        StepInstanceRollingTaskDTO savedRollingTask = stepInstanceRollingTaskDAO.queryRollingTask(100L, 100L, 0, 1);
         assertThat(savedRollingTask).isNotNull();
         assertThat(savedRollingTask.getStepInstanceId()).isEqualTo(100L);
         assertThat(savedRollingTask.getExecuteCount()).isEqualTo(0);
@@ -121,9 +121,10 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
         long startTime = System.currentTimeMillis();
         Long endTime = startTime + 1000L;
         Long totalTime = 1000L;
-        stepInstanceRollingTaskDAO.updateRollingTask(1L, 0, 1, RunStatusEnum.SUCCESS, startTime, endTime, totalTime);
+        stepInstanceRollingTaskDAO.updateRollingTask(1L, 1L, 0, 1, RunStatusEnum.SUCCESS, startTime, endTime,
+            totalTime);
 
-        StepInstanceRollingTaskDTO savedRollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1L, 0, 1);
+        StepInstanceRollingTaskDTO savedRollingTask = stepInstanceRollingTaskDAO.queryRollingTask(1L, 1L, 0, 1);
 
         assertThat(savedRollingTask).isNotNull();
         assertThat(savedRollingTask.getStepInstanceId()).isEqualTo(1L);

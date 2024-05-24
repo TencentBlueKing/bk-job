@@ -26,8 +26,10 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -38,12 +40,14 @@ import java.net.URL;
  */
 @Component
 @Slf4j
-public class CallbackListener {
+public class CallbackListener extends BaseJobMqListener {
 
     /**
      * 处理回调请求
      */
-    public void handleMessage(JobCallbackDTO callbackDTO) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        JobCallbackDTO callbackDTO = (JobCallbackDTO) message.getPayload();
         long taskInstanceId = callbackDTO.getId();
         try {
             log.info("Handle callback, taskInstanceId: {}, msg: {}", taskInstanceId, callbackDTO);

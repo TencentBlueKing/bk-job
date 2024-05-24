@@ -554,6 +554,10 @@ localFile:
       concurrency: 10
     # 制品库中作业平台使用的本地文件仓库代码，初始化时由作业平台通过Admin账号自动创建
     repo: localupload
+  # 本地文件过期后是否删除
+  expireDelete: true
+  # 本地文件过期时间（天）
+  expireDays: 7
 
 ## Swagger配置
 swagger:
