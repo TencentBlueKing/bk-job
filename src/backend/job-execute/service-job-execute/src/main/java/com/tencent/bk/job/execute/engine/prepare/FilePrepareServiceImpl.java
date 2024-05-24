@@ -153,7 +153,8 @@ public class FilePrepareServiceImpl implements FilePrepareService {
             new FilePrepareControlTask(
                 this,
                 taskInstanceService,
-                taskExecuteMQEventDispatcher, stepInstance,
+                taskExecuteMQEventDispatcher,
+                stepInstance,
                 latch,
                 resultList,
                 filePrepareTaskResultHandler,

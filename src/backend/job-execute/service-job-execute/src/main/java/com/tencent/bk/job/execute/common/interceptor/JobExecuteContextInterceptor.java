@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
-import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -57,7 +57,7 @@ public class JobExecuteContextInterceptor implements AsyncHandlerInterceptor {
         JobContext jobContext = JobContextUtil.getContext();
         if (jobContext != null) {
             log.info("JobExecuteContextInterceptor -> Set JobExecuteContext");
-            PropagatedJobExecuteContext jobExecuteContext = new PropagatedJobExecuteContext();
+            JobExecuteContext jobExecuteContext = new JobExecuteContext();
             jobExecuteContext.setResourceScope(jobContext.getAppResourceScope());
             jobExecuteContext.setUsername(jobContext.getUsername());
             JobExecuteContextThreadLocalRepo.set(jobExecuteContext);

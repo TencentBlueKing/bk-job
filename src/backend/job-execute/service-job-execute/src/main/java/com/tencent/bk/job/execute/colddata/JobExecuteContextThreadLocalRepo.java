@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.colddata;
 
-import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,9 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JobExecuteContextThreadLocalRepo {
 
-    public static final ThreadLocal<PropagatedJobExecuteContext> HOLDER = new ThreadLocal<>();
+    public static final ThreadLocal<JobExecuteContext> HOLDER = new ThreadLocal<>();
 
-    public static void set(PropagatedJobExecuteContext context) {
+    public static void set(JobExecuteContext context) {
         log.info("SetJobExecuteContextThreadLocalRepo, context: {}", context);
         HOLDER.set(context);
     }
@@ -45,7 +45,7 @@ public class JobExecuteContextThreadLocalRepo {
         HOLDER.remove();
     }
 
-    public static PropagatedJobExecuteContext get() {
+    public static JobExecuteContext get() {
         return HOLDER.get();
     }
 }

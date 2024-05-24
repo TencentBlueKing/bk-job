@@ -210,7 +210,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected String gseTaskInfo;
 
-
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
                                        GseTaskService gseTaskService,
                                        LogService logService,

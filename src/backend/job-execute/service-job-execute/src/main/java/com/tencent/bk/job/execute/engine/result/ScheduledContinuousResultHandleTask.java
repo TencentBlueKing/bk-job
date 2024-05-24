@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
@@ -71,6 +73,11 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     private final Span parent;
 
     /**
+     * 作业执行上下文信息
+     */
+    private final JobExecuteContext jobExecuteContext;
+
+    /**
      * ScheduledContinuousQueuedTask Constructor
      *
      * @param sampler             采样器
@@ -78,12 +85,15 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
      * @param task                任务
      * @param resultHandleManager resultHandleManager
      * @param resultHandleLimiter 限流
+     * @param jobExecuteContext   作业执行上下文
      */
     public ScheduledContinuousResultHandleTask(ResultHandleTaskSampler sampler,
-                                               Tracer tracer, ContinuousScheduledTask task,
+                                               Tracer tracer,
+                                               ContinuousScheduledTask task,
                                                ResultHandleManager resultHandleManager,
                                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                               ResultHandleLimiter resultHandleLimiter) {
+                                               ResultHandleLimiter resultHandleLimiter,
+                                               JobExecuteContext jobExecuteContext) {
         this.sampler = sampler;
         this.tracer = tracer;
         this.parent = tracer.currentSpan();
@@ -93,6 +103,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         this.tasksQueue = resultHandleManager.getTasksQueue();
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleLimiter = resultHandleLimiter;
+        this.jobExecuteContext = jobExecuteContext;
     }
 
     private Span getChildSpan() {
@@ -103,11 +114,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     public void execute() {
         Span span = getChildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            JobExecuteContextThreadLocalRepo.set(this.jobExecuteContext);
             doExecute();
         } catch (Exception e) {
             span.error(e);
             throw e;
         } finally {
+            JobExecuteContextThreadLocalRepo.unset();
             span.end();
         }
     }
@@ -162,7 +175,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
             if (isExecutable) {
                 long end = System.nanoTime();
                 sampler.getMeterRegistry().timer(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX,
-                    "task_type", task.getTaskType(), "status", status)
+                        "task_type", task.getTaskType(), "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
             if (!isReScheduled) {

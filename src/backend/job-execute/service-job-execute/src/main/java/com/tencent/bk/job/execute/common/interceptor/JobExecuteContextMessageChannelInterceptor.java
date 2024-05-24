@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.common.interceptor;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
-import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
@@ -43,14 +43,14 @@ public class JobExecuteContextMessageChannelInterceptor implements ExecutorChann
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         log.info("preSend");
-        PropagatedJobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
+        JobExecuteContext context = JobExecuteContextThreadLocalRepo.get();
         if (context == null) {
             return ExecutorChannelInterceptor.super.preSend(message, channel);
         }
         log.info("setJobExecuteContextMessageHeader, context: {}", context);
         Message<?> newMessage =
             MessageBuilder.fromMessage(message)
-                .setHeader(PropagatedJobExecuteContext.KEY, JsonUtils.toJson(context))
+                .setHeader(JobExecuteContext.KEY, JsonUtils.toJson(context))
                 .build();
         return ExecutorChannelInterceptor.super.preSend(newMessage, channel);
     }

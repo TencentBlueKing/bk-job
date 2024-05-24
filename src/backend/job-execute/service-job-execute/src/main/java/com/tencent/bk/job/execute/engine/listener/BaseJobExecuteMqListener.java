@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
-import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.engine.listener.event.Event;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,11 +49,11 @@ public abstract class BaseJobExecuteMqListener {
     private void beforeHandleMessage(Message<?> message) {
         log.info("beforeHandleMessage");
         MessageHeaders headers = message.getHeaders();
-        String jobExecuteContextJson = (String) headers.get(PropagatedJobExecuteContext.KEY);
+        String jobExecuteContextJson = (String) headers.get(JobExecuteContext.KEY);
         if (StringUtils.isNotEmpty(jobExecuteContextJson)) {
             log.info("setJobExecuteContextThreadLocalRepo");
             JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
-                PropagatedJobExecuteContext.class));
+                JobExecuteContext.class));
         }
     }
 

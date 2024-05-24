@@ -29,11 +29,11 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.Data;
 
 /**
- * 作业执行上下文。该上下文是可传播的，用于在异步线程、跨进程(http/mq 通信等)场景下传递、共享执行上下文
+ * 作业执行上下文
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class PropagatedJobExecuteContext {
+public class JobExecuteContext {
 
     public static final String KEY = "JobExecuteContext";
 

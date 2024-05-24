@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
-import com.tencent.bk.job.execute.common.context.PropagatedJobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
@@ -43,7 +43,7 @@ public class TaskInstanceIdDynamicCondition {
 
     public static Condition build(Long taskInstanceId,
                                   Function<Long, Condition> taskInstanceIdConditionBuilder) {
-        PropagatedJobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
+        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
             log.warn("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
             // 为了不影响兼容性，忽略错误
