@@ -77,7 +77,9 @@ public interface TaskExecuteService {
      * @param operator              操作者
      * @param executeVariableValues 全局变量
      */
-    TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
+    TaskInstanceDTO createTaskInstanceForRedo(Long appId,
+                                              Long taskInstanceId,
+                                              String operator,
                                               List<TaskVariableDTO> executeVariableValues)
     ;
 
@@ -109,7 +111,9 @@ public interface TaskExecuteService {
      * @param taskInstanceId 作业实例 ID
      * @param operation      操作类型
      */
-    void doTaskOperation(Long appId, String operator, long taskInstanceId,
+    void doTaskOperation(Long appId,
+                         String operator,
+                         long taskInstanceId,
                          TaskOperationEnum operation);
 
     /**

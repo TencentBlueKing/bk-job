@@ -27,12 +27,14 @@ package com.tencent.bk.job.execute.common.context;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ArchiveFlag;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 可传播的Job作业实例上下文，用于在异步线程、跨进程(http/mq 通信等)场景下传递、共享作业实例数据
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
 public class JobInstanceContext {
 
     private Long taskInstanceId;
@@ -43,4 +45,8 @@ public class JobInstanceContext {
      * @see ArchiveFlag
      */
     private int archiveFlag = ArchiveFlag.HOT.getValue();
+
+    public JobInstanceContext(Long taskInstanceId) {
+        this.taskInstanceId = taskInstanceId;
+    }
 }

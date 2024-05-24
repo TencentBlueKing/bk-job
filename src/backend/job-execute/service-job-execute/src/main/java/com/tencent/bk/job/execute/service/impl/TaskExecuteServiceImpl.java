@@ -52,10 +52,13 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
+import com.tencent.bk.job.execute.colddata.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
@@ -307,6 +310,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.start("saveInstance");
         Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
         taskInstance.setId(taskInstanceId);
+
+        // 添加作业执行上下文，用于全局共享、传播上下文信息
+        addJobInstanceContext(taskInstance);
+
         stepInstance.setTaskInstanceId(taskInstanceId);
         stepInstance.setStepNum(1);
         stepInstance.setStepOrder(1);
@@ -334,6 +341,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
         watch.stop();
+    }
+
+    private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
+        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
+        if (jobExecuteContext != null) {
+            JobInstanceContext jobInstanceContext = new JobInstanceContext(taskInstance.getId());
+            jobExecuteContext.setJobInstanceContext(jobInstanceContext);
+            JobExecuteContextThreadLocalRepo.set(jobExecuteContext);
+        }
     }
 
     private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
@@ -1692,22 +1708,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Integer doStepOperation(Long appId, String operator,
-                                   StepOperationDTO stepOperation) throws ServiceException {
+    public Integer doStepOperation(Long appId,
+                                   String operator,
+                                   StepOperationDTO stepOperation) {
         long stepInstanceId = stepOperation.getStepInstanceId();
         StepOperationEnum operation = stepOperation.getOperation();
+
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-            stepOperation.getTaskInstanceId(),stepInstanceId);
-        if (stepInstance == null) {
-            log.warn("Step instance {} is not exist", stepInstanceId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        if (!stepInstance.getAppId().equals(appId)) {
-            log.warn("Step instance {} is not in app:{}", stepInstance, appId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
+
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, stepOperation.getTaskInstanceId());
+        addJobInstanceContext(taskInstance);
+
+        StepInstanceDTO stepInstance = queryStepInstanceAndCheckExist(
+            appId, stepOperation.getTaskInstanceId(), stepInstanceId);
+
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
             case CONFIRM_CONTINUE:
@@ -1744,6 +1759,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 break;
         }
         return executeCount;
+    }
+
+    private TaskInstanceDTO queryTaskInstanceAndCheckExist(long appId, long taskInstanceId) {
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
+            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        return taskInstance;
+    }
+
+    private StepInstanceDTO queryStepInstanceAndCheckExist(long appId, long taskInstanceId, long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+            taskInstanceId, stepInstanceId);
+        if (stepInstance == null) {
+            log.warn("Step instance {} is not exist", stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        if (!stepInstance.getAppId().equals(appId)) {
+            log.warn("Step instance {} is not in app:{}", stepInstance, appId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        return stepInstance;
     }
 
     private void continueRolling(StepInstanceDTO stepInstance) {
@@ -1919,7 +1957,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         stepInstanceService.addStepInstanceExecuteCount(
             stepInstance.getTaskInstanceId(), stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getTaskInstanceId(), stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getTaskInstanceId(),
+            stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2012,29 +2051,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public void terminateJob(String username, Long appId, Long taskInstanceId) throws ServiceException {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+    public void terminateJob(String username, Long appId, Long taskInstanceId) {
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        terminateJob(username, taskInstance);
+    }
+
+    private void terminateJob(String operator, TaskInstanceDTO taskInstance) {
+        addJobInstanceContext(taskInstance);
         if (RunStatusEnum.RUNNING != taskInstance.getStatus()
             && RunStatusEnum.WAITING_USER != taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
-        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstance.getId()));
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
     @Override
-    public void doTaskOperation(Long appId, String operator, long taskInstanceId,
-                                TaskOperationEnum operation) throws ServiceException {
+    public void doTaskOperation(Long appId,
+                                String operator,
+                                long taskInstanceId,
+                                TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
         if (operation == TaskOperationEnum.TERMINATE_JOB) {
-            terminateJob(operator, appId, taskInstanceId);
+            terminateJob(operator, taskInstance);
         } else {
             log.warn("Undefined task operation!");
         }
