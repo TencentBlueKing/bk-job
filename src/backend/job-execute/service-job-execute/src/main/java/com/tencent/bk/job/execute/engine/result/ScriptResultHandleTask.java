@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
@@ -91,7 +92,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     /**
      * GSE日志查询支持的每一批次的脚本执行输出日志长度(单位byte)
      */
-    private final int maxQueryContentSizeLimit;
+    private int maxQueryContentSizeLimit;
     /**
      * GSE 每个脚本执行原子任务对应的最大日志大小，5MB
      */
@@ -165,8 +166,17 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             gseTask,
             requestId,
             executeObjectTasks);
-        this.maxQueryContentSizeLimit = jobExecuteConfig.getScriptTaskQueryContentSizeLimit();
+        initScriptTaskQueryContentSizeLimit();
         initLogPullProcess(executeObjectTaskMap.values());
+    }
+
+    private void initScriptTaskQueryContentSizeLimit() {
+        Long bytes = FileSizeUtil.parseFileSizeBytes(jobExecuteConfig.getScriptTaskQueryContentSizeLimit());
+        if (bytes == null) {
+            maxQueryContentSizeLimit = Integer.MAX_VALUE;
+        } else {
+            maxQueryContentSizeLimit = bytes > Integer.MAX_VALUE ? Integer.MAX_VALUE : bytes.intValue();
+        }
     }
 
     private void initLogPullProcess(Collection<ExecuteObjectTask> executeObjectTasks) {

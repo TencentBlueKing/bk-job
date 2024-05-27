@@ -63,9 +63,9 @@ public class JobExecuteConfig {
     private String gseScriptFileRootPath;
 
     /**
-     * GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度（单位 byte)
+     * GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度
      * 默认值：512M
      */
-    @Value("${job.execute.scriptTask.query.contentSizeLimit:536870912}")
-    private int scriptTaskQueryContentSizeLimit;
+    @Value("${job.execute.scriptTask.query.contentSizeLimit:512MB}")
+    private String scriptTaskQueryContentSizeLimit;
 }
