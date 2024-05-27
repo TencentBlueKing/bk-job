@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -58,11 +59,14 @@ import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +81,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SEND_FILE;
@@ -95,19 +100,23 @@ public class TaskInstanceExecuteObjectProcessor {
     private final WhiteHostCache whiteHostCache;
     private final AgentStateClient preferV2AgentStateClient;
 
+    private final MeterRegistry meterRegistry;
+
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
                                               ApplicationService applicationService,
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
                                               @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
-                                                  AgentStateClient preferV2AgentStateClient) {
+                                              AgentStateClient preferV2AgentStateClient,
+                                              MeterRegistry meterRegistry) {
         this.hostService = hostService;
         this.applicationService = applicationService;
         this.containerService = containerService;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
         this.preferV2AgentStateClient = preferV2AgentStateClient;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -123,9 +132,13 @@ public class TaskInstanceExecuteObjectProcessor {
                                                             Collection<TaskVariableDTO> variables) {
 
         StopWatch watch = new StopWatch("processExecuteObjects");
+        boolean hasContainer = false;
+        boolean hasHost = false;
         try {
-            if (!isContainerExecuteFeatureEnabled(taskInstance.getAppId())
-                && isContainerExecuteJob(stepInstanceList, variables)) {
+            hasContainer = isJobHasContainerExecuteObject(stepInstanceList, variables);
+            hasHost = isJobHasHostExecuteObject(stepInstanceList, variables);
+
+            if (hasContainer && !isContainerExecuteFeatureEnabled(taskInstance.getAppId())) {
                 // 如果资源空间不支持容器执行（比如业务集不支持容器执行），或者该资源空间未在容器执行特性灰度列表，需要返回错误信息
                 throw new NotImplementedException(
                     "ContainerExecute is not support", ErrorCode.NOT_SUPPORT_FEATURE);
@@ -164,6 +177,12 @@ public class TaskInstanceExecuteObjectProcessor {
 
             return taskInstanceExecuteObjects;
         } finally {
+            // 指标 - 记录作业的执行对象组成
+            recordTaskExecuteObjectComposition(
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+                hasHost,
+                hasContainer
+            );
             if (watch.isRunning()) {
                 watch.stop();
             }
@@ -171,6 +190,33 @@ public class TaskInstanceExecuteObjectProcessor {
                 log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
         }
+    }
+
+    private void recordTaskExecuteObjectComposition(ResourceScope resourceScope,
+                                                    boolean hasHost,
+                                                    boolean hasContainer) {
+        String executeObjectCompositionTagValue = null;
+        if (hasHost && hasContainer) {
+            executeObjectCompositionTagValue = "mixed";
+        } else if (hasHost) {
+            executeObjectCompositionTagValue = "host";
+        } else if (hasContainer) {
+            executeObjectCompositionTagValue = "container";
+        }
+        if (executeObjectCompositionTagValue != null) {
+            meterRegistry.counter(
+                    "job_task_execute_object_composition_total",
+                    Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, buildResourceScopeTagValue(resourceScope))
+                        .and("execute_object_composition", executeObjectCompositionTagValue))
+                .increment();
+        }
+    }
+
+    private String buildResourceScopeTagValue(ResourceScope resourceScope) {
+        if (resourceScope == null) {
+            return "None";
+        }
+        return resourceScope.getType() + ":" + resourceScope.getId();
     }
 
     private boolean isContainerExecuteFeatureEnabled(long appId) {
@@ -189,26 +235,40 @@ public class TaskInstanceExecuteObjectProcessor {
         );
     }
 
-    private boolean isContainerExecuteJob(List<StepInstanceDTO> stepInstanceList,
-                                          Collection<TaskVariableDTO> variables) {
-        boolean isContainerExecuteJob = stepInstanceList.stream()
+    private boolean isJobHasContainerExecuteObject(List<StepInstanceDTO> stepInstanceList,
+                                                   Collection<TaskVariableDTO> variables) {
+        return isJobHasCertainerExecuteObject(stepInstanceList, variables,
+            ExecuteTargetDTO::hasContainerExecuteObject);
+    }
+
+    private boolean isJobHasHostExecuteObject(List<StepInstanceDTO> stepInstanceList,
+                                              Collection<TaskVariableDTO> variables) {
+        return isJobHasCertainerExecuteObject(stepInstanceList, variables,
+            ExecuteTargetDTO::hasHostExecuteObject);
+    }
+
+    private boolean isJobHasCertainerExecuteObject(List<StepInstanceDTO> stepInstanceList,
+                                                   Collection<TaskVariableDTO> variables,
+                                                   Function<ExecuteTargetDTO, Boolean> checkExecuteObjectFunction) {
+        boolean checkResult = stepInstanceList.stream()
             .anyMatch(stepInstance ->
                 (stepInstance.getTargetExecuteObjects() != null &&
                     stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()) ||
                     CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
                         stepInstance.getFileSourceList().stream()
                             .anyMatch(fileSource -> fileSource.getServers() != null &&
-                                fileSource.getServers().hasContainerExecuteObject()));
-        if (isContainerExecuteJob) {
+                                checkExecuteObjectFunction.apply(fileSource.getServers())));
+        if (checkResult) {
             return true;
         }
 
         if (CollectionUtils.isNotEmpty(variables)) {
-            isContainerExecuteJob = variables.stream()
+            checkResult = variables.stream()
                 .anyMatch(variable ->
-                    variable.getExecuteTarget() != null && variable.getExecuteTarget().hasContainerExecuteObject());
+                    variable.getExecuteTarget() != null
+                        && checkExecuteObjectFunction.apply(variable.getExecuteTarget()));
         }
-        return isContainerExecuteJob;
+        return checkResult;
     }
 
     private void acquireAndSetHosts(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
