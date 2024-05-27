@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.GSECode;
-import com.tencent.bk.job.common.gse.v1.GseReadTimeoutException;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptExecuteObjectTaskResult;
@@ -34,7 +33,9 @@ import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -87,15 +88,15 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     /**
      * GSE日志查询支持的每一批次的最大Agent数目
      */
-    private static final int MAX_BATCH_SIZE = 1000;
+    private static final int MAX_QUERY_AGENT_TASK_SIZE = 1000;
     /**
-     * GSE日志查询支持的每一批次的最小Agent数目
+     * GSE日志查询支持的每一批次的脚本执行输出日志长度(单位byte)
      */
-    private static final int MIN_BATCH_SIZE = 10;
+    private long maxQueryContentSizeLimit;
     /**
-     * 每次批次的Agent数目 - 优先选择列表
+     * GSE 每个脚本执行原子任务对应的最大日志大小，5MB
      */
-    private static final int[] BATCH_SIZE_PRIORITY_ARRAY = new int[]{MAX_BATCH_SIZE, 100, MIN_BATCH_SIZE};
+    private static final int MAX_GSE_ATOMIC_TASK_CONTENT_BYTES = 5 * 1024 * 1024;
     /**
      * 脚本任务执行日志进度
      */
@@ -116,10 +117,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
      * 目标Agent分批
      */
     private List<List<ExecuteObjectGseKey>> pullExecuteObjectGseKeyBatches = new LinkedList<>();
-    /**
-     * 当前使用的批次大小
-     */
-    private volatile int currentBatchSize = MAX_BATCH_SIZE;
     /**
      * 每一轮拉取的批次序号
      */
@@ -142,6 +139,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
+                                  JobExecuteConfig jobExecuteConfig,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -160,6 +158,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -167,6 +166,8 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             gseTask,
             requestId,
             executeObjectTasks);
+        this.maxQueryContentSizeLimit =
+            FileSizeUtil.parseFileSizeBytes(jobExecuteConfig.getScriptTaskQueryContentSizeLimit());
         initLogPullProcess(executeObjectTaskMap.values());
     }
 
@@ -188,37 +189,20 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             List<ExecuteObjectGseKey> queryExecuteObjectGseKeyList
                 = new ArrayList<>(notFinishedTargetExecuteObjectGseKeys);
             pullExecuteObjectGseKeyBatches = CollectionUtil.partitionList(
-                queryExecuteObjectGseKeyList, currentBatchSize);
+                queryExecuteObjectGseKeyList, MAX_QUERY_AGENT_TASK_SIZE);
         }
-        return tryPullGseResultWithRetry();
-    }
-
-    private GseLogBatchPullResult<ScriptTaskResult> tryPullGseResultWithRetry() {
         List<ExecuteObjectGseKey> pullLogExecuteObjectGseKeys
             = pullExecuteObjectGseKeyBatches.get(pullResultBatchesIndex.get() - 1);
-        try {
-            ScriptTaskResult result = pullGseTaskResult(pullLogExecuteObjectGseKeys);
-            boolean isLastBatch = pullResultBatchesIndex.get() == pullExecuteObjectGseKeyBatches.size();
-            GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(true,
-                isLastBatch, new ScriptGseTaskResult(result), null);
-            if (isLastBatch) {
-                resetBatch();
-            } else {
-                pullResultBatchesIndex.incrementAndGet();
-            }
-            return batchPullResult;
-        } catch (GseReadTimeoutException e) {
-            boolean isSuccess = tryReduceBatchSizeAndRebuildBatchList();
-            if (isSuccess) {
-                log.info("Reduce batch size and rebuild batch list successfully, currentBatchSize: {}, batches: {}. " +
-                        "Retry pull!",
-                    this.currentBatchSize, this.pullExecuteObjectGseKeyBatches);
-                return tryPullGseResultWithRetry();
-            } else {
-                log.warn("Try pull gse log with min batch size, but fail!");
-                return new GseLogBatchPullResult<>(false, true, null, "Pull gse task log timeout");
-            }
+        ScriptTaskResult result = pullGseTaskResult(pullLogExecuteObjectGseKeys);
+        boolean isLastBatch = pullResultBatchesIndex.get() == pullExecuteObjectGseKeyBatches.size();
+        GseLogBatchPullResult<ScriptTaskResult> batchPullResult = new GseLogBatchPullResult<>(
+            isLastBatch, new ScriptGseTaskResult(result));
+        if (isLastBatch) {
+            resetBatch();
+        } else {
+            pullResultBatchesIndex.incrementAndGet();
         }
+        return batchPullResult;
     }
 
     private void resetBatch() {
@@ -230,46 +214,24 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
         request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
+
+        int executeObjectSize = executeObjectGseKeys.size();
+        long limit = maxQueryContentSizeLimit / executeObjectSize;
+        // 如果计算出来的 limit 值大于 GSE 本身的单任务输出内容大小限制，不需要传入 limit
+        boolean enableLimitContentRequestParam = limit < MAX_GSE_ATOMIC_TASK_CONTENT_BYTES;
+
         executeObjectGseKeys.forEach(executeObjectGseKey -> {
             LogPullProgress progress = logPullProgressMap.get(executeObjectGseKey);
             if (progress == null) {
-                request.addAgentTaskQuery(executeObjectGseKey, 0, 0);
+                request.addAgentTaskQuery(executeObjectGseKey, 0, 0,
+                    enableLimitContentRequestParam ? limit : null);
             } else {
-                request.addAgentTaskQuery(executeObjectGseKey, progress.getAtomicTaskId(), progress.getByteOffset());
+                request.addAgentTaskQuery(executeObjectGseKey, progress.getAtomicTaskId(), progress.getByteOffset(),
+                    enableLimitContentRequestParam ? limit : null);
             }
         });
 
         return gseClient.getExecuteScriptResult(request);
-    }
-
-    private boolean tryReduceBatchSizeAndRebuildBatchList() {
-        log.warn("Caught ReadTimeoutException when pull gse log, try to reduce batch size, currentBatchSize: {}",
-            currentBatchSize);
-        if (currentBatchSize <= MIN_BATCH_SIZE) {
-            return false;
-        }
-        currentBatchSize = getBatchSizeLessThanCurrentSize();
-        List<List<ExecuteObjectGseKey>> newBatchList = new ArrayList<>();
-        List<ExecuteObjectGseKey> leftExecuteObjectGseKeys = new ArrayList<>();
-        if (pullResultBatchesIndex.get() > 1) {
-            List<List<ExecuteObjectGseKey>> pullFinishedBatchList =
-                pullExecuteObjectGseKeyBatches.subList(0, pullResultBatchesIndex.get() - 1);
-            newBatchList.addAll(pullFinishedBatchList);
-        }
-        pullExecuteObjectGseKeyBatches.subList(pullResultBatchesIndex.get() - 1, pullExecuteObjectGseKeyBatches.size())
-            .forEach(leftExecuteObjectGseKeys::addAll);
-        newBatchList.addAll(CollectionUtil.partitionList(leftExecuteObjectGseKeys, currentBatchSize));
-        pullExecuteObjectGseKeyBatches = newBatchList;
-        return true;
-    }
-
-    private int getBatchSizeLessThanCurrentSize() {
-        for (int batchSize : BATCH_SIZE_PRIORITY_ARRAY) {
-            if (batchSize < currentBatchSize) {
-                return batchSize;
-            }
-        }
-        return currentBatchSize;
     }
 
     @Override

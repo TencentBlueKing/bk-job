@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +49,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
     }
 
     @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class AtomicTask {
         /**
          * id 编号，在当前任务里面唯一，需要取大于等于0的值
@@ -59,15 +61,34 @@ public class GetExecuteScriptResultRequest extends GseReq {
          * 执行日志读取偏移量，单位byte
          */
         private int offset;
+
+        /**
+         * 执行日志读取大小上限，单位byte
+         */
+        private Long limit;
     }
 
-    public void addAgentTaskQuery(ExecuteObjectGseKey executeObjectGseKey, Integer atomicTaskId, int offset) {
+    /**
+     * 新增 Agent 查询条件
+     *
+     * @param executeObjectGseKey 执行对象 GSE KEY
+     * @param atomicTaskId        id 编号，在当前任务里面唯一，需要取大于等于0的值
+     * @param offset              执行日志读取偏移量，单位byte
+     * @param limit               执行日志读取大小上限，单位byte；传入 null 无效，表示不限制
+     */
+    public void addAgentTaskQuery(ExecuteObjectGseKey executeObjectGseKey,
+                                  Integer atomicTaskId,
+                                  int offset,
+                                  Long limit) {
         AgentTask agentTask = new AgentTask();
         agentTask.setAgentId(executeObjectGseKey.getAgentId());
         agentTask.setContainerId(executeObjectGseKey.getContainerId());
         AtomicTask atomicTask = new AtomicTask();
         atomicTask.setAtomicTaskId(atomicTaskId);
         atomicTask.setOffset(offset);
+        if (limit != null && limit > 0) {
+            atomicTask.setLimit(limit);
+        }
         agentTask.setAtomicTasks(Collections.singletonList(atomicTask));
         agentTasks.add(agentTask);
     }

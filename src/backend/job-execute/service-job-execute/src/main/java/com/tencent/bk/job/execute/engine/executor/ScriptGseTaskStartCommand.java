@@ -658,6 +658,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 scriptExecuteObjectTaskService,
                 stepInstanceService,
                 gseClient,
+                jobExecuteConfig,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

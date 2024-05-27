@@ -1,6 +1,5 @@
 package com.tencent.bk.job.backup.dao.impl;
 
-import com.tencent.bk.job.execute.model.tables.GseFileAgentTask;
 import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 import org.jooq.DSLContext;
