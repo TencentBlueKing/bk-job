@@ -319,8 +319,10 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         ExecuteObject executeObject = findExecuteObject(executeObjectGseKey);
         if (GSECode.AtomicErrorCode.getErrorCode(executeObjectTaskResult.getErrorCode())
             == GSECode.AtomicErrorCode.ERROR) {
-            logs.add(logService.buildSystemScriptLog(stepInstance, executeObject,
-                executeObjectTaskResult.getErrorMsg(), executeObjectTask.getScriptLogOffset(), currentTime));
+            if (StringUtils.isNotEmpty(executeObjectTaskResult.getErrorMsg())) {
+                logs.add(logService.buildSystemScriptLog(stepInstance, executeObject,
+                    executeObjectTaskResult.getErrorMsg(), executeObjectTask.getScriptLogOffset(), currentTime));
+            }
         } else {
             String content = executeObjectTaskResult.getScreen();
             if (StringUtils.isEmpty(content)) {

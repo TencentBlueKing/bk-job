@@ -49,6 +49,7 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
 
     @Override
     public void loadAllCronJob() {
+        long start = System.currentTimeMillis();
         try {
             if (loadingCronToQuartz) {
                 log.info("Last loading not finish, ignore");
@@ -60,6 +61,7 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
             log.warn("Fail to loadAllCronJob", e);
         } finally {
             loadingCronToQuartz = false;
+            log.info("loadAllCronJob end, duration={}ms", System.currentTimeMillis() - start);
         }
     }
 

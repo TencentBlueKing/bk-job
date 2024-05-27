@@ -22,22 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 调度策略服务：根据文件源信息寻找一个Job插件进行访问
- * 调度依据：能力标签（文件源类型、区域等）、负载
- */
-public interface DispatchService {
-    /**
-     * 根据文件源找到一个最适合的FileWorker
-     *
-     * @param fileSourceDTO 文件源对象
-     * @param requestSource 请求来源
-     * @return 选中的对接文件源的FileWorker对象
-     */
-    FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource);
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Configuration(value = "jobCrontabExecutorConfig")
+public class ExecutorConfiguration {
+
+    @Bean("crontabInitRunnerExecutor")
+    public ThreadPoolExecutor crontabInitRunnerExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "initRunnerExecutor",
+            0,
+            5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
+
 }

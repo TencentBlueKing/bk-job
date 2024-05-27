@@ -121,7 +121,10 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
         }
-        FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
+            fileSourceDTO,
+            "DownloadTask(appId=" + appId + ")"
+        );
         if (fileWorkerDTO == null) {
             throw new RuntimeException(String.format("Cannot match fileWorker for FileSourceTask,appId=%d," +
                     "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,
@@ -171,11 +174,20 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             if (affectedCount != 1) {
                 log.error("Fail to update status of FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO));
             }
-            throw new InternalException(e, ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
-                new String[]{e.getMessage()});
+            throw new InternalException(
+                e,
+                ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
+                new String[]{e.getMessage()}
+            );
         }
-        return new TaskInfoDTO(fileSourceTaskId, fileSourceDTO.getAlias(), fileSourceDTO.getPublicFlag(),
-            fileWorkerDTO.getCloudAreaId(), fileWorkerDTO.getInnerIp());
+        return new TaskInfoDTO(
+            fileSourceTaskId,
+            fileSourceDTO.getAlias(),
+            fileSourceDTO.getPublicFlag(),
+            fileWorkerDTO.getCloudAreaId(),
+            fileWorkerDTO.getInnerIpProtocol(),
+            fileWorkerDTO.getInnerIp()
+        );
     }
 
     @Override

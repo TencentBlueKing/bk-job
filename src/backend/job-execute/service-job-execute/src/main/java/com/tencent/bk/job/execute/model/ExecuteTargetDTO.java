@@ -105,16 +105,6 @@ public class ExecuteTargetDTO implements Cloneable {
      */
     private List<ExecuteObject> executeObjects;
 
-    public static ExecuteTargetDTO emptyInstance() {
-        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-        executeTargetDTO.setIpList(Collections.emptyList());
-        executeTargetDTO.setDynamicServerGroups(Collections.emptyList());
-        executeTargetDTO.setStaticIpList(Collections.emptyList());
-        executeTargetDTO.setTopoNodes(Collections.emptyList());
-        executeTargetDTO.setStaticContainerList(Collections.emptyList());
-        return executeTargetDTO;
-    }
-
     public ExecuteTargetDTO clone() {
         ExecuteTargetDTO clone = new ExecuteTargetDTO();
         clone.setVariable(variable);
@@ -617,6 +607,6 @@ public class ExecuteTargetDTO implements Cloneable {
      * 执行目标中是否包含容器执行对象
      */
     public boolean hasContainerExecuteObject() {
-        return staticContainerList != null || containerFilters != null;
+        return CollectionUtils.isNotEmpty(staticContainerList) || CollectionUtils.isNotEmpty(containerFilters);
     }
 }

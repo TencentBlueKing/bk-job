@@ -192,7 +192,7 @@ public class ReDispatchServiceImpl implements ReDispatchService {
                     // 2.删除现有FileSourceTask任务
                     fileSourceTaskService.deleteFileSourceTaskById(fileSourceTaskId);
                     log.debug("delete fileSourceTask {}", fileSourceTaskId);
-                    FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO);
+                    FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(fileSourceDTO, "ReDispatch");
                     log.debug("found bestWorker:{}", fileSourceDTO);
                     if (fileWorkerDTO != null) {
                         // 3.重新派发任务

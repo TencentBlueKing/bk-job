@@ -26,9 +26,9 @@
 import AuthResultModel from '@model/auth-result';
 
 import EventBus from '@utils/event-bus';
+import { showLoginModal } from '@blueking/login-modal'
 
 import {
-  loginDialog,
   messageError,
   permissionDialog,
   systemPermission,
@@ -93,9 +93,11 @@ export default (interceptors) => {
       // 未登录
       case 401:
         if (hasLogined) {
-          loginDialog(error.message);
+          showLoginModal({
+            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(`${window.location.origin}/static/login_success.html`)}`
+          })
         } else {
-          window.location.href = `${error.message}&c_url=${decodeURIComponent(window.location.href)}`;
+          window.location.href = `${error.message}is_from_logout=1&c_url=${decodeURIComponent(window.location.href)}`;
         }
         break;
         // 没权限

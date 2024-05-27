@@ -67,17 +67,17 @@ public class FileServiceImpl implements FileService {
         this.jobHttpClient = jobHttpClient;
     }
 
-    private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO) {
+    private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO, String requestSource) {
         if (fileSourceDTO == null) {
             throw new InternalException(ErrorCode.FILE_SOURCE_NOT_EXIST);
         }
-        return dispatchService.findBestFileWorker(fileSourceDTO);
+        return dispatchService.findBestFileWorker(fileSourceDTO, requestSource);
     }
 
     @Override
     public boolean isFileAvailable(String username, Long appId, Integer fileSourceId) {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO, "isFileAvailable");
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
@@ -103,7 +103,7 @@ public class FileServiceImpl implements FileService {
         if (name == null) name = "";
         final String finalName = name;
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO, "listFileNode");
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
@@ -129,7 +129,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq executeActionReq) {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(
+            fileSourceDTO,
+            "executeAction" + executeActionReq.getActionCode()
+        );
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }

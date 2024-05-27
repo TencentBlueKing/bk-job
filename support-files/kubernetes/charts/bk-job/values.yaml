@@ -554,6 +554,10 @@ localFile:
       concurrency: 10
     # 制品库中作业平台使用的本地文件仓库代码，初始化时由作业平台通过Admin账号自动创建
     repo: localupload
+  # 本地文件过期后是否删除
+  expireDelete: true
+  # 本地文件过期时间（天）
+  expireDays: 7
 
 ## Swagger配置
 swagger:
@@ -1111,16 +1115,22 @@ backupConfig:
     execute:
       # 是否启用 DB 归档
       enabled: false
+      # 被归档 DB 的配置
+      mariadb:
+        connection:
+          properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
-      keep_days: 30
+      keeyDays: 30
       # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-      read_id_step_size: 1000
+      readIdStepSize: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
-      batch_insert_row_size: 1000
+      batchInsertRowSize: 1000
+      # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
+      deleteRowLimit: 1000
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
