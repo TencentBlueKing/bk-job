@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ListUtil;
@@ -125,7 +126,7 @@ public class TaskInstanceExecuteObjectProcessor {
         try {
             if (!isContainerExecuteFeatureEnabled(taskInstance.getAppId())
                 && isContainerExecuteJob(stepInstanceList, variables)) {
-                // 未开启"容器执行"特性的灰度,返回错误
+                // 如果资源空间不支持容器执行（比如业务集不支持容器执行），或者该资源空间未在容器执行特性灰度列表，需要返回错误信息
                 throw new NotImplementedException(
                     "ContainerExecute is not support", ErrorCode.NOT_SUPPORT_FEATURE);
             }
@@ -173,6 +174,11 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isContainerExecuteFeatureEnabled(long appId) {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        if (resourceScope.isBizSet()) {
+            // 业务集不支持容器执行
+            return false;
+        }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
             FeatureExecutionContext.builder()
