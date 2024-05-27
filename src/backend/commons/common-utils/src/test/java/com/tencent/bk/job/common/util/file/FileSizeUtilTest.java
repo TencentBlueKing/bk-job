@@ -45,9 +45,6 @@ public class FileSizeUtilTest {
 
     @Test
     void testParseFileSizeBytes() {
-        assertThat(FileSizeUtil.parseFileSizeBytes(null)).isNull();
-        assertThat(FileSizeUtil.parseFileSizeBytes("")).isNull();
-        assertThat(FileSizeUtil.parseFileSizeBytes("  ")).isNull();
         assertThat(FileSizeUtil.parseFileSizeBytes("1B")).isEqualTo(1L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1KB")).isEqualTo(1024L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1.5KB")).isEqualTo(1536L);

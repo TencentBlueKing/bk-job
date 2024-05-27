@@ -166,17 +166,9 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             gseTask,
             requestId,
             executeObjectTasks);
-        initScriptTaskQueryContentSizeLimit();
+        this.maxQueryContentSizeLimit =
+            FileSizeUtil.parseFileSizeBytes(jobExecuteConfig.getScriptTaskQueryContentSizeLimit());
         initLogPullProcess(executeObjectTaskMap.values());
-    }
-
-    private void initScriptTaskQueryContentSizeLimit() {
-        Long bytes = FileSizeUtil.parseFileSizeBytes(jobExecuteConfig.getScriptTaskQueryContentSizeLimit());
-        if (bytes == null) {
-            maxQueryContentSizeLimit = Integer.MAX_VALUE;
-        } else {
-            maxQueryContentSizeLimit = bytes > Integer.MAX_VALUE ? Integer.MAX_VALUE : bytes.intValue();
-        }
     }
 
     private void initLogPullProcess(Collection<ExecuteObjectTask> executeObjectTasks) {
