@@ -7,7 +7,7 @@
 executeConfig:
   scriptTask:
     query:
-      # GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度（单位 byte)
+      # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度（单位 byte)。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。
       contentSizeLimit: 536870912
 ```
 

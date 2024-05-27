@@ -66,6 +66,6 @@ public class JobExecuteConfig {
      * GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度（单位 byte)
      * 默认值：512M
      */
-    @Value("${job.execute.script-task.query.content-size-limit:536870912}")
+    @Value("${job.execute.scriptTask.query.contentSizeLimit:536870912}")
     private int scriptTaskQueryContentSizeLimit;
 }

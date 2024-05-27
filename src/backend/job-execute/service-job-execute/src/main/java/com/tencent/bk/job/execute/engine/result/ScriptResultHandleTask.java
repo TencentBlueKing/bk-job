@@ -215,7 +215,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
         int executeObjectSize = executeObjectGseKeys.size();
         int limit = maxQueryContentSizeLimit / executeObjectSize;
-        // 如果计算出来的 limit 值大于 GSE 本身的任务限制，不需要传入 limit
+        // 如果计算出来的 limit 值大于 GSE 本身的单任务输出内容大小限制，不需要传入 limit
         boolean enableLimitContentRequestParam = limit < MAX_GSE_ATOMIC_TASK_CONTENT_BYTES;
 
         executeObjectGseKeys.forEach(executeObjectGseKey -> {

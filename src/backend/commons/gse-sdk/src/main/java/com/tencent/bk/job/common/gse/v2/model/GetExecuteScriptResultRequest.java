@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +49,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
     }
 
     @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class AtomicTask {
         /**
          * id 编号，在当前任务里面唯一，需要取大于等于0的值
@@ -63,7 +65,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
         /**
          * 执行日志读取大小上限，单位byte
          */
-        private int limit;
+        private Integer limit;
     }
 
     /**
@@ -84,7 +86,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
         AtomicTask atomicTask = new AtomicTask();
         atomicTask.setAtomicTaskId(atomicTaskId);
         atomicTask.setOffset(offset);
-        if (limit != null) {
+        if (limit != null && limit > 0) {
             atomicTask.setLimit(limit);
         }
         agentTask.setAtomicTasks(Collections.singletonList(atomicTask));
