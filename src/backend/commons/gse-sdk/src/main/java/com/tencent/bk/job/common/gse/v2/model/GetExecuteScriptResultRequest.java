@@ -65,7 +65,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
         /**
          * 执行日志读取大小上限，单位byte
          */
-        private Integer limit;
+        private Long limit;
     }
 
     /**
@@ -79,7 +79,7 @@ public class GetExecuteScriptResultRequest extends GseReq {
     public void addAgentTaskQuery(ExecuteObjectGseKey executeObjectGseKey,
                                   Integer atomicTaskId,
                                   int offset,
-                                  Integer limit) {
+                                  Long limit) {
         AgentTask agentTask = new AgentTask();
         agentTask.setAgentId(executeObjectGseKey.getAgentId());
         agentTask.setContainerId(executeObjectGseKey.getContainerId());

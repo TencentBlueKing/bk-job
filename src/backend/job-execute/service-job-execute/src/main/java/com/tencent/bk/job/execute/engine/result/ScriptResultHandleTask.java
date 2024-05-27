@@ -92,7 +92,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     /**
      * GSE日志查询支持的每一批次的脚本执行输出日志长度(单位byte)
      */
-    private int maxQueryContentSizeLimit;
+    private long maxQueryContentSizeLimit;
     /**
      * GSE 每个脚本执行原子任务对应的最大日志大小，5MB
      */
@@ -224,7 +224,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
         request.setTaskId(gseTask.getGseTaskId());
 
         int executeObjectSize = executeObjectGseKeys.size();
-        int limit = maxQueryContentSizeLimit / executeObjectSize;
+        long limit = maxQueryContentSizeLimit / executeObjectSize;
         // 如果计算出来的 limit 值大于 GSE 本身的单任务输出内容大小限制，不需要传入 limit
         boolean enableLimitContentRequestParam = limit < MAX_GSE_ATOMIC_TASK_CONTENT_BYTES;
 
