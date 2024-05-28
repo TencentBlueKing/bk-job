@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl;
+package com.tencent.bk.job.manage.service.globalsetting.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
@@ -85,8 +85,8 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
 import lombok.extern.slf4j.Slf4j;

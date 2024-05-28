@@ -1,0 +1,125 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.manage.service.globalsetting.impl;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
+import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
+import com.tencent.bk.job.manage.model.dto.globalsetting.HelperInfo;
+import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooter;
+import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooterDTO;
+import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
+import com.tencent.bk.job.manage.service.globalsetting.BkPlatformInfoService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+/**
+ * 将全局配置中的平台信息导出为蓝鲸统一规范的平台信息数据
+ */
+@Slf4j
+@Service
+public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
+
+    private final GlobalSettingDAO globalSettingDAO;
+
+    @Autowired
+    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO) {
+        this.globalSettingDAO = globalSettingDAO;
+    }
+
+    @Override
+    public BkPlatformInfo getCurrentBkPlatformInfo() {
+        GlobalSettingDTO titleFooterSettingDTO = globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_TITLE_FOOTER);
+        TitleFooterDTO titleFooterDTO = null;
+        if (titleFooterSettingDTO != null) {
+            titleFooterDTO = JsonUtils.fromJson(titleFooterSettingDTO.getValue(), new TypeReference<TitleFooterDTO>() {
+            });
+        }
+        GlobalSettingDTO bkHelperSettingDTO = globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_BK_HELPER);
+        log.info("titleFooterSettingDTO={}, bkHelperSettingDTO={}", titleFooterSettingDTO, bkHelperSettingDTO);
+        HelperInfo helperInfo = null;
+        if (bkHelperSettingDTO != null && StringUtils.isNotEmpty(bkHelperSettingDTO.getValue())) {
+            helperInfo = JsonUtils.fromJson(bkHelperSettingDTO.getValue(), HelperInfo.class);
+        }
+        BkPlatformInfo bkPlatformInfo = buildBkPlatformInfo(titleFooterDTO, helperInfo);
+        log.info("bkPlatformInfo={}", JsonUtils.toJson(bkPlatformInfo));
+        return bkPlatformInfo;
+    }
+
+    private BkPlatformInfo buildBkPlatformInfo(TitleFooterDTO titleFooterDTO, HelperInfo helperInfo) {
+        BkPlatformInfo bkPlatformInfo = new BkPlatformInfo();
+        if (titleFooterDTO != null) {
+            Map<String, TitleFooter> titleFooterLanguageMap = titleFooterDTO.getTitleFooterLanguageMap();
+            if (titleFooterLanguageMap != null) {
+                TitleFooter englishTitleFooter = getEnglishTitleFooter(titleFooterLanguageMap);
+                TitleFooter chineseTitleFooter = getChineseTitleFooter(titleFooterLanguageMap);
+                if (englishTitleFooter == null) {
+                    englishTitleFooter = chineseTitleFooter;
+                }
+                if (chineseTitleFooter == null) {
+                    chineseTitleFooter = englishTitleFooter;
+                }
+                if (englishTitleFooter != null) {
+                    bkPlatformInfo.setNameEn(englishTitleFooter.getTitleHead());
+                    bkPlatformInfo.setFooterInfo(englishTitleFooter.getFooterLink());
+                    bkPlatformInfo.setFooterCopyright(englishTitleFooter.getFooterCopyRight());
+                }
+                if (chineseTitleFooter != null) {
+                    bkPlatformInfo.setName(chineseTitleFooter.getTitleHead());
+                    bkPlatformInfo.setFooterInfo(chineseTitleFooter.getFooterLink());
+                    bkPlatformInfo.setFooterCopyright(chineseTitleFooter.getFooterCopyRight());
+                }
+            }
+        }
+        if (helperInfo != null) {
+            String contactLink = helperInfo.getContactLink();
+            bkPlatformInfo.setHelperLink(contactLink);
+        }
+        return bkPlatformInfo;
+    }
+
+    private TitleFooter getEnglishTitleFooter(Map<String, TitleFooter> titleFooterLanguageMap) {
+        TitleFooter titleFooter = titleFooterLanguageMap.get(LocaleUtils.LANG_EN);
+        if (titleFooter == null) {
+            titleFooter = titleFooterLanguageMap.get(LocaleUtils.LANG_EN_US);
+        }
+        return titleFooter;
+    }
+
+    private TitleFooter getChineseTitleFooter(Map<String, TitleFooter> titleFooterLanguageMap) {
+        TitleFooter titleFooter = titleFooterLanguageMap.get(LocaleUtils.LANG_ZH_CN);
+        if (titleFooter == null) {
+            titleFooter = titleFooterLanguageMap.get(LocaleUtils.LANG_ZH);
+        }
+        return titleFooter;
+    }
+}

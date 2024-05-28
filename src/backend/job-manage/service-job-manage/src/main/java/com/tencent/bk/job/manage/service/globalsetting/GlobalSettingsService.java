@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.service.globalsetting;
 
 import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;

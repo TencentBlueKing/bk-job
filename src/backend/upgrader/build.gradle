@@ -42,6 +42,7 @@ dependencies {
     api project(":commons:common-jwt")
     api project(":commons:esb-sdk")
     api project(":commons:artifactory-sdk")
+    api(project(":job-manage:api-job-manage"))
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'ch.qos.logback:logback-core'

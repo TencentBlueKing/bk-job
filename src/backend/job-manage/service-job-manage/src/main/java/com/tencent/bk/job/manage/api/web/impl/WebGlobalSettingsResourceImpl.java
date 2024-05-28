@@ -47,7 +47,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDe
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
