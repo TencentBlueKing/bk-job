@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
@@ -99,6 +100,8 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
     private final StepInstanceService stepInstanceService;
     private final GseClient gseClient;
 
+    private final JobExecuteConfig jobExecuteConfig;
+
     @Autowired
     public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
                                       ResultHandleManager resultHandleManager,
@@ -113,7 +116,8 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
                                       ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                       FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
-                                      GseClient gseClient) {
+                                      GseClient gseClient,
+                                      JobExecuteConfig jobExecuteConfig) {
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -128,6 +132,7 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
+        this.jobExecuteConfig = jobExecuteConfig;
     }
 
 
@@ -195,6 +200,7 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
             scriptExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -244,6 +250,7 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
             fileExecuteObjectTaskService,
             stepInstanceService,
             gseClient,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

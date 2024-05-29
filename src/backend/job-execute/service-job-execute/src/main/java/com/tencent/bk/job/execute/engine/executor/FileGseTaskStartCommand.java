@@ -472,6 +472,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 fileExecuteObjectTaskService,
                 stepInstanceService,
                 gseClient,
+                jobExecuteConfig,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,

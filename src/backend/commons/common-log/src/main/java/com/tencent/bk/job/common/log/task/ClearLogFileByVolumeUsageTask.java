@@ -58,8 +58,8 @@ public class ClearLogFileByVolumeUsageTask {
             log.info("maxSizeStr is blank, ignore checkVolumeAndClear");
             return;
         }
-        Long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
-        if (maxSizeBytes == null || maxSizeBytes <= 0) {
+        long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
+        if (maxSizeBytes <= 0) {
             log.error("Cannot parse valid maxSizeBytes from maxSizeStr {}, ignore checkVolumeAndClear", maxSizeStr);
             return;
         }

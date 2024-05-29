@@ -122,13 +122,16 @@ public class WebContainerResourceImpl implements WebContainerResource {
     }
 
     private boolean isContainerExecuteSupport(AppResourceScope appResourceScope) {
+        if (appResourceScope.isBizSet()) {
+            return false;
+        }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
             FeatureExecutionContext.builder().addContextParam(
                 ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope));
     }
 
-    public ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNodeDTO node) {
+    private ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNodeDTO node) {
         ContainerTopologyNodeVO nodeVO = new ContainerTopologyNodeVO();
         nodeVO.setObjectId(node.getKind());
         nodeVO.setObjectName(node.getKind());
