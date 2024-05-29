@@ -27,72 +27,73 @@
 
 <template>
   <permission-section>
-    <smart-action offset-target="variable-value">
-      <div
-        v-bkloading="{ isLoading }"
-        class="cron-job-detail"
-        :class="{
-          'is-loading': isLoading,
-        }">
-        <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
-        <div class="title">
-          <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
-          <span
-            v-if="!data.enable"
-            class="disable">{{ $t('template.已停用') }}</span>
-          <span
-            v-else-if="data.hasConfirm"
-            class="confirm">{{ $t('template.已确认') }}</span>
-          <span
-            v-else
-            class="waiting">{{ $t('template.待确认') }}</span>
-        </div>
-        <div>
-          <global-variable-layout v-if="!isLoading">
-            <global-variable
-              v-for="variable in info.variableValue"
-              :key="variable.id"
-              ref="variable"
-              :data="variable"
-              :readonly="readonly"
-              :type="variable.type" />
-          </global-variable-layout>
-          <empty v-if="isEmpty">
-            <p>{{ $t('template.无关联的全局变量') }}</p>
-            <p style="margin-top: 8px;">
-              {{ $t('template.已直接确认') }}
-            </p>
-          </empty>
-        </div>
-      </div>
-      <template
-        v-if="!isLoading && !isEmpty"
-        #action>
-        <bk-button
-          v-if="isEditing"
-          class="mr10"
-          :disabled="!data.enable"
-          theme="primary"
-          @click="handleSubmit">
-          {{ $t('template.确认') }}
-        </bk-button>
-        <bk-button
-          v-if="isEditing"
-          class="mr10"
-          :disabled="!data.enable"
-          @click="handleReset">
-          {{ $t('template.重置') }}
-        </bk-button>
-        <bk-button
+    <div
+      v-bkloading="{ isLoading }"
+      class="cron-job-detail"
+      :class="{
+        'is-loading': isLoading,
+      }">
+      <bk-alert :title="$t('template.同步执行方案需要重新确认定时任务的全局变量，不使用的定时任务可以直接停用。')" />
+      <div class="title">
+        <span>「{{ info.name }}」{{ $t('template.的全局变量') }}</span>
+        <span
+          v-if="!data.enable"
+          class="disable">{{ $t('template.已停用') }}</span>
+        <span
+          v-else-if="data.hasConfirm"
+          class="confirm">{{ $t('template.已确认') }}</span>
+        <span
           v-else
-          class="mr10"
-          :disabled="!data.enable"
-          theme="primary"
-          @click="handleToggleEdit">
-          {{ $t('template.编辑') }}
-        </bk-button>
-      </template>
-    </smart-action>
+          class="waiting">{{ $t('template.待确认') }}</span>
+      </div>
+      <div>
+        <global-variable-layout v-if="!isLoading">
+          <global-variable
+            v-for="variable in info.variableValue"
+            :key="variable.id"
+            ref="variable"
+            :data="variable"
+            :readonly="readonly"
+            :type="variable.type" />
+          <div class="global-variable-edit-box">
+            <div class="variable-name">
+              <span />
+            </div>
+            <div v-if="!isLoading && !isEmpty">
+              <bk-button
+                v-if="isEditing"
+                class="mr10"
+                :disabled="!data.enable"
+                theme="primary"
+                @click="handleSubmit">
+                {{ $t('template.确认') }}
+              </bk-button>
+              <bk-button
+                v-if="isEditing"
+                class="mr10"
+                :disabled="!data.enable"
+                @click="handleReset">
+                {{ $t('template.重置') }}
+              </bk-button>
+              <bk-button
+                v-else
+                class="mr10"
+                :disabled="!data.enable"
+                theme="primary"
+                @click="handleToggleEdit">
+                {{ $t('template.编辑') }}
+              </bk-button>
+            </div>
+          </div>
+        </global-variable-layout>
+        <empty v-if="isEmpty">
+          <p>{{ $t('template.无关联的全局变量') }}</p>
+          <p style="margin-top: 8px;">
+            {{ $t('template.已直接确认') }}
+          </p>
+        </empty>
+      </div>
+    </div>
   </permission-section>
 </template>
 <script>
