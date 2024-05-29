@@ -204,6 +204,7 @@ public class TaskInstanceExecuteObjectProcessor {
             executeObjectCompositionTagValue = "container";
         }
         if (executeObjectCompositionTagValue != null) {
+            // 统计作业的执行对象组成
             meterRegistry.counter(
                     "job_task_execute_object_composition_total",
                     Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, buildResourceScopeTagValue(resourceScope))
@@ -237,27 +238,34 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private boolean isJobHasContainerExecuteObject(List<StepInstanceDTO> stepInstanceList,
                                                    Collection<TaskVariableDTO> variables) {
-        return isJobHasCertainerExecuteObject(stepInstanceList, variables,
+        return checkExecuteObjectExists(stepInstanceList, variables,
             ExecuteTargetDTO::hasContainerExecuteObject);
     }
 
     private boolean isJobHasHostExecuteObject(List<StepInstanceDTO> stepInstanceList,
                                               Collection<TaskVariableDTO> variables) {
-        return isJobHasCertainerExecuteObject(stepInstanceList, variables,
+        return checkExecuteObjectExists(stepInstanceList, variables,
             ExecuteTargetDTO::hasHostExecuteObject);
     }
 
-    private boolean isJobHasCertainerExecuteObject(List<StepInstanceDTO> stepInstanceList,
-                                                   Collection<TaskVariableDTO> variables,
-                                                   Function<ExecuteTargetDTO, Boolean> checkExecuteObjectFunction) {
+    /**
+     * 检查步骤、全局变量中是否存在某种类型的执行对象
+     *
+     * @param stepInstanceList            作业步骤实例列表
+     * @param variables                   作业全局变量列表
+     * @param executeObjectExistsFunction 检查是否存在函数
+     */
+    private boolean checkExecuteObjectExists(List<StepInstanceDTO> stepInstanceList,
+                                             Collection<TaskVariableDTO> variables,
+                                             Function<ExecuteTargetDTO, Boolean> executeObjectExistsFunction) {
         boolean checkResult = stepInstanceList.stream()
             .anyMatch(stepInstance ->
                 (stepInstance.getTargetExecuteObjects() != null &&
-                    stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()) ||
+                    executeObjectExistsFunction.apply(stepInstance.getTargetExecuteObjects()) ||
                     CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
                         stepInstance.getFileSourceList().stream()
                             .anyMatch(fileSource -> fileSource.getServers() != null &&
-                                checkExecuteObjectFunction.apply(fileSource.getServers())));
+                                executeObjectExistsFunction.apply(fileSource.getServers())));
         if (checkResult) {
             return true;
         }
@@ -266,7 +274,7 @@ public class TaskInstanceExecuteObjectProcessor {
             checkResult = variables.stream()
                 .anyMatch(variable ->
                     variable.getExecuteTarget() != null
-                        && checkExecuteObjectFunction.apply(variable.getExecuteTarget()));
+                        && executeObjectExistsFunction.apply(variable.getExecuteTarget()));
         }
         return checkResult;
     }
