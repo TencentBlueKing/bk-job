@@ -181,7 +181,7 @@
     vertical-align: middle;
 
     &.bk-dialog-fullscreen {
-      inset: 0;
+      inset: 0 !important;
     }
 
     &.bk-info-box {
