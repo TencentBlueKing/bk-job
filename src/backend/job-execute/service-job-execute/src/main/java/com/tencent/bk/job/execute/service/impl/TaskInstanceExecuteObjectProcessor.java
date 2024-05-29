@@ -265,7 +265,7 @@ public class TaskInstanceExecuteObjectProcessor {
                     CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
                         stepInstance.getFileSourceList().stream()
                             .anyMatch(fileSource -> fileSource.getServers() != null &&
-                                executeObjectExistsFunction.apply(fileSource.getServers())));
+                                executeObjectExistsFunction.apply(fileSource.getServers()))));
         if (checkResult) {
             return true;
         }
