@@ -216,6 +216,7 @@
         }
         this.isAsyncContentLoading = true;
         TaskExecuteService.fetchFileLogOfFile({
+          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
           executeObjectType: this.taskExecuteDetail.executeObject.type,
           executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
