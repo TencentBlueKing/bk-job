@@ -449,8 +449,8 @@ public class TaskInstanceExecuteObjectProcessor {
                 taskInstance.getAppId(), isUsingGseV2, invalidAgentIdHosts);
         }
 
-        setAgentStatus(taskInstanceExecuteObjects.getValidHosts());
-        setAgentStatus(taskInstanceExecuteObjects.getNotInAppHosts());
+        setAgentStatus(taskInstanceExecuteObjects.getValidHosts(), isUsingGseV2);
+        setAgentStatus(taskInstanceExecuteObjects.getNotInAppHosts(), isUsingGseV2);
     }
 
     private void setHostAgentId(boolean isUsingGseV2, HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
@@ -505,7 +505,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void setAgentStatus(List<HostDTO> hosts) {
+    private void setAgentStatus(List<HostDTO> hosts, boolean isUsingGseV2) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
@@ -513,17 +513,24 @@ public class TaskInstanceExecuteObjectProcessor {
 
         List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
         Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
-        hosts.forEach(hostDTO -> {
-            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
-            hostAgentStateQueryList.add(hostAgentStateQuery);
-            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
-        });
+        hosts.stream()
+            .filter(host -> isAgentIdValid(host, isUsingGseV2))
+            .forEach(host -> {
+                HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(host);
+                hostAgentStateQueryList.add(hostAgentStateQuery);
+                hostAgentStateQueryMap.put(host, hostAgentStateQuery);
+            });
 
         // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
         Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
             HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
+            if (hostAgentStateQuery == null) {
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+                continue;
+            }
+
             String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
             if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
@@ -541,6 +548,12 @@ public class TaskInstanceExecuteObjectProcessor {
         if (cost > 1000) {
             log.warn("SetAgentStatus slow, hostSize: {}, cost:{} ms", hosts.size(), cost);
         }
+    }
+
+    private boolean isAgentIdValid(HostDTO host, boolean isUsingGseV2) {
+        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
+        return isUsingGseV2 ? AgentUtils.isGseV2AgentId(host.getAgentId()) :
+            AgentUtils.isGseV1AgentId(host.getAgentId());
     }
 
     private void acquireAndSetContainers(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
