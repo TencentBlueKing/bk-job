@@ -614,6 +614,9 @@ job:
     gseV2:
       # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
       enabled: true
+      # 是否支持 GSE V2 Agent状态查询。如果需要对接GSE1.0，设置job.features.agentStatusGseV2.enabled=false
+    agentStatusGseV2:
+      enabled: true
     # 是否支持执行对象。如果 Job 需要支持容器内作业的执行，需要开启该特性
     executeObject:
       enabled: true
