@@ -64,7 +64,9 @@ public class BatchTaskServiceImpl implements BatchTaskService {
     }
 
     @Override
-    public BatchTaskInfoDTO startFileSourceBatchDownloadTask(String username, Long appId, Long stepInstanceId,
+    public BatchTaskInfoDTO startFileSourceBatchDownloadTask(String username,
+                                                             Long appId,
+                                                             Long stepInstanceId,
                                                              Integer executeCount,
                                                              List<FileSourceTaskContent> fileSourceTaskList) {
         BatchTaskInfoDTO batchTaskInfoDTO = new BatchTaskInfoDTO();
@@ -79,9 +81,15 @@ public class BatchTaskServiceImpl implements BatchTaskService {
         batchTaskInfoDTO.setBatchTaskId(batchTaskId);
         List<TaskInfoDTO> taskInfoDTOList = new ArrayList<>();
         for (FileSourceTaskContent fileSourceTaskContent : fileSourceTaskList) {
-            TaskInfoDTO taskInfoDTO = fileSourceTaskService.startFileSourceDownloadTask(username, appId,
-                stepInstanceId, executeCount, batchTaskId, fileSourceTaskContent.getFileSourceId(),
-                fileSourceTaskContent.getFilePathList());
+            TaskInfoDTO taskInfoDTO = fileSourceTaskService.startFileSourceDownloadTask(
+                username,
+                appId,
+                stepInstanceId,
+                executeCount,
+                batchTaskId,
+                fileSourceTaskContent.getFileSourceId(),
+                fileSourceTaskContent.getFilePathList()
+            );
             taskInfoDTOList.add(taskInfoDTO);
         }
         batchTaskInfoDTO.setTaskInfoList(taskInfoDTOList);
@@ -122,11 +130,5 @@ public class BatchTaskServiceImpl implements BatchTaskService {
         }
         batchTaskStatusDTO.setFileSourceTaskStatusInfoList(fileSourceTaskStatusInfoList);
         return batchTaskStatusDTO;
-    }
-
-    @Override
-    public Integer clearBatchTaskFiles(List<String> batchTaskIdList) {
-        List<String> fileSourceTaskIdList = getFileSourceTaskIdListByBatch(batchTaskIdList);
-        return fileSourceTaskService.clearTaskFiles(fileSourceTaskIdList);
     }
 }

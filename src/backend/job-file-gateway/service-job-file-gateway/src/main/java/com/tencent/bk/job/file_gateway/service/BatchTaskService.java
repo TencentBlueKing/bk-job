@@ -31,7 +31,9 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import java.util.List;
 
 public interface BatchTaskService {
-    BatchTaskInfoDTO startFileSourceBatchDownloadTask(String username, Long appId, Long stepInstanceId,
+    BatchTaskInfoDTO startFileSourceBatchDownloadTask(String username,
+                                                      Long appId,
+                                                      Long stepInstanceId,
                                                       Integer executeCount,
                                                       List<FileSourceTaskContent> fileSourceTaskList);
 
@@ -39,5 +41,4 @@ public interface BatchTaskService {
 
     BatchTaskStatusDTO getBatchTaskStatusAndLogs(String batchTaskId, Long logStart, Long logLength);
 
-    Integer clearBatchTaskFiles(List<String> batchTaskIdList);
 }
