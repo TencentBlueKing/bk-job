@@ -103,17 +103,30 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
+    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public TaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId,
                                                    Integer executeCount, String batchTaskId, Integer fileSourceId,
                                                    List<String> filePathList) {
-        return startFileSourceDownloadTaskWithId(username, appId, stepInstanceId, executeCount, batchTaskId,
-            fileSourceId, filePathList, null);
+        return startFileSourceDownloadTaskWithId(
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList,
+            null
+        );
     }
 
     @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
-    public TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
-                                                         Integer executeCount, String batchTaskId,
-                                                         Integer fileSourceId, List<String> filePathList,
+    public TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
+                                                         Long appId,
+                                                         Long stepInstanceId,
+                                                         Integer executeCount,
+                                                         String batchTaskId,
+                                                         Integer fileSourceId,
+                                                         List<String> filePathList,
                                                          String fileSourceTaskId) {
         log.info("Input=({},{},{},{},{},{},{})", username, appId, stepInstanceId, executeCount, batchTaskId,
             fileSourceId, filePathList);
