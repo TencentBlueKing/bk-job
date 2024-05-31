@@ -551,7 +551,6 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isAgentIdValid(HostDTO host, boolean isUsingGseV2) {
-        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
         return isUsingGseV2 ? AgentUtils.isGseV2AgentId(host.getAgentId()) :
             AgentUtils.isGseV1AgentId(host.getAgentId());
     }
