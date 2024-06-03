@@ -233,7 +233,7 @@
 
   import I18n from '@/i18n';
 
-  import ConfirmCron from './components/confirm-cron';
+  import ConfirmCron from './components/confirm-cron/index.vue';
 
   const runStepByStep = (data, callback, finishCallback = () => {}) => {
     let startIndex = 0;

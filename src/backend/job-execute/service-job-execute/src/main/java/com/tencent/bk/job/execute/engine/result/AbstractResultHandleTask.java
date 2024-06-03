@@ -316,11 +316,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             // 分批拉取GSE任务执行结果
             gseLogBatchPullResult = pullGseTaskResultInBatches();
 
-            // 拉取结果校验
-            if (!checkPullResult(gseLogBatchPullResult)) {
-                return false;
-            }
-
             // 检查任务异常并处理
             GseTaskResult<T> gseTaskResult = gseLogBatchPullResult.getGseTaskResult();
             if (determineTaskAbnormal(gseTaskResult)) {
@@ -502,20 +497,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         }
         return isAbnormal;
     }
-
-    private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
-        if (!gseLogBatchPullResult.isSuccess()) {
-            log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
-                gseLogBatchPullResult.getErrorMsg());
-            this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
-                gseLogBatchPullResult.getErrorMsg());
-            finishGseTask(GseTaskExecuteResult.FAILED, true);
-            return false;
-        }
-        return true;
-    }
-
 
     /**
      * 设置目标gent任务结束状态

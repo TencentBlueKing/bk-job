@@ -614,6 +614,9 @@ job:
     gseV2:
       # 是否对接GSE2.0。 如果需要对接GSE1.0，设置job.features.gseV2.enabled=false
       enabled: true
+      # 是否支持 GSE V2 Agent状态查询。如果需要对接GSE1.0，设置job.features.agentStatusGseV2.enabled=false
+    agentStatusGseV2:
+      enabled: true
     # 是否支持执行对象。如果 Job 需要支持容器内作业的执行，需要开启该特性
     executeObject:
       enabled: true
@@ -882,6 +885,10 @@ executeConfig:
     artifactory:
       # 存储后端使用制品库时使用的仓库代码
       repo: backup
+  scriptTask:
+    query:
+      # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
+      contentSizeLimit: 512MB
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute

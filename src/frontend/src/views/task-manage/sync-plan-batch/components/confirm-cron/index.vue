@@ -47,7 +47,7 @@
 <script>
   import TaskManageService from '@service/task-manage';
 
-  import ConfirmCron from '../../common/plan/confirm-cron';
+  import ConfirmCron from './render-corn/index.vue';
 
   export default {
     name: '',
