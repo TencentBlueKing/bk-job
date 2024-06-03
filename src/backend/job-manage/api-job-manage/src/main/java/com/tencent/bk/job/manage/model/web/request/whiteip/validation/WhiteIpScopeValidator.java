@@ -22,42 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request.whiteip;
+package com.tencent.bk.job.manage.model.web.request.whiteip.validation;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
-import com.tencent.bk.job.manage.model.web.request.whiteip.validation.CheckWhiteIpScope;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
+import org.apache.commons.collections.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-@Data
-@ApiModel("IP白名单记录创建请求")
-@CheckWhiteIpScope
-public class WhiteIPRecordCreateUpdateReq {
+public class WhiteIpScopeValidator implements ConstraintValidator<CheckWhiteIpScope, WhiteIPRecordCreateUpdateReq> {
 
-    /**
-     * 内部字段
-     */
-    @Deprecated
-    @ApiModelProperty(value = "白名单记录 ID", hidden = true)
-    private Long id;
-
-    @ApiModelProperty(value = "是否对所有资源范围生效，默认为false")
-    private boolean allScope = false;
-
-    @ApiModelProperty(value = "多个资源范围列表")
-    private List<ResourceScope> scopeList;
-
-    @ApiModelProperty(value = "主机列表", required = true)
-    private List<HostIdWithMeta> hostList = new ArrayList<>();
-
-    @ApiModelProperty(value = "备注", required = true)
-    private String remark;
-
-    @ApiModelProperty(value = "生效范围（id列表）", required = true)
-    private List<Long> actionScopeIdList;
+    @Override
+    public boolean isValid(WhiteIPRecordCreateUpdateReq whiteIPRecordCreateUpdateReq,
+                           ConstraintValidatorContext constraintValidatorContext) {
+        return whiteIPRecordCreateUpdateReq.isAllScope()
+            || CollectionUtils.isNotEmpty(whiteIPRecordCreateUpdateReq.getScopeList());
+    }
 }
