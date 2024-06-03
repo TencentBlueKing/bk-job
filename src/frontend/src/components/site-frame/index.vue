@@ -246,6 +246,7 @@
         }
 
         .jb-navigation-side {
+          position: relative;
           transition: none;
         }
 
@@ -283,7 +284,9 @@
     }
 
     .jb-navigation-side {
-      position: relative;
+      position: absolute;
+      bottom: 0;
+      left: 0;
       z-index: 2000;
       display: flex;
       float: left;

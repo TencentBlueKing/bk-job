@@ -285,7 +285,7 @@
             if (params.id < 1) {
               delete params.id;
             }
-            if (params.allScopeh) {
+            if (params.allScope) {
               params.scopeList = [];
             } else {
               params.scopeList = this.scopeValue.map((scopeLocalKey) => {
