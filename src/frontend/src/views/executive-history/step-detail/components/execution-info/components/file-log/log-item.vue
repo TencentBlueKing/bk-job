@@ -61,29 +61,41 @@
         const process = parseInt(data.progress, 10) / 100;
         return wholeProgress.slice(0, Math.floor(process * wholeProgress.length) || 1);
       };
+
+      const renderServer = () => {
+        if (data.srcExecuteObject.host) {
+          return data.srcExecuteObject.host.ip || data.srcExecuteObject.host.ipv6;
+        }
+        if (data.srcExecuteObject.container) {
+          return data.srcExecuteObject.container.name || '--';
+        }
+        return '--';
+      };
+
       const handleToggle = () => {
         listeners['on-toggle'](data.taskId, !isContentOpen);
       };
+
       return (
-            <div class={classes}>
-                <div class="log-header" onClick={handleToggle}>
-                    <i class="job-icon job-icon-down-small log-toggle" />
-                    <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
-                    <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
-                    <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
-                    <span>{ parent.$t('history.源服务器 IP') }：{ data.srcIp || data.srcIpv6 }</span>
-                    <span>{ parent.$t('history.速率') }：{ data.speed }</span>
-                    <span>{ parent.$t('history.进度') }：{ data.progress }</span>
-                </div>
-                {
-                    isContentOpen && (
-                        <div class="log-body">
-                            <div class="log-content">{ logContent }</div>
-                            <div class="log-process">{ renderProgress() }</div>
-                        </div>
-                    )
-                }
+          <div class={classes}>
+            <div class="log-header" onClick={handleToggle}>
+              <i class="job-icon job-icon-down-small log-toggle" />
+              <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
+              <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
+              <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
+              <span>{ parent.$t('history.源服务器 IP') }：{ renderServer() }</span>
+              <span>{ parent.$t('history.速率') }：{ data.speed }</span>
+              <span>{ parent.$t('history.进度') }：{ data.progress }</span>
             </div>
+            {
+              isContentOpen && (
+                <div class="log-body">
+                  <div class="log-content">{ logContent }</div>
+                  <div class="log-process">{ renderProgress() }</div>
+                </div>
+              )
+            }
+          </div>
       );
     },
   };
