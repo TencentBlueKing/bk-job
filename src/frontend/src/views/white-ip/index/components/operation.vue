@@ -166,6 +166,8 @@
           this.ipSelectorValue = {
             hostList,
           };
+
+          this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
         },
         immediate: true,
       },
@@ -226,21 +228,7 @@
               ...item,
               localKey: `#${item.scopeType}#${item.scopeId}`,
             }));
-            // 默认选中第一个
-            if (this.formData.scopeList.length < 1) {
-              const [
-                {
-                  scopeType,
-                  scopeId,
-                },
-              ] = data;
-              this.formData.scopeList = [
-                {
-                  scopeType,
-                  scopeId,
-                },
-              ];
-            }
+            this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
           });
       },
       /**
@@ -283,7 +271,7 @@
             if (params.id < 1) {
               delete params.id;
             }
-            if (params.allScopeh) {
+            if (params.allScope) {
               params.scopeList = [];
             } else {
               params.scopeList = this.scopeValue.map((scopeLocalKey) => {
