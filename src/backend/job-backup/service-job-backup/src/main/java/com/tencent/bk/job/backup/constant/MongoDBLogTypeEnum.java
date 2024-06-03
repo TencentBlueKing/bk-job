@@ -22,40 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.constant;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+public enum MongoDBLogTypeEnum {
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveSummary {
-    private boolean enabled;
-    private String tableName;
-    private String archiveEndDate;
-    private boolean skip;
-    private boolean success;
+    /**
+     * 脚本执行任务日志
+     */
+    SCRIPT(1),
+    /**
+     * 文件分发任务日志
+     */
+    FILE(2);
 
-    private String archiveMode;
-    private Long archiveCost;
+    private final Integer value;
 
-    private Long archiveIdStart;
-    private Long archiveIdEnd;
-    private Long needArchiveRecordSize;
+    MongoDBLogTypeEnum(Integer val) {
+        this.value = val;
+    }
 
-    private Long lastBackupId;
-    private Long backupRecordSize;
+    public static MongoDBLogTypeEnum getLogType(Integer logType) {
+        if (logType == null) {
+            throw new IllegalArgumentException("Empty logType value!");
+        }
+        for (MongoDBLogTypeEnum logTypeEnum : values()) {
+            if (logTypeEnum.getValue().equals(logType)) {
+                return logTypeEnum;
+            }
+        }
+        throw new IllegalArgumentException("Illegal logType: " + logType);
+    }
 
-    private Long lastDeletedId;
-    private Long deleteRecordSize;
-
-    private Long deleteCollectionSize;
-    private Long backupCollectionSize;
-    private Long totalCollectionSize;
-
-    public ArchiveSummary(String tableName) {
-        this.tableName = tableName;
+    public Integer getValue() {
+        return value;
     }
 }

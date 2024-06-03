@@ -38,6 +38,9 @@ spring:
       idle-timeout: 6000
       poolName: "job-execute"
       validationTimeout: 5000
+    # 执行日志mongodb数据源
+    job-execute-mongodb:
+      uri: __BK_JOB_LOGSVR_MONGODB_URI__
     # 执行数据归档DB配置，若需开启数据归档请去除注释并添加相应环境变量进行配置
     #job-execute-archive:
       #driver-class-name: io.opentelemetry.instrumentation.jdbc.OpenTelemetryDriver

@@ -30,6 +30,7 @@ import com.tencent.bk.job.backup.archive.impl.GseFileExecuteObjTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseScriptAgentTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseScriptExecuteObjTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseTaskArchivist;
+import com.tencent.bk.job.backup.archive.impl.MongoDBScriptLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.OperationLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.RollingConfigArchivist;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceArchivist;
@@ -42,6 +43,7 @@ import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.constant.MongoDBLogTypeEnum;
 import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
@@ -68,6 +70,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.CountDownLatch;
@@ -99,6 +102,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final ExecuteArchiveDAO executeArchiveDAO;
     private final ArchiveTaskLock archiveTaskLock;
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
+    private final MongoTemplate mongoTemplate;
 
 
     /**
@@ -128,7 +132,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    ArchiveDBProperties archiveDBProperties,
                                    ExecutorService archiveExecutor,
                                    ArchiveTaskLock archiveTaskLock,
-                                   ArchiveErrorTaskCounter archiveErrorTaskCounter) {
+                                   ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                                   MongoTemplate mongoTemplate) {
         log.info("Init JobExecuteArchiveManage! archiveConfig: {}", archiveDBProperties);
         this.archiveDBProperties = archiveDBProperties;
         this.archiveProgressService = archiveProgressService;
@@ -153,6 +158,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.executeArchiveDAO = executeArchiveDAO;
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Scheduled(cron = "${job.backup.archive.execute.cron:0 0 4 * * *}")
@@ -271,7 +277,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
         private void archive(long maxNeedArchiveTaskInstanceId, long maxNeedArchiveStepInstanceId)
             throws InterruptedException {
-            CountDownLatch countDownLatch = new CountDownLatch(17);
+            CountDownLatch countDownLatch = new CountDownLatch(19);
             log.info("Submitting archive task...");
 
             // task_instance
@@ -308,6 +314,10 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             addGseScriptExecuteObjTaskArchiveTask(maxNeedArchiveTaskInstanceId, countDownLatch);
             // gse_file_execute_obj_task
             addGseFileExecuteObjTaskArchiveTask(maxNeedArchiveTaskInstanceId, countDownLatch);
+            // mongodb job_log_script_task
+            addMongoDBScriptLogArchiveTask(countDownLatch);
+            // mongodb job_log_file_task
+            addMongoDBFileLogArchiveTask(countDownLatch);
 
             log.info("Archive task submitted. Waiting for complete...");
             countDownLatch.await();
@@ -566,6 +576,30 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                     maxNeedArchiveTaskInstanceId,
                     countDownLatch,
                     archiveErrorTaskCounter
+                ).archive());
+        }
+
+        private void addMongoDBScriptLogArchiveTask(CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new MongoDBScriptLogArchivist(
+                    mongoTemplate,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    countDownLatch,
+                    archiveErrorTaskCounter,
+                    MongoDBLogTypeEnum.SCRIPT
+                ).archive());
+        }
+
+        private void addMongoDBFileLogArchiveTask(CountDownLatch countDownLatch) {
+            archiveExecutor.execute(() ->
+                new MongoDBScriptLogArchivist(
+                    mongoTemplate,
+                    archiveDBProperties,
+                    archiveTaskLock,
+                    countDownLatch,
+                    archiveErrorTaskCounter,
+                    MongoDBLogTypeEnum.FILE
                 ).archive());
         }
     }

@@ -57,6 +57,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -69,7 +70,7 @@ import java.util.concurrent.ExecutorService;
 @EnableScheduling
 @Slf4j
 @EnableConfigurationProperties(ArchiveDBProperties.class)
-@Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class})
+@Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class, ExecuteMongoDBConfiguration.class})
 public class ArchiveConfiguration {
 
     /**
@@ -244,7 +245,8 @@ public class ArchiveConfiguration {
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveDBProperties archiveDBProperties,
         ArchiveTaskLock archiveTaskLock,
-        ArchiveErrorTaskCounter archiveErrorTaskCounter) {
+        ArchiveErrorTaskCounter archiveErrorTaskCounter,
+        MongoTemplate mongoTemplate) {
 
         log.info("Init JobExecuteArchiveManage");
         return new JobExecuteArchiveManage(
@@ -270,6 +272,7 @@ public class ArchiveConfiguration {
             archiveDBProperties,
             archiveExecutor,
             archiveTaskLock,
-            archiveErrorTaskCounter);
+            archiveErrorTaskCounter,
+            mongoTemplate);
     }
 }
