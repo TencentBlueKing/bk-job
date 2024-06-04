@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding;
+package com.tencent.bk.job.common.sharding.mysql;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;

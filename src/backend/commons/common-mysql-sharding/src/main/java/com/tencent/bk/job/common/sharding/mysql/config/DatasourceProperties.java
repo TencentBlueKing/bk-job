@@ -22,13 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-utils')
-    api project(':commons:common')
-    api project(':commons:common-mysql-sharding')
-    api 'org.springframework.boot:spring-boot-starter-jdbc'
-    api 'org.springframework.boot:spring-boot-configuration-processor'
-    api 'org.jooq:jooq'
-    api "org.jooq:jooq-codegen"
-    api "org.jooq:jooq-meta"
+package com.tencent.bk.job.common.sharding.mysql.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "spring.datasource")
+public class DatasourceProperties {
+
 }

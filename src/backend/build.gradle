@@ -147,7 +147,7 @@ ext {
     set('bkAuditJavaSdkVersion', "1.0.8")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
-    set('shardingJdbcVersion', "5.2.1")
+    set('shardingJdbcVersion', "5.4.1")
     set('snakeyamlVersion', "1.33")
 }
 
@@ -343,7 +343,6 @@ subprojects {
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
             dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
-            dependency "org.apache.shardingsphere:shardingsphere-sql-translator-jooq-provider:$shardingJdbcVersion"
             dependency "org.yaml:snakeyaml:$snakeyamlVersion"
         }
     }

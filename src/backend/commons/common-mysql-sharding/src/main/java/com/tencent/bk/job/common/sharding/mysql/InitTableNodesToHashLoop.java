@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding;
+package com.tencent.bk.job.common.sharding.mysql;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

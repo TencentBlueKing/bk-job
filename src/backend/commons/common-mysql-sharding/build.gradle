@@ -29,7 +29,6 @@ dependencies {
     implementation 'org.springframework:spring-web'
     api 'org.apache.shardingsphere:shardingsphere-jdbc-core'
     api 'org.yaml:snakeyaml'
-//    api 'org.apache.shardingsphere:shardingsphere-sql-translator-jooq-provider'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.junit.jupiter:junit-jupiter'
