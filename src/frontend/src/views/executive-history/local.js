@@ -232,5 +232,6 @@ export default {
     '容器 ID': 'Container ID',
     '所属 Pod 名称': 'Pod name',
     没有可复制的容器名称: 'Container name not found',
+    文件源: 'File source',
   },
 };
