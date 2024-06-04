@@ -218,6 +218,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private void backupAndDelete() throws IOException {
         boolean backupEnabled = isBackupEnable(archiveDBProperties);
+        boolean deleteEnabled = isDeleteEnable(archiveDBProperties);
         long backupRows = 0;
         long readRows = 0;
         long deleteRows = 0;
@@ -236,13 +237,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                     backupRows += backupResult.getRight();
                 }
 
-                if (backupResult != null) {
-                    if (backupResult.getLeft() > 0) {
-                        // 降低 delete 执行次数：备份过程中读取的数据行数大于 0，才会执行 delete 操作
+                if (deleteEnabled) {
+                    if (backupResult != null) {
+                        if (backupResult.getLeft() > 0) {
+                            // 降低 delete 执行次数：备份过程中读取的数据行数大于 0，才会执行 delete 操作
+                            deleteRows += delete(start, stop);
+                        }
+                    } else {
                         deleteRows += delete(start, stop);
                     }
-                } else {
-                    deleteRows += delete(start, stop);
                 }
 
                 start = stop;
@@ -272,6 +275,12 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
         return archiveDBProperties.isEnabled()
             && ArchiveModeEnum.BACKUP_THEN_DELETE == ArchiveModeEnum.valOf(archiveDBProperties.getMode());
+    }
+
+    protected boolean isDeleteEnable(ArchiveDBProperties archiveDBProperties) {
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveDBProperties.getMode());
+        return archiveDBProperties.isEnabled()
+            && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.DELETE_ONLY == archiveMode);
     }
 
     private boolean acquireLock() {
