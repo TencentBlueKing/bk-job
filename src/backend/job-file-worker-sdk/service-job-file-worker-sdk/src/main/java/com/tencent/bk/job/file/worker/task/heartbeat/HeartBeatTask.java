@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -36,6 +37,7 @@ import com.tencent.bk.job.file.worker.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +47,8 @@ import java.io.FileNotFoundException;
 @Service
 public class HeartBeatTask {
 
-    public static volatile boolean runFlag = true;
+    public volatile boolean shouldRun = true;
+    public volatile boolean running = false;
 
     private final JobHttpClient jobHttpClient;
     private final WorkerConfig workerConfig;
@@ -66,8 +69,38 @@ public class HeartBeatTask {
         this.environmentService = environmentService;
     }
 
-    public static void stopHeartBeat() {
-        runFlag = false;
+    /**
+     * 停止心跳并等待最后一次心跳结束，防止下线后心跳请求再次将file-worker状态更新为在线
+     */
+    public void stopAndWaitLastHeartBeatFinish() {
+        shouldRun = false;
+        if (!running) {
+            return;
+        }
+        waitUntilNotRunning(30);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void waitUntilNotRunning(int maxSeconds) {
+        long waitStartTimeMills = System.currentTimeMillis();
+        boolean shouldWait;
+        do {
+            ThreadUtils.sleep(100);
+            long durationMills = System.currentTimeMillis() - waitStartTimeMills;
+            if (!running) {
+                String msg = MessageFormatter.format(
+                    "Waited {}ms for last heartBeat finish",
+                    durationMills
+                ).getMessage();
+                if (durationMills >= 15000) {
+                    log.warn(msg);
+                } else {
+                    log.debug(msg);
+                }
+                return;
+            }
+            shouldWait = durationMills < maxSeconds * 1000L;
+        } while (shouldWait);
     }
 
     private HeartBeatReq getHeartBeatReq() {
@@ -102,10 +135,21 @@ public class HeartBeatTask {
     }
 
     public void run() {
-        if (!runFlag) {
+        if (!shouldRun) {
             log.info("HeartBeat closed, ignore");
             return;
         }
+        try {
+            running = true;
+            doHeartBeat();
+        } catch (Exception e) {
+            log.warn("Fail to doHeartBeat", e);
+        } finally {
+            running = false;
+        }
+    }
+
+    private void doHeartBeat() {
         String url = gatewayInfoService.getHeartBeatUrl();
         HeartBeatReq heartBeatReq = getHeartBeatReq();
         log.info("HeartBeat: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(heartBeatReq));

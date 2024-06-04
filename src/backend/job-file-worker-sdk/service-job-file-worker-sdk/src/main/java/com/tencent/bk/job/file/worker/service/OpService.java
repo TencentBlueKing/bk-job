@@ -53,22 +53,27 @@ public class OpService {
     private final GatewayInfoService gatewayInfoService;
     private final EnvironmentService environmentService;
     private final TaskReporter taskReporter;
+    private final HeartBeatTask heartBeatTask;
 
     @Autowired
-    public OpService(WorkerConfig workerConfig, FileTaskService fileTaskService,
-                     GatewayInfoService gatewayInfoService, EnvironmentService environmentService,
-                     TaskReporter taskReporter) {
+    public OpService(WorkerConfig workerConfig,
+                     FileTaskService fileTaskService,
+                     GatewayInfoService gatewayInfoService,
+                     EnvironmentService environmentService,
+                     TaskReporter taskReporter,
+                     HeartBeatTask heartBeatTask) {
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
         this.environmentService = environmentService;
         this.taskReporter = taskReporter;
+        this.heartBeatTask = heartBeatTask;
     }
 
     public List<String> offLine() {
         List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
         // 停止心跳
-        HeartBeatTask.stopHeartBeat();
+        heartBeatTask.stopAndWaitLastHeartBeatFinish();
         // 调网关接口下线自己
         String url = gatewayInfoService.getWorkerOffLineUrl();
         OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
@@ -84,10 +89,10 @@ public class OpService {
         String respStr;
         try {
             respStr = httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.POST, url)
-                    .setStringEntity(req.getBody())
-                    .setHeaders(req.getHeaders())
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.POST, url)
+                        .setStringEntity(req.getBody())
+                        .setHeaders(req.getHeaders())
+                        .build())
                 .getEntity();
             log.info(String.format("respStr=%s", respStr));
             // 停止任务
