@@ -98,12 +98,8 @@ class TaskExecute extends ModuleBase {
       stepInstanceId,
     } = params;
 
-    const realParams = { ...params };
-    delete realParams.taskInstanceId;
-    delete realParams.stepInstanceId;
-
     return Request.post(`${this.path}/taskInstance/${taskInstanceId}/stepInstance/${stepInstanceId}/fileLog/queryByIds`, {
-      params: realParams,
+      params: params.taskIds,
     });
   }
 
