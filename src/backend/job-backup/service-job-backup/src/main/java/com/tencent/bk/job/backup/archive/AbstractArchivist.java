@@ -279,8 +279,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveDBProperties.getMode());
         return archiveDBProperties.isEnabled()
-            && ArchiveModeEnum.BACKUP_THEN_DELETE == ArchiveModeEnum.valOf(archiveDBProperties.getMode());
+            && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.BACKUP_ONLY == archiveMode);
     }
 
     protected boolean isDeleteEnable(ArchiveDBProperties archiveDBProperties) {
