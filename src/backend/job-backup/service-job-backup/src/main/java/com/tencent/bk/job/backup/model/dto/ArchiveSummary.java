@@ -41,9 +41,13 @@ public class ArchiveSummary {
     private String archiveMode;
 
     /**
-     * 备份数据耗时（单位毫秒)
+     * 备份数据-查询原数据耗时（单位毫秒)
      */
-    private Long backupCost;
+    private Long backupReadCost;
+    /**
+     * 备份数据-写入数据到归档 db 耗时（单位毫秒)
+     */
+    private Long backupWriteCost;
     /**
      * 删除热数据耗时（单位毫秒)
      */
