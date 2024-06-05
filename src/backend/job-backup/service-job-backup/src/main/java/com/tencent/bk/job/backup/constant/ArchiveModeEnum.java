@@ -39,7 +39,7 @@ public enum ArchiveModeEnum {
     /**
      * 仅备份数据,不删除原始数据。该模式为开发/测试场景下使用，暂不对外开放
      */
-    BACKUP_ONLY(Constants.BACKUP_THEN_DELETE);
+    BACKUP_ONLY(Constants.BACKUP_ONLY);
 
     ArchiveModeEnum(String mode) {
         this.mode = mode;
