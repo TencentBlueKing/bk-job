@@ -66,7 +66,7 @@ public class UnknownHostExceptionRetryPolicy implements FileSourceTaskRetryPolic
         if (!(cause instanceof ResourceAccessException)) {
             return false;
         }
-        Throwable innerCause = exception.getCause();
+        Throwable innerCause = cause.getCause();
         if (innerCause instanceof UnknownHostException) {
             ThreadUtils.sleep(sleepMillsBeforeRetryCount);
             return true;
