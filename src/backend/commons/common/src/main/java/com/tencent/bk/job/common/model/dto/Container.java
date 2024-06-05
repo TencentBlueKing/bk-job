@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
@@ -158,5 +159,13 @@ public class Container implements Cloneable {
         this.podName = container.getPodName();
         this.podLabels = container.getPodLabels();
         this.name = container.getName();
+    }
+
+    /**
+     * 获取可读性的执行对象名称
+     */
+    @JsonIgnore
+    public String getReadabilityName() {
+        return clusterId + "::" + namespace + "::" + podName + "::" + name + "::" + containerId;
     }
 }
