@@ -86,7 +86,7 @@ public class RetryPolicyFileSourceTaskServiceImpl implements RetryPolicyFileSour
                             retryCount
                         }
                     ).getMessage();
-                    log.warn(msg, e);
+                    log.info(msg, e);
                 } else {
                     throw e;
                 }
