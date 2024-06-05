@@ -48,7 +48,7 @@ public enum ArchiveModeEnum {
     public interface Constants {
         String DELETE_ONLY = "deleteOnly";
         String BACKUP_THEN_DELETE = "backupThenDelete";
-        String BACKUP_ONLY = " backupOnly";
+        String BACKUP_ONLY = "backupOnly";
     }
 
     private final String mode;
@@ -59,7 +59,7 @@ public enum ArchiveModeEnum {
                 return value;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No ArchiveModeEnum constant: " + mode);
     }
 
     public String getMode() {
