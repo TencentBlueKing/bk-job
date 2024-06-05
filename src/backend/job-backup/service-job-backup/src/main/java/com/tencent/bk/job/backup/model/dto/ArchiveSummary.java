@@ -39,6 +39,18 @@ public class ArchiveSummary {
     private boolean success;
 
     private String archiveMode;
+
+    /**
+     * 备份数据耗时（单位毫秒)
+     */
+    private Long backupCost;
+    /**
+     * 删除热数据耗时（单位毫秒)
+     */
+    private Long deleteCost;
+    /**
+     * 归档总耗时（单位毫秒)
+     */
     private Long archiveCost;
 
     private Long archiveIdStart;
