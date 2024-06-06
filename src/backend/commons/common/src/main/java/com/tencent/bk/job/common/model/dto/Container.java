@@ -166,6 +166,14 @@ public class Container implements Cloneable {
      */
     @JsonIgnore
     public String getReadabilityName() {
-        return clusterId + "::" + namespace + "::" + podName + "::" + name + "::" + containerId;
+        StringBuilder nameBuilder = new StringBuilder(256);
+        if (clusterId != null) {
+            nameBuilder.append(clusterId).append("::");
+        }
+        if (namespace != null) {
+            nameBuilder.append(namespace).append("::");
+        }
+        nameBuilder.append(podName).append("::").append(name).append("::").append(containerId);
+        return nameBuilder.toString();
     }
 }
