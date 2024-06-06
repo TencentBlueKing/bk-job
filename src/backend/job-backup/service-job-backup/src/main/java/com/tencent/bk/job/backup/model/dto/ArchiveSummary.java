@@ -67,6 +67,11 @@ public class ArchiveSummary {
     private Long lastDeletedId;
     private Long deleteRecordSize;
 
+    /**
+     * 归档详细说明信息
+     */
+    private String message;
+
     public ArchiveSummary(String tableName) {
         this.tableName = tableName;
     }

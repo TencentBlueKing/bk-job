@@ -183,6 +183,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 // min 查询返回 null，说明是空表，无需归档
                 archiveSummary.setSkip(true);
                 archiveSummary.setSuccess(true);
+                archiveSummary.setMessage("Empty table, do not need archive");
                 log.info("[{}] Empty table, do not need archive!", tableName);
                 return;
             }
@@ -192,6 +193,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                     tableName, minNeedArchiveId, maxNeedArchiveId);
                 archiveSummary.setSkip(true);
                 archiveSummary.setSuccess(true);
+                archiveSummary.setMessage("MinNeedArchiveId is greater than maxNeedArchiveId, skip archive table");
                 return;
             }
 
@@ -205,6 +207,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ).getMessage();
             log.error(msg, e);
             archiveErrorTaskCounter.increment();
+            archiveSummary.setMessage(e.getMessage());
         } finally {
             archiveSummary.setArchiveMode(archiveDBProperties.getMode());
             storeArchiveSummary();
@@ -228,10 +231,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long backupReadRecordCost = 0;
         long backupWriteRecordCost = 0;
         long deleteCost = 0;
+        log.info("[{}] Start backup and delete process, backupEnabled: {}, deleteEnabled: {}", tableName,
+            backupEnabled, deleteEnabled);
         try {
             while (maxNeedArchiveId > start) {
                 // start < id <= stop
                 stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
+
+                log.info("[{}] LoopArchive, current: [{}-{}]", tableName, start, stop);
+
                 BackupResult backupResult = null;
                 if (backupEnabled) {
                     backupResult = backupRecords(start, stop);
