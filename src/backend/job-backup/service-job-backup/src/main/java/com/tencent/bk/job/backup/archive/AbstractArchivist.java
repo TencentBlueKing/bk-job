@@ -287,8 +287,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 readRows,
                 backupRows,
                 deleteRows,
-                backupEnabled ? stop : 0,
-                deleteEnabled ? stop : 0,
+                backupEnabled ? stop : null,
+                deleteEnabled ? stop : null,
                 archiveCost,
                 success,
                 backupReadRecordCost,
@@ -328,6 +328,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     private BackupResult backupRecords(long start, long stop) throws IOException {
         if (lastBackupId >= stop) {
             // 说明数据已经备份过，跳过
+            log.info("[{}] Record is already backup, skip. lastBackId: {}", tableName, lastBackupId);
             return new BackupResult(0L, 0L, 0L, 0L);
         }
         long startId = start;
