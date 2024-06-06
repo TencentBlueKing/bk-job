@@ -104,8 +104,12 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
 
     @Override
     @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
-    public TaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId,
-                                                   Integer executeCount, String batchTaskId, Integer fileSourceId,
+    public TaskInfoDTO startFileSourceDownloadTask(String username,
+                                                   Long appId,
+                                                   Long stepInstanceId,
+                                                   Integer executeCount,
+                                                   String batchTaskId,
+                                                   Integer fileSourceId,
                                                    List<String> filePathList) {
         return startFileSourceDownloadTaskWithId(
             username,
@@ -128,8 +132,16 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                                          Integer fileSourceId,
                                                          List<String> filePathList,
                                                          String fileSourceTaskId) {
-        log.info("Input=({},{},{},{},{},{},{})", username, appId, stepInstanceId, executeCount, batchTaskId,
-            fileSourceId, filePathList);
+        log.info(
+            "startFileSourceDownloadTaskWithId, input=({},{},{},{},{},{},{})",
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList
+        );
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceId);
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
