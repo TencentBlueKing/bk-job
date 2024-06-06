@@ -31,7 +31,6 @@ import org.jooq.DSLContext;
 import org.jooq.Loader;
 import org.jooq.LoaderError;
 import org.jooq.TableRecord;
-import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +54,11 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
     public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws IOException {
         long start = System.currentTimeMillis();
         int successInsertedRecords = 0;
-        String tableName = recordList.get(0).getTable().getName();
+        String table = recordList.get(0).getTable().getName();
         boolean success = true;
         try {
             Loader<?> loader =
-                context.loadInto(DSL.table(tableName))
+                context.loadInto(recordList.get(0).getTable())
                     // 由于这里是批量写入，jooq 不允许使用 onDuplicateKeyIgnore/onDuplicateKeyUpdate.
                     // 否则会报错"Cannot apply bulk loading with onDuplicateKey flags"
                     // 所以这里暂时使用 onDuplicateKeyError 错误处理方式，等后续流程进一步判断是否是主键冲突错误
@@ -73,7 +72,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
             String bulkInsertResult = successInsertedRecords == recordList.size() ? "success" : "fail";
             log.info(
                 "InsertBulk: Load {} data|result|{}|executed|{}|processed|{}|stored|{}|ignored|{}|errors|{}",
-                tableName,
+                table,
                 bulkInsertResult,
                 loader.executed(),
                 loader.processed(),
@@ -83,7 +82,7 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
             );
             if (CollectionUtils.isNotEmpty(loader.errors())) {
                 for (LoaderError error : loader.errors()) {
-                    ARCHIVE_FAILED_LOGGER.error("Error while load {} data, exception: {}， error row: {}", tableName,
+                    ARCHIVE_FAILED_LOGGER.error("Error while load {} data, exception: {}， error row: {}", table,
                         error.exception().getMessage(), error.row());
                 }
                 if (hasDuplicateError(loader.errors())) {
@@ -92,12 +91,12 @@ public class ExecuteArchiveDAOImpl implements ExecuteArchiveDAO {
                 }
             }
         } catch (IOException e) {
-            String errorMsg = String.format("Error while loading %s data!", tableName);
+            String errorMsg = String.format("Error while loading %s data!", table);
             log.error(errorMsg, e);
             success = false;
             throw e;
         } finally {
-            log.info("Load data to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", tableName, success,
+            log.info("Load data to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
                 recordList.size(), successInsertedRecords, System.currentTimeMillis() - start);
         }
 
