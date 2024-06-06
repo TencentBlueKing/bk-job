@@ -281,8 +281,20 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 deleteRows,
                 archiveCost
             );
-            setArchiveSummary(minNeedArchiveId, maxNeedArchiveId, readRows, backupRows, deleteRows,
-                stop, archiveCost, success, backupReadRecordCost, backupWriteRecordCost, deleteCost);
+            setArchiveSummary(
+                minNeedArchiveId,
+                maxNeedArchiveId,
+                readRows,
+                backupRows,
+                deleteRows,
+                backupEnabled ? stop : 0,
+                deleteEnabled ? stop : 0,
+                archiveCost,
+                success,
+                backupReadRecordCost,
+                backupWriteRecordCost,
+                deleteCost
+            );
         }
     }
 
@@ -400,7 +412,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                                    long readRows,
                                    long backupRows,
                                    long deleteRows,
-                                   long stop,
+                                   Long lastBackupId,
+                                   Long lastDeleteId,
                                    long archiveCost,
                                    boolean success,
                                    long backupReadCost,
@@ -411,8 +424,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         archiveSummary.setNeedArchiveRecordSize(readRows);
         archiveSummary.setBackupRecordSize(backupRows);
         archiveSummary.setDeleteRecordSize(deleteRows);
-        archiveSummary.setLastBackupId(stop);
-        archiveSummary.setLastDeletedId(stop);
+        archiveSummary.setLastBackupId(lastBackupId);
+        archiveSummary.setLastDeletedId(lastDeleteId);
         archiveSummary.setArchiveCost(archiveCost);
         archiveSummary.setSuccess(success);
         archiveSummary.setBackupReadCost(backupReadCost);
