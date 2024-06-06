@@ -85,6 +85,11 @@ public class ExecuteBackupDbConfiguration {
 
         }
 
+        @Conditional(JobExecuteBackupCondition.class)
+        static class BackupCondition {
+
+        }
+
         static class JobExecuteBackupCondition extends AnyNestedCondition {
             public JobExecuteBackupCondition() {
                 super(ConfigurationPhase.PARSE_CONFIGURATION);
