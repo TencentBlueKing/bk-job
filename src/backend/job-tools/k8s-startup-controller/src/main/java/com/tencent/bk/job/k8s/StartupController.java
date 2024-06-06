@@ -70,21 +70,12 @@ public class StartupController {
     public static final String POD_PHASE_RUNNING = "Running";
 
     // K8s API
-    private static final CoreV1Api api;
-
-    static {
-        ApiClient client = null;
-        try {
-            client = Config.defaultClient();
-        } catch (IOException e) {
-            log.error("Fail to get k8s api defaultClient", e);
-        }
-        Configuration.setDefaultApiClient(client);
-        api = new CoreV1Api();
-    }
+    private static CoreV1Api api;
 
     // 主程序入口
     public static void main(String[] args) {
+        // 初始化K8s API
+        initK8sApi();
         // 解析需要的依赖参数
         ServiceDependModel serviceDependModel = parseDependModelFromArgsOrEnv(args);
         String namespace = serviceDependModel.getNamespace();
@@ -121,6 +112,20 @@ public class StartupController {
             ThreadUtils.sleep(sleepMillsOnce);
         }
         log.info("all depend services are ready, it`s time for {} to start", currentService);
+    }
+
+    /**
+     * 初始化K8s API
+     */
+    private static void initK8sApi() {
+        ApiClient client = null;
+        try {
+            client = Config.defaultClient();
+        } catch (IOException e) {
+            log.error("Fail to get k8s api defaultClient", e);
+        }
+        Configuration.setDefaultApiClient(client);
+        api = new CoreV1Api();
     }
 
     /**
