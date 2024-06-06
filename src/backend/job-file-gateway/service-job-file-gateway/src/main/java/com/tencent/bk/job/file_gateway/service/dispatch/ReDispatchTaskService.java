@@ -22,23 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.file_gateway.service.dispatch;
 
+import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 
-import java.util.List;
-
-/**
- * 文件Worker重调度服务
- */
-public interface ReDispatchService {
-
-    List<String> reDispatchByWorker(
-        String accessHost, Integer accessPort,
-        List<String> taskIdList, Long initDelayMills, Long intervalMills
-    );
-
-    boolean reDispatchByGateway(String fileSourceTaskId, Long initDelayMills, Long intervalMills);
-
-    Integer getReDispatchThreadsNum(String username);
-
+public interface ReDispatchTaskService {
+    TaskInfoDTO reDispatchFileSourceTask(String fileSourceTaskId);
 }

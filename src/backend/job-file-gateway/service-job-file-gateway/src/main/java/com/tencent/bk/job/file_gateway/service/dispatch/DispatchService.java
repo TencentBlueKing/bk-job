@@ -22,29 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.metrics;
+package com.tencent.bk.job.file_gateway.service.dispatch;
 
-public class MetricsConstants {
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 
-    // metric name
-    public static final String NAME_FILE_WORKER_NUM = "fileWorker.num";
-    public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
-    public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
-    public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
-    public static final String NAME_FILE_GATEWAY_REDISPATCH_TIME = "fileGateway.reDispatch.time";
-
-    // tag
-    public static final String TAG_KEY_MODULE = "module";
-    public static final String TAG_KEY_REQUEST_SOURCE = "requestSource";
-    public static final String TAG_KEY_DISPATCH_RESULT = "dispatchResult";
-    public static final String TAG_KEY_APP_ID = "appId";
-
-    // value
-    public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
-    public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
-    public static final String TAG_VALUE_DISPATCH_RESULT_TRUE = "true";
-    public static final String TAG_VALUE_DISPATCH_RESULT_FALSE = "false";
-    public static final String TAG_VALUE_REDISPATCH_STATUS_SUCCESS = "success";
-    public static final String TAG_VALUE_REDISPATCH_STATUS_ERROR = "error";
-
+/**
+ * 调度策略服务：根据文件源信息寻找一个Job插件进行访问
+ * 调度依据：能力标签（文件源类型、区域等）、负载
+ */
+public interface DispatchService {
+    /**
+     * 根据文件源找到一个最适合的FileWorker
+     *
+     * @param fileSourceDTO 文件源对象
+     * @param requestSource 请求来源
+     * @return 选中的对接文件源的FileWorker对象
+     */
+    FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource);
 }

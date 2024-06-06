@@ -47,9 +47,9 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskUpdateService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -197,6 +197,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileSourceTaskId,
             fileSourceDTO.getAlias(),
             fileSourceDTO.getPublicFlag(),
+            fileWorkerDTO.getId(),
+            fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getCloudAreaId(),
             fileWorkerDTO.getInnerIpProtocol(),
             fileWorkerDTO.getInnerIp()

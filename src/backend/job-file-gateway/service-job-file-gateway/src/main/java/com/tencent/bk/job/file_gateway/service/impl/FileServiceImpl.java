@@ -37,7 +37,7 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileService;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceReqGenService;
