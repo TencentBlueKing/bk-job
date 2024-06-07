@@ -198,4 +198,7 @@ data:
         file:
           distribute:
             root-path: {{ .Values.fileDistribute.hostPath }}/local
+        scriptTask:
+          query:
+            contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
 {{- end }}

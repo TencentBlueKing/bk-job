@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service.feature;
 
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.feature.Feature;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
@@ -124,13 +125,13 @@ public class DefaultFeatureManager implements FeatureManager {
 
     private void recordFeatureToggleTotal(String featureId, String resourceScope) {
         meterRegistry.counter(METRIC_JOB_FEATURE_TOGGLE_TOTAL,
-            Tags.of("resourceScope", resourceScope).and("feature", featureId))
+                Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScope).and("feature", featureId))
             .increment();
     }
 
     private void recordFeatureToggleHitTotal(String featureId, String resourceScope) {
         meterRegistry.counter(METRIC_JOB_FEATURE_TOGGLE_HIT_TOTAL,
-            Tags.of("resourceScope", resourceScope).and("feature", featureId))
+                Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScope).and("feature", featureId))
             .increment();
     }
 }

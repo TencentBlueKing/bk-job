@@ -1,4 +1,16 @@
 # chart values 更新日志
+
+## 0.6.2
+1. 增加 GSE 脚本任务执行结果查询 API 请求参数配置
+
+```yaml
+executeConfig:
+  scriptTask:
+    query:
+      # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
+      contentSizeLimit: 512MB
+```
+
 ## 0.6.0
 1. 增加额外定义的前端页面访问URL
 

@@ -287,6 +287,16 @@ public class HostDTO implements Cloneable {
         return StringUtils.isNotEmpty(ip) ? ip : ipv6;
     }
 
+    /**
+     * 获取主机的管控区域 ID+ip，优先返回ipv4
+     *
+     * @return 主机ipv4/ipv6, ipv4 优先
+     */
+    @JsonIgnore
+    public String getPrimaryIpWithBkNetId() {
+        return bkCloudId + ":" + (StringUtils.isNotEmpty(ip) ? ip : ipv6);
+    }
+
     public String toStringBasic() {
         return new StringJoiner(", ", HostDTO.class.getSimpleName() + "[", "]")
             .add("hostId=" + hostId)

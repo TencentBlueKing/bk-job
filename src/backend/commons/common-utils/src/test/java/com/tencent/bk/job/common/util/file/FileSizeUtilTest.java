@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util.file;
 
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class FileSizeUtilTest {
@@ -45,9 +46,6 @@ public class FileSizeUtilTest {
 
     @Test
     void testParseFileSizeBytes() {
-        assertThat(FileSizeUtil.parseFileSizeBytes(null)).isNull();
-        assertThat(FileSizeUtil.parseFileSizeBytes("")).isNull();
-        assertThat(FileSizeUtil.parseFileSizeBytes("  ")).isNull();
         assertThat(FileSizeUtil.parseFileSizeBytes("1B")).isEqualTo(1L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1KB")).isEqualTo(1024L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1.5KB")).isEqualTo(1536L);
@@ -55,6 +53,8 @@ public class FileSizeUtilTest {
         assertThat(FileSizeUtil.parseFileSizeBytes("1GB")).isEqualTo(1024L * 1024L * 1024L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1TB")).isEqualTo(1024L * 1024L * 1024L * 1024L);
         assertThat(FileSizeUtil.parseFileSizeBytes("1PB")).isEqualTo(1024L * 1024L * 1024L * 1024L * 1024L);
-        assertThat(FileSizeUtil.parseFileSizeBytes("1XB")).isNull();
+        assertThatThrownBy(() ->
+            FileSizeUtil.parseFileSizeBytes("1XB")
+        ).isInstanceOf(IllegalArgumentException.class);
     }
 }

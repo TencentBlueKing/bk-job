@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -210,6 +211,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected String gseTaskInfo;
 
+    protected JobExecuteConfig jobExecuteConfig;
 
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
                                        GseTaskService gseTaskService,
@@ -222,6 +224,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        ExecuteObjectTaskService executeObjectTaskService,
                                        StepInstanceService stepInstanceService,
                                        GseClient gseClient,
+                                       JobExecuteConfig jobExecuteConfig,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -240,6 +243,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.executeObjectTaskService = executeObjectTaskService;
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
+        this.jobExecuteConfig = jobExecuteConfig;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -316,11 +320,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.start("pull-task-result-batch-" + batch);
             // 分批拉取GSE任务执行结果
             gseLogBatchPullResult = pullGseTaskResultInBatches();
-
-            // 拉取结果校验
-            if (!checkPullResult(gseLogBatchPullResult)) {
-                return false;
-            }
 
             // 检查任务异常并处理
             GseTaskResult<T> gseTaskResult = gseLogBatchPullResult.getGseTaskResult();
@@ -502,20 +501,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         }
         return isAbnormal;
     }
-
-    private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
-        if (!gseLogBatchPullResult.isSuccess()) {
-            log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
-                gseLogBatchPullResult.getErrorMsg());
-            this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
-                gseLogBatchPullResult.getErrorMsg());
-            finishGseTask(GseTaskExecuteResult.FAILED, true);
-            return false;
-        }
-        return true;
-    }
-
 
     /**
      * 设置目标gent任务结束状态

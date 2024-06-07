@@ -609,4 +609,12 @@ public class ExecuteTargetDTO implements Cloneable {
     public boolean hasContainerExecuteObject() {
         return CollectionUtils.isNotEmpty(staticContainerList) || CollectionUtils.isNotEmpty(containerFilters);
     }
+
+    /**
+     * 执行目标中是否包含主机执行对象
+     */
+    public boolean hasHostExecuteObject() {
+        return CollectionUtils.isNotEmpty(staticIpList) || CollectionUtils.isNotEmpty(dynamicServerGroups)
+            || CollectionUtils.isNotEmpty(topoNodes);
+    }
 }

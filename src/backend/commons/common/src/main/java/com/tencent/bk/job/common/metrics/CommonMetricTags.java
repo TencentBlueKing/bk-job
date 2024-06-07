@@ -44,4 +44,9 @@ public class CommonMetricTags {
      * API类型：未知
      */
     public static final String VALUE_API_TYPE_UNKNOWN = "unknown";
+
+    /**
+     * Job 资源管理空间
+     */
+    public static final String KEY_RESOURCE_SCOPE = "resource_scope";
 }

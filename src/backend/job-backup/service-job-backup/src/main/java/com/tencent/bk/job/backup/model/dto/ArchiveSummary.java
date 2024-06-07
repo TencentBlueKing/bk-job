@@ -39,6 +39,22 @@ public class ArchiveSummary {
     private boolean success;
 
     private String archiveMode;
+
+    /**
+     * 备份数据-查询原数据耗时（单位毫秒)
+     */
+    private Long backupReadCost;
+    /**
+     * 备份数据-写入数据到归档 db 耗时（单位毫秒)
+     */
+    private Long backupWriteCost;
+    /**
+     * 删除热数据耗时（单位毫秒)
+     */
+    private Long deleteCost;
+    /**
+     * 归档总耗时（单位毫秒)
+     */
     private Long archiveCost;
 
     private Long archiveIdStart;
@@ -50,6 +66,11 @@ public class ArchiveSummary {
 
     private Long lastDeletedId;
     private Long deleteRecordSize;
+
+    /**
+     * 归档详细说明信息
+     */
+    private String message;
 
     public ArchiveSummary(String tableName) {
         this.tableName = tableName;

@@ -211,11 +211,11 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     public String getExecuteObjectName() {
         if (isHostExecuteObject()) {
-            return host.getPrimaryIp();
+            return host.getPrimaryIpWithBkNetId();
         } else if (isContainerExecuteObject()) {
-            return container.getContainerId();
+            return container.getReadabilityName();
         } else {
-            return null;
+            return "Unknown";
         }
     }
 
