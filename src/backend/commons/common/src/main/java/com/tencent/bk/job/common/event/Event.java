@@ -22,24 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.common.event;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.util.date.DateUtils;
+import lombok.Data;
 
+import java.time.LocalDateTime;
 
-@Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Event {
+    /**
+     * 事件发生时间
+     */
+    protected LocalDateTime time;
 
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
+    public long duration() {
+        if (time != null) {
+            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
+        } else {
+            return 0;
+        }
     }
-
 }

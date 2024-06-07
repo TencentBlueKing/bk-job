@@ -22,24 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state.event;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.event.Event;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 
-@Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class WorkerEvent extends Event {
+    /**
+     * Worker动作
+     *
+     * @see WorkerActionEnum
+     */
+    private WorkerActionEnum action;
 
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
+    public static WorkerEvent waitAccessReady() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.WAIT_ACCESS_READY);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
     }
 
+    public static WorkerEvent heartBeat() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.HEART_BEAT);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
+    }
+
+    public static WorkerEvent offLine() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.OFF_LINE);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
+    }
 }

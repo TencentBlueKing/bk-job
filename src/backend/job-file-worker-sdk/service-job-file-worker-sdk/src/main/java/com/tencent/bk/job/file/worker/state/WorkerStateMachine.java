@@ -22,24 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.stereotype.Component;
 
-
+/**
+ * File-Worker状态机，管理Worker状态流转
+ */
+@Getter
 @Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
+@Component
+public class WorkerStateMachine {
 
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
+    private WorkerStateEnum workerState = WorkerStateEnum.STARTING;
+
+    @Autowired
+    public WorkerStateMachine(Tracer tracer) {
     }
 
+    public void setWorkerState(WorkerStateEnum workerState) {
+        log.info("state change: {} -> {}", this.workerState.name(), workerState.name());
+        this.workerState = workerState;
+    }
+
+    public void waitAccessReady() {
+        setWorkerState(WorkerStateEnum.WAIT_ACCESS_READY);
+    }
+
+    public void accessReady() {
+        setWorkerState(WorkerStateEnum.HEART_BEAT_WAIT);
+    }
+
+    public void heartBeatStart() {
+        setWorkerState(WorkerStateEnum.HEART_BEATING);
+    }
+
+    public void heartBeatSuccess() {
+        setWorkerState(WorkerStateEnum.RUNNING);
+    }
+
+    public void heartBeatFailed() {
+        setWorkerState(WorkerStateEnum.HEART_BEAT_WAIT);
+    }
+
+    public void offlineStart() {
+        setWorkerState(WorkerStateEnum.OFFLINE_ING);
+    }
+
+    public void offlineFailed() {
+        setWorkerState(WorkerStateEnum.OFFLINE_FAILED);
+    }
+
+    public void offlineSuccess() {
+        setWorkerState(WorkerStateEnum.OFFLINE);
+    }
 }

@@ -22,24 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
-
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package com.tencent.bk.job.file.worker.state.event;
 
 
-@Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
-
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
-    }
-
+/**
+ * Worker动作
+ */
+public enum WorkerActionEnum {
+    /**
+     * 等待外界访问路径准备好
+     */
+    WAIT_ACCESS_READY,
+    /**
+     * 定时心跳
+     */
+    HEART_BEAT,
+    /**
+     * 下线
+     */
+    OFF_LINE;
 }

@@ -22,24 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state.event.handler;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 
-
-@Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
-
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
-    }
-
+public interface EventHandler {
+    void handleEvent(WorkerEvent event);
 }

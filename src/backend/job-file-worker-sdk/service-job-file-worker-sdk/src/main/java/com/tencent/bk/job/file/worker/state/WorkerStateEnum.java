@@ -22,24 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
+/**
+ * File-Worker状态枚举值
+ */
+public enum WorkerStateEnum {
+    STARTING(1, "启动中"),
+    WAIT_ACCESS_READY(2, "等待自身可被外界访问"),
+    HEART_BEATING(3, "心跳中"),
+    HEART_BEAT_WAIT(4, "等待下一次心跳中"),
+    RUNNING(5, "运行中"),
+    OFFLINE_ING(6, "下线中"),
+    OFFLINE_FAILED(7, "下线失败"),
+    OFFLINE(8, "已下线");
 
-@Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
+    /**
+     * 状态值
+     */
+    @JsonValue
+    private final int state;
+    /**
+     * 状态描述
+     */
+    private final String description;
 
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
+    WorkerStateEnum(int state, String description) {
+        this.state = state;
+        this.description = description;
     }
 
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static WorkerStateEnum valOf(int state) {
+        for (WorkerStateEnum workerState : values()) {
+            if (workerState.state == state) {
+                return workerState;
+            }
+        }
+        return null;
+    }
+
+    public int getValue() {
+        return state;
+    }
 }

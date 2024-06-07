@@ -22,24 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state.event;
 
-import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * File-Worker生命周期事件服务，用于接收上层业务逻辑触发的事件
+ */
 @Slf4j
-@Configuration
-public class ApplicationReadyListenerConfig {
+@Service
+public class WorkerEventService {
 
-    @Bean
-    public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired WorkerEventService workerEventService) {
-        log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, workerEventService);
+    private final BlockingQueue<WorkerEvent> eventQueue = new LinkedBlockingQueue<>(100);
+
+    @Autowired
+    public WorkerEventService(WorkerEventDispatcher workerEventDispatcher) {
+        workerEventDispatcher.initQueue(eventQueue);
+        workerEventDispatcher.start();
+    }
+
+    public void commitWorkerEvent(WorkerEvent event) {
+        boolean result = eventQueue.add(event);
+        if (!result) {
+            log.warn("Fail to add event to queue:{}, ignore", event);
+        }
     }
 
 }
