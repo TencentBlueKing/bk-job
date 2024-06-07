@@ -35,7 +35,11 @@ public enum ArchiveModeEnum {
     /**
      * 备份数据后再删除
      */
-    BACKUP_THEN_DELETE(Constants.BACKUP_THEN_DELETE);
+    BACKUP_THEN_DELETE(Constants.BACKUP_THEN_DELETE),
+    /**
+     * 仅备份数据,不删除原始数据。该模式为开发/测试场景下使用，暂不对外开放
+     */
+    BACKUP_ONLY(Constants.BACKUP_ONLY);
 
     ArchiveModeEnum(String mode) {
         this.mode = mode;
@@ -44,6 +48,7 @@ public enum ArchiveModeEnum {
     public interface Constants {
         String DELETE_ONLY = "deleteOnly";
         String BACKUP_THEN_DELETE = "backupThenDelete";
+        String BACKUP_ONLY = "backupOnly";
     }
 
     private final String mode;
@@ -54,7 +59,7 @@ public enum ArchiveModeEnum {
                 return value;
             }
         }
-        return null;
+        throw new IllegalArgumentException("No ArchiveModeEnum constant: " + mode);
     }
 
     public String getMode() {
