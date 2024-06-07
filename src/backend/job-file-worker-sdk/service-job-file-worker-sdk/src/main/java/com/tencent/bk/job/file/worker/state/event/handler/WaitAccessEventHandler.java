@@ -38,6 +38,7 @@ import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,7 +54,7 @@ public class WaitAccessEventHandler implements EventHandler {
     private final String checkAccessUrl;
 
     @Autowired
-    public WaitAccessEventHandler(WorkerEventService workerEventService,
+    public WaitAccessEventHandler(@Lazy WorkerEventService workerEventService,
                                   WorkerStateMachine workerStateMachine,
                                   JobHttpClient jobHttpClient,
                                   WorkerConfig workerConfig,
