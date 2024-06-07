@@ -30,12 +30,14 @@ import com.tencent.bk.job.file_gateway.service.context.impl.FileSourceTaskRetryC
 import com.tencent.bk.job.file_gateway.service.retry.FileSourceTaskRetryPolicy;
 import org.springframework.web.client.ResourceAccessException;
 
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 /**
- * 针对由于UnknownHostException异常导致的任务启动失败重试策略
+ * 针对由于某些异常导致的任务启动失败重试策略
+ * 当前支持的异常：UnknownHostException、SocketTimeoutException: connect timed out
  */
-public class UnknownHostExceptionRetryPolicy implements FileSourceTaskRetryPolicy {
+public class ExceptionRetryPolicy implements FileSourceTaskRetryPolicy {
 
     /**
      * 最大重试次数
@@ -46,7 +48,7 @@ public class UnknownHostExceptionRetryPolicy implements FileSourceTaskRetryPolic
      */
     private final int sleepMillsBeforeRetryCount;
 
-    public UnknownHostExceptionRetryPolicy(int maxRetryCount, int sleepMillsBeforeRetryCount) {
+    public ExceptionRetryPolicy(int maxRetryCount, int sleepMillsBeforeRetryCount) {
         this.maxRetryCount = maxRetryCount;
         this.sleepMillsBeforeRetryCount = sleepMillsBeforeRetryCount;
     }
@@ -67,10 +69,26 @@ public class UnknownHostExceptionRetryPolicy implements FileSourceTaskRetryPolic
             return false;
         }
         Throwable innerCause = cause.getCause();
-        if (innerCause instanceof UnknownHostException) {
+        if (isTargetThrowable(innerCause)) {
             ThreadUtils.sleep(sleepMillsBeforeRetryCount);
             return true;
         }
         return false;
+    }
+
+    private boolean isTargetThrowable(Throwable t) {
+        return isUnknownHostException(t) || isConnectTimeoutException(t);
+    }
+
+    private boolean isUnknownHostException(Throwable t) {
+        return t instanceof UnknownHostException;
+    }
+
+    private boolean isConnectTimeoutException(Throwable t) {
+        if (!(t instanceof SocketTimeoutException)) {
+            return false;
+        }
+        String message = t.getMessage();
+        return message != null && message.equalsIgnoreCase("connect timed out");
     }
 }

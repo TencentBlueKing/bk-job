@@ -29,7 +29,7 @@ import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.RetryPolicyFileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.context.impl.FileSourceTaskRetryContext;
 import com.tencent.bk.job.file_gateway.service.retry.FileSourceTaskRetryPolicy;
-import com.tencent.bk.job.file_gateway.service.retry.impl.UnknownHostExceptionRetryPolicy;
+import com.tencent.bk.job.file_gateway.service.retry.impl.ExceptionRetryPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ import java.util.List;
 public class RetryPolicyFileSourceTaskServiceImpl implements RetryPolicyFileSourceTaskService {
 
     private final FileSourceTaskService fileSourceTaskService;
-    private final FileSourceTaskRetryPolicy retryPolicy = new UnknownHostExceptionRetryPolicy(3, 5000);
+    private final FileSourceTaskRetryPolicy retryPolicy = new ExceptionRetryPolicy(3, 5000);
 
     @Autowired
     public RetryPolicyFileSourceTaskServiceImpl(FileSourceTaskService fileSourceTaskService) {
