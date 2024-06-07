@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.file.worker.state.event.handler.DefaultEventHandler;
 import com.tencent.bk.job.file.worker.state.event.handler.EventHandler;
 import com.tencent.bk.job.file.worker.state.event.handler.HeartBeatEventHandler;
+import com.tencent.bk.job.file.worker.state.event.handler.OffLineEventHandler;
 import com.tencent.bk.job.file.worker.state.event.handler.WaitAccessEventHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +57,12 @@ public class WorkerEventDispatcher extends Thread {
     @Autowired
     public WorkerEventDispatcher(Tracer tracer,
                                  WaitAccessEventHandler waitAccessEventHandler,
-                                 HeartBeatEventHandler heartBeatEventHandler) {
+                                 HeartBeatEventHandler heartBeatEventHandler,
+                                 OffLineEventHandler offLineEventHandler) {
         this.tracer = tracer;
         handlerMap.put(WorkerActionEnum.WAIT_ACCESS_READY, waitAccessEventHandler);
         handlerMap.put(WorkerActionEnum.HEART_BEAT, heartBeatEventHandler);
+        handlerMap.put(WorkerActionEnum.OFF_LINE, offLineEventHandler);
     }
 
     public void initQueue(BlockingQueue<WorkerEvent> eventQueue) {
