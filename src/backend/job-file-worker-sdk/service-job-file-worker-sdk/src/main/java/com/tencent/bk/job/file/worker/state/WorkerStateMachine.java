@@ -80,4 +80,8 @@ public class WorkerStateMachine {
     public void offlineSuccess() {
         setWorkerState(WorkerStateEnum.OFFLINE);
     }
+
+    public boolean isWorkerOffLineIncludeFail() {
+        return workerState == WorkerStateEnum.OFFLINE || workerState == WorkerStateEnum.OFFLINE_FAILED;
+    }
 }
