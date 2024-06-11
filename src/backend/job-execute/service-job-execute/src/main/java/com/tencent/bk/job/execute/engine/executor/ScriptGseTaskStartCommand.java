@@ -248,6 +248,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         // 只有存在变量解析之后才需要update
         if (!resolvedScriptParam.equals(originParam)) {
             stepInstanceService.updateResolvedScriptParam(
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getId(),
                 stepInstance.isSecureParam(),
                 resolvedScriptParam

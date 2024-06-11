@@ -139,10 +139,11 @@ public class LocalFilePrepareService {
             }
         });
         // 更新本地文件任务内容
-        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), fileSourceList);
     }
 
-    public void clearPreparedTmpFile(long stepInstanceId) {
+    public void clearPreparedTmpFile(long taskInstanceId, long stepInstanceId) {
         // 本地文件暂不支持实时清理，依赖定时清理
     }
 

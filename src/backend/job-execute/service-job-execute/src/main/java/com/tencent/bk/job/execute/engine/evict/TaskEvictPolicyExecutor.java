@@ -85,6 +85,7 @@ public class TaskEvictPolicyExecutor {
                 stepInstance.getTotalTime()
             );
             stepInstanceService.updateStepExecutionInfo(
+                taskInstanceId,
                 stepInstance.getId(),
                 RunStatusEnum.ABANDONED,
                 null,

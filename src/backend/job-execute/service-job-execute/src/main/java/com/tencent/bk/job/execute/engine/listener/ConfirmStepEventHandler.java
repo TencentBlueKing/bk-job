@@ -108,8 +108,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 null, endTime, taskTotalTime);
             long stepTotalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.CONFIRM_TERMINATED, null,
-                endTime, stepTotalTime);
+            stepInstanceService.updateStepExecutionInfo(stepInstance.getTaskInstanceId(), stepInstanceId,
+                RunStatusEnum.CONFIRM_TERMINATED, null, endTime, stepTotalTime);
         } else {
             log.warn("Unsupported step instance status for confirm step terminate action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());
@@ -147,7 +147,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 stepOperator = taskInstance.getOperator();
                 stepInstance.setOperator(stepOperator);
             }
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.WAITING_USER,
+            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.WAITING_USER,
                 System.currentTimeMillis(), null, null);
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
@@ -169,10 +169,10 @@ public class ConfirmStepEventHandler implements StepEventHandler {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             // 人工确认通过，该步骤状态标识为成功；终止成功的步骤保持状态不变
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
-                totalTime);
+            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.SUCCESS,
+                null, endTime, totalTime);
             taskExecuteMQEventDispatcher.dispatchJobEvent(
-                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));
+                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
         } else {
             log.warn("Unsupported step instance status for confirm-step-continue step action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());

@@ -48,7 +48,10 @@ public class StepExecutionResultQuery {
         ORDER_FIELD_IN_DB.put(ORDER_FIELD_TOTAL_TIME, "total_time");
         ORDER_FIELD_IN_DB.put(ORDER_FIELD_EXIT_CODE, "exit_code");
     }
-
+    /**
+     * 作业实例ID
+     */
+    private Long taskInstanceId;
     /**
      * 步骤实例ID
      */

@@ -81,7 +81,7 @@ class StepInstanceVariableDAOImplIntegrationTest {
         stepInstanceVariableDAO.saveVariableValues(variableValues);
 
         StepInstanceVariableValuesDTO actual = stepInstanceVariableDAO
-            .getStepVariableValues(200L, 1, VariableValueTypeEnum.OUTPUT);
+            .getStepVariableValues(100L, 200L, 1, VariableValueTypeEnum.OUTPUT);
 
         assertThat(actual.getStepInstanceId()).isEqualTo(200L);
         assertThat(actual.getExecuteCount()).isEqualTo(1);

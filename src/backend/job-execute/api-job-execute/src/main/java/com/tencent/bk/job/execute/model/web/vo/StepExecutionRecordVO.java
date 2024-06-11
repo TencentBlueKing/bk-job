@@ -35,6 +35,10 @@ import lombok.Data;
 @ApiModel("步骤执行记录")
 @Data
 public class StepExecutionRecordVO {
+
+    @ApiModelProperty(value = "作业实例ID")
+    private Long taskInstanceId;
+
     @ApiModelProperty(value = "步骤实例ID")
     private Long stepInstanceId;
 

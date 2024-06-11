@@ -38,6 +38,11 @@ public class StepInstanceRollingTaskDTO {
     private Long id;
 
     /**
+     * 作业实例ID
+     */
+    private Long taskInstanceId;
+
+    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
