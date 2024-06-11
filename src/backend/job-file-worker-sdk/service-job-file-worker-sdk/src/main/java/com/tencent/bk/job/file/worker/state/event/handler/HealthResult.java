@@ -22,27 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.listener.event;
+package com.tencent.bk.job.file.worker.state.event.handler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class Event {
+public class HealthResult {
     /**
-     * 事件发生时间
+     * 健康状态
      */
-    protected LocalDateTime time;
-
-    public long duration() {
-        if (time != null) {
-            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
-        } else {
-            return 0;
-        }
-    }
+    private String status;
+    /**
+     * 健康指标分组
+     */
+    private List<String> groups;
 }

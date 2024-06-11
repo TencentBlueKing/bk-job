@@ -22,52 +22,60 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.config;
+package com.tencent.bk.job.file.worker.state.event.handler;
 
-import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.file.worker.service.OpService;
+import com.tencent.bk.job.file.worker.state.WorkerStateEnum;
 import com.tencent.bk.job.file.worker.state.WorkerStateMachine;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+/**
+ * 下线事件处理器
+ */
 @Slf4j
 @Component
-public class GracefulShutdown implements ApplicationListener<ContextClosedEvent> {
+public class OffLineEventHandler implements EventHandler {
 
-    private final OpService opService;
     private final WorkerStateMachine workerStateMachine;
-
-    @Value("${app.shutdownTimeout:30}")
-    int shutdownTimeout = 30;
+    private final OpService opService;
 
     @Autowired
-    public GracefulShutdown(OpService opService, WorkerStateMachine workerStateMachine) {
-        this.opService = opService;
+    public OffLineEventHandler(WorkerStateMachine workerStateMachine,
+                               @Lazy OpService opService) {
         this.workerStateMachine = workerStateMachine;
+        this.opService = opService;
     }
 
     @Override
-    public void onApplicationEvent(ContextClosedEvent event) {
-        log.info("Close event listened, event:{}", event);
-        List<String> runningTaskIdList = opService.offLine();
-        log.info("worker apply to offLine, {} tasks to be reDispatched are {}", runningTaskIdList.size(),
-            runningTaskIdList);
-        long waitStart = System.currentTimeMillis();
-        long maxWaitMills = 5000;
-        long waitMills;
-        do {
-            // 1.等待Worker主动下线完成
-            ThreadUtils.sleep(100);
-            waitMills = System.currentTimeMillis() - waitStart;
-        } while (!workerStateMachine.isWorkerOffLineIncludeFail() && waitMills < maxWaitMills);
-        // 2.等待File-Gateway内存中存量已调度请求完成
-        ThreadUtils.sleep(3000);
-        log.info("Worker offLine done");
+    public void handleEvent(WorkerEvent event) {
+        WorkerStateEnum workerState = workerStateMachine.getWorkerState();
+        switch (workerState) {
+            case RUNNING:
+            case HEART_BEAT_WAIT:
+            case OFFLINE_FAILED:
+                offLine();
+                break;
+            case OFFLINE_ING:
+                log.info("last offLine action is executing, ignore current one");
+                break;
+            default:
+                log.info("currentState:{}, offLine condition not satisfy, ignore", workerState);
+                break;
+        }
+    }
+
+    private void offLine() {
+        workerStateMachine.offlineStart();
+        try {
+            opService.doOffLine();
+            workerStateMachine.offlineSuccess();
+        } catch (Throwable t) {
+            log.warn("Fail to offLine", t);
+            workerStateMachine.offlineFailed();
+        }
     }
 }

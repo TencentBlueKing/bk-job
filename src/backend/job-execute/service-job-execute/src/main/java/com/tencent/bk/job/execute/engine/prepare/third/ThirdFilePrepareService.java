@@ -52,6 +52,7 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -228,7 +229,7 @@ public class ThirdFilePrepareService {
         log.debug("[{}]: fileSourceList={}", stepInstance.getUniqueKey(), fileSourceList);
         // 放进文件源下载任务进度表中
         FileSourceTaskLogDTO fileSourceTaskLogDTO = buildInitFileSourceTaskLog(stepInstance, batchTaskInfoDTO);
-        fileSourceTaskLogDAO.insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
+        insertOrUpdateFileSourceTaskLog(fileSourceTaskLogDTO);
         // 更新文件源任务状态
         stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
         // 异步轮询文件下载任务
@@ -240,6 +241,28 @@ public class ThirdFilePrepareService {
             resultHandler
         );
         taskMap.put(stepInstance.getUniqueKey(), task);
+    }
+
+    private void insertOrUpdateFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLogDTO) {
+        boolean shouldRetry;
+        do {
+            try {
+                int insertedNum = fileSourceTaskLogDAO.insertFileSourceTaskLog(fileSourceTaskLogDTO);
+                log.info("{} fileSourceTaskLog inserted", insertedNum);
+                return;
+            } catch (DataAccessException e) {
+                String message = e.getMessage();
+                if (message != null && message.equalsIgnoreCase("Deadlock found")) {
+                    log.info("Deadlock found when insert fileSourceTaskLog, retry", e);
+                    shouldRetry = true;
+                } else {
+                    log.info("Fail to insert fileSourceTaskLog, update instead", e);
+                    shouldRetry = false;
+                }
+            }
+        } while (shouldRetry);
+        int updatedNum = fileSourceTaskLogDAO.updateFileSourceTaskLogByStepInstance(fileSourceTaskLogDTO);
+        log.info("{} fileSourceTaskLog updated", updatedNum);
     }
 
     /**

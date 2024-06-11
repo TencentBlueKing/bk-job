@@ -22,20 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file_gateway.service.dispatch;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+/**
+ * 调度策略服务：根据文件源信息寻找一个Job插件进行访问
+ * 调度依据：能力标签（文件源类型、区域等）、负载
+ */
+public interface DispatchService {
+    /**
+     * 根据文件源找到一个最适合的FileWorker
+     *
+     * @param fileSourceDTO 文件源对象
+     * @param requestSource 请求来源
+     * @return 选中的对接文件源的FileWorker对象
+     */
+    FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource);
 }

@@ -22,20 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file.worker.state.event.handler;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+public interface EventHandler {
+    void handleEvent(WorkerEvent event);
 }

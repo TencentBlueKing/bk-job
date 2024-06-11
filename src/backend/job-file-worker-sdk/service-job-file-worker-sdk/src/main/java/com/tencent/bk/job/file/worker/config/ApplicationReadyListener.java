@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
+import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -36,12 +37,12 @@ import java.io.File;
 public class ApplicationReadyListener implements ApplicationListener<ApplicationReadyEvent> {
 
     private final WorkerConfig workerConfig;
-    private final HeartBeatTask heartBeatTask;
+    private final WorkerEventService workerEventService;
 
     public ApplicationReadyListener(WorkerConfig workerConfig,
-                                    HeartBeatTask heartBeatTask) {
+                                    WorkerEventService workerEventService) {
         this.workerConfig = workerConfig;
-        this.heartBeatTask = heartBeatTask;
+        this.workerEventService = workerEventService;
     }
 
     @SuppressWarnings("NullableProblems")
@@ -56,7 +57,7 @@ public class ApplicationReadyListener implements ApplicationListener<Application
                 log.info("created JobFileWorker workspace:" + wsDirFile.getAbsolutePath());
             }
         }
-        // 2.启动后立即上报一次心跳
-        new Thread(heartBeatTask::run).start();
+        // 2.启动后等待自身可被外界访问
+        workerEventService.commitWorkerEvent(WorkerEvent.waitAccessReady());
     }
 }

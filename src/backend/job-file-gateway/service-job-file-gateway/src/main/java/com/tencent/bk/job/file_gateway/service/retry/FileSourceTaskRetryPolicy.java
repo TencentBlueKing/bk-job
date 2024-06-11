@@ -22,20 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file_gateway.service.retry;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.file_gateway.service.context.impl.FileSourceTaskRetryContext;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+/**
+ * 第三方文件源任务重试策略接口
+ */
+public interface FileSourceTaskRetryPolicy {
+    boolean shouldRetry(FileSourceTaskRetryContext context, int retryCount);
 }

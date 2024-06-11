@@ -22,20 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file_gateway.service.dispatch;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+public interface ReDispatchTaskService {
+    TaskInfoDTO reDispatchFileSourceTask(String fileSourceTaskId);
 }

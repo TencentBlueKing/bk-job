@@ -22,20 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file.worker.state;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-public interface FileSourceTaskLogDAO {
+/**
+ * File-Worker状态枚举值
+ */
+public enum WorkerStateEnum {
+    STARTING(1, "启动中"),
+    WAIT_ACCESS_READY(2, "等待自身可被外界访问"),
+    HEART_BEATING(3, "心跳中"),
+    HEART_BEAT_WAIT(4, "等待下一次心跳中"),
+    RUNNING(5, "运行中"),
+    OFFLINE_ING(6, "下线中"),
+    OFFLINE_FAILED(7, "下线失败"),
+    OFFLINE(8, "已下线");
 
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
+    /**
+     * 状态值
+     */
+    @JsonValue
+    private final int state;
+    /**
+     * 状态描述
+     */
+    private final String description;
 
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
+    WorkerStateEnum(int state, String description) {
+        this.state = state;
+        this.description = description;
+    }
 
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static WorkerStateEnum valOf(int state) {
+        for (WorkerStateEnum workerState : values()) {
+            if (workerState.state == state) {
+                return workerState;
+            }
+        }
+        return null;
+    }
 
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+    public int getValue() {
+        return state;
+    }
 }

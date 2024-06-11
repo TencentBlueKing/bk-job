@@ -22,20 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.common.event;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.util.date.DateUtils;
+import lombok.Data;
 
-public interface FileSourceTaskLogDAO {
+import java.time.LocalDateTime;
 
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Event {
+    /**
+     * 事件发生时间
+     */
+    protected LocalDateTime time;
 
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+    public long duration() {
+        if (time != null) {
+            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
+        } else {
+            return 0;
+        }
+    }
 }

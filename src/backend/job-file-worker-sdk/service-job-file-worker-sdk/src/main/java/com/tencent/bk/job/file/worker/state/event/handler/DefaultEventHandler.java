@@ -22,23 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.file.worker.state.event.handler;
 
-
-import java.util.List;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 文件Worker重调度服务
+ * 默认事件处理器，仅对事件做日志记录
  */
-public interface ReDispatchService {
-
-    List<String> reDispatchByWorker(
-        String accessHost, Integer accessPort,
-        List<String> taskIdList, Long initDelayMills, Long intervalMills
-    );
-
-    boolean reDispatchByGateway(String fileSourceTaskId, Long initDelayMills, Long intervalMills);
-
-    Integer getReDispatchThreadsNum(String username);
-
+@Slf4j
+public class DefaultEventHandler implements EventHandler {
+    @Override
+    public void handleEvent(WorkerEvent event) {
+        log.warn("No handler specified for event:{}, ignore", event);
+    }
 }

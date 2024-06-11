@@ -22,20 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file.worker.state.event;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-public interface FileSourceTaskLogDAO {
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
+/**
+ * File-Worker生命周期事件服务，用于接收上层业务逻辑触发的事件
+ */
+@Slf4j
+@Service
+public class WorkerEventService {
 
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
+    private final BlockingQueue<WorkerEvent> eventQueue = new LinkedBlockingQueue<>(100);
 
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
+    @Autowired
+    public WorkerEventService(WorkerEventDispatcher workerEventDispatcher) {
+        workerEventDispatcher.initQueue(eventQueue);
+        workerEventDispatcher.start();
+    }
 
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
+    public void commitWorkerEvent(WorkerEvent event) {
+        boolean result = eventQueue.add(event);
+        if (!result) {
+            log.warn("Fail to add event to queue:{}, ignore", event);
+        }
+    }
 
 }

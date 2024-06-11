@@ -22,20 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file.worker.state.event;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+/**
+ * Worker动作
+ */
+public enum WorkerActionEnum {
+    /**
+     * 等待外界访问路径准备好
+     */
+    WAIT_ACCESS_READY,
+    /**
+     * 定时心跳
+     */
+    HEART_BEAT,
+    /**
+     * 下线
+     */
+    OFF_LINE;
 }

@@ -24,14 +24,11 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
-import com.tencent.bk.job.file_gateway.model.dto.FileTaskProgressDTO;
-import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 
 import java.util.List;
 
-public interface FileSourceTaskService {
+public interface RetryPolicyFileSourceTaskService {
     TaskInfoDTO startFileSourceDownloadTask(String username,
                                             Long appId,
                                             Long stepInstanceId,
@@ -39,27 +36,4 @@ public interface FileSourceTaskService {
                                             String batchTaskId,
                                             Integer fileSourceId,
                                             List<String> filePathList);
-
-    TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
-                                                  Long appId,
-                                                  Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  String batchTaskId,
-                                                  Integer fileSourceId,
-                                                  List<String> filePathList,
-                                                  String fileSourceTaskId);
-
-    String updateFileSourceTask(FileTaskProgressDTO fileTaskProgressDTO);
-
-    FileSourceTaskStatusDTO getFileSourceTaskStatusAndLogs(String taskId, Long logStart, Long logLength);
-
-    Integer stopTasks(List<String> taskIdList);
-
-    Integer recallTasks(List<String> taskIdList);
-
-    Integer clearTaskFiles(List<String> taskIdList);
-
-    FileSourceTaskDTO getFileSourceTaskById(String id);
-
-    Integer deleteFileSourceTaskById(String id);
 }

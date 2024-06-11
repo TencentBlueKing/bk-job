@@ -22,20 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao;
+package com.tencent.bk.job.file_gateway.service.context.impl;
 
-import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public interface FileSourceTaskLogDAO {
-
-    int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
-
-    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
-
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
-
-    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
-
+@Data
+@AllArgsConstructor
+public class FileSourceTaskRetryContext {
+    /**
+     * 重试前业务逻辑代码抛出的异常
+     */
+    private Exception exception;
 }
