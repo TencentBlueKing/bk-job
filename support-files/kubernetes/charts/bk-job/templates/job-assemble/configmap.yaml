@@ -259,7 +259,7 @@ data:
           idle-timeout: 600000
           poolName: "job-backup"
           validationTimeout: 5000
-        {{- if and .Values.backupConfig.archive.execute.enabled (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") }}
+        {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
