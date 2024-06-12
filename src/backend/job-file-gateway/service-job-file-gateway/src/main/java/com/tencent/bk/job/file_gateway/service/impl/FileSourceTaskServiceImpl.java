@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -103,7 +102,6 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
-    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public TaskInfoDTO startFileSourceDownloadTask(String username,
                                                    Long appId,
                                                    Long stepInstanceId,
@@ -123,7 +121,6 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         );
     }
 
-    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
     public TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
                                                          Long appId,
                                                          Long stepInstanceId,
