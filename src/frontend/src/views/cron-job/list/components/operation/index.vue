@@ -568,9 +568,9 @@
         this.strategy = strategy;
         if (strategy === 'once') {
           this.$refs.timeTaskForm.clearError('cronExpression');
-          this.formData.executeTime = generatorDefaultCronTime();
+          this.formData.executeTime = this.formData.executeTime || generatorDefaultCronTime();
         } else {
-          this.formData.cronExpression = '* * * * *';
+          this.formData.cronExpression = this.formData.cronExpression || '* * * * *';
         }
         this.formData.endTime = '';
         this.formData.notifyChannel = [];
