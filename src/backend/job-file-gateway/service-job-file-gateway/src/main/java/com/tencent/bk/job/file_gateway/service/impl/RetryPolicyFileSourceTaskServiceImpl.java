@@ -61,15 +61,14 @@ public class RetryPolicyFileSourceTaskServiceImpl implements RetryPolicyFileSour
         boolean shouldRetry;
         do {
             try {
-                return fileSourceTaskService.startFileSourceDownloadTaskWithId(
+                return fileSourceTaskService.startFileSourceDownloadTask(
                     username,
                     appId,
                     stepInstanceId,
                     executeCount,
                     batchTaskId,
                     fileSourceId,
-                    filePathList,
-                    null
+                    filePathList
                 );
             } catch (Exception e) {
                 retryCount += 1;
