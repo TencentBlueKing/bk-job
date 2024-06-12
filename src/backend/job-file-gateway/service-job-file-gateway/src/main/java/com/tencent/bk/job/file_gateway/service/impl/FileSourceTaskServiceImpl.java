@@ -152,34 +152,18 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                     "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,
                 filePathList.toString()));
         }
-        FileSourceTaskDTO fileSourceTaskDTO = new FileSourceTaskDTO();
-        fileSourceTaskDTO.setId(fileSourceTaskId);
-        fileSourceTaskDTO.setBatchTaskId(batchTaskId);
-        fileSourceTaskDTO.setAppId(appId);
-        fileSourceTaskDTO.setCreator(username);
-        fileSourceTaskDTO.setCreateTime(System.currentTimeMillis());
-        fileSourceTaskDTO.setStepInstanceId(stepInstanceId);
-        fileSourceTaskDTO.setExecuteCount(executeCount);
-        fileSourceTaskDTO.setFileSourceId(fileSourceId);
-        fileSourceTaskDTO.setFileWorkerId(fileWorkerDTO.getId());
-        fileSourceTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
-        List<FileTaskDTO> fileTaskDTOList = new ArrayList<>();
-        for (String filePath : filePathList) {
-            FileTaskDTO fileTaskDTO = new FileTaskDTO();
-            fileTaskDTO.setId(null);
-            fileTaskDTO.setFileSourceTaskId(null);
-            fileTaskDTO.setCreateTime(System.currentTimeMillis());
-            fileTaskDTO.setProgress(0);
-            fileTaskDTO.setFilePath(filePath);
-            fileTaskDTO.setDownloadPath(null);
-            fileTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
-            fileTaskDTO.setErrorMsg("");
-            fileTaskDTOList.add(fileTaskDTO);
-        }
-        fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
+        FileSourceTaskDTO fileSourceTaskDTO = saveFileSourceTask(
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList,
+            fileSourceTaskId,
+            fileWorkerDTO.getId()
+        );
         try {
-            fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(fileSourceTaskDTO);
-            fileSourceTaskDTO.setId(fileSourceTaskId);
             // 分发文件任务
             HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
                 fileSourceTaskDTO);
@@ -190,12 +174,8 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                 JsonUtils.toJson(fileSourceTaskDTO)
             ).getMessage();
             log.error(msg, e);
-            // 更新任务状态为启动失败
-            fileSourceTaskDTO.setStatus(TaskStatusEnum.DISPATCH_FAILED.getStatus());
-            int affectedCount = fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
-            if (affectedCount != 1) {
-                log.error("Fail to update status of FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO));
-            }
+            // 清理DB中的任务数据便于外层重试
+            clearSavedFileSourceTask(fileSourceTaskId);
             throw new InternalException(
                 e,
                 ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
@@ -211,6 +191,58 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileWorkerDTO.getCloudAreaId(),
             fileWorkerDTO.getInnerIpProtocol(),
             fileWorkerDTO.getInnerIp()
+        );
+    }
+
+    private FileSourceTaskDTO saveFileSourceTask(String username,
+                                                 Long appId,
+                                                 Long stepInstanceId,
+                                                 Integer executeCount,
+                                                 String batchTaskId,
+                                                 Integer fileSourceId,
+                                                 List<String> filePathList,
+                                                 String fileSourceTaskId,
+                                                 Long fileWorkerId) {
+        FileSourceTaskDTO fileSourceTaskDTO = new FileSourceTaskDTO();
+        fileSourceTaskDTO.setId(fileSourceTaskId);
+        fileSourceTaskDTO.setBatchTaskId(batchTaskId);
+        fileSourceTaskDTO.setAppId(appId);
+        fileSourceTaskDTO.setCreator(username);
+        fileSourceTaskDTO.setCreateTime(System.currentTimeMillis());
+        fileSourceTaskDTO.setStepInstanceId(stepInstanceId);
+        fileSourceTaskDTO.setExecuteCount(executeCount);
+        fileSourceTaskDTO.setFileSourceId(fileSourceId);
+        fileSourceTaskDTO.setFileWorkerId(fileWorkerId);
+        fileSourceTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
+        List<FileTaskDTO> fileTaskDTOList = new ArrayList<>();
+        for (String filePath : filePathList) {
+            FileTaskDTO fileTaskDTO = new FileTaskDTO();
+            fileTaskDTO.setId(null);
+            fileTaskDTO.setFileSourceTaskId(null);
+            fileTaskDTO.setCreateTime(System.currentTimeMillis());
+            fileTaskDTO.setProgress(0);
+            fileTaskDTO.setFilePath(filePath);
+            fileTaskDTO.setDownloadPath(null);
+            fileTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
+            fileTaskDTO.setErrorMsg("");
+            fileTaskDTOList.add(fileTaskDTO);
+        }
+        fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
+        fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(fileSourceTaskDTO);
+        fileSourceTaskDTO.setId(fileSourceTaskId);
+        return fileSourceTaskDTO;
+    }
+
+    private void clearSavedFileSourceTask(String fileSourceTaskId) {
+        // 1.删除子任务
+        int deletedTaskNum = fileTaskDAO.deleteFileTaskByFileSourceTaskId(fileSourceTaskId);
+        // 2.删除FileSourceTask任务
+        int deletedFileSourceTaskNum = deleteFileSourceTaskById(fileSourceTaskId);
+        log.info(
+            "{} fileTask {} fileSourceTask deleted, fileSourceTaskId={}",
+            deletedTaskNum,
+            deletedFileSourceTaskNum,
+            fileSourceTaskId
         );
     }
 
