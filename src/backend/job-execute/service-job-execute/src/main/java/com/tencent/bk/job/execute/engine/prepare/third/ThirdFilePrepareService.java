@@ -120,6 +120,12 @@ public class ThirdFilePrepareService {
             taskInfoDTO.getIpProtocol(),
             taskInfoDTO.getIp()
         );
+        log.info(
+            "[{}]: fileSourceTaskId={} start, sourceHost={}",
+            stepInstance.getUniqueKey(),
+            fileSourceTaskId,
+            hostDTO
+        );
         hostDTOList.add(hostDTO);
         fileSourceDTO.getServers().setStaticIpList(hostDTOList);
         fileSourceDTO.getServers().buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());

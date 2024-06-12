@@ -367,6 +367,12 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 } else {
                     sourceHost.setAgentId(sourceHost.toCloudIp());
                 }
+                log.info(
+                    "[{}]: fileSourceTaskId={} success, sourceHost={}",
+                    stepInstance.getUniqueKey(),
+                    fileSourceTaskId,
+                    sourceHost
+                );
                 List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
                 executeTargetDTO.addStaticHosts(hostDTOList);
                 executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
