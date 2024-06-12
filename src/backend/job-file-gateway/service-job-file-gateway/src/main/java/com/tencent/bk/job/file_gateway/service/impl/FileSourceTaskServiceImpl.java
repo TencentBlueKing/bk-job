@@ -175,7 +175,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             ).getMessage();
             log.error(msg, e);
             // 清理DB中的任务数据便于外层重试
-            clearSavedFileSourceTask(fileSourceTaskId);
+            clearSavedFileSourceTask(fileSourceTaskDTO.getId());
             throw new InternalException(
                 e,
                 ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
