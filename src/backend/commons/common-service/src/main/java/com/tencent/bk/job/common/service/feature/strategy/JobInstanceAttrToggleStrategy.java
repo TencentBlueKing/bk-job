@@ -106,28 +106,40 @@ public class JobInstanceAttrToggleStrategy extends AbstractToggleStrategy {
     @Override
     public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
         if (requireAllGseV2AgentAvailable != null && requireAllGseV2AgentAvailable) {
-            assertRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            boolean checkResult = checkRequiredContextParam(ctx, CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
+            if (!checkResult) {
+                return false;
+            }
             boolean isAllAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE);
             if (!isAllAgentV2Available) {
                 return false;
             }
         }
         if (requireAnyGseV2AgentAvailable != null && requireAnyGseV2AgentAvailable) {
-            assertRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            boolean checkResult = checkRequiredContextParam(ctx, CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
+            if (!checkResult) {
+                return false;
+            }
             boolean isAnyAgentV2Available = (boolean) ctx.getParam(CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE);
             if (!isAnyAgentV2Available) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(startupModes)) {
-            assertRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
+            boolean checkResult = checkRequiredContextParam(ctx, CTX_PARAM_STARTUP_MODE);
+            if (!checkResult) {
+                return false;
+            }
             String startupMode = (String) ctx.getParam(CTX_PARAM_STARTUP_MODE);
             if (!startupModes.contains(startupMode)) {
                 return false;
             }
         }
         if (CollectionUtils.isNotEmpty(operators)) {
-            assertRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
+            boolean checkResult = checkRequiredContextParam(ctx, CTX_PARAM_OPERATOR);
+            if (!checkResult) {
+                return false;
+            }
             String operator = (String) ctx.getParam(CTX_PARAM_OPERATOR);
             return operators.contains(operator);
         }

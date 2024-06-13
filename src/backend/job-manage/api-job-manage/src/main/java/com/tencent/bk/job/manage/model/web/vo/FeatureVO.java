@@ -22,44 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature.strategy;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.Map;
-import java.util.StringJoiner;
-
-/**
- * 根据资源范围黑名单灰度策略
- */
-public class ResourceScopeBlackListToggleStrategy extends AbstractResourceScopeToggleStrategy {
+@ApiModel("功能特性开关")
+@Data
+public class FeatureVO {
     /**
-     * 特性开关开启策略ID
+     * 特性ID
      */
-    public static final String STRATEGY_ID = "ResourceScopeBlackListToggleStrategy";
-
-    public ResourceScopeBlackListToggleStrategy(Map<String, String> initParams) {
-        super(STRATEGY_ID, initParams);
-    }
-
-    @Override
-    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        boolean isValidContext = checkFeatureExecuteContext(ctx);
-        if (!isValidContext) {
-            return false;
-        }
-        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
-        return !hitResourceScopeList(scope);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ResourceScopeBlackListToggleStrategy.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("initParams=" + initParams)
-            .add("resourceScopes=" + resourceScopes)
-            .toString();
-    }
+    @ApiModelProperty("特性ID")
+    private String id;
+    /**
+     * 是否启用特性
+     */
+    @ApiModelProperty("是否启用特性")
+    private boolean enabled;
 }
