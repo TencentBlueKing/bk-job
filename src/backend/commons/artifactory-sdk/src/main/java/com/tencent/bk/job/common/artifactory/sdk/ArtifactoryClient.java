@@ -65,6 +65,7 @@ import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -108,6 +109,7 @@ public class ArtifactoryClient {
     public static final String URL_CREATE_REPO = "/repository/api/repo/create";
     public static final String URL_CHECK_REPO_EXIST = "/repository/api/repo/exist/{projectId}/{repoName}";
 
+    @Getter
     private final String baseUrl;
     private final String username;
     private final String password;

@@ -25,9 +25,13 @@
 package com.tencent.bk.job.manage.service.globalsetting.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
+import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.HelperInfo;
@@ -37,9 +41,18 @@ import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
 import com.tencent.bk.job.manage.service.globalsetting.BkPlatformInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -50,10 +63,17 @@ import java.util.Map;
 public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
 
     private final GlobalSettingDAO globalSettingDAO;
+    private final ArtifactoryClient adminArtifactoryClient;
+    private final JobManageConfig jobManageConfig;
 
     @Autowired
-    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO) {
+    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO,
+                                     @Qualifier("adminArtifactoryClient")
+                                     ArtifactoryClient adminArtifactoryClient,
+                                     JobManageConfig jobManageConfig) {
         this.globalSettingDAO = globalSettingDAO;
+        this.adminArtifactoryClient = adminArtifactoryClient;
+        this.jobManageConfig = jobManageConfig;
     }
 
     @Override
@@ -70,13 +90,60 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
         if (bkHelperSettingDTO != null && StringUtils.isNotEmpty(bkHelperSettingDTO.getValue())) {
             helperInfo = JsonUtils.fromJson(bkHelperSettingDTO.getValue(), HelperInfo.class);
         }
-        BkPlatformInfo bkPlatformInfo = buildBkPlatformInfo(titleFooterDTO, helperInfo);
+        BkPlatformInfo defaultBkPlatformInfo = getDefaultBkPlatformInfo();
+        BkPlatformInfo bkPlatformInfo = buildBkPlatformInfo(defaultBkPlatformInfo, titleFooterDTO, helperInfo);
         log.info("bkPlatformInfo={}", JsonUtils.toJson(bkPlatformInfo));
         return bkPlatformInfo;
     }
 
-    private BkPlatformInfo buildBkPlatformInfo(TitleFooterDTO titleFooterDTO, HelperInfo helperInfo) {
-        BkPlatformInfo bkPlatformInfo = new BkPlatformInfo();
+    private BkPlatformInfo getDefaultBkPlatformInfo() {
+        try {
+            return getBkPlatformInfoFromArtifactory();
+        } catch (Exception e) {
+            log.warn("Fail to getBkPlatformInfoFromArtifactory, use local default", e);
+            return new BkPlatformInfo();
+        }
+    }
+
+    private BkPlatformInfo getBkPlatformInfoFromArtifactory() {
+        String bkSharedResUrl = jobManageConfig.getBkSharedResUrl();
+        String baseJsonFilePath = buildBaseJsonFilePath(bkSharedResUrl);
+        Pair<InputStream, HttpRequestBase> pair = adminArtifactoryClient.getFileInputStream(baseJsonFilePath);
+        String baseJsonStr = readBaseJsonStr(pair.getLeft(), adminArtifactoryClient.getBaseUrl() + baseJsonFilePath);
+        log.info("Got base.json content from artifactory: " + baseJsonStr);
+        return JsonUtils.fromJson(baseJsonStr, new TypeReference<BkPlatformInfo>() {
+        });
+    }
+
+    private String readBaseJsonStr(InputStream ins, String url) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8));
+        StringBuilder contentBuilder = new StringBuilder();
+        String line;
+        try {
+            while ((line = br.readLine()) != null) {
+                contentBuilder.append(line);
+            }
+        } catch (IOException e) {
+            String message = "Fail to get base.json from " + url;
+            throw new InternalException(message, e, ErrorCode.FAIL_TO_GET_BASE_JSON_FROM_ARTIFACTORY);
+        }
+        return contentBuilder.toString();
+    }
+
+    /**
+     * 解析出域名后的路径信息后拼接base.json得到文件路径
+     *
+     * @param bkSharedResUrl 共享资源基础路径
+     * @return base.json文件路径
+     */
+    private String buildBaseJsonFilePath(String bkSharedResUrl) {
+        URI uri = URI.create(bkSharedResUrl);
+        return uri.getPath() + "/base.json";
+    }
+
+    private BkPlatformInfo buildBkPlatformInfo(BkPlatformInfo defaultBkPlatformInfo,
+                                               TitleFooterDTO titleFooterDTO,
+                                               HelperInfo helperInfo) {
         if (titleFooterDTO != null) {
             Map<String, TitleFooter> titleFooterLanguageMap = titleFooterDTO.getTitleFooterLanguageMap();
             if (titleFooterLanguageMap != null) {
@@ -89,22 +156,22 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
                     chineseTitleFooter = englishTitleFooter;
                 }
                 if (englishTitleFooter != null) {
-                    bkPlatformInfo.setNameEn(englishTitleFooter.getTitleHead());
-                    bkPlatformInfo.setFooterInfo(englishTitleFooter.getFooterLink());
-                    bkPlatformInfo.setFooterCopyright(englishTitleFooter.getFooterCopyRight());
+                    defaultBkPlatformInfo.setNameEn(englishTitleFooter.getTitleHead());
+                    defaultBkPlatformInfo.setFooterInfo(englishTitleFooter.getFooterLink());
+                    defaultBkPlatformInfo.setFooterCopyright(englishTitleFooter.getFooterCopyRight());
                 }
                 if (chineseTitleFooter != null) {
-                    bkPlatformInfo.setName(chineseTitleFooter.getTitleHead());
-                    bkPlatformInfo.setFooterInfo(chineseTitleFooter.getFooterLink());
-                    bkPlatformInfo.setFooterCopyright(chineseTitleFooter.getFooterCopyRight());
+                    defaultBkPlatformInfo.setName(chineseTitleFooter.getTitleHead());
+                    defaultBkPlatformInfo.setFooterInfo(chineseTitleFooter.getFooterLink());
+                    defaultBkPlatformInfo.setFooterCopyright(chineseTitleFooter.getFooterCopyRight());
                 }
             }
         }
         if (helperInfo != null) {
             String contactLink = helperInfo.getContactLink();
-            bkPlatformInfo.setHelperLink(contactLink);
+            defaultBkPlatformInfo.setHelperLink(contactLink);
         }
-        return bkPlatformInfo;
+        return defaultBkPlatformInfo;
     }
 
     private TitleFooter getEnglishTitleFooter(Map<String, TitleFooter> titleFooterLanguageMap) {

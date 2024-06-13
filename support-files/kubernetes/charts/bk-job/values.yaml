@@ -433,6 +433,8 @@ bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
 bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
+bkSharedResUrl: "http://bkrepo.example.com/generic/blueking/bk-config"
 
 ## 蓝鲸GSE参数配置
 gse:

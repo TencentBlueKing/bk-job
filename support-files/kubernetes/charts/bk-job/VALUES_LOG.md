@@ -1,5 +1,13 @@
 # chart values 更新日志
 
+## 0.6.4
+1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
+
+```yaml
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
+bkSharedResUrl: "http://bkrepo.example.com/generic/blueking/bk-config"
+```
+
 ## 0.6.2
 1. 增加 GSE 脚本任务执行结果查询 API 请求参数配置
 

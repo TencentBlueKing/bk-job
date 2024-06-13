@@ -56,6 +56,9 @@ public class JobManageConfig {
     @Value("${bk.feedback.root:}")
     private String bkFeedBackRoot;
 
+    @Value("${bk.sharedResUrl:}")
+    private String bkSharedResUrl;
+
     @Value("${bk.ce.root:https://bk.tencent.com}")
     private String bkCERoot;
 
