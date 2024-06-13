@@ -143,6 +143,10 @@
         type: String,
         required: true,
       },
+      serverField: {
+        type: String,
+        required: true,
+      },
       formData: {
         type: Object,
         default: () => ({}),
@@ -200,11 +204,15 @@
       },
     },
     beforeDestroy() {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
       this.popperInstance = undefined;
     },
     methods: {
       showTips() {
-        if (this.formData.server.isEmpty) {
+        if (this.formData[this.serverField].isEmpty) {
           this.popperInstance && this.popperInstance.hide();
           return;
         }
@@ -221,7 +229,7 @@
             size: 'small',
             boundary: 'window',
             distance: 20,
-            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+            zIndex: 990,
           });
           this.popperInstance.setContent(this.$refs.tips);
         }
@@ -230,11 +238,13 @@
           hostList,
           nodeList,
           containerList,
-        } = this.formData.server.executeObjectsInfo;
+        } = this.formData[this.serverField].executeObjectsInfo;
 
         // 选中的主机或者容器大于 100 时直接显示
         if (hostList.length >= 100 || containerList.length >= 100) {
-          this.popperInstance.show();
+          setTimeout(() => {
+            this.popperInstance.show();
+          }, 1000);
           return;
         }
 
