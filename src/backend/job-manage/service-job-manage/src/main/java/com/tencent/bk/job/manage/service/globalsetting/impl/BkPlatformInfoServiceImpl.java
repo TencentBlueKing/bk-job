@@ -25,10 +25,13 @@
 package com.tencent.bk.job.manage.service.globalsetting.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.http.HttpHelper;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import com.tencent.bk.job.common.util.http.HttpRequest;
+import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -41,18 +44,9 @@ import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
 import com.tencent.bk.job.manage.service.globalsetting.BkPlatformInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -63,16 +57,11 @@ import java.util.Map;
 public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
 
     private final GlobalSettingDAO globalSettingDAO;
-    private final ArtifactoryClient adminArtifactoryClient;
     private final JobManageConfig jobManageConfig;
 
     @Autowired
-    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO,
-                                     @Qualifier("adminArtifactoryClient")
-                                     ArtifactoryClient adminArtifactoryClient,
-                                     JobManageConfig jobManageConfig) {
+    public BkPlatformInfoServiceImpl(GlobalSettingDAO globalSettingDAO, JobManageConfig jobManageConfig) {
         this.globalSettingDAO = globalSettingDAO;
-        this.adminArtifactoryClient = adminArtifactoryClient;
         this.jobManageConfig = jobManageConfig;
     }
 
@@ -107,38 +96,27 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
 
     private BkPlatformInfo getBkPlatformInfoFromArtifactory() {
         String bkSharedResUrl = jobManageConfig.getBkSharedResUrl();
-        String baseJsonFilePath = buildBaseJsonFilePath(bkSharedResUrl);
-        Pair<InputStream, HttpRequestBase> pair = adminArtifactoryClient.getFileInputStream(baseJsonFilePath);
-        String baseJsonStr = readBaseJsonStr(pair.getLeft(), adminArtifactoryClient.getBaseUrl() + baseJsonFilePath);
-        log.info("Got base.json content from artifactory: " + baseJsonStr);
+        String baseJsonFileUrl = buildBaseJsonFileUrl(bkSharedResUrl);
+        HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+        HttpRequest request = HttpRequest.builder(HttpMethodEnum.GET, baseJsonFileUrl).build();
+        HttpResponse resp = httpHelper.requestForSuccessResp(request);
+        String baseJsonStr = resp.getEntity();
+        log.info("Got base.json content from bkSharedRes: " + baseJsonStr);
         return JsonUtils.fromJson(baseJsonStr, new TypeReference<BkPlatformInfo>() {
         });
     }
 
-    private String readBaseJsonStr(InputStream ins, String url) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8));
-        StringBuilder contentBuilder = new StringBuilder();
-        String line;
-        try {
-            while ((line = br.readLine()) != null) {
-                contentBuilder.append(line);
-            }
-        } catch (IOException e) {
-            String message = "Fail to get base.json from " + url;
-            throw new InternalException(message, e, ErrorCode.FAIL_TO_GET_BASE_JSON_FROM_ARTIFACTORY);
-        }
-        return contentBuilder.toString();
-    }
-
     /**
-     * 解析出域名后的路径信息后拼接base.json得到文件路径
+     * 构建获取base.json文件的URL
      *
      * @param bkSharedResUrl 共享资源基础路径
-     * @return base.json文件路径
+     * @return base.json文件对应的URL
      */
-    private String buildBaseJsonFilePath(String bkSharedResUrl) {
-        URI uri = URI.create(bkSharedResUrl);
-        return uri.getPath() + "/base.json";
+    private String buildBaseJsonFileUrl(String bkSharedResUrl) {
+        if (bkSharedResUrl.endsWith("/")) {
+            bkSharedResUrl = StringUtil.removeSuffix(bkSharedResUrl, "/");
+        }
+        return bkSharedResUrl + "/bk-job/base.json";
     }
 
     private BkPlatformInfo buildBkPlatformInfo(BkPlatformInfo defaultBkPlatformInfo,
