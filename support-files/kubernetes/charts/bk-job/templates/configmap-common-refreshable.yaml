@@ -21,3 +21,7 @@ data:
     job:
       features:
         {{- toYaml .Values.job.features | nindent 8 }}
+    job:
+      resourceScopeQuotaLimit:
+        limitedResources:
+          {{- toYaml .Values.job.resourceScopeQuotaLimit.limitedResources | nindent 10 }}

@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +49,7 @@ import javax.annotation.PreDestroy;
     exclude = {ApplicationAvailabilityAutoConfiguration.class})
 @Slf4j
 @EnableFeignClients
-@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;
 

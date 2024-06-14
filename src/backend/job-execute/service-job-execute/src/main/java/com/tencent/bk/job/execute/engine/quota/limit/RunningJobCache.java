@@ -59,12 +59,13 @@ public class RunningJobCache extends BaseRedisCache {
 
     /**
      * 业务是否超过正在执行的任务数量配额
-     * @param resourceScope
-     * @return
+     *
+     * @param resourceScope 资源管理空间
      */
     public boolean isExceedJobQuotaLimit(ResourceScope resourceScope) {
         String key = buildKey(resourceScope);
-        redisTemplate.opsForZSet().remove(key, String.valueOf(jobInstanceId));
+        Long currentRunningJobCount = redisTemplate.opsForZSet().zCard(key);
+
     }
 
     private String buildKey(ResourceScope resourceScope) {

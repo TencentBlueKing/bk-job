@@ -22,27 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.service.quota.config.ResourceQuotaConfig;
 
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
+/**
+ * 计数类型的配额配置解析
+ */
+public class CounterResourceQuotaConfigParser implements ResourceQuotaConfigParser {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+    @Override
+    public ResourceQuota parse(ResourceQuotaConfig resourceQuotaConfig) throws ResourceQuotaConfigParseException {
+        CounterResourceQuota resourceQuota = new CounterResourceQuota(
+            resourceQuotaConfig.getCapacity(),
+            resourceQuotaConfig.getGlobalLimit(),
+            resourceQuotaConfig.getCustomLimit()
+        );
+        try {
+            Long capacity = Long.parseLong(resourceQuotaConfig.getCapacity());
+            resourceQuota.setCapacity(capacity);
+
+            String globalLimitExpr = resourceQuotaConfig.getGlobalLimit().trim();
+            if (globalLimitExpr.endsWith("%"))
+
+            return null;
+        } catch (Throwable e) {
+            throw new ResourceQuotaConfigParseException(e);
+        }
     }
-
 }

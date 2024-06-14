@@ -22,27 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
+import java.util.HashMap;
+import java.util.Map;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+/**
+ * 计数类型的资源配额
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class CounterResourceQuota extends ResourceQuota {
+
+    /**
+     * 解析之后的配额总量限制
+     */
+    private Long capacity;
+
+    /**
+     * 解析之后的全局业务配额限制
+     */
+    private Long globalLimit;
+
+    /**
+     * 解析之后的自定义业务配额限制
+     */
+    private Map<String, Long> resourceScopeLimits = new HashMap<>();
+
+    public CounterResourceQuota(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
+        super(capacityExpr, globalLimitExpr, customLimitExpr);
     }
 
+    public long getLimit(ResourceScope resourceScope) {
+        String resourceScopeUniqueId = resourceScope.getResourceScopeUniqueId();
+        Long limit = resourceScopeLimits.get(resourceScopeUniqueId);
+        if (limit == null) {
+            limit = globalLimit;
+        }
+        return limit;
+    }
 }

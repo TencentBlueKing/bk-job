@@ -22,27 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
-    }
-
+/**
+ * 配额限制的资源 ID 定义
+ */
+public interface QuotaResourceId {
+    /**
+     * 当前正在运行的作业实例
+     */
+    String JOB_INSTANCE = "jobInstance";
 }

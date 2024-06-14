@@ -22,27 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota.config;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
+import javax.annotation.PostConstruct;
+import java.util.Map;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+/**
+ * 配置-资源管理空间下的配额限制
+ */
+@ConfigurationProperties(prefix = "job.resource-scope-quota-limit", ignoreInvalidFields = true)
+@Data
+@Slf4j
+public class ResourceScopeResourceQuotaConfig {
+    /**
+     * 配额限制配置。 key: 资源名；value: 配额配置
+     */
+    private Map<String, ResourceQuotaConfig> limitedResources;
+
+    @PostConstruct
+    public void print() {
+        log.info("ResourceScopeQuotaConfig init: {}", JsonUtils.toJson(this));
     }
-
 }

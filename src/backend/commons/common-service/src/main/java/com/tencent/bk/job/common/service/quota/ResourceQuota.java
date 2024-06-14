@@ -22,27 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
+/**
+ * 资源配额基础类
+ */
+@Data
+@NoArgsConstructor
+public class ResourceQuota {
+    /**
+     * 配额容量表达式
+     */
+    protected String capacityExpr;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+    /**
+     * 全局业务配额表达式
+     */
+    protected String globalLimitExpr;
+
+    /**
+     * 自定义业务配额表达式，会覆盖全局业务配额的配置
+     */
+    protected String customLimitExpr;
+
+    public ResourceQuota(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
+        this.capacityExpr = capacityExpr;
+        this.globalLimitExpr = globalLimitExpr;
+        this.customLimitExpr = customLimitExpr;
     }
-
 }

@@ -22,27 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 
-@JobBootApplication(
-    scanBasePackages = {
-        "com.tencent.bk.job.crontab"},
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableFeignClients(basePackages = {"com.tencent.bk.job.manage.api", "com.tencent.bk.job.execute.api"})
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
-public class JobCrontabBootApplication {
+/**
+ * 业务资源配额管理
+ */
+public class ResourceScopeResourceQuotaManager {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobCrontabBootApplication.class, args);
+    private final ResourceQuotaStore resourceQuotaStore;
+
+    public ResourceScopeResourceQuotaManager(ResourceQuotaStore resourceQuotaStore) {
+        this.resourceQuotaStore = resourceQuotaStore;
     }
 
+    /**
+     * 获取业务当前正在执行作业配额限制
+     *
+     * @param resourceScope 资源管理空间
+     * @return 最大正在执行作业限制
+     */
+    public long getJobInstanceQuota(ResourceScope resourceScope) {
+        ResourceQuota resourceQuota = resourceQuotaStore.getResourceQuota(QuotaResourceId.JOB_INSTANCE);
+        if (resourceQuota == null) {
+            // 不限制
+            return Long.MAX_VALUE;
+        }
+        CounterResourceQuota jobInstanceResourceQuota = (CounterResourceQuota) resourceQuota;
+        return jobInstanceResourceQuota.getLimit(resourceScope);
+    }
 }

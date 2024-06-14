@@ -75,6 +75,10 @@ public class ResourceScope {
         return type == ResourceScopeTypeEnum.BIZ_SET;
     }
 
+    public String getResourceScopeUniqueId() {
+        return type.getValue() + ":" + id;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", ResourceScope.class.getSimpleName() + "[", "]")
