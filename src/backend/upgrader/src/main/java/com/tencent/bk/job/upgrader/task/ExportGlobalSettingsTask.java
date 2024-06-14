@@ -40,8 +40,8 @@ import java.io.FileWriter;
 import java.util.Properties;
 
 /**
- * 3.9.3版本开始，改为使用基于BK-REPO的全局配置统一方案，该任务输出平台信息全局配置JSON文件，以便于让用户迁移之前已配置的数据：
- * 将该任务生成的base.json文件导入BK-REPO的blueking项目下bk-config仓库下的bk_job目录下，覆盖原有的base.json即可。
+ * 3.9.3版本开始，改为使用基于BK-REPO的全局配置统一方案，该任务输出平台信息全局配置base.js文件，以便于让用户迁移之前已配置的数据：
+ * 将该任务生成的base.js文件导入BK-REPO的blueking项目下bk-config仓库下的bk_job目录下，覆盖原有的base.js即可。
  */
 @SuppressWarnings("unused")
 @Slf4j
@@ -72,10 +72,11 @@ public class ExportGlobalSettingsTask extends BaseUpgradeTask {
         log.info(getName() + " for version " + getTargetVersion() + " begin to run...");
         try {
             BkPlatformInfo bkPlatformInfo = jobManageClient.getBkPlatformInfo();
-            log.info("Exported BkPlatformInfo:");
             String bkPlatformInfoStr = JsonUtils.toJson(bkPlatformInfo);
-            log.info(bkPlatformInfoStr);
-            String fileName = "base.json";
+            String fileName = "base.js";
+            String baseJsStr = "__platCfgCallback__(" + bkPlatformInfoStr + ")";
+            log.info("Exported " + fileName + ":");
+            log.info(baseJsStr);
             File outputFile = new File(fileName);
             if (!outputFile.exists()) {
                 boolean result = outputFile.createNewFile();
@@ -84,7 +85,7 @@ public class ExportGlobalSettingsTask extends BaseUpgradeTask {
                 }
             }
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile))) {
-                bw.write(bkPlatformInfoStr);
+                bw.write(baseJsStr);
             }
             log.info("BkPlatformInfo has been export to file {}, please check current dir", fileName);
             return true;

@@ -32,46 +32,50 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BkPlatformInfo {
 
-    @JsonProperty("bk_app_code")
+    @JsonProperty("bkAppCode")
     private String bkAppCode = "bk_job";
 
     @JsonProperty("name")
     private String name = "蓝鲸作业平台";
 
-    @JsonProperty("name_en")
+    @JsonProperty("nameEn")
     private String nameEn = "JOB";
 
-    @JsonProperty("app_logo")
+    @JsonProperty("appLogo")
     private String appLogo = "bk_job.png";
 
-    @JsonProperty("fav_icon")
+    @JsonProperty("favicon")
     private String favIcon = "bk_job.png";
 
-    @JsonProperty("helper_text")
+    @JsonProperty("helperText")
     private String helperText = "联系BK助手";
 
-    @JsonProperty("helper_text_en")
+    @JsonProperty("helperTextEn")
     private String helperTextEn = "Contact BK Assistant";
 
-    @JsonProperty("helper_link")
+    @JsonProperty("helperLink")
     private String helperLink = "wxwork://message/?username=BK%E5%8A%A9%E6%89%8B";
 
-    @JsonProperty("brand_img")
+    @JsonProperty("brandImg")
     private String brandImg = "brand_img.png";
 
-    @JsonProperty("brand_img_en")
+    @JsonProperty("brandImgEn")
     private String brandImgEn = "brand_img.png";
 
-    @JsonProperty("brand_name")
+    @JsonProperty("brandName")
     private String brandName = "腾讯蓝鲸智云";
 
-    @JsonProperty("brand_name_en")
+    @JsonProperty("brandNameEn")
     private String brandNameEn = "BlueKing";
 
-    @JsonProperty("footer_info")
+    @JsonProperty("footerInfo")
     private String footerInfo = "[技术支持](https://wpa1.qq.com/KziXGWJs?_type=wpa&qidian=true) | [社区论坛](https://bk" +
         ".tencent.com/s-mart/community/) | [产品官网](https://bk.tencent.com/index/)";
 
-    @JsonProperty("footer_copyright")
+    @JsonProperty("footerInfoEn")
+    private String footerInfoEn = "[Support](https://wpa1.qq.com/KziXGWJs?_type=wpa&qidian=true) | [Forum](https://bk" +
+        ".tencent.com/s-mart/community/) | [Official](https://bk.tencent.com/index/)";
+
+    @JsonProperty("footerCopyright")
     private String footerCopyright = "Copyright © 2012 Tencent BlueKing. All Rights Reserved. {{version}}";
 }

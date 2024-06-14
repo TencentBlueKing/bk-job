@@ -73,6 +73,7 @@ data:
       feedback:
         root: {{ .Values.bkFeedBackUrl }}
       sharedResUrl: {{ .Values.bkSharedResUrl }}
+      sharedBaseJsPath: {{ .Values.bkSharedBaseJsPath }}
     job:
       manage:
         sync:

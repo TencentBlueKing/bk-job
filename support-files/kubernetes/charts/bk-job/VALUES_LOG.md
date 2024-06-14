@@ -1,11 +1,13 @@
 # chart values 更新日志
 
 ## 0.6.4
-1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
+1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址与base.js路径
 
 ```yaml
 # 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
 bkSharedResUrl: "http://bkrepo.example.com/generic/blueking/bk-config"
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js路径
+bkSharedBaseJsPath: "/bk_job/base.js"
 ```
 
 ## 0.6.2

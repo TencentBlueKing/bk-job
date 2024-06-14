@@ -435,6 +435,8 @@ bkDocsCenterUrl: "https://bk.tencent.com/docs"
 bkFeedBackUrl: "https://bk.tencent.com/s-mart/community"
 # 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
 bkSharedResUrl: "http://bkrepo.example.com/generic/blueking/bk-config"
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js路径
+bkSharedBaseJsPath: "/bk_job/base.js"
 
 ## 蓝鲸GSE参数配置
 gse:

@@ -96,27 +96,39 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
 
     private BkPlatformInfo getBkPlatformInfoFromArtifactory() {
         String bkSharedResUrl = jobManageConfig.getBkSharedResUrl();
-        String baseJsonFileUrl = buildBaseJsonFileUrl(bkSharedResUrl);
+        String bkSharedBaseJsPath = jobManageConfig.getBkSharedBaseJsPath();
+        String baseJsonFileUrl = buildBaseJsFileUrl(bkSharedResUrl, bkSharedBaseJsPath);
         HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
         HttpRequest request = HttpRequest.builder(HttpMethodEnum.GET, baseJsonFileUrl).build();
         HttpResponse resp = httpHelper.requestForSuccessResp(request);
-        String baseJsonStr = resp.getEntity();
-        log.info("Got base.json content from bkSharedRes: " + baseJsonStr);
-        return JsonUtils.fromJson(baseJsonStr, new TypeReference<BkPlatformInfo>() {
+        String baseJsStr = resp.getEntity();
+        log.info("Got base.js content from bkSharedRes: " + baseJsStr);
+        String platformJsonStr = parsePlatformJsonStr(baseJsStr);
+        return JsonUtils.fromJson(platformJsonStr, new TypeReference<BkPlatformInfo>() {
         });
     }
 
+    private String parsePlatformJsonStr(String baseJsStr) {
+        int startIndex = baseJsStr.indexOf("{");
+        int endIndex = baseJsStr.lastIndexOf("}");
+        return baseJsStr.substring(startIndex, endIndex + 1);
+    }
+
     /**
-     * 构建获取base.json文件的URL
+     * 构建获取base.js文件的URL
      *
-     * @param bkSharedResUrl 共享资源基础路径
-     * @return base.json文件对应的URL
+     * @param bkSharedResUrl     共享资源基础路径
+     * @param bkSharedBaseJsPath base.js文件路径
+     * @return base.js文件对应的URL
      */
-    private String buildBaseJsonFileUrl(String bkSharedResUrl) {
+    private String buildBaseJsFileUrl(String bkSharedResUrl, String bkSharedBaseJsPath) {
         if (bkSharedResUrl.endsWith("/")) {
             bkSharedResUrl = StringUtil.removeSuffix(bkSharedResUrl, "/");
         }
-        return bkSharedResUrl + "/bk-job/base.json";
+        if (bkSharedBaseJsPath.startsWith("/")) {
+            return bkSharedResUrl + bkSharedBaseJsPath;
+        }
+        return bkSharedResUrl + "/" + bkSharedBaseJsPath;
     }
 
     private BkPlatformInfo buildBkPlatformInfo(BkPlatformInfo defaultBkPlatformInfo,
@@ -135,7 +147,7 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
                 }
                 if (englishTitleFooter != null) {
                     defaultBkPlatformInfo.setNameEn(englishTitleFooter.getTitleHead());
-                    defaultBkPlatformInfo.setFooterInfo(englishTitleFooter.getFooterLink());
+                    defaultBkPlatformInfo.setFooterInfoEn(englishTitleFooter.getFooterLink());
                     defaultBkPlatformInfo.setFooterCopyright(englishTitleFooter.getFooterCopyRight());
                 }
                 if (chineseTitleFooter != null) {
