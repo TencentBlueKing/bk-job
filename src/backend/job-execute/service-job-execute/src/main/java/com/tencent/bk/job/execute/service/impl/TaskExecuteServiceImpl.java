@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -57,6 +58,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
+import com.tencent.bk.job.execute.common.exception.RunningJobInstanceQuotaExceedException;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -67,6 +69,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobQuoteManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -94,6 +97,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
@@ -162,6 +166,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
 
+    private final RunningJobQuoteManager runningJobQuoteManager;
+
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
     @Autowired
@@ -180,7 +186,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   RollingConfigService rollingConfigService,
                                   ServiceTaskTemplateResource taskTemplateResource,
-                                  TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor) {
+                                  TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
+                                  RunningJobQuoteManager runningJobQuoteManager) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -197,6 +204,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.taskTemplateResource = taskTemplateResource;
         this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
+        this.runningJobQuoteManager = runningJobQuoteManager;
     }
 
     @Override
@@ -243,10 +251,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private TaskInstanceDTO executeFastTaskInternal(FastTaskDTO fastTask) {
         log.info("Begin to execute fast task: {}", fastTask);
+
+        long appId = fastTask.getTaskInstance().getAppId();
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
         StopWatch watch = new StopWatch("executeFastTask");
+        // 检查正在执行的作业配额限制
+        checkRunningJobQuotaLimit(appId);
         // 检查任务是否应当被驱逐
         checkTaskEvict(taskInstance);
         standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
@@ -254,7 +266,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         try {
             // 设置账号信息
             watch.start("checkAndSetAccountInfo");
-            checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
+            checkAndSetAccountInfo(stepInstance, appId);
             watch.stop();
 
             // 处理执行对象
@@ -299,13 +311,25 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /*
+     * 检查正在执行的作业配额限制，防止单个业务占用所有的执行引擎调度资源
+     */
+    private void checkRunningJobQuotaLimit(Long appId) {
+        ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
+        if (runningJobQuoteManager.isExceedJobQuotaLimit(resourceScope)) {
+            log.warn("ResourceQuotaLimit-runningJobInstance exceed quota limit, resourceScope: {}",
+                resourceScope.getResourceScopeUniqueId());
+            throw new RunningJobInstanceQuotaExceedException();
+        }
+    }
+
     private void saveTaskInstance(StopWatch watch,
                                   FastTaskDTO fastTask,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance) {
         // 保存作业、步骤实例
         watch.start("saveInstance");
-        Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
+        long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
         taskInstance.setId(taskInstanceId);
         stepInstance.setTaskInstanceId(taskInstanceId);
         stepInstance.setStepNum(1);
@@ -333,6 +357,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.start("saveOperationLog");
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
+        watch.stop();
+
+        // 记录到当前正在运行的任务存储中，用于配额限制
+        watch.start("addRunningJobQuota");
+        runningJobQuoteManager.addJob(GlobalAppScopeMappingService.get()
+            .getScopeByAppId(taskInstance.getAppId()), taskInstanceId);
         watch.stop();
     }
 
@@ -858,6 +888,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private TaskInstanceDTO executeJobPlanInternal(StopWatch watch, TaskExecuteParam executeParam, TaskInfo taskInfo) {
         try {
+            // 检查正在执行的作业配额限制
+            checkRunningJobQuotaLimit(taskInfo.getTaskInstance().getAppId());
+
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
             TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
             taskInstance.setPlan(jobPlan);

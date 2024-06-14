@@ -25,11 +25,13 @@
 package com.tencent.bk.job.common.service.quota.config;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 资源配额限制
  */
 @Data
+@NoArgsConstructor
 public class ResourceQuotaConfig {
     /**
      * 配额容量表达式，表示整个作业平台能使用的最大资源
@@ -45,4 +47,10 @@ public class ResourceQuotaConfig {
      * 自定义业务配额表达式。会覆盖全局业务配额的配置
      */
     private String customLimit;
+
+    public ResourceQuotaConfig(String capacity, String globalLimit, String customLimit) {
+        this.capacity = capacity;
+        this.globalLimit = globalLimit;
+        this.customLimit = customLimit;
+    }
 }

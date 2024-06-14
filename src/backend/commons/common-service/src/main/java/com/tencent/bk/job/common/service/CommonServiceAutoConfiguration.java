@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service;
 
+import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +33,9 @@ import org.springframework.context.annotation.Configuration;
 public class CommonServiceAutoConfiguration {
 
     @Bean
-    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore) {
-        return new ConfigRefreshEventListener(featureStore);
+    public ConfigRefreshEventListener configRefreshEventListener(FeatureStore featureStore,
+                                                                 ResourceQuotaStore resourceQuotaStore) {
+        return new ConfigRefreshEventListener(featureStore, resourceQuotaStore);
     }
 
     @Bean

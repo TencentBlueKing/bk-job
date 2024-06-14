@@ -44,7 +44,8 @@ public class ResourceQuotaAutoConfiguration {
     }
 
     @Bean
-    public ResourceQuotaLoadApplicationRunner featureLoadApplicationRunner(ResourceQuotaStore resourceQuotaStore) {
+    public ResourceQuotaLoadApplicationRunner resourceQuotaLoadApplicationRunner(
+            ResourceQuotaStore resourceQuotaStore) {
         return new ResourceQuotaLoadApplicationRunner(resourceQuotaStore);
     }
 }

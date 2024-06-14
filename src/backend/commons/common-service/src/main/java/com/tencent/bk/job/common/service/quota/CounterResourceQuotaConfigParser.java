@@ -25,6 +25,10 @@
 package com.tencent.bk.job.common.service.quota;
 
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaConfig;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 计数类型的配额配置解析
@@ -34,20 +38,50 @@ public class CounterResourceQuotaConfigParser implements ResourceQuotaConfigPars
     @Override
     public ResourceQuota parse(ResourceQuotaConfig resourceQuotaConfig) throws ResourceQuotaConfigParseException {
         CounterResourceQuota resourceQuota = new CounterResourceQuota(
-            resourceQuotaConfig.getCapacity(),
-            resourceQuotaConfig.getGlobalLimit(),
-            resourceQuotaConfig.getCustomLimit()
+                resourceQuotaConfig.getCapacity(),
+                resourceQuotaConfig.getGlobalLimit(),
+                resourceQuotaConfig.getCustomLimit()
         );
         try {
-            Long capacity = Long.parseLong(resourceQuotaConfig.getCapacity());
-            resourceQuota.setCapacity(capacity);
+            Long capacity = null;
+            if (StringUtils.isNotBlank(resourceQuotaConfig.getCapacity())) {
+                capacity = Long.parseLong(resourceQuotaConfig.getCapacity());
+                resourceQuota.setCapacity(capacity);
+            }
 
-            String globalLimitExpr = resourceQuotaConfig.getGlobalLimit().trim();
-            if (globalLimitExpr.endsWith("%"))
+            long globalLimit = computeLimitValue(capacity, resourceQuotaConfig.getGlobalLimit());
+            resourceQuota.setGlobalLimit(globalLimit);
 
-            return null;
+            String customLimitExpr = resourceQuotaConfig.getCustomLimit();
+            if (StringUtils.isNotBlank(customLimitExpr)) {
+                Map<String, Long> resourceScopeLimits = new HashMap<>();
+
+                customLimitExpr = customLimitExpr.trim();
+                String[] limitExprForResourceScopes = customLimitExpr.split(",");
+                for (String resourceScopeLimit : limitExprForResourceScopes) {
+                    String[] resourceScopeLimitParts = resourceScopeLimit.split("=");
+                    String resourceScope = resourceScopeLimitParts[0];
+                    String limitExpr = resourceScopeLimitParts[1];
+                    Long limit = computeLimitValue(capacity, limitExpr);
+                    resourceScopeLimits.put(resourceScope, limit);
+                }
+                resourceQuota.setCustomResourceScopeLimits(resourceScopeLimits);
+            }
+            return resourceQuota;
         } catch (Throwable e) {
             throw new ResourceQuotaConfigParseException(e);
         }
+    }
+
+    private long computeLimitValue(Long capacity, String limitExpr) {
+        long limit;
+        if (limitExpr.endsWith("%")) {
+            String percentageValueStr = limitExpr.substring(0, limitExpr.length() - 1);
+            int percentageValue = Integer.parseInt(percentageValueStr);
+            limit = capacity * percentageValue / 100;
+        } else {
+            limit = Long.parseLong(limitExpr);
+        }
+        return limit;
     }
 }

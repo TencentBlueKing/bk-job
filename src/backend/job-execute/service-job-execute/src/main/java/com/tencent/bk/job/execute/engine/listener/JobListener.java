@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobQuoteManager;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -43,6 +44,7 @@ import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,19 +67,22 @@ public class JobListener {
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
 
+    private final RunningJobQuoteManager runningJobQuoteManager;
+
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                        StatisticsService statisticsService,
                        TaskInstanceService taskInstanceService,
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
-                       NotifyService notifyService) {
+                       NotifyService notifyService, RunningJobQuoteManager runningJobQuoteManager) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
+        this.runningJobQuoteManager = runningJobQuoteManager;
     }
 
 
@@ -274,6 +279,12 @@ public class JobListener {
         taskInstance.setTotalTime(totalTime);
         taskInstance.setStatus(jobStatus);
         taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
+
+        // 从资源配额中删除该作业实例
+        runningJobQuoteManager.removeJob(
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            jobInstanceId
+        );
 
         // 作业执行结果消息通知
         if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {

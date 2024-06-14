@@ -25,26 +25,29 @@
 package com.tencent.bk.job.execute.engine.quota.limit;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.redis.BaseRedisCache;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tencent.bk.job.common.service.quota.ResourceScopeResourceQuotaManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * 正在执行作业配置限制管理
+ */
 @Component
-public class RunningJobCache extends BaseRedisCache {
+public class RunningJobQuoteManager {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final ResourceScopeResourceQuotaManager resourceScopeResourceQuotaManager;
 
     // 3天过期
     private static final int EXPIRE_DAYS = 3;
     private static final String ZSET_KEY_PREFIX = "job:execute:running:job:";
 
 
-    public RunningJobCache(StringRedisTemplate redisTemplate,
-                           MeterRegistry meterRegistry) {
-        super(meterRegistry, "RunningJobCache");
+    public RunningJobQuoteManager(StringRedisTemplate redisTemplate,
+                                  ResourceScopeResourceQuotaManager resourceScopeResourceQuotaManager) {
         this.redisTemplate = redisTemplate;
+        this.resourceScopeResourceQuotaManager = resourceScopeResourceQuotaManager;
     }
 
     public void addJob(ResourceScope resourceScope, long jobInstanceId) {
@@ -65,7 +68,12 @@ public class RunningJobCache extends BaseRedisCache {
     public boolean isExceedJobQuotaLimit(ResourceScope resourceScope) {
         String key = buildKey(resourceScope);
         Long currentRunningJobCount = redisTemplate.opsForZSet().zCard(key);
+        if (currentRunningJobCount == null) {
+            currentRunningJobCount = 0L;
+        }
+        long limit = resourceScopeResourceQuotaManager.getJobInstanceQuota(resourceScope);
 
+        return currentRunningJobCount < limit;
     }
 
     private String buildKey(ResourceScope resourceScope) {

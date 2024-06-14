@@ -341,6 +341,8 @@ public class ErrorCode {
     // 执行对象不存在。无效的{0}个执行对象：[{1}]
     public static final int EXECUTE_OBJECT_NOT_EXIST = 1244030;
     public static final int INVALID_LABEL_SELECTOR = 1244031;
+    // 当前执行的作业总量超过配额限制
+    public static final int RESOURCE_QUOTA_LIMIT_JOB_INSTANCE = 1244032;
     // 作业执行 end
 
     // 定时作业 start

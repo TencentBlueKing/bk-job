@@ -22,49 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.execute.common.exception;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 
 /**
- * 计数类型的资源配额
+ * 业务正在执行作业数量超过配额异常
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-@NoArgsConstructor
-public class CounterResourceQuota extends ResourceQuota {
+public class RunningJobInstanceQuotaExceedException extends ResourceExhaustedException {
 
-    /**
-     * 解析之后的配额总量限制
-     */
-    private Long capacity;
-
-    /**
-     * 解析之后的全局业务配额限制
-     */
-    private Long globalLimit;
-
-    /**
-     * 解析之后的自定义业务配额限制
-     */
-    private Map<String, Long> customResourceScopeLimits = new HashMap<>();
-
-    public CounterResourceQuota(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        super(capacityExpr, globalLimitExpr, customLimitExpr);
-    }
-
-    public long getLimit(ResourceScope resourceScope) {
-        String resourceScopeUniqueId = resourceScope.getResourceScopeUniqueId();
-        Long limit = customResourceScopeLimits.get(resourceScopeUniqueId);
-        if (limit == null) {
-            limit = globalLimit;
-        }
-        return limit;
+    public RunningJobInstanceQuotaExceedException() {
+        super(ErrorCode.RESOURCE_QUOTA_LIMIT_JOB_INSTANCE);
     }
 }

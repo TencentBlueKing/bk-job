@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service;
 
+import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,8 +42,11 @@ public class ConfigRefreshEventListener {
 
     private final FeatureStore featureStore;
 
-    public ConfigRefreshEventListener(FeatureStore featureStore) {
+    private final ResourceQuotaStore resourceQuotaStore;
+
+    public ConfigRefreshEventListener(FeatureStore featureStore, ResourceQuotaStore resourceQuotaStore) {
         this.featureStore = featureStore;
+        this.resourceQuotaStore = resourceQuotaStore;
         log.info("Init ConfigRefreshEventListener");
     }
 
@@ -56,7 +60,7 @@ public class ConfigRefreshEventListener {
         if (log.isInfoEnabled()) {
             log.info("Handle EnvironmentChangeEvent, event: {}", printEnvironmentChangeEvent(event));
         }
-        reloadFeatureToggleIfChanged(event.getKeys());
+        reload(event.getKeys());
     }
 
     private String printEnvironmentChangeEvent(EnvironmentChangeEvent event) {
@@ -67,18 +71,17 @@ public class ConfigRefreshEventListener {
             .toString();
     }
 
-
     /**
-     * 重载特性开关配置
+     * 重载配置
      */
-    private void reloadFeatureToggleIfChanged(Set<String> changedKeys) {
+    private void reload(Set<String> changedKeys) {
         if (CollectionUtils.isEmpty(changedKeys)) {
             return;
         }
-        boolean isFeatureToggleConfigChanged =
-            changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
-        if (isFeatureToggleConfigChanged) {
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."))) {
             featureStore.load(true);
+        } else if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.resourceScopeQuotaLimit."))) {
+            resourceQuotaStore.load(true);
         }
     }
 }
