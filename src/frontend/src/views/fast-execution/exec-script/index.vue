@@ -91,6 +91,7 @@
             :form-data="formData"
             mode-field="rollingMode"
             name="rolling"
+            server-field="taskTarget"
             @on-change="handleChange"
             @on-reset="handleReset" />
         </jb-form>

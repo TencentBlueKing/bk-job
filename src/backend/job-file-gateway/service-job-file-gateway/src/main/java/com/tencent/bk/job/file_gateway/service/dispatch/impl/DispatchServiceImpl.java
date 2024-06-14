@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service.impl;
+package com.tencent.bk.job.file_gateway.service.dispatch.impl;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
@@ -32,8 +32,9 @@ import com.tencent.bk.job.file_gateway.metrics.MetricsConstants;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.AbilityTagService;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
+import com.tencent.bk.job.file_gateway.service.impl.WorkerIdsCondition;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;

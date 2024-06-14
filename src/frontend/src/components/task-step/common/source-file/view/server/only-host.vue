@@ -149,7 +149,7 @@
     },
     created() {
       this.ipSelectorConfig = {};
-      if (this.from === 'execute') {
+      if (this.from === 'execute' && window.PROJECT_CONFIG.SCOPE_TYPE !== 'biz_set') {
         this.ipSelectorConfig = {
           panelList: [
             'staticTopo',

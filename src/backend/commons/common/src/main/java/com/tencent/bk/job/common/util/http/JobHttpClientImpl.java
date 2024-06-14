@@ -47,6 +47,22 @@ public class JobHttpClientImpl implements JobHttpClient {
     }
 
     @Override
+    public String get(HttpReq req) {
+        logReq(req);
+        ResponseEntity<String> respEntity = restTemplate.getForEntity(
+            req.getUrl(),
+            String.class
+        );
+        if (respEntity.getStatusCode() == HttpStatus.OK) {
+            String respStr = respEntity.getBody();
+            logRespStr(respStr);
+            return respStr;
+        }
+        logAndThrow(respEntity);
+        return null;
+    }
+
+    @Override
     public String post(HttpReq req) {
         logReq(req);
         HttpHeaders headers = new HttpHeaders();

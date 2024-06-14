@@ -45,8 +45,6 @@ import java.io.FileNotFoundException;
 @Service
 public class HeartBeatTask {
 
-    public static volatile boolean runFlag = true;
-
     private final JobHttpClient jobHttpClient;
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
@@ -64,10 +62,6 @@ public class HeartBeatTask {
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
         this.environmentService = environmentService;
-    }
-
-    public static void stopHeartBeat() {
-        runFlag = false;
     }
 
     private HeartBeatReq getHeartBeatReq() {
@@ -101,11 +95,7 @@ public class HeartBeatTask {
         return heartBeatReq;
     }
 
-    public void run() {
-        if (!runFlag) {
-            log.info("HeartBeat closed, ignore");
-            return;
-        }
+    public void doHeartBeat() {
         String url = gatewayInfoService.getHeartBeatUrl();
         HeartBeatReq heartBeatReq = getHeartBeatReq();
         log.info("HeartBeat: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(heartBeatReq));

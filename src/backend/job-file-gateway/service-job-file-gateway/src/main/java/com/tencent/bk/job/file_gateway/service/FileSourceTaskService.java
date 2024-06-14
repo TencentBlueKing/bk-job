@@ -32,12 +32,22 @@ import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import java.util.List;
 
 public interface FileSourceTaskService {
-    TaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId, Integer executeCount,
-                                            String batchTaskId, Integer fileSourceId, List<String> filePathList);
+    TaskInfoDTO startFileSourceDownloadTask(String username,
+                                            Long appId,
+                                            Long stepInstanceId,
+                                            Integer executeCount,
+                                            String batchTaskId,
+                                            Integer fileSourceId,
+                                            List<String> filePathList);
 
-    TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
-                                                  Integer executeCount, String batchTaskId, Integer fileSourceId,
-                                                  List<String> filePathList, String fileSourceTaskId);
+    TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
+                                                  Long appId,
+                                                  Long stepInstanceId,
+                                                  Integer executeCount,
+                                                  String batchTaskId,
+                                                  Integer fileSourceId,
+                                                  List<String> filePathList,
+                                                  String fileSourceTaskId);
 
     String updateFileSourceTask(FileTaskProgressDTO fileTaskProgressDTO);
 

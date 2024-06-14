@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.file.worker.config;
 
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.file.worker.service.OpService;
+import com.tencent.bk.job.file.worker.state.WorkerStateMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,13 +41,15 @@ import java.util.List;
 public class GracefulShutdown implements ApplicationListener<ContextClosedEvent> {
 
     private final OpService opService;
+    private final WorkerStateMachine workerStateMachine;
 
     @Value("${app.shutdownTimeout:30}")
     int shutdownTimeout = 30;
 
     @Autowired
-    public GracefulShutdown(OpService opService) {
+    public GracefulShutdown(OpService opService, WorkerStateMachine workerStateMachine) {
         this.opService = opService;
+        this.workerStateMachine = workerStateMachine;
     }
 
     @Override
@@ -54,6 +58,16 @@ public class GracefulShutdown implements ApplicationListener<ContextClosedEvent>
         List<String> runningTaskIdList = opService.offLine();
         log.info("worker apply to offLine, {} tasks to be reDispatched are {}", runningTaskIdList.size(),
             runningTaskIdList);
+        long waitStart = System.currentTimeMillis();
+        long maxWaitMills = 5000;
+        long waitMills;
+        do {
+            // 1.等待Worker主动下线完成
+            ThreadUtils.sleep(100);
+            waitMills = System.currentTimeMillis() - waitStart;
+        } while (!workerStateMachine.isWorkerOffLineIncludeFail() && waitMills < maxWaitMills);
+        // 2.等待File-Gateway内存中存量已调度请求完成
+        ThreadUtils.sleep(3000);
+        log.info("Worker offLine done");
     }
-
 }
