@@ -44,7 +44,7 @@ public class BkPlatformInfo {
     @JsonProperty("appLogo")
     private String appLogo = "bk_job.png";
 
-    @JsonProperty("favicon")
+    @JsonProperty("favIcon")
     private String favIcon = "bk_job.png";
 
     @JsonProperty("helperText")
