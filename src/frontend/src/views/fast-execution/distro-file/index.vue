@@ -103,6 +103,7 @@
               :form-data="formData"
               mode-field="rollingMode"
               name="rolling"
+              server-field="server"
               @on-change="handleChange"
               @on-reset="handleReset" />
           </card-layout>

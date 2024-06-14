@@ -28,10 +28,12 @@
 <template>
   <div class="task-step-rolling">
     <jb-form-item :label="$t('滚动执行')">
-      <bk-switcher
-        theme="primary"
-        :value="formData[enabledField]"
-        @change="handleRollingEnableChange" />
+      <span ref="roll">
+        <bk-switcher
+          theme="primary"
+          :value="formData[enabledField]"
+          @change="handleRollingEnableChange" />
+      </span>
     </jb-form-item>
     <div v-if="formData[enabledField]">
       <jb-form-item
@@ -87,6 +89,23 @@
         </bk-select>
       </jb-form-item>
     </div>
+    <div style="display: none">
+      <div ref="tips">
+        <img
+          src="/static/images/bk-tips.png"
+          style="float: left; width: 40px; height: 40px;">
+        <div style="display: inline-block; padding-left: 4px;">
+          <template v-if="$i18n.locale === 'zh-CN'">
+            <p>当执行目标数量<span class="strong">比较多</span>时，我们建议开启<span class="strong">“滚动执行”</span>进行分批次灰度处理，</p>
+            <p>有效<span class="strong">控制风险</span>。</p>
+          </template>
+          <template v-else>
+            <p>When dealing with a <span class="strong">large number of targets</span>, we recommend enabling <span class="strong">"Rolling execution"</span> to conduct phased gray processing, </p>
+            <p>which effectively <span class="strong">controls risks</span></p>
+          </template>
+        </div>
+      </div>
+    </div>
     <element-teleport
       v-if="isShowGuide"
       target="#rollingExprGuide">
@@ -95,7 +114,10 @@
   </div>
 </template>
 <script>
+  import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
+
+  import HostManageService from '@service/host-manage';
 
   import rollingExprParse from '@utils/rolling-expr-parse';
 
@@ -118,6 +140,10 @@
         required: true,
       },
       modeField: {
+        type: String,
+        required: true,
+      },
+      serverField: {
         type: String,
         required: true,
       },
@@ -171,12 +197,85 @@
       formData: {
         handler(formData) {
           this.validatorExpr(formData[this.exprField]);
+          this.showTips();
         },
         immediate: true,
         deep: true,
       },
     },
+    beforeDestroy() {
+      if (this.popperInstance) {
+        this.popperInstance.hide();
+        this.popperInstance.destroy();
+      }
+      this.popperInstance = undefined;
+    },
     methods: {
+      showTips() {
+        if (this.formData[this.serverField].isEmpty) {
+          this.popperInstance && this.popperInstance.hide();
+          return;
+        }
+        if (!this.popperInstance) {
+          this.popperInstance = Tippy(this.$refs.roll, {
+            arrow: true,
+            placement: 'right',
+            trigger: 'manual',
+            theme: 'light roll-execute-count-tips',
+            interactive: true,
+            hideOnClick: false,
+            animation: 'slide-toggle',
+            lazy: false,
+            size: 'small',
+            boundary: 'window',
+            distance: 20,
+            zIndex: 990,
+          });
+          this.popperInstance.setContent(this.$refs.tips);
+        }
+        const {
+          dynamicGroupList,
+          hostList,
+          nodeList,
+          containerList,
+        } = this.formData[this.serverField].executeObjectsInfo;
+
+        // 选中的主机或者容器大于 100 时直接显示
+        if (hostList.length >= 100 || containerList.length >= 100) {
+          setTimeout(() => {
+            this.popperInstance.show();
+          }, 1000);
+          return;
+        }
+
+        // 容器执行——但是容器数小于 100 不提示
+        if (containerList.length > 0 && containerList.length < 100) {
+          this.popperInstance.hide();
+          return;
+        }
+
+        // 主机执行——动态分组和动态拓扑为空并且主机数小于 100 不提示
+        if (dynamicGroupList.length < 1 && nodeList.length < 1 && hostList.length < 100) {
+          this.popperInstance.hide();
+        }
+
+        // 合并查询主机、动态拓扑、动态分组主机数
+        HostManageService.fetchHostStatistics({
+          dynamicGroupList,
+          hostList,
+          nodeList,
+        }).then((data) => {
+          // 异步请求返回时组件可能被销毁了
+          if (!this.popperInstance) {
+            return;
+          }
+          if (data.totalCount < 100) {
+            this.popperInstance.hide();
+            return;
+          }
+          this.popperInstance.show();
+        });
+      },
       /**
        * @desc 验证滚动规则
        * @param { String } expr
@@ -278,6 +377,23 @@
       font-size: 12px;
       line-height: 18px;
       color: #ea3636;
+    }
+  }
+
+  .roll-execute-count-tips-theme{
+    &.tippy-tooltip{
+      padding: 3px 7px;
+      line-height: 20px;
+      border-radius: 23px;
+
+      .tippy-arrow {
+        left: -2px !important;
+      }
+
+      .strong{
+        padding: 0 2px;
+        color: #FF9C01;
+      }
     }
   }
 </style>
