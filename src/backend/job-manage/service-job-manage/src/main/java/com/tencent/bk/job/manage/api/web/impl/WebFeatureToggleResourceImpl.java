@@ -29,14 +29,12 @@ import com.tencent.bk.job.common.util.feature.Feature;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.manage.api.web.WebFeatureToggleResource;
-import com.tencent.bk.job.manage.model.web.vo.FeatureVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,24 +58,18 @@ public class WebFeatureToggleResourceImpl implements WebFeatureToggleResource {
     }
 
     @Override
-    public Response<List<FeatureVO>> listFeatureToggle(String username) {
+    public Response<Map<String, Boolean>> listFeatureToggle(String username) {
         Map<String, Feature> features = featureManager.listFeatures().stream()
             .collect(Collectors.toMap(Feature::getId, feature -> feature, (oldValue, newValue) -> newValue));
 
-        if (features.isEmpty()) {
-            return Response.buildSuccessResp(Collections.emptyList());
-        }
+        Map<String, Boolean> featureToggles = new HashMap<>();
 
-        return Response.buildSuccessResp(
-            frontendFeatures.stream()
-                .map(frontendFeatureId -> {
-                    Feature feature = features.get(frontendFeatureId);
-                    FeatureVO featureVO = new FeatureVO();
-                    featureVO.setId(frontendFeatureId);
-                    // 产品需求-无需考虑灰度策略情况
-                    featureVO.setEnabled(feature != null && feature.isEnabled());
-                    return featureVO;
-                })
-                .collect(Collectors.toList()));
+        frontendFeatures.forEach(frontendFeatureId -> {
+            Feature feature = features.get(frontendFeatureId);
+            // 产品需求-无需考虑灰度策略情况
+            featureToggles.put(frontendFeatureId, feature != null && feature.isEnabled());
+        });
+
+        return Response.buildSuccessResp(featureToggles);
     }
 }

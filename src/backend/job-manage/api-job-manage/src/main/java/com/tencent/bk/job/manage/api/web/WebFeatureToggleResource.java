@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.web.vo.FeatureVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -35,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Job 特性开关 Web API
@@ -51,7 +50,7 @@ public interface WebFeatureToggleResource {
      */
     @ApiOperation(value = "获取Job功能特性开关配置", produces = "application/json")
     @GetMapping("/list")
-    Response<List<FeatureVO>> listFeatureToggle(
+    Response<Map<String, Boolean>> listFeatureToggle(
         @ApiIgnore
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
