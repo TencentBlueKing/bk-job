@@ -24,4 +24,7 @@ data:
     job:
       resourceScopeQuotaLimit:
         limitedResources:
+          {{- if .Values.job.resourceScopeQuotaLimit.limitedResources }}
           {{- toYaml .Values.job.resourceScopeQuotaLimit.limitedResources | nindent 10 }}
+          {{- end }}
+          
