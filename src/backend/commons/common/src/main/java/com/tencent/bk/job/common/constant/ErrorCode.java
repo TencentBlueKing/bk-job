@@ -279,8 +279,6 @@ public class ErrorCode {
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
     // 凭证被引用不支持删除
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
-    // 从制品库读取base.json文件内容失败，请检查bkSharedResUrl配置项是否正确，并确认制品库对应路径下是否存在base.json文件
-    public static final int FAIL_TO_GET_BASE_JSON_FROM_ARTIFACTORY = 1243056;
     // 作业管理 end
 
     // 作业执行 start
