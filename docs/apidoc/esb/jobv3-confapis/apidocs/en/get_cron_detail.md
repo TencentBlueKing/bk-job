@@ -59,12 +59,12 @@ Query Cron job details
                         {
                             "bk_host_id": 101,
                             "bk_cloud_id": 0,
-                            "ip": "10.0.0.1"
+                            "ip": "127.0.0.1"
                         },
                         {
                             "bk_host_id": 102,
                             "bk_cloud_id": 0,
-                            "ip": "10.0.0.2"
+                            "ip": "127.0.0.2"
                         }
                     ],
                     "topo_node_list": [

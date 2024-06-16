@@ -57,13 +57,13 @@
         "script_task_logs": [
             {
                 "bk_host_id": 101,
-                "ip": "10.0.0.1",
+                "ip": "127.0.0.1",
                 "bk_cloud_id": 0,
                 "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
             },
             {
                 "bk_host_id": 102,
-                "ip": "10.0.0.2",
+                "ip": "127.0.0.2",
                 "bk_cloud_id": 0,
                 "log_content": "[2018-03-15 14:39:30][PID:16789] job_start\n"
             }
@@ -85,7 +85,7 @@
         "file_task_logs": [
             {
                 "bk_host_id": 101,
-                "ip": "10.0.0.1",
+                "ip": "127.0.0.1",
                 "bk_cloud_id": 0,
                 "file_logs": [
                     {
@@ -93,13 +93,13 @@
                         "src_ip": {
                             "bk_host_id": 102,
                             "bk_cloud_id": 0, 
-                            "ip": "10.0.0.2"
+                            "ip": "127.0.0.2"
                         }, 
                         "src_path": "/data/1.log", 
                         "dest_ip": {
                             "bk_host_id": 101,
                             "bk_cloud_id": 0, 
-                            "ip": "10.0.0.1"
+                            "ip": "127.0.0.1"
                         }, 
                         "dest_path": "/tmp/1.log", 
                         "status": 4,
@@ -112,7 +112,7 @@
             },
             {
                 "bk_host_id": 102,
-                "ip": "10.0.0.2",
+                "ip": "127.0.0.2",
                 "bk_cloud_id": 0,
                 "file_logs": [
                     {
@@ -120,7 +120,7 @@
                         "src_ip": {
                             "bk_host_id": 102,
                             "bk_cloud_id": 0, 
-                            "ip": "10.0.0.2"
+                            "ip": "127.0.0.2"
                         }, 
                         "src_path": "/data/1.log",  
                         "status": 4,
