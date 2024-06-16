@@ -62,7 +62,7 @@
                 "step_ip_result_list": [
                     {
                         "bk_host_id": 101,
-                        "ip": "10.0.0.1",
+                        "ip": "127.0.0.1",
                         "bk_cloud_id": 0,
                         "status": 9,
                         "tag": "",
