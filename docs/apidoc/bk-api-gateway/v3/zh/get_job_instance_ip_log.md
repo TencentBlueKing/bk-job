@@ -29,7 +29,7 @@
 ### 请求参数示例
 - GET
 ```json
-/api/v3/get_job_instance_ip_log?bk_scope_type=biz&bk_scope_id=1&job_instance_id=50&step_instance_id=100&bk_cloud_id=0&ip=10.0.0.1
+/api/v3/get_job_instance_ip_log?bk_scope_type=biz&bk_scope_id=1&job_instance_id=50&step_instance_id=100&bk_cloud_id=0&ip=127.0.0.1
 ```
 
 ### 返回结果示例
@@ -43,7 +43,7 @@
     "data": {
         "log_type": 1,
         "bk_host_id": 101,
-        "ip": "10.0.0.1",
+        "ip": "127.0.0.1",
         "bk_cloud_id": 0,
         "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
     }
@@ -60,7 +60,7 @@
     "data": {
         "log_type": 2,
         "bk_host_id": 101,
-        "ip": "10.0.0.1",
+        "ip": "127.0.0.1",
         "bk_cloud_id": 0,
         "file_logs": [
             {
@@ -68,13 +68,13 @@
                 "src_ip": {
                     "host_id": 102,
                     "bk_cloud_id": 0,
-                    "ip": "10.0.0.2"
+                    "ip": "127.0.0.2"
                 },
                 "src_path": "/data/1.log",
                 "dest_ip": {
                     "bk_host_id": 101,
                     "bk_cloud_id": 0,
-                    "ip": "10.0.0.1"
+                    "ip": "127.0.0.1"
                 },
                 "dest_path": "/tmp/1.log",
                 "status": 4,
@@ -85,7 +85,7 @@
                 "src_ip": {
                     "bk_host_id": 102,
                     "bk_cloud_id": 0,
-                    "ip": "10.0.0.2"
+                    "ip": "127.0.0.2"
                 },
                 "src_path": "/data/1.log",
                 "status": 4,
