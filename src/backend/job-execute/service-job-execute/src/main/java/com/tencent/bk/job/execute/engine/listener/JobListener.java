@@ -75,7 +75,8 @@ public class JobListener {
                        TaskInstanceService taskInstanceService,
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
-                       NotifyService notifyService, RunningJobQuoteManager runningJobQuoteManager) {
+                       NotifyService notifyService,
+                       RunningJobQuoteManager runningJobQuoteManager) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
@@ -103,9 +104,6 @@ public class JobListener {
                     break;
                 case STOP:
                     stopJob(taskInstance);
-                    break;
-                case RESTART:
-                    restartJob(taskInstance);
                     break;
                 case REFRESH:
                     refreshJob(taskInstance);
@@ -156,35 +154,6 @@ public class JobListener {
             taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
         } else {
             log.warn("Unsupported job instance run status for stop task, jobInstanceId={}, status={}",
-                jobInstanceId, taskInstance.getStatus());
-        }
-    }
-
-    /**
-     * 重头执行作业
-     *
-     * @param taskInstance 作业实例
-     */
-    private void restartJob(TaskInstanceDTO taskInstance) {
-        long jobInstanceId = taskInstance.getId();
-        RunStatusEnum taskStatus = taskInstance.getStatus();
-        // 验证作业状态，只有“执行失败”和“等待用户”的作业可以重头执行
-        if (RunStatusEnum.WAITING_USER == taskStatus || RunStatusEnum.FAIL == taskStatus) {
-
-            // 重置作业状态
-            taskInstanceService.resetTaskStatus(jobInstanceId);
-            stepInstanceService.addStepInstanceExecuteCount(jobInstanceId);
-
-            // 重置作业下步骤的状态、开始时间和结束时间等。
-            List<Long> stepInstanceIdList = stepInstanceService.getTaskStepIdList(jobInstanceId);
-            for (long stepInstanceId : stepInstanceIdList) {
-                stepInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
-                stepInstanceService.resetStepStatus(stepInstanceId);
-            }
-
-            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(jobInstanceId));
-        } else {
-            log.warn("Unsupported job instance run status for restart task, jobInstanceId={}, status={}",
                 jobInstanceId, taskInstance.getStatus());
         }
     }
