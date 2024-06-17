@@ -4,8 +4,8 @@
 1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址与base.js路径
 
 ```yaml
-# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
-bkSharedResUrl: "http://bkrepo.example.com/generic/blueking/bk-config"
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址，例如：http://bkrepo.example.com/generic/blueking/bk-config，留空则采用前端默认值
+bkSharedResUrl: ""
 # 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js路径
 bkSharedBaseJsPath: "/bk_job/base.js"
 ```
