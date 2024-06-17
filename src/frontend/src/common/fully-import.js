@@ -99,6 +99,7 @@ const IpSelector = createIpSelector({
       bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
       // eslint-disable-next-line max-len
       bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+      container_enable: true,
     })),
 });
 
