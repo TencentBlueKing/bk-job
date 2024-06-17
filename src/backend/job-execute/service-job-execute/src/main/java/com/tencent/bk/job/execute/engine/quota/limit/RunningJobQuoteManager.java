@@ -39,8 +39,6 @@ public class RunningJobQuoteManager {
     private final RedisTemplate<String, String> redisTemplate;
     private final ResourceScopeResourceQuotaManager resourceScopeResourceQuotaManager;
 
-    // 3天过期
-    private static final int EXPIRE_DAYS = 3;
     private static final String ZSET_KEY_PREFIX = "job:execute:running:job:";
 
 
@@ -73,7 +71,7 @@ public class RunningJobQuoteManager {
         }
         long limit = resourceScopeResourceQuotaManager.getJobInstanceQuota(resourceScope);
 
-        return currentRunningJobCount < limit;
+        return currentRunningJobCount >= limit;
     }
 
     private String buildKey(ResourceScope resourceScope) {

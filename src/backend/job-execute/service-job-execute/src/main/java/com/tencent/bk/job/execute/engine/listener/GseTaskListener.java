@@ -28,7 +28,10 @@ import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
+import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
+import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.GseTaskService;
@@ -45,14 +48,17 @@ public class GseTaskListener {
     private final GseTaskManager gseTaskManager;
     private final GseTaskService gseTaskService;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
+    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
 
     @Autowired
     public GseTaskListener(GseTaskManager gseTaskManager,
                            GseTaskService gseTaskService,
-                           GseTasksExceptionCounter gseTasksExceptionCounter) {
+                           GseTasksExceptionCounter gseTasksExceptionCounter,
+                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.gseTaskManager = gseTaskManager;
         this.gseTaskService = gseTaskService;
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
+        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
     }
 
     /**
@@ -61,10 +67,11 @@ public class GseTaskListener {
      * @param gseTaskEvent GSE任务事件
      */
     public void handleEvent(GseTaskEvent gseTaskEvent) {
-        log.info("Handle gse task event: {}, duration: {}ms", gseTaskEvent, gseTaskEvent.duration());
-        GseTaskDTO gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
-        String requestId = gseTaskEvent.getRequestId();
+        GseTaskDTO gseTask = null;
         try {
+            log.info("Handle gse task event: {}, duration: {}ms", gseTaskEvent, gseTaskEvent.duration());
+            gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
+            String requestId = gseTaskEvent.getRequestId();
             int action = gseTaskEvent.getAction();
             if (GseTaskActionEnum.START.getValue() == action) {
                 gseTaskManager.startTask(gseTask, requestId);
@@ -76,15 +83,26 @@ public class GseTaskListener {
         } catch (Throwable e) {
             String errorMsg = "Handling gse task event error, event:" + gseTaskEvent;
             log.error(errorMsg, e);
-            handleException(e);
+            handleException(gseTask, e);
         }
     }
 
-    private void handleException(Throwable e) throws MessageHandleException {
+    private void handleException(GseTaskDTO gseTask, Throwable e) throws MessageHandleException {
         // 服务关闭，消息被拒绝，重新入队列
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;
         }
         gseTasksExceptionCounter.increment();
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.refreshStep(
+                gseTask.getStepInstanceId(),
+                EventSource.buildGseTaskEventSource(
+                    gseTask.getStepInstanceId(),
+                    gseTask.getExecuteCount(),
+                    gseTask.getBatch(),
+                    gseTask.getId()
+                )
+            )
+        );
     }
 }

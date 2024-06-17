@@ -48,22 +48,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ConfirmStepEventHandler implements StepEventHandler {
+public class ConfirmStepEventHandler extends AbstractStepEventHandler {
 
-    private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final NotifyService notifyService;
-    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public ConfirmStepEventHandler(TaskInstanceService taskInstanceService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                    NotifyService notifyService,
                                    StepInstanceService stepInstanceService) {
-        this.taskInstanceService = taskInstanceService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.notifyService = notifyService;
-        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -92,6 +87,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;
             log.error(errorMsg, e);
+            safelyFinishStepWhenCaughtException(stepInstance);
         }
     }
 

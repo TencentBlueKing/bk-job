@@ -96,8 +96,9 @@ public class JobListener {
         log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
+        TaskInstanceDTO taskInstance = null;
         try {
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
+             taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
             switch (action) {
                 case START:
                     startJob(taskInstance);
@@ -114,8 +115,11 @@ public class JobListener {
         } catch (Throwable e) {
             String errorMsg = "Handle job event error, jobInstanceId=" + jobInstanceId;
             log.error(errorMsg, e);
+            finishJob(taskInstance, null, RunStatusEnum.ABNORMAL_STATE);
         }
     }
+
+    private void
 
     /**
      * 启动作业
