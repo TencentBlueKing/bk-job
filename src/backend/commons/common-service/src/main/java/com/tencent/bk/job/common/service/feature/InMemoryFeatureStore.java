@@ -42,7 +42,9 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -180,4 +182,17 @@ public class InMemoryFeatureStore implements FeatureStore {
         }
         return toggleStrategy;
     }
+
+    @Override
+    public List<Feature> listFeatures() {
+        if (!isInitial) {
+            synchronized (this) {
+                if (!isInitial) {
+                    load(true);
+                }
+            }
+        }
+        return new ArrayList<>(features.values());
+    }
+
 }

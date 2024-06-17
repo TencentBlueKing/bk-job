@@ -622,7 +622,7 @@ job:
       enabled: true
     # 是否支持容器执行
     containerExecution:
-      enabled: true
+      enabled: false
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报

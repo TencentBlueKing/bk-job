@@ -22,44 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature.strategy;
+package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Map;
-import java.util.StringJoiner;
 
 /**
- * 根据资源范围黑名单灰度策略
+ * Job 特性开关 Web API
  */
-public class ResourceScopeBlackListToggleStrategy extends AbstractResourceScopeToggleStrategy {
+@Api(tags = {"job-manage:web:feature"})
+@RequestMapping("/web/feature/toggle")
+@WebAPI
+public interface WebFeatureToggleResource {
+
+
     /**
-     * 特性开关开启策略ID
+     * 获取特性开关配置
      */
-    public static final String STRATEGY_ID = "ResourceScopeBlackListToggleStrategy";
-
-    public ResourceScopeBlackListToggleStrategy(Map<String, String> initParams) {
-        super(STRATEGY_ID, initParams);
-    }
-
-    @Override
-    public boolean evaluate(String featureId, FeatureExecutionContext ctx) {
-        boolean isValidContext = checkFeatureExecuteContext(ctx);
-        if (!isValidContext) {
-            return false;
-        }
-        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
-        return !hitResourceScopeList(scope);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", ResourceScopeBlackListToggleStrategy.class.getSimpleName() + "[", "]")
-            .add("id='" + id + "'")
-            .add("initParams=" + initParams)
-            .add("resourceScopes=" + resourceScopes)
-            .toString();
-    }
+    @ApiOperation(value = "获取Job功能特性开关配置", produces = "application/json")
+    @GetMapping("/list")
+    Response<Map<String, Boolean>> listFeatureToggle(
+        @ApiIgnore
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+        String username
+    );
 }
