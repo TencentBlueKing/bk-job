@@ -49,7 +49,7 @@
             <td>{{ item.name }}</td>
             <td>{{ item.typeText }}</td>
             <td class="variable-value">
-              {{ item.value }}
+              <span> {{ item.value }}</span>
             </td>
           </tr>
         </tbody>
