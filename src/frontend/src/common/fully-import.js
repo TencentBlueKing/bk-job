@@ -31,6 +31,7 @@ import Vue from 'vue';
 import VueProgressBar from 'vue-progressbar';
 
 import CustomSettingsService from '@service/custom-settings';
+import FeatureService from '@service/feature';
 import HostManageService from '@service/host-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 
@@ -65,6 +66,8 @@ import TippyTips from '@components/tippy-tips';
 
 import createIpSelector from '@blueking/ip-selector';
 
+import i18n from '@/i18n';
+
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
 
@@ -93,14 +96,28 @@ const IpSelector = createIpSelector({
   fetchContainerCheck: HostManageService.fetchInputParseContainerList,
   fetchCustomSettings: CustomSettingsService.fetchAll,
   updateCustomSettings: CustomSettingsService.update,
-  fetchConfig: () => QueryGlobalSettingService.fetchRelatedSystemUrls()
-    .then(data => ({
+  fetchConfig: () => Promise.all([
+    QueryGlobalSettingService.fetchRelatedSystemUrls(),
+    FeatureService.fetchList(),
+  ])
+    .then(([systemUrls, featureData]) => ({
       // eslint-disable-next-line max-len
-      bk_cmdb_dynamic_group_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+      bk_cmdb_dynamic_group_url: `${systemUrls.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
       // eslint-disable-next-line max-len
-      bk_cmdb_static_topo_url: `${data.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
-      container_enable: true,
+      bk_cmdb_static_topo_url: `${systemUrls.BK_CMDB_ROOT_URL}/#/business/${window.PROJECT_CONFIG.SCOPE_ID}/custom-query`,
+      container_enable: featureData.containerExecution,
     })),
+  functionalDependency: { // 功能依赖展示
+    container: {
+      title: i18n.t('暂未开启“容器执行”功能'),
+      functionDesc: i18n.t('功能开启后，即可以基于配置平台的业务容器拓扑，对容器管理平台纳管的容器实例进行脚本指令执行和文件分发'),
+      guideTitle: i18n.t('如需使用该功能，须具备以下条件：'),
+      guideDescList: [
+        i18n.t('1. 部署容器管理平台（BCS）并开启容器拓扑同步至配置平台（CC）'),
+        i18n.t('2. 联系作业平台管理员打开容器执行功能'),
+      ],
+    },
+  },
 });
 
 Vue.use(bkMagicVue);
