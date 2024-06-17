@@ -35,7 +35,8 @@
       <div class="split-line" />
       <panel-tab
         v-model="activePanel"
-        :is-file="isFile" />
+        :is-file="isFile"
+        :is-task="isTask" />
       <div class="extend-box">
         <extend-download
           :active-panel="activePanel"
