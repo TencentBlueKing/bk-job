@@ -41,7 +41,6 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
@@ -195,14 +194,6 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
     )
     public Response<FileUploadSettingVO> getFileUploadSettings(String username) {
         return Response.buildSuccessResp(globalSettingsService.getFileUploadSettings());
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    public Response<PlatformInfoVO> savePlatformInfo(String username,
-                                                     @AuditRequestBody PlatformInfoVO platformInfoVO) {
-        PlatformInfoVO updatedPlatformInfo = globalSettingsService.savePlatformInfo(username, platformInfoVO);
-        return Response.buildSuccessResp(updatedPlatformInfo);
     }
 
     @Override

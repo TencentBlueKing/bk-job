@@ -76,14 +76,6 @@ public interface GlobalSettingsService {
     FileUploadSettingVO getFileUploadSettings();
 
     /**
-     * 全局设置-平台信息-保存
-     *
-     * @param username       用户名
-     * @param platformInfoVO 平台信息
-     */
-    PlatformInfoVO savePlatformInfo(String username, PlatformInfoVO platformInfoVO);
-
-    /**
      * 获取渲染之后的平台信息
      *
      * @return 渲染之后的平台信息

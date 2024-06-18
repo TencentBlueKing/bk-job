@@ -33,11 +33,9 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
 import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
@@ -700,87 +698,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         addEnableUploadToArtifactoryConfig(configMap);
         addEnableBkNoticeConfig(configMap);
         return configMap;
-    }
-
-    @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
-    )
-    public PlatformInfoVO savePlatformInfo(String username, PlatformInfoVO platformInfoVO) {
-        // 设置页面 footer/title 信息
-        saveTitleFooter(username, platformInfoVO);
-        // 设置助手信息
-        saveHelperInfo(platformInfoVO);
-        return getPlatformInfoVO();
-    }
-
-    private void saveTitleFooter(String username, PlatformInfoVO platformInfoVO) {
-        //参数校验
-        String lang = JobContextUtil.getUserLang();
-        if (platformInfoVO.getTitleHead() == null) {
-            platformInfoVO.setTitleHead("");
-        }
-        if (platformInfoVO.getTitleSeparator() == null) {
-            platformInfoVO.setTitleSeparator("");
-        }
-        if (platformInfoVO.getFooterLink() == null) {
-            platformInfoVO.setFooterLink("");
-        }
-        if (platformInfoVO.getFooterCopyRight() == null) {
-            platformInfoVO.setFooterCopyRight("");
-        }
-        GlobalSettingDTO titleFooterDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_TITLE_FOOTER);
-        if (titleFooterDTO == null) {
-            Map<String, TitleFooter> titleFooterLanguageMap = new HashMap<>();
-            titleFooterLanguageMap.put(
-                LocaleUtils.getNormalLang(lang), new TitleFooter(
-                    platformInfoVO.getTitleHead(),
-                    platformInfoVO.getTitleSeparator(),
-                    platformInfoVO.getFooterLink(),
-                    platformInfoVO.getFooterCopyRight()
-                ));
-            titleFooterDTO = new GlobalSettingDTO(
-                GlobalSettingKeys.KEY_TITLE_FOOTER, JsonUtils.toJson(
-                new TitleFooterDTO(
-                    titleFooterLanguageMap,
-                    username,
-                    TimeUtil.getCurrentTimeStr())),
-                String.format("Updated by %s at %s", username, DateUtils.defaultLocalDateTime(LocalDateTime.now())));
-            globalSettingDAO.insertGlobalSetting(titleFooterDTO);
-        } else {
-            Map<String, TitleFooter> titleFooterLanguageMap = JsonUtils.fromJson(titleFooterDTO.getValue(),
-                new TypeReference<TitleFooterDTO>() {
-                }).getTitleFooterLanguageMap();
-            titleFooterLanguageMap.put(
-                LocaleUtils.getNormalLang(lang), new TitleFooter(
-                    platformInfoVO.getTitleHead(),
-                    platformInfoVO.getTitleSeparator(),
-                    platformInfoVO.getFooterLink(),
-                    platformInfoVO.getFooterCopyRight()
-                ));
-            titleFooterDTO.setValue(JsonUtils.toJson(new TitleFooterDTO(titleFooterLanguageMap,
-                username, TimeUtil.getCurrentTimeStr())));
-            globalSettingDAO.updateGlobalSetting(titleFooterDTO);
-        }
-    }
-
-    private void saveHelperInfo(PlatformInfoVO platformInfoVO) {
-        HelperInfo helperInfo = new HelperInfo();
-        helperInfo.setContactLink(platformInfoVO.getHelperContactLink());
-
-        GlobalSettingDTO globalSetting = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_BK_HELPER);
-        if (globalSetting == null) {
-            globalSetting = new GlobalSettingDTO(GlobalSettingKeys.KEY_BK_HELPER,
-                JsonUtils.toJson(helperInfo), "helper info");
-            globalSettingDAO.insertGlobalSetting(globalSetting);
-        } else {
-            globalSetting.setValue(JsonUtils.toJson(helperInfo));
-            globalSettingDAO.updateGlobalSetting(globalSetting);
-        }
     }
 
     @Override
