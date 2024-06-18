@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.analysis.model.web.req;
 
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -33,7 +31,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -41,19 +38,28 @@ import javax.validation.constraints.NotNull;
 @Data
 public class AIAnalyzeErrorReq {
 
-    /**
-     * 脚本类型
-     */
-    @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：SQL")
-    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.ScriptType_illegal.message}")
-    private Integer type;
+    @ApiModelProperty(value = "任务ID")
+    private Long taskInstanceId;
 
-    /**
-     * 脚本内容
-     */
-    @ApiModelProperty(value = "脚本内容，BASE64编码")
-    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
+    @ApiModelProperty(value = "步骤ID")
+    private Long stepInstanceId;
+
+    @ApiModelProperty(value = "执行次数")
+    private Integer executeCount;
+
+    @ApiModelProperty(value = "滚动批次，非滚动步骤不需要传入")
+    private Integer batch;
+
+    @ApiModelProperty(value = "执行对象类型")
+    private Integer executeObjectType;
+
+    @ApiModelProperty(value = "执行对象资源 ID")
+    private Long executeObjectResourceId;
+
+    @ApiModelProperty(value = "文件任务上传下载标识,0-上传,1-下载")
+    private Integer mode;
+
+    @ApiModelProperty(value = "报错信息内容")
+    @NotEmpty(message = "{validation.constraints.AIAnalyzeErrorContent_empty.message}")
     private String content;
 }
