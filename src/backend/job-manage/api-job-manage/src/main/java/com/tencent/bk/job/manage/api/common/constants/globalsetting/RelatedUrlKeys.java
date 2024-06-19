@@ -37,6 +37,6 @@ public class RelatedUrlKeys {
     public static final String KEY_BK_DOC_JOB_ROOT_URL = "BK_DOC_JOB_ROOT_URL";
     // 问题反馈
     public static final String KEY_BK_FEED_BACK_ROOT_URL = "BK_FEED_BACK_ROOT_URL";
-    // 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址
-    public static final String KEY_BK_SHARED_RES_URL = "BK_SHARED_RES_URL";
+    // 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js基础地址
+    public static final String KEY_BK_SHARED_RES_BASE_JS_URL = "BK_SHARED_RES_BASE_JS_URL";
 }

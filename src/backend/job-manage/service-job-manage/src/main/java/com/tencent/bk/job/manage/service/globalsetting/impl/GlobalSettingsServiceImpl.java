@@ -631,8 +631,13 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return url;
     }
 
-    private String getBkSharedResUrl() {
-        return jobManageConfig.getBkSharedResUrl();
+    private String getBkSharedResBaseJsUrl() {
+        String bkSharedResUrl = jobManageConfig.getBkSharedResUrl();
+        if (StringUtils.isNotBlank(bkSharedResUrl)) {
+            // bkSharedResUrl配置了有效值才生效
+            return jobManageConfig.getBkSharedResUrl() + jobManageConfig.getBkSharedBaseJsPath();
+        }
+        return null;
     }
 
     private String getNodemanRootUrl() {
@@ -653,7 +658,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_URL, getBkSharedResUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
         return urlMap;
     }
 
