@@ -118,9 +118,10 @@ public class RunningJobResourceQuotaManager {
         Integer checkResourceQuotaResult;
         if (isJobFrom3rdApp) {
             long appLimit = runningJobResourceQuotaStore.getQuotaLimitByAppCode(appCode);
-            checkResourceQuotaResult = redisTemplate.execute(script, keyList, resourceScopeLimit, appLimit);
+            checkResourceQuotaResult = redisTemplate.execute(script, keyList, String.valueOf(resourceScopeLimit),
+                String.valueOf(appLimit));
         } else {
-            checkResourceQuotaResult = redisTemplate.execute(script, keyList, resourceScopeLimit);
+            checkResourceQuotaResult = redisTemplate.execute(script, keyList, String.valueOf(resourceScopeLimit));
         }
 
         long cost = System.currentTimeMillis() - startTime;
