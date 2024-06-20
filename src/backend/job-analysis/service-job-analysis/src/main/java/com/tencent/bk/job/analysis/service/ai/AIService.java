@@ -22,53 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.resp;
+package com.tencent.bk.job.analysis.service.ai;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI回答内容")
-@Data
-public class AIAnswer {
-
-    /**
-     * 错误码
-     */
-    @ApiModelProperty(value = "错误码")
-    private Integer errorCode;
-
-    /**
-     * 错误信息
-     */
-    @ApiModelProperty(value = "错误信息")
-    private String errorMessage;
-
-    /**
-     * 内容
-     */
-    @ApiModelProperty(value = "内容")
-    private String content;
-
-    /**
-     * 回答时间
-     */
-    @ApiModelProperty("回答时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long time;
-
-    public static AIAnswer successAnswer(String content) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode(0);
-        aiAnswer.setTime(System.currentTimeMillis());
-        aiAnswer.setContent(content);
-        return aiAnswer;
-    }
+public interface AIService {
+    AIAnswer getAIAnswer(String token, String userInput);
 }

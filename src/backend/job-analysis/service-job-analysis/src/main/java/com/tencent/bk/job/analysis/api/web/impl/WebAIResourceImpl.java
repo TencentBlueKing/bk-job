@@ -31,10 +31,14 @@ import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.UserInput;
+import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -45,6 +49,14 @@ import java.util.Map;
 @RestController("jobAnalysisWebAIResource")
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
+
+    private final AIService aiService;
+
+    @Autowired
+    public WebAIResourceImpl(AIService aiService) {
+        this.aiService = aiService;
+    }
+
     @Override
     public Response<Map<String, Object>> getAIConfig(String username,
                                                      AppResourceScope appResourceScope,
@@ -95,15 +107,13 @@ public class WebAIResourceImpl implements WebAIResource {
 
     @Override
     public Response<AIAnswer> generalChat(String username,
+                                          String bkTicket,
+                                          String bkToken,
                                           AppResourceScope appResourceScope,
                                           String scopeType,
                                           String scopeId,
                                           AIGeneralChatReq req) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setContent("我是AI小鲸");
-        aiAnswer.setErrorCode(0);
-        aiAnswer.setErrorMessage(null);
-        aiAnswer.setTime(System.currentTimeMillis());
+        AIAnswer aiAnswer = aiService.getAIAnswer(bkTicket, req.getContent());
         return Response.buildSuccessResp(aiAnswer);
     }
 

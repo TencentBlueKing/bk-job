@@ -22,53 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.resp;
+package com.tencent.bk.job.analysis.service.ai.impl;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.service.ai.AIService;
+import com.tencent.bk.job.common.aidev.IBkAIDevClient;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI回答内容")
-@Data
-public class AIAnswer {
+@Slf4j
+@Service
+public class AIServiceImpl implements AIService {
 
-    /**
-     * 错误码
-     */
-    @ApiModelProperty(value = "错误码")
-    private Integer errorCode;
+    private final IBkAIDevClient bkAIDevClient;
 
-    /**
-     * 错误信息
-     */
-    @ApiModelProperty(value = "错误信息")
-    private String errorMessage;
+    @Autowired
+    public AIServiceImpl(IBkAIDevClient bkAIDevClient) {
+        this.bkAIDevClient = bkAIDevClient;
+    }
 
-    /**
-     * 内容
-     */
-    @ApiModelProperty(value = "内容")
-    private String content;
-
-    /**
-     * 回答时间
-     */
-    @ApiModelProperty("回答时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long time;
-
-    public static AIAnswer successAnswer(String content) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode(0);
-        aiAnswer.setTime(System.currentTimeMillis());
-        aiAnswer.setContent(content);
-        return aiAnswer;
+    @Override
+    public AIAnswer getAIAnswer(String token, String userInput) {
+        return AIAnswer.successAnswer(bkAIDevClient.getHunYuanAnswer(token, userInput));
     }
 }
