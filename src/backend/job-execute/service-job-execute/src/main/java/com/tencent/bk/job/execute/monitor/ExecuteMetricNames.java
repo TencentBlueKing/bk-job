@@ -47,15 +47,15 @@ public class ExecuteMetricNames {
     /**
      * 任务结果处理线worker数
      */
-    public static final String GSE_RESULT_HANDLE_CONSUMERS = "job.result.handleConfigChange.workers";
+    public static final String GSE_RESULT_HANDLE_CONSUMERS = "job.result.handle.workers";
     /**
      * 任务结果处理调度超时的次数
      */
-    public static final String RESULT_HANDLE_DELAYED_SCHEDULES_TOTAL = "job.result.handleConfigChange.delayed.schedules.total";
+    public static final String RESULT_HANDLE_DELAYED_SCHEDULES_TOTAL = "job.result.handle.delayed.schedules.total";
     /**
      * 任务结果处理调度指标
      */
-    public static final String RESULT_HANDLE_TASK_SCHEDULE_PREFIX = "job.result.handleConfigChange.task.schedule";
+    public static final String RESULT_HANDLE_TASK_SCHEDULE_PREFIX = "job.result.handle.task.schedule";
     /**
      * 任务下发指标
      */
@@ -67,5 +67,5 @@ public class ExecuteMetricNames {
     /**
      * 等待被结果处理引擎处理的任务
      */
-    public static final String RESULT_HANDLE_WAITING_SCHEDULE_TASKS = "job.result.handleConfigChange.waiting.schedule.tasks";
+    public static final String RESULT_HANDLE_WAITING_SCHEDULE_TASKS = "job.result.handle.waiting.schedule.tasks";
 }

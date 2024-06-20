@@ -130,7 +130,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                 }
             }
         } catch (Throwable t) {
-            log.error("handleConfigChange app event fail", t);
+            log.error("handle app event fail", t);
         }
     }
 

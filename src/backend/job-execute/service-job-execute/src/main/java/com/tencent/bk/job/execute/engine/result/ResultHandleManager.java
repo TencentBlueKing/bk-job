@@ -90,7 +90,7 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 异步任务执行器，用于启动消费者线程
      */
-    private final Executor taskExecutor = new SimpleAsyncTaskExecutor("task-result-handleConfigChange-");
+    private final Executor taskExecutor = new SimpleAsyncTaskExecutor("task-result-handle-");
     /**
      * 最小任务处理线程
      */
@@ -230,7 +230,7 @@ public class ResultHandleManager implements SmartLifecycle {
 
     private void initWorker() {
         synchronized (workersMonitor) {
-            log.info("Init task result handleConfigChange workers, initial worker num: {}", CORE_WORKERS);
+            log.info("Init task result handle workers, initial worker num: {}", CORE_WORKERS);
             for (int workerCount = 0; workerCount < CORE_WORKERS; workerCount++) {
                 TaskWorker worker = new TaskWorker();
                 workers.add(worker);
@@ -263,7 +263,7 @@ public class ResultHandleManager implements SmartLifecycle {
         StopTaskCounter stopTaskCounter = null;
         synchronized (lifecycleMonitor) {
             if (!this.scheduledTasks.isEmpty()) {
-                log.info("Stop result handleConfigChange tasks, size: {}, tasks: {}", scheduledTasks.size(), scheduledTasks);
+                log.info("Stop result handle tasks, size: {}, tasks: {}", scheduledTasks.size(), scheduledTasks);
                 stopTaskCounter = StopTaskCounter.getInstance();
                 stopTaskCounter.initCounter(scheduledTasks.keySet());
             }

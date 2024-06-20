@@ -30,7 +30,7 @@ package com.tencent.bk.job.execute.common.exception;
 public class MessageHandleException extends RuntimeException {
 
     public MessageHandleException() {
-        super("Message handleConfigChange caught exception");
+        super("Message handle caught exception");
     }
 
     public MessageHandleException(String errorMessage) {

@@ -37,7 +37,7 @@ public class MetricsConstants {
     // 监听到的CMDB事件数量
     public static final String NAME_CMDB_EVENT_WATCHED_COUNT = "job.cmdb.event.watched.count";
     // CMDB事件从被监听到被处理完成耗时
-    public static final String NAME_CMDB_EVENT_HANDLE_TIME = "job.cmdb.event.handleConfigChange.time";
+    public static final String NAME_CMDB_EVENT_HANDLE_TIME = "job.cmdb.event.handle.time";
     // CMDB事件队列中的事件数量
     public static final String NAME_CMDB_EVENT_QUEUE_SIZE = "job.cmdb.event.queue.size";
     public static final String NAME_SYNC_APP_EXECUTOR_POOL_SIZE = "job.sync.app.executor.pool.size";

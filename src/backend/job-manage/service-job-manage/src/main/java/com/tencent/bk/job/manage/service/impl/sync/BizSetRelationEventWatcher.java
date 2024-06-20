@@ -106,7 +106,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                 }
                 break;
             default:
-                log.info("No need to handleConfigChange event: {}", event);
+                log.info("No need to handle event: {}", event);
                 break;
         }
     }
