@@ -22,34 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.aidev.exception;
 
-import lombok.Data;
+import com.tencent.bk.job.common.exception.InternalException;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+/**
+ * 调用AIDev接口异常
+ */
+@Getter
+@ToString
+public class BkAIDevException extends InternalException {
 
+    public BkAIDevException(Throwable cause, Integer errorCode, Object[] errorParams) {
+        super(cause, errorCode, errorParams);
+    }
 
-    private ApiGwConfig gse;
+    public BkAIDevException(String message, Integer errorCode) {
+        super(message, errorCode);
+    }
 
-    private ApiGwConfig bkNotice;
-
-    private ApiGwConfig bkAIDev;
-
-    private ApiGwConfig cmdb;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
+    public BkAIDevException(String message, Throwable cause, Integer errorCode) {
+        super(message, cause, errorCode);
     }
 }

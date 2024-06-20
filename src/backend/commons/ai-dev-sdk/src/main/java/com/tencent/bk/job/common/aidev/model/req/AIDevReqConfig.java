@@ -22,34 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.aidev.model.req;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+public class AIDevReqConfig {
 
+    public static String ACTION_CREATE = "create";
+    public static String MODEL_HUN_YUAN = "hunyuan";
 
-    private ApiGwConfig gse;
+    private String action;
 
-    private ApiGwConfig bkNotice;
+    private String model;
 
-    private ApiGwConfig bkAIDev;
-
-    private ApiGwConfig cmdb;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
+    public static AIDevReqConfig hunyuanConfig() {
+        return new AIDevReqConfig(ACTION_CREATE, MODEL_HUN_YUAN);
     }
 }

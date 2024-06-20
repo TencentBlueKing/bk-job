@@ -88,6 +88,10 @@ public class ErrorCode {
     // 消息通知中心接口数据异常
     public static final int BK_NOTICE_API_DATA_ERROR = 1217002;
 
+    // AIDev平台异常
+    // AIDev接口数据异常
+    public static final int BK_AI_DEV_API_DATA_ERROR = 1218001;
+
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
     public static final int PERMISSION_DENIED = 1238001;

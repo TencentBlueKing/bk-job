@@ -22,34 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.aidev.model.req;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+public class AIDevReq {
 
+    private AIDevReqData data;
 
-    private ApiGwConfig gse;
+    private AIDevReqConfig config;
 
-    private ApiGwConfig bkNotice;
-
-    private ApiGwConfig bkAIDev;
-
-    private ApiGwConfig cmdb;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
-    }
 }

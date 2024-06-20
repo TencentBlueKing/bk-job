@@ -22,34 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.config;
+package com.tencent.bk.job.common.aidev.config;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Data
-@ConfigurationProperties(prefix = "bk-api-gateway")
-public class BkApiGatewayProperties {
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({BkAIDevProperties.class, CustomPaasLoginProperties.class})
+public class AIDevAutoConfiguration {
 
-
-    private ApiGwConfig gse;
-
-    private ApiGwConfig bkNotice;
-
-    private ApiGwConfig bkAIDev;
-
-    private ApiGwConfig cmdb;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class ApiGwConfig {
-        /**
-         * 蓝鲸Api Gateway url
-         */
-        private String url;
+    @Bean
+    public BkAIDevClient bkAIDevClient(MeterRegistry meterRegistry,
+                                       AppProperties appProperties,
+                                       CustomPaasLoginProperties customPaasLoginProperties,
+                                       BkApiGatewayProperties bkApiGatewayProperties) {
+        return new BkAIDevClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
     }
+
 }
