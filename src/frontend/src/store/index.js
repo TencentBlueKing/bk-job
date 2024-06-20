@@ -27,6 +27,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 
 import distroFile from './modules/distro-file';
+import platformConfig from './modules/platform-config';
 
 Vue.use(Vuex);
 
@@ -48,7 +49,10 @@ const store = new Vuex.Store({
   // 模块
   modules: {
     distroFile,
+    platformConfig,
   },
 });
 
 export default store;
+
+export const useStore = () => store;

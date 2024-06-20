@@ -128,6 +128,8 @@
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
 
+  import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config';
+
   import I18n, { setLocale } from '@/i18n';
 
   import Layout from './layout-new';
@@ -143,10 +145,6 @@
     data() {
       return {
         loading: true,
-        titleConfig: {
-          titleHead: '',
-          titleSeparator: '',
-        },
         currentUser: {},
         appList: [],
         showSystemLog: false,
@@ -175,7 +173,6 @@
      */
     created() {
       this.fetchUserInfo();
-      this.fetchPlatformInfo();
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
     },
@@ -200,31 +197,24 @@
           });
       },
       /**
-       * @desc 获取系统title自定义配置
-       */
-      fetchPlatformInfo() {
-        QueryGlobalSettingService.fetchPlatformInfo()
-          .then((data) => {
-            this.titleConfig = data;
-            window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperContactLink;
-          })
-          .catch(() => {
-            this.titleConfig = {
-              titleHead: I18n.t('蓝鲸作业平台'),
-              titleSeparator: '|',
-            };
-          })
-          .finally(() => {
-            this.updateDocumentTitle();
-          });
-      },
-      /**
        * @desc 获取系统关联的外链
        */
       fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
+
+            return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
+              name: I18n.t('蓝鲸作业平台'),
+              brandName: '腾讯蓝鲸智云',
+              brandNameEn: 'BlueKing',
+            }).then((data) => {
+              window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperLink;
+              this.$store.commit('platformConfig/update', data);
+            })
+              .finally(() => {
+                this.updateDocumentTitle();
+              });
           });
       },
       fetchEnv() {
@@ -237,15 +227,15 @@
        * @desc 更新网站title
        */
       updateDocumentTitle() {
-        const { matched } = this.$route;
-        let title = this.titleConfig.titleHead;
-        matched.forEach((matcheRoute) => {
+        const routeMatchStack = [];
+        this.$route.matched.forEach((matcheRoute) => {
           if (matcheRoute.meta.title) {
-            title = `${title} ${this.titleConfig.titleSeparator} ${matcheRoute.meta.title}`;
+            routeMatchStack.push(matcheRoute.meta.title);
           }
         });
 
-        document.title = title;
+        setDocumentTitle(this.$store.state.platformConfig.i18n, routeMatchStack);
+        setShortcutIcon(this.$store.state.platformConfig.favIcon);
       },
       /**
        * @desc 切换语言
