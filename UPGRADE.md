@@ -77,3 +77,9 @@ echo $BK_CMDB_MONGODB_<tab>补全。
 
 ### 3.6.x -> 3.7.x  
 需要在更新Job后执行一次升级工具，用于为存量的作业模板/执行方案/定时任务/IP白名单中的主机数据添加hostId，以及迁移对所有业务生效的IP白名单数据。  
+
+### 3.7.x -> 3.8.x
+无需执行升级工具。  
+
+### 3.8.x -> 3.9.x
+需要在更新Job后执行一次升级工具，用于导出已配置的平台信息数据（title/footer/助手链接等），从3.9.3版本开始，作业平台改为使用基于BK-REPO的全局配置统一方案，升级任务运行后会输出平台信息全局配置base.js文件，以便于迁移之前用户已通过页面【平台管理-全局设置-平台信息】配置的数据：将该任务生成的base.js文件导入BK-REPO中（若已存在则覆盖），路径取值与chart values的bkSharedResUrl、bkSharedBaseJsPath配置项保持一致，默认为：${当前环境部署的BK-REPO根地址}/generic/blueking/bk-config/bk_job/base.js。 

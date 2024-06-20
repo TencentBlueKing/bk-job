@@ -36,12 +36,15 @@ import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
 import com.tencent.bk.job.manage.migration.UpdateAppIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdMigrationReq;
+import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
 import com.tencent.bk.job.manage.model.migration.MigrationRecordsResult;
 import com.tencent.bk.job.manage.model.migration.SetBizSetMigrationStatusReq;
 import com.tencent.bk.job.manage.model.migration.UpdateAppIdForWhiteIpMigrationReq;
+import com.tencent.bk.job.manage.service.globalsetting.BkPlatformInfoService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +68,7 @@ public class MigrationResource {
     private final UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask;
     private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
     private final AppScopeMappingService appScopeMappingService;
+    private final BkPlatformInfoService bkPlatformInfoService;
 
     @Autowired
     public MigrationResource(
@@ -74,7 +78,8 @@ public class MigrationResource {
         AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask,
         UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask,
         AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask,
-        AppScopeMappingService appScopeMappingService) {
+        AppScopeMappingService appScopeMappingService,
+        BkPlatformInfoService bkPlatformInfoService) {
         this.encryptDbAccountPasswordMigrationTask = encryptDbAccountPasswordMigrationTask;
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
@@ -82,6 +87,7 @@ public class MigrationResource {
         this.updateAppIdForWhiteIpMigrationTask = updateAppIdForWhiteIpMigrationTask;
         this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
         this.appScopeMappingService = appScopeMappingService;
+        this.bkPlatformInfoService = bkPlatformInfoService;
     }
 
     /**
@@ -150,5 +156,13 @@ public class MigrationResource {
         return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
             Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"AddHostIdMigrationTask",
                 JsonUtils.toJson(results)});
+    }
+
+    /**
+     * 获取蓝鲸统一规范的平台配置信息
+     */
+    @GetMapping("/action/getBkPlatformInfo")
+    public Response<BkPlatformInfo> getBkPlatformInfo() {
+        return Response.buildSuccessResp(bkPlatformInfoService.getCurrentBkPlatformInfo());
     }
 }

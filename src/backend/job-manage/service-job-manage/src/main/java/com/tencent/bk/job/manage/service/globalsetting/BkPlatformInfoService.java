@@ -22,21 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.common.constants.globalsetting;
+package com.tencent.bk.job.manage.service.globalsetting;
 
-public class RelatedUrlKeys {
-    // CMDB
-    public static final String KEY_BK_CMDB_ROOT_URL = "BK_CMDB_ROOT_URL";
-    // CMDB业务首页
-    public static final String KEY_BK_CMDB_APP_INDEX_URL = "BK_CMDB_APP_INDEX_URL";
-    // 节点管理
-    public static final String KEY_BK_NODEMAN_ROOT_URL = "BK_NODEMAN_ROOT_URL";
-    // 文档中心
-    public static final String KEY_BK_DOC_CENTER_ROOT_URL = "BK_DOC_CENTER_ROOT_URL";
-    // Job产品白皮书
-    public static final String KEY_BK_DOC_JOB_ROOT_URL = "BK_DOC_JOB_ROOT_URL";
-    // 问题反馈
-    public static final String KEY_BK_FEED_BACK_ROOT_URL = "BK_FEED_BACK_ROOT_URL";
-    // 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js基础地址
-    public static final String KEY_BK_SHARED_RES_BASE_JS_URL = "BK_SHARED_RES_BASE_JS_URL";
+import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
+
+public interface BkPlatformInfoService {
+    /**
+     * 获取当前使用的蓝鲸平台信息
+     *
+     * @return 当前使用的蓝鲸平台信息
+     */
+    BkPlatformInfo getCurrentBkPlatformInfo();
 }
