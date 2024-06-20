@@ -31,5 +31,5 @@ public interface QuotaResourceId {
     /**
      * 当前正在运行的作业实例
      */
-    String JOB_INSTANCE = "jobInstance";
+    String JOB_INSTANCE = "runningJob";
 }
