@@ -35,15 +35,14 @@
       @on-side-expand="handleSideExpandChange"
       @on-side-fixed="handleSideFixedChnage">
       <template slot="header">
-        <icon
-          style="font-size: 28px; color: #96a2b9;"
-          svg
-          type="job-logo"
-          @click="handleRouterChange('home')" />
+        <img
+          :src="store.state.platformConfig.appLogo"
+          style="width: 28px; height: 28px;"
+          @click="handleRouterChange('home')">
         <span
           class="site-title"
           @click="handleRouterChange('home')">
-          {{ $t('蓝鲸作业平台') }}
+          {{ siteName }}
         </span>
       </template>
       <template slot="headerCenter">
@@ -283,9 +282,9 @@
 </template>
 <script setup>
   import {
+    computed,
     ref,
-    watch,
-  } from 'vue';
+    watch  } from 'vue';
 
   import QueryGlobalSettingService from '@service/query-global-setting';
 
@@ -297,10 +296,14 @@
 
   import  NoticeComponent  from  '@blueking/notice-component-vue2';
 
+  import { useI18n } from '@/i18n';
   import {
     useRoute,
     useRouter,
   } from '@/router';
+  import { useStore } from '@/store';
+
+  const store = useStore();
 
   const TOGGLE_CACHE = 'navigation_toggle_status';
 
@@ -314,8 +317,11 @@
 
   const route = useRoute();
   const router = useRouter();
+  const { locale } = useI18n();
 
   const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
+
+  const siteName = computed(() => (locale === 'en-US' ? store.state.platformConfig.nameEn : store.state.platformConfig.name));
 
   watch(route, (currentRoute) => {
     routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);

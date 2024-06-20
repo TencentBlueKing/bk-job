@@ -56,7 +56,9 @@
               <template #default="{ jobNum }">
                 <span>{{ jobNum }}</span>
               </template>
-              <span slot="name">{{ $t('home.作业量') }}</span>
+              <template #name>
+                {{ $t('home.作业量') }}
+              </template>
             </work-statistics>
           </layout-card>
           <layout-card class="work-statistics-card">
@@ -66,7 +68,9 @@
               <template #default="{ scriptNum }">
                 <span>{{ scriptNum }}</span>
               </template>
-              <span slot="name">{{ $t('home.脚本量') }}</span>
+              <template #name>
+                {{ $t('home.脚本量') }}
+              </template>
             </work-statistics>
           </layout-card>
         </div>
@@ -85,11 +89,13 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
   import * as marked from 'marked';
+  import { computed } from 'vue';
   import xss from 'xss';
 
-  import QueryGlobalSettingService from '@service/query-global-setting';
+  import { useI18n } from '@/i18n';
+  import { useStore } from '@/store';
 
   import Agent from './components/agent/index.vue';
   import LayoutCard from './components/card';
@@ -109,35 +115,12 @@
     });
   };
 
-  export default {
-    name: '',
-    components: {
-      LayoutCard,
-      User,
-      Agent,
-      WorkStatistics,
-      FavorTask,
-      HistoryRecord,
-    },
-    data() {
-      return {
-        footerLink: '',
-        footerCopyRight: '',
-      };
-    },
-    created() {
-      this.fetchTitleAndFooter();
-    },
-    methods: {
-      fetchTitleAndFooter() {
-        QueryGlobalSettingService.fetchFooterConfig()
-          .then((data) => {
-            this.footerLink = xssHTML(marked.parse(`${data.footerLink}`));
-            this.footerCopyRight = xssHTML(marked.parse(data.footerCopyRight));
-          });
-      },
-    },
-  };
+  const store = useStore();
+
+  const { locale } = useI18n();
+
+  const footerLink = computed(() => xssHTML(marked.parse(`${locale === 'en-US' ? store.state.platformConfig.footerInfoEn : store.state.platformConfig.footerInfo}`)));
+  const footerCopyRight = computed(() => xssHTML(marked.parse(store.state.platformConfig.footerCopyright.replace('{{version}}', process.env.JOB_VERSION))));
 </script>
 <style lang='postcss'>
   .page-home {

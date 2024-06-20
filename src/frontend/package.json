@@ -18,6 +18,7 @@
     "@blueking/login-modal": "1.0.4",
     "@blueking/notice-component-vue2": "2.0.0-beta.2",
     "@blueking/paas-login": "0.0.11",
+    "@blueking/platform-config": "1.0.2",
     "@blueking/sub-saas": "0.0.0-beta.6",
     "@blueking/user-selector": "1.0.12",
     "@vue/babel-preset-jsx": "1.4.0",
