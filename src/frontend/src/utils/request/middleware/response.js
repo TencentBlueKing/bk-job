@@ -26,7 +26,8 @@
 import AuthResultModel from '@model/auth-result';
 
 import EventBus from '@utils/event-bus';
-import { showLoginModal } from '@blueking/login-modal'
+
+import { showLoginModal } from '@blueking/login-modal';
 
 import {
   messageError,
@@ -94,8 +95,8 @@ export default (interceptors) => {
       case 401:
         if (hasLogined) {
           showLoginModal({
-            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(`${window.location.origin}/static/login_success.html`)}`
-          })
+            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(`${window.location.origin}/static/login_success.html`)}`,
+          });
         } else {
           window.location.href = `${error.message}is_from_logout=1&c_url=${decodeURIComponent(window.location.href)}`;
         }

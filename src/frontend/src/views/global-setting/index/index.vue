@@ -39,9 +39,6 @@
         :label="$t('setting.账号命名规则')"
         name="account" />
       <bk-tab-panel
-        :label="$t('setting.平台信息')"
-        name="platform" />
-      <bk-tab-panel
         :label="$t('setting.文件上传设置')"
         name="fileUpload" />
     </bk-tab>
@@ -61,7 +58,6 @@
   import AccountRule from './pages/account-rule';
   import FileUpload from './pages/file-upload';
   import NotifyManage from './pages/notify-manage';
-  import PlatformInfo from './pages/platform-info';
   import StorageStrategy from './pages/storage-strategy';
 
   export default {
@@ -70,7 +66,6 @@
       NotifyManage,
       StorageStrategy,
       AccountRule,
-      PlatformInfo,
       FileUpload,
     },
     data() {
@@ -87,7 +82,6 @@
           notify: NotifyManage,
           strategy: StorageStrategy,
           account: AccountRule,
-          platform: PlatformInfo,
           fileUpload: FileUpload,
         };
         return pageMap[this.page];

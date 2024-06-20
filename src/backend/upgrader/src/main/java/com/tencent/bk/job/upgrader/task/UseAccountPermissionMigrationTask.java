@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.upgrader.task;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -35,8 +33,6 @@ import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
 import com.tencent.bk.job.common.iam.dto.EsbIamPathItem;
 import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
-import com.tencent.bk.job.common.jwt.BasicJwtManager;
-import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.ExecuteTimeEnum;
@@ -84,12 +80,6 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
     private List<BasicAppInfo> basicAppInfoList;
     private Map<Long, String> appInfoMap;
 
-    private String getJobHostUrlByAddress(String address) {
-        if (!address.startsWith("http://") && !address.startsWith("https://")) {
-            address = "http://" + address;
-        }
-        return address;
-    }
 
     public UseAccountPermissionMigrationTask(Properties properties) {
         super(properties);
@@ -103,23 +93,7 @@ public class UseAccountPermissionMigrationTask extends BaseUpgradeTask {
             (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_IAM_BASE_URL),
             (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL)
         );
-        String securityPublicKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
-        String securityPrivateKeyBase64 =
-            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
-        JwtManager jwtManager;
-        try {
-            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
-        } catch (Exception e) {
-            String msg = "Fail to generate jwt auth token";
-            log.error(msg, e);
-            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
-        }
-        String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
-        jobManageClient = new JobClient(
-            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
-            jobAuthToken
-        );
+        jobManageClient = getJobManageClient();
         this.basicAppInfoList = getAllNormalAppInfoFromManage();
         appInfoMap = new HashMap<>();
         basicAppInfoList.forEach(basicAppInfo -> appInfoMap.put(basicAppInfo.getAppId(), basicAppInfo.getName()));
