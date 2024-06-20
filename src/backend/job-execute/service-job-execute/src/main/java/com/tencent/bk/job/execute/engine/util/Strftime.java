@@ -244,7 +244,7 @@ public class Strftime {
         boolean newInside = oldInside;
 
         //O and E are modifiers, they mean to present an alternative representation of the next char
-        //we just handle the next char as if the O or E wasn't there
+        //we just handleConfigChange the next char as if the O or E wasn't there
         if (firstChar == 'O' || firstChar == 'E') {
             if (index + 1 < pattern.length()) {
                 newInside = translateCommand(buf, pattern, index + 1, oldInside);

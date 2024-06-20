@@ -354,7 +354,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
             watch.start("get-lock");
             if (!LockUtils.tryGetReentrantLock(lockKey, requestId, 30000L)) {
-                log.error("Fail to get result handle lock, lockKey: {}", lockKey);
+                log.error("Fail to get result handleConfigChange lock, lockKey: {}", lockKey);
                 this.executeResult = GseTaskExecuteResult.DISCARDED;
                 return;
             }
@@ -382,7 +382,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 watch.stop();
             }
         } catch (Throwable e) {
-            log.error("[" + gseTaskInfo + "]: result handle error.", e);
+            log.error("[" + gseTaskInfo + "]: result handleConfigChange error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
             finishGseTask(this.executeResult, true);
         } finally {
@@ -392,14 +392,14 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 watch.stop();
             }
             if (watch.getTotalTimeMillis() > 1000L) {
-                log.warn("AbstractResultHandleTask-> handle task result is slow, run statistics:{}",
+                log.warn("AbstractResultHandleTask-> handleConfigChange task result is slow, run statistics:{}",
                     watch.prettyPrint());
             }
         }
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
-        return "job:result:handle:" + gseTask.getId();
+        return "job:result:handleConfigChange:" + gseTask.getId();
     }
 
     private boolean checkTaskActiveAndSetRunningStatus() {

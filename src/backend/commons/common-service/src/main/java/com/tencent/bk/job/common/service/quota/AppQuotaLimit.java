@@ -22,35 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Slf4j
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.file_gateway",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api"
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 配额限制-蓝鲸应用
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class AppQuotaLimit extends QuotaLimit {
+
+    /**
+     * 解析之后的自定义应用配额限制
+     */
+    private Map<String, Long> customLimits = new HashMap<>();
+
+    public AppQuotaLimit(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
+        super(capacityExpr, globalLimitExpr, customLimitExpr);
     }
-)
-@EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceQuotaLimitProperties.class})
-public class JobFileGatewayBootApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobFileGatewayBootApplication.class, args);
+    public long getLimit(String bkAppCode) {
+        Long limit = customLimits.get(bkAppCode);
+        if (limit == null) {
+            limit = getGlobalLimit();
+        }
+        return limit;
     }
 }

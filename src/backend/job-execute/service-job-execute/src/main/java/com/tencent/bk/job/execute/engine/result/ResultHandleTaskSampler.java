@@ -117,7 +117,7 @@ public class ResultHandleTaskSampler {
                     getFunctionByCounter(counter)
                 ).tags(Arrays.asList(
                     Tag.of("appId", appId.toString()),
-                    Tag.of("stage", "result-handle"),
+                    Tag.of("stage", "result-handleConfigChange"),
                     Tag.of("type", "file")
                 )).register(meterRegistry);
                 statisticsUnit.setGauge(handlingFileTasksGauge);
@@ -133,7 +133,7 @@ public class ResultHandleTaskSampler {
                     debugFunctionByCounter(counter)
                 ).tags(Arrays.asList(
                     Tag.of("appId", appId.toString()),
-                    Tag.of("stage", "result-handle"),
+                    Tag.of("stage", "result-handleConfigChange"),
                     Tag.of("type", "script")
                 )).register(meterRegistry);
                 statisticsUnit.setGauge(handlingScriptTasksGauge);
@@ -146,7 +146,7 @@ public class ResultHandleTaskSampler {
                     ExecuteMetricNames.GSE_RUNNING_TASKS,
                     Arrays.asList(
                         Tag.of("appId", appId.toString()),
-                        Tag.of("stage", "result-handle"),
+                        Tag.of("stage", "result-handleConfigChange"),
                         Tag.of("type", "all-since-job-boot")
                     ),
                     counter,

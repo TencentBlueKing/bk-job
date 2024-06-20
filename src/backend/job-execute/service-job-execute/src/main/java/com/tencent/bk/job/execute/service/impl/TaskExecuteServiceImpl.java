@@ -69,7 +69,8 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.engine.quota.limit.RunningJobQuoteManager;
+import com.tencent.bk.job.execute.engine.quota.limit.ResourceQuotaCheckResultEnum;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
@@ -166,7 +167,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
 
-    private final RunningJobQuoteManager runningJobQuoteManager;
+    private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -187,7 +188,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   RollingConfigService rollingConfigService,
                                   ServiceTaskTemplateResource taskTemplateResource,
                                   TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
-                                  RunningJobQuoteManager runningJobQuoteManager) {
+                                  RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -204,7 +205,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.taskTemplateResource = taskTemplateResource;
         this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
-        this.runningJobQuoteManager = runningJobQuoteManager;
+        this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
     }
 
     @Override
@@ -257,13 +258,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
         StopWatch watch = new StopWatch("executeFastTask");
-        // 检查正在执行的作业配额限制
-        checkRunningJobQuotaLimit(appId);
-        // 检查任务是否应当被驱逐
-        checkTaskEvict(taskInstance);
-        standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
-        adjustStepTimeout(stepInstance);
         try {
+            watch.start("checkRunningJobQuoteLimit");
+            // 检查正在执行的作业配额限制
+            checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
+            watch.stop();
+
+            // 检查任务是否应当被驱逐
+            checkTaskEvict(taskInstance);
+
+            standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
+            adjustStepTimeout(stepInstance);
+
             // 设置账号信息
             watch.start("checkAndSetAccountInfo");
             checkAndSetAccountInfo(stepInstance, appId);
@@ -314,12 +320,22 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     /*
      * 检查正在执行的作业配额限制，防止单个业务占用所有的执行引擎调度资源
      */
-    private void checkRunningJobQuotaLimit(Long appId) {
+    private void checkRunningJobQuotaLimit(Long appId, String appCode) {
         ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
-        if (runningJobQuoteManager.isExceedJobQuotaLimit(resourceScope)) {
-            log.warn("ResourceQuotaLimit-runningJobInstance exceed quota limit, resourceScope: {}",
-                resourceScope.getResourceScopeUniqueId());
-            throw new RunningJobInstanceQuotaExceedException();
+        ResourceQuotaCheckResultEnum checkResult = runningJobResourceQuotaManager.checkResourceQuotaLimit(
+            appCode, resourceScope);
+        switch (checkResult) {
+            case NO_LIMIT:
+                break;
+            case RESOURCE_SCOPE_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed resource scope quota limit, resourceScope: {}",
+                    resourceScope.getResourceScopeUniqueId());
+                throw new RunningJobInstanceQuotaExceedException(
+                    ErrorCode.RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
+            case APP_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed app quota limit, appCode: {}", appCode);
+                throw new RunningJobInstanceQuotaExceedException(
+                    ErrorCode.RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT);
         }
     }
 
@@ -360,9 +376,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.stop();
 
         // 记录到当前正在运行的任务存储中，用于配额限制
-        watch.start("addRunningJobQuota");
-        runningJobQuoteManager.addJob(GlobalAppScopeMappingService.get()
-            .getScopeByAppId(taskInstance.getAppId()), taskInstanceId);
+        watch.start("addRunningJobResourceQuota");
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstanceId
+        );
         watch.stop();
     }
 
@@ -889,10 +908,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private TaskInstanceDTO executeJobPlanInternal(StopWatch watch, TaskExecuteParam executeParam, TaskInfo taskInfo) {
         try {
             // 检查正在执行的作业配额限制
-            checkRunningJobQuotaLimit(taskInfo.getTaskInstance().getAppId());
+            TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
+            watch.start("checkRunningJobQuoteLimit");
+            checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
+            watch.stop();
 
             ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
-            TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
             taskInstance.setPlan(jobPlan);
             List<StepInstanceDTO> stepInstanceList = taskInfo.getStepInstances();
             taskInstance.setStepInstances(stepInstanceList);

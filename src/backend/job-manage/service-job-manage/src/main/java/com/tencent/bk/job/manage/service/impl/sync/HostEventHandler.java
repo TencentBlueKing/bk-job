@@ -82,7 +82,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
     }
 
     private void handleOneEventRelatedToApp(ResourceEvent<HostEventDetail> event) {
-        log.info("start to handle host event:{}", JsonUtils.toJson(event));
+        log.info("start to handleConfigChange host event:{}", JsonUtils.toJson(event));
         handleOneEventIndeed(event);
     }
 
@@ -116,7 +116,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                 int affectedNum = pair.getRight();
                 if (affectedNum == 0) {
                     log.info(
-                        "no host affected after handle according to lastTime, " +
+                        "no host affected after handleConfigChange according to lastTime, " +
                             "try to query latest host from cmdb and update"
                     );
                     // 从CMDB查询最新主机信息

@@ -22,30 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package com.tencent.bk.job.common.refreshable.config;
 
 /**
- * 配额限制 Spring AutoConfiguration
+ * 配置刷新处理
  */
-@Configuration(proxyBeanMethods = false)
-public class ResourceQuotaAutoConfiguration {
-
-    @Bean
-    public ResourceQuotaStore resourceQuotaStore() {
-        return new ResourceQuotaStore();
-    }
-
-    @Bean
-    public ResourceScopeResourceQuotaManager resourceScopeResourceQuotaManager(ResourceQuotaStore resourceQuotaStore) {
-        return new ResourceScopeResourceQuotaManager(resourceQuotaStore);
-    }
-
-    @Bean
-    public ResourceQuotaLoadApplicationRunner resourceQuotaLoadApplicationRunner(
-            ResourceQuotaStore resourceQuotaStore) {
-        return new ResourceQuotaLoadApplicationRunner(resourceQuotaStore);
-    }
+public interface ConfigRefreshHandler {
+    /**
+     * 处理配置动态刷新
+     *
+     * @return 是否成功处理
+     */
+    boolean handleConfigChange();
 }

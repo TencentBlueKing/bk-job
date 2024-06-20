@@ -24,33 +24,31 @@
 
 package com.tencent.bk.job.common.service.quota.config;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaLoadApplicationRunner;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
+import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 资源配额限制
+ * 配额限制 Spring AutoConfiguration
  */
-@Data
-@NoArgsConstructor
-public class ResourceQuotaConfig {
-    /**
-     * 配额容量表达式，表示整个作业平台能使用的最大资源
-     */
-    private String capacity;
+@Configuration(proxyBeanMethods = false)
+public class ResourceQuotaAutoConfiguration {
 
-    /**
-     * 默认业务配额表达式
-     */
-    private String globalLimit;
+    @Bean
+    public ResourceQuotaStore resourceQuotaStore() {
+        return new ResourceQuotaStore();
+    }
 
-    /**
-     * 自定义业务配额表达式。会覆盖全局业务配额的配置
-     */
-    private String customLimit;
+    @Bean
+    public RunningJobResourceQuotaStore resourceScopeResourceQuotaManager(ResourceQuotaStore resourceQuotaStore) {
+        return new RunningJobResourceQuotaStore(resourceQuotaStore);
+    }
 
-    public ResourceQuotaConfig(String capacity, String globalLimit, String customLimit) {
-        this.capacity = capacity;
-        this.globalLimit = globalLimit;
-        this.customLimit = customLimit;
+    @Bean
+    public ResourceQuotaLoadApplicationRunner resourceQuotaLoadApplicationRunner(
+            ResourceQuotaStore resourceQuotaStore) {
+        return new ResourceQuotaLoadApplicationRunner(resourceQuotaStore);
     }
 }

@@ -24,18 +24,36 @@
 
 package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.quota.config.ResourceQuotaConfig;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import lombok.Data;
 
 /**
- * 资源配额配置解析
+ * 资源配额限制-正在执行的作业
  */
-public interface ResourceQuotaConfigParser {
+@Data
+public class RunningJobResourceQuotaLimit extends ResourceQuotaLimit {
 
     /**
-     * 解析配额配置信息
-     *
-     * @param resourceQuotaConfig 配置
-     * @return 资源配额
+     * 资源管理空间配额限制
      */
-    ResourceQuota parse(ResourceQuotaConfig resourceQuotaConfig) throws ResourceQuotaConfigParseException;
+    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
+
+    /**
+     * 应用配额限制
+     */
+    private AppQuotaLimit appQuotaLimit;
+
+    public long getLimitByResourceScope(ResourceScope resourceScope) {
+        if (resourceScopeQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return resourceScopeQuotaLimit.getLimit(resourceScope);
+    }
+
+    public long getLimitByBkAppCode(String bkAppCode) {
+        if (appQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return appQuotaLimit.getLimit(bkAppCode);
+    }
 }

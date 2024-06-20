@@ -22,30 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota.config;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
+import lombok.NoArgsConstructor;
 
 /**
- * 配置-资源管理空间下的配额限制
+ * 配额限制基础类
  */
-@ConfigurationProperties(prefix = "job.resource-scope-quota-limit", ignoreInvalidFields = true)
 @Data
-@Slf4j
-public class ResourceScopeResourceQuotaConfig {
+@NoArgsConstructor
+public class QuotaLimit {
     /**
-     * 配额限制配置。 key: 资源名；value: 配额配置
+     * 配额容量表达式
      */
-    private Map<String, ResourceQuotaConfig> limitedResources;
+    protected String capacityExpr;
 
-    @PostConstruct
-    public void print() {
-        log.info("ResourceScopeQuotaConfig init: {}", JsonUtils.toJson(this));
+    /**
+     * 全局配额表达式
+     */
+    protected String globalLimitExpr;
+
+    /**
+     * 自定义配额表达式，会覆盖全局配额的配置
+     */
+    protected String customLimitExpr;
+
+    /**
+     * 解析之后的配额总量限制
+     */
+    private Long capacity;
+
+    /**
+     * 解析之后的全局业务配额限制
+     */
+    private Long globalLimit;
+
+    public QuotaLimit(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
+        this.capacityExpr = capacityExpr;
+        this.globalLimitExpr = globalLimitExpr;
+        this.customLimitExpr = customLimitExpr;
     }
 }

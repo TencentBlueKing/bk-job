@@ -4,4 +4,4 @@ com.tencent.bk.job.common.service.lb.JobLoadBalancerClientAutoConfiguration, \
 com.tencent.bk.job.common.service.deploy.DeployAutoConfiguration, \
 com.tencent.bk.job.common.service.feature.FeatureToggleAutoConfiguration, \
 com.tencent.bk.job.common.service.CommonServiceAutoConfiguration, \
-com.tencent.bk.job.common.service.quota.ResourceQuotaAutoConfiguration
+com.tencent.bk.job.common.service.quota.config.ResourceQuotaAutoConfiguration

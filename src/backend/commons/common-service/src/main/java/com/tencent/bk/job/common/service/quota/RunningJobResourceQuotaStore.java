@@ -27,29 +27,45 @@ package com.tencent.bk.job.common.service.quota;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 
 /**
- * 业务资源配额管理
+ * 资源配额存储-正在执行中的作业数量配额限制
  */
-public class ResourceScopeResourceQuotaManager {
+public class RunningJobResourceQuotaStore {
 
     private final ResourceQuotaStore resourceQuotaStore;
 
-    public ResourceScopeResourceQuotaManager(ResourceQuotaStore resourceQuotaStore) {
+    public RunningJobResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
         this.resourceQuotaStore = resourceQuotaStore;
     }
 
     /**
-     * 获取业务当前正在执行作业配额限制
+     * 根据资源管理空间获取正在执行作业配额限制
      *
      * @param resourceScope 资源管理空间
      * @return 最大正在执行作业限制
      */
-    public long getJobInstanceQuota(ResourceScope resourceScope) {
-        ResourceQuota resourceQuota = resourceQuotaStore.getResourceQuota(QuotaResourceId.JOB_INSTANCE);
-        if (resourceQuota == null) {
+    public long getQuotaLimitByResourceScope(ResourceScope resourceScope) {
+        ResourceQuotaLimit resourceQuotaLimit = resourceQuotaStore.getResourceQuota(QuotaResourceId.JOB_INSTANCE);
+        if (resourceQuotaLimit == null) {
             // 不限制
             return Long.MAX_VALUE;
         }
-        CounterResourceQuota jobInstanceResourceQuota = (CounterResourceQuota) resourceQuota;
-        return jobInstanceResourceQuota.getLimit(resourceScope);
+        RunningJobResourceQuotaLimit runningJobResourceQuotaLimit = (RunningJobResourceQuotaLimit) resourceQuotaLimit;
+        return runningJobResourceQuotaLimit.getLimitByResourceScope(resourceScope);
+    }
+
+    /**
+     * 根据应用 Code 获取正在执行作业配额限制
+     *
+     * @param appCode 蓝鲸应用 App Code
+     * @return 最大正在执行作业限制
+     */
+    public long getQuotaLimitByAppCode(String appCode) {
+        ResourceQuotaLimit resourceQuotaLimit = resourceQuotaStore.getResourceQuota(QuotaResourceId.JOB_INSTANCE);
+        if (resourceQuotaLimit == null) {
+            // 不限制
+            return Long.MAX_VALUE;
+        }
+        RunningJobResourceQuotaLimit runningJobResourceQuotaLimit = (RunningJobResourceQuotaLimit) resourceQuotaLimit;
+        return runningJobResourceQuotaLimit.getLimitByBkAppCode(appCode);
     }
 }

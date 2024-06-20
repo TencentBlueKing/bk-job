@@ -22,35 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-@Slf4j
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.file_gateway",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api"
-    }
-)
-@EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceQuotaLimitProperties.class})
-public class JobFileGatewayBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobFileGatewayBootApplication.class, args);
-    }
+/**
+ * 资源配额限制-基础类
+ */
+public class ResourceQuotaLimit {
 }

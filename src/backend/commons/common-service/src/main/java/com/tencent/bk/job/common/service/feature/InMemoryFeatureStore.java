@@ -74,17 +74,20 @@ public class InMemoryFeatureStore implements FeatureStore {
     }
 
     @Override
-    public void load(boolean ignoreException) {
+    public boolean load(boolean ignoreException) {
+        boolean loadResult = true;
         try {
             loadInternal();
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
+            loadResult = false;
             if (ignoreException) {
                 log.warn("Ignore feature config load error");
             } else {
                 throw e;
             }
         }
+        return loadResult;
     }
 
     private void loadInternal() {

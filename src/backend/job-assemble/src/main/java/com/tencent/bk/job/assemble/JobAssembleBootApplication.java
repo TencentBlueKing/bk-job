@@ -26,7 +26,7 @@ package com.tencent.bk.job.assemble;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
+import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
@@ -52,7 +52,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 )
 @EnableCaching
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceScopeResourceQuotaConfig.class})
+@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceQuotaLimitProperties.class})
 @EnableFeignClients(basePackages = "com.tencent.bk.job")
 public class JobAssembleBootApplication {
 

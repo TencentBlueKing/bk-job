@@ -176,7 +176,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         task.execute();
         long executeCost = System.currentTimeMillis() - executeStart;
         if (executeCost > 2000) {
-            log.warn("Result handle task execution is slow, task: {}, cost: {}", task, executeCost);
+            log.warn("Result handleConfigChange task execution is slow, task: {}, cost: {}", task, executeCost);
         }
     }
 

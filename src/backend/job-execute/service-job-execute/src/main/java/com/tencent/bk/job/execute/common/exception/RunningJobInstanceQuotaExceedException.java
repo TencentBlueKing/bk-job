@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.common.exception;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 
 /**
@@ -32,7 +31,7 @@ import com.tencent.bk.job.common.exception.ResourceExhaustedException;
  */
 public class RunningJobInstanceQuotaExceedException extends ResourceExhaustedException {
 
-    public RunningJobInstanceQuotaExceedException() {
-        super(ErrorCode.RESOURCE_QUOTA_LIMIT_JOB_INSTANCE);
+    public RunningJobInstanceQuotaExceedException(Integer errorCode) {
+        super(errorCode);
     }
 }

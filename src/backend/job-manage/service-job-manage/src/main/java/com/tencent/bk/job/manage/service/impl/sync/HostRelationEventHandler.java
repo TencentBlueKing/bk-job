@@ -85,15 +85,15 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
     }
 
     private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
-        log.info("start to handle host relation event:{}", JsonUtils.toJson(event));
+        log.info("start to handleConfigChange host relation event:{}", JsonUtils.toJson(event));
         StopWatch watch = new StopWatch();
         watch.start("handleOneEventIndeed");
         handleOneEventIndeed(event);
         watch.stop();
         if (watch.getTotalTimeMillis() > 3000) {
-            log.warn("PERF:SLOW:handle hostRelationEvent:" + watch.prettyPrint());
+            log.warn("PERF:SLOW:handleConfigChange hostRelationEvent:" + watch.prettyPrint());
         } else {
-            log.debug("handle hostRelationEvent:" + watch.prettyPrint());
+            log.debug("handleConfigChange hostRelationEvent:" + watch.prettyPrint());
         }
     }
 
@@ -117,7 +117,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
                 // 更新主机缓存
                 boolean cacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
                 log.info(
-                    "create event handle result: insertedHostTopoNum={}, affectedHostNum={}, cacheUpdated={}",
+                    "create event handleConfigChange result: insertedHostTopoNum={}, affectedHostNum={}, cacheUpdated={}",
                     insertedHostTopoNum,
                     affectedHostNum,
                     cacheUpdated
@@ -138,7 +138,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
                     // 更新主机缓存
                     boolean deleteEventCacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
                     log.info(
-                        "delete event handle result: deletedHostTopoNum={}, deleteEventAffectedHostNum={}," +
+                        "delete event handleConfigChange result: deletedHostTopoNum={}, deleteEventAffectedHostNum={}," +
                             " deleteEventCacheUpdated={}",
                         deletedHostTopoNum,
                         deleteEventAffectedHostNum,

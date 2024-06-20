@@ -22,35 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.common.service.quota.config.parser;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaConfigParseException;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaLimit;
+import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 
 /**
- * 资源配额基础类
+ * 资源配额配置解析
  */
-@Data
-@NoArgsConstructor
-public class ResourceQuota {
-    /**
-     * 配额容量表达式
-     */
-    protected String capacityExpr;
+public interface ResourceQuotaConfigParser {
 
     /**
-     * 全局业务配额表达式
+     * 解析配额配置信息
+     *
+     * @param resourceQuotaLimitProp 资源配额限制的配置
+     * @return 资源配额
      */
-    protected String globalLimitExpr;
-
-    /**
-     * 自定义业务配额表达式，会覆盖全局业务配额的配置
-     */
-    protected String customLimitExpr;
-
-    public ResourceQuota(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        this.capacityExpr = capacityExpr;
-        this.globalLimitExpr = globalLimitExpr;
-        this.customLimitExpr = customLimitExpr;
-    }
+    ResourceQuotaLimit parse(ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp)
+        throws ResourceQuotaConfigParseException;
 }

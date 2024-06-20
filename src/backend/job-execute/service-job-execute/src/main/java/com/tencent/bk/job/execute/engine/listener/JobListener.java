@@ -34,7 +34,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
-import com.tencent.bk.job.execute.engine.quota.limit.RunningJobQuoteManager;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -67,7 +67,7 @@ public class JobListener {
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
 
-    private final RunningJobQuoteManager runningJobQuoteManager;
+    private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -76,14 +76,14 @@ public class JobListener {
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
                        NotifyService notifyService,
-                       RunningJobQuoteManager runningJobQuoteManager) {
+                       RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
-        this.runningJobQuoteManager = runningJobQuoteManager;
+        this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
     }
 
 
@@ -252,7 +252,8 @@ public class JobListener {
         taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
         // 从资源配额中删除该作业实例
-        runningJobQuoteManager.removeJob(
+        runningJobResourceQuotaManager.removeJob(
+            taskInstance.getAppCode(),
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
             jobInstanceId
         );

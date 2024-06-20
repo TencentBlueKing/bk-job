@@ -44,7 +44,7 @@ public class JobExecuteConfig {
     @Value("${feature.toggle.auth-account.gray.apps:}")
     private String accountAuthGrayApps;
 
-    @Value("${job.execute.result.handle.tasks.limit: 2000}")
+    @Value("${job.execute.result.handleConfigChange.tasks.limit: 2000}")
     private int resultHandleTasksLimit;
 
     /**

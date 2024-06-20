@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.quota.config.ResourceQuotaConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceScopeResourceQuotaConfig;
+import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
+import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
+import com.tencent.bk.job.common.service.quota.config.parser.ResourceQuotaConfigParser;
+import com.tencent.bk.job.common.service.quota.config.parser.RunningJobQuotaConfigParser;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -38,19 +40,19 @@ import java.util.Map;
  * 配额限制存储
  */
 @Slf4j
-public class ResourceQuotaStore {
+public class ResourceQuotaStore implements ConfigRefreshHandler {
 
     /**
-     * key: QuotaResourceId; value: ResourceQuota
+     * key: QuotaResourceId; value: ResourceQuotaLimit
      */
-    private volatile Map<String, ResourceQuota> resourceQuotas = new HashMap<>();
+    private volatile Map<String, ResourceQuotaLimit> resourceQuotas = new HashMap<>();
     /**
      * 是否初始化
      */
     private volatile boolean isInitial = false;
 
 
-    public ResourceQuota getResourceQuota(String resourceId) {
+    public ResourceQuotaLimit getResourceQuota(String resourceId) {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
@@ -61,42 +63,45 @@ public class ResourceQuotaStore {
         return resourceQuotas.get(resourceId);
     }
 
-    public void load(boolean ignoreException) {
+    public boolean load(boolean ignoreException) {
+        boolean loadResult = true;
         try {
             loadInternal();
         } catch (Throwable e) {
             log.warn("Load ResourceQuota error", e);
+            loadResult = false;
             if (ignoreException) {
                 log.warn("Ignore ResourceQuota load error");
             } else {
                 throw e;
             }
         }
+        return loadResult;
     }
 
     private void loadInternal() {
         synchronized (this) {
             log.info("Load ResourceQuota start ...");
-            ResourceScopeResourceQuotaConfig resourceScopeResourceQuotaConfig =
-                ApplicationContextRegister.getBean(ResourceScopeResourceQuotaConfig.class);
+            ResourceQuotaLimitProperties resourceQuotaLimitProperties =
+                ApplicationContextRegister.getBean(ResourceQuotaLimitProperties.class);
 
-            if (resourceScopeResourceQuotaConfig.getLimitedResources() == null
-                || resourceScopeResourceQuotaConfig.getLimitedResources().isEmpty()) {
+            if (resourceQuotaLimitProperties.getResources() == null
+                || resourceQuotaLimitProperties.getResources().isEmpty()) {
                 log.info("ResourceQuota empty!");
                 return;
             }
 
-            log.info("Parse ResourceQuota config: {}", JsonUtils.toJson(resourceScopeResourceQuotaConfig));
+            log.info("Parse ResourceQuota config: {}", JsonUtils.toJson(resourceQuotaLimitProperties));
 
-            Map<String, ResourceQuota> tmpResourceQuotas = new HashMap<>();
-            resourceScopeResourceQuotaConfig.getLimitedResources()
+            Map<String, ResourceQuotaLimit> tmpResourceQuotaLimits = new HashMap<>();
+            resourceQuotaLimitProperties.getResources()
                 .forEach((resourceId, resourceQuotaConfig) -> {
-                    ResourceQuota resourceQuota = parseResourceQuotaConfig(resourceId, resourceQuotaConfig);
-                    tmpResourceQuotas.put(resourceId, resourceQuota);
+                    ResourceQuotaLimit resourceQuotaLimit = parseResourceQuotaConfig(resourceId, resourceQuotaConfig);
+                    tmpResourceQuotaLimits.put(resourceId, resourceQuotaLimit);
                 });
 
             // 使用新的配置完全替换老的配置
-            resourceQuotas = tmpResourceQuotas;
+            resourceQuotas = tmpResourceQuotaLimits;
             log.info("Load ResourceQuota config done! resourceQuotas: {}", resourceQuotas);
             isInitial = true;
         }
@@ -105,13 +110,13 @@ public class ResourceQuotaStore {
     /**
      * 解析特性配置
      *
-     * @param resourceId          资源 ID
-     * @param resourceQuotaConfig 配置信息
+     * @param resourceId             资源 ID
+     * @param resourceQuotaLimitProp 配置信息
      * @throws ResourceQuotaConfigParseException 如果解析报错，抛出异常
      */
-    private ResourceQuota parseResourceQuotaConfig(
+    private ResourceQuotaLimit parseResourceQuotaConfig(
         String resourceId,
-        ResourceQuotaConfig resourceQuotaConfig
+        ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp
     ) throws ResourceQuotaConfigParseException {
 
         if (StringUtils.isBlank(resourceId)) {
@@ -120,7 +125,7 @@ public class ResourceQuotaStore {
         }
 
         ResourceQuotaConfigParser configParser = chooseResourceQuotaConfigParser(resourceId);
-        return configParser.parse(resourceQuotaConfig);
+        return configParser.parse(resourceQuotaLimitProp);
     }
 
 
@@ -128,12 +133,17 @@ public class ResourceQuotaStore {
         ResourceQuotaConfigParser configParser;
         switch (resourceId) {
             case QuotaResourceId.JOB_INSTANCE:
-                configParser = new CounterResourceQuotaConfigParser();
+                configParser = new RunningJobQuotaConfigParser();
                 break;
             default:
                 log.error("Unsupported resource: {}", resourceId);
                 throw new ResourceQuotaConfigParseException("Unsupported resource: " + resourceId);
         }
         return configParser;
+    }
+
+    @Override
+    public boolean handleConfigChange() {
+        return load(true);
     }
 }

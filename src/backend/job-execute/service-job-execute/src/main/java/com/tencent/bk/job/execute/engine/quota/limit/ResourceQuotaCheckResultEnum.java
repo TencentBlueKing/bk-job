@@ -22,49 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.execute.engine.quota.limit;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+public enum ResourceQuotaCheckResultEnum {
 
-import java.util.HashMap;
-import java.util.Map;
+    NO_LIMIT(1),
+    RESOURCE_SCOPE_LIMIT(2),
+    APP_LIMIT(3);
 
-/**
- * 计数类型的资源配额
- */
-@EqualsAndHashCode(callSuper = true)
-@Data
-@NoArgsConstructor
-public class CounterResourceQuota extends ResourceQuota {
+    private final Integer value;
 
-    /**
-     * 解析之后的配额总量限制
-     */
-    private Long capacity;
-
-    /**
-     * 解析之后的全局业务配额限制
-     */
-    private Long globalLimit;
-
-    /**
-     * 解析之后的自定义业务配额限制
-     */
-    private Map<String, Long> customResourceScopeLimits = new HashMap<>();
-
-    public CounterResourceQuota(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        super(capacityExpr, globalLimitExpr, customLimitExpr);
+    ResourceQuotaCheckResultEnum(Integer value) {
+        this.value = value;
     }
 
-    public long getLimit(ResourceScope resourceScope) {
-        String resourceScopeUniqueId = resourceScope.getResourceScopeUniqueId();
-        Long limit = customResourceScopeLimits.get(resourceScopeUniqueId);
-        if (limit == null) {
-            limit = globalLimit;
+    public static ResourceQuotaCheckResultEnum valOf(Integer value) {
+        if (value == null) return null;
+        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
+            if (resultEnum.value.equals(value)) {
+                return resultEnum;
+            }
         }
-        return limit;
+        throw new IllegalArgumentException("No QuotaCheckResultEnum constant: " + value);
     }
 }
