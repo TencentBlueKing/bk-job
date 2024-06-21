@@ -120,7 +120,7 @@
   const { locale } = useI18n();
 
   const footerLink = computed(() => xssHTML(marked.parse(`${locale === 'en-US' ? store.state.platformConfig.footerInfoEn : store.state.platformConfig.footerInfo}`)));
-  const footerCopyRight = computed(() => xssHTML(marked.parse(store.state.platformConfig.footerCopyright.replace('{{version}}', process.env.JOB_VERSION))));
+  const footerCopyRight = computed(() => xssHTML(marked.parse(store.state.platformConfig.footerCopyrightContent)));
 </script>
 <style lang='postcss'>
   .page-home {
