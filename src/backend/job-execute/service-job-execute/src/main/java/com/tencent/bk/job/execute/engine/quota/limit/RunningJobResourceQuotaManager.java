@@ -81,6 +81,7 @@ public class RunningJobResourceQuotaManager {
     }
 
     public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
+        long startTime = System.currentTimeMillis();
         String resourceScopeZSetKey = buildResourceScopeRunningJobZSetKey(resourceScope);
         long currentTimestamp = System.currentTimeMillis();
         redisTemplate.opsForZSet().add(resourceScopeZSetKey, String.valueOf(jobInstanceId), currentTimestamp);
@@ -88,14 +89,23 @@ public class RunningJobResourceQuotaManager {
             String appZSetKey = buildAppRunningJobZSetKey(appCode);
             redisTemplate.opsForZSet().add(appZSetKey, String.valueOf(jobInstanceId), currentTimestamp);
         }
+        long cost = System.currentTimeMillis() - startTime;
+        if (log.isDebugEnabled()) {
+            log.debug("Add job to RunningJobResourceQuotaCache cost : {} ms", cost);
+        }
     }
 
     public void removeJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
+        long startTime = System.currentTimeMillis();
         String resourceScopeZSetKey = buildResourceScopeRunningJobZSetKey(resourceScope);
         redisTemplate.opsForZSet().remove(resourceScopeZSetKey, String.valueOf(jobInstanceId));
         if (StringUtils.isNotEmpty(appCode)) {
             String appZSetKey = buildAppRunningJobZSetKey(appCode);
             redisTemplate.opsForZSet().remove(appZSetKey, String.valueOf(jobInstanceId));
+        }
+        long cost = System.currentTimeMillis() - startTime;
+        if (log.isDebugEnabled()) {
+            log.debug("Remove job from RunningJobResourceQuotaCache cost : {} ms", cost);
         }
     }
 
@@ -113,8 +123,8 @@ public class RunningJobResourceQuotaManager {
         boolean isJobFrom3rdApp = StringUtils.isNotEmpty(appCode);
 
         List<String> keyList = new ArrayList<>();
-        keyList.add("job:execute:running:job:resource:scope:" + resourceScope.getResourceScopeUniqueId());
-        keyList.add(isJobFrom3rdApp ? "job:execute:running:job:app:" + appCode : "None");
+        keyList.add(buildResourceScopeRunningJobZSetKey(resourceScope));
+        keyList.add(isJobFrom3rdApp ? buildAppRunningJobZSetKey(appCode) : "None");
 
         long resourceScopeLimit = runningJobResourceQuotaStore.getQuotaLimitByResourceScope(resourceScope);
 
