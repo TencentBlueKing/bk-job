@@ -52,11 +52,13 @@ public class RunningJobResourceQuotaManager {
     private static final String CHECK_QUOTA_LUA_SCRIPT =
         "local resource_scope_key = KEYS[1]\n" +
             "local resource_scope_limit = tonumber(ARGV[1])\n" +
+            "\n" +
             "local running_job_count_resource_scope = tonumber(redis.call('zcard', resource_scope_key) or \"0\")\n" +
             "redis.call('expire', resource_scope_key, 86400)\n" +
             "if running_job_count_resource_scope >= resource_scope_limit then\n" +
-            "  return 2\n" +
+            "  return \"resource_scope_quota_limit\"\n" +
             "end\n" +
+            "\n" +
             "if KEYS[2] ~= \"None\" then\n" +
             "  local app_key = KEYS[2]\n" +
             "  local app_limit = tonumber(ARGV[2])\n" +
@@ -65,10 +67,11 @@ public class RunningJobResourceQuotaManager {
             "  redis.call('expire', app_key, 86400)\n" +
             "  \n" +
             "  if running_job_count_app >= app_limit then\n" +
-            "    return 3\n" +
+            "    return \"app_quota_limit\"\n" +
             "  end\n" +
             "end\n" +
-            "return 1";
+            "\n" +
+            "return \"no_limit\"";
 
 
     public RunningJobResourceQuotaManager(StringRedisTemplate redisTemplate,
@@ -104,7 +107,7 @@ public class RunningJobResourceQuotaManager {
      */
     public ResourceQuotaCheckResultEnum checkResourceQuotaLimit(String appCode, ResourceScope resourceScope) {
         long startTime = System.currentTimeMillis();
-        RedisScript<Integer> script = RedisScript.of(CHECK_QUOTA_LUA_SCRIPT, Integer.class);
+        RedisScript<String> script = RedisScript.of(CHECK_QUOTA_LUA_SCRIPT, String.class);
 
         // 是否通过第三方应用方式调用作业平台产生的作业
         boolean isJobFrom3rdApp = StringUtils.isNotEmpty(appCode);
@@ -115,7 +118,7 @@ public class RunningJobResourceQuotaManager {
 
         long resourceScopeLimit = runningJobResourceQuotaStore.getQuotaLimitByResourceScope(resourceScope);
 
-        Integer checkResourceQuotaResult;
+        String checkResourceQuotaResult;
         if (isJobFrom3rdApp) {
             long appLimit = runningJobResourceQuotaStore.getQuotaLimitByAppCode(appCode);
             checkResourceQuotaResult = redisTemplate.execute(script, keyList, String.valueOf(resourceScopeLimit),

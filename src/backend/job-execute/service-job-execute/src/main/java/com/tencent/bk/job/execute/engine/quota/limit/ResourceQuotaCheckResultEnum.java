@@ -26,17 +26,17 @@ package com.tencent.bk.job.execute.engine.quota.limit;
 
 public enum ResourceQuotaCheckResultEnum {
 
-    NO_LIMIT(1),
-    RESOURCE_SCOPE_LIMIT(2),
-    APP_LIMIT(3);
+    NO_LIMIT("no_limit"),
+    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
+    APP_LIMIT("app_quota_limit");
 
-    private final Integer value;
+    private final String value;
 
-    ResourceQuotaCheckResultEnum(Integer value) {
+    ResourceQuotaCheckResultEnum(String value) {
         this.value = value;
     }
 
-    public static ResourceQuotaCheckResultEnum valOf(Integer value) {
+    public static ResourceQuotaCheckResultEnum valOf(String value) {
         if (value == null) return null;
         for (ResourceQuotaCheckResultEnum resultEnum : values()) {
             if (resultEnum.value.equals(value)) {
