@@ -139,12 +139,6 @@ public class BkPlatformInfoServiceImpl implements BkPlatformInfoService {
             if (titleFooterLanguageMap != null) {
                 TitleFooter englishTitleFooter = getEnglishTitleFooter(titleFooterLanguageMap);
                 TitleFooter chineseTitleFooter = getChineseTitleFooter(titleFooterLanguageMap);
-                if (englishTitleFooter == null) {
-                    englishTitleFooter = chineseTitleFooter;
-                }
-                if (chineseTitleFooter == null) {
-                    chineseTitleFooter = englishTitleFooter;
-                }
                 if (englishTitleFooter != null) {
                     defaultBkPlatformInfo.setNameEn(englishTitleFooter.getTitleHead());
                     defaultBkPlatformInfo.setFooterInfoEn(englishTitleFooter.getFooterLink());
