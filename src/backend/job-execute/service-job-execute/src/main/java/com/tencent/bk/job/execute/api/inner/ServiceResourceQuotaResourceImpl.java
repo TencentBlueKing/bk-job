@@ -57,10 +57,13 @@ public class ServiceResourceQuotaResourceImpl implements ServiceResourceQuotaRes
     @Override
     public InternalResponse<RunningJobQuotaUsage> getRunningJobQuotaUsage() {
         try {
+            log.info("getRunningJobQuotaUsage start");
             RunningJobQuotaUsage runningJobQuotaUsage = new RunningJobQuotaUsage();
             runningJobQuotaUsage.setTotal(runningJobResourceQuotaManager.getRunningJobTotal());
             runningJobQuotaUsage.setAppCount(runningJobResourceQuotaManager.getAppRunningJobCount());
             runningJobQuotaUsage.setResourceScopeCount(runningJobResourceQuotaManager.getResourceScopeRunningJobCount());
+            log.info("runningJobQuotaUsage : {}", runningJobQuotaUsage);
+
             return InternalResponse.buildSuccessResp(runningJobQuotaUsage);
         } catch (Throwable e) {
             log.error("GetRunningJobQuotaUsage error", e);
