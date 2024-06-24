@@ -31,16 +31,13 @@ import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
-import com.tencent.bk.job.analysis.model.web.resp.UserInput;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,43 +75,6 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(
             chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList())
         );
-    }
-
-    public List<AIChatRecord> mockLatestChatHistoryList(String username,
-                                                        AppResourceScope appResourceScope,
-                                                        String scopeType,
-                                                        String scopeId,
-                                                        Integer start,
-                                                        Integer length) {
-        List<AIChatRecord> aiChatRecordList = new ArrayList<>();
-        AIChatRecord record = new AIChatRecord();
-        UserInput userInput = new UserInput();
-        userInput.setContent("你是谁");
-        userInput.setTime(System.currentTimeMillis());
-        record.setUserInput(userInput);
-        ThreadUtils.sleep(1000);
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setContent("我是AI小鲸");
-        aiAnswer.setErrorCode("0");
-        aiAnswer.setErrorMessage(null);
-        aiAnswer.setTime(System.currentTimeMillis());
-        record.setAiAnswer(aiAnswer);
-        aiChatRecordList.add(record);
-
-        AIChatRecord record2 = new AIChatRecord();
-        UserInput userInput2 = new UserInput();
-        userInput2.setContent("Hello");
-        userInput2.setTime(System.currentTimeMillis());
-        record2.setUserInput(userInput2);
-        ThreadUtils.sleep(1000);
-        AIAnswer aiAnswer2 = new AIAnswer();
-        aiAnswer2.setContent("World");
-        aiAnswer2.setErrorCode("0");
-        aiAnswer2.setErrorMessage(null);
-        aiAnswer2.setTime(System.currentTimeMillis());
-        record2.setAiAnswer(aiAnswer2);
-        aiChatRecordList.add(record2);
-        return aiChatRecordList;
     }
 
     @Override
