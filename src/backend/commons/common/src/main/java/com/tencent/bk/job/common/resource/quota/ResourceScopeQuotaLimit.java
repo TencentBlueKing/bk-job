@@ -22,14 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.common.resource.quota;
+
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 配额限制的资源 ID 定义
+ * 配额限制-资源管理空间
  */
-public interface QuotaResourceId {
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class ResourceScopeQuotaLimit extends QuotaLimit {
+
     /**
-     * 当前正在运行的作业实例
+     * 解析之后的自定义业务配额限制
      */
-    String JOB_INSTANCE = "runningJob";
+    private Map<String, Long> customLimits = new HashMap<>();
+
+    public ResourceScopeQuotaLimit(String globalLimitExpr, String customLimitExpr) {
+        super(globalLimitExpr, customLimitExpr);
+    }
+
+    public long getLimit(ResourceScope resourceScope) {
+        String resourceScopeUniqueId = resourceScope.toResourceScopeUniqueId();
+        Long limit = customLimits.get(resourceScopeUniqueId);
+        if (limit == null) {
+            limit = getGlobalLimit();
+        }
+        return limit;
+    }
 }

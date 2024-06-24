@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.common.service.quota.config.parser;
 
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaConfigParseException;
-import com.tencent.bk.job.common.service.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 
 /**

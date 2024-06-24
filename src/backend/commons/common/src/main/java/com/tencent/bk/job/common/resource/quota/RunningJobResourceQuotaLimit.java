@@ -22,28 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.quota.limit;
+package com.tencent.bk.job.common.resource.quota;
 
-public enum ResourceQuotaCheckResultEnum {
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import lombok.Data;
 
-    NO_LIMIT("no_limit"),
-    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
-    APP_LIMIT("app_quota_limit"),
-    SYSTEM_LIMIT("system_quota_limit");
+/**
+ * 资源配额限制-正在执行的作业
+ */
+@Data
+public class RunningJobResourceQuotaLimit extends ResourceQuotaLimit {
 
-    private final String value;
+    /**
+     * 资源管理空间配额限制
+     */
+    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
 
-    ResourceQuotaCheckResultEnum(String value) {
-        this.value = value;
+    /**
+     * 应用配额限制
+     */
+    private AppQuotaLimit appQuotaLimit;
+
+    public long getLimitByResourceScope(ResourceScope resourceScope) {
+        if (resourceScopeQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return resourceScopeQuotaLimit.getLimit(resourceScope);
     }
 
-    public static ResourceQuotaCheckResultEnum valOf(String value) {
-        if (value == null) return null;
-        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
-            if (resultEnum.value.equals(value)) {
-                return resultEnum;
-            }
+    public long getLimitByBkAppCode(String bkAppCode) {
+        if (appQuotaLimit == null) {
+            return Long.MAX_VALUE;
         }
-        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
+        return appQuotaLimit.getLimit(bkAppCode);
     }
 }

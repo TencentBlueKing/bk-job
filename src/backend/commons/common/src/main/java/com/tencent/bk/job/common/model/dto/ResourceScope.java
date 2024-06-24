@@ -75,7 +75,7 @@ public class ResourceScope {
         return type == ResourceScopeTypeEnum.BIZ_SET;
     }
 
-    public String getResourceScopeUniqueId() {
+    public String toResourceScopeUniqueId() {
         return type.getValue() + ":" + id;
     }
 

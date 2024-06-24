@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.service.quota.config.parser;
 
-import com.tencent.bk.job.common.service.quota.AppQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.AppQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.ResourceScopeQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.RunningJobResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaConfigParseException;
-import com.tencent.bk.job.common.service.quota.ResourceQuotaLimit;
-import com.tencent.bk.job.common.service.quota.ResourceScopeQuotaLimit;
-import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,11 +43,15 @@ public class RunningJobQuotaConfigParser extends AbstractResourceQuotaConfigPars
 
         RunningJobResourceQuotaLimit resourceQuota = new RunningJobResourceQuotaLimit();
         try {
+            resourceQuota.setCapacityExpr(resourceQuotaLimitProp.getCapacity());
+            Long capacity = parseCapacity(resourceQuotaLimitProp.getCapacity());
+            resourceQuota.setCapacity(capacity);
+
             ResourceQuotaLimitProperties.QuotaLimitProp resourceScopeQuotaLimitProp
                 = resourceQuotaLimitProp.getResourceScopeQuotaLimit();
             if (resourceScopeQuotaLimitProp != null) {
                 ResourceScopeQuotaLimit resourceScopeQuotaLimit = parseResourceScopeQuotaLimit(
-                    resourceQuotaLimitProp.getCapacity(),
+                    capacity,
                     resourceScopeQuotaLimitProp.getGlobal(),
                     resourceScopeQuotaLimitProp.getCustom()
                 );
@@ -58,7 +62,7 @@ public class RunningJobQuotaConfigParser extends AbstractResourceQuotaConfigPars
                 = resourceQuotaLimitProp.getAppQuotaLimit();
             if (resourceQuotaLimitProp.getAppQuotaLimit() != null) {
                 AppQuotaLimit appQuotaLimit = parseAppQuotaLimit(
-                    resourceQuotaLimitProp.getCapacity(),
+                    capacity,
                     appQuotaLimitProp.getGlobal(),
                     appQuotaLimitProp.getCustom()
                 );

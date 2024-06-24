@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.common.service.quota.config.parser;
 
-import com.tencent.bk.job.common.service.quota.AppQuotaLimit;
-import com.tencent.bk.job.common.service.quota.QuotaLimit;
-import com.tencent.bk.job.common.service.quota.ResourceScopeQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.AppQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.QuotaLimit;
+import com.tencent.bk.job.common.resource.quota.ResourceScopeQuotaLimit;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -40,17 +40,14 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
 
     protected abstract Long parseCapacity(String capacityExpr);
 
-    protected ResourceScopeQuotaLimit parseResourceScopeQuotaLimit(String capacityExpr,
+    protected ResourceScopeQuotaLimit parseResourceScopeQuotaLimit(Long capacity,
                                                                    String globalLimitExpr,
                                                                    String customLimitExpr) {
 
         ResourceScopeQuotaLimit resourceScopeQuotaLimit = new ResourceScopeQuotaLimit(
-            capacityExpr,
             globalLimitExpr,
             customLimitExpr
         );
-        Long capacity = parseCapacity(capacityExpr);
-        resourceScopeQuotaLimit.setCapacity(capacity);
 
         parseGlobalLimit(resourceScopeQuotaLimit, capacity, globalLimitExpr);
         resourceScopeQuotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
@@ -58,16 +55,13 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
         return resourceScopeQuotaLimit;
     }
 
-    protected AppQuotaLimit parseAppQuotaLimit(String capacityExpr,
+    protected AppQuotaLimit parseAppQuotaLimit(Long capacity,
                                                String globalLimitExpr,
                                                String customLimitExpr) {
         AppQuotaLimit appQuotaLimit = new AppQuotaLimit(
-            capacityExpr,
             globalLimitExpr,
             customLimitExpr
         );
-        Long capacity = parseCapacity(capacityExpr);
-        appQuotaLimit.setCapacity(capacity);
 
         parseGlobalLimit(appQuotaLimit, capacity, globalLimitExpr);
         appQuotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));

@@ -22,45 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.common.resource.quota;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 配额限制基础类
+ * 资源配额限制-基础类
  */
 @Data
-@NoArgsConstructor
-public class QuotaLimit {
+public class ResourceQuotaLimit {
     /**
      * 配额容量表达式
      */
-    protected String capacityExpr;
-
+    private String capacityExpr;
     /**
-     * 全局配额表达式
-     */
-    protected String globalLimitExpr;
-
-    /**
-     * 自定义配额表达式，会覆盖全局配额的配置
-     */
-    protected String customLimitExpr;
-
-    /**
-     * 解析之后的配额总量限制
+     * 解析后的配额总量限制
      */
     private Long capacity;
-
-    /**
-     * 解析之后的全局业务配额限制
-     */
-    private Long globalLimit;
-
-    public QuotaLimit(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        this.capacityExpr = capacityExpr;
-        this.globalLimitExpr = globalLimitExpr;
-        this.customLimitExpr = customLimitExpr;
-    }
 }

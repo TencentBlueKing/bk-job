@@ -25,6 +25,9 @@
 package com.tencent.bk.job.common.service.quota;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.resource.quota.QuotaResourceId;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.RunningJobResourceQuotaLimit;
 
 /**
  * 资源配额存储-正在执行中的作业数量配额限制
@@ -67,5 +70,20 @@ public class RunningJobResourceQuotaStore {
         }
         RunningJobResourceQuotaLimit runningJobResourceQuotaLimit = (RunningJobResourceQuotaLimit) resourceQuotaLimit;
         return runningJobResourceQuotaLimit.getLimitByBkAppCode(appCode);
+    }
+
+    /**
+     * 获取整个Job 系统 正在执行作业配额限制
+     *
+     * @return 最大正在执行作业限制
+     */
+    public long getSystemQuotaLimit() {
+        ResourceQuotaLimit resourceQuotaLimit = resourceQuotaStore.getResourceQuota(QuotaResourceId.JOB_INSTANCE);
+        if (resourceQuotaLimit == null) {
+            // 不限制
+            return Long.MAX_VALUE;
+        }
+        RunningJobResourceQuotaLimit runningJobResourceQuotaLimit = (RunningJobResourceQuotaLimit) resourceQuotaLimit;
+        return runningJobResourceQuotaLimit.getCapacity();
     }
 }

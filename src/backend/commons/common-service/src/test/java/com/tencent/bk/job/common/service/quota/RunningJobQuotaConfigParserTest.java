@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service.quota;
 
+import com.tencent.bk.job.common.resource.quota.RunningJobResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import com.tencent.bk.job.common.service.quota.config.parser.RunningJobQuotaConfigParser;
 import org.junit.jupiter.api.Test;
@@ -46,19 +47,19 @@ class RunningJobQuotaConfigParserTest {
 
         RunningJobResourceQuotaLimit resourceQuota =
             (RunningJobResourceQuotaLimit) parser.parse(resourceQuotaLimitProp);
-        assertThat(resourceQuota.getResourceScopeQuotaLimit().getCapacityExpr()).isEqualTo("1000");
+
+        assertThat(resourceQuota.getCapacityExpr()).isEqualTo("1000");
+        assertThat(resourceQuota.getCapacity()).isEqualTo(1000L);
+
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimitExpr()).isEqualTo("1%");
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimitExpr()).isEqualTo("biz:2=10%,biz:3=15%");
-        assertThat(resourceQuota.getResourceScopeQuotaLimit().getCapacity()).isEqualTo(1000L);
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimit()).isEqualTo(10L);
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits()).isNotEmpty();
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits().get("biz:2")).isEqualTo(100L);
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits().get("biz:3")).isEqualTo(150L);
 
-        assertThat(resourceQuota.getAppQuotaLimit().getCapacityExpr()).isEqualTo("1000");
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimitExpr()).isEqualTo("2%");
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimitExpr()).isEqualTo("bk-soap=20%,bk-nodeman=10%");
-        assertThat(resourceQuota.getAppQuotaLimit().getCapacity()).isEqualTo(1000L);
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimit()).isEqualTo(20L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits()).isNotEmpty();
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(200L);
@@ -79,19 +80,19 @@ class RunningJobQuotaConfigParserTest {
 
         RunningJobResourceQuotaLimit resourceQuota =
             (RunningJobResourceQuotaLimit) parser.parse(resourceQuotaLimitProp);
-        assertThat(resourceQuota.getResourceScopeQuotaLimit().getCapacityExpr()).isNull();
+
+        assertThat(resourceQuota.getCapacityExpr()).isNull();
+        assertThat(resourceQuota.getCapacity()).isNull();
+
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimitExpr()).isEqualTo("10");
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimitExpr()).isEqualTo("biz:2=100,biz:3=150");
-        assertThat(resourceQuota.getResourceScopeQuotaLimit().getCapacity()).isNull();
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimit()).isEqualTo(10L);
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits()).isNotEmpty();
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits().get("biz:2")).isEqualTo(100L);
         assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits().get("biz:3")).isEqualTo(150L);
 
-        assertThat(resourceQuota.getAppQuotaLimit().getCapacityExpr()).isNull();
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimitExpr()).isEqualTo("20");
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimitExpr()).isEqualTo("bk-soap=100,bk-nodeman=150");
-        assertThat(resourceQuota.getAppQuotaLimit().getCapacity()).isNull();
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimit()).isEqualTo(20L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits()).isNotEmpty();
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(100L);

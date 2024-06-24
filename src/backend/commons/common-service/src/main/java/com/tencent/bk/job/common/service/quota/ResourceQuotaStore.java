@@ -25,6 +25,8 @@
 package com.tencent.bk.job.common.service.quota;
 
 import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
+import com.tencent.bk.job.common.resource.quota.QuotaResourceId;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import com.tencent.bk.job.common.service.quota.config.parser.ResourceQuotaConfigParser;
 import com.tencent.bk.job.common.service.quota.config.parser.RunningJobQuotaConfigParser;
@@ -53,6 +55,16 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
 
 
     public ResourceQuotaLimit getResourceQuota(String resourceId) {
+        checkLoad();
+        return resourceQuotas.get(resourceId);
+    }
+
+    public Map<String, ResourceQuotaLimit> getAll() {
+        checkLoad();
+        return resourceQuotas;
+    }
+
+    private void checkLoad() {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
@@ -60,7 +72,6 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
                 }
             }
         }
-        return resourceQuotas.get(resourceId);
     }
 
     public boolean load(boolean ignoreException) {

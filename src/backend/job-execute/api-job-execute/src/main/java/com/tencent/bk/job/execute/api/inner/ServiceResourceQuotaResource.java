@@ -22,37 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.execute.api.inner;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
+import com.tencent.bk.job.execute.model.inner.RunningJobQuotaUsage;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 配额限制-蓝鲸应用
+ * 正在执行中的作业资源配额相关 API
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-@NoArgsConstructor
-public class AppQuotaLimit extends QuotaLimit {
+@Api(tags = {"job-execute:service:RunningJobResourceQuota"})
+@RestController
+@InternalAPI
+@RequestMapping("/service/resourceQuota")
+public interface ServiceResourceQuotaResource {
+    @ApiOperation(value = "获取配额限制配置", produces = "application/json")
+    @GetMapping("/config")
+    InternalResponse<Map<String, ResourceQuotaLimit>> getResourceQuotaConfig();
 
-    /**
-     * 解析之后的自定义应用配额限制
-     */
-    private Map<String, Long> customLimits = new HashMap<>();
-
-    public AppQuotaLimit(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        super(capacityExpr, globalLimitExpr, customLimitExpr);
-    }
-
-    public long getLimit(String bkAppCode) {
-        Long limit = customLimits.get(bkAppCode);
-        if (limit == null) {
-            limit = getGlobalLimit();
-        }
-        return limit;
-    }
+    @ApiOperation(value = "获取正在执行中的作业数量统计", produces = "application/json")
+    @GetMapping("/runningJob/quotaUsage")
+    InternalResponse<RunningJobQuotaUsage> getRunningJobQuotaUsage();
 }

@@ -22,39 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.common.resource.quota;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * 配额限制-资源管理空间
+ * 配额限制基础类
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class ResourceScopeQuotaLimit extends QuotaLimit {
+public class QuotaLimit {
+    /**
+     * 全局配额表达式
+     */
+    protected String globalLimitExpr;
 
     /**
-     * 解析之后的自定义业务配额限制
+     * 自定义配额表达式，会覆盖全局配额的配置
      */
-    private Map<String, Long> customLimits = new HashMap<>();
+    protected String customLimitExpr;
 
-    public ResourceScopeQuotaLimit(String capacityExpr, String globalLimitExpr, String customLimitExpr) {
-        super(capacityExpr, globalLimitExpr, customLimitExpr);
-    }
+    /**
+     * 解析之后的全局业务配额限制
+     */
+    private Long globalLimit;
 
-    public long getLimit(ResourceScope resourceScope) {
-        String resourceScopeUniqueId = resourceScope.getResourceScopeUniqueId();
-        Long limit = customLimits.get(resourceScopeUniqueId);
-        if (limit == null) {
-            limit = getGlobalLimit();
-        }
-        return limit;
+    public QuotaLimit(String globalLimitExpr, String customLimitExpr) {
+        this.globalLimitExpr = globalLimitExpr;
+        this.customLimitExpr = customLimitExpr;
     }
 }

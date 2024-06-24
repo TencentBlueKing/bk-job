@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.service.quota.config;
 
+import com.tencent.bk.job.common.resource.quota.QuotaResourceId;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,7 +45,7 @@ public class ResourceQuotaLimitProperties {
     /**
      * key: 资源 ID ； value: 资源对应的配额限制
      *
-     * @see com.tencent.bk.job.common.service.quota.QuotaResourceId
+     * @see QuotaResourceId
      */
     private Map<String, ResourceQuotaLimitProp> resources;
 

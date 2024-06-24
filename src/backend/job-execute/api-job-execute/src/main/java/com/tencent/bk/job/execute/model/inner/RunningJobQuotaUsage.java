@@ -22,38 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
- * 资源配额限制-正在执行的作业
+ * 正在执行中的作业配额使用情况
  */
+@ApiModel("正在执行中的作业配额使用情况")
 @Data
-public class RunningJobResourceQuotaLimit extends ResourceQuotaLimit {
-
+public class RunningJobQuotaUsage {
     /**
-     * 资源管理空间配额限制
+     * 作业总量
      */
-    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
-
+    @ApiModelProperty("作业总量")
+    private Long total;
     /**
-     * 应用配额限制
+     * 按应用维度统计的作业数量
      */
-    private AppQuotaLimit appQuotaLimit;
-
-    public long getLimitByResourceScope(ResourceScope resourceScope) {
-        if (resourceScopeQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return resourceScopeQuotaLimit.getLimit(resourceScope);
-    }
-
-    public long getLimitByBkAppCode(String bkAppCode) {
-        if (appQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return appQuotaLimit.getLimit(bkAppCode);
-    }
+    @ApiModelProperty("按应用维度统计的作业数量")
+    private Map<String, Long> appCount;
+    /**
+     * 按资源管理空间统计的作业数量
+     */
+    @ApiModelProperty("按资源管理空间统计的作业数量")
+    private Map<String, Long> resourceScopeCount;
 }

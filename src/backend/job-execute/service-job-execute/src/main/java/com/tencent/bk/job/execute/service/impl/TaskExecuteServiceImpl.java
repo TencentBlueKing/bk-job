@@ -329,7 +329,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 break;
             case RESOURCE_SCOPE_LIMIT:
                 log.warn("ResourceQuotaLimit-runningJob exceed resource scope quota limit, resourceScope: {}",
-                    resourceScope.getResourceScopeUniqueId());
+                    resourceScope.toResourceScopeUniqueId());
                 throw new RunningJobInstanceQuotaExceedException(
                     ErrorCode.RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
             case APP_LIMIT:

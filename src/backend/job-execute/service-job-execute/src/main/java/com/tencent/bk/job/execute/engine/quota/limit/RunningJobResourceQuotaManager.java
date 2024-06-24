@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 正在执行作业配置限制管理
@@ -46,33 +47,81 @@ public class RunningJobResourceQuotaManager {
     private final RedisTemplate<String, String> redisTemplate;
     private final RunningJobResourceQuotaStore runningJobResourceQuotaStore;
 
-    private static final String RESOURCE_SCOPE_RUNNING_JOB_ZSET_KEY_PREFIX = "job:execute:running:job:resource_scope:";
-    private static final String APP_RUNNING_JOB_ZSET_KEY_PREFIX = "job:execute:running:job:app:";
+    private static final String RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY =
+        "job:execute:running:job:count:resource_scope";
+    private static final String APP_RUNNING_JOB_COUNT_HASH_KEY = "job:execute:running:job:count:app";
+    private static final String RUNNING_JOB_HASH_KEY = "job:execute:running:job";
+
+    private static final List<String> LUA_SCRIPT_KEYS = new ArrayList<>();
+
+    static {
+        LUA_SCRIPT_KEYS.add(RUNNING_JOB_HASH_KEY);
+        LUA_SCRIPT_KEYS.add(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
+        LUA_SCRIPT_KEYS.add(APP_RUNNING_JOB_COUNT_HASH_KEY);
+    }
 
     private static final String CHECK_QUOTA_LUA_SCRIPT =
-        "local resource_scope_key = KEYS[1]\n" +
-            "local resource_scope_limit = tonumber(ARGV[1])\n" +
+        "local system_running_job_hash_key = KEYS[1]\n" +
+            "local resource_scope_job_count_hash_key = KEYS[2]\n" +
+            "local app_job_count_hash_key = KEYS[3]\n" +
+            "local resource_scope = ARGV[1]\n" +
+            "local app_code = ARGV[2]\n" +
             "\n" +
-            "local running_job_count_resource_scope = tonumber(redis.call('zcard', resource_scope_key) or \"0\")\n" +
-            "redis.call('expire', resource_scope_key, 86400)\n" +
-            "if running_job_count_resource_scope >= resource_scope_limit then\n" +
+            "local system_limit = tonumber(ARGV[3])\n" +
+            "local system_count = tonumber(redis.call('hlen', system_running_job_hash_key) or \"0\")\n" +
+            "if system_count >= system_limit then\n" +
+            "  return \"system_quota_limit\"\n" +
+            "end\n" +
+            "\n" +
+            "local resource_scope_limit = tonumber(ARGV[4])\n" +
+            "local resource_scope_count = tonumber(redis.call('hget', resource_scope_job_count_hash_key) or \"0\")\n" +
+            "if resource_scope_count >= resource_scope_limit then\n" +
             "  return \"resource_scope_quota_limit\"\n" +
             "end\n" +
             "\n" +
-            "if KEYS[2] ~= \"None\" then\n" +
-            "  local app_key = KEYS[2]\n" +
-            "  local app_limit = tonumber(ARGV[2])\n" +
-            "  local running_job_count_app = tonumber(redis.call('zcard', app_key) or \"0\")\n" +
-            "  \n" +
-            "  redis.call('expire', app_key, 86400)\n" +
-            "  \n" +
-            "  if running_job_count_app >= app_limit then\n" +
+            "if app_code ~= \"None\" then\n" +
+            "  local app_limit = tonumber(ARGV[5])\n" +
+            "  local app_count = tonumber(redis.call('hget', app_job_count_hash_key) or \"0\")\n" +
+            "  if app_count >= app_limit then\n" +
             "    return \"app_quota_limit\"\n" +
             "  end\n" +
             "end\n" +
             "\n" +
             "return \"no_limit\"";
 
+    private static final String ADD_JOB_LUA_SCRIPT =
+        "local system_running_job_hash_key = KEYS[1]\n" +
+            "local resource_scope_job_count_hash_key = KEYS[2]\n" +
+            "local app_job_count_hash_key = KEYS[3]\n" +
+            "local job_id = ARGV[1]\n" +
+            "local resource_scope = ARGV[2]\n" +
+            "local app_code = ARGV[3]\n" +
+            "local job_create_time = ARGV[4]\n" +
+            "\n" +
+            "local add_result = redis.call('hsetnx', system_running_job_hash_key, job_id, job_create_time)\n" +
+            "if add_result == 1 then\n" +
+            "  redis.call('hincrby', resource_scope_job_count_hash_key, resource_scope, 1)\n" +
+            "  \n" +
+            "  if app_code ~= \"None\" then\n" +
+            "    redis.call('hincrby', app_job_count_hash_key, app_code, 1)\n" +
+            "  end\n" +
+            "end";
+    private static final String REMOVE_JOB_LUA_SCRIPT =
+        "local system_running_job_hash_key = KEYS[1]\n" +
+            "local resource_scope_job_count_hash_key = KEYS[2]\n" +
+            "local app_job_count_hash_key = KEYS[3]\n" +
+            "local job_id = ARGV[1]\n" +
+            "local resource_scope = ARGV[2]\n" +
+            "local app_code = ARGV[3]\n" +
+            "\n" +
+            "local del_result = redis.call('hdel', system_running_job_hash_key, job_id)\n" +
+            "if del_result == 1 then\n" +
+            "  redis.call('hincrby', resource_scope_job_count_hash_key, resource_scope, -1)\n" +
+            "  \n" +
+            "  if app_code ~= \"None\" then\n" +
+            "    redis.call('hincrby', app_job_count_hash_key, app_code, -1)\n" +
+            "  end\n" +
+            "end";
 
     public RunningJobResourceQuotaManager(StringRedisTemplate redisTemplate,
                                           RunningJobResourceQuotaStore runningJobResourceQuotaStore) {
@@ -82,30 +131,42 @@ public class RunningJobResourceQuotaManager {
 
     public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
         long startTime = System.currentTimeMillis();
-        String resourceScopeZSetKey = buildResourceScopeRunningJobZSetKey(resourceScope);
-        long currentTimestamp = System.currentTimeMillis();
-        redisTemplate.opsForZSet().add(resourceScopeZSetKey, String.valueOf(jobInstanceId), currentTimestamp);
-        if (StringUtils.isNotEmpty(appCode)) {
-            String appZSetKey = buildAppRunningJobZSetKey(appCode);
-            redisTemplate.opsForZSet().add(appZSetKey, String.valueOf(jobInstanceId), currentTimestamp);
-        }
+        RedisScript<Void> script = RedisScript.of(ADD_JOB_LUA_SCRIPT, Void.class);
+
+        redisTemplate.execute(
+            script,
+            LUA_SCRIPT_KEYS,
+            String.valueOf(jobInstanceId),
+            resourceScope.toResourceScopeUniqueId(),
+            convertAppCode(appCode),
+            String.valueOf(System.currentTimeMillis())
+        );
+
         long cost = System.currentTimeMillis() - startTime;
         if (log.isDebugEnabled()) {
-            log.debug("Add job to RunningJobResourceQuotaCache cost : {} ms", cost);
+            log.debug("RunningJobResourceQuotaManager - Add job cost : {} ms", cost);
         }
+    }
+
+    private String convertAppCode(String appCode) {
+        return StringUtils.isNotBlank(appCode) ? appCode : "None";
     }
 
     public void removeJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
         long startTime = System.currentTimeMillis();
-        String resourceScopeZSetKey = buildResourceScopeRunningJobZSetKey(resourceScope);
-        redisTemplate.opsForZSet().remove(resourceScopeZSetKey, String.valueOf(jobInstanceId));
-        if (StringUtils.isNotEmpty(appCode)) {
-            String appZSetKey = buildAppRunningJobZSetKey(appCode);
-            redisTemplate.opsForZSet().remove(appZSetKey, String.valueOf(jobInstanceId));
-        }
+        RedisScript<Void> script = RedisScript.of(REMOVE_JOB_LUA_SCRIPT, Void.class);
+
+        redisTemplate.execute(
+            script,
+            LUA_SCRIPT_KEYS,
+            String.valueOf(jobInstanceId),
+            resourceScope.toResourceScopeUniqueId(),
+            convertAppCode(appCode)
+        );
+
         long cost = System.currentTimeMillis() - startTime;
         if (log.isDebugEnabled()) {
-            log.debug("Remove job from RunningJobResourceQuotaCache cost : {} ms", cost);
+            log.debug("RunningJobResourceQuotaManager - Remove job cost : {} ms", cost);
         }
     }
 
@@ -119,37 +180,39 @@ public class RunningJobResourceQuotaManager {
         long startTime = System.currentTimeMillis();
         RedisScript<String> script = RedisScript.of(CHECK_QUOTA_LUA_SCRIPT, String.class);
 
-        // 是否通过第三方应用方式调用作业平台产生的作业
-        boolean isJobFrom3rdApp = StringUtils.isNotEmpty(appCode);
 
-        List<String> keyList = new ArrayList<>();
-        keyList.add(buildResourceScopeRunningJobZSetKey(resourceScope));
-        keyList.add(isJobFrom3rdApp ? buildAppRunningJobZSetKey(appCode) : "None");
-
+        long systemLimit = runningJobResourceQuotaStore.getSystemQuotaLimit();
         long resourceScopeLimit = runningJobResourceQuotaStore.getQuotaLimitByResourceScope(resourceScope);
+        // 是否通过第三方应用 Open API 方式调用作业平台产生的作业
+        boolean isJobFrom3rdApp = StringUtils.isNotEmpty(appCode);
+        long appLimit = isJobFrom3rdApp ? runningJobResourceQuotaStore.getQuotaLimitByAppCode(appCode) : Long.MAX_VALUE;
 
-        String checkResourceQuotaResult;
-        if (isJobFrom3rdApp) {
-            long appLimit = runningJobResourceQuotaStore.getQuotaLimitByAppCode(appCode);
-            checkResourceQuotaResult = redisTemplate.execute(script, keyList, String.valueOf(resourceScopeLimit),
-                String.valueOf(appLimit));
-        } else {
-            checkResourceQuotaResult = redisTemplate.execute(script, keyList, String.valueOf(resourceScopeLimit));
-        }
+        String checkResourceQuotaResult = redisTemplate.execute(
+            script,
+            LUA_SCRIPT_KEYS,
+            resourceScope.toResourceScopeUniqueId(),
+            convertAppCode(appCode),
+            String.valueOf(systemLimit),
+            String.valueOf(resourceScopeLimit),
+            String.valueOf(appLimit)
+        );
 
         long cost = System.currentTimeMillis() - startTime;
         if (log.isDebugEnabled()) {
-            log.debug("CheckResourceQuotaLimit cost: {} ms", cost);
+            log.debug("CheckRunningJobResourceQuotaLimit cost: {} ms", cost);
         }
         return ResourceQuotaCheckResultEnum.valOf(checkResourceQuotaResult);
     }
 
-    private String buildResourceScopeRunningJobZSetKey(ResourceScope resourceScope) {
-        return RESOURCE_SCOPE_RUNNING_JOB_ZSET_KEY_PREFIX
-            + resourceScope.getType().getValue() + ":" + resourceScope.getId();
+    public long getRunningJobTotal() {
+        return redisTemplate.opsForHash().size(RUNNING_JOB_HASH_KEY);
     }
 
-    private String buildAppRunningJobZSetKey(String appCode) {
-        return APP_RUNNING_JOB_ZSET_KEY_PREFIX + appCode;
+    public Map<String, Long> getAppRunningJobCount() {
+        return redisTemplate.<String, Long>opsForHash().entries(APP_RUNNING_JOB_COUNT_HASH_KEY);
+    }
+
+    public Map<String, Long> getResourceScopeRunningJobCount() {
+        return redisTemplate.<String, Long>opsForHash().entries(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
     }
 }

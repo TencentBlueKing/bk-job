@@ -22,10 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota;
+package com.tencent.bk.job.common.resource.quota;
 
 /**
- * 资源配额限制-基础类
+ * 配额限制的资源 ID 定义
  */
-public class ResourceQuotaLimit {
+public interface QuotaResourceId {
+    /**
+     * 当前正在运行的作业实例
+     */
+    String JOB_INSTANCE = "runningJob";
 }
