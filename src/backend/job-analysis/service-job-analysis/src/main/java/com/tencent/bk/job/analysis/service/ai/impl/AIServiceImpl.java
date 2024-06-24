@@ -24,13 +24,20 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.login.LoginTokenService;
 import com.tencent.bk.job.common.aidev.IBkAIDevClient;
+import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -46,8 +53,32 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public AIAnswer getAIAnswer(String userInput) {
+    public AIAnswer getAIAnswer(List<AIChatHistoryDTO> chatHistoryDTOList, String userInput) {
         String token = loginTokenService.getToken();
-        return AIAnswer.successAnswer(bkAIDevClient.getHunYuanAnswer(token, userInput));
+        return AIAnswer.successAnswer(
+            bkAIDevClient.getHunYuanAnswer(
+                token,
+                buildMessageHistoryList(chatHistoryDTOList),
+                userInput
+            )
+        );
+    }
+
+    private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {
+        if (CollectionUtils.isEmpty(chatHistoryDTOList)) {
+            return Collections.emptyList();
+        }
+        List<AIDevMessage> messageHistoryList = new ArrayList<>();
+        for (AIChatHistoryDTO chatHistoryDTO : chatHistoryDTOList) {
+            AIDevMessage aiDevMessage = new AIDevMessage();
+            aiDevMessage.setRole(AIDevMessage.ROLE_USER);
+            aiDevMessage.setContent(chatHistoryDTO.getAiInput());
+            messageHistoryList.add(aiDevMessage);
+            aiDevMessage = new AIDevMessage();
+            aiDevMessage.setRole(AIDevMessage.ROLE_ASSISTANT);
+            aiDevMessage.setContent(chatHistoryDTO.getAiAnswer());
+            messageHistoryList.add(aiDevMessage);
+        }
+        return messageHistoryList;
     }
 }

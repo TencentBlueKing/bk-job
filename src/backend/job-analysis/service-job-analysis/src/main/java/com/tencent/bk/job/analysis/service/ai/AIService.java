@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.analysis.service.ai;
 
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+
+import java.util.List;
 
 public interface AIService {
 
@@ -33,8 +36,9 @@ public interface AIService {
      * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
      * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
      *
-     * @param userInput 用户输入
+     * @param chatHistoryDTOList 历史聊天记录
+     * @param userInput          用户输入
      * @return AI回答结果
      */
-    AIAnswer getAIAnswer(String userInput);
+    AIAnswer getAIAnswer(List<AIChatHistoryDTO> chatHistoryDTOList, String userInput);
 }

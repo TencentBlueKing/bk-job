@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,8 +85,8 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
     }
 
     @Override
-    public String getHunYuanAnswer(String token, String userInput) {
-        AIDevReq req = buildAIDevReq(userInput);
+    public String getHunYuanAnswer(String token, List<AIDevMessage> messageHistoryList, String userInput) {
+        AIDevReq req = buildAIDevReq(messageHistoryList, userInput);
         BkApiAuthorization authorization = buildAuthorization(token);
         AIDevResp<List<AIDevData>> resp = requestBkAIDevApi(
             HttpMethodEnum.POST,
@@ -103,13 +104,18 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
         return aiDevMessage.getContent();
     }
 
-    private AIDevReq buildAIDevReq(String userInput) {
+    private AIDevReq buildAIDevReq(List<AIDevMessage> messageHistoryList, String userInput) {
         AIDevReq req = new AIDevReq();
         req.setConfig(AIDevReqConfig.hunyuanConfig());
         AIDevReqData data = new AIDevReqData();
         List<AIDevInput> inputs = new ArrayList<>();
         AIDevInput input = new AIDevInput();
-        List<AIDevMessage> messages = new ArrayList<>();
+        List<AIDevMessage> messages;
+        if (CollectionUtils.isEmpty(messageHistoryList)) {
+            messages = new ArrayList<>();
+        } else {
+            messages = new ArrayList<>(messageHistoryList);
+        }
         AIDevMessage message = new AIDevMessage();
         message.setRole(AIDevMessage.ROLE_USER);
         message.setContent(userInput);

@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.common.aidev;
 
+import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
+
+import java.util.List;
+
 public interface IBkAIDevClient {
 
-    String getHunYuanAnswer(String token, String userInput);
+    String getHunYuanAnswer(String token, List<AIDevMessage> messageHistoryList, String userInput);
 
 }

@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -50,10 +51,13 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public AIAnswer chatWithAI(String username, String userInput) {
-        // 1.调用AI服务获取回答
         Long startTime = System.currentTimeMillis();
-        AIAnswer aiAnswer = aiService.getAIAnswer(userInput);
-        // 2.保存聊天记录
+        // 1.获取最近的聊天记录
+        List<AIChatHistoryDTO> chatHistoryDTOList = getLatestChatHistoryList(username, 0, 5);
+        chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
+        // 2.调用AI服务获取回答
+        AIAnswer aiAnswer = aiService.getAIAnswer(chatHistoryDTOList, userInput);
+        // 3.保存聊天记录
         AIChatHistoryDTO aiChatHistoryDTO = buildAIChatHistoryDTO(username, startTime, userInput, aiAnswer);
         aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
         return aiAnswer;
