@@ -34,9 +34,9 @@ public class ResourceQuotaLimit {
     /**
      * 配额容量表达式
      */
-    private String capacityExpr;
+    protected String capacityExpr;
     /**
      * 解析后的配额总量限制
      */
-    private Long capacity;
+    protected Long capacity;
 }

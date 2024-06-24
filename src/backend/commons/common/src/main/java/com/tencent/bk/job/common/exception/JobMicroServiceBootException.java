@@ -22,52 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.resource.quota;
-
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.StringJoiner;
+package com.tencent.bk.job.common.exception;
 
 /**
- * 资源配额限制-正在执行的作业
+ * 作业平台微服务启动异常
  */
-@Getter
-@Setter
-public class RunningJobResourceQuotaLimit extends ResourceQuotaLimit {
-
-    /**
-     * 资源管理空间配额限制
-     */
-    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
-
-    /**
-     * 应用配额限制
-     */
-    private AppQuotaLimit appQuotaLimit;
-
-    public long getLimitByResourceScope(ResourceScope resourceScope) {
-        if (resourceScopeQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return resourceScopeQuotaLimit.getLimit(resourceScope);
+public class JobMicroServiceBootException extends RuntimeException {
+    public JobMicroServiceBootException() {
+        super();
     }
 
-    public long getLimitByBkAppCode(String bkAppCode) {
-        if (appQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return appQuotaLimit.getLimit(bkAppCode);
+    public JobMicroServiceBootException(String message) {
+        super(message);
     }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", RunningJobResourceQuotaLimit.class.getSimpleName() + "[", "]")
-            .add("resourceScopeQuotaLimit=" + resourceScopeQuotaLimit)
-            .add("appQuotaLimit=" + appQuotaLimit)
-            .add("capacityExpr='" + capacityExpr + "'")
-            .add("capacity=" + capacity)
-            .toString();
+    public JobMicroServiceBootException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public JobMicroServiceBootException(Throwable cause) {
+        super(cause);
     }
 }
