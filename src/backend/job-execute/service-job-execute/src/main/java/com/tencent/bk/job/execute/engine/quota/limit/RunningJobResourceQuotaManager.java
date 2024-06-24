@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -209,10 +210,26 @@ public class RunningJobResourceQuotaManager {
     }
 
     public Map<String, Long> getAppRunningJobCount() {
-        return redisTemplate.<String, Long>opsForHash().entries(APP_RUNNING_JOB_COUNT_HASH_KEY);
+        Map<String, String> countMap =
+            redisTemplate.<String, String>opsForHash().entries(APP_RUNNING_JOB_COUNT_HASH_KEY);
+        if (countMap.isEmpty()) {
+            return null;
+        }
+        return convertMap(countMap);
     }
 
     public Map<String, Long> getResourceScopeRunningJobCount() {
-        return redisTemplate.<String, Long>opsForHash().entries(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
+        Map<String, String> countMap =
+            redisTemplate.<String, String>opsForHash().entries(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
+        if (countMap.isEmpty()) {
+            return null;
+        }
+        return convertMap(countMap);
+    }
+
+    private Map<String, Long> convertMap(Map<String, String> map) {
+        Map<String, Long> finalMap = new HashMap<>();
+        map.forEach((k, v) -> finalMap.put(k, Long.parseLong(v)));
+        return finalMap;
     }
 }
