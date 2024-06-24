@@ -22,31 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.quota.limit;
+package com.tencent.bk.job.common.metrics;
 
-public enum ResourceQuotaCheckResultEnum {
-
-    NO_LIMIT("no_limit"),
-    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
-    APP_LIMIT("app_quota_limit"),
-    SYSTEM_LIMIT("system_quota_limit");
-
-    private final String value;
-
-    ResourceQuotaCheckResultEnum(String value) {
-        this.value = value;
-    }
-
-    public static ResourceQuotaCheckResultEnum valOf(String value) {
-        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
-            if (resultEnum.value.equals(value)) {
-                return resultEnum;
-            }
-        }
-        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
-    }
-
-    public boolean isExceedLimit() {
-        return this != NO_LIMIT;
-    }
+/**
+ * 公共监控指标的值
+ */
+public class CommonMetricValues {
+    /**
+     * 标识一个不存在的值
+     */
+    public static final String NONE = "none";
 }

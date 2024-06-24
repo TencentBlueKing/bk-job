@@ -25,8 +25,12 @@
 package com.tencent.bk.job.execute.engine.quota.limit;
 
 import com.tencent.bk.job.common.exception.JobMicroServiceBootException;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
+import com.tencent.bk.job.common.metrics.CommonMetricValues;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
@@ -54,6 +58,8 @@ public class RunningJobResourceQuotaManager {
     private final RedisTemplate<String, String> redisTemplate;
     private final RunningJobResourceQuotaStore runningJobResourceQuotaStore;
 
+    private final MeterRegistry meterRegistry;
+
     private static final String RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY =
         "job:execute:running:job:count:resource_scope";
     private static final String APP_RUNNING_JOB_COUNT_HASH_KEY = "job:execute:running:job:count:app";
@@ -65,6 +71,9 @@ public class RunningJobResourceQuotaManager {
 
     private static String ADD_JOB_LUA_SCRIPT;
     private static String REMOVE_JOB_LUA_SCRIPT;
+
+    private static final String METRIC_RUNNING_JOB_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL =
+        "job_running_job_resource_quota_limit_exceed_total";
 
     static {
         LUA_SCRIPT_KEYS.add(RUNNING_JOB_HASH_KEY);
@@ -98,9 +107,11 @@ public class RunningJobResourceQuotaManager {
 
 
     public RunningJobResourceQuotaManager(StringRedisTemplate redisTemplate,
-                                          RunningJobResourceQuotaStore runningJobResourceQuotaStore) {
+                                          RunningJobResourceQuotaStore runningJobResourceQuotaStore,
+                                          MeterRegistry meterRegistry) {
         this.redisTemplate = redisTemplate;
         this.runningJobResourceQuotaStore = runningJobResourceQuotaStore;
+        this.meterRegistry = meterRegistry;
     }
 
     public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
@@ -176,7 +187,21 @@ public class RunningJobResourceQuotaManager {
         if (log.isDebugEnabled()) {
             log.debug("CheckRunningJobResourceQuotaLimit cost: {} ms", cost);
         }
-        return ResourceQuotaCheckResultEnum.valOf(checkResourceQuotaResult);
+        ResourceQuotaCheckResultEnum checkResult = ResourceQuotaCheckResultEnum.valOf(checkResourceQuotaResult);
+        if (checkResult.isExceedLimit()) {
+            recordExceedQuotaLimitRecord(appCode, resourceScope);
+        }
+
+        return checkResult;
+    }
+
+    private void recordExceedQuotaLimitRecord(String appCode, ResourceScope resourceScope) {
+        meterRegistry.counter(
+                METRIC_RUNNING_JOB_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL,
+                Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScope.toResourceScopeUniqueId())
+                    .and(CommonMetricTags.KEY_APP_CODE, StringUtils.isNotBlank(appCode) ?
+                        appCode : CommonMetricValues.NONE))
+            .increment();
     }
 
     public long getRunningJobTotal() {
