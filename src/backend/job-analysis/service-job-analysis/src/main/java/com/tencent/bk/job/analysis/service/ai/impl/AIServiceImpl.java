@@ -64,6 +64,11 @@ public class AIServiceImpl implements AIService {
         );
     }
 
+    @Override
+    public AIAnswer getAIAnswer(String userInput) {
+        return getAIAnswer(null, userInput);
+    }
+
     private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {
         if (CollectionUtils.isEmpty(chatHistoryDTOList)) {
             return Collections.emptyList();

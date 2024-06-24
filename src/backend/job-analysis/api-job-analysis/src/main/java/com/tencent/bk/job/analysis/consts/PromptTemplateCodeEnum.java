@@ -22,45 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.analysis.consts;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
-
-public interface AIChatHistoryService {
+@Getter
+@AllArgsConstructor
+public enum PromptTemplateCodeEnum {
     /**
-     * 构建AI聊天记录
-     *
-     * @param username  用户名
-     * @param startTime 开始时间
-     * @param userInput 用户输入
-     * @param aiAnswer  AI回答
-     * @return AI聊天记录
+     * 检查脚本
      */
-    AIChatHistoryDTO buildAIChatHistoryDTO(String username,
-                                           Long startTime,
-                                           String userInput,
-                                           String aiInput,
-                                           AIAnswer aiAnswer);
-
+    CHECK_SCRIPT,
     /**
-     * 插入聊天记录
-     *
-     * @param aiChatHistoryDTO AI聊天记录
-     * @return 插入记录的id
+     * 分析任务报错
      */
-    Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
-
-
-    /**
-     * 获取最近的聊天记录列表
-     *
-     * @param username 用户名
-     * @param start    起始位置
-     * @param length   长度
-     * @return 最近的聊天记录列表
-     */
-    List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+    ANALYZE_TASK_ERROR;
 }

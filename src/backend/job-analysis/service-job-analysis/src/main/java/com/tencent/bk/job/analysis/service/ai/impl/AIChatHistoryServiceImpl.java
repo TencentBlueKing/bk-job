@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,27 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     @Autowired
     public AIChatHistoryServiceImpl(AIChatHistoryDAO aiChatHistoryDAO) {
         this.aiChatHistoryDAO = aiChatHistoryDAO;
+    }
+
+    @Override
+    public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
+                                                   Long startTime,
+                                                   String userInput,
+                                                   String aiInput,
+                                                   AIAnswer aiAnswer) {
+        AIChatHistoryDTO aiChatHistoryDTO = new AIChatHistoryDTO();
+        aiChatHistoryDTO.setUsername(username);
+        aiChatHistoryDTO.setUserInput(userInput);
+        aiChatHistoryDTO.setPromptTemplateId(null);
+        aiChatHistoryDTO.setAiInput(aiInput);
+        aiChatHistoryDTO.setAiAnswer(aiAnswer.getContent());
+        aiChatHistoryDTO.setErrorCode(String.valueOf(aiAnswer.getErrorCode()));
+        aiChatHistoryDTO.setErrorMessage(aiAnswer.getErrorMessage());
+        aiChatHistoryDTO.setStartTime(startTime);
+        aiChatHistoryDTO.setAnswerTime(System.currentTimeMillis());
+        aiChatHistoryDTO.updateTotalTime();
+        aiChatHistoryDTO.setIsDeleted(false);
+        return aiChatHistoryDTO;
     }
 
     @Override

@@ -27,51 +27,46 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
+import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
+import com.tencent.bk.job.analysis.service.ai.AIPromptService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
-import com.tencent.bk.job.analysis.service.ai.ChatService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-
 @Slf4j
 @Service
-public class ChatServiceImpl implements ChatService {
+public class AICheckScriptServiceImpl implements AICheckScriptService {
 
+    private final AIPromptService aiPromptService;
     private final AIService aiService;
     private final AIChatHistoryService aiChatHistoryService;
 
     @Autowired
-    public ChatServiceImpl(AIService aiService, AIChatHistoryService aiChatHistoryService) {
+    public AICheckScriptServiceImpl(AIPromptService aiPromptService,
+                                    AIService aiService,
+                                    AIChatHistoryService aiChatHistoryService) {
+        this.aiPromptService = aiPromptService;
         this.aiService = aiService;
         this.aiChatHistoryService = aiChatHistoryService;
     }
 
     @Override
-    public AIAnswer chatWithAI(String username, String userInput) {
-        Long startTime = System.currentTimeMillis();
-        // 1.获取最近的聊天记录
-        List<AIChatHistoryDTO> chatHistoryDTOList = getLatestChatHistoryList(username, 0, 5);
-        chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
-        // 2.调用AI服务获取回答
-        AIAnswer aiAnswer = aiService.getAIAnswer(chatHistoryDTOList, userInput);
-        // 3.保存聊天记录
+    public AIAnswer check(String username, Integer type, String scriptContent) {
+        long startTime = System.currentTimeMillis();
+        Pair<String, String> pair = aiPromptService.getCheckScriptPrompt(type, scriptContent);
+        String rawPrompt = pair.getLeft();
+        String renderedPrompt = pair.getRight();
+        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
-            userInput,
-            userInput,
+            rawPrompt,
+            renderedPrompt,
             aiAnswer
         );
         aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
         return aiAnswer;
     }
-
-    @Override
-    public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
-        return aiChatHistoryService.getLatestChatHistoryList(username, start, length);
-    }
-
 }

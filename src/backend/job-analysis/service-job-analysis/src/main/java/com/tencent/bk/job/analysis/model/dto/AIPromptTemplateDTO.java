@@ -60,9 +60,14 @@ public class AIPromptTemplateDTO {
     private String name;
 
     /**
+     * 不含上下文的简单提示符
+     */
+    private String rawPrompt;
+
+    /**
      * 模板内容
      */
-    private String content;
+    private String template;
 
     /**
      * 对模板的描述

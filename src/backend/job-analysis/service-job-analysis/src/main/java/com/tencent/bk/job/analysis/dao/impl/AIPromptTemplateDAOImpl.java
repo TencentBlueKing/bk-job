@@ -60,7 +60,8 @@ public class AIPromptTemplateDAOImpl extends BaseDAOImpl implements AIPromptTemp
                 defaultTable.CODE,
                 defaultTable.LOCALE,
                 defaultTable.NAME,
-                defaultTable.CONTENT
+                defaultTable.RAW_PROMPT,
+                defaultTable.TEMPLATE
             )
             .from(defaultTable)
             .where(conditions);
@@ -73,7 +74,8 @@ public class AIPromptTemplateDAOImpl extends BaseDAOImpl implements AIPromptTemp
         aiPromptTemplateDTO.setCode(record.get(defaultTable.CODE));
         aiPromptTemplateDTO.setLocale(record.get(defaultTable.LOCALE));
         aiPromptTemplateDTO.setName(record.get(defaultTable.NAME));
-        aiPromptTemplateDTO.setContent(record.get(defaultTable.CONTENT));
+        aiPromptTemplateDTO.setRawPrompt(record.get(defaultTable.RAW_PROMPT));
+        aiPromptTemplateDTO.setTemplate(record.get(defaultTable.TEMPLATE));
         return aiPromptTemplateDTO;
     }
 }

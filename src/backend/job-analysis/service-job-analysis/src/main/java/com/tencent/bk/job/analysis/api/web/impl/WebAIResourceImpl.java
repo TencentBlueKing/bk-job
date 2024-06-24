@@ -31,6 +31,7 @@ import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -48,10 +49,12 @@ import java.util.stream.Collectors;
 public class WebAIResourceImpl implements WebAIResource {
 
     private final ChatService chatService;
+    private final AICheckScriptService aiCheckScriptService;
 
     @Autowired
-    public WebAIResourceImpl(ChatService chatService) {
+    public WebAIResourceImpl(ChatService chatService, AICheckScriptService aiCheckScriptService) {
         this.chatService = chatService;
+        this.aiCheckScriptService = aiCheckScriptService;
     }
 
     @Override
@@ -93,11 +96,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                           String scopeType,
                                           String scopeId,
                                           AICheckScriptReq req) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setContent("没什么问题");
-        aiAnswer.setErrorCode("0");
-        aiAnswer.setErrorMessage(null);
-        aiAnswer.setTime(System.currentTimeMillis());
+        AIAnswer aiAnswer = aiCheckScriptService.check(username, req.getType(), req.getContent());
         return Response.buildSuccessResp(aiAnswer);
     }
 

@@ -24,43 +24,16 @@
 
 package com.tencent.bk.job.analysis.service.ai;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
-
-public interface AIChatHistoryService {
-    /**
-     * 构建AI聊天记录
-     *
-     * @param username  用户名
-     * @param startTime 开始时间
-     * @param userInput 用户输入
-     * @param aiAnswer  AI回答
-     * @return AI聊天记录
-     */
-    AIChatHistoryDTO buildAIChatHistoryDTO(String username,
-                                           Long startTime,
-                                           String userInput,
-                                           String aiInput,
-                                           AIAnswer aiAnswer);
+public interface AIPromptService {
 
     /**
-     * 插入聊天记录
+     * 获取检查脚本的AI提示符
      *
-     * @param aiChatHistoryDTO AI聊天记录
-     * @return 插入记录的id
+     * @param type          脚本类型
+     * @param scriptContent 脚本内容
+     * @return <原始提示符，通过模板渲染的AI提示符>
      */
-    Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
-
-
-    /**
-     * 获取最近的聊天记录列表
-     *
-     * @param username 用户名
-     * @param start    起始位置
-     * @param length   长度
-     * @return 最近的聊天记录列表
-     */
-    List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+    Pair<String, String> getCheckScriptPrompt(Integer type, String scriptContent);
 }
