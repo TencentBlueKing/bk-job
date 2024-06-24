@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIService;
+import com.tencent.bk.job.analysis.service.login.LoginTokenService;
 import com.tencent.bk.job.common.aidev.IBkAIDevClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,15 +36,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class AIServiceImpl implements AIService {
 
+    private final LoginTokenService loginTokenService;
     private final IBkAIDevClient bkAIDevClient;
 
     @Autowired
-    public AIServiceImpl(IBkAIDevClient bkAIDevClient) {
+    public AIServiceImpl(LoginTokenService loginTokenService, IBkAIDevClient bkAIDevClient) {
+        this.loginTokenService = loginTokenService;
         this.bkAIDevClient = bkAIDevClient;
     }
 
     @Override
-    public AIAnswer getAIAnswer(String token, String userInput) {
+    public AIAnswer getAIAnswer(String userInput) {
+        String token = loginTokenService.getToken();
         return AIAnswer.successAnswer(bkAIDevClient.getHunYuanAnswer(token, userInput));
     }
 }

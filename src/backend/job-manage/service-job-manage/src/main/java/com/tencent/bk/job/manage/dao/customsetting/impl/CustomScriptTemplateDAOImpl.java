@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.customsetting.impl;
 
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.customsetting.CustomScriptTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateDTO;
 import com.tencent.bk.job.manage.model.tables.UserCustomScriptTemplate;

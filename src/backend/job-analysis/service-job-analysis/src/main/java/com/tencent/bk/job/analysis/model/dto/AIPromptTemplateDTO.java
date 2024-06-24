@@ -22,19 +22,72 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.analysis.model.dto;
 
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-public interface AIService {
+/**
+ * AI提示符模板
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class AIPromptTemplateDTO {
+    /**
+     * id
+     */
+    private Integer id;
 
     /**
-     * 根据用户输入获取AI回答
-     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
-     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
-     *
-     * @param userInput 用户输入
-     * @return AI回答结果
+     * 模板代码，用于唯一标识模板
      */
-    AIAnswer getAIAnswer(String userInput);
+    private String code;
+
+    /**
+     * 语言
+     */
+    private String locale;
+
+    /**
+     * 模板名称
+     */
+    private String name;
+
+    /**
+     * 模板内容
+     */
+    private String content;
+
+    /**
+     * 对模板的描述
+     */
+    private String description;
+
+    /**
+     * 创建者
+     */
+    private String creator;
+
+    /**
+     * 更新者
+     */
+    private String lastModifyUser;
+
+    /**
+     * 创建时间
+     */
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long createTime;
+
+    /**
+     * 更新时间
+     */
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long lastModifyTime;
 }

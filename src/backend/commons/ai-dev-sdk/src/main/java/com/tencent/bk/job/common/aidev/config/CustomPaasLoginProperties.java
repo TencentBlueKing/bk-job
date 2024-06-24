@@ -40,4 +40,9 @@ public class CustomPaasLoginProperties {
      */
     private boolean enabled = false;
 
+    /**
+     * 固定Token值，不提供则从Cookie中获取
+     */
+    private String token;
+
 }

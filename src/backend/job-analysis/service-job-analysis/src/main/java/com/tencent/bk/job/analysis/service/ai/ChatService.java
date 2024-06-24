@@ -24,17 +24,29 @@
 
 package com.tencent.bk.job.analysis.service.ai;
 
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
-public interface AIService {
+import java.util.List;
+
+public interface ChatService {
 
     /**
-     * 根据用户输入获取AI回答
-     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
-     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
+     * 与AI聊天并处理聊天记录保存等逻辑
      *
+     * @param username  用户名
      * @param userInput 用户输入
      * @return AI回答结果
      */
-    AIAnswer getAIAnswer(String userInput);
+    AIAnswer chatWithAI(String username, String userInput);
+
+    /**
+     * 获取最近的聊天记录列表
+     *
+     * @param username 用户名
+     * @param start    起始位置
+     * @param length   长度
+     * @return 最近的聊天记录列表
+     */
+    List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
 }

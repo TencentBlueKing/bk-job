@@ -25,36 +25,36 @@
 package com.tencent.bk.job.analysis.api.web.impl;
 
 import com.tencent.bk.job.analysis.api.web.WebAIResource;
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.UserInput;
-import com.tencent.bk.job.analysis.service.ai.AIService;
+import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController("jobAnalysisWebAIResource")
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
 
-    private final AIService aiService;
+    private final ChatService chatService;
 
     @Autowired
-    public WebAIResourceImpl(AIService aiService) {
-        this.aiService = aiService;
+    public WebAIResourceImpl(ChatService chatService) {
+        this.chatService = chatService;
     }
 
     @Override
@@ -74,6 +74,18 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  String scopeId,
                                                                  Integer start,
                                                                  Integer length) {
+        List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
+        return Response.buildSuccessResp(
+            chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList())
+        );
+    }
+
+    public List<AIChatRecord> mockLatestChatHistoryList(String username,
+                                                        AppResourceScope appResourceScope,
+                                                        String scopeType,
+                                                        String scopeId,
+                                                        Integer start,
+                                                        Integer length) {
         List<AIChatRecord> aiChatRecordList = new ArrayList<>();
         AIChatRecord record = new AIChatRecord();
         UserInput userInput = new UserInput();
@@ -83,7 +95,7 @@ public class WebAIResourceImpl implements WebAIResource {
         ThreadUtils.sleep(1000);
         AIAnswer aiAnswer = new AIAnswer();
         aiAnswer.setContent("我是AI小鲸");
-        aiAnswer.setErrorCode(0);
+        aiAnswer.setErrorCode("0");
         aiAnswer.setErrorMessage(null);
         aiAnswer.setTime(System.currentTimeMillis());
         record.setAiAnswer(aiAnswer);
@@ -97,23 +109,21 @@ public class WebAIResourceImpl implements WebAIResource {
         ThreadUtils.sleep(1000);
         AIAnswer aiAnswer2 = new AIAnswer();
         aiAnswer2.setContent("World");
-        aiAnswer2.setErrorCode(0);
+        aiAnswer2.setErrorCode("0");
         aiAnswer2.setErrorMessage(null);
         aiAnswer2.setTime(System.currentTimeMillis());
         record2.setAiAnswer(aiAnswer2);
         aiChatRecordList.add(record2);
-        return Response.buildSuccessResp(aiChatRecordList);
+        return aiChatRecordList;
     }
 
     @Override
     public Response<AIAnswer> generalChat(String username,
-                                          String bkTicket,
-                                          String bkToken,
                                           AppResourceScope appResourceScope,
                                           String scopeType,
                                           String scopeId,
                                           AIGeneralChatReq req) {
-        AIAnswer aiAnswer = aiService.getAIAnswer(bkTicket, req.getContent());
+        AIAnswer aiAnswer = chatService.chatWithAI(username, req.getContent());
         return Response.buildSuccessResp(aiAnswer);
     }
 
@@ -125,7 +135,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                           AICheckScriptReq req) {
         AIAnswer aiAnswer = new AIAnswer();
         aiAnswer.setContent("没什么问题");
-        aiAnswer.setErrorCode(0);
+        aiAnswer.setErrorCode("0");
         aiAnswer.setErrorMessage(null);
         aiAnswer.setTime(System.currentTimeMillis());
         return Response.buildSuccessResp(aiAnswer);
@@ -139,7 +149,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                            AIAnalyzeErrorReq req) {
         AIAnswer aiAnswer = new AIAnswer();
         aiAnswer.setContent("让我想想...");
-        aiAnswer.setErrorCode(0);
+        aiAnswer.setErrorCode("0");
         aiAnswer.setErrorMessage(null);
         aiAnswer.setTime(System.currentTimeMillis());
         return Response.buildSuccessResp(aiAnswer);

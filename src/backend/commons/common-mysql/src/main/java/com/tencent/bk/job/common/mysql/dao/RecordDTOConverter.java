@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource.impl;
+package com.tencent.bk.job.common.mysql.dao;
 
 public interface RecordDTOConverter<RecordClazz, DTOClazz> {
     DTOClazz convert(RecordClazz record);

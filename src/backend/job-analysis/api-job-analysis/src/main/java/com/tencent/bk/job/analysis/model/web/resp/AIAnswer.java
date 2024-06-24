@@ -43,7 +43,7 @@ public class AIAnswer {
      * 错误码
      */
     @ApiModelProperty(value = "错误码")
-    private Integer errorCode;
+    private String errorCode;
 
     /**
      * 错误信息
@@ -66,7 +66,7 @@ public class AIAnswer {
 
     public static AIAnswer successAnswer(String content) {
         AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode(0);
+        aiAnswer.setErrorCode("0");
         aiAnswer.setTime(System.currentTimeMillis());
         aiAnswer.setContent(content);
         return aiAnswer;

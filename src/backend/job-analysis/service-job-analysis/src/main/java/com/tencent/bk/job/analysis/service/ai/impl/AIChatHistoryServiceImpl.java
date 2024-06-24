@@ -22,59 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.util;
+package com.tencent.bk.job.analysis.service.ai.impl;
 
-import org.jooq.types.UByte;
-import org.jooq.types.UInteger;
-import org.jooq.types.ULong;
+import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-public class JooqDataTypeUtil {
-    public static ULong buildULong(Long value) {
-        if (value == null) {
-            return null;
-        }
-        return ULong.valueOf(value);
+import java.util.List;
+
+@Slf4j
+@Service
+public class AIChatHistoryServiceImpl implements AIChatHistoryService {
+
+    private final AIChatHistoryDAO aiChatHistoryDAO;
+
+    @Autowired
+    public AIChatHistoryServiceImpl(AIChatHistoryDAO aiChatHistoryDAO) {
+        this.aiChatHistoryDAO = aiChatHistoryDAO;
     }
 
-    public static UInteger buildUInteger(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return UInteger.valueOf(value);
+    @Override
+    public Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO) {
+        return aiChatHistoryDAO.insertAIChatHistory(aiChatHistoryDTO);
     }
 
-    public static UByte buildUByte(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return UByte.valueOf(value);
-    }
-
-    public static Byte getByteFromInteger(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return Byte.valueOf(String.valueOf(value));
-    }
-
-    public static Integer getIntegerFromByte(Byte value) {
-        if (value == null) {
-            return null;
-        }
-        return value.intValue();
-    }
-
-    public static Long getLongFromULong(ULong value) {
-        if (value == null) {
-            return null;
-        }
-        return value.longValue();
-    }
-
-    public static Integer getIntegerFromUInteger(UInteger value) {
-        if (value == null) {
-            return null;
-        }
-        return value.intValue();
+    @Override
+    public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
+        return aiChatHistoryDAO.getLatestChatHistoryList(username, start, length);
     }
 }

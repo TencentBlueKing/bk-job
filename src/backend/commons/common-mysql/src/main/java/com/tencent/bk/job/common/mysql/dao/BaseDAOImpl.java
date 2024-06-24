@@ -22,12 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource.impl;
+package com.tencent.bk.job.common.mysql.dao;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.ResultQuery;
+import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.conf.ParamType;
 import org.slf4j.helpers.MessageFormatter;
@@ -73,4 +74,23 @@ public class BaseDAOImpl {
             return records.map(converter::convert);
         }
     }
+
+    public <RecordClazz extends Record, DTOClazz> DTOClazz fetchOne(SelectConditionStep<RecordClazz> query,
+                                                                    RecordDTOConverter<RecordClazz, DTOClazz> converter) {
+        String sql = "";
+        try {
+            sql = query.getSQL(ParamType.INLINED);
+            log.debug("SQL={}", sql);
+            RecordClazz record = query.fetchOne();
+            return record == null ? null : converter.convert(record);
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "error SQL={}",
+                sql
+            ).getMessage();
+            log.error(msg, e);
+            throw e;
+        }
+    }
+
 }

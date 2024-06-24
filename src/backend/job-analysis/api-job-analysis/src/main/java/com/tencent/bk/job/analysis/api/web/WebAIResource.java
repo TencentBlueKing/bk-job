@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -103,12 +102,6 @@ public interface WebAIResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiParam("bk_ticket，从Cookie获取")
-        @CookieValue(value = "bk_ticket")
-        String bkTicket,
-        @ApiParam("bk_token，从Cookie获取")
-        @CookieValue(value = "bk_token")
-        String bkToken,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
