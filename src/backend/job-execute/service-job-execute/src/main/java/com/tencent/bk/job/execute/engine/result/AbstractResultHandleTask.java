@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -216,19 +217,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
 
-    protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
-                                       GseTaskService gseTaskService,
-                                       LogService logService,
-                                       TaskInstanceVariableService taskInstanceVariableService,
-                                       StepInstanceVariableValueService stepInstanceVariableValueService,
-                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+    protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
-                                       StepInstanceService stepInstanceService,
-                                       GseClient gseClient,
                                        JobExecuteConfig jobExecuteConfig,
-                                       RunningJobKeepaliveManager runningJobKeepaliveManager,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -236,19 +227,21 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        GseTaskDTO gseTask,
                                        String requestId,
                                        List<ExecuteObjectTask> executeObjectTasks) {
-        this.taskInstanceService = taskInstanceService;
-        this.gseTaskService = gseTaskService;
-        this.logService = logService;
-        this.taskInstanceVariableService = taskInstanceVariableService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
+        this.gseTaskService = engineDependentServiceHolder.getGseTaskService();
+        this.logService = engineDependentServiceHolder.getLogService();
+        this.taskInstanceVariableService = engineDependentServiceHolder.getTaskInstanceVariableService();
+        this.stepInstanceVariableValueService = engineDependentServiceHolder.getStepInstanceVariableValueService();
+        this.taskExecuteMQEventDispatcher = engineDependentServiceHolder.getTaskExecuteMQEventDispatcher();
+        this.resultHandleTaskKeepaliveManager = engineDependentServiceHolder.getResultHandleTaskKeepaliveManager();
+        this.taskEvictPolicyExecutor = engineDependentServiceHolder.getTaskEvictPolicyExecutor();
+        this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
+        this.gseClient = engineDependentServiceHolder.getGseClient();
+        this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+
         this.executeObjectTaskService = executeObjectTaskService;
-        this.stepInstanceService = stepInstanceService;
-        this.gseClient = gseClient;
         this.jobExecuteConfig = jobExecuteConfig;
-        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
+        
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();

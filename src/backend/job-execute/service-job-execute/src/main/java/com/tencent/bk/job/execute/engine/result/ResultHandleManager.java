@@ -137,7 +137,8 @@ public class ResultHandleManager implements SmartLifecycle {
     private final RunningJobKeepaliveManager runningJobKeepaliveManager;
 
     @Autowired
-    public ResultHandleManager(Tracer tracer, ExecuteMonitor counters,
+    public ResultHandleManager(Tracer tracer,
+                               ExecuteMonitor counters,
                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                ResultHandleTaskSampler resultHandleTaskSampler,
                                JobExecuteConfig jobExecuteConfig,
@@ -162,7 +163,7 @@ public class ResultHandleManager implements SmartLifecycle {
         log.info("Handle delivered task: {}", task);
         ScheduledContinuousResultHandleTask scheduleTask =
             new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
-                resultHandleTaskKeepaliveManager, resultHandleLimiter);
+                resultHandleTaskKeepaliveManager, resultHandleLimiter, runningJobKeepaliveManager);
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.warn("ResultHandleManager is not active, reject! task: {}", task);

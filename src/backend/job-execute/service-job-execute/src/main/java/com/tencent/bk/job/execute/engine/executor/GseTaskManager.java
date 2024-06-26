@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableExce
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -78,6 +79,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @Slf4j
 public class GseTaskManager implements SmartLifecycle {
+    private final EngineDependentServiceHolder engineDependentServiceHolder;
     private final ResultHandleManager resultHandleManager;
     private final TaskInstanceService taskInstanceService;
     private final GseTaskService gseTaskService;
@@ -134,7 +136,8 @@ public class GseTaskManager implements SmartLifecycle {
      * GseTaskManager Constructor
      */
     @Autowired
-    public GseTaskManager(ResultHandleManager resultHandleManager,
+    public GseTaskManager(EngineDependentServiceHolder engineDependentServiceHolder,
+                          ResultHandleManager resultHandleManager,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -155,6 +158,7 @@ public class GseTaskManager implements SmartLifecycle {
                           FileExecuteObjectTaskService fileExecuteObjectTaskService,
                           StepInstanceService stepInstanceService,
                           GseClient gseClient) {
+        this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -254,7 +258,7 @@ public class GseTaskManager implements SmartLifecycle {
                 log.warn("GseTaskManager-> start gse task is slow, statistics:{}", watch.prettyPrint());
             }
             executeMonitor.getMeterRegistry().timer(ExecuteMetricNames.EXECUTE_TASK_PREFIX,
-                "task_type", getTaskTypeDesc(startCommand), "status", success ? "ok" : "error")
+                    "task_type", getTaskTypeDesc(startCommand), "status", success ? "ok" : "error")
                 .record(watch.getTotalTimeNanos(), TimeUnit.NANOSECONDS);
         }
     }
@@ -315,25 +319,9 @@ public class GseTaskManager implements SmartLifecycle {
         StepExecuteTypeEnum executeType = stepInstance.getExecuteType();
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT) {
             gseTaskStartCommand = new ScriptGseTaskStartCommand(
-                resultHandleManager,
-                taskInstanceService,
-                stepInstanceService,
-                gseTaskService,
+                engineDependentServiceHolder,
                 scriptExecuteObjectTaskService,
-                accountService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                agentService,
-                logService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                executeMonitor,
                 jobExecuteConfig,
-                taskEvictPolicyExecutor,
-                gseTasksExceptionCounter,
-                jobBuildInVariableResolver,
-                tracer,
-                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -342,25 +330,9 @@ public class GseTaskManager implements SmartLifecycle {
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
             gseTaskStartCommand = new SQLScriptGseTaskStartCommand(
-                resultHandleManager,
-                taskInstanceService,
-                stepInstanceService,
-                gseTaskService,
+                engineDependentServiceHolder,
                 scriptExecuteObjectTaskService,
-                accountService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                agentService,
-                logService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                executeMonitor,
                 jobExecuteConfig,
-                taskEvictPolicyExecutor,
-                gseTasksExceptionCounter,
-                jobBuildInVariableResolver,
-                tracer,
-                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -369,24 +341,9 @@ public class GseTaskManager implements SmartLifecycle {
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
             gseTaskStartCommand = new FileGseTaskStartCommand(
-                resultHandleManager,
-                taskInstanceService,
-                gseTaskService,
+                engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
-                accountService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                agentService,
-                logService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                executeMonitor,
                 jobExecuteConfig,
-                taskEvictPolicyExecutor,
-                gseTasksExceptionCounter,
-                stepInstanceService,
-                tracer,
-                gseClient,
                 requestId,
                 taskInstance,
                 stepInstance,
@@ -460,12 +417,8 @@ public class GseTaskManager implements SmartLifecycle {
         GseTaskCommand gseTaskStopCommand = null;
         if (stepInstance.isScriptStep()) {
             gseTaskStopCommand = new ScriptGseTaskStopCommand(
-                agentService,
-                accountService,
-                gseTaskService,
+                engineDependentServiceHolder,
                 scriptExecuteObjectTaskService,
-                tracer,
-                gseClient,
                 taskInstance,
                 stepInstance,
                 gseTask
@@ -473,12 +426,8 @@ public class GseTaskManager implements SmartLifecycle {
             scriptTaskCounter.incrementAndGet();
         } else if (stepInstance.isFileStep()) {
             gseTaskStopCommand = new FileGseTaskStopCommand(
-                agentService,
-                accountService,
-                gseTaskService,
+                engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
-                tracer,
-                gseClient,
                 taskInstance,
                 stepInstance,
                 gseTask
