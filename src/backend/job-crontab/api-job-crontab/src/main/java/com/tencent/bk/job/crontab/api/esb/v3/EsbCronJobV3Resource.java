@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronDetailV3Request;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbGetCronListV3Request;
@@ -134,7 +136,7 @@ public interface EsbCronJobV3Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
-        @Validated
+        @Validated({Create.class, Update.class})
             EsbSaveCronV3Request request
     );
 

@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -51,7 +53,11 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
     /**
      * 定时任务ID，更新定时任务时，必须传这个值
      */
-    @Min(value = 1L, message = "{validation.constraints.InvalidCronId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidCronId.message}",
+        groups = Update.class
+    )
     private Long id;
 
     /**
@@ -59,14 +65,17 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("job_plan_id")
     @NotNull(message = "{validation.constraints.InvalidCronJobPlanId.message}", groups = Create.class)
-    @Min(value = 1L, message = "{validation.constraints.InvalidCronJobPlanId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_1, message = "{validation.constraints.InvalidCronJobPlanId.message}")
     private Long planId;
 
     /**
      * 定时作业名称，新建时必填，修改时选填
      */
     @NotEmpty(message = "{validation.constraints.InvalidCronJobName_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.InvalidCronJobName_outOfLength.message}")
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.InvalidCronJobName_outOfLength.message}"
+    )
     private String name;
 
     /**
@@ -83,7 +92,11 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
      * 不可与 cronExpression 同时为空
      */
     @JsonProperty("execute_time")
-    @Min(value = 1L, message = "{validation.constraints.InvalidCronExecuteTime.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidCronExecuteTime.message}",
+        groups = {Create.class, Update.class}
+    )
     private Long executeTime;
 
     /**

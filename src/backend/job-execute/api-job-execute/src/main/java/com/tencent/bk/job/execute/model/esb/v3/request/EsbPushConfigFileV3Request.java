@@ -28,9 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -38,6 +42,10 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidFieldsStrictValue(
+    fieldNames = {"accountAlias", "accountId"},
+    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
+)
 public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
 
     /**
@@ -51,6 +59,7 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
      * 目标路径
      */
     @JsonProperty("file_target_path")
+    @NotBlankField(message = "{validation.constraints.InvalidFileTargetPath_empty.message}")
     private String targetPath;
 
     /**
@@ -69,9 +78,17 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
      * 目标服务器
      */
     @JsonProperty("target_server")
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
+        message = "{validation.constraints.ExecuteTarget_empty.message}"
+    )
+    @Valid
     private EsbServerV3DTO targetServer;
 
     @JsonProperty("file_list")
+    @NotEmpty(message = "validation.constraints.InvalidSourceFileList_empty.message")
+    @Valid
     private List<EsbConfigFileDTO> fileList;
 
     /**
@@ -99,10 +116,12 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
     public static class EsbConfigFileDTO {
 
         @JsonProperty("file_name")
+        @NotBlankField(fieldName = "file_name")
         private String fileName;
         /**
          * 文件内容Base64
          */
+        @NotBlankField(fieldName = "content")
         private String content;
     }
 

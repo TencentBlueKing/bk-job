@@ -17,16 +17,16 @@
 
 #### 接口参数
 
-| 字段             |  类型      | 必选   |  描述       |
-|-----------------|------------|--------|------------|
-| bk_scope_type | string | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
-| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| code            |  string    | 是     | 文件源标识，英文字符开头，1-32位英文字符、下划线、数字组成，创建后不可更改 |
-| alias           |  string    | 是     | 文件源别名 |
-| type            |  string    | 是     | 文件源类型，当前仅支持蓝鲸制品库，BLUEKING_ARTIFACTORY |
-| access_params   |  object    | 是     | 文件源接入参数，根据type传入不同的对象，见后续说明 |
-| credential_id   |  string    | 否     | 文件源使用的凭证Id |
-| file_prefix     |  string    | 否     | Job对从该文件源分发的文件加上的前缀，不传默认不加前缀 |
+| 字段             |  类型      | 必选 |  描述       |
+|-----------------|------------|----|------------|
+| bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
+| bk_scope_id | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| code            |  string    | 是  | 文件源标识，英文字符开头，1-32位英文字符、下划线、数字组成，创建后不可更改 |
+| alias           |  string    | 是  | 文件源别名 |
+| type            |  string    | 是  | 文件源类型，当前仅支持蓝鲸制品库，BLUEKING_ARTIFACTORY |
+| access_params   |  object    | 是  | 文件源接入参数，根据type传入不同的对象，见后续说明 |
+| credential_id   |  string    | 否  | 文件源使用的凭证Id |
+| file_prefix     |  string    | 否  | Job对从该文件源分发的文件加上的前缀，不传默认不加前缀 |
 
 ### access_params
 **type为BLUEKING_ARTIFACTORY**  

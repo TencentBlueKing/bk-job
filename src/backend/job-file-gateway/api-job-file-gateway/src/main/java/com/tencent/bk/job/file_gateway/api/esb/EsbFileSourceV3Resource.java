@@ -27,6 +27,10 @@ package com.tencent.bk.job.file_gateway.api.esb;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3Req;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
@@ -40,12 +44,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Pattern;
+
 /**
  * 文件源API-V3
  */
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbFileSourceV3Resource {
 
     @PostMapping("/create_file_source")
@@ -53,7 +60,7 @@ public interface EsbFileSourceV3Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
-        @Validated
+        @Validated(Create.class)
             EsbCreateOrUpdateFileSourceV3Req req
     );
 
@@ -62,7 +69,7 @@ public interface EsbFileSourceV3Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
-        @Validated
+        @Validated(Update.class)
             EsbCreateOrUpdateFileSourceV3Req req
     );
 
@@ -73,6 +80,11 @@ public interface EsbFileSourceV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @NotBlankField(fieldName = "code")
+        @Pattern(
+            regexp = ValidationConstants.FILE_SOURCE_CODE_PATTERN,
+            message = "{validation.constraints.InvalidFileSourceCode.message}"
+        )
         @RequestParam(value = "code") String code);
 
     /**

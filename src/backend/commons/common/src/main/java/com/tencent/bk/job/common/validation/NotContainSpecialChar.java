@@ -58,7 +58,7 @@ public @interface NotContainSpecialChar {
 
     Class<? extends Payload>[] payload() default {};
 
-    String fieldName();
+    String fieldName() default "";
 
     class Validator implements ConstraintValidator<NotContainSpecialChar, String> {
 

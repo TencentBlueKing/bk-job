@@ -39,8 +39,10 @@ public class EsbGetAccountListV3Req extends EsbAppScopeReq {
     /**
      * 账号用途（1：系统账号，2：DB账号），不传则不区分
      */
-    @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.AccountCategory_illegal.message}")
+    @CheckEnum(
+        enumClass = AccountCategoryEnum.class,
+        message = "{validation.constraints.AccountCategory_illegal.message}"
+    )
     private Integer category;
 
     /**

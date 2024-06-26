@@ -33,6 +33,18 @@ public enum CredentialTypeEnum {
     private final Integer value;
     private final String description;
 
+    public static boolean isValid(String type) {
+        if (type == null) {
+            return false;
+        }
+        for (CredentialTypeEnum credentialType : CredentialTypeEnum.values()) {
+            if (credentialType.name().equals(type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String getAllNameStr() {
         StringBuilder sb = new StringBuilder();
         CredentialTypeEnum[] values = CredentialTypeEnum.values();

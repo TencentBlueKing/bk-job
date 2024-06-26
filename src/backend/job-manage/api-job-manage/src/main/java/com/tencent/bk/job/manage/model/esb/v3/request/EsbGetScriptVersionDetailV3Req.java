@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.ConditionalCheckFieldsStrictValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,6 +35,11 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@ConditionalCheckFieldsStrictValue(
+    primaryField = "id",
+    dependentFields = {"scriptId", "version"},
+    message = "{validation.constraints.ScriptVersionId_empty.message}"
+)
 public class EsbGetScriptVersionDetailV3Req extends EsbAppScopeReq {
     /**
      * 脚本版本ID，若传入则以此条件为准屏蔽其他条件

@@ -30,11 +30,15 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
@@ -42,6 +46,10 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidFieldsStrictValue(
+    fieldNames = {"accountAlias", "accountId"},
+    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
+)
 public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
 
     /**
@@ -49,16 +57,20 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("task_name")
     private String name;
+
     /**
      * 源文件
      */
     @JsonProperty("file_source_list")
+    @Valid
+    @NotEmpty(message = "{validation.constraints.InvalidSourceFileObject_empty.message}")
     private List<EsbFileSourceV3DTO> fileSources;
 
     /**
      * 目标路径
      */
     @JsonProperty("file_target_path")
+    @NotBlankField(message = "{validation.constraints.InvalidFileTargetPath_empty.message}")
     private String targetPath;
 
     /**
@@ -80,6 +92,12 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
     private Long accountId;
 
     @JsonProperty("target_server")
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
+        message = "{validation.constraints.ExecuteTarget_empty.message}"
+    )
+    @Valid
     private EsbServerV3DTO targetServer;
 
     /**
@@ -118,6 +136,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     public void trimIps() {

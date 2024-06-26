@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotEmpty;
+
 /**
  * 查询公共脚本版本列表请求
  */
@@ -39,6 +41,7 @@ public class EsbGetPublicScriptVersionListV3Request extends EsbJobReq {
      * 脚本ID
      */
     @JsonProperty("script_id")
+    @NotEmpty(message = "{validation.constraints.ScriptId_empty.message}")
     private String scriptId;
     /**
      * 是否需要返回脚本内容。true:返回脚本内容；false：不返回脚本内容。默认为false。

@@ -26,6 +26,10 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.execute.common.constants.TaskOperationEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,12 +43,22 @@ public class EsbOperateJobInstanceV3Request extends EsbAppScopeReq {
      * 作业实例ID
      */
     @JsonProperty("job_instance_id")
+    @CheckNumber(
+        notNull = true,
+        min = ValidationConstants.COMMON_MIN_1_STR,
+        message = "{validation.constraints.InvalidJobInstanceId.message}"
+    )
     private Long taskInstanceId;
 
     /**
      * 操作类型：1、终止作业
      */
     @JsonProperty("operation_code")
+    @CheckEnum(
+        notNull = true,
+        enumClass = TaskOperationEnum.class,
+        message = "{validation.constraints.InvalidTaskOperationType_illegal.message}"
+    )
     private Integer operationCode;
 
 }

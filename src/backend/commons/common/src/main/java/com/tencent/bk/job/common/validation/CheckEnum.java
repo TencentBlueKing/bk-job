@@ -53,7 +53,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface CheckEnum {
 
-    String message() default "";
+    String message() default "{fieldName}{validation.constraints.InvalidEnumValue.message}";
 
     Class<?>[] groups() default {};
 
@@ -63,21 +63,28 @@ public @interface CheckEnum {
 
     String enumMethod() default "isValid";
 
+    // value是否允许为null，默认允许
+    boolean notNull() default false;
+
+    String fieldName() default "";
+
     class Validator implements ConstraintValidator<CheckEnum, Object> {
 
         private Class<? extends Enum<?>> enumClass;
         private String enumMethod;
+        private boolean notNull;
 
         @Override
         public void initialize(CheckEnum enumValue) {
             enumMethod = enumValue.enumMethod();
             enumClass = enumValue.enumClass();
+            notNull = enumValue.notNull();
         }
 
         @Override
         public boolean isValid(Object value, ConstraintValidatorContext constraintValidatorContext) {
             if (value == null) {
-                return true;
+                return !notNull;
             }
             if (enumClass == null || enumMethod == null) {
                 return true;

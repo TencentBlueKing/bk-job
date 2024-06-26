@@ -68,10 +68,11 @@ public interface EsbAccountV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @RequestParam(value = "category", required = false)
-        @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
-            message = "{validation.constraints.AccountCategory_illegal.message}")
-            Integer category,
+        @CheckEnum(
+            enumClass = AccountCategoryEnum.class,
+            message = "{validation.constraints.AccountCategory_illegal.message}"
+        )
+        @RequestParam(value = "category", required = false) Integer category,
         @RequestParam(value = "account", required = false) String account,
         @RequestParam(value = "alias", required = false) String alias,
         @RequestParam(value = "start", required = false) Integer start,

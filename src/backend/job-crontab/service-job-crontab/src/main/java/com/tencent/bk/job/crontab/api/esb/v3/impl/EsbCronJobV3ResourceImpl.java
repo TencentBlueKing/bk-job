@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -214,7 +213,6 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                                                       String appCode,
                                                       @AuditRequestBody EsbUpdateCronStatusV3Request request) {
         Long appId = request.getAppId();
-        request.validate();
         AuthResult authResult = cronAuthService.authManageCron(
             username,
             new AppResourceScope(request.getScopeType(), request.getScopeId(), request.getAppId()),
@@ -240,17 +238,13 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
     }
 
-    private void checkAndFillGlobalVar(Long planId,
+    private void fillGlobalVar(Long planId,
                                        List<EsbGlobalVarV3DTO> globalVarV3DTOList,
                                        CronJobInfoDTO cronJobInfo) {
         // 校验id/name，解析id
         for (EsbGlobalVarV3DTO esbGlobalVarV3DTO : globalVarV3DTOList) {
             Long id = esbGlobalVarV3DTO.getId();
             String name = esbGlobalVarV3DTO.getName();
-            if (id == null && StringUtils.isBlank(name)) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_REASON,
-                    new String[]{"id/name of globalVar cannot be null/blank at the same time"});
-            }
             ServiceTaskVariableDTO taskVariableDTO;
             if (id == null) {
                 // 根据name解析id
@@ -300,7 +294,9 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
         EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
         esbCronInfoV3DTO.setId(0L);
-        checkRequest(request);
+        if (StringUtils.isNotBlank(request.getCronExpression())) {
+            CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
+        }
         Long appId = request.getAppId();
 
         cronJobInfo.setId(request.getId());
@@ -311,7 +307,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         cronJobInfo.setExecuteTime(request.getExecuteTime());
         List<EsbGlobalVarV3DTO> globalVarV3DTOList = request.getGlobalVarList();
         if (globalVarV3DTOList != null) {
-            checkAndFillGlobalVar(request.getPlanId(), globalVarV3DTOList, cronJobInfo);
+            fillGlobalVar(request.getPlanId(), globalVarV3DTOList, cronJobInfo);
         }
         if (cronJobInfo.getId() == null || cronJobInfo.getId() == 0) {
             cronJobInfo.setCreator(username);
@@ -347,22 +343,11 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         return EsbResp.buildCommonFailResp(ErrorCode.DELETE_CRON_FAILED);
     }
 
-    private void checkRequest(EsbSaveCronV3Request request) {
-        // 定时任务表达式有效性校验
-        if (StringUtils.isNotBlank(request.getCronExpression())) {
-            CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
-        }
-    }
-
     @Override
     public EsbResp<EsbCronInfoV3DTO> getCronDetailUsingPost(String username,
                                                             String appCode,
                                                             EsbGetCronDetailV3Request request) {
-        if (request.validate()) {
-            CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
-            return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));
-        } else {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
+        CronJobInfoDTO cronJobInfoById = cronJobService.getCronJobInfoById(request.getAppId(), request.getId());
+        return EsbResp.buildSuccessResp(CronJobInfoDTO.toEsbCronInfoV3(cronJobInfoById));
     }
 }

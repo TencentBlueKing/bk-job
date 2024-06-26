@@ -27,6 +27,9 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.ValidCollectionSizeOutOfLimit;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -39,6 +42,8 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@ValidFieldsStrictValue(fieldNames = {"ipList", "hostIdList"})
+@ValidCollectionSizeOutOfLimit(fieldNames = {"ipList", "hostIdList"})
 public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
 
     /**
@@ -46,7 +51,7 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("job_instance_id")
     @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_1, message = "{validation.constraints.InvalidJobInstanceId.message}")
     private Long taskInstanceId;
 
     /**
@@ -54,7 +59,7 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("step_instance_id")
     @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_1, message = "{validation.constraints.InvalidStepInstanceId.message}")
     private Long stepInstanceId;
 
     /**

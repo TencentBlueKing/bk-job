@@ -27,6 +27,9 @@ package com.tencent.bk.job.manage.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.Update;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateOrUpdateCredentialV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetCredentialDetailV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
@@ -46,6 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbCredentialV3Resource {
 
     @PostMapping("/create_credential")
@@ -53,7 +57,7 @@ public interface EsbCredentialV3Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
-        @Validated
+        @Validated(Create.class)
             EsbCreateOrUpdateCredentialV3Req req
     );
 
@@ -62,7 +66,7 @@ public interface EsbCredentialV3Resource {
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
-        @Validated
+        @Validated(Update.class)
             EsbCreateOrUpdateCredentialV3Req req
     );
 
@@ -73,6 +77,7 @@ public interface EsbCredentialV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @NotBlankField(message = "{validation.constraints.CredentialId_empty.message}")
         @RequestParam(value = "id") String id);
 
     /**

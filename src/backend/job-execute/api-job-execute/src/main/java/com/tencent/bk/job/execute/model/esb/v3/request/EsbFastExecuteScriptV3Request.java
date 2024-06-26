@@ -29,7 +29,10 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.ConditionalCheckEnum;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -42,6 +45,20 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidFieldsStrictValue(
+    fieldNames = {"accountAlias", "accountId"},
+    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
+)
+@ValidFieldsStrictValue(
+    fieldNames = {"scriptId", "scriptVersionId", "content"},
+    message = "{validation.constraints.ScriptIdOrVersionIdOrContent_empty.message}"
+)
+@ConditionalCheckEnum(
+    baseField = "content",
+    dependentField = "scriptLanguage",
+    enumClass = ScriptTypeEnum.class,
+    message = "{validation.constraints.ScriptType_illegal.message}"
+)
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     /**
@@ -63,7 +80,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private String accountAlias;
 
     /**
-     * 执行账号别名
+     * 执行账号ID
      */
     @JsonProperty("account_id")
     private Long accountId;
@@ -108,6 +125,11 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     @JsonProperty("target_server")
     @Valid
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
+        message = "{validation.constraints.ExecuteTarget_empty.message}"
+    )
     private EsbServerV3DTO targetServer;
 
     /**
@@ -120,6 +142,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     public void trimIps() {

@@ -30,12 +30,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
@@ -86,12 +84,6 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         String username,
         String appCode,
         @AuditRequestBody EsbGetJobInstanceIpLogV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get job instance ip log request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         long taskInstanceId = request.getTaskInstanceId();
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
@@ -114,19 +106,6 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
             buildFileLog(ipLog, stepInstance, stepInstance.getExecuteCount(), hostKey);
         }
         return EsbResp.buildSuccessResp(ipLog);
-    }
-
-    private ValidateResult checkRequest(EsbGetJobInstanceIpLogV3Request request) {
-        if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
-            log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        if (request.getStepInstanceId() == null || request.getStepInstanceId() < 1) {
-            log.warn("StepInstanceId is empty or illegal, stepInstanceId={}", request.getStepInstanceId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "step_instance_id");
-        }
-
-        return ValidateResult.pass();
     }
 
     private void buildScriptLog(EsbIpLogV3DTO ipLog,

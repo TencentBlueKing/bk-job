@@ -22,44 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.common.validation;
 
 /**
- * 作业步骤执行操作
+ * 校验条件枚举
  */
-public enum StepOperationEnum {
-    RETRY_FAIL_IP(2, "失败IP重做"),
-    IGNORE_ERROR(3, "忽略错误"),
-    CONFIRM_CONTINUE(6, "确认继续"),
-    RETRY_ALL_IP(8, "全部重试"),
-    CONFIRM_TERMINATE(9, "终止确认流程"),
-    CONFIRM_RESTART(10, "重新发起确认"),
-    NEXT_STEP(11, "进入下一步"),
-    SKIP(12, "强制跳过"),
-    ROLLING_CONTINUE(13, "继续滚动");
-
-    private final Integer value;
-    private final String name;
-
-    StepOperationEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
-
-    public static StepOperationEnum getStepOperation(int status) {
-        for (StepOperationEnum runStatusEnum : values()) {
-            if (runStatusEnum.getValue() == status) {
-                return runStatusEnum;
-            }
-        }
-        return null;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getName() {
-        return name;
-    }
+public enum ConditionType {
+    OR,
+    AND
 }

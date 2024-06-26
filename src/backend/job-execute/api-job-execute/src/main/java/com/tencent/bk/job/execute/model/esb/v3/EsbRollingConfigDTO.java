@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
+import com.tencent.bk.job.common.constant.RollingModeEnum;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import lombok.Data;
 
 /**
@@ -34,6 +37,7 @@ public class EsbRollingConfigDTO {
     /**
      * 滚动分批策略表达式
      */
+    @NotBlankField(message = "{validation.constraints.InvalidRollingExpression_empty.message}")
     private String expression;
 
     /**
@@ -41,6 +45,11 @@ public class EsbRollingConfigDTO {
      *
      * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
+    @CheckEnum(
+        enumClass = RollingModeEnum.class,
+        notNull = true,
+        message = "validation.constraints.InvalidRollingMode_illegal.message"
+    )
     private Integer mode;
 
 }

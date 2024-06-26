@@ -28,6 +28,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -50,9 +52,12 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
      * 脚本名称
      */
     @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Create.class)
-    @Pattern(regexp = "^[^\\\\|/:*<>\"?]+$", message = "{validation.constraints.ScriptName_illegal.message}",
-        groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptName_outOfLength.message}",
+        groups = Create.class
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.ScriptName_illegal.message}",groups = Create.class)
     private String name;
     /**
      * 脚本描述
@@ -65,8 +70,11 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
      */
     @JsonProperty("script_language")
     @NotNull(message = "{validation.constraints.ScriptType_empty.message}",groups = Create.class)
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.ScriptType_illegal.message}", groups = Create.class)
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}",
+        groups = Create.class
+    )
     private Integer type;
 
     /**
@@ -79,9 +87,16 @@ public class EsbCreateScriptV3Req extends EsbAppScopeReq {
      * 脚本版本
      */
     @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
-        groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptVersion_outOfLength.message}",
+        groups = Create.class
+    )
+    @Pattern(
+        regexp = ValidationConstants.SCRIPT_VERSION_PATTERN,
+        message = "{validation.constraints.ScriptVersion_illegal.message}",
+        groups = Create.class
+    )
     private String version;
 
     /**

@@ -26,14 +26,11 @@ package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
@@ -83,12 +80,6 @@ public class EsbFastExecuteSQLV3ResourceImpl
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(String username,
                                                       String appCode,
                                                       @AuditRequestBody EsbFastExecuteSQLV3Request request) {
-        ValidateResult validateResult = checkFastExecuteSQLRequest(request);
-        if (!validateResult.isPass()) {
-            log.warn("Fast execute sql request is illegal!");
-            throw new InvalidParamException(validateResult);
-        }
-
         request.trimIps();
 
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(username, appCode, request);
@@ -106,35 +97,6 @@ public class EsbFastExecuteSQLV3ResourceImpl
     private String generateDefaultFastTaskName() {
         return i18nService.getI18n("task.type.name.fast_execute_sql") + "_"
             + DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS");
-    }
-
-    private ValidateResult checkFastExecuteSQLRequest(EsbFastExecuteSQLV3Request request) {
-        boolean isSpecifiedByScriptVersionId = request.getScriptVersionId() != null;
-        boolean isSpecifiedByOnlineScript = StringUtils.isNotEmpty(request.getScriptId());
-        boolean isSpecifiedByScriptContent = StringUtils.isNotEmpty(request.getContent());
-        if (!(isSpecifiedByScriptVersionId || isSpecifiedByOnlineScript || isSpecifiedByScriptContent)) {
-            log.warn("Fast execute sql, script is not specified!");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                "script_version_id|script_id|script_content");
-        }
-        if (isSpecifiedByScriptVersionId) {
-            if (request.getScriptVersionId() < 1) {
-                log.warn("Fast execute sql, scriptVersionId:{} is invalid", request.getScriptVersionId());
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_version_id");
-            }
-        }
-
-        ValidateResult serverValidateResult = checkServer(request.getTargetServer());
-        if (!serverValidateResult.isPass()) {
-            log.warn("Fast execute sql, target server is empty!");
-            return serverValidateResult;
-        }
-
-        if (request.getDbAccountId() == null || request.getDbAccountId() < 1L) {
-            log.warn("Fast execute sql, account is empty!");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "db_account_id");
-        }
-        return ValidateResult.pass();
     }
 
     private TaskInstanceDTO buildFastSQLTaskInstance(String username,

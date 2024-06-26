@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -40,6 +42,14 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidFieldsStrictValue(
+    fieldNames = {"accountAlias", "accountId"},
+    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
+)
+@ValidFieldsStrictValue(
+    fieldNames = {"scriptId", "scriptVersionId", "content"},
+    message = "{validation.constraints.ScriptIdOrVersionIdOrContent_empty.message}"
+)
 public class EsbFastExecuteSQLV3Request extends EsbAppScopeReq {
     /**
      * 脚本执行任务名称
@@ -80,6 +90,12 @@ public class EsbFastExecuteSQLV3Request extends EsbAppScopeReq {
     private Integer timeout;
 
     @JsonProperty("target_server")
+    @Valid
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
+        message = "{validation.constraints.ExecuteTarget_empty.message}"
+    )
     private EsbServerV3DTO targetServer;
 
     /**

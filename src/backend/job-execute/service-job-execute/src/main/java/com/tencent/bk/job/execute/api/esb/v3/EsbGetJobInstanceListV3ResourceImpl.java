@@ -35,10 +35,10 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.validation.ValidationUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.esb.v3.EsbTaskInstanceV3DTO;
@@ -71,10 +71,11 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         String username,
         String appCode,
         EsbGetJobInstanceListV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get job instance ip log request is illegal!");
-            throw new InvalidParamException(checkResult);
+        if (!ValidationUtil.validateSearchTimeRange(request.getCreateTimeStart(), request.getCreateTimeEnd())) {
+            log.warn("create_time_start|create_time_end is illegal!");
+            throw new InvalidParamException(
+                ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "create_time_start|create_time_end")
+            );
         }
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(request.getTaskInstanceId());
@@ -134,32 +135,6 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
             pageDataV3.setData(taskInstanceList);
         }
         return pageDataV3;
-    }
-
-    private ValidateResult checkRequest(EsbGetJobInstanceListV3Request request) {
-        if (request.getCreateTimeStart() == null || request.getCreateTimeStart() < 1) {
-            log.warn("createTimeStart is empty or illegal, createTimeStart={}", request.getCreateTimeStart());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_start");
-        }
-        if (request.getCreateTimeEnd() == null || request.getCreateTimeEnd() < 1) {
-            log.warn("createTimeEnd is empty or illegal, createTimeEnd={}", request.getCreateTimeEnd());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_end");
-        }
-        long period = request.getCreateTimeEnd() - request.getCreateTimeStart();
-        if (period <= 0) {
-            log.warn("CreateStartTime is greater or equal to createTimeEnd, getCreateTimeStart={}, createTimeEnd={}",
-                request.getCreateTimeStart(), request.getCreateTimeEnd());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "create_time_start|create_time_end");
-        } else if (period > Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-            log.warn("Search time range greater than {} days!", Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS);
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "create_time_start|create_time_end");
-        }
-        if (request.getTaskType() != null && TaskTypeEnum.valueOf(request.getTaskType()) == null) {
-            log.warn("Param type is illegal!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "type");
-        }
-        return ValidateResult.pass();
     }
 
     @Override

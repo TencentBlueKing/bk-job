@@ -50,7 +50,7 @@ public @interface NotBlankField {
 
     Class<? extends Payload>[] payload() default { };
 
-    String fieldName();
+    String fieldName() default "";
 
     @Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE })
     @Retention(RUNTIME)

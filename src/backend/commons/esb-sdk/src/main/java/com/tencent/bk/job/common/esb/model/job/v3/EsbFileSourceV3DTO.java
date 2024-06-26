@@ -25,35 +25,72 @@
 package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.constants.EsbTaskFileTypeEnum;
+import com.tencent.bk.job.common.esb.validate.EsbFileSourceV3DTOGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.ValidFileAbsolutePath;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
  * 源文件定义-ESB
  */
 @Data
+@GroupSequenceProvider(EsbFileSourceV3DTOGroupSequenceProvider.class)
+@ValidFieldsStrictValue(
+    notNull = true,
+    fieldNames = {"fileSourceId", "fileSourceCode"},
+    message = "{validation.constraints.InvalidFileSourceIdOrCode_empty.message}",
+    groups = EsbFileSourceV3DTO.FileSourceGroup.class
+)
 public class EsbFileSourceV3DTO {
     /**
      * 文件列表
      */
     @JsonProperty("file_list")
+    @NotEmpty(
+        message = "{validation.constraints.InvalidSourceFileList_empty.message}",
+        groups = ServerFileGroup.class
+    )
+    @ValidFileAbsolutePath(groups = ServerFileGroup.class)
     private List<String> files;
 
     /**
      * 账号
      */
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"id", "alias"},
+        message = "{validation.constraints.AccountIdOrAlias_empty.message}",
+        groups = ServerFileGroup.class
+    )
     private EsbAccountV3BasicDTO account;
 
     @JsonProperty("server")
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = {"ips", "host_id_list", "dynamicGroups", "topoNodes"},
+        message = "{validation.constraints.ExecuteTarget_empty.message}",
+        groups = ServerFileGroup.class
+    )
+    @Valid
     private EsbServerV3DTO server;
 
     /**
      * 文件源类型，不传默认为服务器文件
      *
-     * @see com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum
+     * @see com.tencent.bk.job.common.esb.constants.EsbTaskFileTypeEnum
      */
     @JsonProperty("file_type")
+    @CheckEnum(
+        enumClass = EsbTaskFileTypeEnum.class,
+        message = "{validation.constraints.InvalidSourceFileType_illegal.message}"
+    )
     private Integer fileType;
 
     /**
@@ -67,4 +104,18 @@ public class EsbFileSourceV3DTO {
      */
     @JsonProperty("file_source_code")
     private String fileSourceCode;
+
+    /**
+     * 服务器文件分发分组验证
+     */
+    public interface ServerFileGroup {
+
+    }
+
+    /**
+     * 文件源文件分发分组验证
+     */
+    public interface FileSourceGroup {
+
+    }
 }

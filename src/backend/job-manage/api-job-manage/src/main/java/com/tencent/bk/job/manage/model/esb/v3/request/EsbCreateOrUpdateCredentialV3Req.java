@@ -26,6 +26,11 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -39,16 +44,30 @@ public class EsbCreateOrUpdateCredentialV3Req extends EsbAppScopeReq {
     /**
      * 凭证ID
      */
+    @NotBlankField(
+        message = "{validation.constraints.CredentialId_empty.message}",
+        groups = Update.class
+    )
     private String id;
 
     /**
      * 凭证名称
      */
+    @NotBlankField(
+        message = "{validation.constraints.CredentialName_empty.message}",
+        groups = Create.class
+    )
     private String name;
 
     /**
      * 凭证类型
      */
+    @CheckEnum(
+        enumClass = CredentialTypeEnum.class,
+        notNull = true,
+        message = "{validation.constraints.CredentialType_illegal.message}",
+        groups = Create.class
+    )
     private String type;
 
     /**

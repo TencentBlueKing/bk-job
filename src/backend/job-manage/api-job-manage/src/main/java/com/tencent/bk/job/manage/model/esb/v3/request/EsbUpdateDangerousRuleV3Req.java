@@ -76,7 +76,9 @@ public class EsbUpdateDangerousRuleV3Req extends EsbJobReq {
      * 处理动作
      */
     @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
-    @CheckEnum(enumClass = HighRiskGrammarActionEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
+    @CheckEnum(
+        enumClass = HighRiskGrammarActionEnum.class,
+        message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}"
+    )
     private Integer action;
 }

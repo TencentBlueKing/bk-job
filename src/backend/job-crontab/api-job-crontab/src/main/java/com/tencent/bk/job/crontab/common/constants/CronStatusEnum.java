@@ -54,4 +54,11 @@ public enum CronStatusEnum {
     public Integer getStatus() {
         return status;
     }
+
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valOf(type) != null;
+    }
 }

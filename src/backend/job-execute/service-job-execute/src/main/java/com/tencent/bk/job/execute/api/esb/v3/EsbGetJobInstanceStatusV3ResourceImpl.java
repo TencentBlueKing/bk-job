@@ -30,11 +30,9 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -85,12 +83,6 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
         String username,
         String appCode,
         @AuditRequestBody EsbGetJobInstanceStatusV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get job instance status request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
@@ -108,14 +100,6 @@ public class EsbGetJobInstanceStatusV3ResourceImpl implements EsbGetJobInstanceS
             isReturnIpResult);
 
         return EsbResp.buildSuccessResp(jobInstanceStatus);
-    }
-
-    private ValidateResult checkRequest(EsbGetJobInstanceStatusV3Request request) {
-        if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
-            log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        return ValidateResult.pass();
     }
 
     private EsbJobInstanceStatusV3DTO buildEsbJobInstanceStatusDTO(TaskInstanceDTO taskInstance,

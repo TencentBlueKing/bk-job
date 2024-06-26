@@ -38,7 +38,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPublicScriptV3Resource;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreatePublicScriptV3Req;
@@ -125,6 +124,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         request.setId(scriptVersionId);
         request.setScriptId(scriptId);
         request.setVersion(version);
+        checkEsbGetPublicScriptVersionDetailV3Req(request);
         return getPublicScriptVersionDetailUsingPost(username, appCode, request);
     }
 
@@ -134,7 +134,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         String username,
         String appCode,
         EsbGetPublicScriptListV3Request request) {
-        checkEsbGetPublicScriptListV3Req(request);
+        request.adjustPageParam();
 
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(PUBLIC_APP_ID);
@@ -164,8 +164,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         String username,
         String appCode,
         EsbGetPublicScriptVersionListV3Request request) {
-        checkEsbGetPublicScriptVersionListV3Req(request);
-
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(PUBLIC_APP_ID);
         scriptQuery.setPublicScript(true);
@@ -193,8 +191,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         String username,
         String appCode,
         EsbGetPublicScriptVersionDetailV3Request request) {
-        checkEsbGetPublicScriptVersionDetailV3Req(request);
-
         String scriptId = request.getScriptId();
         String version = request.getVersion();
         Long id = request.getId();
@@ -338,17 +334,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
         return EsbResp.buildSuccessResp(scriptDTO.toEsbCreateScriptV3DTO());
     }
 
-    private void checkEsbGetPublicScriptListV3Req(EsbGetPublicScriptListV3Request request) {
-        request.adjustPageParam();
-        // 如果script_type=0,表示查询所有类型
-        if (request.getScriptLanguage() != null
-            && request.getScriptLanguage() > 0
-            && ScriptTypeEnum.valOf(request.getScriptLanguage()) == null) {
-            log.warn("Param [type]:[{}] is illegal!", request.getScriptLanguage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
-        }
-    }
-
     private void setOnlineScriptVersionInfo(List<ScriptDTO> scripts) {
         if (scripts != null && !scripts.isEmpty()) {
             List<String> scriptIdList = new ArrayList<>();
@@ -365,13 +350,6 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
                     script.setVersion(onlineScriptVersion.getVersion());
                 }
             }
-        }
-    }
-
-    private void checkEsbGetPublicScriptVersionListV3Req(EsbGetPublicScriptVersionListV3Request request) {
-        if (StringUtils.isBlank(request.getScriptId())) {
-            log.warn("Param [script_id] is empty!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
         }
     }
 

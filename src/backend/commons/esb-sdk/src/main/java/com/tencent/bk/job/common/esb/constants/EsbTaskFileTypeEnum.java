@@ -22,36 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.common.esb.constants;
 
-/**
- * 作业执行操作
- */
-public enum TaskOperationEnum {
-    TERMINATE_JOB(1, "终止任务");
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-    private final Integer value;
-    private final String name;
+@Getter
+@AllArgsConstructor
+public enum EsbTaskFileTypeEnum {
+    /**
+     * 服务器文件
+     */
+    SERVER(1),
 
-    TaskOperationEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
+    /**
+     * 文件源文件
+     */
+    FILE_SOURCE(3),
 
-    public static TaskOperationEnum getTaskOperation(int status) {
-        for (TaskOperationEnum runStatusEnum : values()) {
-            if (runStatusEnum.getValue() == status) {
-                return runStatusEnum;
+    /**
+     * Base64编码的文件
+     */
+    BASE64_FILE(4);
+
+    private final int type;
+
+    public static EsbTaskFileTypeEnum valueOf(int type) {
+        for (EsbTaskFileTypeEnum fileType : values()) {
+            if (fileType.type == type) {
+                return fileType;
             }
         }
         return null;
     }
 
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getName() {
-        return name;
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valueOf(type) != null;
     }
 }

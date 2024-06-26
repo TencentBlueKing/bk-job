@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
 import org.springframework.validation.annotation.Validated;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbGetJobInstanceStatusV3Resource {
 
     @PostMapping("/get_job_instance_status")
@@ -62,6 +65,11 @@ public interface EsbGetJobInstanceStatusV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @CheckNumber(
+            notNull = true,
+            min = ValidationConstants.COMMON_MIN_1_STR,
+            message = "{validation.constraints.InvalidJobInstanceId.message}"
+        )
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
         @RequestParam(value = "return_ip_result", required = false, defaultValue = "false") boolean returnIpResult);
 

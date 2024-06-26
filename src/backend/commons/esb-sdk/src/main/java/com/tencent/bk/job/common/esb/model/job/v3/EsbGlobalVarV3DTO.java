@@ -27,19 +27,26 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.Update;
 import lombok.Data;
 
-import javax.validation.constraints.Min;
+import javax.validation.groups.Default;
 
 /**
  * 全局变量
  */
 @Data
+@ValidFieldsStrictValue(
+    fieldNames = {"id", "name"},
+    message = "{validation.constraints.InvalidGlobalVarIdOrName_empty.message}",
+    groups = {Create.class, Update.class, Default.class}
+)
 public class EsbGlobalVarV3DTO {
     /**
      * 全局变量ID
      */
-    @Min(value = 1L, message = "{validation.constraints.InvalidGlobalVarId.message}")
     @JsonPropertyDescription("Global variable id")
     private Long id;
 

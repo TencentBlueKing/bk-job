@@ -48,7 +48,7 @@ public class EsbCheckScriptV3Req extends EsbJobReq {
      */
     @JsonProperty("script_language")
     @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
+    @CheckEnum(enumClass = ScriptTypeEnum.class,
         message = "{validation.constraints.ScriptType_illegal.message}")
     private Integer type;
 

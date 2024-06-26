@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -74,6 +76,10 @@ public class EsbGetJobInstanceListV3Request extends EsbAppScopeReq {
      * 任务类型
      */
     @JsonProperty("type")
+    @CheckEnum(
+        enumClass = TaskTypeEnum.class,
+        message = "{validation.constraints.InvalidTaskType_illegal.message}"
+    )
     private Integer taskType;
 
     /**

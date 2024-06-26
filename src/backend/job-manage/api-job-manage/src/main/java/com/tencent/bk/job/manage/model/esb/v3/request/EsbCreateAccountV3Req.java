@@ -43,7 +43,7 @@ import javax.validation.constraints.NotEmpty;
 public class EsbCreateAccountV3Req extends EsbAppScopeReq {
 
     /**
-     * 帐号名称
+     * 账号名称
      */
     @NotEmpty(message = "{validation.constraints.AccountName_empty.message}")
     private String account;
@@ -51,15 +51,21 @@ public class EsbCreateAccountV3Req extends EsbAppScopeReq {
     /**
      * 账号类型：1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2
      */
-    @CheckEnum(enumClass = AccountTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.AccountType_illegal.message}")
+    @CheckEnum(
+        enumClass = AccountTypeEnum.class,
+        notNull = true,
+        message = "{validation.constraints.AccountType_illegal.message}"
+    )
     private Integer type;
 
     /**
      * 账号用途：1-系统账号，2-数据库账号
      */
-    @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.AccountCategory_illegal.message}")
+    @CheckEnum(
+        enumClass = AccountCategoryEnum.class,
+        notNull = true,
+        message = "{validation.constraints.AccountCategory_illegal.message}"
+    )
     private Integer category;
 
     /**

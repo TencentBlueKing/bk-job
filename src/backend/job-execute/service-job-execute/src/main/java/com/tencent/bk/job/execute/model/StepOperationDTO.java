@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.execute.constants.StepOperationEnum;
+import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import lombok.Data;
 import lombok.ToString;
 

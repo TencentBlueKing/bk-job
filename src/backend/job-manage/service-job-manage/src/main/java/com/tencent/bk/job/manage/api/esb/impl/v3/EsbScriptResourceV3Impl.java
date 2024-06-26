@@ -29,11 +29,9 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -176,7 +174,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptListUsingPost(String username,
                                                                          String appCode,
                                                                          EsbGetScriptListV3Req request) {
-        checkEsbGetScriptListV3Req(request);
+        request.adjustPageParam();
 
         ScriptQuery scriptQuery = buildListPageScriptQuery(request);
 
@@ -205,17 +203,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         scriptQuery.setBaseSearchCondition(baseSearchCondition);
 
         return scriptQuery;
-    }
-
-    private void checkEsbGetScriptListV3Req(EsbGetScriptListV3Req request) {
-        request.adjustPageParam();
-        // 如果script_type=0,表示查询所有类型
-        if (request.getScriptLanguage() != null
-            && request.getScriptLanguage() > 0
-            && ScriptTypeEnum.valOf(request.getScriptLanguage()) == null) {
-            log.warn("Param [type]:[{}] is illegal!", request.getScriptLanguage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
-        }
     }
 
     private void setOnlineScriptVersionInfo(List<ScriptDTO> scripts) {
@@ -250,8 +237,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetScriptVersionListV3Req request) {
-        checkEsbGetScriptVersionListV3Req(request);
-
         scriptAuthService.authViewScript(username, request.getAppResourceScope(), request.getScriptId(),
             null).denyIfNoPermission();
 
@@ -283,13 +268,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         return scriptQuery;
     }
 
-    private void checkEsbGetScriptVersionListV3Req(EsbGetScriptVersionListV3Req request) {
-        if (StringUtils.isBlank(request.getScriptId())) {
-            log.warn("Param [script_id] is empty!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
-        }
-    }
-
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_version_detail"})
     @AuditEntry(actionId = ActionId.VIEW_SCRIPT)
@@ -297,8 +275,6 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetScriptVersionDetailV3Req request) {
-        checkEsbGetScriptVersionDetailV3Req(request);
-
         long appId = request.getAppId();
         String scriptId = request.getScriptId();
         String version = request.getVersion();
@@ -470,22 +446,5 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
             }
         }
         return EsbResp.buildSuccessResp(checkScriptDTOS);
-    }
-
-    private void checkEsbGetScriptVersionDetailV3Req(EsbGetScriptVersionDetailV3Req request) {
-        if (request.getId() != null && request.getId() > 0) {
-            // 如果ID合法，那么忽略其他参数
-            return;
-        }
-
-        if (StringUtils.isBlank(request.getScriptId())) {
-            log.warn("Param [script_id] is empty!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "script_id");
-        }
-
-        if (StringUtils.isBlank(request.getVersion())) {
-            log.warn("Param [version] is empty!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "version");
-        }
     }
 }
