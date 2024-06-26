@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.common.service.quota;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
 import com.tencent.bk.job.common.resource.quota.QuotaResourceId;
 import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
+import com.tencent.bk.job.common.service.quota.config.parser.CounterResourceQuotaConfigParser;
 import com.tencent.bk.job.common.service.quota.config.parser.ResourceQuotaConfigParser;
-import com.tencent.bk.job.common.service.quota.config.parser.RunningJobQuotaConfigParser;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,58 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
     public ResourceQuotaLimit getResourceQuota(String resourceId) {
         checkLoad();
         return resourceQuotas.get(resourceId);
+    }
+
+    public boolean isQuotaLimitEnabled(String resourceId) {
+        ResourceQuotaLimit resourceQuotaLimit = getResourceQuota(resourceId);
+        return resourceQuotaLimit != null && resourceQuotaLimit.isEnabled();
+    }
+
+    /**
+     * 获取资源管理空间配额限制
+     *
+     * @param resourceId    资源 ID
+     * @param resourceScope 资源管理空间
+     * @return 配额限制
+     */
+    public long getQuotaLimitByResourceScope(String resourceId, ResourceScope resourceScope) {
+        ResourceQuotaLimit resourceQuotaLimit = getResourceQuota(resourceId);
+        if (resourceQuotaLimit == null || !resourceQuotaLimit.isEnabled()) {
+            return ResourceQuotaLimit.UNLIMITED_VALUE;
+        }
+        return resourceQuotaLimit.getLimitByResourceScope(resourceScope);
+    }
+
+    /**
+     * 获取应用配额限制
+     *
+     * @param resourceId 资源 ID
+     * @param appCode    蓝鲸应用 App Code
+     * @return 配额限制
+     */
+    public long getQuotaLimitByAppCode(String resourceId, String appCode) {
+        ResourceQuotaLimit resourceQuotaLimit = getResourceQuota(resourceId);
+        if (resourceQuotaLimit == null || !resourceQuotaLimit.isEnabled()) {
+            return ResourceQuotaLimit.UNLIMITED_VALUE;
+        }
+        return resourceQuotaLimit.getLimitByBkAppCode(appCode);
+
+    }
+
+    /**
+     * 获取 Job 系统配额限制
+     *
+     * @param resourceId 资源 ID
+     * @return 配额限制
+     */
+    public long getSystemQuotaLimit(String resourceId) {
+        ResourceQuotaLimit resourceQuotaLimit = getResourceQuota(resourceId);
+        if (resourceQuotaLimit == null || !resourceQuotaLimit.isEnabled()) {
+            return ResourceQuotaLimit.UNLIMITED_VALUE;
+        }
+        return resourceQuotaLimit.getCapacity() != null ? resourceQuotaLimit.getCapacity() :
+            ResourceQuotaLimit.UNLIMITED_VALUE;
+
     }
 
     public Map<String, ResourceQuotaLimit> getAll() {
@@ -144,7 +197,7 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
         ResourceQuotaConfigParser configParser;
         switch (resourceId) {
             case QuotaResourceId.JOB_INSTANCE:
-                configParser = new RunningJobQuotaConfigParser();
+                configParser = new CounterResourceQuotaConfigParser();
                 break;
             default:
                 log.error("Unsupported resource: {}", resourceId);

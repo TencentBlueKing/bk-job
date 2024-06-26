@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.resource.quota;
 
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import lombok.Data;
 
 /**
@@ -31,12 +32,43 @@ import lombok.Data;
  */
 @Data
 public class ResourceQuotaLimit {
+
+    public static final long UNLIMITED_VALUE = Long.MAX_VALUE;
+    /**
+     * 是否启用配额限制
+     */
+    private boolean enabled;
     /**
      * 配额容量表达式
      */
-    protected String capacityExpr;
+    private String capacityExpr;
     /**
      * 解析后的配额总量限制
      */
-    protected Long capacity;
+    private Long capacity;
+
+    /**
+     * 资源管理空间配额限制
+     */
+    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
+
+    /**
+     * 应用配额限制
+     */
+    private AppQuotaLimit appQuotaLimit;
+
+    public long getLimitByResourceScope(ResourceScope resourceScope) {
+        if (resourceScopeQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return resourceScopeQuotaLimit.getLimit(resourceScope);
+    }
+
+    public long getLimitByBkAppCode(String bkAppCode) {
+        if (appQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return appQuotaLimit.getLimit(bkAppCode);
+    }
+
 }

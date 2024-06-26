@@ -58,7 +58,7 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
-import com.tencent.bk.job.execute.common.exception.RunningJobInstanceQuotaExceedException;
+import com.tencent.bk.job.execute.common.exception.RunningJobQuotaLimitExceedException;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -330,12 +330,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             case RESOURCE_SCOPE_LIMIT:
                 log.warn("ResourceQuotaLimit-runningJob exceed resource scope quota limit, resourceScope: {}",
                     resourceScope.toResourceScopeUniqueId());
-                throw new RunningJobInstanceQuotaExceedException(
-                    ErrorCode.RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
             case APP_LIMIT:
                 log.warn("ResourceQuotaLimit-runningJob exceed app quota limit, appCode: {}", appCode);
-                throw new RunningJobInstanceQuotaExceedException(
-                    ErrorCode.RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT);
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT);
+            case SYSTEM_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed system quota limit, resourceScope: {}, appCode: {}",
+                    resourceScope.toResourceScopeUniqueId(), appCode);
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT);
         }
     }
 

@@ -27,21 +27,20 @@ package com.tencent.bk.job.common.service.quota.config.parser;
 import com.tencent.bk.job.common.resource.quota.AppQuotaLimit;
 import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.resource.quota.ResourceScopeQuotaLimit;
-import com.tencent.bk.job.common.resource.quota.RunningJobResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaConfigParseException;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 配额限制配置解析-当前正在执行的作业
+ * 配额限制配置解析-计数类型
  */
-public class RunningJobQuotaConfigParser extends AbstractResourceQuotaConfigParser {
+public class CounterResourceQuotaConfigParser extends AbstractResourceQuotaConfigParser {
 
     @Override
     public ResourceQuotaLimit parse(ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp)
         throws ResourceQuotaConfigParseException {
 
-        RunningJobResourceQuotaLimit resourceQuota = new RunningJobResourceQuotaLimit();
+        ResourceQuotaLimit resourceQuota = new ResourceQuotaLimit();
         try {
             resourceQuota.setCapacityExpr(resourceQuotaLimitProp.getCapacity());
             Long capacity = parseCapacity(resourceQuotaLimitProp.getCapacity());

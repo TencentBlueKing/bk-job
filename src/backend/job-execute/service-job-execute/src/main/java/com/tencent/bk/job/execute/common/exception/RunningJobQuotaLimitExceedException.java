@@ -22,52 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.resource.quota;
+package com.tencent.bk.job.execute.common.exception;
 
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.StringJoiner;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 
 /**
- * 资源配额限制-正在执行的作业
+ * 正在执行作业数量超过配额异常
  */
-@Getter
-@Setter
-public class RunningJobResourceQuotaLimit extends ResourceQuotaLimit {
+public class RunningJobQuotaLimitExceedException extends ResourceExhaustedException {
 
-    /**
-     * 资源管理空间配额限制
-     */
-    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
-
-    /**
-     * 应用配额限制
-     */
-    private AppQuotaLimit appQuotaLimit;
-
-    public long getLimitByResourceScope(ResourceScope resourceScope) {
-        if (resourceScopeQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return resourceScopeQuotaLimit.getLimit(resourceScope);
-    }
-
-    public long getLimitByBkAppCode(String bkAppCode) {
-        if (appQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return appQuotaLimit.getLimit(bkAppCode);
-    }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", RunningJobResourceQuotaLimit.class.getSimpleName() + "[", "]")
-            .add("resourceScopeQuotaLimit=" + resourceScopeQuotaLimit)
-            .add("appQuotaLimit=" + appQuotaLimit)
-            .add("capacityExpr='" + capacityExpr + "'")
-            .add("capacity=" + capacity)
-            .toString();
+    public RunningJobQuotaLimitExceedException(Integer errorCode) {
+        super(errorCode);
     }
 }

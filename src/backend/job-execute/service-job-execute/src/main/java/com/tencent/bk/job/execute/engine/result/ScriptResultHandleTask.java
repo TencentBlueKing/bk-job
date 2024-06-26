@@ -48,6 +48,7 @@ import com.tencent.bk.job.execute.engine.model.LogPullProgress;
 import com.tencent.bk.job.execute.engine.model.ScriptGseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -140,6 +141,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   StepInstanceService stepInstanceService,
                                   GseClient gseClient,
                                   JobExecuteConfig jobExecuteConfig,
+                                  RunningJobKeepaliveManager runningJobKeepaliveManager,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -159,6 +161,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
             stepInstanceService,
             gseClient,
             jobExecuteConfig,
+            runningJobKeepaliveManager,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -213,6 +214,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected JobExecuteConfig jobExecuteConfig;
 
+    protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
+
     protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
                                        GseTaskService gseTaskService,
                                        LogService logService,
@@ -225,6 +228,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        StepInstanceService stepInstanceService,
                                        GseClient gseClient,
                                        JobExecuteConfig jobExecuteConfig,
+                                       RunningJobKeepaliveManager runningJobKeepaliveManager,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -244,6 +248,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceService = stepInstanceService;
         this.gseClient = gseClient;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -629,6 +634,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
+            runningJobKeepaliveManager.stopKeepaliveTask(getJobInstanceId());
+
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
                 ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
                     gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
@@ -722,4 +729,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @return 任务执行结果
      */
     abstract GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<T> gseTaskResult);
+
+    public long getJobInstanceId() {
+        return this.taskInstanceId;
+    }
 }

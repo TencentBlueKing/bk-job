@@ -138,7 +138,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
                                    GseTaskDTO gseTask,
-                                   String fileStorageRootPath) {
+                                   String fileStorageRootPath,
+                                   Runn) {
         super(resultHandleManager,
             taskInstanceService,
             gseTaskService,
@@ -460,7 +461,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected void addResultHandleTask() {
         FileResultHandleTask fileResultHandleTask =
-            new FileResultHandleTask(taskInstanceService,
+            new FileResultHandleTask(
+                taskInstanceService,
                 gseTaskService,
                 logService,
                 taskInstanceVariableService,

@@ -24,19 +24,19 @@
 
 package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.resource.quota.RunningJobResourceQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
-import com.tencent.bk.job.common.service.quota.config.parser.RunningJobQuotaConfigParser;
+import com.tencent.bk.job.common.service.quota.config.parser.CounterResourceQuotaConfigParser;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class RunningJobQuotaConfigParserTest {
+class CounterResourceQuotaConfigParserTest {
 
     @Test
     void parseByPercentageLimitValue() {
-        RunningJobQuotaConfigParser parser = new RunningJobQuotaConfigParser();
+        CounterResourceQuotaConfigParser parser = new CounterResourceQuotaConfigParser();
 
         ResourceQuotaLimitProperties.QuotaLimitProp resourceScopeQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("1%", "biz:2=10%,biz:3=15%");
@@ -45,8 +45,7 @@ class RunningJobQuotaConfigParserTest {
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp("1000", resourceScopeQuotaLimit, appQuotaLimit);
 
-        RunningJobResourceQuotaLimit resourceQuota =
-            (RunningJobResourceQuotaLimit) parser.parse(resourceQuotaLimitProp);
+        ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
         assertThat(resourceQuota.getCapacityExpr()).isEqualTo("1000");
         assertThat(resourceQuota.getCapacity()).isEqualTo(1000L);
@@ -69,7 +68,7 @@ class RunningJobQuotaConfigParserTest {
 
     @Test
     void parseByExplicitLimitValue() {
-        RunningJobQuotaConfigParser parser = new RunningJobQuotaConfigParser();
+        CounterResourceQuotaConfigParser parser = new CounterResourceQuotaConfigParser();
 
         ResourceQuotaLimitProperties.QuotaLimitProp resourceScopeQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("10", "biz:2=100,biz:3=150");
@@ -78,8 +77,7 @@ class RunningJobQuotaConfigParserTest {
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(null, resourceScopeQuotaLimit, appQuotaLimit);
 
-        RunningJobResourceQuotaLimit resourceQuota =
-            (RunningJobResourceQuotaLimit) parser.parse(resourceQuotaLimitProp);
+        ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
         assertThat(resourceQuota.getCapacityExpr()).isNull();
         assertThat(resourceQuota.getCapacity()).isNull();
@@ -101,7 +99,7 @@ class RunningJobQuotaConfigParserTest {
 
     @Test
     void parseInvalidConfig() {
-        RunningJobQuotaConfigParser parser = new RunningJobQuotaConfigParser();
+        CounterResourceQuotaConfigParser parser = new CounterResourceQuotaConfigParser();
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(

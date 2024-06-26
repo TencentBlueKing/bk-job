@@ -1,4 +1,4 @@
-local system_running_job_hash_key = KEYS[1]
+local system_running_job_zset_key = KEYS[1]
 local resource_scope_job_count_hash_key = KEYS[2]
 local app_job_count_hash_key = KEYS[3]
 local resource_scope = ARGV[1]
@@ -6,7 +6,7 @@ local app_code = ARGV[2]
 
 local system_limit = tonumber(ARGV[3])
 if system_limit > 0 then
-  local system_count = tonumber(redis.call('hlen', system_running_job_hash_key) or "0")
+  local system_count = tonumber(redis.call('zcard', system_running_job_zset_key) or "0")
   if system_count >= system_limit then
     return "system_quota_limit"
   end

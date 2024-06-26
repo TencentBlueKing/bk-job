@@ -54,6 +54,7 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
@@ -177,6 +178,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 StepInstanceService stepInstanceService,
                                 GseClient gseClient,
                                 JobExecuteConfig jobExecuteConfig,
+                                RunningJobKeepaliveManager runningJobKeepaliveManager,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -198,6 +200,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
             stepInstanceService,
             gseClient,
             jobExecuteConfig,
+            runningJobKeepaliveManager,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

@@ -38,6 +38,7 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -83,7 +84,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
-
+    protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
     /**
      * 任务下发请求ID,防止重复下发任务
      */
@@ -131,7 +132,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 GseTaskDTO gseTask,
-                                StepInstanceService stepInstanceService) {
+                                StepInstanceService stepInstanceService,
+                                RunningJobKeepaliveManager runningJobKeepaliveManager) {
         super(agentService,
             accountService,
             gseTaskService,
@@ -154,6 +156,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
         this.stepInstanceService = stepInstanceService;
+        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
     }
 
 
