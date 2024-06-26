@@ -39,13 +39,13 @@ public class BkPlatformInfo {
     private String name = "蓝鲸作业平台";
 
     @JsonProperty("nameEn")
-    private String nameEn = "JOB";
+    private String nameEn = "BlueKing JOB";
 
     @JsonProperty("appLogo")
-    private String appLogo = "bk_job.png";
+    private String appLogo = "/static/images/logo.png";
 
     @JsonProperty("favIcon")
-    private String favIcon = "bk_job.png";
+    private String favIcon = "/static/images/favicon.icon";
 
     @JsonProperty("helperText")
     private String helperText = "联系BK助手";

@@ -27,10 +27,10 @@ export default {
   namespaced: true,
   state: {
     bkAppCode: '', // appcode
-    name: '', // 站点的名称，通常显示在页面左上角，也会出现在网页title中
-    nameEn: '', // 站点的名称-英文
+    name: '蓝鲸作业平台', // 站点的名称，通常显示在页面左上角，也会出现在网页title中
+    nameEn: 'BlueKing JOB', // 站点的名称-英文
     appLogo: '', // 站点logo
-    favicon: '', // 站点favicon
+    favicon: '/static/images/favicon.icon', // 站点favicon
     helperText: '',
     helperTextEn: '',
     helperLink: '',

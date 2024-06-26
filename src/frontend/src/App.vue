@@ -205,16 +205,20 @@
             this.relatedSystemUrls = Object.freeze(data);
 
             return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
-              name: I18n.t('蓝鲸作业平台'),
+              name: '蓝鲸作业平台',
+              nameEn: 'BlueKing JOB',
+              appLogo: '/static/images/logo.png',
               brandName: '腾讯蓝鲸智云',
               brandNameEn: 'BlueKing',
+              favicon: '/static/images/favicon.icon',
+              version: process.env.JOB_VERSION,
             }).then((data) => {
               window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperLink;
               this.$store.commit('platformConfig/update', data);
-            })
-              .finally(() => {
-                this.updateDocumentTitle();
-              });
+            });
+          })
+          .finally(() => {
+            this.updateDocumentTitle();
           });
       },
       fetchEnv() {
