@@ -66,14 +66,41 @@ public class AIPromptServiceImpl implements AIPromptService {
             promptTemplate.getId(),
             userLang
         );
-        String renderedPrompt = renderPrompt(promptTemplate.getTemplate(), type, scriptContent);
+        String renderedPrompt = renderCheckScriptPrompt(promptTemplate.getTemplate(), type, scriptContent);
         return Pair.of(promptTemplate.getRawPrompt(), renderedPrompt);
     }
 
-    private String renderPrompt(String promptTemplateContent, Integer type, String scriptContent) {
+    @Override
+    public Pair<String, String> getAnalyzeErrorPrompt(String errorContent) {
+        String userLang = JobContextUtil.getUserLang();
+        AIPromptTemplateDTO promptTemplate = aiPromptTemplateDAO.getAIPromptTemplate(
+            PromptTemplateCodeEnum.ANALYZE_ERROR.name(),
+            userLang
+        );
+        if (promptTemplate == null) {
+            String message = "Cannot find prompt template for (code=ANALYZE_ERROR, userLang=" + userLang + "), " +
+                "please check template config in DB";
+            throw new InternalException(message, ErrorCode.INTERNAL_ERROR);
+        }
+        log.info(
+            "Use prompt template [{}(id={})], userLang={}",
+            promptTemplate.getName(),
+            promptTemplate.getId(),
+            userLang
+        );
+        String renderedPrompt = renderAnalyzeErrorPrompt(promptTemplate.getTemplate(), errorContent);
+        return Pair.of(promptTemplate.getRawPrompt(), renderedPrompt);
+    }
+
+    private String renderCheckScriptPrompt(String promptTemplateContent, Integer type, String scriptContent) {
         String scriptTypeName = ScriptTypeEnum.getName(type);
         return promptTemplateContent
             .replace("{script_type}", scriptTypeName)
             .replace("{script_content}", scriptContent);
+    }
+
+    private String renderAnalyzeErrorPrompt(String promptTemplateContent, String errorContent) {
+        return promptTemplateContent
+            .replace("{error_content}", errorContent);
     }
 }

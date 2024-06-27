@@ -36,4 +36,12 @@ public interface AIPromptService {
      * @return <原始提示符，通过模板渲染的AI提示符>
      */
     Pair<String, String> getCheckScriptPrompt(Integer type, String scriptContent);
+
+    /**
+     * 获取分析报错信息的AI提示符
+     *
+     * @param errorContent 报错内容
+     * @return <原始提示符，通过模板渲染的AI提示符>
+     */
+    Pair<String, String> getAnalyzeErrorPrompt(String errorContent);
 }

@@ -31,6 +31,7 @@ import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
@@ -50,11 +51,15 @@ public class WebAIResourceImpl implements WebAIResource {
 
     private final ChatService chatService;
     private final AICheckScriptService aiCheckScriptService;
+    private final AIAnalyzeErrorService aiAnalyzeErrorService;
 
     @Autowired
-    public WebAIResourceImpl(ChatService chatService, AICheckScriptService aiCheckScriptService) {
+    public WebAIResourceImpl(ChatService chatService,
+                             AICheckScriptService aiCheckScriptService,
+                             AIAnalyzeErrorService aiAnalyzeErrorService) {
         this.chatService = chatService;
         this.aiCheckScriptService = aiCheckScriptService;
+        this.aiAnalyzeErrorService = aiAnalyzeErrorService;
     }
 
     @Override
@@ -106,11 +111,8 @@ public class WebAIResourceImpl implements WebAIResource {
                                            String scopeType,
                                            String scopeId,
                                            AIAnalyzeErrorReq req) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setContent("让我想想...");
-        aiAnswer.setErrorCode("0");
-        aiAnswer.setErrorMessage(null);
-        aiAnswer.setTime(System.currentTimeMillis());
+
+        AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, req.getContent());
         return Response.buildSuccessResp(aiAnswer);
     }
 }

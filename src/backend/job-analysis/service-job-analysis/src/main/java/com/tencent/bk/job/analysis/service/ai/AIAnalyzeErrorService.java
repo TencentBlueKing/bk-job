@@ -22,20 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+public interface AIAnalyzeErrorService {
+
     /**
-     * 检查脚本
+     * AI分析报错信息
+     *
+     * @param username     用户名
+     * @param errorContent 错误内容
+     * @return AI回答
      */
-    CHECK_SCRIPT,
-    /**
-     * 分析报错信息
-     */
-    ANALYZE_ERROR;
+    AIAnswer analyze(String username, String errorContent);
 }
