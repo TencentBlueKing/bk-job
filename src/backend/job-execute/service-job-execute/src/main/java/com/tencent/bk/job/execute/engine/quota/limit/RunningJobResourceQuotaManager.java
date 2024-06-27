@@ -79,7 +79,7 @@ public class RunningJobResourceQuotaManager {
     private static final String METRIC_RUNNING_JOB_RESOURCE_QUOTA_LIMIT_EXCEED_TOTAL =
         "job_running_job_resource_quota_limit_exceed_total";
 
-    private static final long JOB_EXPIRE_TIME = 14 * 86400 * 1000L;
+    private static final long JOB_EXPIRE_TIME = 3600 * 1000L;
 
     static {
         LUA_SCRIPT_KEYS.add(RUNNING_JOB_ZSET_KEY);
@@ -220,7 +220,7 @@ public class RunningJobResourceQuotaManager {
         if (countMap.isEmpty()) {
             return null;
         }
-        return convertMap(countMap);
+        return filterEmptyCountAndConvert(countMap);
     }
 
     public Map<String, Long> getResourceScopeRunningJobCount() {
@@ -229,12 +229,18 @@ public class RunningJobResourceQuotaManager {
         if (countMap.isEmpty()) {
             return null;
         }
-        return convertMap(countMap);
+        return filterEmptyCountAndConvert(countMap);
     }
 
-    private Map<String, Long> convertMap(Map<String, String> map) {
+    private Map<String, Long> filterEmptyCountAndConvert(Map<String, String> map) {
         Map<String, Long> finalMap = new HashMap<>();
-        map.forEach((k, v) -> finalMap.put(k, Long.parseLong(v)));
+        map.forEach((k, v) -> {
+            long count = Long.parseLong(v);
+            if (count == 0) {
+                return;
+            }
+            finalMap.put(k, count);
+        });
         return finalMap;
     }
 
