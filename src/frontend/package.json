@@ -14,7 +14,7 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/ip-selector": "0.3.0-beta.28",
+    "@blueking/ip-selector": "0.3.0-beta.29",
     "@blueking/login-modal": "1.0.4",
     "@blueking/notice-component-vue2": "2.0.0-beta.2",
     "@blueking/paas-login": "0.0.11",
@@ -25,7 +25,7 @@
     "@vue/composition-api": "1.7.2",
     "ace-builds": "1.32.9",
     "axios": "1.6.8",
-    "bk-magic-vue": "2.5.9-beta.34",
+    "bk-magic-vue": "2.5.9-beta.35",
     "core-js": "3.36.1",
     "cron-parser-custom": "2.13.0",
     "diff": "5.2.0",
