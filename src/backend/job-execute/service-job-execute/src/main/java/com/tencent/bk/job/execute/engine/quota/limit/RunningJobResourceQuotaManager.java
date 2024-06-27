@@ -211,7 +211,8 @@ public class RunningJobResourceQuotaManager {
     }
 
     public long getRunningJobTotal() {
-        return redisTemplate.opsForZSet().size(RUNNING_JOB_ZSET_KEY);
+        Long count = redisTemplate.opsForZSet().size(RUNNING_JOB_ZSET_KEY);
+        return count != null ? count : 0L;
     }
 
     public Map<String, Long> getAppRunningJobCount() {
@@ -244,15 +245,16 @@ public class RunningJobResourceQuotaManager {
         return finalMap;
     }
 
-    public Set<Long> getExpiredJobInstanceIds() {
+    public Set<Long> getNotAliveJobInstanceIds() {
         try {
+            // 1 小时过期
             long EXPIRE_AT = System.currentTimeMillis() - JOB_EXPIRE_TIME;
-            Set<String> expireJobInstanceIds = redisTemplate.opsForZSet().rangeByScore(RUNNING_JOB_ZSET_KEY, -1,
+            Set<String> notAliveJobInstanceIds = redisTemplate.opsForZSet().rangeByScore(RUNNING_JOB_ZSET_KEY, -1,
                 EXPIRE_AT);
-            if (CollectionUtils.isEmpty(expireJobInstanceIds)) {
+            if (CollectionUtils.isEmpty(notAliveJobInstanceIds)) {
                 return Collections.emptySet();
             }
-            return expireJobInstanceIds.stream().map(Long::parseLong).collect(Collectors.toSet());
+            return notAliveJobInstanceIds.stream().map(Long::parseLong).collect(Collectors.toSet());
         } catch (Throwable e) {
             return Collections.emptySet();
         }

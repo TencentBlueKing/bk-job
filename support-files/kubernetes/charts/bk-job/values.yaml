@@ -664,7 +664,8 @@ job:
   resourceQuotaLimit:
     resources:
       # 正在执行中的作业
-      # runningJob:
+      runningJob:
+        enabled: false
       #   capacity: "10000"
       #   resourceScopeQuotaLimit:
       #     global: "20%"

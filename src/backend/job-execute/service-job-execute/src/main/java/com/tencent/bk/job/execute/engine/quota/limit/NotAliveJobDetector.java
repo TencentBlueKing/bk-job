@@ -38,53 +38,53 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * 过期作业处理
+ * 未存活作业检查与处理
  */
 @Slf4j
 @Component
 @EnableScheduling
-public class ExpiredJobDetector {
+public class NotAliveJobDetector {
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
     private final TaskInstanceService taskInstanceService;
 
     private final String requestId = UUID.randomUUID().toString();
 
-    public ExpiredJobDetector(RunningJobResourceQuotaManager runningJobResourceQuotaManager,
-                              TaskInstanceService taskInstanceService) {
+    public NotAliveJobDetector(RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                               TaskInstanceService taskInstanceService) {
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
         this.taskInstanceService = taskInstanceService;
     }
 
     /**
-     * 兜底方案。为了防止系统异常导致 redis 中的作业记录没有被清理，需要定时清理。每天触发一次
+     * 兜底方案。为了防止系统异常、程序 bug 等原因导致 redis 中的作业记录没有被清理，需要定时清理。每小时触发一次
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
-    public void detectExpiredJob() {
+    @Scheduled(cron = "0 0 0/1 * * ?")
+    public void detectNotAliveJob() {
         try {
-            if (LockUtils.tryGetDistributedLock("job:execute:expire:job:detect:lock", requestId, 60000L)) {
-                log.info("Detect expired job start ...");
-                Set<Long> expiredJobInstanceIds = runningJobResourceQuotaManager.getExpiredJobInstanceIds();
-                if (CollectionUtils.isEmpty(expiredJobInstanceIds)) {
+            if (LockUtils.tryGetDistributedLock("job:execute:not:alive:job:detect:lock", requestId, 60000L)) {
+                log.info("Detect not alive job start ...");
+                Set<Long> notAliveJobInstanceIds = runningJobResourceQuotaManager.getNotAliveJobInstanceIds();
+                if (CollectionUtils.isEmpty(notAliveJobInstanceIds)) {
                     return;
                 }
-                log.info("Found expired job, expiredJobInstanceIds : {}", expiredJobInstanceIds);
-                expiredJobInstanceIds.forEach(expiredJobInstanceId -> {
-                    TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(expiredJobInstanceId);
+                log.info("Found not alive job, notAliveJobInstanceIds : {}", notAliveJobInstanceIds);
+                notAliveJobInstanceIds.forEach(notAliveJobInstanceId -> {
+                    TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(notAliveJobInstanceId);
                     if (taskInstance != null) {
-                        log.info("Remove expire job : {}", expiredJobInstanceId);
+                        log.info("Remove not alive job : {}", notAliveJobInstanceId);
                         runningJobResourceQuotaManager.removeJob(
                             taskInstance.getAppCode(),
                             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-                            expiredJobInstanceId
+                            notAliveJobInstanceId
                         );
                     } else {
-                        log.error("Job instance record not found, expiredJobInstanceId : {}", expiredJobInstanceId);
+                        log.error("Job instance record not found, notAliveJobInstanceId : {}", notAliveJobInstanceId);
                     }
                 });
             }
         } catch (Throwable e) {
-            log.error("Detect expired job caught exception", e);
+            log.error("Detect not alive job caught exception", e);
         }
     }
 

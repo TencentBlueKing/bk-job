@@ -51,7 +51,4 @@ public interface ServiceResourceQuotaResource {
     @ApiOperation(value = "获取正在执行中的作业配额使用情况", produces = "application/json")
     @GetMapping("/runningJob/quotaUsage")
     InternalResponse<RunningJobQuotaUsage> getRunningJobQuotaUsage();
-
-    @GetMapping("/runningJob/quotaUsage")
-    InternalResponse<Void> performanceTest();
 }

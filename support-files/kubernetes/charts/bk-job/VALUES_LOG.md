@@ -1,5 +1,31 @@
 # chart values 更新日志
 
+## 0.6.5
+1. 增加正在执行中的作业总量的配额限制
+
+```yaml
+job:
+  # 资源配额限制
+  resourceQuotaLimit:
+    resources:
+      # 配额限制资源-正在执行中的作业
+      runningJob:
+        # 是否启用配额限制
+        enabled: true
+        # 正在执行中的作业总量限制
+        capacity: "10000"
+        # 基于资源管理空间(业务/业务集)的配额限制
+        resourceScopeQuotaLimit:
+          # 全局限制，每个资源管理空间默认的配额限制
+          global: "20%"
+          # 自定义配额限制，会覆盖 global
+          custom: "biz:2=1000,biz_set:9991001=50%"
+        # 基于蓝鲸应用的配额限制
+        appQuotaLimit:
+          global: "20%"
+          custom: "bk-nodeman=1000,bk-soap=50%"
+```
+
 ## 0.6.4
 1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址与base.js路径
 
