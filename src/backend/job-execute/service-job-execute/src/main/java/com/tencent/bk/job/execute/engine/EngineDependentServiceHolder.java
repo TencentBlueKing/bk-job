@@ -46,7 +46,7 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Component;
 
 /**
- * 执行引擎依赖的服务的托管类，用于程序快速获取到依赖的 Service; 而不需要通过构造方法一一传入
+ * 执行引擎依赖的服务的托管类。用于简化一些较为复杂的类构造函数的参数列表
  */
 @Component
 @Getter

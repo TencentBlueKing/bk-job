@@ -53,6 +53,10 @@ public class ResourceQuotaLimitProperties {
     @NoArgsConstructor
     public static class ResourceQuotaLimitProp {
         /**
+         * 是否启用配额限制
+         */
+        private boolean enabled;
+        /**
          * 配额容量（比如任务数量、存储占用大小等）
          */
         private String capacity;
@@ -67,9 +71,11 @@ public class ResourceQuotaLimitProperties {
          */
         private QuotaLimitProp appQuotaLimit;
 
-        public ResourceQuotaLimitProp(String capacity,
+        public ResourceQuotaLimitProp(boolean enabled,
+                                      String capacity,
                                       QuotaLimitProp resourceScopeQuotaLimit,
                                       QuotaLimitProp appQuotaLimit) {
+            this.enabled = enabled;
             this.capacity = capacity;
             this.resourceScopeQuotaLimit = resourceScopeQuotaLimit;
             this.appQuotaLimit = appQuotaLimit;

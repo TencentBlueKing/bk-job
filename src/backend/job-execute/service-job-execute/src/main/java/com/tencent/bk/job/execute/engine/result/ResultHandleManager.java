@@ -174,8 +174,8 @@ public class ResultHandleManager implements SmartLifecycle {
 
         if (task instanceof AbstractResultHandleTask) {
             resultHandleTaskKeepaliveManager.addRunningTaskKeepaliveInfo(task.getTaskId());
-            runningJobKeepaliveManager.addKeepaliveTask(((AbstractResultHandleTask<?>) task).getJobInstanceId());
         }
+        runningJobKeepaliveManager.addKeepaliveTask(task.getTaskContext().getJobInstanceId());
         this.tasksQueue.add(scheduleTask);
         if (task instanceof ScriptResultHandleTask) {
             ScriptResultHandleTask scriptResultHandleTask = (ScriptResultHandleTask) task;

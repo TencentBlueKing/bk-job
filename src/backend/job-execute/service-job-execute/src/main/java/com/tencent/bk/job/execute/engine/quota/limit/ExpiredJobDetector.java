@@ -57,7 +57,7 @@ public class ExpiredJobDetector {
     }
 
     /**
-     * 兜底方案。为了防止系统异常导致 redis 中的作业没有被清理，需要定时清理。每天触发一次
+     * 兜底方案。为了防止系统异常导致 redis 中的作业记录没有被清理，需要定时清理。每天触发一次
      */
     @Scheduled(cron = "0 0/5 * * * ?")
     public void detectExpiredJob() {
@@ -72,13 +72,14 @@ public class ExpiredJobDetector {
                 expiredJobInstanceIds.forEach(expiredJobInstanceId -> {
                     TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(expiredJobInstanceId);
                     if (taskInstance != null) {
+                        log.info("Remove expire job : {}", expiredJobInstanceId);
                         runningJobResourceQuotaManager.removeJob(
                             taskInstance.getAppCode(),
                             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
                             expiredJobInstanceId
                         );
                     } else {
-                        log.error("Job instance not found, expiredJobInstanceId : {}", expiredJobInstanceId);
+                        log.error("Job instance record not found, expiredJobInstanceId : {}", expiredJobInstanceId);
                     }
                 });
             }

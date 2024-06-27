@@ -217,6 +217,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
 
+    private TaskContext taskContext;
+
     protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
                                        JobExecuteConfig jobExecuteConfig,
@@ -241,7 +243,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         this.executeObjectTaskService = executeObjectTaskService;
         this.jobExecuteConfig = jobExecuteConfig;
-        
+
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
@@ -254,6 +256,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.gseTask = gseTask;
         this.executeObjectTasks = executeObjectTasks;
         this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
+        this.taskContext = new TaskContext(taskInstanceId);
 
         targetExecuteObjectTasks.values().forEach(executeObjectTask ->
             this.targetExecuteObjectGseKeys.add(executeObjectTask.getExecuteObject().toExecuteObjectGseKey()));
@@ -627,7 +630,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
-            runningJobKeepaliveManager.stopKeepaliveTask(getJobInstanceId());
+            runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
 
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
                 ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
@@ -723,7 +726,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     abstract GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<T> gseTaskResult);
 
-    public long getJobInstanceId() {
-        return this.taskInstanceId;
+    @Override
+    public TaskContext getTaskContext() {
+        return this.taskContext;
     }
 }

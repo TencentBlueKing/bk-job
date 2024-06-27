@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 正在执行中的作业状态维持
+ * 正在执行中的作业存活状态维持
  */
 @Slf4j
 @Component
@@ -99,7 +99,7 @@ public class RunningJobKeepaliveManager {
         }
     }
 
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "* 0/1 * * * ?")
     public void refreshTaskKeepaliveInfo() {
         log.info("Refresh running job keepalive task start...");
         if (runningJobKeepaliveTasks.isEmpty()) {

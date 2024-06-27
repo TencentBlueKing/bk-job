@@ -42,6 +42,7 @@ public class CounterResourceQuotaConfigParser extends AbstractResourceQuotaConfi
 
         ResourceQuotaLimit resourceQuota = new ResourceQuotaLimit();
         try {
+            resourceQuota.setEnabled(resourceQuotaLimitProp.isEnabled());
             resourceQuota.setCapacityExpr(resourceQuotaLimitProp.getCapacity());
             Long capacity = parseCapacity(resourceQuotaLimitProp.getCapacity());
             resourceQuota.setCapacity(capacity);

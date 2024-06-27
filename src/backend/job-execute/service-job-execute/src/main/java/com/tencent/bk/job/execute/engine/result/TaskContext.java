@@ -24,25 +24,18 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
- * 任务
+ * 任务上下文
  */
-public interface Task {
-    /**
-     * 执行任务
-     */
-    void execute();
+@Data
+@NoArgsConstructor
+public class TaskContext {
+    private Long jobInstanceId;
 
-    /**
-     * 获取任务ID
-     *
-     * @return 任务ID
-     */
-    String getTaskId();
-
-    default String getTaskType() {
-        return "default";
+    public TaskContext(Long jobInstanceId) {
+        this.jobInstanceId = jobInstanceId;
     }
-
-    TaskContext getTaskContext();
 }

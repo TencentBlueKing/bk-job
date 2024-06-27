@@ -96,9 +96,9 @@ public class JobListener {
         log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
-        TaskInstanceDTO taskInstance = null;
+        TaskInstanceDTO taskInstance;
         try {
-             taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
+            taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
             switch (action) {
                 case START:
                     startJob(taskInstance);
@@ -115,7 +115,6 @@ public class JobListener {
         } catch (Throwable e) {
             String errorMsg = "Handle job event error, jobInstanceId=" + jobInstanceId;
             log.error(errorMsg, e);
-            finishJob(taskInstance, null, RunStatusEnum.ABNORMAL_STATE);
         }
     }
 
@@ -242,34 +241,36 @@ public class JobListener {
                            StepInstanceBaseDTO stepInstance,
                            RunStatusEnum jobStatus) {
         long jobInstanceId = taskInstance.getId();
-        long stepInstanceId = stepInstance.getId();
-        Long endTime = DateUtils.currentTimeMillis();
-        long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
-            taskInstance.getTotalTime());
-        taskInstance.setEndTime(endTime);
-        taskInstance.setTotalTime(totalTime);
-        taskInstance.setStatus(jobStatus);
-        taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
+        try {
+            Long endTime = DateUtils.currentTimeMillis();
+            long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
+                taskInstance.getTotalTime());
+            taskInstance.setEndTime(endTime);
+            taskInstance.setTotalTime(totalTime);
+            taskInstance.setStatus(jobStatus);
+            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
-        // 从资源配额中删除该作业实例
-        runningJobResourceQuotaManager.removeJob(
-            taskInstance.getAppCode(),
-            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-            jobInstanceId
-        );
+            // 作业执行结果消息通知
+            if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+                notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
+            } else {
+                notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            }
 
-        // 作业执行结果消息通知
-        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
-            notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
-        } else {
-            notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            // 触发作业结束统计分析
+            statisticsService.updateEndJobStatistics(taskInstance);
+
+            // 作业执行完成回调
+            callback(taskInstance);
+        } finally {
+            // 从资源配额中删除该作业实例
+            runningJobResourceQuotaManager.removeJob(
+                taskInstance.getAppCode(),
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+                jobInstanceId
+            );
         }
 
-        // 触发作业结束统计分析
-        statisticsService.updateEndJobStatistics(taskInstance);
-
-        // 作业执行完成回调
-        callback(taskInstance, jobInstanceId, jobStatus.getValue(), stepInstanceId, stepInstance.getStatus());
     }
 
     /**
@@ -334,19 +335,22 @@ public class JobListener {
         }
     }
 
-    private void callback(TaskInstanceDTO taskInstance, long jobInstanceId, int taskStatus, long currentStepId,
-                          RunStatusEnum stepStatus) {
+    private void callback(TaskInstanceDTO taskInstance) {
         if (StringUtils.isNotBlank(taskInstance.getCallbackUrl())) {
             JobCallbackDTO callback = new JobCallbackDTO();
-            callback.setId(jobInstanceId);
-            callback.setStatus(taskStatus);
+            callback.setId(taskInstance.getId());
+            callback.setStatus(taskInstance.getStatus().getValue());
             callback.setCallbackUrl(taskInstance.getCallbackUrl());
-            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceList = Lists.newArrayList();
-            JobCallbackDTO.StepInstanceStatus stepInstance = new JobCallbackDTO.StepInstanceStatus();
-            stepInstance.setId(currentStepId);
-            stepInstance.setStatus(stepStatus.getValue());
-            stepInstanceList.add(stepInstance);
-            callback.setStepInstances(stepInstanceList);
+            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceStatusList = Lists.newArrayList();
+            List<StepInstanceBaseDTO> stepInstanceList =
+                stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstance.getId());
+            stepInstanceList.forEach(stepInstance -> {
+                JobCallbackDTO.StepInstanceStatus stepInstanceStatus = new JobCallbackDTO.StepInstanceStatus();
+                stepInstanceStatus.setId(stepInstance.getId());
+                stepInstanceStatus.setStatus(stepInstance.getStatus().getValue());
+                stepInstanceStatusList.add(stepInstanceStatus);
+            });
+            callback.setStepInstances(stepInstanceStatusList);
             taskExecuteMQEventDispatcher.dispatchCallbackMsg(callback);
         }
     }

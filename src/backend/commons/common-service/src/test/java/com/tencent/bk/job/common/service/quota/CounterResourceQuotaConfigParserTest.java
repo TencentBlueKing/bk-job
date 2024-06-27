@@ -43,7 +43,8 @@ class CounterResourceQuotaConfigParserTest {
         ResourceQuotaLimitProperties.QuotaLimitProp appQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "bk-soap=20%,bk-nodeman=10%");
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
-            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp("1000", resourceScopeQuotaLimit, appQuotaLimit);
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, "1000", resourceScopeQuotaLimit,
+                    appQuotaLimit);
 
         ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
@@ -75,7 +76,7 @@ class CounterResourceQuotaConfigParserTest {
         ResourceQuotaLimitProperties.QuotaLimitProp appQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("20", "bk-soap=100,bk-nodeman=150");
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
-            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(null, resourceScopeQuotaLimit, appQuotaLimit);
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, null, resourceScopeQuotaLimit, appQuotaLimit);
 
         ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
@@ -103,6 +104,7 @@ class CounterResourceQuotaConfigParserTest {
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
                 "",
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null),
                 null)))
@@ -110,6 +112,7 @@ class CounterResourceQuotaConfigParserTest {
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
                 "",
                 null,
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null))))
@@ -117,6 +120,7 @@ class CounterResourceQuotaConfigParserTest {
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
                 "1000",
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "error_custom_settings"),
                 null)))
@@ -124,6 +128,7 @@ class CounterResourceQuotaConfigParserTest {
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
                 "1000",
                 null,
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "error_custom_settings"))))
@@ -131,6 +136,7 @@ class CounterResourceQuotaConfigParserTest {
 
         assertThatThrownBy(() -> parser.parse(
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
                 "1000G",
                 null,
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null))))
