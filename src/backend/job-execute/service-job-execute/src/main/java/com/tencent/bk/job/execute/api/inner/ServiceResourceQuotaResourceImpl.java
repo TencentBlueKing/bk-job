@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
@@ -61,5 +63,23 @@ public class ServiceResourceQuotaResourceImpl implements ServiceResourceQuotaRes
         runningJobQuotaUsage.setAppCount(runningJobResourceQuotaManager.getAppRunningJobCount());
         runningJobQuotaUsage.setResourceScopeCount(runningJobResourceQuotaManager.getResourceScopeRunningJobCount());
         return InternalResponse.buildSuccessResp(runningJobQuotaUsage);
+    }
+
+    @Override
+    public InternalResponse<Void> performanceTest() {
+
+        new ResourceScope(ResourceScopeTypeEnum.BIZ, "2");
+        long start = System.currentTimeMillis();
+        for (int i = 1; i <= 50000; i++) {
+            String appCode = "bk-test-" + i % 10;
+            ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(i % 100));
+            runningJobResourceQuotaManager.checkResourceQuotaLimit(appCode, resourceScope);
+            long jobInstanceId = 1000000000L + i;
+            runningJobResourceQuotaManager.addJob(appCode, resourceScope, jobInstanceId);
+            runningJobResourceQuotaManager.removeJob(appCode, resourceScope, jobInstanceId);
+        }
+        long end = System.currentTimeMillis();
+        log.info("RunningJobQuotaLimitPerformanceTest cost: {}", end - start);
+        return InternalResponse.buildSuccessResp(null);
     }
 }

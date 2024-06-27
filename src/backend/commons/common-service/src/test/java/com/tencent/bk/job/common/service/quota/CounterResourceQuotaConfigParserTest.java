@@ -65,6 +65,25 @@ class CounterResourceQuotaConfigParserTest {
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(200L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-nodeman")).isEqualTo(100L);
 
+        resourceScopeQuotaLimit =
+            new ResourceQuotaLimitProperties.QuotaLimitProp("10%", "biz:2=20%");
+        appQuotaLimit =
+            new ResourceQuotaLimitProperties.QuotaLimitProp("20%", "bk-soap=40%");
+        resourceQuotaLimitProp =
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, "16", resourceScopeQuotaLimit,
+                appQuotaLimit);
+        resourceQuota = parser.parse(resourceQuotaLimitProp);
+
+        assertThat(resourceQuota.getCapacityExpr()).isEqualTo("16");
+        assertThat(resourceQuota.getCapacity()).isEqualTo(16L);
+
+        // 测试配额计算值向下取整
+        assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimitExpr()).isEqualTo("10%");
+        assertThat(resourceQuota.getResourceScopeQuotaLimit().getGlobalLimit()).isEqualTo(1L);
+        assertThat(resourceQuota.getResourceScopeQuotaLimit().getCustomLimits().get("biz:2")).isEqualTo(3L);
+        assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimitExpr()).isEqualTo("20%");
+        assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimit()).isEqualTo(3L);
+        assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(6L);
     }
 
     @Test

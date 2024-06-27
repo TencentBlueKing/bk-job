@@ -25,18 +25,21 @@
 package com.tencent.bk.job.common.resource.quota;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * 配额限制-资源管理空间
  */
 @EqualsAndHashCode(callSuper = true)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class ResourceScopeQuotaLimit extends QuotaLimit {
 
@@ -56,5 +59,15 @@ public class ResourceScopeQuotaLimit extends QuotaLimit {
             limit = getGlobalLimit();
         }
         return limit;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeQuotaLimit.class.getSimpleName() + "[", "]")
+            .add("globalLimitExpr='" + globalLimitExpr + "'")
+            .add("globalLimit=" + globalLimit)
+            .add("customLimits=" + customLimits)
+            .add("customLimitExpr='" + customLimitExpr + "'")
+            .toString();
     }
 }

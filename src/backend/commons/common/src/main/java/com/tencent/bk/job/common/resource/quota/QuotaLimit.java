@@ -46,7 +46,7 @@ public class QuotaLimit {
     /**
      * 解析之后的全局业务配额限制
      */
-    private Long globalLimit;
+    protected Long globalLimit;
 
     public QuotaLimit(String globalLimitExpr, String customLimitExpr) {
         this.globalLimitExpr = globalLimitExpr;
