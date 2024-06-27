@@ -210,6 +210,16 @@
       }
       this.popperInstance = undefined;
     },
+    mounted() {
+      // 因为元素位置的变化导致 tips错位
+      const handleBodyClick = () => {
+        this.popperInstance && this.popperInstance.show();
+      };
+      document.body.addEventListener('click', handleBodyClick);
+      this.$once('hook:beforeDestroy', () => {
+        document.body.removeEventListener('click', handleBodyClick);
+      });
+    },
     methods: {
       showTips() {
         if (this.formData[this.serverField].isEmpty) {

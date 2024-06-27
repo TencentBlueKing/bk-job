@@ -202,8 +202,6 @@
 </script>
 <style lang='postcss' scoped>
     .dashboard-page {
-      min-width: max-content;
-
       .operation-bar {
         position: relative;
         z-index: 1;
