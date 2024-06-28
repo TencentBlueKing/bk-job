@@ -22,56 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+package com.tencent.bk.job.api.constant;
 
 /**
- * 滚动模式
+ * 日志类型
  */
-public enum RollingModeEnum {
+public enum LogTypeEnum {
     /**
-     * 执行失败则暂停
+     * 脚本执行任务日志
      */
-    PAUSE_IF_FAIL(1),
+    SCRIPT(1),
     /**
-     * 忽略失败，自动滚动下一批
+     * 文件分发任务日志
      */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    FILE(2);
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    private final Integer value;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
+    LogTypeEnum(Integer val) {
+        this.value = val;
     }
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
+    public static LogTypeEnum getLogType(Integer logType) {
+        if (logType == null) {
+            throw new IllegalArgumentException("Empty logType value!");
+        }
+        for (LogTypeEnum logTypeEnum : values()) {
+            if (logTypeEnum.getValue().equals(logType)) {
+                return logTypeEnum;
             }
         }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
+        throw new IllegalArgumentException("Illegal logType: " + logType);
     }
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
+    public Integer getValue() {
+        return value;
     }
 }

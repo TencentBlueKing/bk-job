@@ -22,56 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 滚动模式
- */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+import java.util.Map;
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EsbUploadUrlV3DTO {
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    @JsonProperty("url_map")
+    private Map<String, Map<String, String>> urlMap;
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
-
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
 }

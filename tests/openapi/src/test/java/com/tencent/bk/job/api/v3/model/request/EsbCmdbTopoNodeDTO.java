@@ -22,56 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * 滚动模式
+ * ESB接口 CMDB topo节点实体类
  */
-public enum RollingModeEnum {
+@Data
+public class EsbCmdbTopoNodeDTO {
     /**
-     * 执行失败则暂停
+     * topo节点ID
      */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    private Long id;
 
     /**
-     * 滚动模式
+     * topo节点类型
      */
-    @JsonValue
-    private final int mode;
+    @JsonProperty("node_type")
+    private String nodeType;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
-
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
 }

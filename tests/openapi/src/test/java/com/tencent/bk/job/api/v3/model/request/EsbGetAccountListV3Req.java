@@ -22,56 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * 滚动模式
+ * 查询账号列表请求
  */
-public enum RollingModeEnum {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EsbGetAccountListV3Req extends EsbAppScopeReq {
     /**
-     * 执行失败则暂停
+     * 账号用途（1：系统账号，2：DB账号），不传则不区分
      */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    private Integer category;
 
     /**
-     * 滚动模式
+     * 账号名称
      */
-    @JsonValue
-    private final int mode;
+    private String account;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    /**
+     * 账号别名
+     */
+    private String alias;
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
+    /**
+     * 起始位置
+     */
+    private Integer start;
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
+    /**
+     * 起始位置
+     */
+    private Integer length;
 }

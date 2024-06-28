@@ -22,56 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * 滚动模式
+ * IP对应的文件分发日志
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+@Data
+public class EsbFileIpLogV3DTO {
 
     /**
-     * 滚动模式
+     * 云区域ID
      */
-    @JsonValue
-    private final int mode;
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    @JsonProperty("ip")
+    private String ip;
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
-
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
+    /**
+     * 文件任务日志
+     */
+    @JsonProperty("file_logs")
+    private List<EsbFileLogV3DTO> fileLogs;
 }

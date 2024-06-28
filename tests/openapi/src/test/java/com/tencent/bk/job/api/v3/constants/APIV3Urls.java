@@ -28,6 +28,10 @@ package com.tencent.bk.job.api.v3.constants;
  * V3 版本 API URL
  */
 public interface APIV3Urls {
+    /**
+     * manage esb接口
+     */
+    // 脚本、公共脚本接口
     String CREATE_SCRIPT = "/api/job/v3/job-manage/create_script";
     String CREATE_PUBLIC_SCRIPT = "/api/job/v3/job-manage/create_public_script";
     String GET_SCRIPT_LIST = "/api/job/v3/job-manage/get_script_list";
@@ -48,37 +52,61 @@ public interface APIV3Urls {
     String PUBLISH_PUBLIC_SCRIPT_VERSION = "/api/job/v3/job-manage/publish_public_script_version";
     String DISABLE_SCRIPT_VERSION = "/api/job/v3/job-manage/disable_script_version";
     String DISABLE_PUBLIC_SCRIPT_VERSION = "/api/job/v3/job-manage/disable_public_script_version";
-
+    String CHECK_SCRIPT = "/api/job/v3/job-manage/check_script";
+    // 高危语句规则接口
     String CREATE_DANGEROUS_RULE = "/api/job/v3/job-manage/create_dangerous_rule";
     String DELETE_DANGEROUS_RULE = "/api/job/v3/job-manage/delete_dangerous_rule";
     String GET_DANGEROUS_RULE_LIST = "/api/job/v3/job-manage/get_dangerous_rule_list";
     String UPDATE_DANGEROUS_RULE = "/api/job/v3/job-manage/update_dangerous_rule";
     String ENABLE_DANGEROUS_RULE = "/api/job/v3/job-manage/enable_dangerous_rule";
     String DISABLE_DANGEROUS_RULE = "/api/job/v3/job-manage/disable_dangerous_rule";
-    String CHECK_SCRIPT = "/api/job/v3/job-manage/check_script";
-
+    // agent接口
     String QUERY_AGENT_INFO = "/api/job/v3/job-manage/query_agent_info";
+    // 作业模板、执行方案接口
+    String GET_JOB_PLAN_LIST = "/api/job/v3/job-manage/get_job_plan_list";
+    String GET_JOB_PLAN_DETAIL = "/api/job/v3/job-manage/get_job_plan_detail";
+    String GET_JOB_TEMPLATE_LIST = "/api/job/v3/job-manage/get_job_template_list";
+    // 凭证接口
+    String CREATE_CREDENTIAL = "/api/job/v3/job-manage/create_credential";
+    String UPDATE_CREDENTIAL = "/api/job/v3/job-manage/update_credential";
+    String GET_CREDENTIAL_DETAIL = "/api/job/v3/job-manage/get_credential_detail";
+    // 账号接口
+    String GET_ACCOUNT_LIST = "/api/job/v3/job-manage/get_account_list";
+    String CREATE_ACCOUNT = "/api/job/v3/job-manage/create_account";
+    String DELETE_ACCOUNT = "/api/job/v3/job-manage/delete_account";
+    // 本地文件接口
+    String GENERATE_LOCAL_FILE_UPLOAD_URL = "/api/job/v3/job-manage/generate_local_file_upload_url";
+    // 服务信息
+    String GET_LATEST_SERVICE_VERSION = "/api/job/v3/job-manage/get_latest_service_version";
 
+    /**
+     * execute esb接口
+     */
+    // 作业接口
     String FAST_EXECUTE_SCRIPT = "/api/job/v3/job-execute/fast_execute_script";
+    String FAST_EXECUTE_SQL = "/api/job/v3/job-execute/fast_execute_sql";
     String FAST_TRANSFER_FILE = "/api/job/v3/job-execute/fast_transfer_file";
     String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/execute_job_plan";
     String GET_STEP_INSTANCE_DETAIL = "/api/job/v3/job-execute/get_step_instance_detail";
     String GET_STEP_INSTANCE_STATUS = "/api/job/v3/job-execute/get_step_instance_status";
+    String batch_get_job_instance_ip_log = "/api/job/v3/job-execute/batch_get_job_instance_ip_log";
 
+    /**
+     * crontab esb接口
+     */
+    // 定时任务接口
     String SAVE_CRON = "/api/job/v3/job-crontab/save_cron";
     String GET_CRON_LIST = "/api/job/v3/job-crontab/get_cron_list";
     String UPDATE_CRON_STATUS = "/api/job/v3/job-crontab/update_cron_status";
     String GET_CRON_DETAIL = "/api/job/v3/job-crontab/get_cron_detail";
     String DELETE_CRON = "/api/job/v3/job-crontab/delete_cron";
 
-
-    String GET_JOB_PLAN_LIST = "/api/job/v3/job-manage/get_job_plan_list";
-
+    /**
+     * file-gateway esb接口
+     */
+    // 文件源接口
     String CREATE_FILE_SOURCE = "/api/job/v3/job-file-gateway/create_file_source";
     String UPDATE_FILE_SOURCE = "/api/job/v3/job-file-gateway/update_file_source";
     String GET_FILE_SOURCE_DETAIL = "/api/job/v3/job-file-gateway/get_file_source_detail";
 
-    String CREATE_CREDENTIAL = "/api/job/v3/job-manage/create_credential";
-    String UPDATE_CREDENTIAL = "/api/job/v3/job-manage/update_credential";
-    String GET_CREDENTIAL_DETAIL = "/api/job/v3/job-manage/get_credential_detail";
 }

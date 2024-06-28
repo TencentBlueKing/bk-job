@@ -93,6 +93,15 @@ public class TestProps {
     // 用于测试的默认系统账号别名
     public static final String DEFAULT_OS_ACCOUNT_ALIAS = getPropString("os.account.alias.default");
 
+    // 默认的执行方案ID
+    public static final Long DEFAULT_TADK_PLAN_ID = getPropLong("task.plan.default.id");
+    // 默认的shell脚本内容
+    public static final String DEFAULT_SHELL_SCRIPT_CONTENT = getPropString("shell.script.default.content");
+    // 默认的db账号ID
+    public static final Long DEFAULT_DB_ACCOUNT_ID = getPropLong("db.account.id.default");
+    // 默认的SQL脚本内容
+    public static final String DEFAULT_SQL_SCRIPT_CONTENT = getPropString("sql.script.default.content");
+
     public static Integer getPropInteger(String key) {
 
         String value = props.getProperty(key);

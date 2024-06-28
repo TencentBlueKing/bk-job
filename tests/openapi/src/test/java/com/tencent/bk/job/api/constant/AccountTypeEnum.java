@@ -22,56 +22,80 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.constant;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 滚动模式
+ * 账号类型
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+public enum AccountTypeEnum {
+    LINUX(1, "Linux"),
+    WINDOW(2, "Windows"),
+    MYSQL(9, "MySQL"),
+    ORACLE(10, "Oracle"),
+    DB2(11, "DB2");
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    private final Integer type;
+    private final String name;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
+    AccountTypeEnum(Integer type, String name) {
+        this.type = type;
+        this.name = name;
     }
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
+    public static AccountTypeEnum valueOf(Integer type) {
+        if (type == null) return null;
+        for (AccountTypeEnum typeEnum : values()) {
+            if (typeEnum.getType().equals(type)) {
+                return typeEnum;
             }
         }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
+        return null;
     }
 
     public static boolean isValid(Integer type) {
         if (type == null) {
             return false;
         }
-        return valOf(type) != null;
+        return valueOf(type) != null;
     }
 
-    public int getValue() {
-        return mode;
+    public static boolean isValidDbType(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        if (!MYSQL.getType().equals(type) && !ORACLE.getType().equals(type) && !DB2.getType().equals(type)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isValidSystemType(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        if (!LINUX.getType().equals(type) && !WINDOW.getType().equals(type)) {
+            return false;
+        }
+        return true;
+    }
+
+    public OSTypeEnum getOsType() {
+        switch (this) {
+            case LINUX:
+                return OSTypeEnum.LINUX;
+            case WINDOW:
+                return OSTypeEnum.WINDOWS;
+            default:
+                return OSTypeEnum.DATABASE;
+        }
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
     }
 }

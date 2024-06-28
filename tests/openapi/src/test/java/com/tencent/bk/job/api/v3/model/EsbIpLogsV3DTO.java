@@ -22,56 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * 滚动模式
+ * IP(批量)对应的作业执行日志
  */
-public enum RollingModeEnum {
+@Data
+public class EsbIpLogsV3DTO {
     /**
-     * 执行失败则暂停
+     * 作业实例ID
      */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    @JsonProperty("job_instance_id")
+    private Long taskInstanceId;
 
     /**
-     * 滚动模式
+     * 步骤实例 ID
      */
-    @JsonValue
-    private final int mode;
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    /**
+     * 日志类型
+     */
+    @JsonProperty("log_type")
+    private Integer logType;
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
+    /**
+     * 脚本任务日志
+     */
+    @JsonProperty("script_task_logs")
+    private List<EsbScriptHostLogV3DTO> scriptTaskLogs;
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
+    /**
+     * 文件任务日志
+     */
+    @JsonProperty("file_task_logs")
+    private List<EsbFileIpLogV3DTO> fileTaskLogs;
 }

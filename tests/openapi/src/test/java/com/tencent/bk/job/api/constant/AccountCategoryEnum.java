@@ -22,56 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+package com.tencent.bk.job.api.constant;
 
 /**
- * 滚动模式
+ * 账号分类
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+public enum AccountCategoryEnum {
+    SYSTEM(1, "system"),
+    DB(2, "db");
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    private final Integer value;
+    private final String name;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
+    AccountCategoryEnum(Integer category, String name) {
+        this.value = category;
+        this.name = name;
     }
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
+    public static AccountCategoryEnum valOf(Integer category) {
+        if (category == null) {
+            return null;
+        }
+        for (AccountCategoryEnum categoryEnum : values()) {
+            if (categoryEnum.getValue().equals(category)) {
+                return categoryEnum;
             }
         }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
+        return null;
     }
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
+    public static boolean isValid(Integer category) {
+        if (category == null) {
             return false;
         }
-        return valOf(type) != null;
+        return valOf(category) != null;
     }
 
-    public int getValue() {
-        return mode;
+    public Integer getValue() {
+        return value;
+    }
+
+    public String getI18nKey() {
+        return "job.account.category." + name;
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -59,6 +60,7 @@ public @interface ValidFieldsStrictValue {
     boolean notNull() default false;
     ConditionType condition() default ConditionType.OR;
 
+    @Slf4j
     class Validator implements ConstraintValidator<ValidFieldsStrictValue, Object> {
         private String[] fieldNames;
         private boolean notNull;
@@ -88,6 +90,8 @@ public @interface ValidFieldsStrictValue {
                         break;
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
+                    log.error("valid fields strict value exception={}, fieldNames={}, condition={}",
+                        e.getMessage(), fieldNames, condition);
                     throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
                 }
             }

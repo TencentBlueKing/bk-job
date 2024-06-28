@@ -42,7 +42,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
         fieldName = "alias",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "alias")
+    @NotContainSpecialChar(fieldName = "alias", groups = {Create.class, Update.class})
     private String alias;
 
     /**
@@ -53,7 +53,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
         fieldName = "type",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "type")
+    @NotContainSpecialChar(fieldName = "type", groups = {Create.class, Update.class})
     private String type;
 
     /**
@@ -72,7 +72,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
         fieldName = "credential_id",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "credential_id")
+    @NotContainSpecialChar(fieldName = "credential_id", groups = {Create.class, Update.class})
     private String credentialId;
 
     /**

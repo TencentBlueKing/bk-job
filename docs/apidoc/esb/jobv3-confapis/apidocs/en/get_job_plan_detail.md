@@ -36,7 +36,7 @@ Check Job Plan details by Job Plan ID
     "data": {
         "bk_scope_type": "biz",
         "bk_scope_id": "1",
-        "job_plan_id": 100,
+        "id": 100,
         "name": "test",
         "creator": "admin",
         "create_time": 1546272000000,
@@ -208,7 +208,7 @@ Check Job Plan details by Job Plan ID
 |------------------|-----------|-----------|
 | bk_scope_type | string |Resource scope type. Optional values: biz - Business，biz_set - Business Set |
 | bk_scope_id   | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_plan_id      |  long       | Job Plan ID |
+| id      |  long       | Job Plan ID |
 | name             |  string    | Job name|
 | creator          |  string    | Job creator account number|
 | create_time      |  long      | Creation time, Unix timestamp|

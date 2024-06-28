@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -68,6 +69,7 @@ public @interface CheckEnum {
 
     String fieldName() default "";
 
+    @Slf4j
     class Validator implements ConstraintValidator<CheckEnum, Object> {
 
         private Class<? extends Enum<?>> enumClass;
@@ -103,6 +105,8 @@ public @interface CheckEnum {
                 Boolean result = (Boolean) method.invoke(null, value);
                 return result != null && result;
             } catch (Exception e) {
+                log.error("check enum exception={}, value={}, enumClass={}",
+                    e.getMessage(), value, enumClass.getName());
                 throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
             }
         }

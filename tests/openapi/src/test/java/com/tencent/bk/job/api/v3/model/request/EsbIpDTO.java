@@ -22,56 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * 滚动模式
- */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+@Setter
+@Getter
+@NoArgsConstructor
+public class EsbIpDTO {
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
+    @JsonProperty("bk_host_id")
+    private Long hostId;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
+    @JsonProperty("bk_cloud_id")
+    private Long bkCloudId;
 
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
+    @JsonProperty("bk_cloud_name")
+    private String bkCloudName;
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
+    @JsonProperty("ip")
+    @JsonPropertyDescription("ip")
+    private String ip;
 
-    public int getValue() {
-        return mode;
+    @JsonProperty("ipv6")
+    @JsonPropertyDescription("ipv6")
+    private String ipv6;
+
+    @JsonProperty("bk_agent_id")
+    @JsonPropertyDescription("Agent Id")
+    private String agentId;
+
+    @JsonProperty("alive")
+    @JsonPropertyDescription("Agent是否正常")
+    private Integer alive;
+
+    public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
+        this.hostId = hostId;
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
     }
 }

@@ -89,7 +89,7 @@ class FileSourceResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_FILE_SOURCE)
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
             req.setCode("file_source_code_?<");
             // code有非法字符，创建失败
@@ -106,7 +106,7 @@ class FileSourceResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_FILE_SOURCE)
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
             // 别名有非法字符，创建失败
             req.setAlias("alias|*");
@@ -123,7 +123,7 @@ class FileSourceResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_FILE_SOURCE)
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
     }
 

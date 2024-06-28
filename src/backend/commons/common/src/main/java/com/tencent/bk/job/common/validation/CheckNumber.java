@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.validation;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -58,6 +60,7 @@ public @interface CheckNumber {
 
     Class<? extends Payload>[] payload() default {};
 
+    @Slf4j
     class Validator implements ConstraintValidator<CheckNumber, Number> {
         private BigDecimal min;
         private BigDecimal max;

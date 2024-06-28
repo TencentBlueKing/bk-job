@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.ConstraintValidator;
@@ -38,6 +39,7 @@ import java.lang.reflect.Field;
 /**
  * 条件枚举验证器
  */
+@Slf4j
 public class ConditionalCheckEnumValidator implements ConstraintValidator<ConditionalCheckEnum, Object> {
     private CheckEnum.Validator checkEnumValidator = new CheckEnum.Validator();
     private String baseField;
@@ -100,6 +102,8 @@ public class ConditionalCheckEnumValidator implements ConstraintValidator<Condit
                 return checkEnumValidator.isValid(dependentFieldValue, context);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error("conditional check enum exception={}, baseField={}, dependentField={}",
+                e.getMessage(), baseField, dependentField);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         return true;

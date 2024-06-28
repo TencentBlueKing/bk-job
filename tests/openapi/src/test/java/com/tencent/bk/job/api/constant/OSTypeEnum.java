@@ -22,56 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.val;
 
-/**
- * 滚动模式
- */
-public enum RollingModeEnum {
+@Getter
+@AllArgsConstructor
+public enum OSTypeEnum {
     /**
-     * 执行失败则暂停
+     * LINUX
      */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+    LINUX(1),
 
     /**
-     * 滚动模式
+     * Windows
      */
+    WINDOWS(2),
+
+    /**
+     * 数据库
+     */
+    DATABASE(3);
+
     @JsonValue
-    private final int mode;
+    private int type;
 
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static OSTypeEnum valueOf(int type) {
+        val values = OSTypeEnum.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].type == type) {
+                return values[i];
             }
         }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
-
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
+        return null;
     }
 }

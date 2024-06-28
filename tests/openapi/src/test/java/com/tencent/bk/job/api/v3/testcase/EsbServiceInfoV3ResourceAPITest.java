@@ -22,56 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.testcase;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.tencent.bk.job.api.props.TestProps;
+import com.tencent.bk.job.api.util.ApiUtil;
+import com.tencent.bk.job.api.v3.constants.APIV3Urls;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * 滚动模式
+ * 服务信息 API 测试
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+@DisplayName("v3.EsbServiceInfoV3ResourceAPITest")
+public class EsbServiceInfoV3ResourceAPITest extends BaseTest {
 
-    /**
-     * 滚动模式
-     */
-    @JsonValue
-    private final int mode;
-
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
+    @Nested
+    class GetServiceInfoTest {
+        @Test
+        @DisplayName("获取服务的最新版本号")
+        void testGetLastestServiceVersion() {
+            given()
+                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+                .post(APIV3Urls.GET_LATEST_SERVICE_VERSION)
+                .then()
+                .spec(ApiUtil.successResponseSpec())
+                .body("data", notNullValue());
         }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
     }
 
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
 }

@@ -22,56 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * 滚动模式
+ * 查询执行方案详情
+ *
+ * @since 13/11/2020 19:36
  */
-public enum RollingModeEnum {
-    /**
-     * 执行失败则暂停
-     */
-    PAUSE_IF_FAIL(1),
-    /**
-     * 忽略失败，自动滚动下一批
-     */
-    IGNORE_ERROR(2),
-    /**
-     * 不自动，每批次都人工确认
-     */
-    MANUAL(3);
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class EsbGetPlanDetailV3Request extends EsbAppScopeReq {
 
     /**
-     * 滚动模式
+     * 执行方案 ID
      */
-    @JsonValue
-    private final int mode;
-
-    RollingModeEnum(int mode) {
-        this.mode = mode;
-    }
-
-    @JsonCreator
-    public static RollingModeEnum valOf(int mode) {
-        for (RollingModeEnum modeEnum : values()) {
-            if (modeEnum.mode == mode) {
-                return modeEnum;
-            }
-        }
-        throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
-    }
-
-    public static boolean isValid(Integer type) {
-        if (type == null) {
-            return false;
-        }
-        return valOf(type) != null;
-    }
-
-    public int getValue() {
-        return mode;
-    }
+    @JsonProperty("job_plan_id")
+    private Long planId;
 }
