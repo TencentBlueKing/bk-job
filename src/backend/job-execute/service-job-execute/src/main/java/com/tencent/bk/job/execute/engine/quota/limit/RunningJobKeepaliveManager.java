@@ -78,8 +78,8 @@ public class RunningJobKeepaliveManager {
                 redisTemplate.opsForZSet().add(RUNNING_JOB_ZSET_KEY, String.valueOf(jobInstanceId), timestamp);
                 return new KeepaliveTask(jobInstanceId, timestamp);
             } catch (Throwable e) {
-                log.error("Update running job keepalive task error, jobInstanceId: {}! Wait for 5 seconds retry!",
-                    jobInstanceId);
+                log.error("Update running job keepalive task error, jobInstanceId: " + jobInstanceId, e);
+                log.info("Wait for 5 seconds retry!");
                 ThreadUtils.sleep(5000L);
                 maxWaitingSeconds -= 5;
             }
