@@ -121,9 +121,6 @@ public class RunningJobResourceQuotaManager {
     }
 
     public void addJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
-        if (!runningJobResourceQuotaStore.isQuotaLimitEnabled()) {
-            return;
-        }
         long startTime = System.currentTimeMillis();
         RedisScript<Void> script = RedisScript.of(ADD_JOB_LUA_SCRIPT, Void.class);
 
@@ -147,9 +144,6 @@ public class RunningJobResourceQuotaManager {
     }
 
     public void removeJob(String appCode, ResourceScope resourceScope, long jobInstanceId) {
-        if (!runningJobResourceQuotaStore.isQuotaLimitEnabled()) {
-            return;
-        }
         long startTime = System.currentTimeMillis();
         RedisScript<Void> script = RedisScript.of(REMOVE_JOB_LUA_SCRIPT, Void.class);
 
