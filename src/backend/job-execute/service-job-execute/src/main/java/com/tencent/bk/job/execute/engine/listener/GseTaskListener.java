@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandleException;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
@@ -92,7 +93,11 @@ public class GseTaskListener {
         if (e instanceof MessageHandlerUnavailableException) {
             throw (MessageHandlerUnavailableException) e;
         }
+
+        updateGseTaskResult(gseTask);
+
         gseTasksExceptionCounter.increment();
+
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.refreshStep(
                 gseTask.getStepInstanceId(),
@@ -104,5 +109,16 @@ public class GseTaskListener {
                 )
             )
         );
+    }
+
+    private void updateGseTaskResult(GseTaskDTO gseTask) {
+        gseTask.setStatus(RunStatusEnum.ABNORMAL_STATE.getValue());
+        if (gseTask.getStartTime() == null) {
+            gseTask.setStartTime(System.currentTimeMillis());
+        }
+        long endTime = System.currentTimeMillis();
+        gseTask.setEndTime(endTime);
+        gseTask.setTotalTime(endTime - gseTask.getStartTime());
+        gseTaskService.updateGseTask(gseTask);
     }
 }

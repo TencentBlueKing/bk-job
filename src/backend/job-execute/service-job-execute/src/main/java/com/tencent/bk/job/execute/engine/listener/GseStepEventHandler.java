@@ -236,7 +236,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     private Long saveInitialGseTask(StepInstanceDTO stepInstance) {
         GseTaskDTO gseTask = new GseTaskDTO(stepInstance.getId(),
             stepInstance.getExecuteCount(), stepInstance.getBatch());
-        gseTask.setStatus(RunStatusEnum.WAITING_USER.getValue());
+        gseTask.setStatus(RunStatusEnum.BLANK.getValue());
 
         return gseTaskService.saveGseTask(gseTask);
     }
