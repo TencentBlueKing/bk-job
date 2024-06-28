@@ -99,7 +99,10 @@ public class RunningJobKeepaliveManager {
         }
     }
 
-    @Scheduled(cron = "* 0/1 * * * ?")
+    /**
+     * 定时刷新作业存活心跳。 1min周期
+     */
+    @Scheduled(cron = "0 * * * * ?")
     public void refreshTaskKeepaliveInfo() {
         log.info("Refresh running job keepalive task start...");
         if (runningJobKeepaliveTasks.isEmpty()) {
@@ -111,7 +114,7 @@ public class RunningJobKeepaliveManager {
             Collection<KeepaliveTask> keepaliveTasks = runningJobKeepaliveTasks.values();
             long currentTimestamp = System.currentTimeMillis();
             keepaliveTasks.stream()
-                // 设置刷新间隔最小为 30 秒，避免频繁写 redis
+                // 设置刷新间隔最小为 30 秒，降低写 redis 的频率
                 .filter(keepaliveTask -> currentTimestamp - keepaliveTask.getTimestamp() > 30000L)
                 .forEach(keepaliveTask -> {
                     long jobInstanceId = keepaliveTask.getJobInstanceId();
