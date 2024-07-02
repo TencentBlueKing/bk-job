@@ -50,7 +50,7 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
         );
 
         parseGlobalLimit(resourceScopeQuotaLimit, capacity, globalLimitExpr);
-        resourceScopeQuotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
+        parseCustomLimit(resourceScopeQuotaLimit, capacity, customLimitExpr);
 
         return resourceScopeQuotaLimit;
     }
@@ -64,7 +64,7 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
         );
 
         parseGlobalLimit(appQuotaLimit, capacity, globalLimitExpr);
-        appQuotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
+        parseCustomLimit(appQuotaLimit, capacity, customLimitExpr);
 
         return appQuotaLimit;
     }
@@ -72,6 +72,14 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
     private void parseGlobalLimit(QuotaLimit quotaLimit, Long capacity, String globalLimitExpr) {
         long globalLimit = computeLimitValue(capacity, globalLimitExpr);
         quotaLimit.setGlobalLimit(globalLimit);
+    }
+
+    private void parseCustomLimit(ResourceScopeQuotaLimit quotaLimit, Long capacity, String customLimitExpr) {
+        quotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
+    }
+
+    private void parseCustomLimit(AppQuotaLimit quotaLimit, Long capacity, String customLimitExpr) {
+        quotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
     }
 
     protected <K> Map<K, Long> parseCustomLimit(Long capacity,

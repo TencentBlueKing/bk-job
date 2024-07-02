@@ -25,12 +25,9 @@
 package com.tencent.bk.job.execute;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
-import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @JobBootApplication(
@@ -43,7 +40,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "com.tencent.bk.job.file_gateway.api"
     }
 )
-@EnableConfigurationProperties({FeatureToggleConfig.class, ResourceQuotaLimitProperties.class})
 public class JobExecuteBootApplication {
 
     public static void main(String[] args) {

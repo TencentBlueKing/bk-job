@@ -45,7 +45,7 @@ import java.util.Map;
 @Getter
 @Setter
 @Slf4j
-public class FeatureToggleConfig {
+public class FeatureToggleProperties {
 
     /**
      * 特性
@@ -54,6 +54,6 @@ public class FeatureToggleConfig {
 
     @PostConstruct
     public void print() {
-        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
+        log.info("FeatureToggleProperties init: {}", JsonUtils.toJson(this));
     }
 }

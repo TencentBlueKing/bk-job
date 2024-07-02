@@ -53,7 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 正在执行作业配置限制管理
+ * 正在执行作业配额限制管理
  */
 @Component
 @Slf4j

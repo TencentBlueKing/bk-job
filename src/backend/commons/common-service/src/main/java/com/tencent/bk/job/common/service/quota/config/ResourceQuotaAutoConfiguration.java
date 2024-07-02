@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.service.quota.config;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaLoadApplicationRunner;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
  * 配额限制 Spring AutoConfiguration
  */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({ResourceQuotaLimitProperties.class})
 public class ResourceQuotaAutoConfiguration {
 
     @Bean
