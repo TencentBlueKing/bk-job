@@ -22,38 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.feature.config;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 
 /**
- * 特性开关配置
- * <p>
- * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
- * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
+ * 配额限制配置加载 ApplicationRunner
  */
-@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
-@ToString
-@Getter
-@Setter
 @Slf4j
-public class FeatureToggleConfig {
+public class ResourceQuotaLoadApplicationRunner implements ApplicationRunner {
+    private final ResourceQuotaStore resourceQuotaStore;
 
-    /**
-     * 特性
-     */
-    private Map<String, FeatureConfig> features;
+    public ResourceQuotaLoadApplicationRunner(ResourceQuotaStore resourceQuotaStore) {
+        this.resourceQuotaStore = resourceQuotaStore;
+    }
 
-    @PostConstruct
-    public void print() {
-        log.info("FeatureToggleConfig init: {}", JsonUtils.toJson(this));
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // 初始化配置；如果初始化错误，那么抛出异常终止程序启动
+        log.info("ResourceQuotaLoadApplicationRunner start");
+        resourceQuotaStore.load(false);
+        log.info("ResourceQuotaLoadApplicationRunner run success");
     }
 }

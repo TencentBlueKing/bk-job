@@ -70,17 +70,17 @@ public interface TaskExecuteService {
     TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam);
 
     /**
-     * 创建重做作业实例
+     * 重做作业
      *
      * @param appId                 业务 ID
      * @param taskInstanceId        作业实例 ID
      * @param operator              操作者
      * @param executeVariableValues 全局变量
-     * @return
      */
-    TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
-                                              List<TaskVariableDTO> executeVariableValues)
-        throws ServiceException;
+    TaskInstanceDTO redoJob(Long appId,
+                            Long taskInstanceId,
+                            String operator,
+                            List<TaskVariableDTO> executeVariableValues);
 
     /**
      * 步骤操作
@@ -91,7 +91,7 @@ public interface TaskExecuteService {
      * @return 执行次数
      * @throws ServiceException
      */
-    Integer doStepOperation(Long appId, String operator, StepOperationDTO stepOperation) throws ServiceException;
+    Integer doStepOperation(Long appId, String operator, StepOperationDTO stepOperation);
 
     /**
      * 终止作业
@@ -101,7 +101,7 @@ public interface TaskExecuteService {
      * @param taskInstanceId 作业实例ID
      * @throws ServiceException 终止操作异常的时候抛出
      */
-    void terminateJob(String username, Long appId, Long taskInstanceId) throws ServiceException;
+    void terminateJob(String username, Long appId, Long taskInstanceId);
 
     /**
      * 作业操作
@@ -110,15 +110,16 @@ public interface TaskExecuteService {
      * @param operator       操作者
      * @param taskInstanceId 作业实例 ID
      * @param operation      操作类型
-     * @throws ServiceException
      */
-    void doTaskOperation(Long appId, String operator, long taskInstanceId,
-                         TaskOperationEnum operation) throws ServiceException;
+    void doTaskOperation(Long appId,
+                         String operator,
+                         long taskInstanceId,
+                         TaskOperationEnum operation);
 
     /**
      * 作业执行方案执行鉴权
      *
      * @param executeParam 作业执行参数
      */
-    void authExecuteJobPlan(TaskExecuteParam executeParam) throws ServiceException;
+    void authExecuteJobPlan(TaskExecuteParam executeParam);
 }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
@@ -36,15 +35,12 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
@@ -58,23 +54,12 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.VariableValueDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -101,53 +86,22 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private final String GSE_SCRIPT_FILE_NAME_PREFIX = "bk_gse_script_";
 
-    public ScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                     TaskInstanceService taskInstanceService,
-                                     StepInstanceService stepInstanceService,
-                                     GseTaskService gseTaskService,
+    public ScriptGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                      ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                                     AccountService accountService,
-                                     TaskInstanceVariableService taskInstanceVariableService,
-                                     StepInstanceVariableValueService stepInstanceVariableValueService,
-                                     AgentService agentService,
-                                     LogService logService,
-                                     TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                     ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                     ExecuteMonitor executeMonitor,
                                      JobExecuteConfig jobExecuteConfig,
-                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     GseTasksExceptionCounter gseTasksExceptionCounter,
-                                     JobBuildInVariableResolver jobBuildInVariableResolver,
-                                     Tracer tracer,
-                                     GseClient gseClient,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
                                      GseTaskDTO gseTask) {
-        super(resultHandleManager,
-            taskInstanceService,
-            gseTaskService,
+        super(engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
-            tracer,
-            gseClient,
             requestId,
             taskInstance,
             stepInstance,
-            gseTask,
-            stepInstanceService);
+            gseTask);
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
-        this.jobBuildInVariableResolver = jobBuildInVariableResolver;
+        this.jobBuildInVariableResolver = engineDependentServiceHolder.getJobBuildInVariableResolver();
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
     }
 
@@ -647,17 +601,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     protected final void addResultHandleTask() {
         ScriptResultHandleTask scriptResultHandleTask =
             new ScriptResultHandleTask(
-                taskInstanceService,
-                gseTaskService,
-                logService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                taskEvictPolicyExecutor,
+                engineDependentServiceHolder,
                 scriptExecuteObjectTaskService,
-                stepInstanceService,
-                gseClient,
                 jobExecuteConfig,
                 taskInstance,
                 stepInstance,

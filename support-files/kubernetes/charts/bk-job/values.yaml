@@ -660,6 +660,19 @@ job:
       certBase64: ""
       # ingress开启HTTPS时使用的证书私钥base64编码
       keyBase64: ""
+  # 资源配额限制
+  resourceQuotaLimit:
+    resources:
+      # 正在执行中的作业
+      runningJob:
+        enabled: false
+      #   capacity: "10000"
+      #   resourceScopeQuotaLimit:
+      #     global: "20%"
+      #     custom: "biz:2=1000,biz_set:9991001=50%"
+      #   appQuotaLimit:
+      #     global: "20%"
+      #     custom: "bk-nodeman=1000,bk-soap=50%"
 
 ## 依赖宿主机GSE Agent的文件分发相关配置
 fileDistribute:

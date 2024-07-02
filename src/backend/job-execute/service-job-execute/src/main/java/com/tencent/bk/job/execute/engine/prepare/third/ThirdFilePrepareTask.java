@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.result.TaskContext;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -105,6 +106,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
      */
     private volatile boolean isStopped = false;
 
+    private final TaskContext taskContext;
+
     public ThirdFilePrepareTask(
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
@@ -116,7 +119,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         this.batchTaskId = batchTaskId;
         this.isForRetry = isForRetry;
         this.resultHandler = resultHandler;
-
+        this.taskContext = new TaskContext(stepInstance.getTaskInstanceId());
     }
 
     public void initDependentService(
@@ -516,6 +519,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     @Override
     public String getTaskId() {
         return "file_source_batch_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount();
+    }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return taskContext;
     }
 
     @Override

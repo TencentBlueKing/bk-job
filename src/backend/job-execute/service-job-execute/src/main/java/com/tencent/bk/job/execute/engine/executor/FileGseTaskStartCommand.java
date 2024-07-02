@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -41,15 +40,12 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -60,22 +56,11 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,51 +101,21 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private Map<JobFile, FileDest> allSrcDestFileMap;
 
 
-    public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                   TaskInstanceService taskInstanceService,
-                                   GseTaskService gseTaskService,
+    public FileGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                    FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                   AccountService accountService,
-                                   TaskInstanceVariableService taskInstanceVariableService,
-                                   StepInstanceVariableValueService stepInstanceVariableValueService,
-                                   AgentService agentService,
-                                   LogService logService,
-                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                   ExecuteMonitor executeMonitor,
                                    JobExecuteConfig jobExecuteConfig,
-                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                   GseTasksExceptionCounter gseTasksExceptionCounter,
-                                   StepInstanceService stepInstanceService,
-                                   Tracer tracer,
-                                   GseClient gseClient,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
                                    GseTaskDTO gseTask,
                                    String fileStorageRootPath) {
-        super(resultHandleManager,
-            taskInstanceService,
-            gseTaskService,
+        super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
-            tracer,
-            gseClient,
             requestId,
             taskInstance,
             stepInstance,
-            gseTask,
-            stepInstanceService);
+            gseTask);
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.fileStorageRootPath = fileStorageRootPath;
     }
@@ -460,17 +415,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected void addResultHandleTask() {
         FileResultHandleTask fileResultHandleTask =
-            new FileResultHandleTask(taskInstanceService,
-                gseTaskService,
-                logService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                taskEvictPolicyExecutor,
+            new FileResultHandleTask(
+                engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
-                stepInstanceService,
-                gseClient,
                 jobExecuteConfig,
                 taskInstance,
                 stepInstance,

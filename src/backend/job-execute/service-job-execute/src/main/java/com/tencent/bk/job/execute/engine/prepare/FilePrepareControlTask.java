@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.result.TaskContext;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -62,6 +63,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private final FilePrepareTaskResultHandler filePrepareTaskResultHandler;
     private final StepInstanceService stepInstanceService;
     private final long startTimeMills;
+    private final TaskContext taskContext;
 
     public FilePrepareControlTask(
         FilePrepareService filePrepareService,
@@ -81,6 +83,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
         this.filePrepareTaskResultHandler = filePrepareTaskResultHandler;
         this.stepInstanceService = stepInstanceService;
         this.startTimeMills = System.currentTimeMillis();
+        this.taskContext = new TaskContext(stepInstance.getTaskInstanceId());
     }
 
     @Override
@@ -173,6 +176,11 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     @Override
     public String getTaskId() {
         return "FilePrepareControlTask-" + stepInstance.getId() + "_" + stepInstance.getExecuteCount();
+    }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return taskContext;
     }
 
     @Override

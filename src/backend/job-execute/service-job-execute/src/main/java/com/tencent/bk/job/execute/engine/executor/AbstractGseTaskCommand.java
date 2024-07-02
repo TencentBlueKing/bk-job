@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -43,6 +44,7 @@ import org.springframework.cloud.sleuth.Tracer;
 @Slf4j
 public abstract class AbstractGseTaskCommand implements GseTaskCommand {
 
+    protected final EngineDependentServiceHolder engineDependentServiceHolder;
     protected final AgentService agentService;
     protected final AccountService accountService;
     protected final GseTaskService gseTaskService;
@@ -88,21 +90,18 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected boolean gseV2Task;
 
 
-    public AbstractGseTaskCommand(AgentService agentService,
-                                  AccountService accountService,
-                                  GseTaskService gseTaskService,
+    public AbstractGseTaskCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                   ExecuteObjectTaskService executeObjectTaskService,
-                                  Tracer tracer,
-                                  GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
-        this.agentService = agentService;
-        this.accountService = accountService;
-        this.gseTaskService = gseTaskService;
+        this.engineDependentServiceHolder = engineDependentServiceHolder;
+        this.agentService = engineDependentServiceHolder.getAgentService();
+        this.accountService = engineDependentServiceHolder.getAccountService();
+        this.gseTaskService = engineDependentServiceHolder.getGseTaskService();
+        this.tracer = engineDependentServiceHolder.getTracer();
+        this.gseClient = engineDependentServiceHolder.getGseClient();
         this.executeObjectTaskService = executeObjectTaskService;
-        this.tracer = tracer;
-        this.gseClient = gseClient;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
         this.gseV2Task = stepInstance.isTargetGseV2Agent();

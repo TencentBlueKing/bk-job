@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.common.service;
 
+import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
@@ -39,10 +42,22 @@ import java.util.StringJoiner;
 @Slf4j
 public class ConfigRefreshEventListener {
 
+    private final MeterRegistry meterRegistry;
+
     private final FeatureStore featureStore;
 
-    public ConfigRefreshEventListener(FeatureStore featureStore) {
+    private final ResourceQuotaStore resourceQuotaStore;
+
+    private static final String METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL = "job_config_refresh_fail_total";
+    private static final String METRIC_TAG_CONFIG_NAME = "config_name";
+
+
+    public ConfigRefreshEventListener(MeterRegistry meterRegistry,
+                                      FeatureStore featureStore,
+                                      ResourceQuotaStore resourceQuotaStore) {
+        this.meterRegistry = meterRegistry;
         this.featureStore = featureStore;
+        this.resourceQuotaStore = resourceQuotaStore;
         log.info("Init ConfigRefreshEventListener");
     }
 
@@ -56,7 +71,7 @@ public class ConfigRefreshEventListener {
         if (log.isInfoEnabled()) {
             log.info("Handle EnvironmentChangeEvent, event: {}", printEnvironmentChangeEvent(event));
         }
-        reloadFeatureToggleIfChanged(event.getKeys());
+        reload(event.getKeys());
     }
 
     private String printEnvironmentChangeEvent(EnvironmentChangeEvent event) {
@@ -67,18 +82,31 @@ public class ConfigRefreshEventListener {
             .toString();
     }
 
-
     /**
-     * 重载特性开关配置
+     * 重载配置
      */
-    private void reloadFeatureToggleIfChanged(Set<String> changedKeys) {
+    private void reload(Set<String> changedKeys) {
         if (CollectionUtils.isEmpty(changedKeys)) {
             return;
         }
-        boolean isFeatureToggleConfigChanged =
-            changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
-        if (isFeatureToggleConfigChanged) {
-            featureStore.load(true);
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."))) {
+            boolean handleResult = featureStore.handleConfigChange();
+            if (!handleResult) {
+                meterRegistry.counter(
+                        METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
+                        Tags.of(METRIC_TAG_CONFIG_NAME, "job.feature"))
+                    .increment();
+            }
+        }
+
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.resourceQuotaLimit."))) {
+            boolean handleResult = resourceQuotaStore.handleConfigChange();
+            if (!handleResult) {
+                meterRegistry.counter(
+                        METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
+                        Tags.of(METRIC_TAG_CONFIG_NAME, "job.resourceQuotaLimit"))
+                    .increment();
+            }
         }
     }
 }
