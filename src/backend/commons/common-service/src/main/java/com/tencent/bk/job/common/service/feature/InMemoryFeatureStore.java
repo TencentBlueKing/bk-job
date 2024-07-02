@@ -95,7 +95,8 @@ public class InMemoryFeatureStore implements FeatureStore {
     private void loadInternal() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
-            FeatureToggleProperties featureToggleProperties = ApplicationContextRegister.getBean(FeatureToggleProperties.class);
+            FeatureToggleProperties featureToggleProperties =
+                ApplicationContextRegister.getBean(FeatureToggleProperties.class);
 
             if (featureToggleProperties.getFeatures() == null || featureToggleProperties.getFeatures().isEmpty()) {
                 log.info("Feature toggle config empty!");
