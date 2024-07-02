@@ -306,6 +306,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance.setAllHosts(allHosts);
             auditFastJobExecute(taskInstance);
 
+            // 日志记录容器执行对象的作业，用于统计、分析
+            logContainerExecuteObjectJob(taskInstance, taskInstanceExecuteObjects);
+
             return taskInstance;
         } finally {
             if (watch.isRunning()) {
@@ -314,6 +317,21 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (watch.getTotalTimeMillis() > 1000) {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
+        }
+    }
+
+    /*
+     * 对于包含容器执行对象的作业，输出日志用于统计、分析（后续版本删除）
+     */
+    private void logContainerExecuteObjectJob(TaskInstanceDTO taskInstance,
+                                              TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        if (taskInstanceExecuteObjects.isContainsAnyContainer()) {
+            log.info("ContainerJobRecord -> resourceScope|{}|appCode|{}|jobInstanceId|{}|name|{}",
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()).toResourceScopeUniqueId(),
+                StringUtils.isNotEmpty(taskInstance.getAppCode()) ? taskInstance.getAppCode() : "None",
+                taskInstance.getId(),
+                taskInstance.getName()
+            );
         }
     }
 
@@ -972,6 +990,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("startJob");
             startTask(taskInstance.getId());
             watch.stop();
+
+            // 日志记录容器执行对象的作业，用于统计、分析
+            logContainerExecuteObjectJob(taskInstance, taskInstanceExecuteObjects);
 
             return taskInstance;
         } finally {
