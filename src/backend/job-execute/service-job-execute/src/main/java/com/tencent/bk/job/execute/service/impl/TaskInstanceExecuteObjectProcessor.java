@@ -634,6 +634,9 @@ public class TaskInstanceExecuteObjectProcessor {
         // 根据 ContainerFilter 方式获取并设置容器执行对象
         acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
             taskInstance, stepInstances);
+
+        taskInstanceExecuteObjects.setContainsAnyContainer(
+            CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
     }
 
     private void acquireAndSetContainersByStaticContainerList(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -692,6 +695,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                 notExistContainerIds.add(container.getId());
                                 return;
                             }
+                            taskInstanceExecuteObjects.addContainer(containDetail);
                             container.updatePropsByContainer(containDetail);
                         });
                 }
