@@ -635,7 +635,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 now);
             scriptLogs.add(scriptLog);
 
-            // AgentTask 结果更新
+            // ExecuteObjectTask 结果更新
             executeObjectTask.setGseTaskId(gseTask.getId());
             executeObjectTask.setStartTime(gseTask.getStartTime());
             executeObjectTask.setEndTime(now);
