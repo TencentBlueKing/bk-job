@@ -289,11 +289,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         watch.start("check-evict-task");
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
             log.info("taskInstance {} evicted", taskInstance.getId());
-            // 更新任务与步骤状态
-            taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
             // 停止日志拉取调度
             this.executeResult = GseTaskExecuteResult.DISCARDED;
-            finishGseTask(this.executeResult, false);
+            finishGseTask(this.executeResult);
+
             watch.stop();
             return true;
         }
@@ -379,13 +378,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             // 如果任务已结束
             if (this.executeResult != GseTaskExecuteResult.RUNNING) {
                 watch.start("finish-gse-task");
-                finishGseTask(this.executeResult, true);
+                finishGseTask(this.executeResult);
                 watch.stop();
             }
         } catch (Throwable e) {
             log.error("[" + gseTaskInfo + "]: result handle error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
-            finishGseTask(this.executeResult, true);
+            finishGseTask(this.executeResult);
         } finally {
             this.isRunning = false;
             LockUtils.releaseDistributedLock(lockKey, requestId);
@@ -471,7 +470,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             this.executeResult = GseTaskExecuteResult.FAILED;
             saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
-            finishGseTask(GseTaskExecuteResult.FAILED, true);
+            finishGseTask(GseTaskExecuteResult.FAILED);
             isTimeout = true;
         }
         return isTimeout;
@@ -494,7 +493,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result " +
                     "log " +
                     "always empty.");
-                finishGseTask(GseTaskExecuteResult.FAILED, true);
+                finishGseTask(GseTaskExecuteResult.FAILED);
                 isAbnormal = true;
             }
         } else {
@@ -535,10 +534,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 设置GSE TASK 完成状态并分发事件
      *
-     * @param result               任务执行结果
-     * @param dispatchRefreshEvent 是否分发Refresh事件
+     * @param result 任务执行结果
      */
-    private void finishGseTask(GseTaskExecuteResult result, boolean dispatchRefreshEvent) {
+    private void finishGseTask(GseTaskExecuteResult result) {
         int gseTaskExecuteResult = result.getResultCode();
 
         // 处理GSE任务执行结果
@@ -550,15 +548,12 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         updateGseTaskExecutionInfo(result, endTime, gseTotalTime);
 
-        if (dispatchRefreshEvent) {
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), gseTask.getId())));
-        }
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
+            EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
+                stepInstance.getBatch(), gseTask.getId())));
     }
 
-    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, long endTime,
-                                            long totalTime) {
+    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, long endTime, long totalTime) {
 
         gseTask.setStatus(analyseGseTaskStatus(result).getValue());
         gseTask.setEndTime(endTime);
