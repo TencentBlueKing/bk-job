@@ -24,34 +24,23 @@
 
 package com.tencent.bk.job.execute.engine.evict;
 
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * 任务驱逐策略执行器，用于判定某个任务在当前驱逐策略下是否应当被驱逐，提供任务被驱逐后更新任务相关状态的方法
+ * 任务驱逐策略执行器，用于判定某个任务在当前驱逐策略下是否应当被驱逐
  */
 @Slf4j
 @Component
 public class TaskEvictPolicyExecutor {
 
     private final TaskEvictPolicyManager taskEvictPolicyManager;
-    private final TaskInstanceService taskInstanceService;
-    private final StepInstanceService stepInstanceService;
 
     @Autowired
-    public TaskEvictPolicyExecutor(TaskEvictPolicyManager taskEvictPolicyManager,
-                                   TaskInstanceService taskInstanceService,
-                                   StepInstanceService stepInstanceService) {
+    public TaskEvictPolicyExecutor(TaskEvictPolicyManager taskEvictPolicyManager) {
         this.taskEvictPolicyManager = taskEvictPolicyManager;
-        this.taskInstanceService = taskInstanceService;
-        this.stepInstanceService = stepInstanceService;
     }
 
     /**
@@ -66,59 +55,5 @@ public class TaskEvictPolicyExecutor {
             return false;
         }
         return policy.needToEvict(taskInstance);
-    }
-
-    /**
-     * 更新被驱逐的任务相关状态为被丢弃状态
-     *
-     * @param taskInstance 任务实例
-     * @param stepInstance 步骤实例
-     */
-    public void updateEvictedTaskStatus(TaskInstanceDTO taskInstance, StepInstanceBaseDTO stepInstance) {
-        long endTime = System.currentTimeMillis();
-        Long taskInstanceId = stepInstance.getTaskInstanceId();
-        // 将进行中的被驱逐任务的步骤实例状态更新为“被丢弃”状态
-        if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
-            long totalTime = TaskCostCalculator.calculate(
-                stepInstance.getStartTime(),
-                endTime,
-                stepInstance.getTotalTime()
-            );
-            stepInstanceService.updateStepExecutionInfo(
-                stepInstance.getId(),
-                RunStatusEnum.ABANDONED,
-                null,
-                endTime,
-                totalTime
-            );
-        } else {
-            log.info(
-                "stepInstance {} already enter a final state:{}",
-                stepInstance.getId(),
-                stepInstance.getStatus()
-            );
-        }
-        // 将进行中的被驱逐任务外层状态更新为“被丢弃”状态
-        if (!RunStatusEnum.isFinishedStatus(taskInstance.getStatus())) {
-            long totalTime = TaskCostCalculator.calculate(
-                taskInstance.getStartTime(),
-                endTime,
-                taskInstance.getTotalTime()
-            );
-            taskInstanceService.updateTaskExecutionInfo(
-                taskInstanceId,
-                RunStatusEnum.ABANDONED,
-                null,
-                null,
-                endTime,
-                totalTime
-            );
-        } else {
-            log.info(
-                "taskInstance {} already enter a final state:{}",
-                taskInstanceId,
-                taskInstance.getStatus()
-            );
-        }
     }
 }
