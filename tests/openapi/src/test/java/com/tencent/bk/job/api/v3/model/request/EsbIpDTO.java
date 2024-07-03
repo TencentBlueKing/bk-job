@@ -60,6 +60,11 @@ public class EsbIpDTO {
     @JsonPropertyDescription("Agent是否正常")
     private Integer alive;
 
+    public EsbIpDTO(Long bkCloudId, String ip) {
+        this.bkCloudId = bkCloudId;
+        this.ip = ip;
+    }
+
     public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
         this.hostId = hostId;
         this.bkCloudId = bkCloudId;

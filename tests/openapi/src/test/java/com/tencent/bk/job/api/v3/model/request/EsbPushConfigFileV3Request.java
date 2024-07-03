@@ -1,8 +1,7 @@
 package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.api.model.BaseEsbReq;
-import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,12 +13,14 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class EsbPushConfigFileV3Request extends BaseEsbReq {
+public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
+
     /**
-     * 业务ID
+     * 用户自定义任务名称
      */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+    @JsonProperty("task_name")
+    private String name;
+
 
     /**
      * 目标路径
@@ -54,13 +55,23 @@ public class EsbPushConfigFileV3Request extends BaseEsbReq {
     @JsonProperty("callback_url")
     private String callbackUrl;
 
+    public void trimIps() {
+        if (this.targetServer != null) {
+            trimIps(this.targetServer.getIps());
+        }
+    }
+
+    private void trimIps(List<EsbIpDTO> ips) {
+        if (ips != null && ips.size() > 0) {
+            ips.forEach(host -> {
+                host.setIp(host.getIp().trim());
+            });
+        }
+    }
+
     @Setter
     @Getter
     public static class EsbConfigFileDTO {
-        public EsbConfigFileDTO(String fileName, String content) {
-            this.fileName = fileName;
-            this.content = content;
-        }
 
         @JsonProperty("file_name")
         private String fileName;
@@ -68,20 +79,6 @@ public class EsbPushConfigFileV3Request extends BaseEsbReq {
          * 文件内容Base64
          */
         private String content;
-    }
-
-    public void trimIps() {
-        if (this.targetServer != null) {
-            trimIps(this.targetServer.getIps());
-        }
-    }
-
-    private void trimIps(List<HostDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
     }
 
 

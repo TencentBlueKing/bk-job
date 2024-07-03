@@ -22,42 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.api.v3.model;
+package com.tencent.bk.job.api.constant;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
 @Getter
-@NoArgsConstructor
-public class EsbIpDTO {
+@AllArgsConstructor
+public enum EsbTaskFileTypeEnum {
+    /**
+     * 服务器文件
+     */
+    SERVER(1),
 
-    @JsonProperty("bk_host_id")
-    private Long hostId;
+    /**
+     * 文件源文件
+     */
+    FILE_SOURCE(3),
 
-    @JsonProperty("bk_cloud_id")
-    private Long bkCloudId;
+    /**
+     * Base64编码的文件
+     */
+    BASE64_FILE(4);
 
-    @JsonProperty("bk_cloud_name")
-    private String bkCloudName;
+    private final int type;
 
-    @JsonProperty("ip")
-    private String ip;
+    public static EsbTaskFileTypeEnum valueOf(int type) {
+        for (EsbTaskFileTypeEnum fileType : values()) {
+            if (fileType.type == type) {
+                return fileType;
+            }
+        }
+        return null;
+    }
 
-    @JsonProperty("ipv6")
-    private String ipv6;
-
-    @JsonProperty("bk_agent_id")
-    private String agentId;
-
-    @JsonProperty("alive")
-    private Integer alive;
-
-    public EsbIpDTO(Long hostId, Long bkCloudId, String ip) {
-        this.hostId = hostId;
-        this.bkCloudId = bkCloudId;
-        this.ip = ip;
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valueOf(type) != null;
     }
 }

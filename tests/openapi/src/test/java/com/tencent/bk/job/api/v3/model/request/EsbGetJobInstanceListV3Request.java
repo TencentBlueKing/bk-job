@@ -22,55 +22,79 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.common.validation.CheckNumber;
-import com.tencent.bk.job.common.validation.ValidationConstants;
-import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 步骤操作请求
+ * get_job_instance_list, 查询作业执行历史
  */
 @Getter
 @Setter
-public class EsbOperateStepInstanceV3Request extends EsbAppScopeReq {
+@ToString
+public class EsbGetJobInstanceListV3Request extends EsbAppScopeReq {
 
     /**
-     * 作业实例ID
+     * 作业执行实例 ID
      */
     @JsonProperty("job_instance_id")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
-        message = "{validation.constraints.InvalidJobInstanceId.message}"
-    )
     private Long taskInstanceId;
 
-    /**
-     * 步骤实例ID
-     */
-    @JsonProperty("step_instance_id")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
-        message = "{validation.constraints.InvalidStepInstanceId.message}"
-    )
-    private Long stepInstanceId;
+    @JsonProperty("create_time_start")
+    private Long createTimeStart;
+
+    @JsonProperty("create_time_end")
+    private Long createTimeEnd;
 
     /**
-     * 操作类型：2、失败IP重做，3、忽略错误，4、执行，5、跳过，6、确认继续 8、全部重试，9、终止确认流程，10、重新发起确认，11、进入下一步
+     * 定时任务ID
      */
-    @JsonProperty("operation_code")
-    @CheckEnum(
-        notNull = true,
-        enumClass = StepOperationEnum.class,
-        message = "{validation.constraints.InvalidStepOperationType_illegal.message}"
-    )
-    private Integer operationCode;
+    @JsonProperty("job_cron_id")
+    private Long cronId;
 
+    private String operator;
+
+    /**
+     * 任务名称
+     */
+    @JsonProperty("name")
+    private String taskName;
+
+    /**
+     * 执行方式
+     */
+    @JsonProperty("launch_mode")
+    private Integer startupMode;
+
+    /**
+     * 任务类型
+     */
+    @JsonProperty("type")
+    private Integer taskType;
+
+    /**
+     * 任务状态
+     */
+    @JsonProperty("status")
+    private Integer taskStatus;
+
+    /**
+     * 执行目标服务器IP
+     */
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 分页返回记录起始位置
+     */
+    private Integer start;
+
+    /**
+     * 返回记录数量
+     */
+    private Integer length;
 }

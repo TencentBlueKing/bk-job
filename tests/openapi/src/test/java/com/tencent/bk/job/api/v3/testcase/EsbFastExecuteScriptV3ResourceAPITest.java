@@ -4,17 +4,20 @@ import com.tencent.bk.job.api.constant.ErrorCode;
 import com.tencent.bk.job.api.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.api.constant.RollingModeEnum;
 import com.tencent.bk.job.api.constant.ScriptTypeEnum;
+import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.util.ApiUtil;
 import com.tencent.bk.job.api.util.JsonUtil;
 import com.tencent.bk.job.api.util.Operations;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbDynamicGroupDTO;
+import com.tencent.bk.job.api.v3.model.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbRollingConfigDTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
-import com.tencent.bk.job.api.v3.model.HostDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbIpDTO;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,8 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * 快速执行脚本 API 测试
@@ -45,7 +47,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -55,16 +57,21 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
 
-            given()
+            EsbJobExecuteV3DTO data = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
-                .body("data", notNullValue())
-                .body("data.job_instance_name", notNullValue())
-                .body("data.job_instance_id", greaterThan(0L))
-                .body("data.step_instance_id", greaterThan(0L));
+                .extract()
+                .body()
+                .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
+                })
+                .getData();
+            assertThat(data).isNotNull();
+            assertThat(data.getTaskInstanceId()).isGreaterThan(0L);
+            assertThat(data.getStepInstanceId()).isGreaterThan(0L);
+            assertThat(data.getTaskName()).isNotNull();
         }
 
         @Test
@@ -80,7 +87,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountId(null);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -89,22 +96,11 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
 
             req.setAccountAlias(null);
             req.setAccountId(0L); //账号ID必须大于0
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 
         @Test
@@ -121,7 +117,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -130,13 +126,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 
         @Test
@@ -151,7 +141,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -160,13 +150,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 
         @Test
@@ -182,7 +166,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -191,13 +175,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 
         @Test
@@ -217,13 +195,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
 
             // hostId无效
             targetServer = new EsbServerV3DTO();
@@ -231,27 +203,17 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             hostIds.add(-1L);
             targetServer.setHostIds(hostIds);
             req.setTargetServer(targetServer);
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.EXECUTE_OBJECT_NOT_EXIST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.EXECUTE_OBJECT_NOT_EXIST);
 
             // cloudId无效
             targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
-            HostDTO hostDTO = TestProps.HOST_1_DEFAULT_BIZ;
-            hostDTO.setBkCloudId(-1L);
-            ips.add(hostDTO);
+            List<EsbIpDTO> ips = new ArrayList<>();
+            EsbIpDTO EsbIpDTO = new EsbIpDTO();
+            EsbIpDTO.setBkCloudId(-1L);
+            ips.add(EsbIpDTO);
             targetServer.setIps(ips);
             req.setTargetServer(targetServer);
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
 
             // dynamicGroupId无效
             targetServer = new EsbServerV3DTO();
@@ -261,12 +223,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             dynamicGroupDTOS.add(esbDynamicGroupDTO);
             targetServer.setDynamicGroups(dynamicGroupDTOS);
             req.setTargetServer(targetServer);
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
 
             // topo无效
             targetServer = new EsbServerV3DTO();
@@ -277,12 +234,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             esbCmdbTopoNodeDTOS.add(esbCmdbTopoNodeDTO);
             targetServer.setDynamicGroups(dynamicGroupDTOS);
             req.setTargetServer(targetServer);
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 
         @Test
@@ -296,7 +248,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
             req.setName(Operations.buildJobName());
             EsbServerV3DTO targetServer = new EsbServerV3DTO();
-            List<HostDTO> ips = new ArrayList<>();
+            List<EsbIpDTO> ips = new ArrayList<>();
             ips.add(TestProps.HOST_1_DEFAULT_BIZ);
             ips.add(TestProps.HOST_2_DEFAULT_BIZ);
             targetServer.setIps(ips);
@@ -306,13 +258,7 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(null);
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
-
-            given()
-                .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
-                .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
-                .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
     }
 }

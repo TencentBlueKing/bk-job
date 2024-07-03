@@ -49,7 +49,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceAPITest extends BaseTest {
             EsbIpLogsV3DTO esbIpLogsV3DTO = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .extract()
@@ -83,14 +83,14 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceAPITest extends BaseTest {
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             req.setTaskInstanceId(0L);//ID必须大于0
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
@@ -113,14 +113,14 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceAPITest extends BaseTest {
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
             req.setStepInstanceId(0L);//ID必须大于0
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
@@ -142,7 +142,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceAPITest extends BaseTest {
             given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
@@ -168,7 +168,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceAPITest extends BaseTest {
             EsbIpLogsV3DTO esbIpLogsV3DTO = given()
                 .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
                 .body(JsonUtil.toJson(req))
-                .post(APIV3Urls.batch_get_job_instance_ip_log)
+                .post(APIV3Urls.BATCH_GET_JOB_INSTANCE_IP_LOG)
                 .then()
                 .spec(ApiUtil.successResponseSpec())
                 .extract()

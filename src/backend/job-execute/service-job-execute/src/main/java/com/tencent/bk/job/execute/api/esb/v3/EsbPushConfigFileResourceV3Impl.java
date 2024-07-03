@@ -100,6 +100,7 @@ public class EsbPushConfigFileResourceV3Impl
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
         jobExecuteInfo.setTaskInstanceId(executeTaskInstance.getId());
         jobExecuteInfo.setTaskName(stepInstance.getName());
+        jobExecuteInfo.setStepInstanceId(stepInstance.getId());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 

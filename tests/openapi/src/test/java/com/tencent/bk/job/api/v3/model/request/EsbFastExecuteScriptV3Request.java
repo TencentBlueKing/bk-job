@@ -102,7 +102,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
         }
     }
 
-    private void trimIps(List<HostDTO> ips) {
+    private void trimIps(List<EsbIpDTO> ips) {
         if (ips != null && ips.size() > 0) {
             ips.forEach(host -> {
                 host.setIp(host.getIp().trim());

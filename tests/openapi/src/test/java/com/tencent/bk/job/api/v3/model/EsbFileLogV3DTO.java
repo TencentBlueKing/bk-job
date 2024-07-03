@@ -25,6 +25,7 @@
 package com.tencent.bk.job.api.v3.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.api.v3.model.request.EsbIpDTO;
 import lombok.Data;
 
 /**

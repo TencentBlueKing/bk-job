@@ -22,7 +22,6 @@ import com.tencent.bk.job.api.v3.model.EsbPageDataV3;
 import com.tencent.bk.job.api.v3.model.EsbPlanBasicInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
-import com.tencent.bk.job.api.v3.model.HostDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateCredentialV3Req;
@@ -39,6 +38,7 @@ import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbGetPlanListV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbIpDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbManageDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbSaveCronV3Request;
 import io.restassured.common.mapper.TypeRef;
@@ -177,7 +177,7 @@ public class Operations {
         req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         req.setName(buildJobName());
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         ips.add(TestProps.HOST_2_DEFAULT_BIZ);
         targetServer.setIps(ips);
@@ -218,7 +218,7 @@ public class Operations {
             .getData();
     }
 
-    private static List<EsbFileSourceV3DTO> buildCommonFileSource() {
+    public static List<EsbFileSourceV3DTO> buildCommonFileSource() {
         List<EsbFileSourceV3DTO> fileSources = new ArrayList<>();
         EsbFileSourceV3DTO fileSource = new EsbFileSourceV3DTO();
         fileSource.setAccount(buildCommonFileSourceAccount());
@@ -230,23 +230,23 @@ public class Operations {
         return fileSources;
     }
 
-    private static EsbAccountV3BasicDTO buildCommonFileSourceAccount() {
+    public static EsbAccountV3BasicDTO buildCommonFileSourceAccount() {
         EsbAccountV3BasicDTO account = new EsbAccountV3BasicDTO();
         account.setAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         return account;
     }
 
-    private static EsbServerV3DTO buildCommonSourceServer() {
+    public static EsbServerV3DTO buildCommonSourceServer() {
         EsbServerV3DTO sourceServer = new EsbServerV3DTO();
-        List<HostDTO> sourceIps = new ArrayList<>();
+        List<EsbIpDTO> sourceIps = new ArrayList<>();
         sourceIps.add(TestProps.HOST_1_DEFAULT_BIZ);
         sourceServer.setIps(sourceIps);
         return sourceServer;
     }
 
-    private static EsbServerV3DTO buildCommonTargetServer() {
+    public static EsbServerV3DTO buildCommonTargetServer() {
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> sourceIps = new ArrayList<>();
+        List<EsbIpDTO> sourceIps = new ArrayList<>();
         sourceIps.add(TestProps.HOST_2_DEFAULT_BIZ);
         targetServer.setIps(sourceIps);
         return targetServer;
@@ -263,7 +263,7 @@ public class Operations {
         req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         req.setName(buildJobName());
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         targetServer.setIps(ips);
         req.setTargetServer(targetServer);
@@ -292,7 +292,7 @@ public class Operations {
         req.setName("api-test-long-time-task." + DateUtils.formatLocalDateTime(LocalDateTime.now(),
             "yyyyMMddhhmmssSSS"));
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         targetServer.setIps(ips);
         req.setTargetServer(targetServer);

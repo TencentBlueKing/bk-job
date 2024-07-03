@@ -89,7 +89,14 @@ public interface APIV3Urls {
     String EXECUTE_JOB_PLAN = "/api/job/v3/job-execute/execute_job_plan";
     String GET_STEP_INSTANCE_DETAIL = "/api/job/v3/job-execute/get_step_instance_detail";
     String GET_STEP_INSTANCE_STATUS = "/api/job/v3/job-execute/get_step_instance_status";
-    String batch_get_job_instance_ip_log = "/api/job/v3/job-execute/batch_get_job_instance_ip_log";
+    String BATCH_GET_JOB_INSTANCE_IP_LOG = "/api/job/v3/job-execute/batch_get_job_instance_ip_log";
+    String GET_JOB_INSTANCE_GLOBAL_VAR_VALUE = "/api/job/v3/job-execute/get_job_instance_global_var_value";
+    String GET_JOB_INSTANCE_IP_LOG = "/api/job/v3/job-execute/get_job_instance_ip_log";
+    String GET_JOB_INSTANCE_LIST = "/api/job/v3/job-execute/get_job_instance_list";
+    String GET_JOB_INSTANCE_STATUS = "/api/job/v3/job-execute/get_job_instance_status";
+    String OPERATE_JOB_INSTANCE = "/api/job/v3/job-execute/operate_job_instance";
+    String OPERATE_STEP_INSTANCE = "/api/job/v3/job-execute/operate_step_instance";
+    String PUSH_CONFIG_FILE = "/api/job/v3/job-execute/push_config_file";
 
     /**
      * crontab esb接口

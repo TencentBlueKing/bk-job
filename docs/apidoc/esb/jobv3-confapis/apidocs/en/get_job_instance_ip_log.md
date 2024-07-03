@@ -8,15 +8,15 @@ Query job execution log by host
 
 #### Interface parameters
 
-| Fields |  Type  | Required | Description |
-|-----------|------------|--------|------------|
+| Fields | Type   | Required | Description |
+|-----------|--------|--------|------------|
 | bk_scope_type | string | yes  | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
 | bk_scope_id | string | yes | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_instance_id | long | yes |Job instance ID|
-| step_instance_id |  long    |  yes  |Step instance ID|
-| bk_cloud_id | int | no |Target server BK-Net ID|
+| job_instance_id | long   | yes |Job instance ID|
+| step_instance_id | long   |  yes  |Step instance ID|
+| bk_cloud_id | int    | no |Target server BK-Net ID|
 | ip | string | no |Destination server IP. ***Deprecated, it is recommended to use the bk_host_id parameter|
-| bk_host_id |  string    | no | Host ID|
+| bk_host_id | long   | no | Host ID|
 
 ### Example of request
 

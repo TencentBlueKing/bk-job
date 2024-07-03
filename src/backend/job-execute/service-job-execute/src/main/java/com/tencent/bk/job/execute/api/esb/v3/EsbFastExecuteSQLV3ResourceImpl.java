@@ -91,6 +91,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
         jobExecuteInfo.setTaskInstanceId(executeTaskInstance.getId());
         jobExecuteInfo.setTaskName(stepInstance.getName());
+        jobExecuteInfo.setStepInstanceId(stepInstance.getId());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
