@@ -213,7 +213,7 @@
     mounted() {
       // 因为元素位置的变化导致 tips错位
       const handleBodyClick = () => {
-        this.popperInstance && this.popperInstance.show();
+        this.popperInstance && this.popperInstance.state.isShown && this.popperInstance.show();
       };
       document.body.addEventListener('click', handleBodyClick);
       this.$once('hook:beforeDestroy', () => {
