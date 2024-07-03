@@ -32,6 +32,8 @@ import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
+import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
@@ -53,22 +55,31 @@ public class OpService {
     private final GatewayInfoService gatewayInfoService;
     private final EnvironmentService environmentService;
     private final TaskReporter taskReporter;
+    private final WorkerEventService workerEventService;
 
     @Autowired
-    public OpService(WorkerConfig workerConfig, FileTaskService fileTaskService,
-                     GatewayInfoService gatewayInfoService, EnvironmentService environmentService,
-                     TaskReporter taskReporter) {
+    public OpService(WorkerConfig workerConfig,
+                     FileTaskService fileTaskService,
+                     GatewayInfoService gatewayInfoService,
+                     EnvironmentService environmentService,
+                     TaskReporter taskReporter,
+                     WorkerEventService workerEventService) {
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
         this.environmentService = environmentService;
         this.taskReporter = taskReporter;
+        this.workerEventService = workerEventService;
     }
 
     public List<String> offLine() {
         List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
-        // 停止心跳
-        HeartBeatTask.stopHeartBeat();
+        workerEventService.commitWorkerEvent(WorkerEvent.offLine());
+        return runningTaskIdList;
+    }
+
+    public List<String> doOffLine() {
+        List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
         // 调网关接口下线自己
         String url = gatewayInfoService.getWorkerOffLineUrl();
         OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
@@ -84,10 +95,10 @@ public class OpService {
         String respStr;
         try {
             respStr = httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.POST, url)
-                    .setStringEntity(req.getBody())
-                    .setHeaders(req.getHeaders())
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.POST, url)
+                        .setStringEntity(req.getBody())
+                        .setHeaders(req.getHeaders())
+                        .build())
                 .getEntity();
             log.info(String.format("respStr=%s", respStr));
             // 停止任务

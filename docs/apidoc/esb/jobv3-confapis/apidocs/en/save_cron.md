@@ -210,7 +210,7 @@ Create or update Cron Job; Create Cron Job, Cron Job status is paused by default
                         {
                             "bk_host_id": 101,
                             "bk_cloud_id": 0, 
-                            "ip": "10.0.0.1"  
+                            "ip": "127.0.0.1"  
                         }
                     ],
                     "dynamic_group_list": null, 
@@ -296,7 +296,7 @@ Create or update Cron Job; Create Cron Job, Cron Job status is paused by default
                         {
                             "bk_host_id": 101,
                             "bk_cloud_id": 0,
-                            "ip": "10.0.0.1"
+                            "ip": "127.0.0.1"
                         }
                     ],
                     "dynamic_group_list": null,

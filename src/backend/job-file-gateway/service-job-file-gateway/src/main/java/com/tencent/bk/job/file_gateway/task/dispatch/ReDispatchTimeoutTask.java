@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
-import com.tencent.bk.job.file_gateway.service.ReDispatchService;
+import com.tencent.bk.job.file_gateway.service.dispatch.ReDispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

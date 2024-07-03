@@ -76,14 +76,6 @@ class QueryGlobalSetting extends ModuleBase {
     return Request.get(`${this.module}/cmdbServerUrl`);
   }
 
-  // 获取Title与Footer
-  getPlatformInfo(params, payload) {
-    return Request.get(`${this.module}/platformInfo`, {
-      cache: true,
-      ...payload,
-    });
-  }
-
   // 周边系统跳转路径
   getRelatedSystemUrls(params = {}) {
     return Request.get(`${this.module}/relatedSystemUrls`, {

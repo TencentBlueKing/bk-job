@@ -22,22 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.file.worker.state.event;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.event.Event;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * 调度策略服务：根据文件源信息寻找一个Job插件进行访问
- * 调度依据：能力标签（文件源类型、区域等）、负载
- */
-public interface DispatchService {
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class WorkerEvent extends Event {
     /**
-     * 根据文件源找到一个最适合的FileWorker
+     * Worker动作
      *
-     * @param fileSourceDTO 文件源对象
-     * @param requestSource 请求来源
-     * @return 选中的对接文件源的FileWorker对象
+     * @see WorkerActionEnum
      */
-    FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource);
+    private WorkerActionEnum action;
+
+    public static WorkerEvent waitAccessReady() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.WAIT_ACCESS_READY);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
+    }
+
+    public static WorkerEvent heartBeat() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.HEART_BEAT);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
+    }
+
+    public static WorkerEvent offLine() {
+        WorkerEvent workerEvent = new WorkerEvent();
+        workerEvent.setAction(WorkerActionEnum.OFF_LINE);
+        workerEvent.setTime(LocalDateTime.now());
+        return workerEvent;
+    }
 }

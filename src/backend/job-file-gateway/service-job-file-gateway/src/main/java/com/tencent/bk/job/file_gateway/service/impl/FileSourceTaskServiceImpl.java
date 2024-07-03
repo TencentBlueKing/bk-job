@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.http.HttpReq;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
@@ -47,9 +46,9 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ThirdFileSourceTaskLogDTO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskUpdateService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceTaskReqGenService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -103,20 +102,43 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     }
 
     @Override
-    public TaskInfoDTO startFileSourceDownloadTask(String username, Long appId, Long stepInstanceId,
-                                                   Integer executeCount, String batchTaskId, Integer fileSourceId,
+    public TaskInfoDTO startFileSourceDownloadTask(String username,
+                                                   Long appId,
+                                                   Long stepInstanceId,
+                                                   Integer executeCount,
+                                                   String batchTaskId,
+                                                   Integer fileSourceId,
                                                    List<String> filePathList) {
-        return startFileSourceDownloadTaskWithId(username, appId, stepInstanceId, executeCount, batchTaskId,
-            fileSourceId, filePathList, null);
+        return startFileSourceDownloadTaskWithId(
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList,
+            null
+        );
     }
 
-    @JobTransactional(transactionManager = "jobFileGatewayTransactionManager")
-    public TaskInfoDTO startFileSourceDownloadTaskWithId(String username, Long appId, Long stepInstanceId,
-                                                         Integer executeCount, String batchTaskId,
-                                                         Integer fileSourceId, List<String> filePathList,
+    public TaskInfoDTO startFileSourceDownloadTaskWithId(String username,
+                                                         Long appId,
+                                                         Long stepInstanceId,
+                                                         Integer executeCount,
+                                                         String batchTaskId,
+                                                         Integer fileSourceId,
+                                                         List<String> filePathList,
                                                          String fileSourceTaskId) {
-        log.info("Input=({},{},{},{},{},{},{})", username, appId, stepInstanceId, executeCount, batchTaskId,
-            fileSourceId, filePathList);
+        log.info(
+            "startFileSourceDownloadTaskWithId, input=({},{},{},{},{},{},{})",
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList
+        );
         FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceId);
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
@@ -130,6 +152,58 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                     "stepInstanceId=%d,fileSourceId=%d,filePathList=%s", appId, stepInstanceId, fileSourceId,
                 filePathList.toString()));
         }
+        FileSourceTaskDTO fileSourceTaskDTO = saveFileSourceTask(
+            username,
+            appId,
+            stepInstanceId,
+            executeCount,
+            batchTaskId,
+            fileSourceId,
+            filePathList,
+            fileSourceTaskId,
+            fileWorkerDTO.getId()
+        );
+        fileSourceTaskId = fileSourceTaskDTO.getId();
+        try {
+            // 分发文件任务
+            HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
+                fileSourceTaskDTO);
+            postHttpReq(req);
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "Fail to dispatch FileSourceTask={}",
+                JsonUtils.toJson(fileSourceTaskDTO)
+            ).getMessage();
+            log.error(msg, e);
+            // 清理DB中的任务数据便于外层重试
+            clearSavedFileSourceTask(fileSourceTaskId);
+            throw new InternalException(
+                e,
+                ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
+                new String[]{e.getMessage()}
+            );
+        }
+        return new TaskInfoDTO(
+            fileSourceTaskId,
+            fileSourceDTO.getAlias(),
+            fileSourceDTO.getPublicFlag(),
+            fileWorkerDTO.getId(),
+            fileWorkerDTO.getAccessHost(),
+            fileWorkerDTO.getCloudAreaId(),
+            fileWorkerDTO.getInnerIpProtocol(),
+            fileWorkerDTO.getInnerIp()
+        );
+    }
+
+    private FileSourceTaskDTO saveFileSourceTask(String username,
+                                                 Long appId,
+                                                 Long stepInstanceId,
+                                                 Integer executeCount,
+                                                 String batchTaskId,
+                                                 Integer fileSourceId,
+                                                 List<String> filePathList,
+                                                 String fileSourceTaskId,
+                                                 Long fileWorkerId) {
         FileSourceTaskDTO fileSourceTaskDTO = new FileSourceTaskDTO();
         fileSourceTaskDTO.setId(fileSourceTaskId);
         fileSourceTaskDTO.setBatchTaskId(batchTaskId);
@@ -139,7 +213,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         fileSourceTaskDTO.setStepInstanceId(stepInstanceId);
         fileSourceTaskDTO.setExecuteCount(executeCount);
         fileSourceTaskDTO.setFileSourceId(fileSourceId);
-        fileSourceTaskDTO.setFileWorkerId(fileWorkerDTO.getId());
+        fileSourceTaskDTO.setFileWorkerId(fileWorkerId);
         fileSourceTaskDTO.setStatus(TaskStatusEnum.INIT.getStatus());
         List<FileTaskDTO> fileTaskDTOList = new ArrayList<>();
         for (String filePath : filePathList) {
@@ -155,38 +229,21 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileTaskDTOList.add(fileTaskDTO);
         }
         fileSourceTaskDTO.setFileTaskList(fileTaskDTOList);
-        try {
-            fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(fileSourceTaskDTO);
-            fileSourceTaskDTO.setId(fileSourceTaskId);
-            // 分发文件任务
-            HttpReq req = fileSourceTaskReqGenService.genDownloadFilesReq(appId, fileWorkerDTO, fileSourceDTO,
-                fileSourceTaskDTO);
-            postHttpReq(req);
-        } catch (Exception e) {
-            String msg = MessageFormatter.format(
-                "Fail to dispatch FileSourceTask={}",
-                JsonUtils.toJson(fileSourceTaskDTO)
-            ).getMessage();
-            log.error(msg, e);
-            // 更新任务状态为启动失败
-            fileSourceTaskDTO.setStatus(TaskStatusEnum.DISPATCH_FAILED.getStatus());
-            int affectedCount = fileSourceTaskDAO.updateFileSourceTask(fileSourceTaskDTO);
-            if (affectedCount != 1) {
-                log.error("Fail to update status of FileSourceTask={}", JsonUtils.toJson(fileSourceTaskDTO));
-            }
-            throw new InternalException(
-                e,
-                ErrorCode.FAIL_TO_REQUEST_FILE_WORKER_START_FILE_SOURCE_DOWNLOAD_TASK,
-                new String[]{e.getMessage()}
-            );
-        }
-        return new TaskInfoDTO(
-            fileSourceTaskId,
-            fileSourceDTO.getAlias(),
-            fileSourceDTO.getPublicFlag(),
-            fileWorkerDTO.getCloudAreaId(),
-            fileWorkerDTO.getInnerIpProtocol(),
-            fileWorkerDTO.getInnerIp()
+        fileSourceTaskId = fileSourceTaskDAO.insertFileSourceTask(fileSourceTaskDTO);
+        fileSourceTaskDTO.setId(fileSourceTaskId);
+        return fileSourceTaskDTO;
+    }
+
+    private void clearSavedFileSourceTask(String fileSourceTaskId) {
+        // 1.删除子任务
+        int deletedTaskNum = fileTaskDAO.deleteFileTaskByFileSourceTaskId(fileSourceTaskId);
+        // 2.删除FileSourceTask任务
+        int deletedFileSourceTaskNum = deleteFileSourceTaskById(fileSourceTaskId);
+        log.info(
+            "{} fileTask {} fileSourceTask deleted, fileSourceTaskId={}",
+            deletedTaskNum,
+            deletedFileSourceTaskNum,
+            fileSourceTaskId
         );
     }
 

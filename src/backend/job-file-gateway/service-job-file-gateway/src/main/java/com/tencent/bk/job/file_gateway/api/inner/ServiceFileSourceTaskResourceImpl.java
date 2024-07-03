@@ -25,16 +25,11 @@
 package com.tencent.bk.job.file_gateway.api.inner;
 
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.file_gateway.model.req.inner.ClearBatchTaskFilesReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceBatchDownloadTaskReq;
-import com.tencent.bk.job.file_gateway.model.req.inner.FileSourceDownloadTaskReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
-import com.tencent.bk.job.file_gateway.model.req.inner.StopTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
-import com.tencent.bk.job.file_gateway.model.resp.inner.FileSourceTaskStatusDTO;
-import com.tencent.bk.job.file_gateway.model.resp.inner.TaskInfoDTO;
 import com.tencent.bk.job.file_gateway.service.BatchTaskService;
 import com.tencent.bk.job.file_gateway.service.FileSourceTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,40 +52,22 @@ public class ServiceFileSourceTaskResourceImpl implements ServiceFileSourceTaskR
     }
 
     @Override
-    public InternalResponse<TaskInfoDTO> startFileSourceDownloadTask(String username, FileSourceDownloadTaskReq req) {
-        return InternalResponse.buildSuccessResp(fileSourceTaskService.startFileSourceDownloadTask(username,
-            req.getAppId(), req.getStepInstanceId(), req.getExecuteCount(), null, req.getFileSourceId(),
-            req.getFilePathList()));
-    }
-
-    @Override
-    public InternalResponse<Integer> stopTasks(StopTaskReq req) {
-        return InternalResponse.buildSuccessResp(fileSourceTaskService.stopTasks(req.getTaskIdList()));
-    }
-
-    @Override
-    public InternalResponse<FileSourceTaskStatusDTO> getFileSourceTaskStatusAndLogs(String taskId, Long logStart,
-                                                                               Long logLength) {
-        if (logStart == null || logStart < 0) {
-            logStart = 0L;
-        }
-        if (logLength == null || logLength <= 0) {
-            logLength = -1L;
-        }
-        return InternalResponse.buildSuccessResp(fileSourceTaskService.getFileSourceTaskStatusAndLogs(taskId,
-            logStart, logLength));
-    }
-
-    @Override
     public InternalResponse<Integer> clearTaskFiles(ClearTaskFilesReq req) {
         return InternalResponse.buildSuccessResp(fileSourceTaskService.clearTaskFiles(req.getTaskIdList()));
     }
 
     @Override
     public InternalResponse<BatchTaskInfoDTO> startFileSourceBatchDownloadTask(String username,
-                                                                          FileSourceBatchDownloadTaskReq req) {
-        return InternalResponse.buildSuccessResp(batchTaskService.startFileSourceBatchDownloadTask(username,
-            req.getAppId(), req.getStepInstanceId(), req.getExecuteCount(), req.getFileSourceTaskList()));
+                                                                               FileSourceBatchDownloadTaskReq req) {
+        return InternalResponse.buildSuccessResp(
+            batchTaskService.startFileSourceBatchDownloadTask(
+                username,
+                req.getAppId(),
+                req.getStepInstanceId(),
+                req.getExecuteCount(),
+                req.getFileSourceTaskList()
+            )
+        );
     }
 
     @Override
@@ -99,20 +76,21 @@ public class ServiceFileSourceTaskResourceImpl implements ServiceFileSourceTaskR
     }
 
     @Override
-    public InternalResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(String batchTaskId, Long logStart,
-                                                                     Long logLength) {
+    public InternalResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(String batchTaskId,
+                                                                          Long logStart,
+                                                                          Long logLength) {
         if (logStart == null || logStart < 0) {
             logStart = 0L;
         }
         if (logLength == null || logLength <= 0) {
             logLength = -1L;
         }
-        return InternalResponse.buildSuccessResp(batchTaskService.getBatchTaskStatusAndLogs(batchTaskId, logStart,
-            logLength));
-    }
-
-    @Override
-    public InternalResponse<Integer> clearBatchTaskFiles(ClearBatchTaskFilesReq req) {
-        return InternalResponse.buildSuccessResp(batchTaskService.clearBatchTaskFiles(req.getBatchTaskIdList()));
+        return InternalResponse.buildSuccessResp(
+            batchTaskService.getBatchTaskStatusAndLogs(
+                batchTaskId,
+                logStart,
+                logLength
+            )
+        );
     }
 }

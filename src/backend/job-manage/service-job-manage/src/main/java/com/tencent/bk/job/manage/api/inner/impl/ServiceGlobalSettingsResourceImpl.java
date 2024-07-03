@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceGlobalSettingsResource;
 import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;

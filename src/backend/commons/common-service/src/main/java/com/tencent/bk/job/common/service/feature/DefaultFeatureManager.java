@@ -36,6 +36,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
 public class DefaultFeatureManager implements FeatureManager {
     /**
@@ -133,5 +135,10 @@ public class DefaultFeatureManager implements FeatureManager {
         meterRegistry.counter(METRIC_JOB_FEATURE_TOGGLE_HIT_TOTAL,
                 Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, resourceScope).and("feature", featureId))
             .increment();
+    }
+
+    @Override
+    public List<Feature> listFeatures() {
+        return featureStore.listFeatures();
     }
 }

@@ -27,7 +27,7 @@ package com.tencent.bk.job.file_gateway.task.filesource;
 import com.tencent.bk.job.file_gateway.consts.FileSourceStatusEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileService;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
