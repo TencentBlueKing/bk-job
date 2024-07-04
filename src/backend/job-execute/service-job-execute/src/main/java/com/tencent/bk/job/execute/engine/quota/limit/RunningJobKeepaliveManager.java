@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.quota.limit;
 
 
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.execute.constants.RedisKeys;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,7 +57,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @EnableScheduling
 public class RunningJobKeepaliveManager {
-    private static final String RUNNING_JOB_ZSET_KEY = "job:execute:running:job";
     private final Object lock = new Object();
     private final RedisTemplate<String, String> redisTemplate;
     private final Map<Long, KeepaliveTask> runningJobKeepaliveTasks = new ConcurrentHashMap<>();
@@ -93,7 +93,7 @@ public class RunningJobKeepaliveManager {
 
     private void updateJobLatestAliveTimestamp(Long jobInstanceId, long currentTimestamp) {
         RedisSerializer<String> stringRedisSerializer = redisTemplate.getStringSerializer();
-        byte[] key = stringRedisSerializer.serialize(RUNNING_JOB_ZSET_KEY);
+        byte[] key = stringRedisSerializer.serialize(RedisKeys.RUNNING_JOB_ZSET_KEY);
         byte[] member = stringRedisSerializer.serialize(String.valueOf(jobInstanceId));
         redisTemplate.execute((RedisCallback<Object>) connection -> {
             connection.zAdd(
