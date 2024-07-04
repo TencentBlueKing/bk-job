@@ -33,8 +33,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisZSetCommands;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,6 +45,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -75,7 +79,7 @@ public class RunningJobKeepaliveManager {
         while (maxWaitingSeconds > 0) {
             try {
                 long timestamp = System.currentTimeMillis();
-                redisTemplate.opsForZSet().add(RUNNING_JOB_ZSET_KEY, String.valueOf(jobInstanceId), timestamp);
+                updateJobLatestAliveTimestamp(jobInstanceId, timestamp);
                 return new KeepaliveTask(jobInstanceId, timestamp);
             } catch (Throwable e) {
                 log.error("Update running job keepalive task error, jobInstanceId: " + jobInstanceId, e);
@@ -85,6 +89,22 @@ public class RunningJobKeepaliveManager {
             }
         }
         return null;
+    }
+
+    private void updateJobLatestAliveTimestamp(Long jobInstanceId, long currentTimestamp) {
+        RedisSerializer<String> stringRedisSerializer = redisTemplate.getStringSerializer();
+        byte[] key = stringRedisSerializer.serialize(RUNNING_JOB_ZSET_KEY);
+        byte[] member = stringRedisSerializer.serialize(String.valueOf(jobInstanceId));
+        redisTemplate.execute((RedisCallback<Object>) connection -> {
+            connection.zAdd(
+                Objects.requireNonNull(key),
+                currentTimestamp,
+                Objects.requireNonNull(member),
+                // 只有 member 存在的时候才会更新，避免写入一些异常的作业数据
+                RedisZSetCommands.ZAddArgs.ifExists()
+            );
+            return null;
+        });
     }
 
     public void stopKeepaliveTask(long jobInstanceId) {
@@ -121,8 +141,7 @@ public class RunningJobKeepaliveManager {
                     try {
                         // 二次确认，防止在运行期间任务被移除
                         if (runningJobKeepaliveTasks.get(jobInstanceId) != null) {
-                            redisTemplate.opsForZSet().add(RUNNING_JOB_ZSET_KEY, String.valueOf(jobInstanceId),
-                                currentTimestamp);
+                            updateJobLatestAliveTimestamp(jobInstanceId, currentTimestamp);
                             keepaliveTask.setTimestamp(currentTimestamp);
                             refreshJobInstanceIds.add(jobInstanceId);
                         }

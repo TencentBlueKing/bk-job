@@ -57,9 +57,9 @@ public class NotAliveJobDetector {
     }
 
     /**
-     * 兜底方案。为了防止系统异常、程序 bug 等原因导致 redis 中的作业记录没有被清理，需要定时清理。每小时触发一次
+     * 兜底方案。为了防止系统异常、程序 bug 等原因导致 redis 中的作业记录没有被清理，需要定时清理。每10min触发一次
      */
-    @Scheduled(cron = "0 0 0/1 * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void detectNotAliveJob() {
         try {
             if (LockUtils.tryGetDistributedLock("job:execute:not:alive:job:detect:lock", requestId, 60000L)) {
