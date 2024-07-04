@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.metrics.CommonMetricValues;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
+import com.tencent.bk.job.execute.constants.RedisKeys;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,6 @@ public class RunningJobResourceQuotaManager {
     private static final String RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY =
         "job:execute:running:job:count:resource_scope";
     private static final String APP_RUNNING_JOB_COUNT_HASH_KEY = "job:execute:running:job:count:app";
-    private static final String RUNNING_JOB_ZSET_KEY = "job:execute:running:job";
 
     private static final List<String> LUA_SCRIPT_KEYS = new ArrayList<>();
 
@@ -82,7 +82,7 @@ public class RunningJobResourceQuotaManager {
     private static final long JOB_EXPIRE_TIME = 3600 * 1000L;
 
     static {
-        LUA_SCRIPT_KEYS.add(RUNNING_JOB_ZSET_KEY);
+        LUA_SCRIPT_KEYS.add(RedisKeys.RUNNING_JOB_ZSET_KEY);
         LUA_SCRIPT_KEYS.add(RESOURCE_SCOPE_RUNNING_JOB_COUNT_HASH_KEY);
         LUA_SCRIPT_KEYS.add(APP_RUNNING_JOB_COUNT_HASH_KEY);
 
@@ -214,7 +214,7 @@ public class RunningJobResourceQuotaManager {
     }
 
     public long getRunningJobTotal() {
-        Long count = redisTemplate.opsForZSet().size(RUNNING_JOB_ZSET_KEY);
+        Long count = redisTemplate.opsForZSet().size(RedisKeys.RUNNING_JOB_ZSET_KEY);
         return count != null ? count : 0L;
     }
 
@@ -252,8 +252,12 @@ public class RunningJobResourceQuotaManager {
         try {
             // 1 小时过期
             long EXPIRE_AT = System.currentTimeMillis() - JOB_EXPIRE_TIME;
-            Set<String> notAliveJobInstanceIds = redisTemplate.opsForZSet().rangeByScore(RUNNING_JOB_ZSET_KEY, -1,
-                EXPIRE_AT);
+            Set<String> notAliveJobInstanceIds = redisTemplate.opsForZSet()
+                .rangeByScore(
+                    RedisKeys.RUNNING_JOB_ZSET_KEY,
+                    -1,
+                    EXPIRE_AT
+                );
             if (CollectionUtils.isEmpty(notAliveJobInstanceIds)) {
                 return Collections.emptySet();
             }

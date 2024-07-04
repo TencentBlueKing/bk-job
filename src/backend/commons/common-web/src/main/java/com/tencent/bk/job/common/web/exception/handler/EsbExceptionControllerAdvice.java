@@ -199,7 +199,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         } else {
             log.info(errorMsg);
         }
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.TOO_MANY_REQUESTS);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.OK);
     }
 
     @Override
