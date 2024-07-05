@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.service.globalsetting;
 
 import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
@@ -74,14 +74,6 @@ public interface GlobalSettingsService {
     Boolean saveFileUploadSettings(String username, FileUploadSettingReq req);
 
     FileUploadSettingVO getFileUploadSettings();
-
-    /**
-     * 全局设置-平台信息-保存
-     *
-     * @param username       用户名
-     * @param platformInfoVO 平台信息
-     */
-    PlatformInfoVO savePlatformInfo(String username, PlatformInfoVO platformInfoVO);
 
     /**
      * 获取渲染之后的平台信息

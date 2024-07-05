@@ -33,6 +33,7 @@ import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -80,16 +81,35 @@ public class ExecuteBackupDbConfiguration {
         }
 
         @ConditionalOnProperty(value = "job.backup.archive.execute.enabled", havingValue = "true")
-        class ArchiveEnableCondition {
+        static class ArchiveEnableCondition {
 
         }
 
-        @ConditionalOnProperty(value = "job.backup.archive.execute.mode",
-            havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
-        class ArchiveModeBackupThenDeleteCondition {
+        @Conditional(JobExecuteBackupCondition.class)
+        static class BackupCondition {
 
+        }
+
+        static class JobExecuteBackupCondition extends AnyNestedCondition {
+            public JobExecuteBackupCondition() {
+                super(ConfigurationPhase.PARSE_CONFIGURATION);
+            }
+
+            @ConditionalOnProperty(value = "job.backup.archive.execute.mode",
+                havingValue = ArchiveModeEnum.Constants.BACKUP_THEN_DELETE)
+            static class ArchiveModeBackupThenDeleteCondition {
+
+            }
+
+            @ConditionalOnProperty(value = "job.backup.archive.execute.mode",
+                havingValue = ArchiveModeEnum.Constants.BACKUP_ONLY)
+            static class ArchiveModeBackupOnlyCondition {
+
+            }
         }
     }
+
+
 
 
 }

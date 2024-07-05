@@ -47,4 +47,10 @@ public class HttpReqGenUtil {
         httpReq.setHeaders(headerList.toArray(headers));
         return httpReq;
     }
+
+    public static HttpReq genUrlGetReq(String url) {
+        HttpReq httpReq = new HttpReq();
+        httpReq.setUrl(url);
+        return httpReq;
+    }
 }

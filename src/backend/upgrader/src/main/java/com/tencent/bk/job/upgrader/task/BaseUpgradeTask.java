@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.jwt.BasicJwtManager;
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.http.BaseHttpHelper;
@@ -36,6 +38,7 @@ import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.upgrader.anotation.UpgradeTask;
+import com.tencent.bk.job.upgrader.client.JobClient;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +81,33 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
         return properties;
     }
 
+    private String getJobHostUrlByAddress(String address) {
+        if (!address.startsWith("http://") && !address.startsWith("https://")) {
+            address = "http://" + address;
+        }
+        return address;
+    }
+
+    public JobClient getJobManageClient() {
+        String securityPublicKeyBase64 =
+            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PUBLIC_KEY_BASE64);
+        String securityPrivateKeyBase64 =
+            (String) getProperties().get(ParamNameConsts.CONFIG_PROPERTY_JOB_SECURITY_PRIVATE_KEY_BASE64);
+        JwtManager jwtManager;
+        try {
+            jwtManager = new BasicJwtManager(securityPrivateKeyBase64, securityPublicKeyBase64);
+        } catch (Exception e) {
+            String msg = "Fail to generate jwt auth token";
+            log.error(msg, e);
+            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
+        }
+        String jobAuthToken = jwtManager.generateToken(60 * 60 * 1000);
+        return new JobClient(
+            getJobHostUrlByAddress((String) getProperties().get(ParamNameConsts.INPUT_PARAM_JOB_MANAGE_SERVER_ADDRESS)),
+            jobAuthToken
+        );
+    }
+
     @Override
     public void init() {
     }
@@ -100,7 +130,7 @@ public abstract class BaseUpgradeTask implements IUpgradeTask {
 
         try {
             String respStr = HTTP_HELPER.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
+                    HttpRequest.builder(HttpMethodEnum.POST, url).setStringEntity(content).setHeaders(headers).build())
                 .getEntity();
             log.info("Post {}, content: {}, response: {}", url, content, respStr);
             if (StringUtils.isBlank(respStr)) {

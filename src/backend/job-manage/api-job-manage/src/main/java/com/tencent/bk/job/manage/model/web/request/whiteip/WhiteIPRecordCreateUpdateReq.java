@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.web.request.whiteip;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.HostIdWithMeta;
+import com.tencent.bk.job.manage.model.web.request.whiteip.validation.CheckWhiteIpScope;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -35,6 +36,7 @@ import java.util.List;
 
 @Data
 @ApiModel("IP白名单记录创建请求")
+@CheckWhiteIpScope
 public class WhiteIPRecordCreateUpdateReq {
 
     /**

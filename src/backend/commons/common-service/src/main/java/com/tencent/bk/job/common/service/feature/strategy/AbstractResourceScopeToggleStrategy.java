@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.service.feature.strategy;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
@@ -121,5 +123,9 @@ public abstract class AbstractResourceScopeToggleStrategy extends AbstractToggle
             checkScope = new ResourceScope(scope.getType(), scope.getId());
         }
         return this.resourceScopes.contains(checkScope);
+    }
+
+    protected boolean checkFeatureExecuteContext(FeatureExecutionContext context) {
+        return checkRequiredContextParam(context, ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
     }
 }

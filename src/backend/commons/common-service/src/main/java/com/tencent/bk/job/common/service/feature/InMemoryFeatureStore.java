@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.service.feature;
 
 import com.tencent.bk.job.common.service.feature.config.FeatureConfig;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.config.FeatureToggleProperties;
 import com.tencent.bk.job.common.service.feature.config.ToggleStrategyConfig;
 import com.tencent.bk.job.common.service.feature.strategy.AllMatchToggleStrategy;
 import com.tencent.bk.job.common.service.feature.strategy.AnyMatchToggleStrategy;
@@ -42,7 +42,9 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -74,33 +76,37 @@ public class InMemoryFeatureStore implements FeatureStore {
     }
 
     @Override
-    public void load(boolean ignoreException) {
+    public boolean load(boolean ignoreException) {
+        boolean loadResult = true;
         try {
             loadInternal();
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
+            loadResult = false;
             if (ignoreException) {
                 log.warn("Ignore feature config load error");
             } else {
                 throw e;
             }
         }
+        return loadResult;
     }
 
     private void loadInternal() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
-            FeatureToggleConfig featureToggleConfig = ApplicationContextRegister.getBean(FeatureToggleConfig.class);
+            FeatureToggleProperties featureToggleProperties =
+                ApplicationContextRegister.getBean(FeatureToggleProperties.class);
 
-            if (featureToggleConfig.getFeatures() == null || featureToggleConfig.getFeatures().isEmpty()) {
+            if (featureToggleProperties.getFeatures() == null || featureToggleProperties.getFeatures().isEmpty()) {
                 log.info("Feature toggle config empty!");
                 return;
             }
 
-            log.info("Parse feature toggle config: {}", JsonUtils.toJson(featureToggleConfig));
+            log.info("Parse feature toggle config: {}", JsonUtils.toJson(featureToggleProperties));
 
             Map<String, Feature> tmpFeatures = new HashMap<>();
-            featureToggleConfig.getFeatures().forEach((featureId, featureConfig) -> {
+            featureToggleProperties.getFeatures().forEach((featureId, featureConfig) -> {
                 Feature feature = parseFeatureConfig(featureId, featureConfig);
                 tmpFeatures.put(featureId, feature);
             });
@@ -180,4 +186,17 @@ public class InMemoryFeatureStore implements FeatureStore {
         }
         return toggleStrategy;
     }
+
+    @Override
+    public List<Feature> listFeatures() {
+        if (!isInitial) {
+            synchronized (this) {
+                if (!isInitial) {
+                    load(true);
+                }
+            }
+        }
+        return new ArrayList<>(features.values());
+    }
+
 }

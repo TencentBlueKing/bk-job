@@ -69,18 +69,17 @@ public interface TaskExecuteService {
     TaskInstanceDTO executeJobPlan(TaskExecuteParam executeParam);
 
     /**
-     * 创建重做作业实例
+     * 重做作业
      *
      * @param appId                 业务 ID
      * @param taskInstanceId        作业实例 ID
      * @param operator              操作者
      * @param executeVariableValues 全局变量
      */
-    TaskInstanceDTO createTaskInstanceForRedo(Long appId,
-                                              Long taskInstanceId,
-                                              String operator,
-                                              List<TaskVariableDTO> executeVariableValues)
-    ;
+    TaskInstanceDTO redoJob(Long appId,
+                            Long taskInstanceId,
+                            String operator,
+                            List<TaskVariableDTO> executeVariableValues);
 
     /**
      * 步骤操作

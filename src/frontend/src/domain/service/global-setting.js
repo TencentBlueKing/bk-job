@@ -79,13 +79,6 @@ export default {
     return GlobalSettingSource.getUserByName(params, payload)
       .then(({ data }) => data);
   },
-  fetchTitleAndFooterConfig(params, payload) {
-    return GlobalSettingSource.getPlatformInfoWithDefault(params, payload)
-      .then(({ data }) => data);
-  },
-  updatePlatformInfo(params = {}) {
-    return GlobalSettingSource.updatePlatformInfo(params);
-  },
   fetchAllNotifyChannelConfig(params, payload) {
     return GlobalSettingSource.getAllNotifyChannelConfig(params, payload)
       .then(({ data }) => data);

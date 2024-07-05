@@ -51,8 +51,48 @@
         [statusMap[data.status]]: true,
         toggle: isContentOpen,
       };
+
+      let bkTooltips = null;
+
+      if (data.srcExecuteObject.container) {
+        const {
+          id,
+          name,
+          nodeHostId,
+          podName,
+          uid,
+        } = data.srcExecuteObject.container || {};
+
+        bkTooltips = {
+          theme: 'light',
+          content: `<table>
+            <tr>
+              <td style="text-align: right; padding-right: 12px;">id: </td>
+              <td>${id}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right; padding-right: 12px;">Container name: </td>
+              <td>${name}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right; padding-right: 12px;">Host id: </td>
+              <td>${nodeHostId}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right; padding-right: 12px;">Pod name: </td>
+              <td>${podName}</td>
+            </tr>
+            <tr>
+              <td style="text-align: right; padding-right: 12px;">uid: </td>
+              <td>${uid}</td>
+            </tr>
+          </table>`,
+          allowHTML: true,
+        };
+      }
       // 异步获取日志的loading状态
       const logContent = renderContentMap[data.taskId] || data.logContent;
+
       if (isContentLoading && !logContent) {
         classes['content-loading'] = true;
       }
@@ -61,29 +101,49 @@
         const process = parseInt(data.progress, 10) / 100;
         return wholeProgress.slice(0, Math.floor(process * wholeProgress.length) || 1);
       };
+
+      const renderServer = () => {
+        if (data.srcExecuteObject.host) {
+          return data.srcExecuteObject.host.ip || data.srcExecuteObject.host.ipv6;
+        }
+        if (data.srcExecuteObject.container) {
+          return data.srcExecuteObject.container.name || '--';
+        }
+        return '--';
+      };
+
       const handleToggle = () => {
         listeners['on-toggle'](data.taskId, !isContentOpen);
       };
+
       return (
-            <div class={classes}>
-                <div class="log-header" onClick={handleToggle}>
-                    <i class="job-icon job-icon-down-small log-toggle" />
-                    <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
-                    <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
-                    <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
-                    <span>{ parent.$t('history.源服务器 IP') }：{ data.srcIp || data.srcIpv6 }</span>
-                    <span>{ parent.$t('history.速率') }：{ data.speed }</span>
-                    <span>{ parent.$t('history.进度') }：{ data.progress }</span>
-                </div>
-                {
-                    isContentOpen && (
-                        <div class="log-body">
-                            <div class="log-content">{ logContent }</div>
-                            <div class="log-process">{ renderProgress() }</div>
-                        </div>
-                    )
-                }
+          <div class={classes}>
+            <div class="log-header" onClick={handleToggle}>
+              <i class="job-icon job-icon-down-small log-toggle" />
+              <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
+              <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
+              <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
+              <span>{ parent.$t('history.文件源') }：
+                <span
+                  v-bk-tooltips={bkTooltips}
+                  style={{
+                    borderBottom: bkTooltips ? '1px dashed #c4c6cc' : '',
+                  }}>
+                  { renderServer() }
+                </span>
+              </span>
+              <span>{ parent.$t('history.速率') }：{ data.speed }</span>
+              <span>{ parent.$t('history.进度') }：{ data.progress }</span>
             </div>
+            {
+              isContentOpen && (
+                <div class="log-body">
+                  <div class="log-content">{ logContent }</div>
+                  <div class="log-process">{ renderProgress() }</div>
+                </div>
+              )
+            }
+          </div>
       );
     },
   };

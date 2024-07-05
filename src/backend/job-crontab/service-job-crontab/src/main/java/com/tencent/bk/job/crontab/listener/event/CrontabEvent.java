@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.listener.event;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.event.Event;
 import com.tencent.bk.job.crontab.constant.CrontabActionEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

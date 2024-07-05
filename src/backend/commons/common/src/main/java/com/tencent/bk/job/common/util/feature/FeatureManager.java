@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.util.feature;
 
+import java.util.List;
+
 /**
  * 特性管理
  */
@@ -44,4 +46,11 @@ public interface FeatureManager {
      * @return 是否开启
      */
     boolean checkFeature(String featureId, FeatureExecutionContext ctx);
+
+    /**
+     * 查询所有特性开关配置
+     *
+     * @return 特性开关配置列表
+     */
+    List<Feature> listFeatures();
 }

@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.common.service.feature;
 
+import com.tencent.bk.job.common.service.feature.config.FeatureToggleProperties;
 import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.common.util.feature.FeatureStore;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({FeatureToggleProperties.class})
 public class FeatureToggleAutoConfiguration {
 
     @Bean

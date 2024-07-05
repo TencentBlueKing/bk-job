@@ -605,4 +605,9 @@ export default {
   '想要再次查阅「版本日志」也可以从此处进入喔～': 'Click here to access all the \'Release notes\', to stay updated on all changes and improvements.',
   '已成功保存到历史缓存！': 'Successful',
   '请注意！脚本输出的内容大小上限为5M，超过可能导致日志被丢弃。': 'The maximum size limit for script output is 5MB, Exceeding the limit may loss the logs.',
+  '暂未开启“容器执行”功能': 'Container execution feature is not yet enabled.',
+  '功能开启后，即可以基于配置平台的业务容器拓扑，对容器管理平台纳管的容器实例进行脚本指令执行和文件分发': 'After the feature is enabled, you can launch script or transfer files on container instances managed by the container management platform(BCS) based on the container topo. of the configuration platform(CC).',
+  '如需使用该功能，须具备以下条件：': 'To use this feature, the following conditions must be met:',
+  '1. 部署容器管理平台（BCS）并开启容器拓扑同步至配置平台（CC）': '1. Deploy the container management platform (BCS) and enable container topology synchronization to the configuration platform (CC).',
+  '2. 联系作业平台管理员打开容器执行功能': '2. Contact the JOB administrator to enable the container execution feature.',
 };

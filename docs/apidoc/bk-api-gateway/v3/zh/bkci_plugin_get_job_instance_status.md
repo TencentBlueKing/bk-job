@@ -73,7 +73,7 @@
                             "resource_id": "101",
                             "host": {
                                 "bk_host_id": 101,
-                                "ip": "10.0.0.1",
+                                "ip": "127.0.0.1",
                                 "bk_cloud_id": 0
                             }
                         },

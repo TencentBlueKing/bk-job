@@ -44,6 +44,10 @@ public class TaskInstanceExecuteObjects {
      * 当前作业实例是否包含主机执行对象
      */
     private boolean containsAnyHost;
+    /**
+     * 当前作业实例是否包含容器执行对象
+     */
+    private boolean containsAnyContainer;
 
     /**
      * 合法的主机（在当前业务下)
@@ -77,5 +81,12 @@ public class TaskInstanceExecuteObjects {
             validContainers = new HashSet<>();
         }
         validContainers.addAll(containers);
+    }
+
+    public void addContainer(Container container) {
+        if (validContainers == null) {
+            validContainers = new HashSet<>();
+        }
+        validContainers.add(container);
     }
 }

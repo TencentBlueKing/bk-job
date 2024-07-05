@@ -29,4 +29,8 @@ public interface ToggleStrategyContextParams {
      * 上下文参数-资源范围
      */
     String CTX_PARAM_RESOURCE_SCOPE = "resourceScope";
+    /**
+     * 上下文参数-用户账号
+     */
+    String CTX_PARAM_USERNAME = "username";
 }
