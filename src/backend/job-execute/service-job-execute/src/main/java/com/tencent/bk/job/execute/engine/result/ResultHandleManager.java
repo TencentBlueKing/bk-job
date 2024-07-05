@@ -28,6 +28,7 @@ import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRep
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
@@ -115,7 +116,7 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 新增消费者线程最小间隔时间
      */
-    private volatile long startConsumerMinInterval = 10000;
+    private final long startConsumerMinInterval = 10000;
     /**
      * 最近一次worker停止时间
      */
@@ -123,7 +124,7 @@ public class ResultHandleManager implements SmartLifecycle {
     /**
      * 停止消费者线程最小间隔时间
      */
-    private volatile long stopConsumerMinInterval = 60000;
+    private final long stopConsumerMinInterval = 60000;
     /**
      * 任务结果处理引擎是否活动状态
      */
@@ -134,18 +135,23 @@ public class ResultHandleManager implements SmartLifecycle {
     private volatile boolean running = false;
     private final ExecutorService shutdownExecutor;
 
+    private final RunningJobKeepaliveManager runningJobKeepaliveManager;
+
     @Autowired
-    public ResultHandleManager(Tracer tracer, ExecuteMonitor counters,
+    public ResultHandleManager(Tracer tracer,
+                               ExecuteMonitor counters,
                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
                                ResultHandleTaskSampler resultHandleTaskSampler,
                                JobExecuteConfig jobExecuteConfig,
-                               @Qualifier("shutdownExecutor") ExecutorService shutdownExecutor) {
+                               @Qualifier("shutdownExecutor") ExecutorService shutdownExecutor,
+                               RunningJobKeepaliveManager runningJobKeepaliveManager) {
         this.tracer = tracer;
         this.counters = counters;
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleTaskSampler = resultHandleTaskSampler;
         this.resultHandleLimiter = new ResultHandleLimiter(jobExecuteConfig.getResultHandleTasksLimit());
         this.shutdownExecutor = shutdownExecutor;
+        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
     }
 
     /**
@@ -157,8 +163,16 @@ public class ResultHandleManager implements SmartLifecycle {
         resultHandleLimiter.acquire();
         log.info("Handle delivered task: {}", task);
         ScheduledContinuousResultHandleTask scheduleTask =
-            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
-                resultHandleTaskKeepaliveManager, resultHandleLimiter, JobExecuteContextThreadLocalRepo.get());
+            new ScheduledContinuousResultHandleTask(
+                resultHandleTaskSampler,
+                tracer,
+                task,
+                this,
+                resultHandleTaskKeepaliveManager,
+                resultHandleLimiter,
+                runningJobKeepaliveManager,
+                JobExecuteContextThreadLocalRepo.get()
+            );
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.warn("ResultHandleManager is not active, reject! task: {}", task);
@@ -170,6 +184,7 @@ public class ResultHandleManager implements SmartLifecycle {
         if (task instanceof AbstractResultHandleTask) {
             resultHandleTaskKeepaliveManager.addRunningTaskKeepaliveInfo(task.getTaskId());
         }
+        runningJobKeepaliveManager.addKeepaliveTask(task.getTaskContext().getJobInstanceId());
         this.tasksQueue.add(scheduleTask);
         if (task instanceof ScriptResultHandleTask) {
             ScriptResultHandleTask scriptResultHandleTask = (ScriptResultHandleTask) task;

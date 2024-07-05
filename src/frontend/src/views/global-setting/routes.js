@@ -32,7 +32,6 @@ export default {
   name: 'globalSetting',
   component: Entry,
   meta: {
-    title: I18n.t('全局设置'),
     group: 'manage',
   },
   redirect: {

@@ -49,7 +49,7 @@
             <td>{{ item.name }}</td>
             <td>{{ item.typeText }}</td>
             <td class="variable-value">
-              {{ item.value }}
+              <span> {{ item.value }}</span>
             </td>
           </tr>
         </tbody>
@@ -69,12 +69,6 @@
         type: Number,
         required: true,
       },
-      ip: {
-        type: String,
-      },
-      host: {
-        type: Object,
-      },
     },
     data() {
       return {
@@ -85,7 +79,6 @@
     watch: {
       name: {
         handler() {
-          this.isLoading = true;
           this.fetchStepVariables();
         },
         immediate: true,
@@ -94,14 +87,9 @@
     methods: {
       // 步骤使用的变量
       fetchStepVariables() {
-        if (!this.ip) {
-          this.isLoading = false;
-          return;
-        }
+        this.isLoading = true;
         TaskExecuteService.fetchStepVariables({
           stepInstanceId: this.stepInstanceId,
-          hostId: this.host.hostId,
-          ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
         }).then((data) => {
           this.variableList = Object.freeze(data);
         })

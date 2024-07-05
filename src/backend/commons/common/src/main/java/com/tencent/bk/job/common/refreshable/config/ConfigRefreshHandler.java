@@ -22,23 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
-
-
-import java.util.List;
+package com.tencent.bk.job.common.refreshable.config;
 
 /**
- * 文件Worker重调度服务
+ * 配置刷新处理
  */
-public interface ReDispatchService {
-
-    List<String> reDispatchByWorker(
-        String accessHost, Integer accessPort,
-        List<String> taskIdList, Long initDelayMills, Long intervalMills
-    );
-
-    boolean reDispatchByGateway(String fileSourceTaskId, Long initDelayMills, Long intervalMills);
-
-    Integer getReDispatchThreadsNum(String username);
-
+public interface ConfigRefreshHandler {
+    /**
+     * 处理配置动态刷新
+     *
+     * @return 是否成功处理
+     */
+    boolean handleConfigChange();
 }

@@ -35,6 +35,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -44,6 +45,7 @@ import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,19 +69,23 @@ public class JobListener extends BaseJobMqListener {
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
 
+    private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
+
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                        StatisticsService statisticsService,
                        TaskInstanceService taskInstanceService,
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
-                       NotifyService notifyService) {
+                       NotifyService notifyService,
+                       RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
+        this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
     }
 
 
@@ -94,8 +100,9 @@ public class JobListener extends BaseJobMqListener {
         log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
+        TaskInstanceDTO taskInstance;
         try {
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
+            taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
             switch (action) {
                 case START:
                     startJob(taskInstance);
@@ -240,27 +247,36 @@ public class JobListener extends BaseJobMqListener {
                            StepInstanceBaseDTO stepInstance,
                            RunStatusEnum jobStatus) {
         long jobInstanceId = taskInstance.getId();
-        long stepInstanceId = stepInstance.getId();
-        Long endTime = DateUtils.currentTimeMillis();
-        long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
-            taskInstance.getTotalTime());
-        taskInstance.setEndTime(endTime);
-        taskInstance.setTotalTime(totalTime);
-        taskInstance.setStatus(jobStatus);
-        taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
+        try {
+            Long endTime = DateUtils.currentTimeMillis();
+            long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
+                taskInstance.getTotalTime());
+            taskInstance.setEndTime(endTime);
+            taskInstance.setTotalTime(totalTime);
+            taskInstance.setStatus(jobStatus);
+            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
-        // 作业执行结果消息通知
-        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
-            notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
-        } else {
-            notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            // 作业执行结果消息通知
+            if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+                notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
+            } else {
+                notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            }
+
+            // 触发作业结束统计分析
+            statisticsService.updateEndJobStatistics(taskInstance);
+
+            // 作业执行完成回调
+            callback(taskInstance);
+        } finally {
+            // 从资源配额中删除该作业实例
+            runningJobResourceQuotaManager.removeJob(
+                taskInstance.getAppCode(),
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+                jobInstanceId
+            );
         }
 
-        // 触发作业结束统计分析
-        statisticsService.updateEndJobStatistics(taskInstance);
-
-        // 作业执行完成回调
-        callback(taskInstance, jobInstanceId, jobStatus.getValue(), stepInstanceId, stepInstance.getStatus());
     }
 
     /**
@@ -330,19 +346,22 @@ public class JobListener extends BaseJobMqListener {
         }
     }
 
-    private void callback(TaskInstanceDTO taskInstance, long jobInstanceId, int taskStatus, long currentStepId,
-                          RunStatusEnum stepStatus) {
+    private void callback(TaskInstanceDTO taskInstance) {
         if (StringUtils.isNotBlank(taskInstance.getCallbackUrl())) {
             JobCallbackDTO callback = new JobCallbackDTO();
-            callback.setId(jobInstanceId);
-            callback.setStatus(taskStatus);
+            callback.setId(taskInstance.getId());
+            callback.setStatus(taskInstance.getStatus().getValue());
             callback.setCallbackUrl(taskInstance.getCallbackUrl());
-            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceList = Lists.newArrayList();
-            JobCallbackDTO.StepInstanceStatus stepInstance = new JobCallbackDTO.StepInstanceStatus();
-            stepInstance.setId(currentStepId);
-            stepInstance.setStatus(stepStatus.getValue());
-            stepInstanceList.add(stepInstance);
-            callback.setStepInstances(stepInstanceList);
+            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceStatusList = Lists.newArrayList();
+            List<StepInstanceBaseDTO> stepInstanceList =
+                stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstance.getId());
+            stepInstanceList.forEach(stepInstance -> {
+                JobCallbackDTO.StepInstanceStatus stepInstanceStatus = new JobCallbackDTO.StepInstanceStatus();
+                stepInstanceStatus.setId(stepInstance.getId());
+                stepInstanceStatus.setStatus(stepInstance.getStatus().getValue());
+                stepInstanceStatusList.add(stepInstanceStatus);
+            });
+            callback.setStepInstances(stepInstanceStatusList);
             taskExecuteMQEventDispatcher.dispatchCallbackMsg(callback);
         }
     }

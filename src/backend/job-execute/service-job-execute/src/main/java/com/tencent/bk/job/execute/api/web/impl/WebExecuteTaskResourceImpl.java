@@ -166,7 +166,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
 
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
-        TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appResourceScope.getAppId(),
+        TaskInstanceDTO taskInstanceDTO = taskExecuteService.redoJob(appResourceScope.getAppId(),
             request.getTaskInstanceId(), username, executeVariableValues);
 
         TaskExecuteVO result = new TaskExecuteVO();

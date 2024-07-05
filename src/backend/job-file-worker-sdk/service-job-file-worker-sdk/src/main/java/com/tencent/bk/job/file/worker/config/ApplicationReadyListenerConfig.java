@@ -24,17 +24,12 @@
 
 package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
+import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @Description
- * @Date 2020/2/24
- * @Version 1.0
- */
 
 @Slf4j
 @Configuration
@@ -42,9 +37,9 @@ public class ApplicationReadyListenerConfig {
 
     @Bean
     public ApplicationReadyListener applicationReadyListener(@Autowired WorkerConfig workerConfig,
-                                                             @Autowired HeartBeatTask heartBeatTask) {
+                                                             @Autowired WorkerEventService workerEventService) {
         log.info("applicationReadyListener inited");
-        return new ApplicationReadyListener(workerConfig, heartBeatTask);
+        return new ApplicationReadyListener(workerConfig, workerEventService);
     }
 
 }

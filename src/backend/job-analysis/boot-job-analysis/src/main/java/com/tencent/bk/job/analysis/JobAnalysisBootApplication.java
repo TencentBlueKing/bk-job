@@ -25,11 +25,9 @@
 package com.tencent.bk.job.analysis;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -46,7 +44,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     }
 )
 @EnableScheduling
-@EnableConfigurationProperties({FeatureToggleConfig.class})
 public class JobAnalysisBootApplication {
 
     public static void main(String[] args) {

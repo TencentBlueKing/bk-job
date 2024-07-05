@@ -22,27 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.listener.event;
+package com.tencent.bk.job.common.resource.quota;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import lombok.Data;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringJoiner;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class Event {
+/**
+ * 配额限制-资源管理空间
+ */
+@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@NoArgsConstructor
+public class ResourceScopeQuotaLimit extends QuotaLimit {
+
     /**
-     * 事件发生时间
+     * 解析之后的自定义业务配额限制
      */
-    protected LocalDateTime time;
+    private Map<String, Long> customLimits = new HashMap<>();
 
-    public long duration() {
-        if (time != null) {
-            return DateUtils.calculateMillsBetweenDateTime(time, LocalDateTime.now());
-        } else {
-            return 0;
+    public ResourceScopeQuotaLimit(String globalLimitExpr, String customLimitExpr) {
+        super(globalLimitExpr, customLimitExpr);
+    }
+
+    public long getLimit(ResourceScope resourceScope) {
+        String resourceScopeUniqueId = resourceScope.toResourceScopeUniqueId();
+        Long limit = customLimits.get(resourceScopeUniqueId);
+        if (limit == null) {
+            limit = getGlobalLimit();
         }
+        return limit;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeQuotaLimit.class.getSimpleName() + "[", "]")
+            .add("globalLimitExpr='" + globalLimitExpr + "'")
+            .add("globalLimit=" + globalLimit)
+            .add("customLimits=" + customLimits)
+            .add("customLimitExpr='" + customLimitExpr + "'")
+            .toString();
     }
 }

@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.engine.prepare.JobTaskContext;
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.result.TaskContext;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
@@ -89,7 +90,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
      */
     private final Object stopMonitor = new Object();
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
-    volatile AtomicBoolean isReadyForNextStepWrapper = new AtomicBoolean(false);
     private ServiceFileSourceTaskResource fileSourceTaskResource;
     private AccountService accountService;
     private FileWorkerHostService fileWorkerHostService;
@@ -106,6 +106,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
      */
     private volatile boolean isStopped = false;
 
+    private final TaskContext taskContext;
+
     public ThirdFilePrepareTask(
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
@@ -117,7 +119,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         this.batchTaskId = batchTaskId;
         this.isForRetry = isForRetry;
         this.resultHandler = resultHandler;
-
+        this.taskContext = new TaskContext(stepInstance.getTaskInstanceId());
     }
 
     public void initDependentService(
@@ -141,10 +143,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     @Override
     public boolean isFinished() {
         return this.isDoneWrapper.get();
-    }
-
-    public boolean isReadyForNext() {
-        return this.isReadyForNextStepWrapper.get();
     }
 
     @Override
@@ -223,6 +221,12 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             }
             // 任务结束了，且日志拉取完毕才算结束
             isDone = batchTaskStatusDTO.isDone() && allLogDone;
+            log.info(
+                "[{}]: batchTaskDone={}, allLogDone={}",
+                stepInstance.getUniqueKey(),
+                batchTaskStatusDTO.isDone(),
+                allLogDone
+            );
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
                 "[{}][{}]:Exception occurred when getFileSourceTaskStatus, tried {} times",
@@ -245,7 +249,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         if (isDone) {
             isDoneWrapper.set(true);
             handleFileSourceTaskResult(stepInstance, batchTaskStatusDTO);
-            isReadyForNextStepWrapper.set(true);
         }
         return batchTaskStatusDTO;
     }
@@ -255,13 +258,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         BatchTaskStatusDTO batchTaskStatusDTO
     ) {
         // 更新文件源拉取任务耗时数据
-        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogDAO.getFileSourceTaskLogByBatchTaskId(
-            stepInstance.getTaskInstanceId(), batchTaskId);
-        if (fileSourceTaskLogDTO != null) {
-            Long endTime = System.currentTimeMillis();
-            fileSourceTaskLogDAO.updateTimeConsumingByBatchTaskId(stepInstance.getTaskInstanceId(), batchTaskId,
-                null, endTime, endTime - fileSourceTaskLogDTO.getStartTime());
-        }
+        updateBatchTaskTimeStatistics();
         List<FileSourceTaskStatusDTO> taskStatusList = batchTaskStatusDTO.getFileSourceTaskStatusInfoList();
         if (taskStatusList.isEmpty()) {
             // 直接成功
@@ -278,12 +275,33 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         boolean allSuccess = statePair.getLeft();
         boolean stopped = statePair.getRight();
         if (allSuccess) {
+            log.info(
+                "[{}]: batchTaskId={}, fileSourceTaskStatus all success",
+                stepInstance.getUniqueKey(),
+                batchTaskId
+            );
             onSuccess(stepInstance, taskStatusList);
         } else if (stopped) {
             resultHandler.onStopped(this);
         } else {
             resultHandler.onFailed(this);
         }
+    }
+
+    private void updateBatchTaskTimeStatistics() {
+        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogDAO.getFileSourceTaskLogByBatchTaskId(
+            stepInstance.getTaskInstanceId(), batchTaskId);
+        if (fileSourceTaskLogDTO == null) {
+            return;
+        }
+        Long endTime = System.currentTimeMillis();
+        fileSourceTaskLogDAO.updateTimeConsumingByBatchTaskId(
+            stepInstance.getTaskInstanceId(),
+            batchTaskId,
+            null,
+            endTime,
+            endTime - fileSourceTaskLogDTO.getStartTime()
+        );
     }
 
     private Pair<Boolean, Boolean> checkSuccessAndStopState(List<FileSourceTaskStatusDTO> fileSourceTaskStatusList) {
@@ -319,79 +337,100 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
         boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
+        int updatedNum = 0;
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();
-            if (StringUtils.isNotBlank(fileSourceTaskId)) {
-                FileSourceTaskStatusDTO fileSourceTaskStatusDTO = map.get(fileSourceTaskId);
-                fileSourceDTO.setAccount("root");
-                AccountDTO accountDTO = accountService.getAccountByAccountName(stepInstance.getAppId(), "root");
-                if (accountDTO == null) {
-                    //业务无root账号，报错提示
-                    log.error(
-                        "[{}]: No root account in appId={}, plz config one",
-                        stepInstance.getUniqueKey(),
-                        stepInstance.getAppId()
-                    );
-                    stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
-                        stepInstance.getId(), RunStatusEnum.FAIL.getValue());
-                    taskExecuteMQEventDispatcher.dispatchJobEvent(
-                        JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                            EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
-                    return;
-                }
-                fileSourceDTO.setAccountId(accountDTO.getId());
-                fileSourceDTO.setLocalUpload(false);
-
-                ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-                HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
-                    fileSourceTaskStatusDTO.getCloudId(),
-                    fileSourceTaskStatusDTO.getIpProtocol(),
-                    fileSourceTaskStatusDTO.getIp()
-                );
-                if (hostDTO == null) {
-                    log.error(
-                        "[{}]: Cannot find file-worker host info by IP{} (cloudAreaId={}, ip={}), " +
-                            "plz check whether file-worker gse agent is installed",
-                        stepInstance.getUniqueKey(),
-                        fileSourceTaskStatusDTO.getIpProtocol(),
-                        fileSourceTaskStatusDTO.getCloudId(),
-                        fileSourceTaskStatusDTO.getIp()
-                    );
-                    throw new InternalException(ErrorCode.FILE_WORKER_NOT_FOUND);
-                }
-
-                HostDTO sourceHost = hostDTO.clone();
-                if (isGseV2Task) {
-                    if (StringUtils.isBlank(sourceHost.getAgentId())) {
-                        log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
-                        throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
-                    }
-                } else {
-                    sourceHost.setAgentId(sourceHost.toCloudIp());
-                }
-                List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
-                executeTargetDTO.addStaticHosts(hostDTOList);
-                executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
-                fileSourceDTO.setServers(executeTargetDTO);
-                Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
-                log.debug(
-                    "[{}]: filePathMap={}",
-                    stepInstance.getUniqueKey(),
-                    filePathMap
-                );
-                List<FileDetailDTO> files = fileSourceDTO.getFiles();
-                // 设置downloadPath进行后续GSE分发
-                for (FileDetailDTO file : files) {
-                    String downloadPath = filePathMap.get(file.getThirdFilePath());
-                    file.setFilePath(downloadPath);
-                    file.setResolvedFilePath(downloadPath);
-                }
+            if (StringUtils.isBlank(fileSourceTaskId)) {
+                continue;
             }
+            updateServerInfoForFileSource(map, fileSourceTaskId, fileSourceDTO, isGseV2Task);
+            updatedNum += 1;
+        }
+        if (updatedNum > 0) {
+            log.info("[{}]: {} serverInfo updated", stepInstance.getUniqueKey(), updatedNum);
+        } else {
+            log.warn("[{}]: no serverInfo updated", stepInstance.getUniqueKey());
         }
         //更新StepInstance
         stepInstanceService.updateResolvedSourceFile(
             stepInstance.getTaskInstanceId(), stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
+    }
+
+    private void updateServerInfoForFileSource(Map<String, FileSourceTaskStatusDTO> map,
+                                               String fileSourceTaskId,
+                                               FileSourceDTO fileSourceDTO,
+                                               boolean isGseV2Task) {
+        FileSourceTaskStatusDTO fileSourceTaskStatusDTO = map.get(fileSourceTaskId);
+        fileSourceDTO.setAccount("root");
+        AccountDTO accountDTO = accountService.getAccountByAccountName(stepInstance.getAppId(), "root");
+        if (accountDTO == null) {
+            //业务无root账号，报错提示
+            log.error(
+                "[{}]: No root account in appId={}, plz config one",
+                stepInstance.getUniqueKey(),
+                stepInstance.getAppId()
+            );
+            stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(), stepInstance.getId(),
+                RunStatusEnum.FAIL.getValue());
+            taskExecuteMQEventDispatcher.dispatchJobEvent(
+                JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
+                    EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
+            return;
+        }
+        fileSourceDTO.setAccountId(accountDTO.getId());
+        fileSourceDTO.setLocalUpload(false);
+
+        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
+        HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
+            fileSourceTaskStatusDTO.getCloudId(),
+            fileSourceTaskStatusDTO.getIpProtocol(),
+            fileSourceTaskStatusDTO.getIp()
+        );
+        if (hostDTO == null) {
+            log.error(
+                "[{}]: Cannot find file-worker host info by IP{} (cloudAreaId={}, ip={}), " +
+                    "plz check whether file-worker gse agent is installed",
+                stepInstance.getUniqueKey(),
+                fileSourceTaskStatusDTO.getIpProtocol(),
+                fileSourceTaskStatusDTO.getCloudId(),
+                fileSourceTaskStatusDTO.getIp()
+            );
+            throw new InternalException(ErrorCode.FILE_WORKER_NOT_FOUND);
+        }
+
+        HostDTO sourceHost = hostDTO.clone();
+        if (isGseV2Task) {
+            if (StringUtils.isBlank(sourceHost.getAgentId())) {
+                log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
+                throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+            }
+        } else {
+            sourceHost.setAgentId(sourceHost.toCloudIp());
+        }
+        log.info(
+            "[{}]: fileSourceTaskId={} success, sourceHost={}",
+            stepInstance.getUniqueKey(),
+            fileSourceTaskId,
+            sourceHost
+        );
+        List<HostDTO> hostDTOList = Collections.singletonList(sourceHost);
+        executeTargetDTO.addStaticHosts(hostDTOList);
+        executeTargetDTO.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
+        fileSourceDTO.setServers(executeTargetDTO);
+        Map<String, String> filePathMap = fileSourceTaskStatusDTO.getFilePathMap();
+        log.debug(
+            "[{}]: filePathMap={}",
+            stepInstance.getUniqueKey(),
+            filePathMap
+        );
+        List<FileDetailDTO> files = fileSourceDTO.getFiles();
+        // 设置downloadPath进行后续GSE分发
+        for (FileDetailDTO file : files) {
+            String downloadPath = filePathMap.get(file.getThirdFilePath());
+            file.setFilePath(downloadPath);
+            file.setResolvedFilePath(downloadPath);
+        }
     }
 
 
@@ -484,6 +523,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     @Override
     public String getTaskId() {
         return "file_source_batch_task:" + this.stepInstance.getId() + ":" + this.stepInstance.getExecuteCount();
+    }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return taskContext;
     }
 
     @Override

@@ -22,22 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.Map;
 
 /**
- * 调度策略服务：根据文件源信息寻找一个Job插件进行访问
- * 调度依据：能力标签（文件源类型、区域等）、负载
+ * 正在执行中的作业配额使用情况
  */
-public interface DispatchService {
+@ApiModel("正在执行中的作业配额使用情况")
+@Data
+public class RunningJobQuotaUsage {
     /**
-     * 根据文件源找到一个最适合的FileWorker
-     *
-     * @param fileSourceDTO 文件源对象
-     * @param requestSource 请求来源
-     * @return 选中的对接文件源的FileWorker对象
+     * 作业总量
      */
-    FileWorkerDTO findBestFileWorker(FileSourceDTO fileSourceDTO, String requestSource);
+    @ApiModelProperty("作业总量")
+    private Long total;
+    /**
+     * 按应用维度统计的作业数量
+     */
+    @ApiModelProperty("按应用维度统计的作业数量")
+    private Map<String, Long> appCount;
+    /**
+     * 按资源管理空间统计的作业数量
+     */
+    @ApiModelProperty("按资源管理空间统计的作业数量")
+    private Map<String, Long> resourceScopeCount;
 }

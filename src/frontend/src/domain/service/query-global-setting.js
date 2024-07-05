@@ -68,20 +68,6 @@ export default {
     return QueryGlobalSettingSource.getCMDBUrl()
       .then(({ data }) => data);
   },
-  fetchFooterConfig() {
-    return QueryGlobalSettingSource.getPlatformInfo()
-      .then(({ data }) => {
-        const { footerLink, footerCopyRight } = data;
-        return {
-          footerLink,
-          footerCopyRight,
-        };
-      });
-  },
-  fetchPlatformInfo() {
-    return QueryGlobalSettingSource.getPlatformInfo()
-      .then(({ data }) => data);
-  },
   fetchRelatedSystemUrls() {
     return QueryGlobalSettingSource.getRelatedSystemUrls()
       .then(({ data }) => ({

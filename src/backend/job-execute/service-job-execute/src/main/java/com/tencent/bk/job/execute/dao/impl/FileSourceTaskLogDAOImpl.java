@@ -39,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Repository
 public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     private static final FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
@@ -79,9 +82,9 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    public void insertOrUpdateFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
+    public int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        defaultContext.insertInto(
+        return defaultContext.insertInto(
             t,
             t.TASK_INSTANCE_ID,
             t.STEP_INSTANCE_ID,
@@ -100,12 +103,22 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
             fileSourceTaskLog.getTotalTime(),
             JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()),
             fileSourceTaskLog.getFileSourceBatchTaskId()
-        ).onDuplicateKeyUpdate()
-            .set(t.START_TIME, fileSourceTaskLog.getStartTime())
-            .set(t.END_TIME, fileSourceTaskLog.getEndTime())
-            .set(t.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
-            .set(t.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()))
-            .set(t.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
+        ).execute();
+    }
+
+    @Override
+    public int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog) {
+        List<Condition> conditionList = new ArrayList<>();
+        conditionList.add(defaultTable.STEP_INSTANCE_ID.eq(fileSourceTaskLog.getStepInstanceId()));
+        conditionList.add(defaultTable.EXECUTE_COUNT.eq(fileSourceTaskLog.getExecuteCount()));
+        return defaultContext.update(defaultTable)
+            .set(defaultTable.START_TIME, fileSourceTaskLog.getStartTime())
+            .set(defaultTable.END_TIME, fileSourceTaskLog.getEndTime())
+            .set(defaultTable.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
+            .set(defaultTable.STATUS, JooqDataTypeUtil.toByte(fileSourceTaskLog.getStatus()))
+            .set(defaultTable.FILE_SOURCE_BATCH_TASK_ID, fileSourceTaskLog.getFileSourceBatchTaskId())
+            .where(conditionList)
+            .limit(1)
             .execute();
     }
 

@@ -43,4 +43,6 @@ public interface Task {
     default String getTaskType() {
         return "default";
     }
+
+    TaskContext getTaskContext();
 }
