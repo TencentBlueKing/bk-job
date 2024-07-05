@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -38,6 +38,7 @@ import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -47,10 +48,7 @@ import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
@@ -59,7 +57,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
 import java.util.Collection;
@@ -83,7 +80,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
-
+    protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
     /**
      * 任务下发请求ID,防止重复下发任务
      */
@@ -110,50 +107,35 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected List<ExecuteObjectTask> executeObjectTasks;
 
 
-    AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                TaskInstanceService taskInstanceService,
-                                GseTaskService gseTaskService,
+    AbstractGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                 ExecuteObjectTaskService executeObjectTaskService,
-                                AccountService accountService,
-                                TaskInstanceVariableService taskInstanceVariableService,
-                                StepInstanceVariableValueService stepInstanceVariableValueService,
-                                AgentService agentService,
-                                LogService logService,
-                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
-                                TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                GseTasksExceptionCounter gseTasksExceptionCounter,
-                                Tracer tracer,
-                                GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
-                                GseTaskDTO gseTask,
-                                StepInstanceService stepInstanceService) {
-        super(agentService,
-            accountService,
-            gseTaskService,
+                                GseTaskDTO gseTask) {
+        super(
+            engineDependentServiceHolder,
             executeObjectTaskService,
-            tracer,
-            gseClient,
             taskInstance,
             stepInstance,
-            gseTask);
-        this.resultHandleManager = resultHandleManager;
-        this.taskInstanceService = taskInstanceService;
-        this.taskInstanceVariableService = taskInstanceVariableService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.logService = logService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.executeMonitor = executeMonitor;
+            gseTask
+        );
+
+        this.taskInstanceVariableService = engineDependentServiceHolder.getTaskInstanceVariableService();
+        this.stepInstanceVariableValueService = engineDependentServiceHolder.getStepInstanceVariableValueService();
+        this.logService = engineDependentServiceHolder.getLogService();
+        this.taskExecuteMQEventDispatcher = engineDependentServiceHolder.getTaskExecuteMQEventDispatcher();
+        this.resultHandleTaskKeepaliveManager = engineDependentServiceHolder.getResultHandleTaskKeepaliveManager();
+        this.executeMonitor = engineDependentServiceHolder.getExecuteMonitor();
+        this.taskEvictPolicyExecutor = engineDependentServiceHolder.getTaskEvictPolicyExecutor();
+        this.gseTasksExceptionCounter = engineDependentServiceHolder.getGseTasksExceptionCounter();
+        this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+        this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
+        this.resultHandleManager = engineDependentServiceHolder.getResultHandleManager();
+        this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
         this.jobExecuteConfig = jobExecuteConfig;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.gseTasksExceptionCounter = gseTasksExceptionCounter;
         this.requestId = requestId;
-        this.stepInstanceService = stepInstanceService;
     }
 
 

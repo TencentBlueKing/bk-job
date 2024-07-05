@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
@@ -70,20 +71,26 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
      */
     private final Span parent;
 
+    private final RunningJobKeepaliveManager runningJobKeepaliveManager;
+
     /**
      * ScheduledContinuousQueuedTask Constructor
      *
-     * @param sampler             采样器
-     * @param tracer              日志调用链
-     * @param task                任务
-     * @param resultHandleManager resultHandleManager
-     * @param resultHandleLimiter 限流
+     * @param sampler                          采样器
+     * @param tracer                           日志调用链
+     * @param task                             任务
+     * @param resultHandleManager              resultHandleManager
+     * @param resultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager
+     * @param resultHandleLimiter              限流
+     * @param runningJobKeepaliveManager       runningJobKeepaliveManager
      */
     public ScheduledContinuousResultHandleTask(ResultHandleTaskSampler sampler,
-                                               Tracer tracer, ContinuousScheduledTask task,
+                                               Tracer tracer,
+                                               ContinuousScheduledTask task,
                                                ResultHandleManager resultHandleManager,
                                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                               ResultHandleLimiter resultHandleLimiter) {
+                                               ResultHandleLimiter resultHandleLimiter,
+                                               RunningJobKeepaliveManager runningJobKeepaliveManager) {
         this.sampler = sampler;
         this.tracer = tracer;
         this.parent = tracer.currentSpan();
@@ -93,6 +100,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         this.tasksQueue = resultHandleManager.getTasksQueue();
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleLimiter = resultHandleLimiter;
+        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
     }
 
     private Span getChildSpan() {
@@ -157,12 +165,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
                     resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(fileTask.getTaskId());
                     sampler.decrementFileTask(fileTask.getAppId());
                 }
+                runningJobKeepaliveManager.stopKeepaliveTask(task.getTaskContext().getJobInstanceId());
                 resultHandleManager.getScheduledTasks().remove(task.getTaskId());
             }
             if (isExecutable) {
                 long end = System.nanoTime();
                 sampler.getMeterRegistry().timer(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX,
-                    "task_type", task.getTaskType(), "status", status)
+                        "task_type", task.getTaskType(), "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
             if (!isReScheduled) {

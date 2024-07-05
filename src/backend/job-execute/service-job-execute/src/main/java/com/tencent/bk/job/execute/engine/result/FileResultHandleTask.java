@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GSECode;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResult;
@@ -43,9 +42,8 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.FileGseTaskResult;
@@ -54,7 +52,6 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -62,12 +59,6 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
@@ -165,17 +156,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     protected boolean hasInvalidSourceExecuteObject;
 
 
-    public FileResultHandleTask(TaskInstanceService taskInstanceService,
-                                GseTaskService gseTaskService,
-                                LogService logService,
-                                TaskInstanceVariableService taskInstanceVariableService,
-                                StepInstanceVariableValueService stepInstanceVariableValueService,
-                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+    public FileResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                StepInstanceService stepInstanceService,
-                                GseClient gseClient,
                                 JobExecuteConfig jobExecuteConfig,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
@@ -186,17 +168,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 Map<JobFile, FileDest> srcDestFileMap,
                                 String requestId,
                                 List<ExecuteObjectTask> executeObjectTasks) {
-        super(taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
+        super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            stepInstanceService,
-            gseClient,
             jobExecuteConfig,
             taskInstance,
             stepInstance,

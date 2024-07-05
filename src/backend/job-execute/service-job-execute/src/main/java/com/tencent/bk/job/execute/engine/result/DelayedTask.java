@@ -117,4 +117,9 @@ public class DelayedTask implements Delayed, Task {
     public String getTaskId() {
         return this.task.getTaskId();
     }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return task.getTaskContext();
+    }
 }

@@ -49,4 +49,9 @@ public class CommonMetricTags {
      * Job 资源管理空间
      */
     public static final String KEY_RESOURCE_SCOPE = "resource_scope";
+
+    /**
+     * 蓝鲸应用 ID
+     */
+    public static final String KEY_APP_CODE = "app_code";
 }

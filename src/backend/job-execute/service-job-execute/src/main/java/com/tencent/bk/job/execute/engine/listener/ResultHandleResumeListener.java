@@ -24,15 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -40,7 +38,6 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -48,10 +45,8 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +66,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class ResultHandleResumeListener {
+    private final EngineDependentServiceHolder engineDependentServiceHolder;
     private final TaskInstanceService taskInstanceService;
 
     private final ResultHandleManager resultHandleManager;
@@ -81,55 +77,34 @@ public class ResultHandleResumeListener {
 
     private final FileDistributeConfig fileDistributeConfig;
 
-    private final LogService logService;
-
-    private final StepInstanceVariableValueService stepInstanceVariableValueService;
-
-    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-
-    private final ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager;
-
-    private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
-
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
 
     private final StepInstanceService stepInstanceService;
-    private final GseClient gseClient;
 
     private final JobExecuteConfig jobExecuteConfig;
 
     @Autowired
-    public ResultHandleResumeListener(TaskInstanceService taskInstanceService,
+    public ResultHandleResumeListener(EngineDependentServiceHolder engineDependentServiceHolder,
+                                      TaskInstanceService taskInstanceService,
                                       ResultHandleManager resultHandleManager,
                                       TaskInstanceVariableService taskInstanceVariableService,
                                       GseTaskService gseTaskService,
                                       FileDistributeConfig fileDistributeConfig,
-                                      LogService logService,
-                                      StepInstanceVariableValueService stepInstanceVariableValueService,
-                                      TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                      ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                      TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                       ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                       FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
-                                      GseClient gseClient,
                                       JobExecuteConfig jobExecuteConfig) {
+        this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.gseTaskService = gseTaskService;
         this.fileDistributeConfig = fileDistributeConfig;
-        this.logService = logService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
-        this.gseClient = gseClient;
         this.jobExecuteConfig = jobExecuteConfig;
     }
 
@@ -185,17 +160,8 @@ public class ResultHandleResumeListener {
                 executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
 
         ScriptResultHandleTask scriptResultHandleTask = new ScriptResultHandleTask(
-            taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
+            engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
-            stepInstanceService,
-            gseClient,
             jobExecuteConfig,
             taskInstance,
             stepInstance,
@@ -235,17 +201,8 @@ public class ResultHandleResumeListener {
             });
 
         FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
-            taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
+            engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            stepInstanceService,
-            gseClient,
             jobExecuteConfig,
             taskInstance,
             stepInstance,

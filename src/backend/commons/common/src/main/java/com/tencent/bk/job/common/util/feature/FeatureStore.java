@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.common.util.feature;
 
+import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
+
 import java.util.List;
 
 /**
  * 特性开关配置存储
  */
-public interface FeatureStore {
+public interface FeatureStore extends ConfigRefreshHandler {
     /**
      * 返回特性开关配置
      *
@@ -41,8 +43,9 @@ public interface FeatureStore {
      * 加载配置
      *
      * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
+     * @return true: 重载成功
      */
-    void load(boolean ignoreException);
+    boolean load(boolean ignoreException);
 
 
     /**
@@ -51,5 +54,9 @@ public interface FeatureStore {
      * @return 特性开关配置列表
      */
     List<Feature> listFeatures();
+
+    default boolean handleConfigChange() {
+        return load(true);
+    }
 
 }

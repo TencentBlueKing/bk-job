@@ -24,22 +24,18 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,21 +43,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ScriptGseTaskStopCommand extends AbstractGseTaskCommand {
 
-    public ScriptGseTaskStopCommand(AgentService agentService,
-                                    AccountService accountService,
-                                    GseTaskService gseTaskService,
+    public ScriptGseTaskStopCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                     ExecuteObjectTaskService executeObjectTaskService,
-                                    Tracer tracer,
-                                    GseClient gseClient,
                                     TaskInstanceDTO taskInstance,
                                     StepInstanceDTO stepInstance,
                                     GseTaskDTO gseTask) {
-        super(agentService,
-            accountService,
-            gseTaskService,
+        super(engineDependentServiceHolder,
             executeObjectTaskService,
-            tracer,
-            gseClient,
             taskInstance,
             stepInstance,
             gseTask);

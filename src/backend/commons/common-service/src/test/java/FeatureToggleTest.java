@@ -26,7 +26,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.feature.DefaultFeatureManager;
 import com.tencent.bk.job.common.service.feature.InMemoryFeatureStore;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.bk.job.common.service.feature.config.FeatureToggleProperties;
 import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
@@ -54,14 +54,14 @@ class FeatureToggleTest {
 
     @BeforeAll
     static void beforeAll() {
-        Yaml yaml = new Yaml(new Constructor(FeatureToggleConfig.class));
+        Yaml yaml = new Yaml(new Constructor(FeatureToggleProperties.class));
         InputStream inputStream = FeatureToggleTest.class.getClassLoader()
             .getResourceAsStream("features_1.yaml");
-        FeatureToggleConfig featureToggleConfig = yaml.load(inputStream);
+        FeatureToggleProperties featureToggleProperties = yaml.load(inputStream);
 
         MockedStatic<ApplicationContextRegister> mockedStatic = Mockito.mockStatic(ApplicationContextRegister.class);
-        mockedStatic.when(() -> ApplicationContextRegister.getBean(FeatureToggleConfig.class))
-            .thenReturn(featureToggleConfig);
+        mockedStatic.when(() -> ApplicationContextRegister.getBean(FeatureToggleProperties.class))
+            .thenReturn(featureToggleProperties);
         FeatureStore mockFeatureStore = new InMemoryFeatureStore();
         mockFeatureStore.load(false);
         mockedStatic.close();

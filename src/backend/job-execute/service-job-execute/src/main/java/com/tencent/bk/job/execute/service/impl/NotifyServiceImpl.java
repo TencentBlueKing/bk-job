@@ -274,7 +274,7 @@ public class NotifyServiceImpl implements NotifyService {
                     successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
+                    successIpCount = fileExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
                         stepInstanceDTO.getExecuteCount());
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
