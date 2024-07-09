@@ -96,7 +96,6 @@
           <slot name="side" />
         </div>
       </div>
-
       <div
         v-if="isShowHistoryPanel"
         ref="historyPanel"
