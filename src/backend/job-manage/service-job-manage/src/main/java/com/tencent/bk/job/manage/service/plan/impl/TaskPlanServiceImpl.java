@@ -488,6 +488,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             );
             taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
             taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
+            taskPlan.setName(taskTemplateInfo.getName());
+
             return taskPlan;
         }
 
