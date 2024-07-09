@@ -37,6 +37,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,6 +75,7 @@ public interface WebBackupResource {
             String scopeId,
         @ApiParam(value = "作业导出请求", required = true)
         @RequestBody
+        @Validated
             ExportRequest exportRequest
     );
 
@@ -219,6 +221,7 @@ public interface WebBackupResource {
             String jobId,
         @ApiParam(value = "导入任务设置", required = true)
         @RequestBody
+        @Validated
             ImportRequest importRequest
     );
 

@@ -24,14 +24,22 @@
 
 package com.tencent.bk.job.backup.model.req;
 
+import com.tencent.bk.job.backup.constant.SecretHandlerEnum;
 import com.tencent.bk.job.backup.model.web.BackupTemplateInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 /**
@@ -45,6 +53,7 @@ public class ExportRequest {
      * 压缩包名
      */
     @ApiModelProperty(value = "压缩包名", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidExportPackageName_empty.message}")
     private String packageName;
 
     /**
@@ -53,12 +62,22 @@ public class ExportRequest {
      * @see com.tencent.bk.job.backup.constant.SecretHandlerEnum
      */
     @ApiModelProperty(value = "密文变量处理方式 1-保存为空值 2-保存真实值", required = true)
+    @CheckEnum(
+        notNull = true,
+        enumClass = SecretHandlerEnum.class,
+        message = "{validation.constraints.InvalidExportSecretHandler_illegal.message}"
+    )
     private Integer secretHandler;
 
     /**
      * 密码
      */
     @ApiModelProperty(value = "密码", required = true)
+    @NotBlankField
+    @Length(
+        max = ValidationConstants.COMMON_MAX_32,
+        message = "{validation.constraints.InvalidExportPassword_outOfLength.message}"
+    )
     private String password;
 
     /**
@@ -67,6 +86,10 @@ public class ExportRequest {
      * 单位：天
      */
     @ApiModelProperty(value = "过期时间 单位天", required = true)
+    @Min(
+        value = ValidationConstants.COMMON_MIN_0,
+        message = "{validation.constraints.InvalidExportExpireTime_illegal.message}"
+    )
     private Long expireTime;
 
     /**
@@ -75,6 +98,12 @@ public class ExportRequest {
      * @see BackupTemplateInfoVO
      */
     @ApiModelProperty(value = "需要导出的模版信息", required = true)
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = "id",
+        message = "{validation.constraints.InvalidTemplateId_empty.message}"
+    )
+    @Valid
     private List<BackupTemplateInfoVO> templateInfo;
 
     public boolean validate() {

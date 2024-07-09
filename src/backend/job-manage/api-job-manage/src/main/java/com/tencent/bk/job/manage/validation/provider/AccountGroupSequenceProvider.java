@@ -22,43 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.manage.validation.provider;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
+import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 29/7/2020 15:19
+ * 是db类型账号，需要校验db端口和关联的系统账号
  */
-@Getter
-@AllArgsConstructor
-public enum DuplicateIdHandlerEnum {
-    /**
-     * 不保留，自增
-     */
-    AUTO_INCREMENT(0),
-    /**
-     * 保留，冲突时自增
-     */
-    ON_DUPLICATE_INCREMENT(1),
-    /**
-     * 保留，冲突时不导入
-     */
-    ON_DUPLICATE_SKIP(2),
-    ;
+public class AccountGroupSequenceProvider implements DefaultGroupSequenceProvider<AccountCreateUpdateReq> {
 
-    @JsonValue
-    private final Integer type;
+    @Override
+    public List<Class<?>> getValidationGroups(AccountCreateUpdateReq bean){
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(AccountCreateUpdateReq.class);
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static DuplicateIdHandlerEnum valueOf(Integer type) {
-        for (DuplicateIdHandlerEnum value : values()) {
-            if (value.getType().equals(type)) {
-                return value;
+        if (bean != null) {
+            if (bean.getCategory() != null && bean.getCategory().equals(AccountCategoryEnum.DB.getValue())){
+                defaultGroupSequence.add(AccountCreateUpdateReq.dbAccountGroup.class);
             }
         }
-        return null;
+        return defaultGroupSequence;
     }
 }

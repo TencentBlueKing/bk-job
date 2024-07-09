@@ -22,39 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.execute.validation.provider;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 28/7/2020 19:49
+ * web 文件源联合校验
  */
-@Getter
-@AllArgsConstructor
-public enum SecretHandlerEnum {
-    /**
-     * 保存空值
-     */
-    SAVE_NULL(1),
-    /**
-     * 保存真实值
-     */
-    SAVE_REAL(2),
-    ;
+public class WebFileSourceDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<ExecuteFileSourceInfoVO> {
 
-    @JsonValue
-    private final Integer type;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static SecretHandlerEnum valueOf(Integer type) {
-        for (SecretHandlerEnum value : values()) {
-            if (value.getType().equals(type)) {
-                return value;
+    @Override
+    public List<Class<?>> getValidationGroups(ExecuteFileSourceInfoVO fileSource) {
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(ExecuteFileSourceInfoVO.class);
+        if (fileSource != null) {
+            Integer fileType = fileSource.getFileType();
+            if (fileType == null || TaskFileTypeEnum.SERVER.getType() == fileType) {
+                defaultGroupSequence.add(ExecuteFileSourceInfoVO.ServerFileGroup.class);
+            } else if (TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
+                defaultGroupSequence.add(ExecuteFileSourceInfoVO.FileSourceGroup.class);
             }
         }
-        return null;
+        return defaultGroupSequence;
     }
 }

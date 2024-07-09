@@ -25,9 +25,11 @@
 package com.tencent.bk.job.backup.model.web;
 
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.List;
 
@@ -56,7 +58,12 @@ public class BackupTemplateInfoVO {
      * 0-按 ID 列表导出 1-忽略 ID 列表导出全部
      */
     @ApiModelProperty(value = "导出全部执行方案 0-按 ID 列表导出 1-忽略 ID 列表导出全部")
-    private Integer exportAll;
+    @Range(
+        min = ValidationConstants.COMMON_MIN_0,
+        max = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidExportTemplateWithId_illegal.message}"
+    )
+    private Integer exportAll = 0;
 
     public boolean validate() {
         if (id < 0) {

@@ -60,6 +60,9 @@ public class ValidationUtil {
      * String: notEmpty, Long: notNull && >0, Integer: notNull && >0, List: notEmpty
      */
     public static boolean isValuePositiveOrNonEmpty (Object value) {
+        if (value == null) {
+            return false;
+        }
         if (value instanceof String && StringUtils.isNotBlank((String) value)) {
             return true;
         }

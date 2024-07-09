@@ -27,6 +27,9 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,9 +42,15 @@ import org.apache.commons.lang3.StringUtils;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TargetNodeVO {
     @ApiModelProperty(value = "节点 ID，对应拓扑树节点中的instanceId", required = true)
+    @CheckNumber(
+        notNull = true,
+        min = ValidationConstants.COMMON_MIN_1_STR,
+        message = "{validation.constraints.TopoNodeId_null.message}"
+    )
     private Long instanceId;
 
     @ApiModelProperty(value = "节点类型 biz-业务 set-集群 module-模块 xxx-用户自定义节点类型，对应拓扑树节点中的objectId", required = true)
+    @NotBlankField(message = "{validation.constraints.TopoNodeType_null.message}")
     private String objectId;
 
     public void validate() throws InvalidParamException {

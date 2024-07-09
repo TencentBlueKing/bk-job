@@ -32,12 +32,17 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -51,9 +56,19 @@ public class TaskStepVO {
     private Long id;
 
     @ApiModelProperty("步骤类型 1-脚本 2-文件 3-人工确认")
+    @CheckEnum(
+        enumClass = TaskStepTypeEnum.class,
+        message = "{validation.constraints.InvalidTaskStepType_illegal.message}"
+    )
     private Integer type;
 
     @ApiModelProperty("步骤名称")
+    @NotBlankField(message = "{validation.constraints.InvalidTaskStepName_empty.message}")
+    @NotContainSpecialChar
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.InvalidTaskStepName_outOfLength.message}"
+    )
     private String name;
 
     @ApiModelProperty("模版中的步骤 ID 用于模版步骤匹配、同步")

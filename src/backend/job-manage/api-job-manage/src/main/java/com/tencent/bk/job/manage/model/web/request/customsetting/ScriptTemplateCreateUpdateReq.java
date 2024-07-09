@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.model.web.request.customsetting;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -39,6 +41,11 @@ public class ScriptTemplateCreateUpdateReq {
      * 脚本语言
      */
     @ApiModelProperty(value = "脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql", required = true)
+    @CheckEnum(
+        notNull = true,
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}"
+    )
     private Integer scriptLanguage;
 
     @ApiModelProperty(value = "脚本内容,BASE64编码", required = true)

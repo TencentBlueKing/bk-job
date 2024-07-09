@@ -28,7 +28,6 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -63,7 +62,6 @@ import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -199,10 +197,6 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         boolean isUpdateDesc = "scriptDesc".equals(updateField);
         boolean isUpdateName = "scriptName".equals(updateField);
         boolean isUpdateTags = "scriptTags".equals(updateField);
-
-        if (StringUtils.isBlank(updateField) || !(isUpdateDesc || isUpdateName || isUpdateTags)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
 
         ScriptDTO updateScript;
         if (isUpdateDesc) {
@@ -448,9 +442,6 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response<?> batchUpdatePublicScriptTags(String username,
                                                    @AuditRequestBody ScriptTagBatchPatchReq req) {
-        // 校验
-        req.validate();
-
         // 鉴权
         List<String> scriptIdList = req.getIdList();
         noResourceScopeAuthService.batchAuthResultManagePublicScript(username, scriptIdList).denyIfNoPermission();

@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 文件源联合校验
+ * ESB 文件源联合校验
  */
 public class EsbFileSourceV3DTOGroupSequenceProvider implements DefaultGroupSequenceProvider<EsbFileSourceV3DTO> {
 

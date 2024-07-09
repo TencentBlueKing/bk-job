@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -79,9 +77,6 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         })
     public InternalResponse<ServiceTaskExecuteResult> executeTask(ServiceTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
-        if (!checkExecuteTaskRequest(request)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         TaskExecuteParam executeParam = buildExecuteParam(request);
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(executeParam);
 
@@ -157,33 +152,9 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         return executeTargetDTO;
     }
 
-    private boolean checkExecuteTaskRequest(ServiceTaskExecuteRequest request) {
-        if (request.getPlanId() == null || request.getPlanId() <= 0) {
-            log.warn("Execute task, taskId is empty!");
-            return false;
-        }
-        if (request.getTaskVariables() != null) {
-            for (ServiceTaskVariable serviceTaskVariable : request.getTaskVariables()) {
-                if (serviceTaskVariable.getId() == null || serviceTaskVariable.getId() <= 0) {
-                    log.warn("Execute task, variable id is empty");
-                    return false;
-                }
-                if (serviceTaskVariable.getType() == null
-                    || TaskVariableTypeEnum.valOf(serviceTaskVariable.getType()) == null) {
-                    log.warn("Invalid variable type:{}", serviceTaskVariable.getType());
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     @Override
     public InternalResponse<AuthResultDTO> authExecuteTask(ServiceTaskExecuteRequest request) {
         log.info("Auth execute task, request={}", request);
-        if (!checkExecuteTaskRequest(request)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         TaskExecuteParam executeParam = buildExecuteParam(request);
 
         AuthResultDTO authResult = null;

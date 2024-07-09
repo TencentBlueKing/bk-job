@@ -25,10 +25,16 @@
 package com.tencent.bk.job.crontab.model;
 
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
+import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,6 +57,12 @@ public class CronJobCreateUpdateReq {
      * 定时任务名称
      */
     @ApiModelProperty(value = "任务名称", required = true)
+    @NotEmpty(message = "{validation.constraints.InvalidCronJobName_empty.message}", groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.InvalidCronJobName_outOfLength.message}"
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.InvalidCronJobName_illegal.message}")
     private String name;
 
     /**
@@ -98,6 +110,10 @@ public class CronJobCreateUpdateReq {
      * 不可与 cronExpression 同时为空
      */
     @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidCronExecuteTime.message}"
+    )
     private Long executeTime;
 
     /**

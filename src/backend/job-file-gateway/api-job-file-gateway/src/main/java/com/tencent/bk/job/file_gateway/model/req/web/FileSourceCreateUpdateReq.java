@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.model.req.web;
 
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -41,6 +42,7 @@ public class FileSourceCreateUpdateReq {
      * 文件源Code
      */
     @ApiModelProperty(value = "文件源Code", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidFileSourceCode_empty.message}")
     private String code;
     /**
      * 文件源别名
@@ -77,6 +79,7 @@ public class FileSourceCreateUpdateReq {
      * 文件源凭证Id
      */
     @ApiModelProperty(value = "文件源凭证Id", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidFileSourceCredentialId_empty.message}")
     private String credentialId;
     /**
      * 文件前缀

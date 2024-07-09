@@ -24,14 +24,19 @@
 
 package com.tencent.bk.job.backup.model.req;
 
+import com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum;
 import com.tencent.bk.job.backup.model.web.BackupTemplateInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -45,6 +50,7 @@ public class ImportRequest {
      * 重名时添加的后缀
      */
     @ApiModelProperty(value = "重名后缀", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidImportDuplicateSuffix_empty.message}")
     private String duplicateSuffix;
 
     /**
@@ -53,6 +59,11 @@ public class ImportRequest {
      * @see com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum
      */
     @ApiModelProperty(value = "冲突 ID 处理，0-不保留，自增 1-保留，冲突时自增 2-保留，冲突时不导入", required = true)
+    @CheckEnum(
+        notNull = true,
+        enumClass = DuplicateIdHandlerEnum.class,
+        message = "{validation.constraints.InvalidImportDuplicateIdHandler_illegal.message}"
+    )
     private Integer duplicateIdHandler;
 
     /**
@@ -61,6 +72,12 @@ public class ImportRequest {
      * @see BackupTemplateInfoVO
      */
     @ApiModelProperty(value = "需要导入的模版信息", required = true)
+    @ValidFieldsStrictValue(
+        notNull = true,
+        fieldNames = "id",
+        message = "{validation.constraints.InvalidTemplateId_empty.message}"
+    )
+    @Valid
     private List<BackupTemplateInfoVO> templateInfo;
 
     public boolean validate() {

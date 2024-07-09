@@ -39,11 +39,7 @@ public class ValidationConstants {
 
     // 校验常用的最大值
     public static final int COMMON_MAX_60 = 60;
-    public static final int COMMON_MAX_250 = 250;
-    public static final int COMMON_MAX_255 = 255;
-    public static final int COMMON_MAX_512 = 512;
-    public static final int COMMON_MAX_1000 = 1000;
-    public static final int COMMON_MAX_1024 = 1024;
+    public static final int COMMON_MAX_32 = 32;
 
     // 校验常用的最小值
     public static final int COMMON_MIN_0 = 0;

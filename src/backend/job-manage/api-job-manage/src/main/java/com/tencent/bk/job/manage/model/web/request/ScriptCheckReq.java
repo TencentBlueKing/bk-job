@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
  * 脚本检查请求报文
@@ -35,8 +39,14 @@ import lombok.Data;
 @Data
 @ApiModel("脚本检查请求报文")
 public class ScriptCheckReq {
-    @ApiModelProperty(value = "脚本内容，需要base64编码", required = true)
+    @ApiModelProperty(value = "脚本内容，需要base64编码")
+    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
     private String content;
-    @ApiModelProperty(value = "脚本类型，1：Shell，2：Bat，3：Python，4：Perl，5：Powershell，6：SQL", required = true)
+    @ApiModelProperty(value = "脚本类型，1：Shell，2：Bat，3：Python，4：Perl，5：Powershell，6：SQL")
+    @CheckEnum(
+        notNull = true,
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}"
+    )
     private Integer scriptType;
 }

@@ -29,12 +29,21 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -42,11 +51,25 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @ApiModel("快速执行脚本请求报文")
+@ValidFieldsStrictValue(
+    fieldNames = {"scriptId", "scriptVersionId", "content"},
+    message = "{validation.constraints.ScriptIdOrVersionIdOrContent_empty.message}"
+)
+@ValidFieldsStrictValue(
+    fieldNames = {"targetServers", "taskTarget"},
+    message = "{validation.constraints.ExecuteTarget_empty.message}"
+)
 public class WebFastExecuteScriptRequest {
     /**
      * 脚本执行任务名称
      */
     @ApiModelProperty(value = "脚本执行任务名称", required = true)
+    @NotEmpty(message = "{validation.constraints.TaskName_empty.message}")
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.TaskName_outOfLength.message}"
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.TaskName_illegal.message}")
     private String name;
     /**
      * 脚本内容
@@ -64,6 +87,11 @@ public class WebFastExecuteScriptRequest {
      * 执行账号
      */
     @ApiModelProperty(value = "执行账号ID", required = true)
+    @CheckNumber(
+        notNull = true,
+        min = ValidationConstants.COMMON_MIN_1_STR,
+        message = "{validation.constraints.AccountIdOrAlias_empty.message}"
+    )
     private Long account;
 
     /**
@@ -76,6 +104,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本类型
      */
     @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql", required = true)
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}"
+    )
     private Integer scriptLanguage;
 
     /**
@@ -100,12 +132,14 @@ public class WebFastExecuteScriptRequest {
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "使用 taskTarget 参数替换。发布完成后可以删除")
     @ApiModelProperty(hidden = true)
+    @Valid
     private TaskTargetVO targetServers;
 
     /**
      * 目标执行对象
      */
     @ApiModelProperty(value = "执行目标", required = true)
+    @Valid
     private TaskTargetVO taskTarget;
 
     /**

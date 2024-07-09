@@ -34,6 +34,7 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -94,6 +95,7 @@ public interface WebFileSourceResource {
             String scopeId,
         @ApiParam(value = "创建文件源请求")
         @RequestBody
+        @Validated
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 
@@ -117,6 +119,7 @@ public interface WebFileSourceResource {
             Integer id,
         @ApiParam(value = "更新文件源请求")
         @RequestBody
+        @Validated
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 

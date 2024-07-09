@@ -25,9 +25,12 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -46,9 +49,15 @@ public class TaskVariableVO {
     private Long id;
 
     @ApiModelProperty(value = "变量名", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidGlobalVarIdOrName_empty.message}")
     private String name;
 
     @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组", required = true)
+    @CheckEnum(
+        notNull = true,
+        enumClass = TaskVariableTypeEnum.class,
+        message = "{validation.constraints.InvalidGlobalVarType_illegal.message}"
+    )
     private Integer type;
 
     @ApiModelProperty(value = "默认值")

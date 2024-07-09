@@ -37,7 +37,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.web.request.OperationPermissionReq;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("jobExecuteWebPermissionResourceImpl")
@@ -70,9 +69,6 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
-        if (StringUtils.isEmpty(operation)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         String[] resourceAndAction = operation.split("/");
         if (resourceAndAction.length != 2) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);

@@ -268,6 +268,7 @@ public interface WebScriptResource {
             String scriptId,
         @ApiParam(value = "脚本元数据更新请求报文", name = "request", required = true)
         @RequestBody
+        @Validated
             ScriptInfoUpdateReq request
     );
 
@@ -289,6 +290,7 @@ public interface WebScriptResource {
             String scopeId,
         @ApiParam(value = "新增/更新的脚本对象", name = "request", required = true)
         @RequestBody
+        @Validated
             ScriptCreateReq request
     );
 
@@ -471,6 +473,7 @@ public interface WebScriptResource {
             String username,
         @ApiParam(value = "脚本检查请求报文", name = "scriptCheckReq", required = true)
         @RequestBody
+        @Validated
             ScriptCheckReq scriptCheckReq
     );
 

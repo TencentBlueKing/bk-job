@@ -30,6 +30,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckScriptRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -45,5 +46,7 @@ public interface ServiceCheckScriptResource {
 
     @PostMapping("/service/script/check")
     InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(
-        @RequestBody ServiceCheckScriptRequest checkScriptRequest);
+        @RequestBody
+        @Validated
+            ServiceCheckScriptRequest checkScriptRequest);
 }

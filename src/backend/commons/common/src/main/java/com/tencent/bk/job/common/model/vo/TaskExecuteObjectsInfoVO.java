@@ -27,30 +27,40 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Data
 @ApiModel("任务执行对象信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
+@ValidFieldsStrictValue(
+    fieldNames = {"hostList", "nodeList", "dynamicGroupList", "containerList"},
+    message = "{validation.constraints.ExecuteTarget_empty.message}"
+)
 public class TaskExecuteObjectsInfoVO {
 
     @ApiModelProperty("主机列表")
+    @Valid
     private List<HostInfoVO> hostList;
 
     @ApiModelProperty("主机拓扑节点 ID")
+    @Valid
     private List<TargetNodeVO> nodeList;
 
     @ApiModelProperty("主机动态分组")
+    @Valid
     private List<DynamicGroupIdWithMeta> dynamicGroupList;
 
     @ApiModelProperty("容器列表")
+    @Valid
     private List<ContainerVO> containerList;
 
     public void validate() throws InvalidParamException {

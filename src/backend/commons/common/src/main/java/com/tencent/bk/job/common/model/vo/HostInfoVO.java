@@ -30,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -51,6 +53,10 @@ import java.util.Objects;
 public class HostInfoVO {
 
     @ApiModelProperty(value = "主机ID", required = true)
+    @CheckNumber(
+        min = ValidationConstants.COMMON_MIN_1_STR,
+        message = "{validation.constraints.BkHostId_null.message}"
+    )
     private Long hostId;
 
     @ApiModelProperty("主机 IP")

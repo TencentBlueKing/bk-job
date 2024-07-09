@@ -27,13 +27,13 @@ package com.tencent.bk.job.common.validation;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.List;
 
 
 /**
@@ -98,8 +98,8 @@ public class ConditionalCheckEnumValidator implements ConstraintValidator<Condit
             Object baseFieldValue = baseFieldObj.get(value);
             Object dependentFieldValue = dependentFieldObj.get(value);
 
-            if (baseFieldValue instanceof String && StringUtils.isNotEmpty((String) baseFieldValue)) {
-                return checkEnumValidator.isValid(dependentFieldValue, context);
+            if (ValidationUtil.isValuePositiveOrNonEmpty(baseFieldValue)) {
+                return validateDependentField(dependentFieldValue, context);
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             log.error("conditional check enum exception={}, baseField={}, dependentField={}",
@@ -107,5 +107,18 @@ public class ConditionalCheckEnumValidator implements ConstraintValidator<Condit
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         return true;
+    }
+
+    private boolean validateDependentField(Object dependentFieldValue, ConstraintValidatorContext context) {
+        if (dependentFieldValue instanceof List) {
+            for (Object item : (List<?>) dependentFieldValue) {
+                if (!checkEnumValidator.isValid(item, context)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return checkEnumValidator.isValid(dependentFieldValue, context);
+        }
     }
 }

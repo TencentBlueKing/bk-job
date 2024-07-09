@@ -22,41 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.backup.constant;
 
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * 检查脚本集请求
+ * @since 29/7/2020 15:19
  */
-@Data
-@ApiModel("检查脚本集请求")
-@NoArgsConstructor
-public class ServiceCheckScriptRequest {
+@Getter
+@AllArgsConstructor
+public enum DuplicateIdHandlerEnum {
     /**
-     * 脚本内容
+     * 不保留，自增
      */
-    @ApiModelProperty("脚本内容")
-    @NotBlank
-    private String scriptContent;
+    AUTO_INCREMENT(0),
     /**
-     * 脚本类型
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
+     * 保留，冲突时自增
      */
-    @ApiModelProperty("脚本类型")
-    @CheckEnum(notNull = true, enumClass = ScriptTypeEnum.class, enumMethod = "isValid")
-    private Integer scriptType;
+    ON_DUPLICATE_INCREMENT(1),
+    /**
+     * 保留，冲突时不导入
+     */
+    ON_DUPLICATE_SKIP(2),
+    ;
 
-    public ServiceCheckScriptRequest(String scriptContent, Integer scriptType) {
-        this.scriptContent = scriptContent;
-        this.scriptType = scriptType;
+    @JsonValue
+    private final Integer type;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static DuplicateIdHandlerEnum valueOf(Integer type) {
+        for (DuplicateIdHandlerEnum value : values()) {
+            if (value.getType().equals(type)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valueOf(type) != null;
     }
 }

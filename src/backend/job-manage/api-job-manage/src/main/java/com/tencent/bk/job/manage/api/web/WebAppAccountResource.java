@@ -25,9 +25,11 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.AccountVO;
 import io.swagger.annotations.Api;
@@ -46,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.groups.Default;
 import java.util.List;
 
 /**
@@ -54,6 +57,7 @@ import java.util.List;
 @Api(tags = {"job-manage:web:App_Account"})
 @RequestMapping("/web/account")
 @WebAPI
+@Validated
 public interface WebAppAccountResource {
 
     @ApiOperation(value = "新增账号", produces = "application/json")
@@ -72,7 +76,7 @@ public interface WebAppAccountResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "创建账号请求")
-        @RequestBody @Validated
+        @RequestBody @Validated(value = Default.class)
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
@@ -211,6 +215,10 @@ public interface WebAppAccountResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途")
+        @CheckEnum(
+            enumClass = AccountCategoryEnum.class,
+            message = "{validation.constraints.AccountCategory_illegal.message}"
+        )
         @RequestParam(value = "category", required = false)
             Integer category
     );

@@ -34,6 +34,7 @@ import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -136,6 +137,7 @@ public interface WebTagResource {
             Long tagId,
         @ApiParam("标签修改请求")
         @RequestBody
+        @Validated
             TagCreateUpdateReq tagCreateUpdateReq
     );
 
@@ -156,6 +158,7 @@ public interface WebTagResource {
             String scopeId,
         @ApiParam("标签创建请求")
         @RequestBody
+        @Validated
             TagCreateUpdateReq tagCreateUpdateReq
     );
 
@@ -200,6 +203,7 @@ public interface WebTagResource {
             Long tagId,
         @ApiParam("批量修改资源引用的标签的请求")
         @RequestBody
+        @Validated
             BatchPatchResourceTagReq tagBatchUpdateReq
     );
 

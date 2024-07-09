@@ -35,6 +35,7 @@ import com.tencent.bk.job.crontab.model.CronJobVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -206,6 +207,7 @@ public interface WebCronJobResource {
             String scopeId,
         @ApiParam(value = "创建的定时任务对象", name = "cronJobCreateUpdateReq", required = true)
         @RequestBody
+        @Validated
             CronJobCreateUpdateReq cronJobCreateUpdateReq
     );
 
@@ -240,6 +242,7 @@ public interface WebCronJobResource {
             Long cronJobId,
         @ApiParam(value = "更新的定时任务对象", name = "cronJobCreateUpdateReq", required = true)
         @RequestBody
+        @Validated
             CronJobCreateUpdateReq cronJobCreateUpdateReq
     );
 

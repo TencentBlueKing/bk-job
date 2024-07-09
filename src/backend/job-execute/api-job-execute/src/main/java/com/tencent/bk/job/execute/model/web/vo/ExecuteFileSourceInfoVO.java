@@ -26,20 +26,29 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.ValidFileAbsolutePath;
+import com.tencent.bk.job.execute.validation.provider.WebFileSourceDTOGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
 @ApiModel("步骤源文件信息")
+@GroupSequenceProvider(WebFileSourceDTOGroupSequenceProvider.class)
 public class ExecuteFileSourceInfoVO {
 
     @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
     private Integer fileType;
 
     @ApiModelProperty("文件路径")
+    @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
+    @ValidFileAbsolutePath(groups = ServerFileGroup.class)
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
@@ -49,15 +58,38 @@ public class ExecuteFileSourceInfoVO {
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")
+    @Valid
     private TaskTargetVO host;
 
     @ApiModelProperty(value = "主机账号")
     @JsonProperty("account")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ExecuteFileSourceInfoVO.ServerFileGroup.class
+    )
     private Long accountId;
 
     @ApiModelProperty(value = "主机账号名称")
     private String accountName;
 
     @ApiModelProperty(value = "文件源ID")
+    @NotNull(
+        message = "{validation.constraints.InvalidFileSourceIdOrCode_empty.message}",
+        groups = FileSourceGroup.class
+    )
     private Integer fileSourceId;
+
+    /**
+     * 服务器文件分发分组验证
+     */
+    public interface ServerFileGroup {
+
+    }
+
+    /**
+     * 文件源文件分发分组验证
+     */
+    public interface FileSourceGroup {
+
+    }
 }

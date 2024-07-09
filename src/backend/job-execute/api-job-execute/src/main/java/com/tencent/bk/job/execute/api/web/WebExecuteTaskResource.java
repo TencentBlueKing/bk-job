@@ -48,6 +48,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 作业执行API-前端调用
  */
@@ -55,6 +57,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/web/execution/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
+@Validated
 public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业", produces = "application/json")
@@ -74,6 +77,7 @@ public interface WebExecuteTaskResource {
             String scopeId,
         @ApiParam(value = "执行作业请求报文", name = "webTaskExecuteRequest", required = true)
         @RequestBody
+        @Validated
             WebTaskExecuteRequest request
     );
 
@@ -94,6 +98,7 @@ public interface WebExecuteTaskResource {
             String scopeId,
         @ApiParam(value = "重新执行作业请求报文", name = "redoTaskRequest", required = true)
         @RequestBody
+        @Validated
             RedoTaskRequest request
     );
 
@@ -159,6 +164,7 @@ public interface WebExecuteTaskResource {
             Long stepInstanceId,
         @ApiParam(value = "步骤实例操作请求报文", name = "operation", required = true)
         @RequestBody
+        @Validated
             WebStepOperation operation
     );
 
@@ -179,6 +185,7 @@ public interface WebExecuteTaskResource {
             String scopeId,
         @ApiParam(value = "作业实例ID", required = true, example = "1")
         @PathVariable("taskInstanceId")
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
             Long taskInstanceId
     );
 

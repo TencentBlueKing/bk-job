@@ -80,10 +80,10 @@ public interface EsbFileSourceV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @NotBlankField(fieldName = "code")
+        @NotBlankField(message = "{validation.constraints.InvalidFileSourceCode_empty.message}")
         @Pattern(
             regexp = ValidationConstants.FILE_SOURCE_CODE_PATTERN,
-            message = "{validation.constraints.InvalidFileSourceCode.message}"
+            message = "{validation.constraints.InvalidFileSourceCode_illegal.message}"
         )
         @RequestParam(value = "code") String code);
 

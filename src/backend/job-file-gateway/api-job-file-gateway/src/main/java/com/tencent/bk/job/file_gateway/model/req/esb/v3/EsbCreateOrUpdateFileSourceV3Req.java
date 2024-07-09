@@ -24,12 +24,12 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源Code")
     @NotBlankField(
-        fieldName = "code",
+        message = "{validation.constraints.InvalidFileSourceCode_empty.message}",
         groups = {Create.class, Update.class}
     )
     @Pattern(
         regexp = ValidationConstants.FILE_SOURCE_CODE_PATTERN,
-        message = "{validation.constraints.InvalidFileSourceCode.message}",
+        message = "{validation.constraints.InvalidFileSourceCode_illegal.message}",
         groups = {Create.class, Update.class}
     )
     private String code;
@@ -69,7 +69,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
     @ApiModelProperty(value = "文件源凭证Id")
     @JsonProperty(value = "credential_id")
     @NotBlankField(
-        fieldName = "credential_id",
+        message = "{validation.constraints.InvalidFileSourceCredentialId_empty.message}",
         groups = {Create.class}
     )
     @NotContainSpecialChar(fieldName = "credential_id", groups = {Create.class, Update.class})

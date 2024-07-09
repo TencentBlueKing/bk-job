@@ -66,14 +66,6 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
     @Override
     public InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>>
     getCronTaskExecuteResultStatistics(ServiceGetCronTaskExecuteStatisticsRequest request) {
-        if (request.getAppId() == null || request.getAppId() < 1) {
-            log.warn("Illegal param appId:{}", request.getAppId());
-            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
-        }
-        if (request.getCronTaskIdList() == null || request.getCronTaskIdList().isEmpty()) {
-            log.warn("Param:cronTaskIdList is empty");
-            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM);
-        }
         Map<Long, ServiceCronTaskExecuteResultStatistics> statisticsMap =
             taskResultService.getCronTaskExecuteResultStatistics(request.getAppId(), request.getCronTaskIdList());
         return InternalResponse.buildSuccessResp(statisticsMap);

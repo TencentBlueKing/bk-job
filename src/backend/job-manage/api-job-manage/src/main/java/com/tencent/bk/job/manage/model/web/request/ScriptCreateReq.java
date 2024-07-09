@@ -25,6 +25,8 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
@@ -49,8 +51,11 @@ public class ScriptCreateReq {
      */
     @ApiModelProperty(value = "脚本名称", required = true, example = "scriptName")
     @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}")
-    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}")
-    @Pattern(regexp = "^[^\\\\|/:*<>\"?]+$", message = "{validation.constraints.ScriptName_illegal.message}")
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptName_outOfLength.message}"
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.ScriptName_illegal.message}")
     private String name;
 
     /**
@@ -74,8 +79,14 @@ public class ScriptCreateReq {
      */
     @ApiModelProperty(value = "版本号，新增脚本时需要传入")
     @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}")
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}")
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}")
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptVersion_outOfLength.message}"
+    )
+    @Pattern(
+        regexp = ValidationConstants.SCRIPT_VERSION_PATTERN,
+        message = "{validation.constraints.ScriptVersion_illegal.message}"
+    )
     private String version;
 
     /**

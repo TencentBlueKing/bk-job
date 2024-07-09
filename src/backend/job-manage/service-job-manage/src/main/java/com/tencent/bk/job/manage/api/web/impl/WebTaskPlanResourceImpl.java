@@ -37,12 +37,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
-import com.tencent.bk.job.common.util.check.MaxLengthChecker;
-import com.tencent.bk.job.common.util.check.NotEmptyChecker;
-import com.tencent.bk.job.common.util.check.StringCheckHelper;
-import com.tencent.bk.job.common.util.check.TrimChecker;
-import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.manage.api.web.WebTaskPlanResource;
@@ -269,21 +263,11 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                                     String scopeType,
                                                     String scopeId,
                                                     String templateIds) {
-        if (StringUtils.isEmpty(templateIds)) {
-            log.warn("TemplateIds is empty!");
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
-
         String[] templateIdArray = templateIds.split(",");
         List<Long> templateIdList = new ArrayList<>();
         for (String templateIdStr : templateIdArray) {
             templateIdList.add(Long.parseLong(templateIdStr));
         }
-        if (CollectionUtils.isEmpty(templateIdList)) {
-            log.warn("TemplateIdList is empty!");
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
-
         List<TaskPlanVO> planList = new ArrayList<>();
         for (Long templateId : templateIdList) {
             List<TaskPlanVO> templatePlanList = listPlansByTemplateId(username, appResourceScope,
@@ -374,9 +358,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                            @AuditRequestBody TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
         taskPlanCreateUpdateReq.setTemplateId(templateId);
         taskPlanCreateUpdateReq.setId(planId);
-
-        // 检查执行方案名称
-        checkPlanName(taskPlanCreateUpdateReq);
+        taskPlanCreateUpdateReq.trim();
 
         TaskPlanInfoDTO savedPlan;
         if (planService.isDebugPlan(appResourceScope.getAppId(), templateId, planId)) {
@@ -401,18 +383,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             appResourceScope.getAppId(), taskPlanCreateUpdateReq));
     }
 
-    private void checkPlanName(TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
-        // 检查执行方案名称
-        try {
-            StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
-            taskPlanCreateUpdateReq.setName(stringCheckHelper.checkAndGetResult(taskPlanCreateUpdateReq.getName()));
-        } catch (StringCheckException e) {
-            log.warn("TaskPlan name is invalid:", e);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-    }
-
     @Override
     @AuditEntry(
         actionId = ActionId.CREATE_JOB_PLAN
@@ -424,9 +394,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                            Long templateId,
                                            @AuditRequestBody TaskPlanCreateUpdateReq taskPlanCreateUpdateReq) {
         taskPlanCreateUpdateReq.setTemplateId(templateId);
-        // 检查执行方案名称
-        checkPlanName(taskPlanCreateUpdateReq);
-
         TaskPlanInfoDTO savedPlan = planService.createTaskPlan(username, TaskPlanInfoDTO.fromReq(username,
             appResourceScope.getAppId(), taskPlanCreateUpdateReq));
 

@@ -24,10 +24,14 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.util.List;
 
@@ -48,6 +52,12 @@ public class TemplateBasicInfoUpdateReq {
      * 模版名称
      */
     @ApiModelProperty(value = "模版名称", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidTemplateName_empty.message}")
+    @NotContainSpecialChar
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.InvalidTemplateName_outOfLength.message}"
+    )
     private String name;
 
     /**

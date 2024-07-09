@@ -24,11 +24,14 @@
 
 package com.tencent.bk.job.execute.model.web.request;
 
+import com.tencent.bk.job.common.validation.CheckNumber;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -41,12 +44,18 @@ public class WebTaskExecuteRequest {
      * 执行方案ID
      */
     @ApiModelProperty(value = "执行方案ID", required = true)
+    @CheckNumber(
+        notNull = true,
+        min = ValidationConstants.COMMON_MIN_1_STR,
+        message = "{validation.constraints.InvalidPlanId.message}"
+    )
     private Long taskId;
 
     /**
      * 全局变量
      */
     @ApiModelProperty(value = "全局变量")
+    @Valid
     private List<ExecuteVariableVO> taskVariables;
 
 }

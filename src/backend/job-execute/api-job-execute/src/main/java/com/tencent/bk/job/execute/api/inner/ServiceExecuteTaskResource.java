@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -44,8 +45,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @InternalAPI
 public interface ServiceExecuteTaskResource {
     @PostMapping("/service/execution/task-execution/task")
-    InternalResponse<ServiceTaskExecuteResult> executeTask(@RequestBody ServiceTaskExecuteRequest request);
+    InternalResponse<ServiceTaskExecuteResult> executeTask(@RequestBody @Validated ServiceTaskExecuteRequest request);
 
     @PostMapping("/service/execution/task-execution/task/auth")
-    InternalResponse<AuthResultDTO> authExecuteTask(@RequestBody ServiceTaskExecuteRequest request);
+    InternalResponse<AuthResultDTO> authExecuteTask(@RequestBody @Validated ServiceTaskExecuteRequest request);
 }

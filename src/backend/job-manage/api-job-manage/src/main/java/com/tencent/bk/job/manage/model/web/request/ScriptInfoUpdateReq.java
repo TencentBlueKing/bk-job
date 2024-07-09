@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -43,6 +44,7 @@ import java.util.List;
 @Data
 @ApiModel("脚本元数据更新请求报文")
 @Slf4j
+@ValidFieldsStrictValue(fieldNames = {"scriptName", "scriptDesc", "scriptTags"})
 public class ScriptInfoUpdateReq {
     /**
      * 脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags

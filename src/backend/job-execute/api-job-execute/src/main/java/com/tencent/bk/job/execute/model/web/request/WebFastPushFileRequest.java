@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.model.web.request;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
@@ -34,8 +36,12 @@ import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -49,16 +55,26 @@ public class WebFastPushFileRequest {
      * 文件分发任务名称
      */
     @ApiModelProperty(value = "文件分发作业名称", required = true)
+    @NotEmpty(message = "{validation.constraints.TaskName_empty.message}")
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.TaskName_outOfLength.message}"
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.TaskName_illegal.message}")
     private String name;
     /**
      * 文件来源
      */
     @ApiModelProperty(value = "源文件", required = true)
+    @NotEmpty(message = "{validation.constraints.InvalidSourceFileObject_empty.message}")
+    @Valid
     private List<ExecuteFileSourceInfoVO> fileSourceList;
 
     /**
      * 传输目标
      */
+    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
+    @Valid
     private ExecuteFileDestinationInfoVO fileDestination;
 
     /**
@@ -119,7 +135,6 @@ public class WebFastPushFileRequest {
             return NotExistPathHandlerEnum.CREATE_DIR.getValue();
         }
     }
-
 }
 
 

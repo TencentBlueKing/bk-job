@@ -27,6 +27,9 @@ package com.tencent.bk.job.manage.model.web.request;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
  * 脚本新增、更新请求
@@ -38,7 +41,9 @@ public class TagCreateUpdateReq {
     /**
      * 标签名称
      */
-    @ApiModelProperty(value = "标签名称", required = true)
+    @ApiModelProperty(value = "标签名称")
+    @NotEmpty(message = "{validation.constraints.InvalidTagName_empty.message}")
+    @Length(max = 20, message = "validation.constraints.InvalidTagName_outOfLength.message")
     private String name;
 
     /**

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
@@ -46,9 +45,9 @@ import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.web.WebExecuteTaskResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -115,10 +114,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                String scopeId,
                                                @AuditRequestBody WebTaskExecuteRequest request) {
         log.info("Execute task, request={}", request);
-
-        if (!checkExecuteTaskRequest(request)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
@@ -132,27 +127,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         return Response.buildSuccessResp(result);
     }
 
-    private boolean checkExecuteTaskRequest(WebTaskExecuteRequest request) {
-        if (request.getTaskId() == null || request.getTaskId() <= 0) {
-            log.warn("Execute task, taskId is empty!");
-            return false;
-        }
-        if (request.getTaskVariables() != null) {
-            for (ExecuteVariableVO webTaskVariable : request.getTaskVariables()) {
-                if (webTaskVariable.getId() == null || webTaskVariable.getId() <= 0) {
-                    log.warn("Execute task, variable id is invalid");
-                    return false;
-                }
-                if (webTaskVariable.getType() == null
-                    || TaskVariableTypeEnum.valOf(webTaskVariable.getType()) == null) {
-                    log.warn("Execute task, variable type is invalid");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     @Override
     public Response<TaskExecuteVO> redoTask(String username,
                                             AppResourceScope appResourceScope,
@@ -160,10 +134,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                             String scopeId,
                                             RedoTaskRequest request) {
         log.info("Redo task, request={}", request);
-
-        if (!checkRedoTaskRequest(request)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
 
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.createTaskInstanceForRedo(appResourceScope.getAppId(),
@@ -201,22 +171,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             executeVariableValues.add(taskVariableDTO);
         }
         return executeVariableValues;
-    }
-
-    private boolean checkRedoTaskRequest(RedoTaskRequest request) {
-        if (request.getTaskInstanceId() == null || request.getTaskInstanceId() <= 0) {
-            log.warn("Redo task, taskInstanceId is empty!");
-            return false;
-        }
-        if (request.getTaskVariables() != null) {
-            for (ExecuteVariableVO webTaskVariable : request.getTaskVariables()) {
-                if (webTaskVariable.getId() == null || webTaskVariable.getId() <= 0) {
-                    log.warn("Redo task, variable id is empty");
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     @Override
@@ -533,13 +487,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                      String scopeId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
-        StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
-        if (stepOperationEnum == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         StepOperationDTO stepOperation = new StepOperationDTO();
         stepOperation.setStepInstanceId(stepInstanceId);
-        stepOperation.setOperation(stepOperationEnum);
+        stepOperation.setOperation(StepOperationEnum.getStepOperation(operation.getOperationCode()));
         stepOperation.setConfirmReason(operation.getConfirmReason());
         int executeCount = taskExecuteService.doStepOperation(appResourceScope.getAppId(), username, stepOperation);
         StepOperationVO stepOperationVO = new StepOperationVO(stepInstanceId, executeCount);
@@ -552,9 +502,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                  String scopeType,
                                  String scopeId,
                                  Long taskInstanceId) {
-        if (taskInstanceId == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         taskExecuteService.terminateJob(username, appResourceScope.getAppId(), taskInstanceId);
         return Response.buildSuccessResp(null);
     }

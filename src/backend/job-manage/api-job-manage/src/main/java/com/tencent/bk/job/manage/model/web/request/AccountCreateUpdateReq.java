@@ -24,18 +24,27 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
+import com.tencent.bk.job.manage.validation.provider.AccountGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.groups.Default;
 import java.util.List;
 
 @Data
 @ApiModel("账号创建、更新请求")
 @ToString(exclude = {"password", "dbPassword"})
+@GroupSequenceProvider(AccountGroupSequenceProvider.class)
 public class AccountCreateUpdateReq {
     /**
      * 账号ID
@@ -46,12 +55,25 @@ public class AccountCreateUpdateReq {
      * 帐号名称
      */
     @ApiModelProperty(value = "帐号名称", required = true)
+    @NotBlankField(message = "{validation.constraints.AccountName_empty.message}", groups = Default.class)
     private String account;
 
     @ApiModelProperty(value = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2")
+    @CheckEnum(
+        notNull = true,
+        enumClass = AccountTypeEnum.class,
+        message = "{validation.constraints.AccountType_illegal.message}",
+        groups = Default.class
+    )
     private Integer type;
 
     @ApiModelProperty(value = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号")
+    @CheckEnum(
+        notNull = true,
+        enumClass = AccountCategoryEnum.class,
+        message = "{validation.constraints.AccountCategory_illegal.message}",
+        groups = Default.class
+    )
     private Integer category;
 
     /**
@@ -83,13 +105,24 @@ public class AccountCreateUpdateReq {
     private String password;
 
     @ApiModelProperty(value = "DB端口,创建/更新DB账号的时候必传")
-    @Range(min = 1, max = 65535, message = "{validation.constraints.InvalidPort.message}")
+    @NotNull(message = "{validation.constraints.InvalidPort.message}", groups = dbAccountGroup.class)
+    @Range(
+        min = 1,
+        max = 65535,
+        message = "{validation.constraints.InvalidPort.message}",
+        groups = dbAccountGroup.class
+    )
     private Integer dbPort;
 
     @ApiModelProperty(value = "DB账号关联的系统账号,创建/更新DB账号的时候必传")
+    @NotNull(message = "{validation.constraints.DbSystemAccountId_empty.message}", groups = dbAccountGroup.class)
     private Long dbSystemAccountId;
 
     @ApiModelProperty(value = "DB账号的密码,创建/更新DB账号的时候必传")
     @SkipLogFields
     private String dbPassword;
+
+    public interface dbAccountGroup {
+
+    }
 }
