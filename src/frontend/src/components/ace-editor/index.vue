@@ -582,9 +582,9 @@
       },
       /**
        * @desc 缓存脚本内容
-       * @param {String} type 缓存类型（自动缓存、手动换粗）
+       * @param {String} type 缓存类型（自动缓存、手动缓存）
        */
-      pushLocalStorage(type = I18n.t('自动保存')) {
+      pushLocalStorage(type = I18n.t('自动保存'), isAuto = true) {
         // 当前脚本内容为空不缓存
         if (!this.content) {
           return;
@@ -597,7 +597,7 @@
         }
         if (historyList.length > 0) {
           // 最新缓存内容和上一次缓存内容相同不缓存
-          if (historyList[0].content === this.value) {
+          if (historyList[0].content === this.value && isAuto) {
             return;
           }
         }
@@ -707,7 +707,7 @@
        * @desc 手动缓存脚本内容
        */
       handleSaveHistory: _.debounce(function () {
-        this.pushLocalStorage(I18n.t('手动保存'));
+        this.pushLocalStorage(I18n.t('手动保存'), false);
         this.messageSuccess(I18n.t('已成功保存到历史缓存！'));
         this.handleShowHistory();
       }, 300),

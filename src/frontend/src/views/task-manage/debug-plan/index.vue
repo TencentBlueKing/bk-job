@@ -165,6 +165,8 @@
       fetchData() {
         TaskPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
+        }, {
+          permission: 'page',
         }).then((data) => {
           this.variableList = Object.freeze(data.variableList);
           this.taskStepList = Object.freeze(data.stepList);
