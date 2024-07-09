@@ -53,11 +53,37 @@
         </div>
         <div
           v-if="tips"
+          v-bk-overflow-tips="{ content: tips }"
           class="jb-ace-tips">
           <icon
             style="margin-right: 4px;"
             type="info" />
           {{ tips }}
+        </div>
+        <div
+          class="jb-ace-action"
+          :style="{ height: `${tabHeight}px` }">
+          <slot name="action" />
+          <template v-if="!readonly && !isFullScreen">
+            <icon
+              v-bk-tooltips="$t('上传脚本')"
+              type="upload"
+              @click="handleUploadScript" />
+            <icon
+              v-bk-tooltips="$t('历史缓存')"
+              type="history"
+              @click.stop="handleShowHistory" />
+          </template>
+          <icon
+            v-if="!isFullScreen"
+            v-bk-tooltips="$t('全屏')"
+            type="full-screen"
+            @click="handleFullScreen" />
+          <icon
+            v-if="isFullScreen"
+            v-bk-tooltips="$t('还原')"
+            type="un-full-screen"
+            @click="handleExitFullScreen" />
         </div>
       </div>
       <div class="jb-ace-main">
@@ -70,31 +96,7 @@
           <slot name="side" />
         </div>
       </div>
-      <div
-        class="jb-ace-action"
-        :style="{ height: `${tabHeight}px` }">
-        <slot name="action" />
-        <template v-if="!readonly && !isFullScreen">
-          <icon
-            v-bk-tooltips="$t('上传脚本')"
-            type="upload"
-            @click="handleUploadScript" />
-          <icon
-            v-bk-tooltips="$t('历史缓存')"
-            type="history"
-            @click.stop="handleShowHistory" />
-        </template>
-        <icon
-          v-if="!isFullScreen"
-          v-bk-tooltips="$t('全屏')"
-          type="full-screen"
-          @click="handleFullScreen" />
-        <icon
-          v-if="isFullScreen"
-          v-bk-tooltips="$t('还原')"
-          type="un-full-screen"
-          @click="handleExitFullScreen" />
-      </div>
+
       <div
         v-if="isShowHistoryPanel"
         ref="historyPanel"
@@ -799,7 +801,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    /* stylelint-disable selector-class-pattern */
+    /* stylelint-disable-next-line selector-class-pattern */
     .ace_editor {
       padding-right: 14px;
       overflow: unset;
@@ -906,11 +908,30 @@
   }
 
   .jb-ace-tips{
+    height: 40px;
+    padding-left: 18px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 40px;
+    color: #979BA5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jb-ace-action {
+    z-index: 1;
     display: flex;
     align-items: center;
-    padding-left: 18px;
-    font-size: 12px;
-    color: #979BA5;
+    padding-right: 9px;
+    margin-left: auto;
+    font-size: 16px;
+    line-height: 1;
+    color: #c4c6cc;
+
+    .job-icon {
+      padding: 10px 9px;
+      cursor: pointer;
+    }
   }
 
   .jb-ace-main {
@@ -927,23 +948,6 @@
     }
   }
 
-  .jb-ace-action {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    padding-right: 9px;
-    font-size: 16px;
-    line-height: 1;
-    color: #c4c6cc;
-
-    .job-icon {
-      padding: 10px 9px;
-      cursor: pointer;
-    }
-  }
 
   .jb-ace-history-panel {
     position: absolute;
