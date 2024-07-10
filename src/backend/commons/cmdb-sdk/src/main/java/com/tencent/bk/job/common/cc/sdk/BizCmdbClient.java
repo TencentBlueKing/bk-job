@@ -1639,7 +1639,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             // 分页设置
             req.setPage(new Page(0, maxFieldValuesPerBatch));
 
-            PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req);
+            PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req, false);
             if (CollectionUtils.isNotEmpty(pageData.getData())) {
                 containers.addAll(pageData.getData());
             }
