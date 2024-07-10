@@ -26,10 +26,11 @@
 -->
 
 <template>
-  <div>
+  <div :style="{'--notice-height': isShowBKNotice ? '40px' : '0px'}">
     <notice-component
       v-if="isEnableBKNotice"
-      :api-url="noticApiUrl" />
+      :api-url="noticApiUrl"
+      @show-alert-change="showNoticChange" />
     <site-frame
       :side-fixed="isFrameSideFixed"
       @on-side-expand="handleSideExpandChange"
@@ -284,7 +285,8 @@
   import {
     computed,
     ref,
-    watch  } from 'vue';
+    watch,
+  } from 'vue';
 
   import QueryGlobalSettingService from '@service/query-global-setting';
 
@@ -314,6 +316,7 @@
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
+  const isShowBKNotice = ref(false);
 
   const route = useRoute();
   const router = useRouter();
@@ -369,6 +372,10 @@
   };
   const handleSideExpandChange = (sideExpand) => {
     isSideExpand.value = sideExpand;
+  };
+
+  const showNoticChange = (value) => {
+    isShowBKNotice.value = value;
   };
   /**
    * @desc 跳转路由

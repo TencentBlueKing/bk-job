@@ -90,13 +90,13 @@
 <script>
   import _ from 'lodash';
 
-  import { getOffset } from '@/utils/assist';
-
   const PAGE_MIN_WIDTH = 1366;
   const PAGE_MIDDLE_WIDTH = 1920;
   const SIDE_LEFT_EXPAND_SMALL_WIDTH = 220;
   const SIDE_LEFT_EXPAND_BIG_WIDTH = 280;
   const SIDE_LEFT_INEXPAND_WIDTH = 60;
+  const SITE_HEADER_HEIGHT = 52;
+  const CONTENT_HEADER_HEIGHT = 52;
 
 
   export default {
@@ -113,8 +113,6 @@
         isSideHover: false,
         pageWidth: PAGE_MIN_WIDTH,
         sideLeftExpandWidth: 0,
-        sideOffsetTop: 52,
-        contentOffsetTop: 104,
       };
     },
     computed: {
@@ -127,7 +125,7 @@
         };
       },
       sideStyles() {
-        const height = `calc(100vh - ${this.sideOffsetTop}px)`;
+        const height = `calc(100vh - ${SITE_HEADER_HEIGHT}px - var(--notice-height))`;
         if (this.isSideHover) {
           return {
             width: `${this.sideLeftExpandWidth}px`,
@@ -149,7 +147,7 @@
       scrollStyles() {
         return {
           width: `calc(100vw - ${this.realSideWidth}px)`,
-          height: `calc(100vh - ${this.contentOffsetTop}px)`,
+          height: `calc(100vh - ${SITE_HEADER_HEIGHT}px - ${CONTENT_HEADER_HEIGHT}px - var(--notice-height))`,
         };
       },
       contentStyles() {
@@ -177,20 +175,9 @@
       const resizeHandler = _.throttle(this.init, 100);
       window.addEventListener('resize', resizeHandler);
 
-      const observer = new MutationObserver(_.throttle(() => {
-        this.sideOffsetTop = getOffset(this.$refs.side).top;
-        this.contentOffsetTop = getOffset(this.$refs.contentScroll.$el).top;
-      }, 100));
 
-      observer.observe(this.$refs.root, {
-        subtree: true,
-        childList: true,
-        attributeName: true,
-      });
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', resizeHandler);
-        observer.takeRecords();
-        observer.disconnect();
       });
     },
     methods: {
