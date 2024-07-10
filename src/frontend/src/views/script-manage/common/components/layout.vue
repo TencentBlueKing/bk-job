@@ -87,7 +87,6 @@
 <style lang='postcss'>
   .script-version-manage-layout {
     position: relative;
-    height: 100vh;
     overflow: hidden;
     background: #292929;
 
