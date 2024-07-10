@@ -239,6 +239,7 @@
               :to="{
                 name: 'viewPlan',
                 params: { templateId: row.id },
+                query: { from: 'taskList' },
               }">
               {{ $t('template.执行方案.label') }}
             </router-link>
