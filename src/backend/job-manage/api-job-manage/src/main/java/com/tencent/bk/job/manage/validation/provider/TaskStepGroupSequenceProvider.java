@@ -22,32 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.validation.provider;
+package com.tencent.bk.job.manage.validation.provider;
 
-import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * web 文件源联合校验
+ * 任务步骤联合校验
  */
-public class WebFileSourceDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<ExecuteFileSourceInfoVO> {
+public class TaskStepGroupSequenceProvider implements DefaultGroupSequenceProvider<TaskStepVO> {
 
     @Override
-    public List<Class<?>> getValidationGroups(ExecuteFileSourceInfoVO fileSource) {
+    public List<Class<?>> getValidationGroups(TaskStepVO bean){
         List<Class<?>> defaultGroupSequence = new ArrayList<>();
-        defaultGroupSequence.add(ExecuteFileSourceInfoVO.class);
-        if (fileSource != null) {
-            Integer fileType = fileSource.getFileType();
-            if (fileType == null || TaskFileTypeEnum.SERVER.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.ServerFileGroup.class);
-            } else if (TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.FileSourceGroup.class);
-            } else if (TaskFileTypeEnum.LOCAL.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.LocalFileGroup.class);
+        defaultGroupSequence.add(TaskStepVO.class);
+
+        if (bean != null) {
+            if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.SCRIPT.getValue())){
+                defaultGroupSequence.add(TaskStepVO.scriptStepGroup.class);
+            } else if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.FILE.getValue())){
+                defaultGroupSequence.add(TaskStepVO.fileStepGroup.class);
+            } else if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.APPROVAL.getValue())){
+                defaultGroupSequence.add(TaskStepVO.approvalStepGroup.class);
             }
         }
         return defaultGroupSequence;

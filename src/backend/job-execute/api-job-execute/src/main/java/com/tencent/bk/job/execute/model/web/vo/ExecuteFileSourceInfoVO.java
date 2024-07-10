@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.ValidFileAbsolutePath;
 import com.tencent.bk.job.execute.validation.provider.WebFileSourceDTOGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
@@ -33,7 +34,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -52,20 +52,24 @@ public class ExecuteFileSourceInfoVO {
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
+    @NotBlankField(groups = LocalFileGroup.class)
     private String fileHash;
 
     @ApiModelProperty(value = "文件大小 仅本地文件有")
+    @NotBlankField(groups = LocalFileGroup.class)
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")
-    @Valid
+    @NotNull(
+        message = "{validation.constraints.InvalidSourceFileHost_empty.message}",
+        groups = ServerFileGroup.class)
     private TaskTargetVO host;
 
     @ApiModelProperty(value = "主机账号")
     @JsonProperty("account")
     @NotNull(
         message = "{validation.constraints.AccountId_empty.message}",
-        groups = ExecuteFileSourceInfoVO.ServerFileGroup.class
+        groups = ServerFileGroup.class
     )
     private Long accountId;
 
@@ -90,6 +94,13 @@ public class ExecuteFileSourceInfoVO {
      * 文件源文件分发分组验证
      */
     public interface FileSourceGroup {
+
+    }
+
+    /**
+     * 本地文件分发分组验证
+     */
+    public interface LocalFileGroup {
 
     }
 }

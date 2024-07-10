@@ -63,18 +63,16 @@ public class ValidationUtil {
         if (value == null) {
             return false;
         }
-        if (value instanceof String && StringUtils.isNotBlank((String) value)) {
-            return true;
+        if (value instanceof String) {
+            return StringUtils.isNotBlank((String) value);
         }
-        if (value instanceof Number && ((Number) value).longValue() > 0) {
-            return true;
+        if (value instanceof Number) {
+            return ((Number) value).longValue() > 0;
         }
-        if (value instanceof Integer && (Integer) value > 0) {
-            return true;
+        if (value instanceof List) {
+            return !((List<?>) value).isEmpty();
         }
-        if (value instanceof List && !((List<?>) value).isEmpty()) {
-            return true;
-        }
-        return false;
+
+        return true;
     }
 }
