@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
@@ -38,7 +37,6 @@ import com.tencent.bk.job.manage.model.tables.TaskPlanStep;
 import com.tencent.bk.job.manage.model.tables.TaskPlanStepScript;
 import com.tencent.bk.job.manage.model.tables.records.TaskPlanStepScriptRecord;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
@@ -247,7 +245,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getScriptVersionId() == null ? null : ULong.valueOf(scriptStep.getScriptVersionId()),
                 scriptStep.getContent(),
                 UByte.valueOf(scriptStep.getLanguage().getValue()),
-                sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(), scriptStep.getScriptParam()),
+                sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(),
+                        scriptStep.getScriptParam()),
                 ULong.valueOf(scriptStep.getTimeout()),
                 ULong.valueOf(scriptStep.getAccount()),
                 scriptStep.getExecuteTarget().toJsonString(),
@@ -325,31 +324,5 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
             .where(conditions).fetchOne();
         assert record != null;
         return record.value1();
-    }
-
-    @Override
-    public Map<Long, TaskTargetDTO> listStepTargets() {
-        Result<?> result = context.select(TABLE.ID, TABLE.DESTINATION_HOST_LIST).fetch();
-        Map<Long, TaskTargetDTO> stepTargets = new HashMap<>();
-        if (result.isNotEmpty()) {
-            result.forEach(record -> {
-                Long recordId = record.get(TABLE.ID).longValue();
-                TaskTargetDTO target = TaskTargetDTO.fromJsonString(record.get(TABLE.DESTINATION_HOST_LIST));
-                stepTargets.put(recordId, target);
-            });
-        }
-        return stepTargets;
-    }
-
-    @Override
-    public boolean updateStepTargets(Long recordId, String value) {
-        if (StringUtils.isBlank(value)) {
-            return false;
-        }
-        int result = context.update(TABLE)
-            .set(TABLE.DESTINATION_HOST_LIST, value)
-            .where(TABLE.ID.eq(JooqDataTypeUtil.buildULong(recordId)))
-            .execute();
-        return result == 1;
     }
 }

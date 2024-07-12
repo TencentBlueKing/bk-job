@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -56,6 +55,7 @@ import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,18 +81,22 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     private final TagService tagService;
     private final AddHostIdForTemplateAndPlanMigrationTask addHostIdService;
 
+    private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
+
     @Autowired
     public ServiceTaskTemplateResourceImpl(
         TaskTemplateService templateService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
         TemplateAuthService templateAuthService,
         TagService tagService,
-        AddHostIdForTemplateAndPlanMigrationTask addHostIdService) {
+        AddHostIdForTemplateAndPlanMigrationTask addHostIdService,
+        TemplateScriptStatusUpdateService templateScriptStatusUpdateService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.templateAuthService = templateAuthService;
         this.tagService = tagService;
         this.addHostIdService = addHostIdService;
+        this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
     }
 
     @Override
@@ -102,8 +106,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Long scriptVersionId,
         Integer status
     ) {
-        return InternalResponse.buildSuccessResp(templateService.updateScriptStatus(appId, scriptId, scriptVersionId,
-            JobResourceStatusEnum.getJobResourceStatus(status)));
+        templateScriptStatusUpdateService.refreshTemplateScriptStatusByScript(scriptId, scriptVersionId);
+        return InternalResponse.buildSuccessResp(null);
     }
 
     @Override

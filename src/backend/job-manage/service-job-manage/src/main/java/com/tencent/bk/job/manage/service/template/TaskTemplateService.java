@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.template;
 
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -172,19 +171,6 @@ public interface TaskTemplateService {
      * @return 是否可用
      */
     boolean checkTemplateName(Long appId, Long templateId, String name);
-
-    /**
-     * 批量更新模版中的脚本引用状态
-     * <p>
-     * 当脚本版本变化时由脚本管理服务调用此接口后台更新模版中的脚本引用状态
-     *
-     * @param appId           业务 ID
-     * @param scriptId        脚本 ID
-     * @param scriptVersionId 脚本版本 ID
-     * @param status          引用状态
-     * @return 更新任务是否入队成功
-     */
-    boolean updateScriptStatus(Long appId, String scriptId, Long scriptVersionId, JobResourceStatusEnum status);
 
     /**
      * 获取用户收藏的作业模版基本信息列表
