@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 单个文件源的文件任务内容
@@ -42,4 +43,13 @@ public class FileSourceTaskContent {
     Integer fileSourceId;
     @ApiModelProperty(value = "文件路径列表")
     List<String> filePathList;
+
+    /**
+     * 获取去重后的文件路径列表
+     *
+     * @return 去重后的文件路径列表
+     */
+    public List<String> getUniqueFilePathList() {
+        return filePathList.stream().distinct().collect(Collectors.toList());
+    }
 }
