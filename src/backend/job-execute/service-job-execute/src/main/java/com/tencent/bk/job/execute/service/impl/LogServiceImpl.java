@@ -405,8 +405,15 @@ public class LogServiceImpl implements LogService {
             resp = logResource.getFileHostLogByHostId(taskCreateDateStr, stepInstanceId, actualExecuteCount,
                 executeObject.getHost().getHostId(), executeObjectTask.getFileTaskMode().getValue(), batch);
         }
-
-        List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
+        if (resp == null || resp.getData() == null) {
+            log.warn("Get file execute object log, api response is empty");
+            return null;
+        }
+        List<ServiceFileTaskLogDTO> fileTaskLogs = resp.getData().getFileTaskLogs();
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
+            log.warn("Get file execute object log, file task logs are empty");
+            return null;
+        }
         ExecuteObjectTaskStatusEnum executeObjectTaskStatus = executeObjectTask.getStatus();
         boolean isFinished = executeObjectTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
         return new FileExecuteObjectLogContent(stepInstanceId, executeCount, executeObject,
@@ -473,10 +480,29 @@ public class LogServiceImpl implements LogService {
             .map(fileTaskLog ->
                 AtomicFileTaskLog.fromServiceExecuteObjectLogDTO(
                     fileTaskLog,
-                    fileTaskLogParam -> srcKeyExtractor.apply(fileTaskLogParam) == null ?
-                        null : executeObjectMap.get(srcKeyExtractor.apply(fileTaskLogParam)),
-                    fileTaskLogParam -> destKeyExtractor.apply(fileTaskLogParam) == null ?
-                        null : executeObjectMap.get(destKeyExtractor.apply(fileTaskLogParam))))
+                    fileTaskLogParam -> {
+                        K srcKey = srcKeyExtractor.apply(fileTaskLogParam);
+                        if (srcKey == null) {
+                            return null;
+                        }
+                        ExecuteObject executeObject = executeObjectMap.get(srcKey);
+                        if (executeObject == null) {
+                            log.warn("Can not find src execute object by key : {}", srcKey);
+                        }
+                        return executeObject;
+                    },
+                    fileTaskLogParam -> {
+                        K destKey = destKeyExtractor.apply(fileTaskLog);
+                        if (destKey == null) {
+                            return null;
+                        }
+                        ExecuteObject executeObject = executeObjectMap.get(destKey);
+                        if (executeObject == null) {
+                            log.warn("Can not find dest execute object by key : {}", destKey);
+                        }
+                        return executeObject;
+                    }
+                ))
             .collect(Collectors.toList());
     }
 
