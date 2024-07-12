@@ -53,7 +53,7 @@ import static java.lang.annotation.ElementType.TYPE;
 @Target({TYPE, FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ConditionalCheckFieldsStrictValue {
-    String message() default "{primaryField}{validation.constraints.NotBlankField.message}";
+    String message() default "{validation.constraints.NotBlankField.message}";
 
     Class<?>[] groups() default {};
 

@@ -32,6 +32,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 检查脚本集请求
@@ -52,7 +53,11 @@ public class ServiceCheckScriptRequest {
      * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
     @ApiModelProperty("脚本类型")
-    @CheckEnum(notNull = true, enumClass = ScriptTypeEnum.class, enumMethod = "isValid")
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}"
+    )
     private Integer scriptType;
 
     public ServiceCheckScriptRequest(String scriptContent, Integer scriptType) {

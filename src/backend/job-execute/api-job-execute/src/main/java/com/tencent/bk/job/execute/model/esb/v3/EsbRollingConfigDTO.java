@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 滚动执行配置
  */
@@ -45,10 +47,10 @@ public class EsbRollingConfigDTO {
      *
      * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
+    @NotNull(message = "{validation.constraints.InvalidRollingMode_empty.message}")
     @CheckEnum(
         enumClass = RollingModeEnum.class,
-        notNull = true,
-        message = "validation.constraints.InvalidRollingMode_illegal.message"
+        message = "{validation.constraints.InvalidRollingMode_illegal.message}"
     )
     private Integer mode;
 

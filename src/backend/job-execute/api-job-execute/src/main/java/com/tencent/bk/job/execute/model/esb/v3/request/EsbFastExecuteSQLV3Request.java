@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
@@ -37,6 +36,8 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -65,9 +66,9 @@ public class EsbFastExecuteSQLV3Request extends EsbAppScopeReq {
      * 执行账号
      */
     @JsonProperty("db_account_id")
-    @CheckNumber(
-        min = ValidationConstants.COMMON_MIN_1_STR,
-        notNull = true,
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.AccountId_empty.message}"
     )
     private Long dbAccountId;

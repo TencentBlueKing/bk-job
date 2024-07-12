@@ -37,6 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -59,8 +60,8 @@ public class ImportRequest {
      * @see com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum
      */
     @ApiModelProperty(value = "冲突 ID 处理，0-不保留，自增 1-保留，冲突时自增 2-保留，冲突时不导入", required = true)
+    @NotNull(message = "{validation.constraints.InvalidImportDuplicateIdHandler_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = DuplicateIdHandlerEnum.class,
         message = "{validation.constraints.InvalidImportDuplicateIdHandler_illegal.message}"
     )

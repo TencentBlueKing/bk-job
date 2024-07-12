@@ -26,12 +26,13 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @Data
 public class ExecuteFileDestinationInfoVO {
@@ -40,9 +41,9 @@ public class ExecuteFileDestinationInfoVO {
 
     @ApiModelProperty("执行账号")
     @JsonProperty("account")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.AccountId_empty.message}"
     )
     private Long accountId;

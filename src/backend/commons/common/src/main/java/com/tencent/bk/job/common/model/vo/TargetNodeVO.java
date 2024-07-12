@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
@@ -36,15 +35,18 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 @Slf4j
 @Data
 @ApiModel("目标节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TargetNodeVO {
     @ApiModelProperty(value = "节点 ID，对应拓扑树节点中的instanceId", required = true)
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.TopoNodeId_null.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.TopoNodeId_null.message}"
     )
     private Long instanceId;

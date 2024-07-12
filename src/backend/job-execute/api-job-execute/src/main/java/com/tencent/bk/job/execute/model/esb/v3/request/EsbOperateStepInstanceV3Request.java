@@ -27,11 +27,13 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 步骤操作请求
@@ -44,9 +46,9 @@ public class EsbOperateStepInstanceV3Request extends EsbAppScopeReq {
      * 作业实例ID
      */
     @JsonProperty("job_instance_id")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.InvalidJobInstanceId.message}"
     )
     private Long taskInstanceId;
@@ -55,9 +57,9 @@ public class EsbOperateStepInstanceV3Request extends EsbAppScopeReq {
      * 步骤实例ID
      */
     @JsonProperty("step_instance_id")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.InvalidStepInstanceId.message}"
     )
     private Long stepInstanceId;
@@ -66,8 +68,8 @@ public class EsbOperateStepInstanceV3Request extends EsbAppScopeReq {
      * 操作类型：2、失败IP重做，3、忽略错误，4、执行，5、跳过，6、确认继续 8、全部重试，9、终止确认流程，10、重新发起确认，11、进入下一步
      */
     @JsonProperty("operation_code")
+    @NotNull(message = "{validation.constraints.InvalidStepOperationType_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = StepOperationEnum.class,
         message = "{validation.constraints.InvalidStepOperationType_illegal.message}"
     )

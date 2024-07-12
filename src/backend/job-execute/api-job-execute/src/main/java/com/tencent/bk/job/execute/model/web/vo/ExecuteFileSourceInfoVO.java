@@ -52,11 +52,17 @@ public class ExecuteFileSourceInfoVO {
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
-    @NotBlankField(groups = LocalFileGroup.class)
+    @NotBlankField(
+        message = "{validation.constraints.InvalidFileHashValue_empty.message}",
+        groups = LocalFileGroup.class
+    )
     private String fileHash;
 
     @ApiModelProperty(value = "文件大小 仅本地文件有")
-    @NotBlankField(groups = LocalFileGroup.class)
+    @NotBlankField(
+        message = "{validation.constraints.InvalidFileSize_empty.message}",
+        groups = LocalFileGroup.class
+    )
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")

@@ -53,7 +53,7 @@ import static java.lang.annotation.ElementType.TYPE;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(ValidFieldsStrictValueContainer.class)
 public @interface ValidFieldsStrictValue {
-    String message() default "{fieldNames}{validation.constraints.NotBlankAtLeastOneField.message}";
+    String message() default "{validation.constraints.NotBlankAtLeastOneField.message}";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
     String[] fieldNames();

@@ -27,20 +27,22 @@ package com.tencent.bk.job.execute.model.web.vo;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @Data
 @ApiModel("全局变量信息")
 public class ExecuteVariableVO {
 
     @ApiModelProperty(value = "变量 ID")
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.InvalidGlobalVarId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.InvalidGlobalVarId.message}"
     )
     private Long id;
@@ -49,8 +51,8 @@ public class ExecuteVariableVO {
     private String name;
 
     @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组")
+    @NotNull(message = "{validation.constraints.InvalidGlobalVarType_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = TaskVariableTypeEnum.class,
         message = "{validation.constraints.InvalidGlobalVarType_illegal.message}"
     )

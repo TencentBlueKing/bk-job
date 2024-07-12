@@ -59,8 +59,10 @@ public class AccountCreateUpdateReq {
     private String account;
 
     @ApiModelProperty(value = "账号类型，新建的时候需要传入；1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2")
+    @NotNull(
+        message = "{validation.constraints.AccountType_empty.message}",
+        groups = Default.class)
     @CheckEnum(
-        notNull = true,
         enumClass = AccountTypeEnum.class,
         message = "{validation.constraints.AccountType_illegal.message}",
         groups = Default.class
@@ -68,8 +70,10 @@ public class AccountCreateUpdateReq {
     private Integer type;
 
     @ApiModelProperty(value = "账号用途，新建的时候需要传入；1-系统账号，2-数据库账号")
+    @NotNull(
+        message = "{validation.constraints.AccountCategory_empty.message}",
+        groups = Default.class)
     @CheckEnum(
-        notNull = true,
         enumClass = AccountCategoryEnum.class,
         message = "{validation.constraints.AccountCategory_illegal.message}",
         groups = Default.class

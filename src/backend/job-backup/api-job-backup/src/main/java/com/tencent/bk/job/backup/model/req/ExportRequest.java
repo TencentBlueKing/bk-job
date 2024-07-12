@@ -40,6 +40,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -62,8 +63,8 @@ public class ExportRequest {
      * @see com.tencent.bk.job.backup.constant.SecretHandlerEnum
      */
     @ApiModelProperty(value = "密文变量处理方式 1-保存为空值 2-保存真实值", required = true)
+    @NotNull(message = "{validation.constraints.InvalidExportSecretHandler_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = SecretHandlerEnum.class,
         message = "{validation.constraints.InvalidExportSecretHandler_illegal.message}"
     )
@@ -73,7 +74,7 @@ public class ExportRequest {
      * 密码
      */
     @ApiModelProperty(value = "密码", required = true)
-    @NotBlankField
+    @NotBlankField(message = "{validation.constraints.InvalidExportPassword_empty.message}")
     @Length(
         max = ValidationConstants.COMMON_MAX_32,
         message = "{validation.constraints.InvalidExportPassword_outOfLength.message}"

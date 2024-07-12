@@ -39,10 +39,13 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源名称")
     @NotBlankField(
-        fieldName = "alias",
+        message = "{validation.constraints.InvalidFileSourceAlias_empty.message}",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "alias", groups = {Create.class, Update.class})
+    @NotContainSpecialChar(
+        message = "{validation.constraints.InvalidFileSourceAlias_illegal.message}",
+        groups = {Create.class, Update.class}
+    )
     private String alias;
 
     /**
@@ -50,10 +53,13 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源类型")
     @NotBlankField(
-        fieldName = "type",
+        message = "{validation.constraints.InvalidFileSourceType_empty.message}",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "type", groups = {Create.class, Update.class})
+    @NotContainSpecialChar(
+        message = "{validation.constraints.InvalidFileSourceType_illegal.message}",
+        groups = {Create.class, Update.class}
+    )
     private String type;
 
     /**
@@ -72,7 +78,10 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
         message = "{validation.constraints.InvalidFileSourceCredentialId_empty.message}",
         groups = {Create.class}
     )
-    @NotContainSpecialChar(fieldName = "credential_id", groups = {Create.class, Update.class})
+    @NotContainSpecialChar(
+        message = "{validation.constraints.InvalidFileSourceCredentialId_illegal.message}",
+        groups = {Create.class, Update.class}
+    )
     private String credentialId;
 
     /**

@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
@@ -39,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 根据ip查询作业执行日志 -V3
@@ -65,15 +67,15 @@ public interface EsbGetJobInstanceIpLogV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @CheckNumber(
-            notNull = true,
-            min = ValidationConstants.COMMON_MIN_1_STR,
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
             message = "{validation.constraints.InvalidJobInstanceId.message}"
         )
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
-        @CheckNumber(
-            notNull = true,
-            min = ValidationConstants.COMMON_MIN_1_STR,
+        @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
             message = "{validation.constraints.InvalidStepInstanceId.message}"
         )
         @RequestParam(value = "step_instance_id") Long stepInstanceId,

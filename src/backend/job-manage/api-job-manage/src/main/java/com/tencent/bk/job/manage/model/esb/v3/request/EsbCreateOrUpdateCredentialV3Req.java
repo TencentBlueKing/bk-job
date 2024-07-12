@@ -34,6 +34,8 @@ import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 新建凭证请求
  */
@@ -64,8 +66,11 @@ public class EsbCreateOrUpdateCredentialV3Req extends EsbAppScopeReq {
      */
     @CheckEnum(
         enumClass = CredentialTypeEnum.class,
-        notNull = true,
         message = "{validation.constraints.CredentialType_illegal.message}",
+        groups = Create.class
+    )
+    @NotNull(
+        message = "{validation.constraints.CredentialType_empty.message}",
         groups = Create.class
     )
     private String type;

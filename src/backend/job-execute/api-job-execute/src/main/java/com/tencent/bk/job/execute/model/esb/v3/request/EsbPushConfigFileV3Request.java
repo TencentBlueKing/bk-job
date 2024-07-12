@@ -116,12 +116,12 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
     public static class EsbConfigFileDTO {
 
         @JsonProperty("file_name")
-        @NotBlankField(fieldName = "file_name")
+        @NotBlankField(message = "{validation.constraints.InvalidFileName_empty.message}")
         private String fileName;
         /**
          * 文件内容Base64
          */
-        @NotBlankField(fieldName = "content")
+        @NotBlankField(message = "{validation.constraints.InvalidFileContent_empty.message}")
         private String content;
     }
 

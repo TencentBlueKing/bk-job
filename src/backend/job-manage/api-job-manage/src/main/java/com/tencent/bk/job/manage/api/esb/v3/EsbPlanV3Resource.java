@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanListV3Request;
@@ -42,6 +41,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * @since 15/10/2020 16:20
@@ -77,9 +79,9 @@ public interface EsbPlanV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @CheckNumber(
-            notNull = true,
-            min = ValidationConstants.COMMON_MIN_1_STR,
+        @NotNull(message = "{validation.constraints.InvalidPlanId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
             message = "{validation.constraints.InvalidPlanId.message}"
         )
         @RequestParam(value = "job_plan_id") Long planId);

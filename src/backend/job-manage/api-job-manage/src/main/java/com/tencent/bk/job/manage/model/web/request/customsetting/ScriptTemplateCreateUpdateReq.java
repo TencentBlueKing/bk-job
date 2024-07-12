@@ -30,6 +30,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * 用户自定义脚本模板新增、更新请求
  */
@@ -41,8 +43,8 @@ public class ScriptTemplateCreateUpdateReq {
      * 脚本语言
      */
     @ApiModelProperty(value = "脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql", required = true)
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = ScriptTypeEnum.class,
         message = "{validation.constraints.ScriptType_illegal.message}"
     )

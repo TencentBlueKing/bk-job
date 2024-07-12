@@ -31,6 +31,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * 脚本检查请求报文
@@ -43,8 +44,8 @@ public class ScriptCheckReq {
     @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
     private String content;
     @ApiModelProperty(value = "脚本类型，1：Shell，2：Bat，3：Python，4：Perl，5：Powershell，6：SQL")
+    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
     @CheckEnum(
-        notNull = true,
         enumClass = ScriptTypeEnum.class,
         message = "{validation.constraints.ScriptType_illegal.message}"
     )

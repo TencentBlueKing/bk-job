@@ -79,10 +79,6 @@ public class ConditionalCheckEnumValidator implements ConstraintValidator<Condit
             public boolean notNull() {
                 return constraintAnnotation.notNull();
             }
-            @Override
-            public String fieldName() {
-                return constraintAnnotation.fieldName();
-            }
         });
     }
 

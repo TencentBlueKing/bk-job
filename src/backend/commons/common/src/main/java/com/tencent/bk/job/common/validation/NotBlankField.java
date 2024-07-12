@@ -44,13 +44,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Repeatable(NotBlankField.List.class)
 @Retention(RUNTIME)
 public @interface NotBlankField {
-    String message() default "{fieldName}{validation.constraints.NotBlankField.message}";
+    String message() default "{validation.constraints.NotBlankField.message}";
 
     Class<?>[] groups() default { };
 
     Class<? extends Payload>[] payload() default { };
-
-    String fieldName() default "";
 
     @Target({ FIELD, METHOD, PARAMETER, ANNOTATION_TYPE })
     @Retention(RUNTIME)

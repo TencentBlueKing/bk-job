@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceStatusV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceStatusV3Request;
@@ -39,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 根据作业实例 ID 查询作业执行状态API-V3
@@ -65,9 +67,9 @@ public interface EsbGetJobInstanceStatusV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
-        @CheckNumber(
-            notNull = true,
-            min = ValidationConstants.COMMON_MIN_1_STR,
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
             message = "{validation.constraints.InvalidJobInstanceId.message}"
         )
         @RequestParam(value = "job_instance_id") Long taskInstanceId,

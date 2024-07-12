@@ -24,13 +24,14 @@
 
 package com.tencent.bk.job.execute.model.inner.request;
 
-import com.tencent.bk.job.common.validation.CheckNumber;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -40,9 +41,9 @@ import java.util.List;
 @ApiModel("获取定时作业执行统计信息")
 public class ServiceGetCronTaskExecuteStatisticsRequest {
     @ApiModelProperty(value = "业务ID", required = true)
-    @CheckNumber(
-        notNull = true,
-        min = ValidationConstants.COMMON_MIN_1_STR,
+    @NotNull(message = "{validation.constraints.InvalidBkBizId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
         message = "{validation.constraints.InvalidBkBizId.message}"
     )
     private Long appId;

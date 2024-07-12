@@ -54,7 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface CheckEnum {
 
-    String message() default "{fieldName}{validation.constraints.InvalidEnumValue.message}";
+    String message() default "{validation.constraints.InvalidEnumValue.message}";
 
     Class<?>[] groups() default {};
 
@@ -66,8 +66,6 @@ public @interface CheckEnum {
 
     // value是否允许为null，默认允许
     boolean notNull() default false;
-
-    String fieldName() default "";
 
     @Slf4j
     class Validator implements ConstraintValidator<CheckEnum, Object> {
