@@ -437,6 +437,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         stepScriptStatusInfo.setTemplateId(record.get(TABLE.TEMPLATE_ID).longValue());
         stepScriptStatusInfo.setStepId(record.get(TABLE.STEP_ID).longValue());
         stepScriptStatusInfo.setScriptStatusFlags(record.get(TABLE.STATUS).intValue());
+        stepScriptStatusInfo.setScriptId(record.get(TABLE.SCRIPT_ID));
+        stepScriptStatusInfo.setScriptVersionId(record.get(TABLE.SCRIPT_VERSION_ID).longValue());
         return stepScriptStatusInfo;
     }
 

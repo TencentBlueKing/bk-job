@@ -66,6 +66,9 @@ public class TemplateScriptStatusUpdateService {
         try {
             watch.start("getTemplateStepScriptStatusInfos");
             List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(templateId);
+            if (log.isDebugEnabled()) {
+                log.debug("Affected steps : {}", steps);
+            }
             watch.stop();
             updateScriptStatusFlags(watch, steps);
             log.info("Refresh template script status flags by templateId success");
@@ -89,6 +92,9 @@ public class TemplateScriptStatusUpdateService {
         try {
             watch.start("getTemplateStepScriptStatusInfos");
             List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(scriptId, scriptVersionId);
+            if (log.isDebugEnabled()) {
+                log.debug("Affected steps : {}", steps);
+            }
             watch.stop();
             updateScriptStatusFlags(watch, steps);
             log.info("Refresh template script status flags by script success");
@@ -105,6 +111,7 @@ public class TemplateScriptStatusUpdateService {
 
     private void updateScriptStatusFlags(StopWatch watch, List<TemplateStepScriptStatusInfo> steps) {
         if (CollectionUtils.isEmpty(steps)) {
+            log.info("None template and step script status need update!");
             return;
         }
         // 查询脚本状态实时数据并重置
