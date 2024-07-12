@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@ConfigurationProperties(prefix = "spring.datasource")
-public class DatasourceProperties {
-
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({ShardingsphereProperties.class})
+public class ShardingDatasourceAutoConfiguration {
 }

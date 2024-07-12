@@ -1,0 +1,44 @@
+shardingsphere:
+  dataSourceClusters:
+    task_instance:
+      dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+      driverClassName: com.mysql.jdbc.Driver
+      username: root
+      password: job@123
+      dataSources:
+        - name: ds_1
+          jdbcUrl: jdbc:mysql://localhost:3306/job_execute
+        - index: ds_2
+          jdbcUrl: jdbc:mysql://localhost:3306/job_execute
+  rules:
+    tables:
+      task_instance:
+        dataSourceCluster: task_instance
+        actualDataNodes: ds_${0..1}.task_instance_${0..1}
+        tableStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: task_instance_inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: leaf
+      step_instance:
+        dataSourceCluster: task_instance
+        actualDataNodes: ds_${0..1}.step_instance_${0..1}
+        tableStrategy:
+          standard:
+            shardingColumn: task_instance_id
+            shardingAlgorithmName: step_instance_inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: leaf
+
+    shardingAlgorithms:
+      task_instance_inline:
+        type: INLINE
+        props:
+          algorithm-expression: task_instance_${id % 2}
+      step_instance_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_${task_instance_id % 2}
