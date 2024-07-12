@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.template.impl;
 
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.manage.common.util.TemplateScriptStatusFlagsUtil;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateScriptStepDAO;
@@ -196,11 +197,11 @@ public class TemplateScriptStatusUpdateService {
     private int toScriptStatusBinaryFlags(JobResourceStatusEnum scriptStatus) {
         switch (scriptStatus) {
             case ONLINE:
-                return computeScriptStatusFlags(false, false);
+                return TemplateScriptStatusFlagsUtil.computeScriptStatusFlags(false, false);
             case OFFLINE:
-                return computeScriptStatusFlags(true, false);
+                return TemplateScriptStatusFlagsUtil.computeScriptStatusFlags(true, false);
             case DISABLED:
-                return computeScriptStatusFlags(false, true);
+                return TemplateScriptStatusFlagsUtil.computeScriptStatusFlags(false, true);
             default:
                 log.error("Unexpected script status");
                 throw new IllegalStateException("Unexpected script status [" + scriptStatus + "]");
@@ -219,30 +220,9 @@ public class TemplateScriptStatusUpdateService {
     private int computeTemplateScriptStatusFlags(
         List<TemplateStepScriptStatusInfo> templateStepScriptStatusInfos) {
         boolean existOfflineScript = templateStepScriptStatusInfos.stream()
-            .anyMatch(steps -> readOfflineFlag(steps.getScriptStatusFlags()));
+            .anyMatch(steps -> TemplateScriptStatusFlagsUtil.readOfflineFlag(steps.getScriptStatusFlags()));
         boolean existDisabledScript = templateStepScriptStatusInfos.stream()
-            .anyMatch(steps -> readDisableFlag(steps.getScriptStatusFlags()));
-        return computeScriptStatusFlags(existOfflineScript, existDisabledScript);
-    }
-
-    private boolean readOfflineFlag(int scriptStatusFlags) {
-        return (scriptStatusFlags & 0x1) == 1;
-    }
-
-    private boolean readDisableFlag(int scriptStatusFlags) {
-        return ((scriptStatusFlags >> 1) & 0x1) == 1;
-    }
-
-    private int computeScriptStatusFlags(boolean isOffline, boolean isDisabled) {
-        int scriptStatusBinaryFlags = 0;
-
-        if (isOffline) {
-            scriptStatusBinaryFlags |= 0b1;
-        }
-        if (isDisabled) {
-            scriptStatusBinaryFlags |= 0b10;
-        }
-
-        return scriptStatusBinaryFlags;
+            .anyMatch(steps -> TemplateScriptStatusFlagsUtil.readDisableFlag(steps.getScriptStatusFlags()));
+        return TemplateScriptStatusFlagsUtil.computeScriptStatusFlags(existOfflineScript, existDisabledScript);
     }
 }
