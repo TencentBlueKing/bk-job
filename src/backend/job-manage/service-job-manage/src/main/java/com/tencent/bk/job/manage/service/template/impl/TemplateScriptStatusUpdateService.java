@@ -31,8 +31,10 @@ import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.TemplateStepScriptStatusInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 import java.util.HashMap;
 import java.util.List;
@@ -59,9 +61,23 @@ public class TemplateScriptStatusUpdateService {
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void refreshTemplateScriptStatusByTemplate(long templateId) {
         log.info("Refresh template script status flags by templateId : {}", templateId);
-        List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(templateId);
-        updateScriptStatusFlags(steps);
-        log.info("Refresh template script status flags by templateId success");
+
+        StopWatch watch = new StopWatch("refreshTemplateScriptStatusByTemplate");
+        try {
+            watch.start("getTemplateStepScriptStatusInfos");
+            List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(templateId);
+            watch.stop();
+            updateScriptStatusFlags(watch, steps);
+            log.info("Refresh template script status flags by templateId success");
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000L) {
+                log.info("RefreshTemplateScriptStatusByTemplate is slow, cost: {}", watch.prettyPrint());
+            }
+        }
+
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
@@ -69,19 +85,42 @@ public class TemplateScriptStatusUpdateService {
         log.info("Refresh template script status flags by script, scriptId: {}, scriptVersionId: {}",
             scriptId, scriptVersionId);
 
-        List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(scriptId, scriptVersionId);
-        updateScriptStatusFlags(steps);
+        StopWatch watch = new StopWatch("refreshTemplateScriptStatusByScript");
+        try {
+            watch.start("getTemplateStepScriptStatusInfos");
+            List<TemplateStepScriptStatusInfo> steps = getTemplateStepScriptStatusInfos(scriptId, scriptVersionId);
+            watch.stop();
+            updateScriptStatusFlags(watch, steps);
+            log.info("Refresh template script status flags by script success");
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (watch.getTotalTimeMillis() > 1000L) {
+                log.info("RefreshTemplateScriptStatusByScript is slow, cost: {}", watch.prettyPrint());
+            }
 
-        log.info("Refresh template script status flags by script success");
+        }
     }
 
-    private void updateScriptStatusFlags(List<TemplateStepScriptStatusInfo> steps) {
+    private void updateScriptStatusFlags(StopWatch watch, List<TemplateStepScriptStatusInfo> steps) {
+        if (CollectionUtils.isEmpty(steps)) {
+            return;
+        }
         // 查询脚本状态实时数据并重置
+        watch.start("resetStepsScriptStatusFlags");
         resetStepsScriptStatusFlags(steps);
+        watch.stop();
+
         // 更新步骤脚本状态
+        watch.start("updateStepsScriptStatusFlags");
         updateStepsScriptStatusFlags(steps);
+        watch.stop();
+
+        watch.start("updateTemplateScriptStatusFlags");
         // 更新模版整体脚本状态
         updateTemplateScriptStatusFlags(steps);
+        watch.stop();
     }
 
     private List<TemplateStepScriptStatusInfo> getTemplateStepScriptStatusInfos(String scriptId,
@@ -104,12 +143,14 @@ public class TemplateScriptStatusUpdateService {
         scriptStatusFlagsGroups.forEach((scriptStatusFlags, steps) -> {
             List<Long> stepIds = steps.stream()
                 .map(TemplateStepScriptStatusInfo::getStepId).distinct().collect(Collectors.toList());
+            log.info("Update template steps script status flags, stepIds: {}, scriptStatusFlags: {}",
+                stepIds, scriptStatusFlags);
             taskTemplateScriptStepDAO.batchUpdateScriptStatusFlags(stepIds, scriptStatusFlags);
         });
     }
 
     /*
-     * 更新模版上的脚本状态flags
+     * 更新模版整体脚本状态flags
      */
     private void updateTemplateScriptStatusFlags(List<TemplateStepScriptStatusInfo> templateStepScriptStatusInfos) {
         Map<Long, List<TemplateStepScriptStatusInfo>> templateSteps =
@@ -118,6 +159,9 @@ public class TemplateScriptStatusUpdateService {
         Map<Long, Integer> templateScriptStatusFlagsMap = new HashMap<>();
         templateSteps.forEach((templateId, steps) ->
             templateScriptStatusFlagsMap.put(templateId, computeTemplateScriptStatusFlags(steps)));
+
+        log.info("Update template script status flags, templateScriptStatusFlagsMap: {}",
+            templateScriptStatusFlagsMap);
 
         // 先按照状态组织数据，方便后续进行批量更新
         Map<Integer, List<Long>> scriptStatusFlagsGroups =
