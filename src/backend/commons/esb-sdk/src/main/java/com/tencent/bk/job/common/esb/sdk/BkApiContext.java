@@ -54,6 +54,15 @@ public class BkApiContext<T, R> {
      * API 调用耗时
      */
     private long costTime;
+
+    /**
+     * API 响应耗时
+     */
+    private long requestCostTime;
+    /**
+     * 响应数据反序列化耗时
+     */
+    private long deserializeCostTime;
     /**
      * API 是否调用成功并正确响应
      */
