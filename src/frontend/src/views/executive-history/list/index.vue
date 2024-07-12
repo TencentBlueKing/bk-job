@@ -31,7 +31,7 @@
       <jb-search-select
         ref="search"
         :data="searchSelect"
-        :placeholder="$t('history.搜索任务ID，任务名称，执行方式，任务类型，任务状态，执行人...')"
+        :placeholder="$t('history.搜索任务ID，任务名称，执行方式，任务类型，任务状态，执行人')"
         style="width: 600px;"
         @on-change="handleSearch" />
       <template #right>
@@ -77,7 +77,7 @@
         v-if="allRenderColumnMap.name"
         key="name"
         align="left"
-        :label="$t('history.任务名称.colHead')"
+        :label="$t('history.任务名称_colHead')"
         min-width="200"
         prop="name"
         show-overflow-tooltip />
@@ -85,21 +85,21 @@
         v-if="allRenderColumnMap.startupModeDesc"
         key="startupModeDesc"
         align="left"
-        :label="$t('history.执行方式.colHead')"
+        :label="$t('history.执行方式_colHead')"
         prop="startupModeDesc"
         width="120" />
       <bk-table-column
         v-if="allRenderColumnMap.typeDesc"
         key="typeDesc"
         align="left"
-        :label="$t('history.任务类型.colHead')"
+        :label="$t('history.任务类型_colHead')"
         prop="typeDesc"
         width="140" />
       <bk-table-column
         v-if="allRenderColumnMap.statusDesc"
         key="statusDesc"
         align="left"
-        :label="$t('history.任务状态.colHead')"
+        :label="$t('history.任务状态_colHead')"
         prop="statusDesc"
         width="140">
         <template slot-scope="{ row }">
@@ -117,14 +117,14 @@
         v-if="allRenderColumnMap.operator"
         key="operator"
         align="left"
-        :label="$t('history.执行人.colHead')"
+        :label="$t('history.执行人_colHead')"
         prop="operator"
         width="140" />
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
         align="left"
-        :label="$t('history.开始时间.colHead')"
+        :label="$t('history.开始时间_colHead')"
         prop="createTime"
         width="180" />
       <bk-table-column
@@ -245,7 +245,7 @@
           },
         },
         {
-          name: I18n.t('history.任务名称.colHead'),
+          name: I18n.t('history.任务名称_colHead'),
           id: 'taskName',
           default: true,
         },
@@ -276,7 +276,7 @@
           ],
         },
         {
-          name: I18n.t('history.执行方式.colHead'),
+          name: I18n.t('history.执行方式_colHead'),
           id: 'startupModes',
           children: [
             {
@@ -294,7 +294,7 @@
           ],
         },
         {
-          name: I18n.t('history.任务类型.colHead'),
+          name: I18n.t('history.任务类型_colHead'),
           id: 'taskType',
           children: [
             {
@@ -312,7 +312,7 @@
           ],
         },
         {
-          name: I18n.t('history.任务状态.colHead'),
+          name: I18n.t('history.任务状态_colHead'),
           id: 'status',
           children: [
             {
@@ -358,7 +358,7 @@
           ],
         },
         {
-          name: I18n.t('history.执行人.colHead'),
+          name: I18n.t('history.执行人_colHead'),
           id: 'operator',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -418,30 +418,30 @@
         },
         {
           id: 'name',
-          label: I18n.t('history.任务名称.colHead'),
+          label: I18n.t('history.任务名称_colHead'),
           disabled: true,
         },
         {
           id: 'startupModeDesc',
-          label: I18n.t('history.执行方式.colHead'),
+          label: I18n.t('history.执行方式_colHead'),
           disabled: true,
         },
         {
           id: 'typeDesc',
-          label: I18n.t('history.任务类型.colHead'),
+          label: I18n.t('history.任务类型_colHead'),
         },
         {
           id: 'statusDesc',
-          label: I18n.t('history.任务状态.colHead'),
+          label: I18n.t('history.任务状态_colHead'),
           disabled: true,
         },
         {
           id: 'operator',
-          label: I18n.t('history.执行人.colHead'),
+          label: I18n.t('history.执行人_colHead'),
         },
         {
           id: 'createTime',
-          label: I18n.t('history.开始时间.colHead'),
+          label: I18n.t('history.开始时间_colHead'),
         },
         {
           id: 'totalTimeText',

@@ -38,7 +38,7 @@
         <jb-input
           v-model="formData.name"
           :maxlength="30"
-          :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
+          :placeholder="$t('template.变量名仅支持大小写英文字母或下划线_必填')" />
       </jb-form-item>
       <jb-form-item
         ref="defaultTargetValue"
@@ -70,7 +70,7 @@
         <bk-input
           v-model="formData.description"
           maxlength="100"
-          :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
+          :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息_可选')"
           type="textarea" />
       </jb-form-item>
       <jb-form-item style="margin-bottom: 0;">

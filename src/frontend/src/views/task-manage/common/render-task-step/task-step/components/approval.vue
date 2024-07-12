@@ -36,7 +36,7 @@
       field="name"
       :form-data="formData"
       name="stepName"
-      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名')"
       @on-change="handleNameChange" />
     <jb-form-item
       :label="$t('template.确认人')"

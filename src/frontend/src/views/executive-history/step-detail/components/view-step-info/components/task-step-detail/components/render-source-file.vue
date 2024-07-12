@@ -70,7 +70,7 @@
               <th style="width: 40%;">
                 {{ $t('文件名称') }}
               </th>
-              <th>{{ $t('文件源.text') }}</th>
+              <th>{{ $t('文件源_text') }}</th>
             </thead>
             <tbody class="source-file-list">
               <tr

@@ -51,7 +51,7 @@
           v-if="selectNums > 0"
           class="jb-table-select-tips">
           <!-- eslint-disable-next-line max-len -->
-          <span>{{ $t('已选择.select') }}<span class="number strong">{{ selectNums }}</span>{{ $t('条.total') }}</span>
+          <span>{{ $t('已选择_select') }}<span class="number strong">{{ selectNums }}</span>{{ $t('条_total') }}</span>
           <span
             class="action-clear"
             @click="handleClearAllSelect">，{{ $t('清除所有勾选') }}</span>

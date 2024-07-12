@@ -143,10 +143,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('资源.menuGroup') }}
+                {{ $t('资源_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('资源.flodTitle') }}
+                {{ $t('资源_flodTitle') }}
               </div>
               <jb-item index="scriptManage">
                 <icon type="job-script" />
@@ -159,14 +159,14 @@
             </jb-item-group>
             <jb-item-group v-if="isEnableFeatureFileManage">
               <div slot="title">
-                {{ $t('文件源.menuGroup') }}
+                {{ $t('文件源_menuGroup') }}
               </div>
               <div slot="flod-title">
                 {{ $t('文件') }}
               </div>
               <jb-item index="fileManage">
                 <icon type="file-fill" />
-                {{ $t('文件源.menu') }}
+                {{ $t('文件源_menu') }}
               </jb-item>
               <jb-item index="ticketManage">
                 <icon type="certificate" />
@@ -175,10 +175,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('管理.menuGroup') }}
+                {{ $t('管理_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('管理.flodTitle') }}
+                {{ $t('管理_flodTitle') }}
               </div>
               <jb-item index="tagManage">
                 <icon type="tag" />
@@ -205,10 +205,10 @@
           <template v-if="routerGroup === 'manage'">
             <jb-item-group>
               <div slot="title">
-                {{ $t('资源.menuGroup') }}
+                {{ $t('资源_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('资源.flodTitle') }}
+                {{ $t('资源_flodTitle') }}
               </div>
               <jb-item index="publicScript">
                 <icon type="job-public-script" />
@@ -217,10 +217,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('设置.menuGroup') }}
+                {{ $t('设置_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('设置.flodTitle') }}
+                {{ $t('设置_flodTitle') }}
               </div>
               <jb-item index="whiteIp">
                 <icon type="job-white-list" />
@@ -233,10 +233,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('安全.menuGroup') }}
+                {{ $t('安全_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('安全.flodTitle') }}
+                {{ $t('安全_flodTitle') }}
               </div>
               <jb-item index="dangerousRuleManage">
                 <icon type="gaoweiyujujiance" />

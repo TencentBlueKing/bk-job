@@ -33,7 +33,7 @@
           {{ $t('文件名称') }}
         </th>
         <th style="width: auto;">
-          {{ $t('文件源.text') }}
+          {{ $t('文件源_text') }}
         </th>
         <th>{{ $t('操作') }}</th>
       </thead>

@@ -45,7 +45,7 @@
           :rules="rules">
           <bk-alert
             class="info"
-            :title="$t('template.「对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发」')" />
+            :title="$t('template.对作业模板的修改不会立即自动更新执行方案，需要由用户手动触发')" />
           <jb-form-item
             :label="$t('template.模板名称')"
             property="name"
@@ -58,7 +58,7 @@
           </jb-form-item>
           <toggle-display style="margin-bottom: 20px;">
             <jb-form-item
-              :label="$t('template.场景标签.label')"
+              :label="$t('template.场景标签_label')"
               property="tags">
               <jb-tag-select
                 v-model="formData.tags"
@@ -70,12 +70,12 @@
                 v-model="formData.description"
                 class="template-desc-textarea form-item-content"
                 :maxlength="500"
-                :placeholder="$t('template.填写该模板的功能介绍等详细描述...')"
+                :placeholder="$t('template.填写该模板的功能介绍等详细描述')"
                 type="textarea" />
             </jb-form-item>
           </toggle-display>
           <jb-form-item
-            :label="$t('template.全局变量.label')"
+            :label="$t('template.全局变量_label')"
             style="margin-bottom: 30px;">
             <render-global-var
               :list="formData.variables"
@@ -83,7 +83,7 @@
               @on-change="handleGlobalVariableChange" />
           </jb-form-item>
           <jb-form-item
-            :label="$t('template.作业步骤.label')"
+            :label="$t('template.作业步骤_label')"
             property="steps"
             required
             style="margin-bottom: 30px;">
@@ -598,7 +598,7 @@
         const subHeader = () => (
           <div>
             <p style={{ marginBottom: '10px', color: '#979BA5' }}>
-              {I18n.t('template.还差一步「 设置执行方案」，即可执行作业')}
+              {I18n.t('template.还差一步_设置执行方案_，即可执行作业')}
             </p>
             <p>
               <bk-button

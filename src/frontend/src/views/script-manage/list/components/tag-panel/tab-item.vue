@@ -79,7 +79,7 @@
     <template v-else>
       <bk-input
         ref="input"
-        :placeholder="$t('template.请输入标签名...')"
+        :placeholder="$t('template.请输入标签名')"
         :value="displayName"
         @blur="handleBlur"
         @change="handleChange"

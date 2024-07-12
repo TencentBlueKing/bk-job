@@ -34,7 +34,7 @@
           class="tab-item"
           :class="{ active: tab === 'global' }"
           @click="handleTabToggle('global')">
-          {{ $t('template.全局变量.tab') }}
+          {{ $t('template.全局变量_tab') }}
         </div>
         <div
           class="tab-item"

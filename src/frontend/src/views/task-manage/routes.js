@@ -72,7 +72,7 @@ export default {
       name: 'taskImport',
       component: () => import('@views/task-manage/import'),
       meta: {
-        title: I18n.t('导入作业.nav'),
+        title: I18n.t('导入作业_nav'),
         full: true,
       },
     },

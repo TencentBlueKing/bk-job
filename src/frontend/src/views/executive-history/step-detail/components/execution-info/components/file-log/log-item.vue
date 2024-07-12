@@ -122,7 +122,7 @@
               <i class="job-icon job-icon-down-small log-toggle" />
               <span>{ parent.$t('history.文件名') }：{ data.fileName }</span>
               <span>{ parent.$t('history.文件大小') }：{ data.fileSize }</span>
-              <span>{ parent.$t('history.状态.log') }：<span class="status">{ data.statusDesc }</span></span>
+              <span>{ parent.$t('history.状态_log') }：<span class="status">{ data.statusDesc }</span></span>
               <span>{ parent.$t('history.文件源') }：
                 <span
                   v-bk-tooltips={bkTooltips}

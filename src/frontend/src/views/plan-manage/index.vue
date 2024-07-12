@@ -29,13 +29,13 @@
   <jb-router-view :key="$router.path" />
 </template>
 <script>
-  import Local from '@views/task-manage/local';
+  import Language from '@views/task-manage/language';
 
   import {
     loadLanguage,
   } from '@/i18n';
 
-  loadLanguage(Local);
+  loadLanguage(Language);
 
   export default {};
 </script>

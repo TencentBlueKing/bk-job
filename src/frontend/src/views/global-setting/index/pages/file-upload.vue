@@ -149,7 +149,7 @@
       }, []).join('；');
       suffixError += renameError;
     }
-    return suffixError ? `${I18n.t('setting..开头，后面跟上数字、字母、横杠(-)或下划线(_)，最多支持24个字符')}: ${suffixError}` : '';
+    return suffixError ? `${I18n.t('setting.上传文件后缀校验规则')}: ${suffixError}` : '';
   };
 
   export default {

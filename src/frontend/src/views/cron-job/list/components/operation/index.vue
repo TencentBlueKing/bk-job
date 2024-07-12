@@ -37,16 +37,16 @@
       :model="formData"
       :rules="rules">
       <jb-form-item
-        :label="$t('cron.任务名称.label')"
+        :label="$t('cron.任务名称_label')"
         property="name"
         required>
         <jb-input
           v-model="formData.name"
           :maxlength="60"
-          :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名...')" />
+          :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名')" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('cron.执行策略.label')"
+        :label="$t('cron.执行策略_label')"
         :property="strategyField"
         required>
         <bk-radio-group

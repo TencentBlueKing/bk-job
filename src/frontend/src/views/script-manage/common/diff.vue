@@ -55,7 +55,7 @@
           @click="handleViewIns">
           <span class="before" />
           <span class="after" />
-          <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
+          <span>{{ $t('新增_diff') }}（{{ ins }}）</span>
         </div>
       </div>
     </div>

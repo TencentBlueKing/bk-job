@@ -40,7 +40,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('tag.搜索标签名, 创建人, 更新人...')"
+          :placeholder="$t('tag.搜索标签名, 创建人, 更新人')"
           style="width: 420px;"
           @on-change="handleSearch" />
       </template>
@@ -61,7 +61,7 @@
         width="60" />
       <bk-table-column
         key="name"
-        :label="$t('tag.标签名.colHead')"
+        :label="$t('tag.标签名_colHead')"
         min-width="200"
         prop="name"
         show-overflow-tooltip
@@ -70,7 +70,7 @@
         v-if="allRenderColumnMap.description"
         key="descriptionText"
         align="left"
-        :label="$t('tag.描述.colHead')"
+        :label="$t('tag.描述_colHead')"
         min-width="200"
         prop="descriptionText"
         show-overflow-tooltip />
@@ -78,7 +78,7 @@
         v-if="allRenderColumnMap.relatedTaskTemplateNum"
         key="relatedTaskTemplateNum"
         align="right"
-        :label="$t('tag.关联作业量.colHead')"
+        :label="$t('tag.关联作业量_colHead')"
         prop="relatedTaskTemplateNum"
         width="150">
         <template slot-scope="{ row }">
@@ -105,7 +105,7 @@
         v-if="allRenderColumnMap.relatedScriptNum"
         key="relatedScriptNum"
         align="right"
-        :label="$t('tag.关联脚本量.colHead')"
+        :label="$t('tag.关联脚本量_colHead')"
         prop="relatedScriptNum"
         width="170">
         <template slot-scope="{ row }">
@@ -146,7 +146,7 @@
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         align="left"
-        :label="$t('tag.更新人.colHead')"
+        :label="$t('tag.更新人_colHead')"
         prop="lastModifyUser"
         width="160" />
       <bk-table-column
@@ -284,7 +284,7 @@
       this.dataSource = TagManageService.fetchTagList;
       this.searchSelect = [
         {
-          name: I18n.t('tag.标签名.colHead'),
+          name: I18n.t('tag.标签名_colHead'),
           id: 'name',
           default: true,
         },
@@ -295,7 +295,7 @@
           inputInclude: true,
         },
         {
-          name: I18n.t('tag.更新人.colHead'),
+          name: I18n.t('tag.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -308,22 +308,22 @@
         },
         {
           id: 'name',
-          label: I18n.t('tag.标签名.colHead'),
+          label: I18n.t('tag.标签名_colHead'),
           disabled: true,
         },
         {
           id: 'description',
-          label: I18n.t('tag.描述.colHead'),
+          label: I18n.t('tag.描述_colHead'),
           disabled: true,
         },
         {
           id: 'relatedTaskTemplateNum',
-          label: I18n.t('tag.关联作业量.colHead'),
+          label: I18n.t('tag.关联作业量_colHead'),
           disabled: true,
         },
         {
           id: 'relatedScriptNum',
-          label: I18n.t('tag.关联脚本量.colHead'),
+          label: I18n.t('tag.关联脚本量_colHead'),
           disabled: true,
         },
         {
@@ -336,7 +336,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('tag.更新人.colHead'),
+          label: I18n.t('tag.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',

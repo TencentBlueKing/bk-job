@@ -187,7 +187,7 @@ export default {
     个脚本使用: ' of the selected scripts applied it.',
     新建标签: 'New',
     编辑标签成功: 'New tag has been created',
-    '已有[未上线]版本': '「STAND-BY」version is exists',
+    已有_未上线_版本: '「STAND-BY」version is exists',
     新建版本成功: 'New script version has been created',
     标签名更新成功: 'Tag has been renamed',
     '标签名称：': 'Tag name: ',

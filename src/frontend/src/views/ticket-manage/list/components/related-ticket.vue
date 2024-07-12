@@ -32,7 +32,7 @@
       class="search-select-style"
       :data="searchSelect"
       :parse-url="false"
-      :placeholder="$t('ticket.搜索文件源别名...')"
+      :placeholder="$t('ticket.搜索文件源别名')"
       @on-change="handleSearch" />
     <render-list
       ref="fileSourcelist"

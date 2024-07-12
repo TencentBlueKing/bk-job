@@ -64,21 +64,21 @@
         v-if="allRenderColumnMap.scopeText"
         key="scopeText"
         align="left"
-        :label="$t('whiteIP.生效范围.colHead')"
+        :label="$t('whiteIP.生效范围_colHead')"
         prop="scopeText"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.appText"
         key="appText"
         align="left"
-        :label="$t('whiteIP.目标业务.colHead')"
+        :label="$t('whiteIP.目标业务_colHead')"
         prop="appText"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.remark"
         key="remark"
         align="left"
-        :label="$t('whiteIP.备注.colHead')"
+        :label="$t('whiteIP.备注_colHead')"
         prop="remark"
         show-overflow-tooltip />
       <bk-table-column
@@ -234,7 +234,7 @@
           default: true,
         },
         {
-          name: I18n.t('whiteIP.生效范围.colHead'),
+          name: I18n.t('whiteIP.生效范围_colHead'),
           id: 'actionScopeStr',
           children: [
             {
@@ -248,7 +248,7 @@
           ]
         },
         {
-          name: I18n.t('whiteIP.目标业务.colHead'),
+          name: I18n.t('whiteIP.目标业务_colHead'),
           id: 'appIdStr',
           remoteMethod: this.fetchAppList,
         },
@@ -273,17 +273,17 @@
         },
         {
           id: 'scopeText',
-          label: I18n.t('whiteIP.生效范围.colHead'),
+          label: I18n.t('whiteIP.生效范围_colHead'),
           disabled: true,
         },
         {
           id: 'appText',
-          label: I18n.t('whiteIP.目标业务.colHead'),
+          label: I18n.t('whiteIP.目标业务_colHead'),
           disabled: true,
         },
         {
           id: 'remark',
-          label: I18n.t('whiteIP.备注.colHead'),
+          label: I18n.t('whiteIP.备注_colHead'),
         },
         {
           id: 'creator',
