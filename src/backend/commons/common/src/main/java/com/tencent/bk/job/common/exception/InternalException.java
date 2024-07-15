@@ -36,6 +36,10 @@ import lombok.ToString;
 @ToString
 public class InternalException extends ServiceException {
 
+    public InternalException(String message) {
+        super(message, ErrorType.INTERNAL, ErrorCode.INTERNAL_ERROR);
+    }
+
     public InternalException(Integer errorCode) {
         super(ErrorType.INTERNAL, errorCode);
     }
