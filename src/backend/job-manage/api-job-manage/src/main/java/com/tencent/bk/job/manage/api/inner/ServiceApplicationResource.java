@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/service")
 @Api(tags = {"job-manage:service:App_Management"})
 @RestController
 @InternalAPI
@@ -49,7 +48,7 @@ public interface ServiceApplicationResource {
      *
      * @return 业务列表
      */
-    @RequestMapping("/app/list/normal")
+    @RequestMapping("/service/app/list/normal")
     InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps();
 
     /**
@@ -57,7 +56,7 @@ public interface ServiceApplicationResource {
      *
      * @return 业务集、全业务列表
      */
-    @RequestMapping("/app/list/bizSet")
+    @RequestMapping("/service/app/list/bizSet")
     InternalResponse<List<ServiceApplicationDTO>> listBizSetApps();
 
     /**
@@ -68,7 +67,7 @@ public interface ServiceApplicationResource {
      * @return 业务
      */
     @ApiOperation("根据Job业务id查询业务")
-    @RequestMapping("/app/{appId}")
+    @RequestMapping("/service/app/{appId}")
     ServiceApplicationDTO queryAppById(@ApiParam(value = "Job业务ID", required = true)
                                        @PathVariable("appId") Long appId);
 
@@ -79,7 +78,7 @@ public interface ServiceApplicationResource {
      * @return 业务列表
      */
     @ApiOperation("根据Job业务id批量查询业务")
-    @RequestMapping("/apps")
+    @RequestMapping("/service/apps")
     List<ServiceApplicationDTO> listAppsByAppIds(@ApiParam(value = "业务ID列表，英文逗号分隔", required = true)
                                                   @RequestParam("appIds") String appIds);
 
@@ -91,14 +90,14 @@ public interface ServiceApplicationResource {
      * @return 业务
      */
     @ApiOperation("根据资源范围查询业务")
-    @RequestMapping("/app/scope/{scopeType}/{scopeId}")
+    @RequestMapping("/service/app/scope/{scopeType}/{scopeId}")
     ServiceApplicationDTO queryAppByScope(@ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集", required = true)
                                           @PathVariable("scopeType") String scopeType,
                                           @ApiParam(value = "资源范围ID", required = true)
                                           @PathVariable("scopeId") String scopeId);
 
     @ApiOperation(value = "获取业务列表", produces = "application/json")
-    @GetMapping("/app/list")
+    @GetMapping("/service/app/list")
     InternalResponse<List<ServiceApplicationDTO>> listApps(
         @ApiParam(value = "资源范围类型", allowableValues = "1-业务,2-业务集")
         @RequestParam(value = "scopeType", required = false) String scopeType);

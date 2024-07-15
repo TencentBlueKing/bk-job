@@ -39,13 +39,12 @@ import java.util.List;
 /**
  * 脚本检查服务
  */
-@RequestMapping("/service/script/check")
 @Api(tags = {"job-manage:service:Script_Check"})
 @RestController
 @InternalAPI
 public interface ServiceCheckScriptResource {
 
-    @PostMapping
+    @PostMapping("/service/script/check")
     InternalResponse<List<ServiceScriptCheckResultItemDTO>> check(
         @RequestBody ServiceCheckScriptRequest checkScriptRequest);
 }

@@ -45,17 +45,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Api(tags = {"job-execute:service:Metrics"})
-@RequestMapping("/service/metrics")
 @RestController
 @InternalAPI
 public interface ServiceMetricsResource {
 
     @ApiOperation(value = "接入（执行过一次任务）的业务Id列表", produces = "application/json")
-    @GetMapping("/app/joined")
+    @GetMapping("/service/metrics/app/joined")
     InternalResponse<List<Long>> getJoinedAppIdList();
 
     @ApiOperation(value = "是否有执行记录", produces = "application/json")
-    @GetMapping("/app/hasExecuteHistory")
+    @GetMapping("/service/metrics/app/hasExecuteHistory")
     InternalResponse<Boolean> hasExecuteHistory(
         @ApiParam(value = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
@@ -72,7 +71,7 @@ public interface ServiceMetricsResource {
      */
     @Deprecated
     @ApiOperation(value = "快速文件分发统计", produces = "application/json")
-    @GetMapping("/fastPushFile/count")
+    @GetMapping("/service/metrics/fastPushFile/count")
     InternalResponse<Integer> countFastPushFile(
         @ApiParam(value = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
@@ -93,7 +92,7 @@ public interface ServiceMetricsResource {
      */
     @Deprecated
     @ApiOperation(value = "步骤执行统计", produces = "application/json")
-    @GetMapping("/stepInstances/count")
+    @GetMapping("/service/metrics/stepInstances/count")
     InternalResponse<Integer> countStepInstances(
         @ApiParam(value = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
@@ -116,7 +115,7 @@ public interface ServiceMetricsResource {
      */
     @Deprecated
     @ApiOperation(value = "任务（含快速/作业）执行统计", produces = "application/json")
-    @GetMapping("/taskInstances/count")
+    @GetMapping("/service/metrics/taskInstances/count")
     InternalResponse<Integer> countTaskInstances(
         @ApiParam(value = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
@@ -137,7 +136,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "获取统计数据", produces = "application/json")
-    @GetMapping("/statistics")
+    @GetMapping("/service/metrics/statistics")
     InternalResponse<StatisticsDTO> getStatistics(
         @ApiParam(value = "业务Id", required = true)
         @RequestParam(value = "appId", required = true) Long appId,
@@ -152,7 +151,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "获取统计数据", produces = "application/json")
-    @GetMapping("/statistics/list")
+    @GetMapping("/service/metrics/statistics/list")
     InternalResponse<List<StatisticsDTO>> listStatistics(
         @ApiParam(value = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
@@ -167,7 +166,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "触发指定时间的数据统计", produces = "application/json")
-    @PostMapping("/statistics/trigger")
+    @PostMapping("/service/metrics/statistics/trigger")
     InternalResponse<Boolean> triggerStatistics(
         @ApiParam(value = "统计日期(yyyy-MM-dd)", required = false)
         @RequestBody ServiceTriggerStatisticsRequest request

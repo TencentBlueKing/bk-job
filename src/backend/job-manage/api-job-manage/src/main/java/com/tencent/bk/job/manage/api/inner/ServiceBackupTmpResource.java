@@ -43,13 +43,12 @@ import java.util.List;
  * TODO 后续需要优化
  * 临时提供给job-backup的API
  */
-@RequestMapping("/service/tmp")
 @Api(tags = {"job-manage:service:tmp_for_backup"})
 @RestController
 @InternalAPI
 public interface ServiceBackupTmpResource {
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
-    @GetMapping("/app/{appId}/template/{templateId}")
+    @GetMapping("/service/tmp/app/{appId}/template/{templateId}")
     Response<TaskTemplateVO> getTemplateById(
         @RequestHeader("username")
             String username,
@@ -60,7 +59,7 @@ public interface ServiceBackupTmpResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}/{planId}")
+    @GetMapping("/service/tmp/app/{appId}/task/plan/{templateId}/{planId}")
     Response<TaskPlanVO> getPlanById(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -76,7 +75,7 @@ public interface ServiceBackupTmpResource {
     );
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
-    @GetMapping("/app/{appId}/task/plan/{templateId}")
+    @GetMapping("/service/tmp/app/{appId}/task/plan/{templateId}")
     Response<List<TaskPlanVO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")

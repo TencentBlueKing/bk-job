@@ -41,13 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2019/09/18
  */
 @Api(tags = {"Task_Execute"})
-@RequestMapping("/service/execution")
 @RestController
 @InternalAPI
 public interface ServiceExecuteTaskResource {
-    @PostMapping("/task-execution/task")
+    @PostMapping("/service/execution/task-execution/task")
     InternalResponse<ServiceTaskExecuteResult> executeTask(@RequestBody ServiceTaskExecuteRequest request);
 
-    @PostMapping("/task-execution/task/auth")
+    @PostMapping("/service/execution/task-execution/task/auth")
     InternalResponse<AuthResultDTO> authExecuteTask(@RequestBody ServiceTaskExecuteRequest request);
 }

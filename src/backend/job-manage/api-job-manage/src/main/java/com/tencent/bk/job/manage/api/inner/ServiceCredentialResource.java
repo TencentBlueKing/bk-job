@@ -42,13 +42,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-manage:service:Credential"})
-@RequestMapping("/service/credentials/app/{appId}")
 @RestController
 @InternalAPI
 public interface ServiceCredentialResource {
 
     @ApiOperation(value = "获取凭据详情", produces = "application/json")
-    @GetMapping("/ids/{id}")
+    @GetMapping("/service/credentials/app/{appId}/ids/{id}")
     InternalResponse<ServiceCredentialDTO> getCredentialById(
         @ApiParam(value = "业务ID", required = true)
         @PathVariable("appId") Long appId,
@@ -58,7 +57,7 @@ public interface ServiceCredentialResource {
     );
 
     @ApiOperation(value = "新建凭据", produces = "application/json")
-    @PostMapping("/create")
+    @PostMapping("/service/credentials/app/{appId}/create")
     InternalResponse<ServiceBasicCredentialDTO> createCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -71,7 +70,7 @@ public interface ServiceCredentialResource {
     );
 
     @ApiOperation(value = "更新凭据", produces = "application/json")
-    @PutMapping("/update")
+    @PutMapping("/service/credentials/app/{appId}/update")
     InternalResponse<ServiceBasicCredentialDTO> updateCredential(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")

@@ -37,13 +37,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 @Api(tags = {"job-manage:service:User"})
-@RequestMapping("/service/user")
 @RestController
 @InternalAPI
 public interface ServiceUserResource {
 
     @ApiOperation(value = "根据业务Id与角色获取用户信息", produces = "application/json")
-    @GetMapping("/getUsersByRoles")
+    @GetMapping("/service/user/getUsersByRoles")
     InternalResponse<Set<String>> getUsersByRoles(
         @ApiParam("业务Id")
         @RequestParam(value = "appId", required = true)

@@ -42,13 +42,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @Api(tags = {"job-manage:service:WhiteIP"})
-@RequestMapping("/service/whiteip")
 @RestController
 @InternalAPI
 public interface ServiceWhiteIPResource {
 
     @ApiOperation(value = "获取指定IP在白名单中的生效范围（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）", produces = "application/json")
-    @GetMapping("/getWhiteIPActionScopes")
+    @GetMapping("/service/whiteip/getWhiteIPActionScopes")
     InternalResponse<List<String>> getWhiteIPActionScopes(
         @ApiParam("业务Id")
         @RequestParam(value = "appId", required = false)
@@ -62,11 +61,11 @@ public interface ServiceWhiteIPResource {
     );
 
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
-    @GetMapping("/listWhiteIPInfos")
+    @GetMapping("/service/whiteip/listWhiteIPInfos")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
 
     @ApiOperation(value = "新增/更新IP白名单", produces = "application/json")
-    @PostMapping("")
+    @PostMapping("/service/whiteip")
     InternalResponse<Long> saveWhiteIP(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")

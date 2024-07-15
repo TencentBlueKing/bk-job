@@ -42,13 +42,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-manage:service:Metrics"})
-@RequestMapping("/service/metrics")
 @RestController
 @InternalAPI
 public interface ServiceMetricsResource {
 
     @ApiOperation(value = "接入业务总量", produces = "application/json")
-    @GetMapping("/apps/count")
+    @GetMapping("/service/metrics/apps/count")
     InternalResponse<Integer> countApps(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -56,7 +55,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "作业模板量", produces = "application/json")
-    @GetMapping("/templates/count")
+    @GetMapping("/service/metrics/templates/count")
     InternalResponse<Integer> countTemplates(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -64,7 +63,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "执行方案量", produces = "application/json")
-    @GetMapping("/taskPlans/count")
+    @GetMapping("/service/metrics/taskPlans/count")
     InternalResponse<Integer> countTaskPlans(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -72,7 +71,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "作业模板的步骤量", produces = "application/json")
-    @GetMapping("/templates/step/count")
+    @GetMapping("/service/metrics/templates/step/count")
     InternalResponse<Integer> countTemplateSteps(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -89,7 +88,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "脚本总量", produces = "application/json")
-    @GetMapping("/script/count")
+    @GetMapping("/service/metrics/script/count")
     InternalResponse<Integer> countScripts(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -103,7 +102,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "被引用的脚本总量", produces = "application/json")
-    @GetMapping("/script/cited/count")
+    @GetMapping("/service/metrics/script/cited/count")
     InternalResponse<Integer> countCiteScripts(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -111,7 +110,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "引用脚本的步骤总量", produces = "application/json")
-    @GetMapping("/step/citeScript/count")
+    @GetMapping("/service/metrics/step/citeScript/count")
     InternalResponse<Integer> countCiteScriptSteps(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -119,7 +118,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "脚本版本总量", produces = "application/json")
-    @GetMapping("/scriptVersions/count")
+    @GetMapping("/service/metrics/scriptVersions/count")
     InternalResponse<Integer> countScriptVersions(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
@@ -133,7 +132,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "账号总量", produces = "application/json")
-    @GetMapping("/accounts/count")
+    @GetMapping("/service/metrics/accounts/count")
     InternalResponse<Integer> countAccounts(
         @ApiParam("账号类型")
         @RequestParam(value = "accountType", required = false)
@@ -141,7 +140,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "主机总量", produces = "application/json")
-    @GetMapping("/hosts/count")
+    @GetMapping("/service/metrics/hosts/count")
     InternalResponse<Long> countHostsByOsType(
         @ApiParam("系统类型")
         @RequestParam(value = "osType", required = false)
@@ -149,7 +148,7 @@ public interface ServiceMetricsResource {
     );
 
     @ApiOperation(value = "某个标签在某业务下的被引数量", produces = "application/json")
-    @GetMapping("/tags/citedCount")
+    @GetMapping("/service/metrics/tags/citedCount")
     InternalResponse<Long> tagCitedCount(
         @ApiParam(value = "业务Id")
         @RequestParam(value = "appId", required = false)
