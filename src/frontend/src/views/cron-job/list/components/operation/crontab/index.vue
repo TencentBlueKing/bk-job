@@ -28,11 +28,11 @@
 <template>
   <div
     class="cron-job"
-    :class="[
-      { 'is-error': isError },
-      `error-${errorField}`,
-      `select-${selectIndex}`,
-    ]">
+    :class="{
+      'is-error': errorField,
+      [`error-${errorField}`]: errorField,
+      [`select-${selectIndex}`]: selectIndex,
+    }">
     <div class="time-describe">
       <span
         class="time-text minute"
@@ -62,31 +62,38 @@
         @keyup.right="handleSelectText"
         @mousedown="handleSelectText">
     </div>
-    <component
-      :is="renderText"
-      v-if="parseValue.length > 1"
-      :data="parseValue" />
-    <div
-      v-if="nextTime.length > 0"
-      class="time-next"
-      :class="{ active: isTimeMore }">
-      <div class="label">
-        {{ $t('cron.下次：') }}
-      </div>
-      <div class="value">
+    <template v-if="!isGrammarError">
+      <component
+        :is="renderText"
+        v-if="parseValue.length > 1"
+        :data="parseValue" />
+      <div
+        v-if="nextTime.length > 0"
+        class="time-next"
+        :class="{ active: isTimeMore }">
+        <div class="label">
+          {{ $t('cron.下次：') }}
+        </div>
+        <div class="value">
+          <div
+            v-for="(time, index) in nextTime"
+            :key="`${time}_${index}`">
+            {{ time }}
+          </div>
+        </div>
         <div
-          v-for="(time, index) in nextTime"
-          :key="`${time}_${index}`">
-          {{ time }}
+          class="arrow"
+          @click="handleShowMore">
+          <icon
+            class="arrow-button"
+            type="angle-double-down" />
         </div>
       </div>
-      <div
-        class="arrow"
-        @click="handleShowMore">
-        <icon
-          class="arrow-button"
-          type="angle-double-down" />
-      </div>
+    </template>
+    <div
+      v-else
+      style=" color: #ff5656;text-align: center;">
+      {{ $t('cron._月_和_周_暂无法同时生效') }}
     </div>
   </div>
 </template>
@@ -130,7 +137,7 @@
         nextTime: [],
         parseValue: [],
         errorField: '',
-        isError: false,
+        isGrammarError: false,
         isTimeMore: false,
       };
     },
@@ -162,7 +169,6 @@
         }
 
         this.errorField = '';
-        this.isError = false;
         this.parseValue = Translate(value);
       },
       /**
@@ -221,6 +227,15 @@
         const { value } = event.target;
         this.nativeValue = value;
 
+        this.isGrammarError = false;
+        const [,, dayOfMonth,, dayOfWeek] = value.trim().split(/\s+/);
+        if (dayOfMonth && dayOfMonth !== '*' && dayOfWeek && dayOfWeek !== '*') {
+          this.errorField = 'dayOfMonth error-dayOfWeek';
+          this.isGrammarError = true;
+          return;
+        }
+        console.log('valueList = ', dayOfMonth, dayOfWeek);
+
         try {
           this.checkAndTranslate(value);
           this.$emit('change', value);
@@ -238,7 +253,6 @@
           if (all.includes(error.message)) {
             this.errorField = error.message;
           }
-          this.isError = true;
           this.$emit('change', '');
           this.$emit('input', '');
         }

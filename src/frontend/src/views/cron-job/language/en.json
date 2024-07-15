@@ -113,5 +113,6 @@
   "唤起时间": "Launch on",
   "原因": "Failed message",
   "任务正常启动": "Launched",
-  "任务未能启动": "Unlaunched"
+  "任务未能启动": "Unlaunched",
+  "_月_和_周_暂无法同时生效": "\"Monthly\" and \"Weekly\" cannot work at the same time"
 }
