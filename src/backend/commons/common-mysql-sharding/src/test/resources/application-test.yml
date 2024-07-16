@@ -1,6 +1,6 @@
 shardingsphere:
   dataSourceClusters:
-    task_instance:
+    task_instance_cluster:
       dataSourceClassName: com.zaxxer.hikari.HikariDataSource
       driverClassName: com.mysql.jdbc.Driver
       username: root
@@ -8,37 +8,184 @@ shardingsphere:
       dataSources:
         - name: ds_1
           jdbcUrl: jdbc:mysql://localhost:3306/job_execute
-        - index: ds_2
+        - name: ds_2
           jdbcUrl: jdbc:mysql://localhost:3306/job_execute
-  rules:
+  shardingRule:
     tables:
       task_instance:
-        dataSourceCluster: task_instance
+        dataSourceCluster: task_instance_cluster
         actualDataNodes: ds_${0..1}.task_instance_${0..1}
+        databaseStrategy:
+          type: standard
+          shardingColumn: id
+          shardingAlgorithmName: task_instance_database_inline
         tableStrategy:
-          standard:
-            shardingColumn: id
-            shardingAlgorithmName: task_instance_inline
-        keyGenerateStrategy:
-          column: id
-          keyGeneratorName: leaf
+          type: standard
+          shardingColumn: id
+          shardingAlgorithmName: task_instance_table_inline
+#        keyGenerateStrategy:
+#          column: id
+#          keyGeneratorName: snowflake
       step_instance:
-        dataSourceCluster: task_instance
+        dataSourceCluster: task_instance_cluster
         actualDataNodes: ds_${0..1}.step_instance_${0..1}
         tableStrategy:
-          standard:
-            shardingColumn: task_instance_id
-            shardingAlgorithmName: step_instance_inline
-        keyGenerateStrategy:
-          column: id
-          keyGeneratorName: leaf
-
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_table_inline
+      step_instance_script:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.step_instance_script_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_script_table_inline
+      step_instance_file:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.step_instance_file_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_file_table_inline
+      step_instance_confirm:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.step_instance_confirm_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_confirm_table_inline
+      gse_script_execute_obj_task:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.gse_script_execute_obj_task_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: gse_script_execute_obj_task_table_inline
+      gse_file_execute_obj_task:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.gse_file_execute_obj_task_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: gse_file_execute_obj_task_table_inline
+      gse_task:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.gse_task_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: gse_task_table_inline
+      file_source_log:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.file_source_log_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: file_source_log_table_inline
+      operation_log:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.operation_log_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: operation_log_table_inline
+      task_instance_variable:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.task_instance_variable_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: task_instance_variable_table_inline
+      step_instance_variable:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.step_instance_variable_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_variable_table_inline
+      rolling_config:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.rolling_config_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: rolling_config_table_inline
+      step_instance_rolling_task:
+        dataSourceCluster: task_instance_cluster
+        actualDataNodes: ds_${0..1}.step_instance_rolling_task_${0..1}
+        tableStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: step_instance_rolling_task_table_inline
+    defaultDatabaseStrategy:
+      type: standard
+      shardingColumn: task_instance_id
+      shardingAlgorithmName: default_database_inline
+    # 分库分表算法
     shardingAlgorithms:
-      task_instance_inline:
+      # 默认分库算法
+      default_database_inline:
+        type: INLINE
+        props:
+          algorithm-expression: ds_${task_instance_id % 2}
+      # task_instance 表分库算法
+      task_instance_database_inline:
+        type: INLINE
+        props:
+          algorithm-expression: ds_${id % 2}
+      task_instance_table_inline:
         type: INLINE
         props:
           algorithm-expression: task_instance_${id % 2}
-      step_instance_inline:
+      step_instance_table_inline:
         type: INLINE
         props:
           algorithm-expression: step_instance_${task_instance_id % 2}
+      step_instance_script_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_script_${task_instance_id % 2}
+      step_instance_file_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_file_${task_instance_id % 2}
+      step_instance_confirm_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_confirm_${task_instance_id % 2}
+      gse_script_execute_obj_task_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: gse_script_execute_obj_task_${task_instance_id % 2}
+      gse_file_execute_obj_task_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: gse_file_execute_obj_task_${task_instance_id % 2}
+      gse_task_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: gse_task_${task_instance_id % 2}
+      file_source_log_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: file_source_log_${task_instance_id % 2}
+      operation_log_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: operation_log_${task_instance_id % 2}
+      task_instance_variable_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: task_instance_variable_${task_instance_id % 2}
+      step_instance_variable_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_variable_${task_instance_id % 2}
+      rolling_config_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: rolling_config_${task_instance_id % 2}
+      step_instance_rolling_task_table_inline:
+        type: INLINE
+        props:
+          algorithm-expression: step_instance_rolling_task_${task_instance_id % 2}
