@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
@@ -54,7 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -140,7 +140,10 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.CREATE_FILE_SOURCE
     )
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(
+        transactionManager = "jobFileGatewayTransactionManager",
+        rollbackFor = {Exception.class, Error.class}
+    )
     public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
         authCreate(username, appId);
 
