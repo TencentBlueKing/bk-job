@@ -39,33 +39,31 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/service")
 @Api(tags = {"job-manage:service:Host_Management"})
 @RestController
 @InternalAPI
 public interface ServiceHostResource {
 
     @ApiOperation(value = "查询节点下的主机状态", produces = "application/json")
-    @PostMapping("/app/{appId}/host/status/nodes")
+    @PostMapping("/service/app/{appId}/host/status/nodes")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByNodeReq req
     );
 
     @ApiOperation(value = "查询动态分组下的主机状态", produces = "application/json")
-    @PostMapping("/app/{appId}/host/status/dynamicGroups")
+    @PostMapping("/service/app/{appId}/host/status/dynamicGroups")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
     );
 
     @ApiOperation(value = "查询IP对应的主机状态", produces = "application/json")
-    @PostMapping("/app/{appId}/host/status/ips")
+    @PostMapping("/service/app/{appId}/host/status/ips")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByIp(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByIpReq req
@@ -78,7 +76,7 @@ public interface ServiceHostResource {
      * @param req   请求
      */
     @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
-    @PostMapping("/app/{appId}/host/batchGet")
+    @PostMapping("/service/app/{appId}/host/batchGet")
     InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceCheckAppHostsReq req
@@ -91,7 +89,7 @@ public interface ServiceHostResource {
      * @return 主机信息
      */
     @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
-    @PostMapping("/hosts/batchGet")
+    @PostMapping("/service/hosts/batchGet")
     InternalResponse<List<ServiceHostDTO>> batchGetHosts(
         @RequestBody
             ServiceBatchGetHostsReq req);

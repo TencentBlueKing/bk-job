@@ -37,16 +37,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Api(tags = {"job-manage:service:Script_Management"})
-@RequestMapping("/service/script")
 @RestController
 @InternalAPI
 public interface ServiceScriptResource {
     @ApiOperation(value = "根据业务ID、脚本版本ID获取脚本", produces = "application/json")
-    @GetMapping("/app/{appId}/scriptVersion/{scriptVersionId}")
+    @GetMapping("/service/script/app/{appId}/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByAppIdAndScriptVersionId(@RequestHeader("username")
                                                                              String username,
                                                                      @PathVariable("appId")
@@ -55,11 +53,11 @@ public interface ServiceScriptResource {
                                                                              Long scriptVersionId);
 
     @ApiOperation(value = "根据脚本版本ID获取脚本", produces = "application/json")
-    @GetMapping("/scriptVersion/{scriptVersionId}")
+    @GetMapping("/service/script/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByScriptVersionId(@PathVariable("scriptVersionId") Long scriptVersionId);
 
     @ApiOperation(value = "指定Id创建脚本版本", produces = "application/json")
-    @PostMapping("/app/{appId}/createScriptWithVersionId")
+    @PostMapping("/service/script/app/{appId}/createScriptWithVersionId")
     InternalResponse<Pair<String, Long>> createScriptWithVersionId(
         @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam("创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
@@ -71,10 +69,10 @@ public interface ServiceScriptResource {
             required = true) @RequestBody ScriptCreateUpdateReq scriptCreateUpdateReq);
 
     @ApiOperation(value = "获取脚本基本信息", produces = "application/json")
-    @GetMapping("/{scriptId}")
+    @GetMapping("/service/script/{scriptId}")
     InternalResponse<ServiceScriptDTO> getBasicScriptInfo(@PathVariable("scriptId") String scriptId);
 
     @ApiOperation(value = "获取已上线版本", produces = "application/json")
-    @GetMapping("/scriptVersion/online/{scriptId}")
+    @GetMapping("/service/script/scriptVersion/online/{scriptId}")
     InternalResponse<ServiceScriptDTO> getOnlineScriptVersion(@PathVariable("scriptId") String scriptId);
 }

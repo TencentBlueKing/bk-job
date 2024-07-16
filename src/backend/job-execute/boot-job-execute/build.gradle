@@ -31,6 +31,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
     runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly("com.google.protobuf:protobuf-java:$protobufJavaVersion")
 
     testImplementation("com.h2database:h2")
 }

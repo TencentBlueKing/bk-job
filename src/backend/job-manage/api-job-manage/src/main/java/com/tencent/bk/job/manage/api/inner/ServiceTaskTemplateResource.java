@@ -40,20 +40,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @Api(tags = {"job-manage:service:Task_Template_Management"})
-@RequestMapping("/service")
 @RestController
 @InternalAPI
 public interface ServiceTaskTemplateResource {
 
     @ApiOperation(value = "同步脚本更新消息", produces = "application/json")
-    @PostMapping("/app/{appId}/template/script/{scriptId}/update_message")
+    @PostMapping("/service/app/{appId}/template/script/{scriptId}/update_message")
     InternalResponse<Boolean> sendScriptUpdateMessage(
         @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
         @ApiParam(value = "脚本 ID", required = true) @PathVariable("scriptId") String scriptId,
@@ -61,24 +59,24 @@ public interface ServiceTaskTemplateResource {
         @ApiParam(value = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
-    @GetMapping("/app/{appId}/template/{templateId}")
+    @GetMapping("/service/app/{appId}/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
-    @GetMapping("/template/{templateId}")
+    @GetMapping("/service/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
 
     @ApiOperation(value = "根据模版 ID 获取模版名称", produces = "application/json")
-    @GetMapping("/template/{templateId}/templateName")
+    @GetMapping("/service/template/{templateId}/templateName")
     InternalResponse<String> getTemplateNameById(
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
 
     @ApiOperation(value = "更新模版", produces = "application/json")
-    @PutMapping("/app/{appId}/template/{templateId}/saveTemplateWithVariableId")
+    @PutMapping("/service/app/{appId}/template/{templateId}/saveTemplateWithVariableId")
     InternalResponse<Long> saveTemplateForMigration(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
@@ -91,21 +89,21 @@ public interface ServiceTaskTemplateResource {
             required = true) @RequestBody TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq);
 
     @ApiOperation(value = "校验模版 ID 和名称", produces = "application/json")
-    @GetMapping("/app/{appId}/template/check")
+    @GetMapping("/service/app/{appId}/template/check")
     InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @RequestParam("templateId") Long templateId,
         @ApiParam(value = "模版名称", required = true) @RequestParam("templateName") String name);
 
     @ApiOperation(value = "根据模版 ID 获取模版变量信息", produces = "application/json")
-    @GetMapping("/app/{appId}/template/{templateId}/variable")
+    @GetMapping("/service/app/{appId}/template/{templateId}/variable")
     InternalResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(
         @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
 
     @ApiOperation(value = "获取模版信息列表", produces = "application/json")
-    @GetMapping("/app/{appId}/template/list")
+    @GetMapping("/service/app/{appId}/template/list")
     InternalResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
         @ApiParam(value = "业务 ID", required = true, example = "2")
         @PathVariable("appId")

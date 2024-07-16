@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
@@ -52,13 +51,12 @@ import javax.ws.rs.QueryParam;
 import java.util.List;
 
 @Api(tags = {"job-manage:web:Task_Plan_Management"})
-@RequestMapping("/web")
 @RestController
 @WebAPI
 public interface WebTaskPlanResource {
 
     @ApiOperation(value = "获取业务下的执行方案列表", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/list"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan/list"})
     Response<PageData<TaskPlanVO>> listAllPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -99,7 +97,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
     Response<List<TaskPlanVO>> listPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -119,7 +117,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "批量获取执行方案基本信息", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
     Response<List<TaskPlanVO>> batchGetPlans(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -139,7 +137,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
     Response<TaskPlanVO> getPlanById(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -162,7 +160,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "获取模版对应的调试方案信息", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
     Response<TaskPlanVO> getDebugPlan(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -182,7 +180,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "更新执行方案", produces = "application/json")
-    @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
+    @PutMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<Long> savePlan(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -208,7 +206,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "删除执行方案", produces = "application/json")
-    @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
+    @DeleteMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<Boolean> deletePlan(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -231,7 +229,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 批量拉基础信息", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan"})
+    @GetMapping(value = {"/web/scope/{scopeType}/{scopeId}/task/plan"})
     Response<List<TaskPlanVO>> listPlanBasicInfoByIds(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -251,7 +249,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "检查执行方案名称是否已占用", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/check_name")
+    @GetMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/check_name")
     Response<Boolean> checkPlanName(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -277,7 +275,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "获取执行方案同步信息", produces = "application/json")
-    @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync_info")
+    @GetMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync_info")
     Response<TaskPlanSyncInfoVO> syncInfo(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -300,7 +298,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "同步执行方案", produces = "application/json")
-    @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync")
+    @PostMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync")
     Response<Boolean> syncConfirm(
         @ApiParam(value = "用户名，网关自动传入")
         @RequestHeader("username")
@@ -326,7 +324,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "新增收藏", produces = "application/json")
-    @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
+    @PutMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> addFavorite(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -349,7 +347,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "删除收藏", produces = "application/json")
-    @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
+    @DeleteMapping("/web/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> removeFavorite(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -372,7 +370,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "根据执行方案 ID 拉基本信息", produces = "application/json")
-    @GetMapping("/task/plan/{planId}")
+    @GetMapping("/web/task/plan/{planId}")
     Response<TaskPlanVO> getPlanBasicInfoById(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -383,7 +381,7 @@ public interface WebTaskPlanResource {
     );
 
     @ApiOperation(value = "批量根据变量名更新执行方案变量值", produces = "application/json")
-    @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/batch_update_variable")
+    @PostMapping("/web/scope/{scopeType}/{scopeId}/task/plan/batch_update_variable")
     Response<Boolean> batchUpdatePlanVariableValueByName(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

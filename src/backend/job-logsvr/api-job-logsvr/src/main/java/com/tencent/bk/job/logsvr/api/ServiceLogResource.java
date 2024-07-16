@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,7 +51,6 @@ import java.util.List;
  * 执行日志服务
  */
 @Api(tags = {"Log"})
-@RequestMapping("/service/log")
 @RestController
 @InternalAPI
 public interface ServiceLogResource {
@@ -63,7 +61,7 @@ public interface ServiceLogResource {
      * @param request 保存日志请求
      */
     @ApiOperation("保存执行日志")
-    @PostMapping
+    @PostMapping("/service/log")
     InternalResponse<?> saveLog(
         @ApiParam("保存日志请求报文")
         @RequestBody ServiceSaveLogRequest request
@@ -75,7 +73,7 @@ public interface ServiceLogResource {
      * @param request 保存日志请求
      */
     @ApiOperation("批量保存执行日志")
-    @PostMapping("/batch")
+    @PostMapping("/service/log/batch")
     InternalResponse<?> saveLogs(
         @ApiParam("批量保存日志请求报文")
         @RequestBody ServiceBatchSaveLogRequest request
@@ -83,7 +81,8 @@ public interface ServiceLogResource {
 
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
     @ApiOperation("根据目标服务器IP获取脚本任务对应的执行日志")
-    @GetMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
+    @GetMapping(value = {"/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/" +
+        "{executeCount}/ip/{ip}"})
     InternalResponse<ServiceHostLogDTO> getScriptHostLogByIp(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -98,7 +97,8 @@ public interface ServiceLogResource {
 
     @ApiOperation("根据目标主机ID获取脚本任务对应的执行日志")
     @GetMapping(value = {
-        "/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
+        "/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}" +
+            "/hostId/{hostId}"
     })
     InternalResponse<ServiceHostLogDTO> getScriptHostLogByHostId(
         @ApiParam("作业创建时间")
@@ -113,7 +113,8 @@ public interface ServiceLogResource {
         @RequestParam(value = "batch", required = false) Integer batch);
 
     @ApiOperation("批量获取脚本任务对应的执行日志")
-    @PostMapping(value = {"/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}"})
+    @PostMapping(value = {"/service/log/script/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}" +
+        "/retry/{executeCount}"})
     InternalResponse<List<ServiceHostLogDTO>> listScriptLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -127,7 +128,8 @@ public interface ServiceLogResource {
 
     @CompatibleImplementation(name = "rolling_execute", explain = "兼容API,后续使用hostId查询", version = "3.7.x")
     @ApiOperation("按照IP获取文件任务对应的执行日志")
-    @GetMapping(value = {"/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/ip/{ip}"})
+    @GetMapping(value = {"/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry" +
+        "/{executeCount}/ip/{ip}"})
     InternalResponse<ServiceHostLogDTO> getFileHostLogByIp(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -144,7 +146,7 @@ public interface ServiceLogResource {
 
     @ApiOperation("按照hostId获取文件任务对应的执行日志")
     @GetMapping(value = {
-        "/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
+        "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/hostId/{hostId}"
     })
     InternalResponse<ServiceHostLogDTO> getFileHostLogByHostId(
         @ApiParam("作业创建时间")
@@ -161,7 +163,7 @@ public interface ServiceLogResource {
         @RequestParam(value = "batch", required = false) Integer batch);
 
     @ApiOperation("获取文件任务对应的执行日志")
-    @GetMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
+    @GetMapping("/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
     InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -180,7 +182,8 @@ public interface ServiceLogResource {
     );
 
     @ApiOperation("获取文件任务agent对应的执行日志")
-    @PostMapping("/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
+    @PostMapping("/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry" +
+        "/{executeCount}/queryByTaskIds")
     InternalResponse<ServiceHostLogDTO> listFileHostLogsByTaskIds(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,
@@ -195,7 +198,7 @@ public interface ServiceLogResource {
     );
 
     @ApiOperation("获取文件任务对应的执行日志")
-    @PostMapping("/file")
+    @PostMapping("/service/log/file")
     InternalResponse<ServiceHostLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
 
     /**
@@ -208,7 +211,8 @@ public interface ServiceLogResource {
      * @return ip
      */
     @ApiOperation("根据脚本任务日志关键字获取对应的ip")
-    @GetMapping("/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
+    @GetMapping("/service/log/keywordMatch/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}" +
+        "/retry/{executeCount}")
     InternalResponse<List<HostDTO>> getIpsByKeyword(
         @ApiParam("作业创建时间")
         @PathVariable("jobCreateDate") String jobCreateDate,

@@ -33,6 +33,7 @@ dependencies {
     implementation 'org.springframework:spring-webmvc'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     runtimeOnly('mysql:mysql-connector-java')
+    runtimeOnly("com.google.protobuf:protobuf-java:$protobufJavaVersion")
 
     testImplementation("com.h2database:h2")
 }

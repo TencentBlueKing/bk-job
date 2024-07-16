@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -52,12 +51,11 @@ import java.util.List;
  * 账号 Web API
  */
 @Api(tags = {"job-manage:web:App_Account"})
-@RequestMapping("/web/account")
 @WebAPI
 public interface WebAppAccountResource {
 
     @ApiOperation(value = "新增账号", produces = "application/json")
-    @PostMapping(value = "/scope/{scopeType}/{scopeId}/account")
+    @PostMapping(value = "/web/account/scope/{scopeType}/{scopeId}/account")
     Response<Long> saveAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -77,7 +75,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "更新账号", produces = "application/json")
-    @PutMapping(value = "/scope/{scopeType}/{scopeId}/account")
+    @PutMapping(value = "/web/account/scope/{scopeType}/{scopeId}/account")
     Response updateAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -97,7 +95,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "根据条件获取业务下的所有账号", produces = "application/json")
-    @GetMapping({"/scope/{scopeType}/{scopeId}/accounts/page"})
+    @GetMapping({"/web/account/scope/{scopeType}/{scopeId}/accounts/page"})
     Response<PageData<AccountVO>> listAppAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -153,7 +151,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "删除账号", produces = "application/json")
-    @DeleteMapping(value = "/scope/{scopeType}/{scopeId}/account/{accountId}")
+    @DeleteMapping(value = "/web/account/scope/{scopeType}/{scopeId}/account/{accountId}")
     Response deleteAccount(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -173,7 +171,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取账号详情", produces = "application/json")
-    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/account/{accountId}"})
+    @GetMapping(value = {"/web/account/scope/{scopeType}/{scopeId}/account/{accountId}"})
     Response<AccountVO> getAccountById(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
@@ -193,7 +191,7 @@ public interface WebAppAccountResource {
     );
 
     @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
-    @GetMapping({"/scope/{scopeType}/{scopeId}/accounts"})
+    @GetMapping({"/web/account/scope/{scopeType}/{scopeId}/accounts"})
     Response<List<AccountVO>> listAccounts(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")

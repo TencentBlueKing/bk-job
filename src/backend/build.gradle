@@ -127,6 +127,30 @@ ext {
     // Fix Spring Cloud Function Spel表达式注入漏洞(CVE-2022-22963)
     // Fix Spring Cloud Function 拒绝服务漏洞(CVE-2022-22979)
     set('spring-cloud-function.version', "3.2.8")
+
+    // Fix CVE-2021-3711,CVE-2023-22102
+    set('mysql.version', "8.0.28")
+    // Fix CVE-2022-22978,CVE-2022-22976,CVE-2021-22119
+    set('spring-security.version', "5.5.7")
+    // Fix CVE-2022-42004,CVE-2022-42003,CVE-2021-46877,CVE-2020-36518
+    set('jackson-bom.version', "2.12.7.20221012")
+    // Fix CVE-2021-37137,CVE-2021-37136
+    set('netty.version', "4.1.68.Final")
+    // Fix CVE-2022-25647
+    set('gson.version', "2.8.9")
+    // Fix CVE-2023-44487
+    set('tomcat.version', "9.0.90")
+    // Fix CVE-2022-22965
+    set('spring-framework.version', "5.3.23")
+
+    // Fix CVE-2022-22980
+    set('springDataMongodbVersion', "3.3.5")
+    // Fix CVE-2022-3510,CVE-2022-3509,CVE-2022-3171
+    set('protobufJavaVersion', "3.16.3")
+    // Fix CVE-2019-10086,CVE-2014-0114
+    set('commonsBeanutilsVersion', "1.9.4")
+    // Fix CVE-2021-22044
+    set('openfeignCoreVersion', "3.0.5")
 }
 
 group "com.tencent.bk.job"
@@ -280,6 +304,8 @@ subprojects {
                 entry "hibernate-validator"
             }
             dependency "com.beust:jcommander:$jcommanderVersion"
+            dependency "commons-beanutils:commons-beanutils:$commonsBeanutilsVersion"
+            dependency "org.springframework.cloud:spring-cloud-openfeign-core:$openfeignCoreVersion"
         }
     }
     dependencies {
