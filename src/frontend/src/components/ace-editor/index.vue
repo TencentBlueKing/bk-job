@@ -64,6 +64,7 @@
           class="jb-ace-action"
           :style="{ height: `${tabHeight}px` }">
           <slot name="action" />
+          <ai-tool @checkScript="handleCheckScript" />
           <template v-if="!readonly && !isFullScreen">
             <icon
               v-bk-tooltips="$t('上传脚本')"
@@ -165,7 +166,9 @@
   import ScrollFaker from '@components/scroll-faker';
 
   import I18n from '@/i18n';
+  import eventBus from '@/utils/event-bus';
 
+  import AiTool from './components/ai-tool.vue';
   import DefaultScript from './default-script';
 
   import 'ace/mode-sh';
@@ -215,6 +218,7 @@
     components: {
       ScrollFaker,
       Empty,
+      AiTool,
     },
     inheritAttrs: false,
     props: {
@@ -791,20 +795,28 @@
         }
         this.handleExitFullScreen();
       },
+
+      handleCheckScript() {
+        eventBus.$emit('ai:checkScript', {
+          type: formatScriptTypeValue(this.currentLang),
+          content: this.editor.getValue(),
+        });
+      },
     },
   };
 </script>
 <style lang='postcss'>
+  /* stylelint-disable */
   .jd-ace-editor {
     position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
-    /* stylelint-disable-next-line selector-class-pattern */
     .ace_editor {
       padding-right: 14px;
       overflow: unset;
       font-family: Menlo, Monaco, Consolas, Courier, monospace;
+
 
       .ace_scrollbar-v,
       .ace_scrollbar-h {

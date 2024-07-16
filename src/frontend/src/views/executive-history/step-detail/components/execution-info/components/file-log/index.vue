@@ -30,6 +30,7 @@
     ref="contentBox"
     v-bkloading="{ isLoading, opacity: .1 }"
     class="file-download-log"
+    @mouseup="handleMouseUp"
     @scroll="handleScroll">
     <div>
       <file-item
@@ -51,6 +52,15 @@
       </div>
       <div>{{ $t('history.加载中') }}</div>
     </div>
+    <div
+      class="ai-extend-tool"
+      :style="aiExtendToolStyle"
+      @click="handleSelectedAnalyzeError"
+      @mousedown.stop>
+      <img
+        src="/static/images/ai.png"
+        style="width: 16px">
+    </div>
   </div>
 </template>
 <script>
@@ -61,6 +71,7 @@
   import {
     getOffset,
   } from '@utils/assist';
+  import eventBus from '@utils/event-bus';
 
   import mixins from '../../../mixins';
 
@@ -114,6 +125,7 @@
         openMemo: {},
         // 被展开的文件具体日志内容
         renderContentMap: {},
+        aiExtendToolStyle: {},
       };
     },
     computed: {
@@ -239,6 +251,27 @@
         this.handleScroll();
       },
       /**
+       * @desc 外部调用
+       */
+      getLog(contentSize) {
+        const logContent = this.contentList.map(item => item.logContent).join('\n');
+        if (logContent.length > contentSize) {
+          return Promise.reject();
+        }
+        return Promise.resolve().then(() => {
+          eventBus.$emit('ai:analyzeError', {
+            taskInstanceId: this.taskInstanceId,
+            stepInstanceId: this.stepInstanceId,
+            executeObjectType: this.taskExecuteDetail.executeObject.type,
+            executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+            executeCount: this.executeCount,
+            batch: this.taskExecuteDetail.batch,
+            mode: this.mode === 'download' ? 1 : 0,
+            content: logContent,
+          });
+        });
+      },
+      /**
        * @desc 计算首屏需要渲染的文件数
        */
       calcFirstPageNums() {
@@ -276,6 +309,39 @@
           this.fetchFileLogOfFile();
         }
       },
+      handleMouseUp(event) {
+        setTimeout(() => {
+          const selection = document.getSelection();
+          const selectionText = selection.toString();
+          if (!selectionText) {
+            this.aiExtendToolStyle = {};
+            return;
+          }
+          const {
+            left: contentBoxLeft,
+            top: contentBoxTop,
+          } = getOffset(this.$refs.contentBox);
+          const { pageX, pageY } = event;
+          this.aiExtendToolStyle = {
+            display: 'flex',
+            top: `${pageY - 30 - contentBoxTop + this.$refs.contentBox.scrollTop}px`,
+            left: `${pageX + 4 - contentBoxLeft}px`,
+          };
+        });
+      },
+      handleSelectedAnalyzeError() {
+        this.aiExtendToolStyle = {};
+        eventBus.$emit('ai:analyzeError', {
+          taskInstanceId: this.taskInstanceId,
+          stepInstanceId: this.stepInstanceId,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          executeCount: this.executeCount,
+          batch: this.taskExecuteDetail.batch,
+          mode: this.mode === 'download' ? 1 : 0,
+          content: document.getSelection().toString(),
+        });
+      },
     },
   };
 </script>
@@ -291,6 +357,7 @@
   }
 
   .file-download-log {
+    position: relative;
     height: 100%;
     padding-top: 10px;
     overflow-y: scroll;
@@ -326,6 +393,23 @@
         transform-origin: center center;
         animation: file-log-loading-ani 1s linear infinite;
       }
+    }
+
+    .ai-extend-tool{
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      z-index: 1000;
+      display: none;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      background: #3D3D3D;
+      border: 1px solid #4F4F52;
+      border-radius: 2px;
+      box-shadow: 0 2px 10px 0 #000;;
+      align-items: center;
+      justify-content: center;
     }
   }
 </style>

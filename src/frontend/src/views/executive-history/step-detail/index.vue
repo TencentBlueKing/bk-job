@@ -807,11 +807,8 @@
       }
 
       .container-right {
-        display: flex;
         height: 100%;
         min-width: 800px;
-        overflow: hidden;
-        flex-direction: column;
         flex: 1;
       }
     }

@@ -38,6 +38,10 @@
         :is-file="isFile"
         :is-task="isTask" />
       <div class="extend-box">
+        <ai-helper
+          v-if="taskExecuteDetail"
+          :get-log="handleGetLog"
+          :task-instance-id="taskInstanceId" />
         <extend-download
           :active-panel="activePanel"
           :execute-object="taskExecuteDetail.executeObject"
@@ -84,6 +88,7 @@
 
   import I18n from '@/i18n';
 
+  import AiHelper from './components/ai-helper.vue';
   import ExtendDownload from './components/extend-download.vue';
   import ExtendFont from './components/extend-font.vue';
   import ExtendFullscreen from './components/extend-fullscreen.vue';
@@ -168,6 +173,8 @@
   }, {
     immediate: true,
   });
+
+  const handleGetLog = () => logContentRef.value.getLog();
 
   let infoBoxParentNode;
   const handleFullscreen = () => {

@@ -112,6 +112,7 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
+    <jb-ai />
   </layout>
 </template>
 <script>

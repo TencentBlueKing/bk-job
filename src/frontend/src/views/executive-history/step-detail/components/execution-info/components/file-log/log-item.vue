@@ -125,7 +125,7 @@
               <span>{ parent.$t('history.状态_log') }：<span class="status">{ data.statusDesc }</span></span>
               <span>{ parent.$t('history.文件源') }：
                 <span
-                  v-bk-tooltips={bkTooltips}
+                  v-bk-tooltips={bkTooltips || {}}
                   style={{
                     borderBottom: bkTooltips ? '1px dashed #c4c6cc' : '',
                   }}>

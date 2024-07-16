@@ -44,6 +44,7 @@ import ElementTeleport from '@components/element-teleport';
 import Empty from '@components/empty';
 import Exception from '@components/exception';
 import Icon from '@components/icon';
+import JbAi from '@components/jb-ai';
 import JbBreadcrumb from '@components/jb-breadcrumb';
 import JbBreadcrumbItem from '@components/jb-breadcrumb/jb-breadcrumb-item';
 import JbDialog from '@components/jb-dialog';
@@ -70,6 +71,7 @@ import i18n from '@/i18n';
 
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
+
 
 const IpSelector = createIpSelector({
   version: '8',
@@ -160,6 +162,7 @@ Vue.component('SmartAction', SmartAction);
 Vue.component('ElementTeleport', ElementTeleport);
 Vue.component('ResizeableBox', ResizeableBox);
 Vue.component('IpSelector', IpSelector);
+Vue.component('JbAi', JbAi);
 
 Vue.use(Cursor);
 Vue.use(Request);
