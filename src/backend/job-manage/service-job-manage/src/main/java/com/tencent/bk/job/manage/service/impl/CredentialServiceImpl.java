@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
@@ -47,7 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -92,7 +92,10 @@ public class CredentialServiceImpl implements CredentialService {
         ),
         content = EventContentConstants.CREATE_TICKET
     )
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @JobTransactional(
+        transactionManager = "jobManageTransactionManager",
+        rollbackFor = {Exception.class, Error.class}
+    )
     public CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
         authCreateTicket(username, appId);
 
