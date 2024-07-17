@@ -31,6 +31,7 @@ import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
@@ -115,4 +116,13 @@ public class WebAIResourceImpl implements WebAIResource {
         AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, req.getContent());
         return Response.buildSuccessResp(aiAnswer);
     }
+
+    @Override
+    public Response<ClearChatHistoryResp> clearChatHistory(String username,
+                                                           AppResourceScope appResourceScope,
+                                                           String scopeType,
+                                                           String scopeId) {
+        return Response.buildSuccessResp(new ClearChatHistoryResp(0));
+    }
+
 }
