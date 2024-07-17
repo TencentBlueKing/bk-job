@@ -38,8 +38,6 @@ import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +52,7 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
 
-    @Autowired
+    //    @Autowired
     public WebAIResourceImpl(ChatService chatService,
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService) {
