@@ -138,7 +138,7 @@ export default {
     将覆盖其它条件: 'override other conditions',
     设置的提醒时间已过期: 'Notify time expired',
     ID只支持数字: 'ID is only allow numbers',
-    '「周期成功率」采样规则和计算公式': '"Success sate" sampling rule & calculation formula',
+    '_周期成功率_采样规则和计算公式': '"Success sate" sampling rule & calculation formula',
     '采样规则：': 'Sampling rule :',
     '近 24小时执行次数 ＞10，则 “分母” 为近 24 小时执行总数': 'If total executions in last 24hrs ＞10, then "senominator" is the total of last 24hrs',
     '近 24小时执行次数 ≤ 10，则 “分母” 为近 10 次执行任务': 'If total executions in last 24hrs ＜10, then "senominator" is the last 10 records',

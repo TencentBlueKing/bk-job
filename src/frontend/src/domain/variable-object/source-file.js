@@ -211,16 +211,16 @@ export default class SourceFile {
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
     if (hostList.length > 0) {
-      textArr.push(getHtml(hostList.length, I18n.t('台主机.result')));
+      textArr.push(getHtml(hostList.length, I18n.t('台主机_result')));
     }
     if (nodeList.length > 0) {
-      textArr.push(getHtml(nodeList.length, I18n.t('个节点.result')));
+      textArr.push(getHtml(nodeList.length, I18n.t('个节点_result')));
     }
     if (dynamicGroupList.length > 0) {
-      textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组.result')));
+      textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组_result')));
     }
     if (containerList.length > 0) {
-      textArr.push(getHtml(containerList.length, I18n.t('个容器.result')));
+      textArr.push(getHtml(containerList.length, I18n.t('个容器_result')));
     }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }

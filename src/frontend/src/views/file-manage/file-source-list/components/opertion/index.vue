@@ -36,7 +36,7 @@
       :model="formData"
       :rules="rules">
       <jb-form-item
-        :label="$t('file.文件源标识.label')"
+        :label="$t('file.文件源标识_label')"
         property="code"
         required>
         <bk-input
@@ -44,7 +44,7 @@
           :placeholder="$t('file.请输入文件源标识')" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('file.文件源别名.label')"
+        :label="$t('file.文件源别名_label')"
         property="alias"
         required>
         <bk-input
@@ -54,7 +54,7 @@
           show-word-limit />
       </jb-form-item>
       <jb-form-item
-        :label="$t('file.类型.label')"
+        :label="$t('file.类型_label')"
         required>
         <bk-radio-group v-model="formData.storageType">
           <bk-radio-button value="OSS">

@@ -39,7 +39,7 @@
           field="name"
           :form-data="formData"
           name="stepName"
-          :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+          :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名')"
           @on-change="handleChange" />
         <item-factory
           field="timeout"
@@ -300,7 +300,7 @@
               // 有重名目录和文件
               this.$bkInfo({
                 title: I18n.t('template.源文件可能出现同名'),
-                subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。'),
+                subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用_源服务器IP_的变量来尽可能规避风险。'),
                 okText: I18n.t('template.好的，我调整一下'),
                 cancelText: I18n.t('template.已知悉，确定执行'),
                 maskClose: false,

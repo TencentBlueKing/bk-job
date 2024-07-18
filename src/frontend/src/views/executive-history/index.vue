@@ -35,13 +35,13 @@
   import {
     loadLanguage,
   } from '@/i18n';
-  import TemplateLocal from '@/views/task-manage/local';
+  import TemplateLanguage from '@/views/task-manage/language';
 
-  import Local from './local';
+  import Language from './language';
 
   [
-    Local,
-    TemplateLocal,
+    Language,
+    TemplateLanguage,
   ].forEach(module => loadLanguage(module));
 
   export default {};

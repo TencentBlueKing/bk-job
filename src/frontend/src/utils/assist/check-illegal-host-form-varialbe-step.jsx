@@ -49,7 +49,7 @@ export const checkIllegalHostFromVariableTargetValue = (
         return (
           <div>
             <div>
-              <span>{I18n.t('变量.illegal')} [{variableNameList.join(',')}] {I18n.t('中存在失效主机，请处理后重试')}</span>
+              <span>{I18n.t('变量_illegal')} [{variableNameList.join(',')}] {I18n.t('中存在失效主机，请处理后重试')}</span>
               <bk-button
                 text
                 theme="primary"
@@ -150,7 +150,7 @@ export const checkIllegalHostFromVariableStep = (
         return (
           <div>
             <div>
-              <span>{I18n.t('变量.illegal')} [{variableNameList.join(',')}] {I18n.t('中存在失效主机，请处理后重试')}</span>
+              <span>{I18n.t('变量_illegal')} [{variableNameList.join(',')}] {I18n.t('中存在失效主机，请处理后重试')}</span>
               {
                 stepNameList.length < 1 && (
                   <bk-button
@@ -165,7 +165,7 @@ export const checkIllegalHostFromVariableStep = (
             {
               stepNameList.length > 0 && (
                 <div>
-                  <span>{I18n.t('步骤.illegal')}[{stepNameList.join(',')}]{I18n.t('中存在失效主机，请处理后重试')}</span>
+                  <span>{I18n.t('步骤_illegal')}[{stepNameList.join(',')}]{I18n.t('中存在失效主机，请处理后重试')}</span>
                   <bk-button
                     text
                     theme="primary"

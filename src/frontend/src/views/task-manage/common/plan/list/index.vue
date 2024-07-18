@@ -56,7 +56,7 @@
           ref="search"
           :append-value="searchValue"
           :data="searchData"
-          :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索...')"
+          :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索')"
           style="width: 420px;"
           @on-change="handleSearch" />
         <bk-button @click="handleMyPlan">
@@ -215,7 +215,7 @@
           v-if="allRenderColumnMap.lastModifyUser"
           key="lastModifyUser"
           align="left"
-          :label="$t('template.更新人.colHead')"
+          :label="$t('template.更新人_colHead')"
           prop="lastModifyUser"
           width="160" />
         <bk-table-column
@@ -445,6 +445,7 @@
           edit: PlanEdit,
           create: PlanCreate,
         };
+
         if (!planComMap[this.planComType]) {
           return 'div';
         }
@@ -525,12 +526,12 @@
           },
         },
         {
-          name: I18n.t('template.执行方案.colHead'),
+          name: I18n.t('template.执行方案_colHead'),
           id: 'planName',
           default: true,
         },
         {
-          name: I18n.t('template.更新人.colHead'),
+          name: I18n.t('template.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -557,7 +558,7 @@
         },
         {
           id: 'name',
-          label: I18n.t('template.执行方案.colHead'),
+          label: I18n.t('template.执行方案_colHead'),
           disabled: true,
         },
         {
@@ -566,7 +567,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('template.更新人.colHead'),
+          label: I18n.t('template.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',

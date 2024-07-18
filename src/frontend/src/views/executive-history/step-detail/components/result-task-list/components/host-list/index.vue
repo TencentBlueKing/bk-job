@@ -310,8 +310,8 @@
     props.getAllTaskList()
       .then((data) => {
         const fieldDataList = data.reduce((result, item) => {
-          if (item.host.ip) {
-            result.push(item.host.ip);
+          if (item.host.ipv6) {
+            result.push(item.host.ipv6);
           }
           return result;
         }, []);

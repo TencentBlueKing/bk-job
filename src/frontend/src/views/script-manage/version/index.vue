@@ -87,7 +87,7 @@
               v-if="allColumnMap.version"
               key="version"
               align="left"
-              :label="$t('script.版本号.colHead')"
+              :label="$t('script.版本号_colHead')"
               prop="version"
               show-overflow-tooltip
               sortable>
@@ -99,7 +99,7 @@
               v-if="allColumnMap.relatedTaskNum"
               key="relatedTaskNum"
               align="right"
-              :label="$t('script.被引用.colHead')"
+              :label="$t('script.被引用_colHead')"
               prop="relatedTaskNum"
               :render-header="renderHeader"
               width="150">
@@ -125,14 +125,14 @@
               v-if="allColumnMap.lastModifyUser"
               key="lastModifyUser"
               align="left"
-              :label="$t('script.更新人.colHead')"
+              :label="$t('script.更新人_colHead')"
               prop="lastModifyUser"
               width="160" />
             <bk-table-column
               v-if="allColumnMap.lastModifyTime"
               key="lastModifyTime"
               align="left"
-              :label="$t('script.更新时间.colHead')"
+              :label="$t('script.更新时间_colHead')"
               prop="lastModifyTime"
               sortable
               width="200" />
@@ -166,7 +166,7 @@
                   v-if="!row.isOnline"
                   class="mr10"
                   :confirm-handler="() => handleOnline(row.id, row.scriptVersionId)"
-                  :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
+                  :content="$t('script.上线后，之前的线上版本将被置为_已下线_状态，但不影响作业使用')"
                   :disabled="row.isDisabledOnline"
                   :title="$t('script.确定上线该版本？')">
                   <auth-button
@@ -205,7 +205,7 @@
                 <span
                   v-if="!row.isDraft"
                   class="mr10"
-                  :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+                  :tippy-tips="isCopyCreateDisabled ? $t('script.已有_未上线_版本') : ''">
                   <auth-button
                     auth="script/clone"
                     :disabled="isCopyCreateDisabled"
@@ -306,7 +306,7 @@
         id="newVersionDisableActions"
         style="padding: 16px 12px;">
         <div style="margin-bottom: 17px; font-size: 14px; line-height: 22px; color: #313238;">
-          {{ $t('script.已有[未上线]版本') }}
+          {{ $t('script.已有_未上线_版本') }}
         </div>
         <div>
           <bk-button
@@ -339,7 +339,7 @@
       :is-show.sync="showRelated"
       quick-close
       :show-footer="false"
-      :title="$t('script.被引用.label')"
+      :title="$t('script.被引用_label')"
       :width="695">
       <script-related-info
         :info="relatedScriptInfo"
@@ -553,22 +553,22 @@
 
       this.searchSelect = [
         {
-          name: I18n.t('script.版本号.colHead'),
+          name: I18n.t('script.版本号_colHead'),
           id: 'version',
           default: true,
         },
         {
-          name: I18n.t('script.脚本内容.colHead'),
+          name: I18n.t('script.脚本内容_colHead'),
           id: 'content',
           default: true,
         },
         {
-          name: I18n.t('script.版本日志.colHead'),
+          name: I18n.t('script.版本日志_colHead'),
           id: 'versionDesc',
           default: true,
         },
         {
-          name: I18n.t('script.更新人.colHead'),
+          name: I18n.t('script.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -581,21 +581,21 @@
         },
         {
           id: 'version',
-          label: I18n.t('script.版本号.colHead'),
+          label: I18n.t('script.版本号_colHead'),
           disabled: true,
         },
         {
           id: 'relatedTaskNum',
-          label: I18n.t('script.被引用.colHead'),
+          label: I18n.t('script.被引用_colHead'),
           disabled: true,
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('script.更新人.colHead'),
+          label: I18n.t('script.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间.colHead'),
+          label: I18n.t('script.更新时间_colHead'),
         },
         {
           id: 'statusDesc',

@@ -45,7 +45,7 @@ export default {
     脚本名称: 'Script name',
     快速执行脚本: 'Script execute',
     源文件可能出现同名: 'Source files may have same filename',
-    '多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。': 'Files may have the risk of overwriting with the same name in multi-file source, using built-in variable like [FILESRCIP] in the Dst. path to avoid risks as much as possible.',
+    '多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用_源服务器IP_的变量来尽可能规避风险。': 'Files may have the risk of overwriting with the same name in multi-file source, using built-in variable like [FILESRCIP] in the Dst. path to avoid risks as much as possible.',
     '已知悉，确定执行': 'I\'m SURE, KEEP GOING',
     源和目标服务器相同: '',
     '检测到文件传输源和目标服务器是同一批，若是单台建议使用本地 cp 方式效率会更高，请问你是否确定参数无误？': 'The source and target hosts for file transfer are the same batch. If it is a single local transfers, using the "cp" command will be more efficient. Are you sure the parameters provided are correct?',

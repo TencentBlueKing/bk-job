@@ -1,0 +1,11 @@
+{
+  "服务名_colHead": "Service name",
+  "版本号_colHead": "Version",
+  "版本号_label": "Version",
+  "实例状态_colHead": "States",
+  "序号_colHead": "SN.",
+  "实例名_colHead": "Node",
+  "状态_colHead": "State",
+  "绑定IP_colHead": "Bind address",
+  "端口_colHead": "Port"
+}

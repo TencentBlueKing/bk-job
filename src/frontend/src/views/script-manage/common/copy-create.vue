@@ -55,7 +55,7 @@
         :model="formData"
         :rules="rules">
         <jb-form-item
-          :label="$t('script.版本号.label')"
+          :label="$t('script.版本号_label')"
           property="version"
           required>
           <div class="script-version">
@@ -71,7 +71,7 @@
               type="new-dark" />
           </div>
         </jb-form-item>
-        <jb-form-item :label="$t('script.版本日志.label')">
+        <jb-form-item :label="$t('script.版本日志_label')">
           <bk-input
             v-model="formData.versionDesc"
             :maxlength="100"
