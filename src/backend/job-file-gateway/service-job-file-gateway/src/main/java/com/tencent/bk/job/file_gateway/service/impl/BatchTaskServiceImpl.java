@@ -92,7 +92,7 @@ public class BatchTaskServiceImpl implements BatchTaskService {
                 executeCount,
                 batchTaskId,
                 fileSourceTaskContent.getFileSourceId(),
-                fileSourceTaskContent.getUniqueFilePathList()
+                fileSourceTaskContent.acquireUniqueFilePathList()
             );
             taskInfoDTOList.add(taskInfoDTO);
         }

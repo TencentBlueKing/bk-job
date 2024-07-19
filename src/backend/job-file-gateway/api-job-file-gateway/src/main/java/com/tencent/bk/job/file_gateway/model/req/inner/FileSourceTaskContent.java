@@ -49,7 +49,7 @@ public class FileSourceTaskContent {
      *
      * @return 去重后的文件路径列表
      */
-    public List<String> getUniqueFilePathList() {
+    public List<String> acquireUniqueFilePathList() {
         return filePathList.stream().distinct().collect(Collectors.toList());
     }
 }
