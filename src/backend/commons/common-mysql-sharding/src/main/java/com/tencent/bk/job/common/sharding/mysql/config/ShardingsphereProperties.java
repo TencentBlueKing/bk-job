@@ -29,6 +29,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
 import java.util.Map;
 
 @ConfigurationProperties(prefix = "shardingsphere")
@@ -37,21 +38,26 @@ import java.util.Map;
 @ToString
 public class ShardingsphereProperties {
     /**
+     * 是否启用分库分表
+     */
+    private boolean enabled;
+    /**
+     * 分片数据库名
+     */
+    private String databaseName;
+    /**
      * 数据源集群。 key:集群名称；value:集群配置
      */
-    private Map<String, DataSourceCluster> dataSourceClusters;
+    private Map<String, DataSource> dataSources;
     /**
      * 分片规则
      */
     private ShardingRule shardingRule;
 
-    /**
-     * 数据源集群
-     */
     @Getter
     @Setter
     @ToString
-    private static class DataSourceCluster {
+    public static class DataSource {
         /**
          * 数据源完整类名
          */
@@ -60,26 +66,12 @@ public class ShardingsphereProperties {
          * 数据库驱动类名，以数据库连接池自身配置为准
          */
         private String driverClassName;
-        private String username;
-        private String password;
-        /**
-         * 数据源配置。 key:数据源名称;value: 数据源配置详情。
-         */
-        private Map<String, DataSource> dataSources;
-    }
-
-    @Getter
-    @Setter
-    @ToString
-    private static class DataSource {
-        /**
-         * 数据源名称
-         */
-        private String name;
         /**
          * 数据库 URL 连接，以数据库连接池自身配置为准
          */
         private String jdbcUrl;
+        private String username;
+        private String password;
     }
 
 
@@ -89,7 +81,7 @@ public class ShardingsphereProperties {
     @Getter
     @Setter
     @ToString
-    private static class ShardingRule {
+    public static class ShardingRule {
         /**
          * 表对应的分片规则。 key: 表名称;value: 分片规则
          */
@@ -98,6 +90,10 @@ public class ShardingsphereProperties {
          * 分片算法定义
          */
         private Map<String, ShardingAlgorithm> shardingAlgorithms;
+        /**
+         * 分布式序列算法配置
+         */
+        private Map<String, KeyGenerator> keyGenerators;
         /**
          * 默认数据库分片策略
          */
@@ -114,17 +110,15 @@ public class ShardingsphereProperties {
          * 默认的分布式序列策略
          */
         private String defaultKeyGenerateStrategy;
+
+        private List<String> bindingTables;
     }
 
 
     @Getter
     @Setter
     @ToString
-    private static class TableShardingRule {
-        /**
-         * 表所在的 db 数据源集群
-         */
-        private String dataSourceCluster;
+    public static class TableShardingRule {
         /**
          * 由数据源名 + 表名组成
          */
@@ -149,7 +143,7 @@ public class ShardingsphereProperties {
     @Getter
     @Setter
     @ToString
-    private static class ShardingStrategy {
+    public static class ShardingStrategy {
         private String type;
         private String shardingColumn;
         private String shardingAlgorithmName;
@@ -161,7 +155,7 @@ public class ShardingsphereProperties {
     @Getter
     @Setter
     @ToString
-    private static class KeyGenerateStrategy {
+    public static class KeyGenerateStrategy {
         /**
          * 自增列名称，缺省表示不使用自增主键生成器
          */
@@ -173,12 +167,29 @@ public class ShardingsphereProperties {
     }
 
     /**
+     * 分布式序列生成配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class KeyGenerator {
+        /**
+         * 分布式序列算法类型
+         */
+        private String type;
+        /**
+         * 分布式序列算法属性配置
+         */
+        private Map<String, String> props;
+    }
+
+    /**
      * 分片算法配置
      */
     @Getter
     @Setter
     @ToString
-    private static class ShardingAlgorithm {
+    public static class ShardingAlgorithm {
         /**
          * 分片算法类型
          */
