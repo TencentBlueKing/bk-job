@@ -39,7 +39,7 @@
         style="width: 270px;">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本名称.label') }}:
+            {{ $t('script.脚本名称_label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -58,7 +58,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新人.label') }}:
+            {{ $t('script.更新人_label') }}:
           </div>
           <div class="item-value">
             <div
@@ -70,7 +70,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.创建人.label') }}:
+            {{ $t('script.创建人_label') }}:
           </div>
           <div class="item-value">
             <div
@@ -96,7 +96,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新时间.label') }}:
+            {{ $t('script.更新时间_label') }}:
           </div>
           <div class="item-value">
             <div
@@ -122,7 +122,7 @@
       <div class="detail-column last">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.场景标签.label') }}:
+            {{ $t('script.场景标签_label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -142,7 +142,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本描述.label') }}:
+            {{ $t('script.脚本描述_label') }}:
           </div>
           <div class="item-value">
             <jb-edit-textarea

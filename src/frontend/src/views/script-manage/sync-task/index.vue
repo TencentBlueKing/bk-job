@@ -39,7 +39,7 @@
     <div class="table-top">
       {{ $t('script.同步作业模板') }}
       <span class="version-sum">
-        （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个.result') }}）
+        （{{ $t('script.共') }} {{ data.length }} {{ $t('script.个_result') }}）
       </span>
     </div>
     <bk-table

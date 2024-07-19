@@ -92,7 +92,7 @@
       };
     },
     created() {
-      this.calcScroller = _.throttle(this.eventCalcScroller, 100);
+      this.calcScroller = _.throttle(this.eventCalcScroller, 300);
       this.handleContentScroll = _.throttle(this.eventContentScroll, 30);
       this.handleVerticalScroll = _.throttle(this.eventVerticalScroll, 30);
       this.handleHorizontalScroll = _.throttle(this.eventHorizontalScroll, 30);
@@ -293,6 +293,8 @@
   .scroll-faker {
     position: relative;
     height: 100%;
+    max-width: inherit;
+    max-height: inherit;
 
     &:hover {
       & > .scrollbar-vertical,
@@ -317,7 +319,9 @@
     }
 
     & > .scroll-faker-content {
-      height: 100%;
+      height: inherit;
+      max-width: inherit;
+      max-height: inherit;
       overflow: scroll scroll;
 
       &::-webkit-scrollbar {

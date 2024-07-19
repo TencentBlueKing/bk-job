@@ -34,9 +34,9 @@
     loadLanguage,
   } from '@/i18n';
 
-  import Local from './local';
+  import Language from './language';
 
-  loadLanguage(Local);
+  loadLanguage(Language);
 
   export default {};
 </script>

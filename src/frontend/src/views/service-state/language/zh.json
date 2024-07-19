@@ -1,0 +1,11 @@
+{
+  "服务名_colHead": "服务名",
+  "版本号_colHead": "版本号",
+  "版本号_label": "版本号",
+  "实例状态_colHead": "实例状态",
+  "序号_colHead": "序号",
+  "实例名_colHead": "实例名",
+  "状态_colHead": "状态",
+  "绑定IP_colHead": "绑定IP",
+  "端口_colHead": "端口"
+}

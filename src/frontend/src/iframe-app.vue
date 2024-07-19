@@ -45,7 +45,6 @@
         </div>
       </scroll-faker>
     </div>
-
   </div>
 </template>
 <script>

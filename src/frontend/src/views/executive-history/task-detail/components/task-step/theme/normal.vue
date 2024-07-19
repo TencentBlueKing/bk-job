@@ -58,7 +58,7 @@
           <detail-item :label="`${$t('history.步骤名称')}：`">
             {{ data.name }}
           </detail-item>
-          <detail-item :label="`${$t('history.开始时间.label')}：`">
+          <detail-item :label="`${$t('history.开始时间_label')}：`">
             {{ data.startTime }}
           </detail-item>
           <detail-item :label="`${$t('history.结束时间')}：`">

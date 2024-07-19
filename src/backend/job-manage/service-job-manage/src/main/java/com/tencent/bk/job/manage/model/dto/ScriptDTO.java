@@ -158,6 +158,8 @@ public class ScriptDTO {
         esbScriptVersion.setCreateTime(createTime);
         esbScriptVersion.setLastModifyUser(lastModifyUser);
         esbScriptVersion.setLastModifyTime(lastModifyTime);
+        esbScriptVersion.setType(type);
+        esbScriptVersion.setDescription(description);
         return esbScriptVersion;
     }
 

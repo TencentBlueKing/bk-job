@@ -73,6 +73,7 @@
     display: flex;
     align-items: center;
     height: 100%;
+    min-height: 32px;
 
     .bk-checkbox-text {
       border-bottom: 1px dashed #c4c6cc;

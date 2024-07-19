@@ -46,7 +46,7 @@
           spellcheck: false,
           autofocus: true,
         }"
-        :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
+        :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名')"
         @submit="handleSubmit" />
       <i
         v-if="errorInfo"

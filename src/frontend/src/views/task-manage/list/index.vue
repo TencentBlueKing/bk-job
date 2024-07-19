@@ -80,7 +80,7 @@
           ref="search"
           :append-value="searchValue"
           :data="searchData"
-          :placeholder="$t('template.输入 作业模板名、标签名 或 更新人 进行搜索...')"
+          :placeholder="$t('template.输入 作业模板名、标签名 或 更新人 进行搜索')"
           style="width: 420px;"
           @on-change="handleSearch" />
         <bk-button @click="handleMyTask">
@@ -171,7 +171,7 @@
           key="tags"
           align="left"
           class-name="edit-tag-column"
-          :label="$t('template.场景标签.colHead')"
+          :label="$t('template.场景标签_colHead')"
           prop="tags"
           width="200">
           <template slot-scope="{ row }">
@@ -216,7 +216,7 @@
           v-if="allRenderColumnMap.lastModifyUser"
           key="lastModifyUser"
           align="left"
-          :label="$t('template.更新人.colHead')"
+          :label="$t('template.更新人_colHead')"
           prop="lastModifyUser"
           width="160" />
         <bk-table-column
@@ -239,8 +239,9 @@
               :to="{
                 name: 'viewPlan',
                 params: { templateId: row.id },
+                query: { from: 'taskList' },
               }">
-              {{ $t('template.执行方案.label') }}
+              {{ $t('template.执行方案_label') }}
             </router-link>
             <router-link
               v-test="{ type: 'link', value: 'debugTemplate' }"
@@ -460,12 +461,12 @@
           default: true,
         },
         {
-          name: I18n.t('template.场景标签.colHead'),
+          name: I18n.t('template.场景标签_colHead'),
           id: 'tags',
           remoteMethod: TagManageService.fetchTagOfSearch,
         },
         {
-          name: I18n.t('template.更新人.colHead'),
+          name: I18n.t('template.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -489,7 +490,7 @@
         },
         {
           id: 'tags',
-          label: I18n.t('template.场景标签.colHead'),
+          label: I18n.t('template.场景标签_colHead'),
         },
         {
           id: 'statusText',
@@ -505,7 +506,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('template.更新人.colHead'),
+          label: I18n.t('template.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',

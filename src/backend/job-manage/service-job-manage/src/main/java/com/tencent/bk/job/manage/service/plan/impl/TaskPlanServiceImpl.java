@@ -488,6 +488,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             );
             taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
             taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
+            taskPlan.setName(taskTemplateInfo.getName());
+
             return taskPlan;
         }
 
@@ -495,10 +497,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlan = new TaskPlanInfoDTO();
         taskPlan.setAppId(appId);
         taskPlan.setTemplateId(templateId);
-        taskPlan.setName(taskTemplateInfo.getName() +
-            "_" + i18nService.getI18n("job.task.plan.debug")
-            + "_" + System.currentTimeMillis() / 1000L
-        );
+        taskPlan.setName(taskTemplateInfo.getName());
         taskPlan.setCreator(username);
         taskPlan.setLastModifyUser(username);
         taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());

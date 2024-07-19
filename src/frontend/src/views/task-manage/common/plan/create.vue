@@ -49,7 +49,7 @@
             spellcheck: false,
             autofocus: true,
           }"
-          :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')"
+          :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名')"
           @change="handleNameChange" />
       </jb-form-item>
     </jb-form>
@@ -59,7 +59,7 @@
       :model="formData">
       <jb-form-item style="margin-bottom: 40px;">
         <div class="section-title">
-          <span>{{ $t('template.全局变量.label') }}</span>
+          <span>{{ $t('template.全局变量_label') }}</span>
           <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
         </div>
         <render-global-var
@@ -146,7 +146,7 @@
 
   const getDefaultData = () => ({
     id: 0,
-    name: genDefaultName(I18n.t('template.执行方案.label')),
+    name: genDefaultName(I18n.t('template.执行方案_label')),
     enableSteps: [],
     templateId: 0,
     variables: [],
@@ -256,7 +256,7 @@
           this.taskStepList = Object.freeze(stepList);
 
           // 新建执行方案默认值处理
-          let planName = genDefaultName(I18n.t('template.执行方案.label'));
+          let planName = genDefaultName(I18n.t('template.执行方案_label'));
           if (this.firstPlan) {
             // 第一个执行方案名默认和模板名相同
             planName = name;

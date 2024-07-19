@@ -67,7 +67,7 @@
         </div>
         <jb-form form-type="vertical">
           <jb-form-item
-            :label="$t('template.全局变量.label')"
+            :label="$t('template.全局变量_label')"
             style="margin-bottom: 30px;">
             <render-global-var
               :key="id"
@@ -117,7 +117,7 @@
               <div slot="content">
                 <p>{{ $t('template.共有') }} {{ planInfo.templateStepNums }} {{ $t('template.个步骤，') }}</p>
                 <!-- eslint-disable-next-line max-len -->
-                <p>{{ $t('template.当前已选中') }} {{ planInfo.enableStepNums }} {{ $t('template.个.select') }}</p>
+                <p>{{ $t('template.当前已选中') }} {{ planInfo.enableStepNums }} {{ $t('template.个_select') }}</p>
               </div>
             </bk-popover>
             <auth-button

@@ -38,7 +38,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('dangerousRule.搜索语法检测表达式，规则说明，脚本类型...')"
+          :placeholder="$t('dangerousRule.搜索语法检测表达式，规则说明，脚本类型')"
           style="width: 480px;"
           @on-change="handleSearch" />
       </template>
@@ -48,7 +48,7 @@
         ref="list"
         :data="list">
         <bk-table-column
-          :label="$t('dangerousRule.语法检测表达式.col')"
+          :label="$t('dangerousRule.语法检测表达式_col')"
           prop="expression">
           <template slot-scope="{ row }">
             <jb-edit-input
@@ -60,7 +60,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.规则说明.col')"
+          :label="$t('dangerousRule.规则说明_col')"
           prop="description">
           <template slot-scope="{ row }">
             <jb-edit-input
@@ -72,7 +72,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.脚本类型.col')"
+          :label="$t('dangerousRule.脚本类型_col')"
           prop="scriptTypeList">
           <template slot-scope="{ row }">
             <jb-edit-select
@@ -87,7 +87,7 @@
           </template>
         </bk-table-column>
         <bk-table-column
-          :label="$t('dangerousRule.动作.col')"
+          :label="$t('dangerousRule.动作_col')"
           prop="action"
           :render-header="renderActionHead">
           <template slot-scope="{ row }">
@@ -270,21 +270,21 @@
 
       this.searchSelect = [
         {
-          name: I18n.t('dangerousRule.语法检测表达式.col'),
+          name: I18n.t('dangerousRule.语法检测表达式_col'),
           id: 'expression',
           default: true,
         },
         {
-          name: I18n.t('dangerousRule.规则说明.col'),
+          name: I18n.t('dangerousRule.规则说明_col'),
           id: 'description',
         },
         {
-          name: I18n.t('dangerousRule.脚本类型.col'),
+          name: I18n.t('dangerousRule.脚本类型_col'),
           id: 'scriptTypeList',
           remoteMethod: PublicScriptManageService.scriptTypeList,
         },
         {
-          name: I18n.t('dangerousRule.动作.col'),
+          name: I18n.t('dangerousRule.动作_col'),
           id: 'action',
           remoteMethod: DangerousRuleService.fetchActionList,
         },
@@ -314,22 +314,22 @@
       this.tableColumn = [
         {
           id: 'expression',
-          label: I18n.t('dangerousRule.语法检测表达式.col'),
+          label: I18n.t('dangerousRule.语法检测表达式_col'),
           disabled: true,
         },
         {
           id: 'description',
-          label: I18n.t('dangerousRule.规则说明.col'),
+          label: I18n.t('dangerousRule.规则说明_col'),
           disabled: true,
         },
         {
           id: 'scriptTypeList',
-          label: I18n.t('dangerousRule.脚本类型.col'),
+          label: I18n.t('dangerousRule.脚本类型_col'),
           disabled: true,
         },
         {
           id: 'action',
-          label: I18n.t('dangerousRule.动作.col'),
+          label: I18n.t('dangerousRule.动作_col'),
           disabled: true,
         },
         {
@@ -392,10 +392,10 @@
                 class="action-tips"
                 type="info" />
               <div slot="content">
-                <div>{ I18n.t('dangerousRule.【扫描】') }</div>
+                <div>{ I18n.t('dangerousRule._扫描_') }</div>
                 <div>{ I18n.t('dangerousRule.命中规则的脚本执行任务仅会做记录，不会拦截') }</div>
                 <div style="margin-top: 8px;">
-                  { I18n.t('dangerousRule.【拦截】') }
+                  { I18n.t('dangerousRule._拦截_') }
                 </div>
                 <div>{ I18n.t('dangerousRule.命中规则的脚本执行任务会被记录，并中止运行') }</div>
               </div>

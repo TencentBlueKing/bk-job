@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -454,5 +455,10 @@ public class ScriptServiceImpl implements ScriptService {
     private void authManageScript(String username, long appId, String scriptId) {
         scriptAuthService.authManageScript(username, new AppResourceScope(appId), scriptId, null)
             .denyIfNoPermission();
+    }
+
+    @Override
+    public Map<Long, JobResourceStatusEnum> batchGetScriptVersionStatus(Collection<Long> scriptVersionId) {
+        return null;
     }
 }

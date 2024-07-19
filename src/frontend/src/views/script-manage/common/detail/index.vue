@@ -52,14 +52,14 @@
         class="content-tab-item"
         :class="{ active: contentTab === 'content' }"
         @click="handleChangeDispaly('content')">
-        {{ $t('script.脚本内容.label') }}
+        {{ $t('script.脚本内容_label') }}
       </div>
       <div
         v-test="{ type: 'button', value: 'scriptVersionLogTab' }"
         class="content-tab-item"
         :class="{ active: contentTab === 'log' }"
         @click="handleChangeDispaly('log')">
-        {{ $t('script.版本日志.label') }}
+        {{ $t('script.版本日志_label') }}
       </div>
     </div>
     <div class="version-content">
@@ -99,7 +99,7 @@
         key="online"
         class="mr10"
         :confirm-handler="handleOnline"
-        :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
+        :content="$t('script.上线后，之前的线上版本将被置为_已下线_状态，但不影响作业使用')"
         :disabled="scriptInfo.isDisabledOnline"
         :title="$t('script.确定上线该版本？')">
         <auth-button
@@ -116,7 +116,7 @@
       <span
         v-if="!scriptInfo.isDraft"
         key="create"
-        :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+        :tippy-tips="isCopyCreateDisabled ? $t('script.已有_未上线_版本') : ''">
         <auth-button
           v-test="{ type: 'button', value: 'copyCreateScript' }"
           auth="script/clone"

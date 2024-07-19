@@ -49,7 +49,7 @@
       <thead>
         <tr>
           <th style="width: 230px;">
-            {{ $t('template.执行方案.colHead') }}
+            {{ $t('template.执行方案_colHead') }}
           </th>
           <th style="width: 205px;">
             {{ $t('template.作业模板') }}

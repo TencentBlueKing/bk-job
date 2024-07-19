@@ -32,7 +32,7 @@
         ref="anchor"
         class="anchor-wraper">
         <div class="item-title">
-          {{ $t('template.全局变量.label') }}
+          {{ $t('template.全局变量_label') }}
         </div>
         <div
           v-for="item in variable"
@@ -50,7 +50,7 @@
           </div>
         </div>
         <div class="item-title">
-          {{ $t('template.作业步骤.label') }}
+          {{ $t('template.作业步骤_label') }}
         </div>
         <div
           v-for="item in step"

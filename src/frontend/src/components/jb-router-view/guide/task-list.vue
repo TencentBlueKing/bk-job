@@ -44,7 +44,7 @@
             {{ $t('新建作业') }}
           </bk-button>
           <bk-button @click="handleGoImportTemplate">
-            {{ $t('导入作业.guide') }}
+            {{ $t('导入作业_guide') }}
           </bk-button>
         </div>
       </div>

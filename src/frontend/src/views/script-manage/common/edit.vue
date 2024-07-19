@@ -56,13 +56,13 @@
         :model="formData"
         :rules="rules">
         <jb-form-item
-          :label="$t('script.版本号.label')"
+          :label="$t('script.版本号_label')"
           required>
           <bk-input
             readonly
             :value="formData.version" />
         </jb-form-item>
-        <jb-form-item :label="$t('script.版本日志.label')">
+        <jb-form-item :label="$t('script.版本日志_label')">
           <bk-input
             v-model="formData.versionDesc"
             :maxlength="100"

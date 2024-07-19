@@ -199,7 +199,7 @@
           default: true,
         },
         {
-          name: I18n.t('script.版本号.colHead'),
+          name: I18n.t('script.版本号_colHead'),
           id: 'scriptVersion',
         },
       ];
