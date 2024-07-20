@@ -245,7 +245,7 @@
               id: '2',
               name: I18n.t('文件分发'),
             },
-          ]
+          ],
         },
         {
           name: I18n.t('whiteIP.目标业务_colHead'),
