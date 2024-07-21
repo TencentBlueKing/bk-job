@@ -22,34 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.validation.provider;
+package com.tencent.bk.job.execute.model.esb.v3.validation;
 
-import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
-import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpLogV3Request;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * web 文件源联合校验
+ * EsbBatchGetJobInstanceIpLogV3Request 根据主机列表批量查询作业执行日志请求参数分组校验
  */
-public class WebFileSourceDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<ExecuteFileSourceInfoVO> {
-
+@Slf4j
+public class EsbBatchGetJobInstanceIpLogV3RequestGroupSequenceProvider
+    implements DefaultGroupSequenceProvider<EsbBatchGetJobInstanceIpLogV3Request> {
     @Override
-    public List<Class<?>> getValidationGroups(ExecuteFileSourceInfoVO fileSource) {
-        List<Class<?>> defaultGroupSequence = new ArrayList<>();
-        defaultGroupSequence.add(ExecuteFileSourceInfoVO.class);
-        if (fileSource != null) {
-            Integer fileType = fileSource.getFileType();
-            if (fileType == null || TaskFileTypeEnum.SERVER.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.ServerFileGroup.class);
-            } else if (TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.FileSourceGroup.class);
-            } else if (TaskFileTypeEnum.LOCAL.getType() == fileType) {
-                defaultGroupSequence.add(ExecuteFileSourceInfoVO.LocalFileGroup.class);
+    public List<Class<?>> getValidationGroups(EsbBatchGetJobInstanceIpLogV3Request request) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbBatchGetJobInstanceIpLogV3Request.class);
+        if (request != null) {
+            if (request.getHostIdList() != null) {
+                validationGroups.add(ValidationGroups.EsbServerV3.HostId.class);
+            } else if (request.getIpList() != null){
+                validationGroups.add(ValidationGroups.EsbServerV3.IP.class);
+            } else {
+                validationGroups.add(ValidationGroups.EsbServerV3.HostId.class);
             }
         }
-        return defaultGroupSequence;
+        return validationGroups;
     }
 }

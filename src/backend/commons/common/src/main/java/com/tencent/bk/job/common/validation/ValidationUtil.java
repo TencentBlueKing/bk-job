@@ -54,25 +54,4 @@ public class ValidationUtil {
         }
         return true;
     }
-
-    /**
-     * 校验value是否合法
-     * String: notEmpty, Long: notNull && >0, Integer: notNull && >0, List: notEmpty
-     */
-    public static boolean isValuePositiveOrNonEmpty (Object value) {
-        if (value == null) {
-            return false;
-        }
-        if (value instanceof String) {
-            return StringUtils.isNotBlank((String) value);
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue() > 0;
-        }
-        if (value instanceof List) {
-            return !((List<?>) value).isEmpty();
-        }
-
-        return true;
-    }
 }

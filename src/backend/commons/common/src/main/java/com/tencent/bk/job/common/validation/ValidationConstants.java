@@ -38,13 +38,14 @@ public class ValidationConstants {
         "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b";
 
     // 校验常用的最大值
+    public static final int COMMON_MAX_2 = 2;
+    public static final int COMMON_MAX_3 = 3;
     public static final int COMMON_MAX_60 = 60;
     public static final int COMMON_MAX_32 = 32;
 
     // 校验常用的最小值
     public static final int COMMON_MIN_0 = 0;
     public static final int COMMON_MIN_1 = 1;
-    public static final String COMMON_MIN_1_STR = "1";
 
     // 查询作业历史的最大时间跨度（ms）
     public static final long MAX_SEARCH_TASK_HISTORY_RANGE_MILLS = 30 * 24 * 60 * 60 * 1000L;

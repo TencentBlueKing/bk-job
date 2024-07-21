@@ -26,32 +26,54 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.validation.ConditionalCheckFieldsStrictValue;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.manage.validation.provider.EsbGetScriptVersionDetailV3GroupSequenceProvider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 查询脚本详情请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ConditionalCheckFieldsStrictValue(
-    primaryField = "id",
-    dependentFields = {"scriptId", "version"},
-    message = "{validation.constraints.ScriptVersionId_empty.message}"
-)
+@GroupSequenceProvider(EsbGetScriptVersionDetailV3GroupSequenceProvider.class)
 public class EsbGetScriptVersionDetailV3Req extends EsbAppScopeReq {
     /**
      * 脚本版本ID，若传入则以此条件为准屏蔽其他条件
      */
+    @NotNull(
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
     private Long id;
+
     /**
      * 脚本ID（可与version一起传入定位某个脚本版本）
      */
     @JsonProperty("script_id")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptId_empty.message}",
+        groups = ValidationGroups.Script.ScriptId.class
+    )
     private String scriptId;
+
     /**
      * 脚本版本（可与script_id一起传入定位某个脚本版本）
      */
+    @NotBlankField(
+        message = "{validation.constraints.ScriptVersion_empty.message}",
+        groups = ValidationGroups.Script.ScriptId.class
+    )
     private String version;
 }

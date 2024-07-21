@@ -25,30 +25,31 @@
 package com.tencent.bk.job.manage.validation.provider;
 
 import com.tencent.bk.job.common.validation.ValidationGroups;
-import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskFileSourceInfoVO;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 任务步骤联合校验
+ * TaskFileSourceInfoVO联合校验
  */
-public class TaskStepGroupSequenceProvider implements DefaultGroupSequenceProvider<TaskStepVO> {
+public class TaskFileSourceVOGroupSequenceProvider implements DefaultGroupSequenceProvider<TaskFileSourceInfoVO> {
 
     @Override
-    public List<Class<?>> getValidationGroups(TaskStepVO bean){
+    public List<Class<?>> getValidationGroups(TaskFileSourceInfoVO fileSource) {
         List<Class<?>> defaultGroupSequence = new ArrayList<>();
-        defaultGroupSequence.add(TaskStepVO.class);
-
-        if (bean != null) {
-            if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.SCRIPT.getValue())){
-                defaultGroupSequence.add(ValidationGroups.TaskStep.ScriptStep.class);
-            } else if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.FILE.getValue())){
-                defaultGroupSequence.add(ValidationGroups.TaskStep.ScriptStep.class);
-            } else if (bean.getType() != null && bean.getType().equals(TaskStepTypeEnum.APPROVAL.getValue())){
-                defaultGroupSequence.add(ValidationGroups.TaskStep.ScriptStep.class);
+        defaultGroupSequence.add(TaskFileSourceInfoVO.class);
+        if (fileSource != null) {
+            Integer fileType = fileSource.getFileType();
+            if (fileType != null && TaskFileTypeEnum.SERVER.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.ServerFile.class);
+            } else if (fileType != null && TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceFile.class);
+                defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceId.class);
+            } else if (fileType != null && TaskFileTypeEnum.LOCAL.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.LocalFile.class);
             }
         }
         return defaultGroupSequence;

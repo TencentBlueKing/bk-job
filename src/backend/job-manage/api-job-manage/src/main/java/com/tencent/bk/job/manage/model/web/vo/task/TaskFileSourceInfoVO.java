@@ -28,12 +28,24 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidFilePath;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import com.tencent.bk.job.manage.validation.provider.TaskFileSourceVOGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.group.GroupSequenceProvider;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -42,33 +54,67 @@ import java.util.List;
 @Data
 @ApiModel("步骤源文件信息")
 @Slf4j
+@GroupSequenceProvider(TaskFileSourceVOGroupSequenceProvider.class)
 public class TaskFileSourceInfoVO {
 
     @ApiModelProperty(value = "文件 ID 新建填 0")
     private Long id;
 
     @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
+    @NotNull(message = "{validation.constraints.InvalidSourceFileType_empty.message}")
+    @CheckEnum(
+        enumClass = TaskFileTypeEnum.class,
+        message = "{validation.constraints.InvalidSourceFileType_illegal.message}"
+    )
     private Integer fileType;
 
     @ApiModelProperty("文件路径")
+    @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
     private String fileHash;
 
     @ApiModelProperty(value = "文件大小 仅本地文件有")
+    @NotBlankField(
+        message = "{validation.constraints.InvalidFileSize_empty.message}",
+        groups = ValidationGroups.FileSource.LocalFile.class
+    )
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")
+    @NotNull(
+        message = "{validation.constraints.InvalidSourceFileHost_empty.message}",
+        groups = ValidationGroups.FileSource.ServerFile.class
+    )
+    @Valid
     private TaskTargetVO host;
 
     @ApiModelProperty(value = "主机账号")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.FileSource.ServerFile.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.FileSource.ServerFile.class
+    )
     private Long account;
 
     @ApiModelProperty(value = "主机账号名称")
     private String accountName;
 
     @ApiModelProperty(value = "文件源ID，来自文件源的文件需要传入")
+    @NotNull(
+        message = "{validation.constraints.InvalidFileSourceId_empty.message}",
+        groups = ValidationGroups.FileSource.FileSourceFile.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidFileSourceId_empty.message}",
+        groups = ValidationGroups.FileSource.FileSourceFile.class
+    )
     private Integer fileSourceId;
 
     public void validate(boolean isCreate) throws InvalidParamException {

@@ -26,9 +26,12 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
-import com.tencent.bk.job.common.validation.ValidFileAbsolutePath;
-import com.tencent.bk.job.execute.validation.provider.WebFileSourceDTOGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.ValidFilePath;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.web.validation.WebFileSourceDTOGroupSequenceProvider;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -44,38 +47,42 @@ import java.util.List;
 public class ExecuteFileSourceInfoVO {
 
     @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
+    @CheckEnum(
+        enumClass = TaskFileTypeEnum.class,
+        message = "{validation.constraints.InvalidSourceFileType_illegal.message}"
+    )
     private Integer fileType;
 
     @ApiModelProperty("文件路径")
     @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
-    @ValidFileAbsolutePath(groups = ServerFileGroup.class)
+    @ValidFilePath
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
     @NotBlankField(
         message = "{validation.constraints.InvalidFileHashValue_empty.message}",
-        groups = LocalFileGroup.class
+        groups = ValidationGroups.FileSource.LocalFile.class
     )
     private String fileHash;
 
     @ApiModelProperty(value = "文件大小 仅本地文件有")
     @NotBlankField(
         message = "{validation.constraints.InvalidFileSize_empty.message}",
-        groups = LocalFileGroup.class
+        groups = ValidationGroups.FileSource.LocalFile.class
     )
     private String fileSize;
 
     @ApiModelProperty(value = "主机列表")
     @NotNull(
         message = "{validation.constraints.InvalidSourceFileHost_empty.message}",
-        groups = ServerFileGroup.class)
+        groups = ValidationGroups.FileSource.ServerFile.class)
     private TaskTargetVO host;
 
     @ApiModelProperty(value = "主机账号")
     @JsonProperty("account")
     @NotNull(
         message = "{validation.constraints.AccountId_empty.message}",
-        groups = ServerFileGroup.class
+        groups = ValidationGroups.FileSource.ServerFile.class
     )
     private Long accountId;
 
@@ -85,28 +92,7 @@ public class ExecuteFileSourceInfoVO {
     @ApiModelProperty(value = "文件源ID")
     @NotNull(
         message = "{validation.constraints.InvalidFileSourceIdOrCode_empty.message}",
-        groups = FileSourceGroup.class
+        groups = ValidationGroups.FileSource.FileSourceFile.class
     )
     private Integer fileSourceId;
-
-    /**
-     * 服务器文件分发分组验证
-     */
-    public interface ServerFileGroup {
-
-    }
-
-    /**
-     * 文件源文件分发分组验证
-     */
-    public interface FileSourceGroup {
-
-    }
-
-    /**
-     * 本地文件分发分组验证
-     */
-    public interface LocalFileGroup {
-
-    }
 }

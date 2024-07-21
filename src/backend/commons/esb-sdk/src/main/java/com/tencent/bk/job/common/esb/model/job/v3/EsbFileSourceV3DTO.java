@@ -28,13 +28,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.constants.EsbTaskFileTypeEnum;
 import com.tencent.bk.job.common.esb.validate.EsbFileSourceV3DTOGroupSequenceProvider;
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
-import com.tencent.bk.job.common.validation.ValidFileAbsolutePath;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidFilePath;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -42,41 +46,29 @@ import java.util.List;
  */
 @Data
 @GroupSequenceProvider(EsbFileSourceV3DTOGroupSequenceProvider.class)
-@ValidFieldsStrictValue(
-    notNull = true,
-    fieldNames = {"fileSourceId", "fileSourceCode"},
-    message = "{validation.constraints.InvalidFileSourceIdOrCode_empty.message}",
-    groups = EsbFileSourceV3DTO.FileSourceGroup.class
-)
 public class EsbFileSourceV3DTO {
     /**
      * 文件列表
      */
     @JsonProperty("file_list")
-    @NotEmpty(
-        message = "{validation.constraints.InvalidSourceFileList_empty.message}",
-        groups = ServerFileGroup.class
-    )
-    @ValidFileAbsolutePath(groups = ServerFileGroup.class)
+    @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
+    @ValidFilePath
     private List<String> files;
 
     /**
      * 账号
      */
-    @ValidFieldsStrictValue(
-        notNull = true,
-        fieldNames = {"id", "alias"},
+    @NotNull(
         message = "{validation.constraints.AccountIdOrAlias_empty.message}",
-        groups = ServerFileGroup.class
+        groups = ValidationGroups.FileSource.ServerFile.class
     )
+    @Valid
     private EsbAccountV3BasicDTO account;
 
     @JsonProperty("server")
-    @ValidFieldsStrictValue(
-        notNull = true,
-        fieldNames = {"ips", "host_id_list", "dynamicGroups", "topoNodes"},
-        message = "{validation.constraints.ExecuteTarget_empty.message}",
-        groups = ServerFileGroup.class
+    @NotNull(
+        message = "{validation.constraints.InvalidSourceFileHost_empty.message}",
+        groups = ValidationGroups.FileSource.ServerFile.class
     )
     @Valid
     private EsbServerV3DTO server;
@@ -97,25 +89,24 @@ public class EsbFileSourceV3DTO {
      * 从文件源分发的文件源Id，非文件源类型可不传
      */
     @JsonProperty("file_source_id")
+    @NotNull(
+        message = "{validation.constraints.InvalidFileSourceId_empty.message}",
+        groups = ValidationGroups.FileSource.FileSourceId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidFileSourceId_empty.message}",
+        groups = ValidationGroups.FileSource.FileSourceId.class
+    )
     private Integer fileSourceId;
 
     /**
      * 从文件源分发的文件源标识，非文件源类型可不传
      */
     @JsonProperty("file_source_code")
+    @NotBlankField(
+        message = "{validation.constraints.InvalidFileSourceCode_empty.message}",
+        groups = ValidationGroups.FileSource.FileSourceId.class
+    )
     private String fileSourceCode;
-
-    /**
-     * 服务器文件分发分组验证
-     */
-    public interface ServerFileGroup {
-
-    }
-
-    /**
-     * 文件源文件分发分组验证
-     */
-    public interface FileSourceGroup {
-
-    }
 }

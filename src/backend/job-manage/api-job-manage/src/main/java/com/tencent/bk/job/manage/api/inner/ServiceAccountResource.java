@@ -98,7 +98,10 @@ public interface ServiceAccountResource {
         @ApiParam("创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
         @ApiParam("修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
         @ApiParam("最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
-        @PathVariable("appId") Long appId, @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
+        @PathVariable("appId") Long appId,
+        @RequestBody
+        @Validated
+        AccountCreateUpdateReq accountCreateUpdateReq);
 
     @ApiOperation(value = "新增账号", produces = "application/json")
     @PostMapping(value = "/service/account/app/{appId}/account")

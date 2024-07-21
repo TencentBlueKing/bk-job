@@ -31,6 +31,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -44,6 +46,11 @@ public class BackupTemplateInfoVO {
      * 模版 ID
      */
     @ApiModelProperty(value = "模版 ID", required = true)
+    @NotNull(message = "{validation.constraints.InvalidTemplateId_empty.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidTemplateId_empty.message}"
+    )
     private Long id;
 
     /**

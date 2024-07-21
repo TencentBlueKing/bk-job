@@ -30,15 +30,20 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.model.esb.v3.validation.EsbFastTransferFileV3RequestGroupSequenceProvider;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -46,10 +51,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ValidFieldsStrictValue(
-    fieldNames = {"accountAlias", "accountId"},
-    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
-)
+@GroupSequenceProvider(EsbFastTransferFileV3RequestGroupSequenceProvider.class)
 public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
 
     /**
@@ -83,20 +85,29 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 目标服务器账户别名
      */
     @JsonProperty("account_alias")
+    @NotBlankField(
+        message = "{validation.constraints.AccountAlias_empty.message}",
+        groups = ValidationGroups.Account.AccountAlias.class
+    )
     private String accountAlias;
 
     /**
      * 目标服务器账号ID
      */
     @JsonProperty("account_id")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
     private Long accountId;
 
     @JsonProperty("target_server")
-    @ValidFieldsStrictValue(
-        notNull = true,
-        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
-        message = "{validation.constraints.ExecuteTarget_empty.message}"
-    )
+    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
     @Valid
     private EsbServerV3DTO targetServer;
 

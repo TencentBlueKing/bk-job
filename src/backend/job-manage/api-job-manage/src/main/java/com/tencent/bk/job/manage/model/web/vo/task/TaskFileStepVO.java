@@ -37,6 +37,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -47,6 +48,7 @@ public class TaskFileStepVO {
 
     @ApiModelProperty("源文件列表")
     @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
+    @Valid
     private List<TaskFileSourceInfoVO> fileSourceList;
 
     @ApiModelProperty("目标信息")

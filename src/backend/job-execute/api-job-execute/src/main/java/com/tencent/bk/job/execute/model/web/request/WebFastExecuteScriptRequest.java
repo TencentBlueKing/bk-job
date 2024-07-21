@@ -30,9 +30,11 @@ import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.web.validation.WebFastExecuteScriptV3RequestGroupSequenceProvider;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
@@ -40,6 +42,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -51,14 +54,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @ApiModel("快速执行脚本请求报文")
-@ValidFieldsStrictValue(
-    fieldNames = {"scriptId", "scriptVersionId", "content"},
-    message = "{validation.constraints.ScriptIdOrVersionIdOrContent_empty.message}"
-)
-@ValidFieldsStrictValue(
-    fieldNames = {"targetServers", "taskTarget"},
-    message = "{validation.constraints.ExecuteTarget_empty.message}"
-)
+@GroupSequenceProvider(WebFastExecuteScriptV3RequestGroupSequenceProvider.class)
 public class WebFastExecuteScriptRequest {
     /**
      * 脚本执行任务名称
@@ -75,12 +71,29 @@ public class WebFastExecuteScriptRequest {
      * 脚本内容
      */
     @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptContent_empty.message}",
+        groups = ValidationGroups.Script.ScriptContent.class
+    )
     private String content;
 
     @ApiModelProperty(value = "脚本ID,当引用脚本的时候传该参数")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptId_empty.message}",
+        groups = ValidationGroups.Script.ScriptId.class
+    )
     private String scriptId;
 
     @ApiModelProperty(value = "脚本版本ID,当引用脚本的时候传该参数")
+    @NotNull(
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
     private Long scriptVersionId;
 
     /**
@@ -106,7 +119,12 @@ public class WebFastExecuteScriptRequest {
     @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql", required = true)
     @CheckEnum(
         enumClass = ScriptTypeEnum.class,
-        message = "{validation.constraints.ScriptType_illegal.message}"
+        message = "{validation.constraints.ScriptType_illegal.message}",
+        groups = ValidationGroups.Script.ScriptContent.class
+    )
+    @NotNull(
+        message = "{validation.constraints.ScriptType_empty.message}",
+        groups = ValidationGroups.Script.ScriptContent.class
     )
     private Integer scriptLanguage;
 

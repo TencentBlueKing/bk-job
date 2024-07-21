@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.validation.provider.TaskStepGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
@@ -46,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import java.util.List;
@@ -83,22 +85,25 @@ public class TaskStepVO {
     @ApiModelProperty("脚本步骤信息")
     @NotNull(
         message = "{validation.constraints.InvalidTaskScriptStep_empty.message}",
-        groups = scriptStepGroup.class
+        groups = ValidationGroups.TaskStep.ScriptStep.class
     )
+    @Valid
     private TaskScriptStepVO scriptStepInfo;
 
     @ApiModelProperty("文件步骤信息")
     @NotNull(
         message = "{validation.constraints.InvalidTaskFileStep_empty.message}",
-        groups = fileStepGroup.class
+        groups = ValidationGroups.TaskStep.FileStep.class
     )
+    @Valid
     private TaskFileStepVO fileStepInfo;
 
     @ApiModelProperty("审批步骤信息")
     @NotNull(
         message = "{validation.constraints.InvalidTaskApprovalStep_empty.message}",
-        groups = approvalStepGroup.class
+        groups = ValidationGroups.TaskStep.ApprovalStep.class
     )
+    @Valid
     private TaskApprovalStepVO approvalStepInfo;
 
     @ApiModelProperty(value = "删除 0-不删除 1-删除，仅在删除时填写")
@@ -109,15 +114,6 @@ public class TaskStepVO {
 
     @ApiModelProperty(value = "引用的全局变量")
     private List<String> refVariables;
-
-    public interface scriptStepGroup {
-    }
-
-    public interface fileStepGroup {
-    }
-
-    public interface approvalStepGroup {
-    }
 
     public void validate(boolean isCreate) throws InvalidParamException {
         if (isCreate) {

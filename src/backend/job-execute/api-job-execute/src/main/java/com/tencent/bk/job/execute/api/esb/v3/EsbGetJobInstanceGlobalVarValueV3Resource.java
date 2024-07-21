@@ -68,7 +68,8 @@ public interface EsbGetJobInstanceGlobalVarValueV3Resource {
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
-        @Min(value = ValidationConstants.COMMON_MIN_1,
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
             message = "{validation.constraints.InvalidJobInstanceId.message}"
         )
         @RequestParam(value = "job_instance_id") Long taskInstanceId

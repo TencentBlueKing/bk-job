@@ -28,18 +28,25 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.esb.validate.EsbServerV3GroupSequenceProvider;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 /**
  * 主机定义-ESB
  */
 @Data
+@GroupSequenceProvider(EsbServerV3GroupSequenceProvider.class)
 public class EsbServerV3DTO {
     /**
      * 目标服务器对应的主机变量
@@ -50,12 +57,26 @@ public class EsbServerV3DTO {
 
     @JsonProperty("ip_list")
     @JsonPropertyDescription("Hosts with ip")
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidIp.message}",
+        groups = ValidationGroups.EsbServerV3.IP.class
+    )
     @Valid
     private List<EsbIpDTO> ips;
 
     @JsonProperty("host_id_list")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonPropertyDescription("Host ids")
+    @NotNull(
+        message = "{validation.constraints.BkHostId_null.message}",
+        groups = ValidationGroups.EsbServerV3.HostId.class
+    )
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.BkHostId_null.message}",
+        groups = ValidationGroups.EsbServerV3.HostId.class
+    )
     private List<Long> hostIds;
 
     /**
@@ -63,6 +84,11 @@ public class EsbServerV3DTO {
      */
     @JsonProperty("dynamic_group_list")
     @JsonPropertyDescription("Cmdb dynamic groups")
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.EmptyDynamicGroupId.message}",
+        groups = ValidationGroups.EsbServerV3.DynamicGroup.class
+    )
     @Valid
     private List<EsbDynamicGroupDTO> dynamicGroups;
 
@@ -71,6 +97,11 @@ public class EsbServerV3DTO {
      */
     @JsonProperty("topo_node_list")
     @JsonPropertyDescription("Cmdb topo nodes")
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.TopoNodeId_null.message}",
+        groups = ValidationGroups.EsbServerV3.TopoNode.class
+    )
     @Valid
     private List<EsbCmdbTopoNodeDTO> topoNodes;
 

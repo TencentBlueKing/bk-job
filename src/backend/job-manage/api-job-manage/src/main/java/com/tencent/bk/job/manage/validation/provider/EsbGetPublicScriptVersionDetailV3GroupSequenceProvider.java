@@ -22,23 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.manage.validation.provider;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPublicScriptVersionDetailV3Request;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.TYPE;
-
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 容器注解，用于包含多个ValidFieldsStrictValue注解
+ * esb获取公共脚步版本详情参数分组校验 V3
  */
-@Documented
-@Target({TYPE, FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ValidFieldsStrictValueContainer {
-    ValidFieldsStrictValue[] value();
+public class EsbGetPublicScriptVersionDetailV3GroupSequenceProvider
+    implements DefaultGroupSequenceProvider<EsbGetPublicScriptVersionDetailV3Request> {
+
+    @Override
+    public List<Class<?>> getValidationGroups(EsbGetPublicScriptVersionDetailV3Request request) {
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(EsbGetPublicScriptVersionDetailV3Request.class);
+        if (request != null) {
+            if (request.getId() != null) {
+                defaultGroupSequence.add(ValidationGroups.Script.ScriptVersionId.class);
+            } else {
+                defaultGroupSequence.add(ValidationGroups.Script.ScriptId.class);
+            }
+        }
+        return defaultGroupSequence;
+    }
 }

@@ -25,8 +25,6 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.validation.ConditionType;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -36,11 +34,6 @@ import java.util.List;
 
 @Data
 @ApiModel("资源标签批量更新请求")
-@ValidFieldsStrictValue(
-    fieldNames = {"addTagIdList", "deleteTagIdList"},
-    condition = ConditionType.AND,
-    message = "{validation.constraints.InvalidTagId_empty.message}"
-)
 public class BatchPatchResourceTagReq {
 
     @ApiModelProperty(value = "资源类型, 可选值: 1-业务脚本,5-作业模板", required = true)

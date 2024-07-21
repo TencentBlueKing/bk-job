@@ -33,6 +33,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -77,6 +78,7 @@ public class TaskPlanCreateUpdateReq {
      * 执行方案变量
      */
     @ApiModelProperty(value = "执行方案变量，新增、修改时需要传入", required = true)
+    @Valid
     private List<TaskVariableVO> variables;
 
     public void trim() {

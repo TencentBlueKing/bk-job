@@ -22,54 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.task;
+package com.tencent.bk.job.execute.model.esb.v3.validation;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastExecuteSQLV3Request;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since 16/10/2019 14:47
+ * EsbFastExecuteSQLV3Request 快速执行SQL请求参数联合校验
  */
-@Data
-@ApiModel("任务审批步骤信息")
 @Slf4j
-public class TaskApprovalStepVO {
-
-    @ApiModelProperty(value = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
-    private Integer approvalType;
-
-    @ApiModelProperty("审批人")
-    @NotNull(message = "{validation.constraints.InvalidApprovalUser_empty.message}")
-    @Valid
-    private UserRoleInfoVO approvalUser;
-
-    @ApiModelProperty("审批消息")
-    private String approvalMessage;
-
-    @ApiModelProperty("通知渠道")
-    private List<String> notifyChannel;
-
-    public void validate(boolean isCreate) throws InvalidParamException {
-        if (notifyChannel == null) {
-            notifyChannel = Collections.emptyList();
+public class EsbFastExecuteSQLV3RequestGroupSequenceProvider
+    implements DefaultGroupSequenceProvider<EsbFastExecuteSQLV3Request> {
+    @Override
+    public List<Class<?>> getValidationGroups(EsbFastExecuteSQLV3Request request) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbFastExecuteSQLV3Request.class);
+        if (request != null) {
+            if (request.getScriptVersionId() != null) {
+                validationGroups.add(ValidationGroups.Script.ScriptVersionId.class);
+            } else if (request.getScriptId() != null) {
+                validationGroups.add(ValidationGroups.Script.ScriptId.class);
+            } else if (request.getContent() != null) {
+                validationGroups.add(ValidationGroups.Script.ScriptContent.class);
+            } else {
+                validationGroups.add(ValidationGroups.Script.ScriptVersionId.class);
+            }
         }
-        if (approvalMessage == null) {
-            approvalMessage = "";
-        }
-        if (approvalUser == null) {
-            log.warn("Approval step must have user!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-        approvalUser.validate();
+        return validationGroups;
     }
 }

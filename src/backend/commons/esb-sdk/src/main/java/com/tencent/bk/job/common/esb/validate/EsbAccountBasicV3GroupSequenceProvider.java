@@ -22,54 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.task;
+package com.tencent.bk.job.common.esb.validate;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @since 16/10/2019 14:47
+ * EsbAccountV3BasicDTO分组校验
  */
-@Data
-@ApiModel("任务审批步骤信息")
 @Slf4j
-public class TaskApprovalStepVO {
-
-    @ApiModelProperty(value = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
-    private Integer approvalType;
-
-    @ApiModelProperty("审批人")
-    @NotNull(message = "{validation.constraints.InvalidApprovalUser_empty.message}")
-    @Valid
-    private UserRoleInfoVO approvalUser;
-
-    @ApiModelProperty("审批消息")
-    private String approvalMessage;
-
-    @ApiModelProperty("通知渠道")
-    private List<String> notifyChannel;
-
-    public void validate(boolean isCreate) throws InvalidParamException {
-        if (notifyChannel == null) {
-            notifyChannel = Collections.emptyList();
+public class EsbAccountBasicV3GroupSequenceProvider
+    implements DefaultGroupSequenceProvider<EsbAccountV3BasicDTO> {
+    @Override
+    public List<Class<?>> getValidationGroups(EsbAccountV3BasicDTO request) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbAccountV3BasicDTO.class);
+        if (request != null) {
+            if (request.getId() != null){
+                validationGroups.add(ValidationGroups.Account.AccountId.class);
+            } else if (request.getAlias() != null){
+                validationGroups.add(ValidationGroups.Account.AccountAlias.class);
+            } else {
+                validationGroups.add(ValidationGroups.Account.AccountId.class);
+            }
         }
-        if (approvalMessage == null) {
-            approvalMessage = "";
-        }
-        if (approvalUser == null) {
-            log.warn("Approval step must have user!");
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-        approvalUser.validate();
+        return validationGroups;
     }
 }

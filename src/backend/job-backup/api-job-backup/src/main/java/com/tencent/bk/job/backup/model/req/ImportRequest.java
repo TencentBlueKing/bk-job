@@ -29,7 +29,6 @@ import com.tencent.bk.job.backup.model.web.BackupTemplateInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -73,11 +72,6 @@ public class ImportRequest {
      * @see BackupTemplateInfoVO
      */
     @ApiModelProperty(value = "需要导入的模版信息", required = true)
-    @ValidFieldsStrictValue(
-        notNull = true,
-        fieldNames = "id",
-        message = "{validation.constraints.InvalidTemplateId_empty.message}"
-    )
     @Valid
     private List<BackupTemplateInfoVO> templateInfo;
 

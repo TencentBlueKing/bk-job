@@ -32,33 +32,60 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
+import com.tencent.bk.job.manage.validation.provider.WebScriptInfoUpdateGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Data
 @ApiModel("脚本元数据更新请求报文")
 @Slf4j
-@ValidFieldsStrictValue(fieldNames = {"scriptName", "scriptDesc", "scriptTags"})
+@GroupSequenceProvider(WebScriptInfoUpdateGroupSequenceProvider.class)
 public class ScriptInfoUpdateReq {
     /**
      * 脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags
      */
     @ApiModelProperty(value = "脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags", required = true, example = "scriptName")
+    @NotBlankField(message = "{validation.constraints.InvalidUpdateField_empty.message}")
     private String updateField;
 
     @ApiModelProperty(value = "脚本名称", required = false)
+    @NotEmpty(
+        message = "{validation.constraints.ScriptName_empty.message}",
+        groups = ValidationGroups.Script.ScriptName.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptName_outOfLength.message}",
+        groups = ValidationGroups.Script.ScriptName.class
+    )
+    @NotContainSpecialChar(
+        message = "{validation.constraints.ScriptName_illegal.message}",
+        groups = ValidationGroups.Script.ScriptName.class)
     private String scriptName;
 
     @ApiModelProperty(value = "脚本描述", required = false)
+    @NotBlankField(
+        message = "{validation.constraints.ScriptDesc_empty.message}",
+        groups = ValidationGroups.Script.ScriptDesc.class
+    )
     private String scriptDesc;
 
     @ApiModelProperty(value = "脚本标签", required = false)
+    @NotEmpty(
+        message = "{validation.constraints.InvalidTagId_empty.message}",
+        groups = ValidationGroups.Script.ScriptTags.class
+    )
     private List<TagVO> scriptTags;
 
 

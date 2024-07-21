@@ -37,22 +37,22 @@ import java.lang.annotation.Target;
 import java.util.List;
 
 /**
- * 验证文件绝对路径的合法性
+ * 验证文件路径的合法性
  */
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = ValidFileAbsolutePath.FileAbsolutePathValidator.class)
-public @interface ValidFileAbsolutePath {
+@Constraint(validatedBy = ValidFilePath.FilePathValidator.class)
+public @interface ValidFilePath {
     String message() default "{validation.constraints.InvalidFileSourceFilePath_illegal.message}";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
     boolean notNull() default false;
 
-    class FileAbsolutePathValidator implements ConstraintValidator<ValidFileAbsolutePath, Object> {
+    class FilePathValidator implements ConstraintValidator<ValidFilePath, Object> {
         private boolean notNull;
 
         @Override
-        public void initialize(ValidFileAbsolutePath constraintAnnotation) {
+        public void initialize(ValidFilePath constraintAnnotation) {
             notNull = constraintAnnotation.notNull();
         }
 

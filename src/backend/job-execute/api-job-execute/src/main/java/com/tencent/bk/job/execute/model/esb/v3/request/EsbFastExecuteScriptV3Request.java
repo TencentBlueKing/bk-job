@@ -29,15 +29,21 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
-import com.tencent.bk.job.common.validation.ConditionalCheckEnum;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.model.esb.v3.validation.EsbFastExecuteScriptV3RequestGroupSequenceProvider;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -45,20 +51,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ValidFieldsStrictValue(
-    fieldNames = {"accountAlias", "accountId"},
-    message = "{validation.constraints.AccountIdOrAlias_empty.message}"
-)
-@ValidFieldsStrictValue(
-    fieldNames = {"scriptId", "scriptVersionId", "content"},
-    message = "{validation.constraints.ScriptIdOrVersionIdOrContent_empty.message}"
-)
-@ConditionalCheckEnum(
-    baseField = "content",
-    dependentField = "scriptLanguage",
-    enumClass = ScriptTypeEnum.class,
-    message = "{validation.constraints.ScriptType_illegal.message}"
-)
+@GroupSequenceProvider(EsbFastExecuteScriptV3RequestGroupSequenceProvider.class)
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     /**
@@ -68,27 +61,53 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private String name;
 
     /**
-     * "脚本内容，BASE64编码
+     * 脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptContent_empty.message}",
+        groups = ValidationGroups.Script.ScriptContent.class
+    )
     private String content;
 
     /**
      * 执行账号别名
      */
     @JsonProperty("account_alias")
+    @NotBlankField(
+        message = "{validation.constraints.AccountAlias_empty.message}",
+        groups = ValidationGroups.Account.AccountAlias.class
+    )
     private String accountAlias;
 
     /**
      * 执行账号ID
      */
     @JsonProperty("account_id")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
     private Long accountId;
 
     /**
      * 脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell
      */
     @JsonProperty("script_language")
+    @NotNull(
+        message = "{validation.constraints.ScriptType_empty.message}",
+        groups = ValidationGroups.Script.ScriptType.class
+    )
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}",
+        groups = ValidationGroups.Script.ScriptType.class
+    )
     private Integer scriptLanguage;
 
     /**
@@ -101,12 +120,25 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 脚本ID
      */
     @JsonProperty("script_id")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptId_empty.message}",
+        groups = ValidationGroups.Script.ScriptId.class
+    )
     private String scriptId;
 
     /**
      * 脚本版本ID
      */
     @JsonProperty("script_version_id")
+    @NotNull(
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
     private Long scriptVersionId;
 
     /**
@@ -124,12 +156,8 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private Integer timeout;
 
     @JsonProperty("target_server")
+    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
     @Valid
-    @ValidFieldsStrictValue(
-        notNull = true,
-        fieldNames = {"ips", "hostIds", "dynamicGroups", "topoNodes"},
-        message = "{validation.constraints.ExecuteTarget_empty.message}"
-    )
     private EsbServerV3DTO targetServer;
 
     /**

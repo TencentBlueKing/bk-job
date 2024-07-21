@@ -598,6 +598,7 @@ public interface WebScriptResource {
             String scopeId,
         @ApiParam(value = "脚本标签批量更新请求报文", name = "tagBatchUpdateReq", required = true)
         @RequestBody
+        @Validated
             ScriptTagBatchPatchReq tagBatchUpdateReq
     );
 

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.esb.validate;
 
 import com.tencent.bk.job.common.esb.constants.EsbTaskFileTypeEnum;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
@@ -42,11 +43,21 @@ public class EsbFileSourceV3DTOGroupSequenceProvider implements DefaultGroupSequ
         defaultGroupSequence.add(EsbFileSourceV3DTO.class);
         if (fileSource != null) {
             Integer fileType = fileSource.getFileType();
-            if (fileType == null || EsbTaskFileTypeEnum.SERVER.getType() == fileType) {
-                defaultGroupSequence.add(EsbFileSourceV3DTO.ServerFileGroup.class);
-            } else if (EsbTaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
-                defaultGroupSequence.add(EsbFileSourceV3DTO.FileSourceGroup.class);
+            if (fileType != null && EsbTaskFileTypeEnum.SERVER.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.ServerFile.class);
+            } else if (fileType != null && EsbTaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceFile.class);
+                if (fileSource.getFileSourceId() != null) {
+                    defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceId.class);
+                } else if (fileSource.getFileSourceCode() != null) {
+                    defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceCode.class);
+                } else {
+                    defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceId.class);
+                }
+            } else {
+                defaultGroupSequence.add(ValidationGroups.FileSource.ServerFile.class);
             }
+
         }
         return defaultGroupSequence;
     }

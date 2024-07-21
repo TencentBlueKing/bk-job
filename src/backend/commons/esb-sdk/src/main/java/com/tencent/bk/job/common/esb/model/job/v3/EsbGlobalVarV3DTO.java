@@ -27,33 +27,46 @@ package com.tencent.bk.job.common.esb.model.job.v3;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.tencent.bk.job.common.validation.Create;
-import com.tencent.bk.job.common.validation.ValidFieldsStrictValue;
-import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.common.esb.validate.EsbGlobalVarV3DTOGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
-import javax.validation.groups.Default;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 全局变量
  */
 @Data
-@ValidFieldsStrictValue(
-    fieldNames = {"id", "name"},
-    message = "{validation.constraints.InvalidGlobalVarIdOrName_empty.message}",
-    groups = {Create.class, Update.class, Default.class}
-)
+@GroupSequenceProvider(EsbGlobalVarV3DTOGroupSequenceProvider.class)
 public class EsbGlobalVarV3DTO {
     /**
      * 全局变量ID
      */
     @JsonPropertyDescription("Global variable id")
+    @NotNull(
+        message = "{validation.constraints.InvalidGlobalVarId.message}",
+        groups = ValidationGroups.GrobalVar.Id.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidGlobalVarId.message}",
+        groups = ValidationGroups.GrobalVar.Id.class
+    )
     private Long id;
 
     /**
      * 全局变量名称
      */
     @JsonPropertyDescription("Global variable name")
+    @NotBlankField(
+        message = "{validation.constraints.InvalidGlobalVarName_empty.message}",
+        groups = ValidationGroups.GrobalVar.Name.class
+    )
     private String name;
 
     /**
@@ -64,6 +77,7 @@ public class EsbGlobalVarV3DTO {
 
     @JsonProperty("server")
     @JsonPropertyDescription("Value for host variable")
+    @Valid
     private EsbServerV3DTO server;
 
     /**

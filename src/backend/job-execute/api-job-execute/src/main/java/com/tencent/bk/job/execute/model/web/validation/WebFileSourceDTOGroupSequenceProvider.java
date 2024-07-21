@@ -22,33 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.tencent.bk.job.execute.model.web.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.TYPE;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 条件枚举验证，如：脚本内容不为空时校验脚本类型是否合法
+ * web 文件源联合校验
  */
-@Documented
-@Constraint(validatedBy = ConditionalCheckEnumValidator.class)
-@Target({TYPE, FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ConditionalCheckEnum {
-    String message() default "{fieldName}{validation.constraints.InvalidEnumValue.message}";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
-    String baseField();
-    String dependentField();
-    Class<? extends Enum<?>> enumClass();
-    String enumMethod() default "isValid";
-    boolean notNull() default false;
-    String fieldName() default "";
+public class WebFileSourceDTOGroupSequenceProvider implements DefaultGroupSequenceProvider<ExecuteFileSourceInfoVO> {
+
+    @Override
+    public List<Class<?>> getValidationGroups(ExecuteFileSourceInfoVO fileSource) {
+        List<Class<?>> defaultGroupSequence = new ArrayList<>();
+        defaultGroupSequence.add(ExecuteFileSourceInfoVO.class);
+        if (fileSource != null) {
+            Integer fileType = fileSource.getFileType();
+            if (fileType == null || TaskFileTypeEnum.SERVER.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.ServerFile.class);
+            } else if (TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.FileSourceFile.class);
+            } else if (TaskFileTypeEnum.LOCAL.getType() == fileType) {
+                defaultGroupSequence.add(ValidationGroups.FileSource.LocalFile.class);
+            }
+        }
+        return defaultGroupSequence;
+    }
 }
