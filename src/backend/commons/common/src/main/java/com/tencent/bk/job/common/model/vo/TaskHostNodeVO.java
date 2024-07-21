@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.common.validation.ExecuteTargetNotEmpty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -46,7 +45,6 @@ import java.util.List;
 @ApiModel("主机节点信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
-@ExecuteTargetNotEmpty
 public class TaskHostNodeVO {
 
     @ApiModelProperty("主机列表")

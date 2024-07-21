@@ -25,8 +25,13 @@
 package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * @since 19/11/2020 16:51
@@ -37,11 +42,17 @@ public class TaskFileDestinationInfoVO {
     private String path;
 
     @ApiModelProperty("执行账号")
+    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}"
+    )
     private Long account;
 
     @ApiModelProperty("执行账号名称")
     private String accountName;
 
     @ApiModelProperty("目标机器列表")
+    @Valid
     private TaskTargetVO server;
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class TaskTargetGroupSequenceProvider
         List<Class<?>> validationGroups = new ArrayList<>();
         validationGroups.add(TaskTargetVO.class);
         if (request != null) {
-            if (request.getVariable() != null){
+            if (StringUtils.isNotEmpty(request.getVariable())){
                 validationGroups.add(ValidationGroups.TaskTarget.Variable.class);
             } else if (request.getExecuteObjectsInfo() != null){
                 validationGroups.add(ValidationGroups.TaskTarget.ExecuteObject.class);

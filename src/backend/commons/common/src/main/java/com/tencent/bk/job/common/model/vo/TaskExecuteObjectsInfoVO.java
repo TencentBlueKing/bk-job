@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.validation.ExecuteTargetNotEmpty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -41,7 +40,6 @@ import java.util.List;
 @ApiModel("任务执行对象信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
-@ExecuteTargetNotEmpty
 public class TaskExecuteObjectsInfoVO {
 
     @ApiModelProperty("主机列表")

@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @Data
 @ApiModel("任务脚本步骤信息")
@@ -45,7 +44,6 @@ import javax.validation.constraints.NotNull;
 public class TaskScriptStepVO {
 
     @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
-    @NotNull(message = "{validation.constraints.ScriptSource_empty.message}")
     @Range(
         min = ValidationConstants.COMMON_MIN_1,
         max = ValidationConstants.COMMON_MAX_3,
@@ -74,7 +72,6 @@ public class TaskScriptStepVO {
     private Long timeout;
 
     @ApiModelProperty("执行账户")
-    @NotNull(message = "{validation.constraints.AccountId_empty.message}")
     private Long account;
 
     @ApiModelProperty("执行账户名称")

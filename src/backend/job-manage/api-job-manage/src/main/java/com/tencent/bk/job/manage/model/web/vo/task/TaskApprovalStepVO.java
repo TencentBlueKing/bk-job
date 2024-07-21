@@ -33,7 +33,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,7 +48,6 @@ public class TaskApprovalStepVO {
     private Integer approvalType;
 
     @ApiModelProperty("审批人")
-    @NotNull(message = "{validation.constraints.InvalidApprovalUser_empty.message}")
     @Valid
     private UserRoleInfoVO approvalUser;
 

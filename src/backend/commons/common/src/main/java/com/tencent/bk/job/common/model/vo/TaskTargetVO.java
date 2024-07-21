@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @Data
 @ApiModel("执行目标")
@@ -61,18 +60,10 @@ public class TaskTargetVO {
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "兼容 API， 发布完成后前端使用 executeObjectsInfo 参数，该参数可删除")
-    @NotNull(
-        message = "{validation.constraints.InvalidTaskTarget_HostNode_empty.message}",
-        groups = ValidationGroups.TaskTarget.HostNode.class
-    )
     @Valid
     private TaskHostNodeVO hostNodeInfo;
 
     @ApiModelProperty(value = "任务执行对象信息")
-    @NotNull(
-        message = "{validation.constraints.InvalidTaskTarget_ExecuteObj_empty.message}",
-        groups = ValidationGroups.TaskTarget.ExecuteObject.class
-    )
     @Valid
     private TaskExecuteObjectsInfoVO executeObjectsInfo;
 

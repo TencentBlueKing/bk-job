@@ -36,26 +36,21 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.common.validation.ValidationConstants;
-import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
-import com.tencent.bk.job.manage.validation.provider.TaskStepGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.validation.groups.Default;
 import java.util.List;
 
 @Data
 @ApiModel("任务步骤信息")
 @Slf4j
-@GroupSequenceProvider(TaskStepGroupSequenceProvider.class)
 public class TaskStepVO {
 
     @ApiModelProperty("步骤 ID 仅在更新、删除时填写")
@@ -64,8 +59,7 @@ public class TaskStepVO {
     @ApiModelProperty("步骤类型 1-脚本 2-文件 3-人工确认")
     @CheckEnum(
         enumClass = TaskStepTypeEnum.class,
-        message = "{validation.constraints.InvalidTaskStepType_illegal.message}",
-        groups = Default.class
+        message = "{validation.constraints.InvalidTaskStepType_illegal.message}"
     )
     private Integer type;
 
@@ -83,26 +77,14 @@ public class TaskStepVO {
     private Long templateStepId;
 
     @ApiModelProperty("脚本步骤信息")
-    @NotNull(
-        message = "{validation.constraints.InvalidTaskScriptStep_empty.message}",
-        groups = ValidationGroups.TaskStep.ScriptStep.class
-    )
     @Valid
     private TaskScriptStepVO scriptStepInfo;
 
     @ApiModelProperty("文件步骤信息")
-    @NotNull(
-        message = "{validation.constraints.InvalidTaskFileStep_empty.message}",
-        groups = ValidationGroups.TaskStep.FileStep.class
-    )
     @Valid
     private TaskFileStepVO fileStepInfo;
 
     @ApiModelProperty("审批步骤信息")
-    @NotNull(
-        message = "{validation.constraints.InvalidTaskApprovalStep_empty.message}",
-        groups = ValidationGroups.TaskStep.ApprovalStep.class
-    )
     @Valid
     private TaskApprovalStepVO approvalStepInfo;
 

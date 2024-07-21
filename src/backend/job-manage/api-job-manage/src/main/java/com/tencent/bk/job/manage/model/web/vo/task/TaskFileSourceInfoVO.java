@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.NotBlankField;
-import com.tencent.bk.job.common.validation.ValidFilePath;
 import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
@@ -44,7 +43,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -61,7 +59,6 @@ public class TaskFileSourceInfoVO {
     private Long id;
 
     @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
-    @NotNull(message = "{validation.constraints.InvalidSourceFileType_empty.message}")
     @CheckEnum(
         enumClass = TaskFileTypeEnum.class,
         message = "{validation.constraints.InvalidSourceFileType_illegal.message}"
@@ -69,7 +66,6 @@ public class TaskFileSourceInfoVO {
     private Integer fileType;
 
     @ApiModelProperty("文件路径")
-    @NotEmpty(message = "{validation.constraints.InvalidSourceFileList_empty.message}")
     private List<String> fileLocation;
 
     @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")

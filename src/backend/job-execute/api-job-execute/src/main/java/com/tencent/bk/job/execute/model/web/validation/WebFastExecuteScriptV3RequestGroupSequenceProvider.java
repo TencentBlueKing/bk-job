@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.web.validation;
 
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.web.request.WebFastExecuteScriptRequest;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
@@ -43,16 +44,19 @@ public class WebFastExecuteScriptV3RequestGroupSequenceProvider
         List<Class<?>> validationGroups = new ArrayList<>();
         validationGroups.add(WebFastExecuteScriptRequest.class);
         if (request != null) {
-            // 脚本优先级 scriptVersionId > scriptId > scriptContent
-            if (request.getScriptVersionId() != null) {
-                validationGroups.add(ValidationGroups.Script.ScriptVersionId.class);
-            } else if (request.getScriptId() != null) {
-                validationGroups.add(ValidationGroups.Script.ScriptId.class);
-            } else if (request.getContent() != null) {
+            Integer scriptSource = request.getScriptSource();
+            if (scriptSource != null && TaskScriptSourceEnum.LOCAL != TaskScriptSourceEnum.valueOf(scriptSource)) {
+                if (request.getScriptVersionId() != null) {
+                    validationGroups.add(ValidationGroups.Script.ScriptVersionId.class);
+                } else if (request.getScriptId() != null) {
+                    validationGroups.add(ValidationGroups.Script.ScriptId.class);
+                } else {
+                    validationGroups.add(ValidationGroups.Script.ScriptContent.class);
+                    validationGroups.add(ValidationGroups.Script.ScriptType.class);
+                }
+            } else {
                 validationGroups.add(ValidationGroups.Script.ScriptContent.class);
                 validationGroups.add(ValidationGroups.Script.ScriptType.class);
-            } else {
-                validationGroups.add(ValidationGroups.Script.ScriptVersionId.class);
             }
         }
         return validationGroups;
