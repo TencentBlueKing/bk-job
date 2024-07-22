@@ -33,18 +33,44 @@ import re
 # 获取当前脚本的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
+language_info = {
+    "en": {
+        "docs_dir_path": "esb/jobv3-confapis/apidocs/en",
+        "template_file_name": "README_en.tpl",
+        "output_file_name": "README_en.md",
+        "function_desc_title": "### Function Description",
+        "resource_name_title": "Resource Name",
+        "resource_description_title": "Resource Description"
+    },
+    "zh_hans": {
+        "docs_dir_path": "esb/jobv3-confapis/apidocs/zh_hans",
+        "template_file_name": "README.tpl",
+        "output_file_name": "README.md",
+        "function_desc_title": "### 功能描述",
+        "resource_name_title": "资源名称",
+        "resource_description_title": "资源描述"
+    }
+}
+
 # 获取使用的分支
 branch = "master"
 if len(sys.argv) >= 2:
     branch = sys.argv[1].strip()
 
+# 获取使用的语言
+language = "zh_hans"
+if len(sys.argv) >= 3:
+    language = sys.argv[2].strip()
+
 print("文档引用的代码分支为: %s" % branch)
 # 常量定义
 apidoc_dir = os.path.join(script_dir, "../../../docs/apidoc")
-docs_dir = os.path.join(apidoc_dir, "esb/jobv3-confapis/apidocs/zh_hans")
-docs_link_prefix = "https://github.com/TencentBlueKing/bk-job/blob/" + branch + "/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/"
-template_file = os.path.join(script_dir, "README.tpl")
-output_file = os.path.join(apidoc_dir, "README.md")
+docs_dir_path = language_info[language]["docs_dir_path"]
+docs_dir = os.path.join(apidoc_dir, docs_dir_path)
+docs_link_prefix = "https://github.com/TencentBlueKing/bk-job/blob/" + branch + "/docs/apidoc/" + docs_dir_path + "/"
+template_file = os.path.join(script_dir, language_info[language]["template_file_name"])
+output_file_name = language_info[language]["output_file_name"]
+output_file = os.path.join(apidoc_dir, output_file_name)
 
 # 初始化结果列表
 results = []
@@ -60,7 +86,7 @@ for root, dirs, files in os.walk(docs_dir):
             # 提取功能描述
             func_desc = None
             for i, line in enumerate(lines):
-                if line.strip() == "### 功能描述":
+                if line.strip() == language_info[language]["function_desc_title"]:
                     # 查找功能描述内容，忽略空白行
                     for j in range(i + 1, len(lines)):
                         if lines[j].strip():
@@ -80,8 +106,10 @@ for root, dirs, files in os.walk(docs_dir):
             else:
                 print(f"功能描述缺失: {file_path}")
 
+resource_name_title = language_info[language]["resource_name_title"]
+resource_description_title = language_info[language]["resource_description_title"]
 # 生成接口文档简介内容
-api_summary = "| 资源名称 | 资源描述 |\n"
+api_summary = "| " + resource_name_title + " | " + resource_description_title + " |\n"
 api_summary += "| -------- | -------- |\n"
 for result in results:
     api_summary += result + "\n"
@@ -96,4 +124,4 @@ output_content = template_content.replace("{{api_summary}}", api_summary)
 with open(output_file, 'w', encoding='utf-8') as f:
     f.write(output_content)
 
-print(f"接口文档简介README.md已生成: {output_file}")
+print(f"接口文档简介已生成: {output_file}")
