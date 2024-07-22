@@ -93,7 +93,7 @@
     <div
       v-else
       style=" color: #ff5656;text-align: center;">
-      {{ $t('cron._月_和_周_暂无法同时生效') }}
+      {{ $t('cron._日_和_周_暂无法同时生效') }}
     </div>
   </div>
 </template>
