@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
+import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
 import com.tencent.bk.job.common.sharding.mysql.ShardingConfigParseException;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,10 +40,13 @@ import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfi
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
+import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -57,7 +61,13 @@ import java.util.stream.Collectors;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ShardingsphereProperties.class})
 @ConditionalOnProperty(value = "shardingsphere.enabled", havingValue = "true")
+@Import(LeafDbConfig.class)
 public class ShardingDatasourceAutoConfiguration {
+
+    @Bean("jooqLeafIdAllocator")
+    public JooqLeafIdAllocator jooqLeafIdAllocator(@Qualifier("leaf-dsl-context") DSLContext dslContext) {
+        return new JooqLeafIdAllocator(dslContext);
+    }
 
     @Bean("shardingDataSource")
     public DataSource shardingDataSource(ShardingsphereProperties shardingsphereProperties) throws SQLException {

@@ -149,6 +149,7 @@ ext {
     set('embeddedRedisVersion', "0.6")
     set('shardingJdbcVersion', "5.4.1")
     set('snakeyamlVersion', "1.33")
+    set('bkDevOpsLeafVersion', "1.0.2-RELEASE")
 }
 
 group "com.tencent.bk.job"
@@ -344,6 +345,7 @@ subprojects {
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
             dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
             dependency "org.yaml:snakeyaml:$snakeyamlVersion"
+            dependency "com.tencent.devops.leaf:leaf-boot-starter:$bkDevOpsLeafVersion"
         }
     }
     dependencies {

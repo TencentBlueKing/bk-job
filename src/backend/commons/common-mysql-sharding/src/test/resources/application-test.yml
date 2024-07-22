@@ -208,5 +208,14 @@ shardingsphere:
         type: INLINE
         props:
           algorithm-expression: task_instance_host_app_${app_id % 2}
-
+leaf:
+  segment:
+    allocStrategyDaoBeanName: jooqIDAllocDaoImpl
+    enable: true
+    url: jdbc:mysql://xxxxxx/devops_project?useSSL=false&autoReconnect=true&serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&allowMultiQueries=true
+    username: xxx
+    password: xxx
+  snowflake:
+    enable: false
+  name: job-leaf
 
