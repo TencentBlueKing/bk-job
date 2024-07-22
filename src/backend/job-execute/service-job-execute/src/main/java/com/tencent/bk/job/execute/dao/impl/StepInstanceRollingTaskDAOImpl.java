@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
@@ -63,9 +64,13 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     };
     private final DSLContext CTX;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+                                          @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.CTX = CTX;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -135,16 +140,18 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
         Record record = CTX.insertInto(
-            TABLE,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT,
-            TABLE.BATCH,
-            TABLE.STATUS,
-            TABLE.START_TIME,
-            TABLE.END_TIME,
-            TABLE.TOTAL_TIME)
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.BATCH,
+                TABLE.STATUS,
+                TABLE.START_TIME,
+                TABLE.END_TIME,
+                TABLE.TOTAL_TIME)
             .values(
+                idGenerator.genStepInstanceRollingTaskId(),
                 rollingTask.getTaskInstanceId(),
                 rollingTask.getStepInstanceId(),
                 JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),

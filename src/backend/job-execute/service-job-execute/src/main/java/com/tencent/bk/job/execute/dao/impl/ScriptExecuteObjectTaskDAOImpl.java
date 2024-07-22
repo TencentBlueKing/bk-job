@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -84,10 +85,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
 
     private final DSLContext CTX;
 
+    private final IdGenerator idGenerator;
+
     private static final String BATCH_INSERT_SQL =
-        "insert into gse_script_execute_obj_task (task_instance_id,step_instance_id,execute_count,"
+        "insert into gse_script_execute_obj_task (id,task_instance_id,step_instance_id,execute_count,"
             + "actual_execute_count,batch,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,"
-            + "total_time,error_code,exit_code,tag,log_offset) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "total_time,error_code,exit_code,tag,log_offset) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     private static final String BATCH_UPDATE_SQL =
         "update gse_script_execute_obj_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
@@ -95,32 +98,35 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             + " where task_instance_id = ? and step_instance_id = ? and execute_count = ? and batch = ?"
             + " and execute_obj_id = ?";
 
-    public ScriptExecuteObjectTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+    public ScriptExecuteObjectTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+                                          @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.CTX = CTX;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
-        Object[][] params = new Object[tasks.size()][16];
+        Object[][] params = new Object[tasks.size()][17];
         int batchCount = 0;
         for (ExecuteObjectTask task : tasks) {
-            Object[] param = new Object[16];
-            param[0] = task.getTaskInstanceId();
-            param[1] = task.getStepInstanceId();
-            param[2] = task.getExecuteCount();
-            param[3] = task.getActualExecuteCount();
-            param[4] = task.getBatch();
-            param[5] = task.getExecuteObjectType().getValue();
-            param[6] = task.getExecuteObjectId();
-            param[7] = task.getGseTaskId();
-            param[8] = task.getStatus().getValue();
-            param[9] = task.getStartTime();
-            param[10] = task.getEndTime();
-            param[11] = task.getTotalTime();
-            param[12] = task.getErrorCode();
-            param[13] = task.getExitCode();
-            param[14] = StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[15] = task.getScriptLogOffset();
+            Object[] param = new Object[17];
+            param[0] = idGenerator.genGseScriptExecuteObjTaskId();
+            param[1] = task.getTaskInstanceId();
+            param[2] = task.getStepInstanceId();
+            param[3] = task.getExecuteCount();
+            param[4] = task.getActualExecuteCount();
+            param[5] = task.getBatch();
+            param[6] = task.getExecuteObjectType().getValue();
+            param[7] = task.getExecuteObjectId();
+            param[8] = task.getGseTaskId();
+            param[9] = task.getStatus().getValue();
+            param[10] = task.getStartTime();
+            param[11] = task.getEndTime();
+            param[12] = task.getTotalTime();
+            param[13] = task.getErrorCode();
+            param[14] = task.getExitCode();
+            param[15] = StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[16] = task.getScriptLogOffset();
             params[batchCount++] = param;
         }
         CTX.batch(BATCH_INSERT_SQL, params).execute();

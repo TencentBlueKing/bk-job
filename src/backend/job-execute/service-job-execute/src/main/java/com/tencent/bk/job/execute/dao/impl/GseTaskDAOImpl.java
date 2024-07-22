@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.tables.GseTask;
@@ -45,6 +46,8 @@ import java.util.List;
 @Repository
 public class GseTaskDAOImpl implements GseTaskDAO {
     private final DSLContext dslContext;
+
+    private final IdGenerator idGenerator;
 
     private static final GseTask TABLE = GseTask.GSE_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -69,8 +72,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     };
 
     @Autowired
-    public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
+    public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext,
+                          @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.dslContext = dslContext;
+        this.idGenerator = idGenerator;
     }
 
     private GseTaskDTO extractInfo(Record record) {
@@ -109,6 +114,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     public long saveGseTask(GseTaskDTO gseTask) {
         Record record = dslContext.insertInto(
             TABLE,
+            TABLE.ID,
             TABLE.STEP_INSTANCE_ID,
             TABLE.EXECUTE_COUNT,
             TABLE.BATCH,
@@ -119,6 +125,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             TABLE.GSE_TASK_ID,
             TABLE.TASK_INSTANCE_ID)
             .values(
+                idGenerator.genGseTaskId(),
                 gseTask.getStepInstanceId(),
                 gseTask.getExecuteCount().shortValue(),
                 (short) gseTask.getBatch(),

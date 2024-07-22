@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
@@ -46,6 +47,10 @@ import java.util.List;
 public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     private static final FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
     private final DSLContext defaultContext;
+
+    private final IdGenerator idGenerator;
+
+
     private static final TableField<?, ?>[] ALL_FIELDS = {
         defaultTable.TASK_INSTANCE_ID,
         defaultTable.STEP_INSTANCE_ID,
@@ -59,8 +64,10 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
 
 
     @Autowired
-    public FileSourceTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext defaultContext) {
+    public FileSourceTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext defaultContext,
+                                    @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.defaultContext = defaultContext;
+        this.idGenerator = idGenerator;
     }
 
     private FileSourceTaskLogDTO extractInfo(Record record) {
@@ -86,6 +93,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
         return defaultContext.insertInto(
             t,
+            t.ID,
             t.TASK_INSTANCE_ID,
             t.STEP_INSTANCE_ID,
             t.EXECUTE_COUNT,
@@ -95,6 +103,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
             t.STATUS,
             t.FILE_SOURCE_BATCH_TASK_ID
         ).values(
+            idGenerator.genFileSourceTaskLogId(),
             fileSourceTaskLog.getTaskInstanceId(),
             fileSourceTaskLog.getStepInstanceId(),
             fileSourceTaskLog.getExecuteCount(),

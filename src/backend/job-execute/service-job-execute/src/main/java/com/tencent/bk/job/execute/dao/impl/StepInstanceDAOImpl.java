@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -144,19 +145,25 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     private final SensitiveParamCryptoService sensitiveParamCryptoService;
     private final DbPasswordCryptoService dbPasswordCryptoService;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
     public StepInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
                                SensitiveParamCryptoService sensitiveParamCryptoService,
-                               DbPasswordCryptoService dbPasswordCryptoService) {
+                               DbPasswordCryptoService dbPasswordCryptoService,
+                               @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.CTX = CTX;
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
         this.dbPasswordCryptoService = dbPasswordCryptoService;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public Long addStepInstanceBase(StepInstanceBaseDTO stepInstance) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = CTX.insertInto(t,
+        Record record = CTX.insertInto(
+            t,
+            t.ID,
             t.STEP_ID,
             t.TASK_INSTANCE_ID,
             t.APP_ID,
@@ -175,6 +182,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             t.STEP_ORDER,
             t.BATCH
         ).values(
+            idGenerator.genStepInstanceId(),
             stepInstance.getStepId(),
             stepInstance.getTaskInstanceId(),
             stepInstance.getAppId(),

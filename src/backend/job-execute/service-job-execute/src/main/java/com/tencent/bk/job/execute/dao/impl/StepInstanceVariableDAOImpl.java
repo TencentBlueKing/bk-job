@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
@@ -46,22 +47,37 @@ import java.util.List;
 public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     private static final StepInstanceVariable TABLE = StepInstanceVariable.STEP_INSTANCE_VARIABLE;
     private final DSLContext ctx;
+
+    private final IdGenerator idGenerator;
     private final TableField<?, ?>[] FIELDS = {TABLE.TASK_INSTANCE_ID, TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT, TABLE.TYPE, TABLE.PARAM_VALUES};
+        TABLE.EXECUTE_COUNT, TABLE.TYPE, TABLE.PARAM_VALUES};
 
 
     @Autowired
-    public StepInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public StepInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+                                       @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.ctx = ctx;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
-        ctx.insertInto(TABLE, FIELDS)
-                .values(variableValues.getTaskInstanceId(), variableValues.getStepInstanceId(),
-                        variableValues.getExecuteCount(), JooqDataTypeUtil.toByte(variableValues.getType()),
-                        JsonUtils.toJson(variableValues))
-                .execute();
+        ctx.insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.TYPE,
+                TABLE.PARAM_VALUES)
+            .values(
+                idGenerator.genStepInstanceVariableId(),
+                variableValues.getTaskInstanceId(),
+                variableValues.getStepInstanceId(),
+                variableValues.getExecuteCount(),
+                JooqDataTypeUtil.toByte(variableValues.getType()),
+                JsonUtils.toJson(variableValues))
+            .execute();
     }
 
     @Override
@@ -70,14 +86,14 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
                                                                int executeCount,
                                                                VariableValueTypeEnum variableValueType) {
         Record record = ctx.select(FIELDS)
-                .from(TABLE)
-                .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
-                        TABLE.TASK_INSTANCE_ID::eq))
-                .and(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(TABLE.EXECUTE_COUNT.eq(executeCount))
-                .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
-                .limit(1)
-                .fetchOne();
+            .from(TABLE)
+            .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
+                TABLE.TASK_INSTANCE_ID::eq))
+            .and(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(TABLE.EXECUTE_COUNT.eq(executeCount))
+            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
+            .limit(1)
+            .fetchOne();
         return extract(record);
     }
 

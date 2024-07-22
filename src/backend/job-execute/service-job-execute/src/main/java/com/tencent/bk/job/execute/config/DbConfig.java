@@ -31,7 +31,6 @@ import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -49,19 +48,7 @@ public class DbConfig {
     @Qualifier("job-execute-data-source")
     @Bean(name = "job-execute-data-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute")
-    @ConditionalOnProperty(value = "job.execute.mariadb.sharding.enabled", havingValue = "false", matchIfMissing = true)
     public DataSource dataSource() {
-        return DataSourceBuilder.create().build();
-    }
-
-    /**
-     * 分库分表下的数据源
-     */
-    @Qualifier("job-execute-data-source")
-    @Bean(name = "job-execute-data-source")
-    @ConfigurationProperties(prefix = "spring.datasource")
-    @ConditionalOnProperty(value = "job.execute.mariadb.sharding.enabled", havingValue = "true")
-    public DataSource shardingDataSource() {
         return DataSourceBuilder.create().build();
     }
 

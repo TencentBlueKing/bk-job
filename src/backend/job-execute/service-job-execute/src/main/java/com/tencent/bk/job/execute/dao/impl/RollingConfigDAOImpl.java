@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
@@ -44,19 +45,25 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
     private final DSLContext CTX;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
-    public RollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public RollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+                                @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.CTX = ctx;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
         Record record = CTX.insertInto(
-            TABLE,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.CONFIG_NAME,
-            TABLE.CONFIG)
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.CONFIG_NAME,
+                TABLE.CONFIG)
             .values(
+                idGenerator.genRollingConfigId(),
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
                 JsonUtils.toJson(rollingConfig.getConfigDetail()))
@@ -69,10 +76,10 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     @Override
     public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
         Record record = CTX.select(
-            TABLE.ID,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.CONFIG_NAME,
-            TABLE.CONFIG)
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.CONFIG_NAME,
+                TABLE.CONFIG)
             .from(TABLE)
             .where(TABLE.ID.eq(rollingConfigId))
             .fetchOne();

@@ -8,20 +8,18 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
   datasource:
-    driver-class-name: "org.apache.shardingsphere.driver.ShardingSphereDriver"
-    jdbc-url: "jdbc:shardingsphere:classpath:sharding.yaml"
-#    job-execute:
-#      driver-class-name: org.h2.Driver
-#      type: com.zaxxer.hikari.HikariDataSource
-#      sql-script-encoding: utf-8
-#      jdbc-url: ${job.execute.db.url}
-#      username: ${job.execute.db.username}
-#      password: ${job.execute.db.password}
-#      maximum-pool-size: 20
-#      minimum-idle: 5
-#      idle-timeout: 600000
-#      poolName: "job-execute"
-#      validationTimeout: 5000
+    job-execute:
+      driver-class-name: org.h2.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      sql-script-encoding: utf-8
+      jdbc-url: ${job.execute.db.url}
+      username: ${job.execute.db.username}
+      password: ${job.execute.db.password}
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      poolName: "job-execute"
+      validationTimeout: 5000
   redis:
     host: 127.0.0.1
     port: 6379

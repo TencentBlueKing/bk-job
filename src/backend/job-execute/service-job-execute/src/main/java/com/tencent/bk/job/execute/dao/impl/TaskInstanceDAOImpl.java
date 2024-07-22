@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
@@ -68,26 +69,30 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     private static final TaskInstanceHost TASK_INSTANCE_HOST = TaskInstanceHost.TASK_INSTANCE_HOST;
     private final DSLContext ctx;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
-    public TaskInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public TaskInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+                               @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.ctx = ctx;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
         Record record = ctx.insertInto(
-            TASK_INSTANCE,
-            TASK_INSTANCE.ID,
-            TASK_INSTANCE.TASK_ID,
-            TASK_INSTANCE.CRON_TASK_ID,
-            TASK_INSTANCE.TASK_TEMPLATE_ID,
-            TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
-            TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
-            TASK_INSTANCE.STATUS, TASK_INSTANCE.START_TIME,
-            TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME, TASK_INSTANCE.CALLBACK_URL,
-            TASK_INSTANCE.TYPE, TASK_INSTANCE.APP_CODE)
+                TASK_INSTANCE,
+                TASK_INSTANCE.ID,
+                TASK_INSTANCE.TASK_ID,
+                TASK_INSTANCE.CRON_TASK_ID,
+                TASK_INSTANCE.TASK_TEMPLATE_ID,
+                TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
+                TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
+                TASK_INSTANCE.STATUS, TASK_INSTANCE.START_TIME,
+                TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME, TASK_INSTANCE.CALLBACK_URL,
+                TASK_INSTANCE.TYPE, TASK_INSTANCE.APP_CODE)
             .values(
-                taskInstance.getId(),
+                idGenerator.genTaskInstanceId(),
                 taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
@@ -112,13 +117,13 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @Override
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
         Record record = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
-            TASK_INSTANCE.TASK_TEMPLATE_ID,
-            TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
-            TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
-            TASK_INSTANCE.STATUS,
-            TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
-            TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
-            TASK_INSTANCE.APP_CODE).from(TASK_INSTANCE)
+                TASK_INSTANCE.TASK_TEMPLATE_ID,
+                TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
+                TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
+                TASK_INSTANCE.STATUS,
+                TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
+                TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
+                TASK_INSTANCE.APP_CODE).from(TASK_INSTANCE)
             .where(TASK_INSTANCE.ID.eq(taskInstanceId)).fetchOne();
         return extractInfo(record);
     }
@@ -152,13 +157,13 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @Override
     public List<TaskInstanceDTO> getTaskInstanceByTaskId(long taskId) {
         Result result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
-            TASK_INSTANCE.TASK_TEMPLATE_ID,
-            TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
-            TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
-            TASK_INSTANCE.STATUS,
-            TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
-            TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
-            TASK_INSTANCE.APP_CODE).from(TASK_INSTANCE)
+                TASK_INSTANCE.TASK_TEMPLATE_ID,
+                TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
+                TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
+                TASK_INSTANCE.STATUS,
+                TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
+                TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
+                TASK_INSTANCE.APP_CODE).from(TASK_INSTANCE)
             .where(TASK_INSTANCE.TASK_ID.eq(taskId)).fetch();
         List<TaskInstanceDTO> taskInstances = new ArrayList<>();
         result.into(record -> {
@@ -248,13 +253,13 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
         Result<?> result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
-            TASK_INSTANCE.TASK_TEMPLATE_ID,
-            TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
-            TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
-            TASK_INSTANCE.STATUS,
-            TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
-            TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
-            TASK_INSTANCE.APP_CODE)
+                TASK_INSTANCE.TASK_TEMPLATE_ID,
+                TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
+                TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
+                TASK_INSTANCE.STATUS,
+                TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
+                TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
+                TASK_INSTANCE.APP_CODE)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .where(buildSearchCondition(taskQuery))
             .orderBy(orderFields)
@@ -286,13 +291,13 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
         Result result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
-            TASK_INSTANCE.TASK_TEMPLATE_ID,
-            TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
-            TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
-            TASK_INSTANCE.STATUS,
-            TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
-            TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
-            TASK_INSTANCE.APP_CODE)
+                TASK_INSTANCE.TASK_TEMPLATE_ID,
+                TASK_INSTANCE.IS_DEBUG_TASK, TASK_INSTANCE.APP_ID, TASK_INSTANCE.NAME, TASK_INSTANCE.OPERATOR,
+                TASK_INSTANCE.STARTUP_MODE, TASK_INSTANCE.CURRENT_STEP_ID,
+                TASK_INSTANCE.STATUS,
+                TASK_INSTANCE.START_TIME, TASK_INSTANCE.END_TIME, TASK_INSTANCE.TOTAL_TIME, TASK_INSTANCE.CREATE_TIME,
+                TASK_INSTANCE.CALLBACK_URL, TASK_INSTANCE.TYPE,
+                TASK_INSTANCE.APP_CODE)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
             .where(conditions)
@@ -389,9 +394,10 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
 
         SelectSeekStep1 select = ctx.select(TABLE.ID, TABLE.TASK_ID, TABLE.CRON_TASK_ID, TABLE.TASK_TEMPLATE_ID,
-            TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE, TABLE.CURRENT_STEP_ID,
-            TABLE.STATUS, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME,
-            TABLE.CALLBACK_URL, TABLE.TYPE, TABLE.APP_CODE)
+                TABLE.IS_DEBUG_TASK, TABLE.APP_ID, TABLE.NAME, TABLE.OPERATOR, TABLE.STARTUP_MODE,
+                TABLE.CURRENT_STEP_ID,
+                TABLE.STATUS, TABLE.START_TIME, TABLE.END_TIME, TABLE.TOTAL_TIME, TABLE.CREATE_TIME,
+                TABLE.CALLBACK_URL, TABLE.TYPE, TABLE.APP_CODE)
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.CREATE_TIME.desc());
@@ -546,7 +552,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         hostBatches.forEach(batchHosts -> {
             BatchBindStep batchInsert = ctx.batch(
                 ctx.insertInto(TASK_INSTANCE_HOST, TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
-                    TASK_INSTANCE_HOST.HOST_ID, TASK_INSTANCE_HOST.IP, TASK_INSTANCE_HOST.IPV6)
+                        TASK_INSTANCE_HOST.HOST_ID, TASK_INSTANCE_HOST.IP, TASK_INSTANCE_HOST.IPV6)
                     .values((Long) null, null, null, null)
             );
 

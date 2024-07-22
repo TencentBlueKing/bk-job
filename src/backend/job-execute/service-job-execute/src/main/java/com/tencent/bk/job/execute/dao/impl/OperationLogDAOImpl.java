@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
+import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
@@ -44,18 +45,30 @@ import java.util.List;
 @Repository
 public class OperationLogDAOImpl implements OperationLogDAO {
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
-    private DSLContext ctx;
+    private final DSLContext ctx;
+
+    private final IdGenerator idGenerator;
 
     @Autowired
-    public OperationLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+    public OperationLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+                               @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
         this.ctx = ctx;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public long saveOperationLog(OperationLogDTO operationLog) {
-        Record record = ctx.insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
-            TABLE.CREATE_TIME, TABLE.DETAIL)
-            .values(operationLog.getTaskInstanceId(),
+        Record record = ctx.insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.OP_CODE,
+                TABLE.OPERATOR,
+                TABLE.CREATE_TIME,
+                TABLE.DETAIL)
+            .values(
+                idGenerator.genOperationLogId(),
+                operationLog.getTaskInstanceId(),
                 JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
                 operationLog.getOperator(),
                 operationLog.getCreateTime(),
@@ -67,7 +80,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     @Override
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
         Result result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
-            , TABLE.DETAIL)
+                , TABLE.DETAIL)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(TABLE.CREATE_TIME.desc())

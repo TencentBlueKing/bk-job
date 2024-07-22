@@ -28,7 +28,7 @@ dependencies {
     jooqRuntime "mysql:mysql-connector-java"
 }
 
-def databaseName = "leaf"
+def databaseName = "job_leaf"
 def targetPackageName = "com.tencent.bk.job.common.sharding.mysql.jooq.model"
 
 jooq {
