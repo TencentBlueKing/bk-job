@@ -96,7 +96,7 @@
   "未上线": "STAND-BY",
   "已下线": "OFFLINE",
   "已禁用": "BANNED",
-  "暂无关联作业，或已是当前版本。": "No associated jobs, or it's already using current version.",
+  "暂无关联作业，或已是当前版本": "No associated jobs, or it's already using current version.",
   "部分作业模板同步失败，请留意": "Some of job template is sync failed",
   "同步至": "Update to",
   "将覆盖其它条件": "override other conditions",

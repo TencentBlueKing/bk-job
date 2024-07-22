@@ -138,7 +138,7 @@
         v-if="!publicScript && scriptInfo.isOnline"
         key="sync"
         class="mr10"
-        :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
+        :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本') : ''">
         <auth-button
           v-test="{ type: 'button', value: 'syncScript' }"
           auth="script/edit"
