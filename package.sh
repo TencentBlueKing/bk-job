@@ -165,6 +165,9 @@ for m in "${PACKAGE_MODULES[@]}"; do
     cp -r "support-files/sql/${m}/" release/job/support-files/sql/
   fi
 done
+# package job distributed id generate component(Leaf) sql
+cp -r "support-files/sql/job-leaf/" release/job/support-files/sql/
+
 # Package Templates by modules
 cd support-files/tools
 export PYTHONIOENCODING=utf8
