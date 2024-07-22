@@ -27,15 +27,22 @@ IN THE SOFTWARE.
 该脚本会在当前脚本所在目录下生成 README.md 文件，并输出缺少功能描述的文档路径。
 """
 import os
+import sys
 import re
 
 # 获取当前脚本的目录
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
+# 获取使用的分支
+branch = "master"
+if len(sys.argv) >= 2:
+    branch = sys.argv[1].strip()
+
+print("文档引用的代码分支为: %s" % branch)
 # 常量定义
 apidoc_dir = os.path.join(script_dir, "../../../docs/apidoc")
 docs_dir = os.path.join(apidoc_dir, "esb/jobv3-confapis/apidocs/zh_hans")
-docs_link_prefix = "https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/"
+docs_link_prefix = "https://github.com/TencentBlueKing/bk-job/blob/" + branch + "/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/"
 template_file = os.path.join(script_dir, "README.tpl")
 output_file = os.path.join(apidoc_dir, "README.md")
 

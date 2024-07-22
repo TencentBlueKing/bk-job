@@ -4,14 +4,14 @@
 
 
 | 资源名称 | 资源描述 |
-| -------- | ------- |
+| -------- | -------- |
 | [batch_get_job_instance_ip_log](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/batch_get_job_instance_ip_log.md) | 根据主机列表批量查询作业执行日志 |
-| [callback_protocol](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/callback_protocol.md) | 此组件用于展示回调协议文档 |
+| [callback_protocol](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/callback_protocol.md) | 此组件仅用于展示回调协议文档 |
 | [check_script](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/check_script.md) | 高危脚本检测 |
 | [create_account](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_account.md) | 创建账号（当前仅支持系统账号） |
 | [create_credential](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_credential.md) | 新建凭证 |
 | [create_dangerous_rule](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_dangerous_rule.md) | 新建高危语句检测规则 |
-| [create_file_source](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_file_source.md) | 新建文件源 |
+| [create_file_source](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_file_source.md) | 新建文件源，当前仅支持创建关联自动选择公共接入点的蓝鲸制品库文件源 |
 | [create_public_script](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_public_script.md) | 新建公共脚本 |
 | [create_public_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_public_script_version.md) | 新建公共脚本版本 |
 | [create_script](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/create_script.md) | 新建脚本 |
@@ -24,8 +24,8 @@
 | [delete_script](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/delete_script.md) | 删除脚本，同时会删除该脚本下的所有的脚本版本 |
 | [delete_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/delete_script_version.md) | 删除脚本版本 |
 | [disable_dangerous_rule](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/disable_dangerous_rule.md) | 停用高危语句检测规则 |
-| [disable_public_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/disable_public_script_version.md) | 禁用公共脚本版本 |
-| [disable_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/disable_script_version.md) | 禁用脚本版本 |
+| [disable_public_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/disable_public_script_version.md) | 禁用公共脚本版本，一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作 |
+| [disable_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/disable_script_version.md) | 禁用脚本版本，一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作 |
 | [enable_dangerous_rule](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/enable_dangerous_rule.md) | 启用高危语句检测规则 |
 | [execute_job_plan](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/execute_job_plan.md) | 启动作业执行方案 |
 | [fast_execute_script](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/fast_execute_script.md) | 快速执行脚本 |
@@ -52,10 +52,10 @@
 | [get_script_version_list](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/get_script_version_list.md) | 查询业务脚本版本列表 |
 | [operate_job_instance](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/operate_job_instance.md) | 用于对执行的作业实例进行操作，例如终止作业 |
 | [operate_step_instance](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/operate_step_instance.md) | 用于对执行的实例的步骤进行操作，例如重试，忽略错误等 |
-| [publish_public_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/publish_public_script_version.md) | 上线公共脚本版本 |
-| [publish_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/publish_script_version.md) | 上线脚本版本 |
+| [publish_public_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/publish_public_script_version.md) | 上线公共脚本版本，上线后，之前的线上脚本将被置为已下线状态，但不影响作业使用 |
+| [publish_script_version](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/publish_script_version.md) | 上线脚本版本，上线后，之前的线上脚本将被置为已下线状态，但不影响作业使用 |
 | [push_config_file](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/push_config_file.md) | 分发配置文件，此接口用于分发配置文件等小的纯文本文件 |
-| [save_cron](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/save_cron.md) | 新建或保存定时任务 |
+| [save_cron](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/save_cron.md) | 新建或保存定时任务；新建定时任务，定时任务状态默认为暂停，如有需要可调用update_cron_status接口开启 |
 | [update_credential](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/update_credential.md) | 更新凭证 |
 | [update_cron_status](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/update_cron_status.md) | 更新定时作业状态，如启动或暂停 |
 | [update_dangerous_rule](https://github.com/TencentBlueKing/bk-job/blob/3.9.x/docs/apidoc/esb/jobv3-confapis/apidocs/zh_hans/update_dangerous_rule.md) | 修改高危语句检测规则 |
