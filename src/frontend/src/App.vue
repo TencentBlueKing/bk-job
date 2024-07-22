@@ -253,6 +253,7 @@
         });
         setLocale(lang);
         jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang.toLocaleLowerCase()}`);
+        window.location.reload();
       },
       /**
        * @desc 显示版本更新日志

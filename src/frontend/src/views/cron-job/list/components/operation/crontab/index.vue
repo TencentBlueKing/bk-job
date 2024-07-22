@@ -234,7 +234,6 @@
           this.isGrammarError = true;
           return;
         }
-        console.log('valueList = ', dayOfMonth, dayOfWeek);
 
         try {
           this.checkAndTranslate(value);

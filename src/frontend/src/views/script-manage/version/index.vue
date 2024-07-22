@@ -479,7 +479,6 @@
        * @returns { Boolean }
        */
       isCopyCreateDisabled() {
-        console.log('isCopyCreateDisabled =', this.dataMemo, !!_.find(this.dataMemo, scriptVersion => scriptVersion.isDraft));
         return !!_.find(this.dataMemo, scriptVersion => scriptVersion.isDraft);
       },
       /**
