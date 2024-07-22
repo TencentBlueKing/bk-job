@@ -375,6 +375,8 @@ data:
         root: {{ .Values.bkDocsCenterUrl }}
       feedback:
         root: {{ .Values.bkFeedBackUrl }}
+      sharedResUrl: {{ .Values.bkSharedResUrl }}
+      sharedBaseJsPath: {{ .Values.bkSharedBaseJsPath }}
     deploy:
       mode: lite    
 {{- end }}
