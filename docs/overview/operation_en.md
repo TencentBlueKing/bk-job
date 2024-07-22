@@ -1,5 +1,7 @@
 # BlueKing Job Platform Deployment and Maintenance Documentation
 
+English | [简体中文](operation.md)
+
 ## I. Deployment
 The BlueKing Job Platform (Job) is one of the BlueKing atomic platforms. Its underlying dependencies include:
 
