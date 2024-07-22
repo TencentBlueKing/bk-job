@@ -24,13 +24,12 @@
 */
 
 
-import zhCN from './zh.json';
 import enUS from './en.json';
+import zhCN from './zh.json';
 
 export default {
-    notify: {
-      'zh-CN': zhCN,
-      'en-US': enUS,
-    }
-}
-      
+  notify: {
+    'zh-CN': zhCN,
+    'en-US': enUS,
+  },
+};
