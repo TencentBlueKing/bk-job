@@ -160,10 +160,6 @@ data:
         function:
           definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
-        {{ if .Values.executeConfig.sharding.mariadb.enabled }}
-        driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
-        url: jdbc:shardingsphere:classpath:xxx.yaml
-        {{- else -}}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -179,8 +175,6 @@ data:
           idle-timeout: 600000
           poolName: "job-execute"
           validationTimeout: 5000
-        {{- end }}
-
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -207,7 +201,226 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
-        mariadb:
-          sharding:
-            enabled: {{ .Values.executeConfig.sharding.mariadb.enabled }}
+    {{ if .Values.executeConfig.sharding.mariadb.enabled }}
+    shardingsphere:
+      enabled: true
+      dataSources:
+        {{- range .Values.executeConfig.sharding.mariadb.datasources }}
+        ds_{{ .index }}:
+          dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+          driverClassName: com.mysql.jdbc.Driver
+          jdbcUrl: {{ .jdbcUrl }}
+          username: {{ .username }}
+          password: {{ .password }}
+        {{- end }}
+      shardingRule:
+        tables:
+          task_instance:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance" "context" $) }}
+            databaseStrategy:
+              type: standard
+              shardingColumn: id
+              shardingAlgorithmName: task_instance_database_inline
+            tableStrategy:
+              type: standard
+              shardingColumn: id
+              shardingAlgorithmName: task_instance_table_inline
+          step_instance:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_table_inline
+          step_instance_script:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance_script" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_script_table_inline
+          step_instance_file:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance_file" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_file_table_inline
+          step_instance_confirm:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance_confirm" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_confirm_table_inline
+          gse_script_execute_obj_task:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "gse_script_execute_obj_task" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: gse_script_execute_obj_task_table_inline
+          gse_file_execute_obj_task:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "gse_file_execute_obj_task" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: gse_file_execute_obj_task_table_inline
+          gse_task:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "gse_task" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: gse_task_table_inline
+          file_source_log:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "file_source_log" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: file_source_log_table_inline
+          operation_log:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "operation_log" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: operation_log_table_inline
+          task_instance_variable:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_variable" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: task_instance_variable_table_inline
+          step_instance_variable:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance_variable" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_variable_table_inline
+          rolling_config:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "rolling_config" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: rolling_config_table_inline
+          step_instance_rolling_task:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "step_instance_rolling_task" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: task_instance_id
+              shardingAlgorithmName: step_instance_rolling_task_table_inline
+          task_instance_app:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_app" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: app_id
+              shardingAlgorithmName: task_instance_app_table_inline
+          task_instance_host_app:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_host_app" "context" $) }}
+            tableStrategy:
+              type: standard
+              shardingColumn: app_id
+              shardingAlgorithmName: task_instance_host_app_table_inline
+        defaultDatabaseStrategy:
+          type: standard
+          shardingColumn: task_instance_id
+          shardingAlgorithmName: default_database_inline
+        ## 分库分表算法
+        ##
+        shardingAlgorithms:
+          ## 分库算法
+          ##
+          # 默认分库算法
+          default_database_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "task_instance_id" "context" $) }} 
+          # task_instance 表分库算法
+          task_instance_database_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "id" "context" $) }} 
+          # 按业务分库分表算法
+          app_id_database_inline :
+            type : INLINE
+            props :
+              algorithm-expression : {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "app_id" "context" $) }} 
+          ## 分表算法
+          ##
+          task_instance_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance" "columnName" "id" "context" $) }} 
+          step_instance_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance" "columnName" "task_instance_id" "context" $) }}
+          step_instance_script_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_script" "columnName" "task_instance_id" "context" $) }}
+          step_instance_file_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_file" "columnName" "task_instance_id" "context" $) }}
+          step_instance_confirm_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_confirm" "columnName" "task_instance_id" "context" $) }}
+          gse_script_execute_obj_task_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "gse_script_execute_obj_task" "columnName" "task_instance_id" "context" $) }}
+          gse_file_execute_obj_task_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "gse_file_execute_obj_task" "columnName" "task_instance_id" "context" $) }}
+          gse_task_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "gse_task" "columnName" "task_instance_id" "context" $) }}
+          file_source_log_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "file_source_log" "columnName" "task_instance_id" "context" $) }}
+          operation_log_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "operation_log" "columnName" "task_instance_id" "context" $) }}
+          task_instance_variable_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance_variable" "columnName" "task_instance_id" "context" $) }}
+          step_instance_variable_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_variable" "columnName" "task_instance_id" "context" $) }}
+          rolling_config_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "rolling_config" "columnName" "task_instance_id" "context" $) }}
+          step_instance_rolling_task_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_rolling_task" "columnName" "task_instance_id" "context" $) }}
+          task_instance_app_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance_app" "columnName" "app_id" "context" $) }}
+          task_instance_host_app_table_inline:
+            type: INLINE
+            props:
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance_host_app" "columnName" "app_id" "context" $) }}
+    # 分布式 ID （leaf 组件配置)
+    leaf:
+      segment:
+        allocStrategyDaoBeanName: jooqLeafIdAllocator
+        enable: true
+        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+        username: {{ include "job.mariadb.username" . }}
+        {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${mariadb-password}
+        {{- end }}
+      snowflake:
+        enable: false
+      name: job-leaf
+        
+    {{- end -}}
+
 {{- end }}

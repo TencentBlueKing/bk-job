@@ -963,6 +963,26 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  sharding:
+    # 分库分表，默认关闭
+    mariadb:
+      enabled: false
+      # database:
+      #   # 数据库实例数量
+      #   nodeCount: 2
+      # table:
+      #   # 每个数据库实例上的表分片数量
+      #   nodeCount: 16
+      # datasources:
+      #   # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
+      #   - index: 0
+      #     jdbcUrl: jdbc:mysql://localhost:3306/job_execute
+      #     username: job
+      #     password: job
+      #   - index: 1
+      #     jdbcUrl: jdbc:mysql://localhost:3307/job_execute
+      #     username: job
+      #     password: job
 
 ## job-crontab定时任务配置
 crontabConfig:
