@@ -421,6 +421,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             .select(TABLE.STEP_ID, TABLE.TEMPLATE_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.STATUS)
             .from(TABLE)
             .where(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)))
+            .and(TABLE.SCRIPT_ID.isNotNull())
+            .and(TABLE.SCRIPT_VERSION_ID.isNotNull())
             .fetch();
         if (result.isEmpty()) {
             return Collections.emptyList();
