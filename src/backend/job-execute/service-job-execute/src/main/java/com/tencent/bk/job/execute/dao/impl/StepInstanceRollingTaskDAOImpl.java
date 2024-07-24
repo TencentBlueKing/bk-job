@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
@@ -67,9 +68,9 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     private final IdGenerator idGenerator;
 
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+    public StepInstanceRollingTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                           @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = CTX;
+        this.CTX = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

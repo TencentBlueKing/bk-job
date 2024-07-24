@@ -22,44 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql;
+package com.tencent.bk.job.common.sharding.mysql.config;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.driver.jdbc.core.datasource.ShardingSphereDataSource;
+import com.tencent.bk.job.common.sharding.mysql.ShardingManager;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.SortedMap;
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureAfter(ShardingDatasourceAutoConfiguration.class)
+public class ShardingManagerAutoConfiguration {
 
-@Slf4j
-public class InitTableNodesToHashLoop {
-    @Resource
-    private ShardingSphereDataSource shardingDataSource;
-
-    @Getter
-    private HashMap<String, SortedMap<Long, String>> tableVirtualNodes = new HashMap<>();
-
-    @PostConstruct
-    public void init() {
-//        try {
-//            ShardingRule rule = shardingDataSource.getContext().getShardingRule();
-//            Collection<TableRule> tableRules = rule.getTableRules();
-//            ConsistenceHashUtil consistenceHashUtil = new ConsistenceHashUtil();
-//            for (TableRule tableRule : tableRules) {
-//                String logicTable = tableRule.getLogicTable();
-//
-//                tableVirtualNodes.put(logicTable,
-//                    consistenceHashUtil.initNodesToHashLoop(
-//                        tableRule.getActualDataNodes()
-//                            .stream()
-//                            .map(DataNode::getTableName)
-//                            .collect(Collectors.toList()))
-//                );
-//            }
-//        } catch (Exception e) {
-//            log.error("分表节点初始化失败 {}", e);
-//        }
+    @Bean("shardingManager")
+    ShardingManager shardingManager(ObjectProvider<ShardingsphereProperties> shardingspherePropertiesObjectProvider) {
+        return new ShardingManager(shardingspherePropertiesObjectProvider.getIfAvailable());
     }
 }

@@ -40,13 +40,22 @@ import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfi
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
+import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DataSourceConnectionProvider;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultDSLContext;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -69,7 +78,7 @@ public class ShardingDatasourceAutoConfiguration {
         return new JooqLeafIdAllocator(dslContext);
     }
 
-    @Bean("shardingDataSource")
+    @Bean("jobShardingDataSource")
     public DataSource shardingDataSource(ShardingsphereProperties shardingsphereProperties) throws SQLException {
         // 指定逻辑 Database 名称
         String databaseName = shardingsphereProperties.getDatabaseName();
@@ -209,5 +218,46 @@ public class ShardingDatasourceAutoConfiguration {
 
     private boolean isStandardShardingAlgorithm(String shardingAlgorithmName) {
         return shardingAlgorithmName.equalsIgnoreCase("standard");
+    }
+
+    @Qualifier("jobShardingTransactionManager")
+    @Bean(name = "jobShardingTransactionManager")
+    @DependsOn("job-sharding-data-source")
+    public DataSourceTransactionManager transactionManager(
+        @Qualifier("jobShardingDataSource") DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Qualifier("job-sharding-jdbc-template")
+    @Bean(name = "job-sharding-jdbc-template")
+    public JdbcTemplate jdbcTemplate(@Qualifier("jobShardingDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    @Qualifier("job-sharding-dsl-context")
+    @Bean(name = "job-sharding-dsl-context")
+    public DSLContext dslContext(@Qualifier("job-sharding-jooq-conf") org.jooq.Configuration configuration) {
+        return new DefaultDSLContext(configuration);
+    }
+
+    @Qualifier("job-sharding-jooq-conf")
+    @Bean(name = "job-sharding-jooq-conf")
+    public org.jooq.Configuration jooqConf(
+        @Qualifier("job-sharding-conn-provider") ConnectionProvider connectionProvider) {
+        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+    }
+
+    @Qualifier("job-sharding-conn-provider")
+    @Bean(name = "job-sharding-conn-provider")
+    public ConnectionProvider connectionProvider(
+        @Qualifier("jobShardingTransactionAwareDataSource") DataSource dataSource) {
+        return new DataSourceConnectionProvider(dataSource);
+    }
+
+    @Qualifier("jobShardingTransactionAwareDataSource")
+    @Bean(name = "jobShardingTransactionAwareDataSource")
+    public TransactionAwareDataSourceProxy
+    transactionAwareDataSourceProxy(@Qualifier("jobShardingDataSource") DataSource dataSource) {
+        return new TransactionAwareDataSourceProxy(dataSource);
     }
 }

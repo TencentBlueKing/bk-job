@@ -40,7 +40,6 @@ import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
@@ -99,7 +98,6 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 @Service
 @Slf4j
 public class TaskResultServiceImpl implements TaskResultService {
-    private final TaskInstanceDAO taskInstanceDAO;
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
@@ -113,8 +111,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final StepInstanceService stepInstanceService;
 
     @Autowired
-    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
-                                 StepInstanceDAO stepInstanceDAO,
+    public TaskResultServiceImpl(StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
                                  FileSourceTaskLogDAO fileSourceTaskLogDAO,
                                  ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
@@ -125,7 +122,6 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                  TaskInstanceAccessProcessor taskInstanceAccessProcessor,
                                  StepInstanceService stepInstanceService) {
-        this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
@@ -142,7 +138,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     @Override
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
-        PageData<TaskInstanceDTO> pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
+        PageData<TaskInstanceDTO> pageData = taskInstanceService.listPageTaskInstance(taskQuery, baseSearchCondition);
         computeTotalTime(pageData.getData());
         return pageData;
     }
@@ -780,9 +776,9 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
             stepInstanceRollingTaskService.listLatestRollingTasks(
-                stepInstance.getTaskInstanceId(),
-                stepExecutionDetail.getStepInstanceId(),
-                stepExecutionDetail.getExecuteCount())
+                    stepInstance.getTaskInstanceId(),
+                    stepExecutionDetail.getStepInstanceId(),
+                    stepExecutionDetail.getExecuteCount())
                 .stream()
                 .collect(Collectors.toMap(StepInstanceRollingTaskDTO::getBatch,
                     stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
@@ -868,7 +864,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         StopWatch watch = new StopWatch("cron-task-statistics");
         for (Long cronTaskId : cronTaskIdList) {
             watch.start("get-last24h-tasks-" + cronTaskId);
-            List<TaskInstanceDTO> last24HourTaskInstances = taskInstanceDAO.listLatestCronTaskInstance(appId,
+            List<TaskInstanceDTO> last24HourTaskInstances = taskInstanceService.listLatestCronTaskInstance(appId,
                 cronTaskId, 86400L, null, null);
 
             boolean isGe10Within24Hour = false;
@@ -895,8 +891,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             } else {
                 watch.start("get-last10-tasks-" + cronTaskId);
                 // 如果24小时内执行次数少于10次，那么统计最近10次的数据。由于可能存在正在运行任务，所以默认返回最近11次的数据
-                List<TaskInstanceDTO> last10TaskInstances = taskInstanceDAO.listLatestCronTaskInstance(appId,
-                    cronTaskId, null, null, 11);
+                List<TaskInstanceDTO> last10TaskInstances = taskInstanceService.listLatestCronTaskInstance(
+                    appId, cronTaskId, null, null, 11);
                 ServiceCronTaskExecuteResultStatistics statistic = new ServiceCronTaskExecuteResultStatistics();
                 statistic.setCronTaskId(cronTaskId);
                 statistic.setLast10ExecuteRecords(convertToCronTaskExecuteResult(last10TaskInstances));

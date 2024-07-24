@@ -30,14 +30,14 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
-import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
+import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
-import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
-import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
+import com.tencent.bk.job.execute.model.tables.TaskInstanceApp;
+import com.tencent.bk.job.execute.model.tables.TaskInstanceHostApp;
+import com.tencent.bk.job.execute.model.tables.records.TaskInstanceAppRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +53,6 @@ import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -61,71 +60,64 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * 作业执行实例DAO
- */
-@Slf4j
 @Repository
-public class TaskInstanceDAOImpl implements TaskInstanceDAO {
-    private static final TaskInstance TASK_INSTANCE = TaskInstance.TASK_INSTANCE;
-    private static final TaskInstanceHost TASK_INSTANCE_HOST = TaskInstanceHost.TASK_INSTANCE_HOST;
+@Slf4j
+public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
+    private static final TaskInstanceApp TASK_INSTANCE_APP = TaskInstanceApp.TASK_INSTANCE_APP;
+    private static final TaskInstanceHostApp TASK_INSTANCE_HOST_APP = TaskInstanceHostApp.TASK_INSTANCE_HOST_APP;
 
     private static final TableField<?, ?>[] ALL_FIELDS = {
-        TASK_INSTANCE.ID,
-        TASK_INSTANCE.TASK_ID,
-        TASK_INSTANCE.CRON_TASK_ID,
-        TASK_INSTANCE.TASK_TEMPLATE_ID,
-        TASK_INSTANCE.IS_DEBUG_TASK,
-        TASK_INSTANCE.APP_ID,
-        TASK_INSTANCE.NAME,
-        TASK_INSTANCE.OPERATOR,
-        TASK_INSTANCE.STARTUP_MODE,
-        TASK_INSTANCE.CURRENT_STEP_ID,
-        TASK_INSTANCE.STATUS,
-        TASK_INSTANCE.START_TIME,
-        TASK_INSTANCE.END_TIME,
-        TASK_INSTANCE.TOTAL_TIME,
-        TASK_INSTANCE.CREATE_TIME,
-        TASK_INSTANCE.CALLBACK_URL,
-        TASK_INSTANCE.TYPE,
-        TASK_INSTANCE.APP_CODE
+        TASK_INSTANCE_APP.ID,
+        TASK_INSTANCE_APP.TASK_ID,
+        TASK_INSTANCE_APP.CRON_TASK_ID,
+        TASK_INSTANCE_APP.TASK_TEMPLATE_ID,
+        TASK_INSTANCE_APP.IS_DEBUG_TASK,
+        TASK_INSTANCE_APP.APP_ID,
+        TASK_INSTANCE_APP.NAME,
+        TASK_INSTANCE_APP.OPERATOR,
+        TASK_INSTANCE_APP.STARTUP_MODE,
+        TASK_INSTANCE_APP.CURRENT_STEP_ID,
+        TASK_INSTANCE_APP.STATUS,
+        TASK_INSTANCE_APP.START_TIME,
+        TASK_INSTANCE_APP.END_TIME,
+        TASK_INSTANCE_APP.TOTAL_TIME,
+        TASK_INSTANCE_APP.CREATE_TIME,
+        TASK_INSTANCE_APP.CALLBACK_URL,
+        TASK_INSTANCE_APP.TYPE,
+        TASK_INSTANCE_APP.APP_CODE
     };
 
     private final DSLContext ctx;
 
-    private final IdGenerator idGenerator;
-
     @Autowired
-    public TaskInstanceDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                               @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
+    public TaskInstanceAppDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider) {
         this.ctx = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
     }
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
         Record record = ctx.insertInto(
-                TASK_INSTANCE,
-                TASK_INSTANCE.ID,
-                TASK_INSTANCE.TASK_ID,
-                TASK_INSTANCE.CRON_TASK_ID,
-                TASK_INSTANCE.TASK_TEMPLATE_ID,
-                TASK_INSTANCE.IS_DEBUG_TASK,
-                TASK_INSTANCE.APP_ID,
-                TASK_INSTANCE.NAME,
-                TASK_INSTANCE.OPERATOR,
-                TASK_INSTANCE.STARTUP_MODE,
-                TASK_INSTANCE.CURRENT_STEP_ID,
-                TASK_INSTANCE.STATUS,
-                TASK_INSTANCE.START_TIME,
-                TASK_INSTANCE.END_TIME,
-                TASK_INSTANCE.TOTAL_TIME,
-                TASK_INSTANCE.CREATE_TIME,
-                TASK_INSTANCE.CALLBACK_URL,
-                TASK_INSTANCE.TYPE,
-                TASK_INSTANCE.APP_CODE)
+                TASK_INSTANCE_APP,
+                TASK_INSTANCE_APP.ID,
+                TASK_INSTANCE_APP.TASK_ID,
+                TASK_INSTANCE_APP.CRON_TASK_ID,
+                TASK_INSTANCE_APP.TASK_TEMPLATE_ID,
+                TASK_INSTANCE_APP.IS_DEBUG_TASK,
+                TASK_INSTANCE_APP.APP_ID,
+                TASK_INSTANCE_APP.NAME,
+                TASK_INSTANCE_APP.OPERATOR,
+                TASK_INSTANCE_APP.STARTUP_MODE,
+                TASK_INSTANCE_APP.CURRENT_STEP_ID,
+                TASK_INSTANCE_APP.STATUS,
+                TASK_INSTANCE_APP.START_TIME,
+                TASK_INSTANCE_APP.END_TIME,
+                TASK_INSTANCE_APP.TOTAL_TIME,
+                TASK_INSTANCE_APP.CREATE_TIME,
+                TASK_INSTANCE_APP.CALLBACK_URL,
+                TASK_INSTANCE_APP.TYPE,
+                TASK_INSTANCE_APP.APP_CODE)
             .values(
-                idGenerator.genTaskInstanceId(),
+                taskInstance.getId(),
                 taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
@@ -143,18 +135,9 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getCallbackUrl(),
                 JooqDataTypeUtil.toByte(taskInstance.getType()),
                 taskInstance.getAppCode())
-            .returning(TASK_INSTANCE.ID)
+            .returning(TASK_INSTANCE_APP.ID)
             .fetchOne();
-        return record != null ? record.getValue(TASK_INSTANCE.ID) : null;
-    }
-
-    @Override
-    public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        Record record = ctx.select(ALL_FIELDS)
-            .from(TASK_INSTANCE)
-            .where(TASK_INSTANCE.ID.eq(taskInstanceId))
-            .fetchOne();
-        return extractInfo(record);
+        return record != null ? record.getValue(TASK_INSTANCE_APP.ID) : null;
     }
 
     private TaskInstanceDTO extractInfo(Record record) {
@@ -162,50 +145,56 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             return null;
         }
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
-        taskInstance.setId(record.get(TaskInstance.TASK_INSTANCE.ID));
-        taskInstance.setPlanId(record.get(TaskInstance.TASK_INSTANCE.TASK_ID));
-        taskInstance.setCronTaskId(record.get(TaskInstance.TASK_INSTANCE.CRON_TASK_ID));
-        taskInstance.setTaskTemplateId(record.get(TaskInstance.TASK_INSTANCE.TASK_TEMPLATE_ID));
-        taskInstance.setDebugTask(record.get(TaskInstance.TASK_INSTANCE.IS_DEBUG_TASK) == 1);
-        taskInstance.setAppId(record.get(TaskInstance.TASK_INSTANCE.APP_ID));
-        taskInstance.setName(record.get(TaskInstance.TASK_INSTANCE.NAME));
-        taskInstance.setType(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.TYPE)));
-        taskInstance.setOperator(record.get(TaskInstance.TASK_INSTANCE.OPERATOR));
-        taskInstance.setStartupMode(JooqDataTypeUtil.toInteger(record.get(TaskInstance.TASK_INSTANCE.STARTUP_MODE)));
-        taskInstance.setCurrentStepInstanceId(record.get(TaskInstance.TASK_INSTANCE.CURRENT_STEP_ID));
-        taskInstance.setStatus(RunStatusEnum.valueOf(record.get(TaskInstance.TASK_INSTANCE.STATUS)));
-        taskInstance.setStartTime(record.get(TaskInstance.TASK_INSTANCE.START_TIME));
-        taskInstance.setEndTime(record.get(TaskInstance.TASK_INSTANCE.END_TIME));
-        taskInstance.setTotalTime(record.get(TaskInstance.TASK_INSTANCE.TOTAL_TIME));
-        taskInstance.setCreateTime(record.get(TaskInstance.TASK_INSTANCE.CREATE_TIME));
-        taskInstance.setCallbackUrl(record.get(TaskInstance.TASK_INSTANCE.CALLBACK_URL));
-        taskInstance.setAppCode(record.get(TaskInstance.TASK_INSTANCE.APP_CODE));
+        taskInstance.setId(record.get(TASK_INSTANCE_APP.ID));
+        taskInstance.setPlanId(record.get(TASK_INSTANCE_APP.TASK_ID));
+        taskInstance.setCronTaskId(record.get(TASK_INSTANCE_APP.CRON_TASK_ID));
+        taskInstance.setTaskTemplateId(record.get(TASK_INSTANCE_APP.TASK_TEMPLATE_ID));
+        taskInstance.setDebugTask(record.get(TASK_INSTANCE_APP.IS_DEBUG_TASK) == 1);
+        taskInstance.setAppId(record.get(TASK_INSTANCE_APP.APP_ID));
+        taskInstance.setName(record.get(TASK_INSTANCE_APP.NAME));
+        taskInstance.setType(JooqDataTypeUtil.toInteger(record.get(TASK_INSTANCE_APP.TYPE)));
+        taskInstance.setOperator(record.get(TASK_INSTANCE_APP.OPERATOR));
+        taskInstance.setStartupMode(JooqDataTypeUtil.toInteger(record.get(TASK_INSTANCE_APP.STARTUP_MODE)));
+        taskInstance.setCurrentStepInstanceId(record.get(TASK_INSTANCE_APP.CURRENT_STEP_ID));
+        taskInstance.setStatus(RunStatusEnum.valueOf(record.get(TASK_INSTANCE_APP.STATUS)));
+        taskInstance.setStartTime(record.get(TASK_INSTANCE_APP.START_TIME));
+        taskInstance.setEndTime(record.get(TASK_INSTANCE_APP.END_TIME));
+        taskInstance.setTotalTime(record.get(TASK_INSTANCE_APP.TOTAL_TIME));
+        taskInstance.setCreateTime(record.get(TASK_INSTANCE_APP.CREATE_TIME));
+        taskInstance.setCallbackUrl(record.get(TASK_INSTANCE_APP.CALLBACK_URL));
+        taskInstance.setAppCode(record.get(TASK_INSTANCE_APP.APP_CODE));
         return taskInstance;
     }
 
     @Override
-    public void updateTaskStatus(long taskInstanceId, int status) {
-        ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS, Byte.valueOf(String.valueOf(status)))
-            .where(TASK_INSTANCE.ID.eq(taskInstanceId))
+    public void updateTaskStatus(long appId, long taskInstanceId, int status) {
+        ctx.update(TASK_INSTANCE_APP)
+            .set(TASK_INSTANCE_APP.STATUS, Byte.valueOf(String.valueOf(status)))
+            .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
+            .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
             .execute();
     }
 
 
     @Override
-    public void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId) {
-        ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, stepInstanceId)
-            .where(TASK_INSTANCE.ID.eq(taskInstanceId))
+    public void updateTaskCurrentStepId(long appId, Long taskInstanceId, Long stepInstanceId) {
+        ctx.update(TASK_INSTANCE_APP)
+            .set(TASK_INSTANCE_APP.CURRENT_STEP_ID, stepInstanceId)
+            .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
+            .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
             .execute();
     }
 
     @Override
-    public void resetTaskStatus(Long taskInstanceId) {
-        ctx.update(TASK_INSTANCE)
-            .setNull(TASK_INSTANCE.START_TIME).setNull(TASK_INSTANCE.END_TIME)
-            .setNull(TASK_INSTANCE.TOTAL_TIME)
-            .setNull(TASK_INSTANCE.CURRENT_STEP_ID)
-            .set(TASK_INSTANCE.STATUS, JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue()))
-            .where(TASK_INSTANCE.ID.eq(taskInstanceId))
+    public void resetTaskStatus(long appId, Long taskInstanceId) {
+        ctx.update(TASK_INSTANCE_APP)
+            .setNull(TASK_INSTANCE_APP.START_TIME)
+            .setNull(TASK_INSTANCE_APP.END_TIME)
+            .setNull(TASK_INSTANCE_APP.TOTAL_TIME)
+            .setNull(TASK_INSTANCE_APP.CURRENT_STEP_ID)
+            .set(TASK_INSTANCE_APP.STATUS, JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue()))
+            .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
+            .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
             .execute();
     }
 
@@ -233,9 +222,9 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
-        orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
+        orderFields.add(TASK_INSTANCE_APP.CREATE_TIME.desc());
         Result<?> result = ctx.select(ALL_FIELDS)
-            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
+            .from(TASK_INSTANCE_APP)
             .where(buildSearchCondition(taskQuery))
             .orderBy(orderFields)
             .limit(start, length)
@@ -247,16 +236,16 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                                                                BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
         if (StringUtils.isNotEmpty(taskQuery.getIp())) {
-            conditions.add(TASK_INSTANCE_HOST.IP.eq(taskQuery.getIp()));
+            conditions.add(TASK_INSTANCE_HOST_APP.IP.eq(taskQuery.getIp()));
         } else {
-            conditions.add(TASK_INSTANCE_HOST.IPV6.eq(taskQuery.getIpv6()));
+            conditions.add(TASK_INSTANCE_HOST_APP.IPV6.eq(taskQuery.getIpv6()));
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
             count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
-                .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
+                .leftJoin(TASK_INSTANCE_HOST_APP).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID))
                 .where(conditions)
                 .fetchOne(0, Integer.class);
             if (count == null || count == 0) {
@@ -264,12 +253,12 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             }
         }
         Collection<SortField<?>> orderFields = new ArrayList<>();
-        orderFields.add(TASK_INSTANCE.ID.desc());
+        orderFields.add(TASK_INSTANCE_APP.ID.desc());
         Result<? extends Record> result = ctx.select(ALL_FIELDS)
-            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
-            .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
+            .from(TASK_INSTANCE_APP)
+            .leftJoin(TASK_INSTANCE_HOST_APP).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID))
             .where(conditions)
-            .groupBy(TaskInstance.TASK_INSTANCE.ID)
+            .groupBy(TASK_INSTANCE_APP.ID)
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
@@ -295,50 +284,50 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @SuppressWarnings("all")
     private int getPageTaskInstanceCount(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
-        return ctx.selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0, Integer.class);
+        return ctx.selectCount().from(TASK_INSTANCE_APP).where(conditions).fetchOne(0, Integer.class);
     }
 
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TASK_INSTANCE.APP_ID.eq(taskQuery.getAppId()));
+        conditions.add(TASK_INSTANCE_APP.APP_ID.eq(taskQuery.getAppId()));
         if (taskQuery.getTaskInstanceId() != null && taskQuery.getTaskInstanceId() > 0) {
-            conditions.add(TASK_INSTANCE.ID.eq(taskQuery.getTaskInstanceId()));
+            conditions.add(TASK_INSTANCE_APP.ID.eq(taskQuery.getTaskInstanceId()));
             return conditions;
         }
         if (StringUtils.isNotBlank(taskQuery.getOperator())) {
-            conditions.add(TASK_INSTANCE.OPERATOR.eq(taskQuery.getOperator()));
+            conditions.add(TASK_INSTANCE_APP.OPERATOR.eq(taskQuery.getOperator()));
         }
         if (StringUtils.isNotBlank(taskQuery.getTaskName())) {
-            conditions.add(TASK_INSTANCE.NAME.like("%" + taskQuery.getTaskName() + "%"));
+            conditions.add(TASK_INSTANCE_APP.NAME.like("%" + taskQuery.getTaskName() + "%"));
         }
         if (taskQuery.getStatus() != null) {
-            conditions.add(TASK_INSTANCE.STATUS.eq(JooqDataTypeUtil.toByte(taskQuery.getStatus().getValue())));
+            conditions.add(TASK_INSTANCE_APP.STATUS.eq(JooqDataTypeUtil.toByte(taskQuery.getStatus().getValue())));
         }
         if (CollectionUtils.isNotEmpty(taskQuery.getStartupModes())) {
             if (taskQuery.getStartupModes().size() == 1) {
-                conditions.add(TASK_INSTANCE.STARTUP_MODE.eq(
+                conditions.add(TASK_INSTANCE_APP.STARTUP_MODE.eq(
                     JooqDataTypeUtil.toByte(taskQuery.getStartupModes().get(0).getValue())));
             } else {
-                conditions.add(TASK_INSTANCE.STARTUP_MODE.in(taskQuery.getStartupModeValues()));
+                conditions.add(TASK_INSTANCE_APP.STARTUP_MODE.in(taskQuery.getStartupModeValues()));
             }
         }
         if (taskQuery.getTaskType() != null) {
-            conditions.add(TASK_INSTANCE.TYPE.eq(JooqDataTypeUtil.toByte(taskQuery.getTaskType().getValue())));
+            conditions.add(TASK_INSTANCE_APP.TYPE.eq(JooqDataTypeUtil.toByte(taskQuery.getTaskType().getValue())));
         }
         if (taskQuery.getStartTime() != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.ge(taskQuery.getStartTime()));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.ge(taskQuery.getStartTime()));
         }
         if (taskQuery.getEndTime() != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.le(taskQuery.getEndTime()));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.le(taskQuery.getEndTime()));
         }
         if (taskQuery.getMinTotalTimeMills() != null) {
-            conditions.add(TASK_INSTANCE.TOTAL_TIME.greaterThan(taskQuery.getMinTotalTimeMills()));
+            conditions.add(TASK_INSTANCE_APP.TOTAL_TIME.greaterThan(taskQuery.getMinTotalTimeMills()));
         }
         if (taskQuery.getMaxTotalTimeMills() != null) {
-            conditions.add(TASK_INSTANCE.TOTAL_TIME.lessOrEqual(taskQuery.getMaxTotalTimeMills()));
+            conditions.add(TASK_INSTANCE_APP.TOTAL_TIME.lessOrEqual(taskQuery.getMaxTotalTimeMills()));
         }
         if (taskQuery.getCronTaskId() != null && taskQuery.getCronTaskId() > 0) {
-            conditions.add(TASK_INSTANCE.CRON_TASK_ID.eq(taskQuery.getCronTaskId()));
+            conditions.add(TASK_INSTANCE_APP.CRON_TASK_ID.eq(taskQuery.getCronTaskId()));
         }
         return conditions;
     }
@@ -349,21 +338,22 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                                                             Long latestTimeInSeconds,
                                                             RunStatusEnum status,
                                                             Integer limit) {
+        TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TASK_INSTANCE.APP_ID.eq(appId));
-        conditions.add(TASK_INSTANCE.CRON_TASK_ID.eq(cronTaskId));
+        conditions.add(TABLE.APP_ID.eq(appId));
+        conditions.add(TABLE.CRON_TASK_ID.eq(cronTaskId));
         if (latestTimeInSeconds != null) {
             long fromTimeInMillSecond = Instant.now().minusMillis(1000 * latestTimeInSeconds).toEpochMilli();
-            conditions.add(TASK_INSTANCE.CREATE_TIME.ge(fromTimeInMillSecond));
+            conditions.add(TABLE.CREATE_TIME.ge(fromTimeInMillSecond));
         }
         if (status != null) {
-            conditions.add(TASK_INSTANCE.STATUS.eq(status.getValue().byteValue()));
+            conditions.add(TABLE.STATUS.eq(status.getValue().byteValue()));
         }
 
         SelectSeekStep1<? extends Record, Long> select = ctx.select(ALL_FIELDS)
-            .from(TASK_INSTANCE)
+            .from(TABLE)
             .where(conditions)
-            .orderBy(TASK_INSTANCE.CREATE_TIME.desc());
+            .orderBy(TABLE.CREATE_TIME.desc());
         if (log.isDebugEnabled()) {
             log.debug("SQL={}", select.getSQL(ParamType.INLINED));
         }
@@ -384,58 +374,63 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
-    public void updateTaskExecutionInfo(long taskInstanceId,
+    public void updateTaskExecutionInfo(long appId,
+                                        long taskInstanceId,
                                         RunStatusEnum status,
                                         Long currentStepId,
                                         Long startTime,
                                         Long endTime,
                                         Long totalTime) {
-        UpdateSetMoreStep<TaskInstanceRecord> updateSetMoreStep = null;
+        UpdateSetMoreStep<TaskInstanceAppRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS,
+            updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.STATUS,
                 JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (currentStepId != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, currentStepId);
+                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.CURRENT_STEP_ID, currentStepId);
             } else {
-                updateSetMoreStep.set(TASK_INSTANCE.CURRENT_STEP_ID, currentStepId);
+                updateSetMoreStep.set(TASK_INSTANCE_APP.CURRENT_STEP_ID, currentStepId);
             }
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.START_TIME, startTime);
+                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.START_TIME, startTime);
             } else {
-                updateSetMoreStep.set(TASK_INSTANCE.START_TIME, startTime);
+                updateSetMoreStep.set(TASK_INSTANCE_APP.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.END_TIME, endTime);
+                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.END_TIME, endTime);
             } else {
-                updateSetMoreStep.set(TASK_INSTANCE.END_TIME, endTime);
+                updateSetMoreStep.set(TASK_INSTANCE_APP.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.TOTAL_TIME, totalTime);
+                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.TOTAL_TIME, totalTime);
             } else {
-                updateSetMoreStep.set(TASK_INSTANCE.TOTAL_TIME, totalTime);
+                updateSetMoreStep.set(TASK_INSTANCE_APP.TOTAL_TIME, totalTime);
             }
         }
         if (updateSetMoreStep == null) {
             return;
         }
-        updateSetMoreStep.where(TASK_INSTANCE.ID.eq(taskInstanceId)).execute();
+        updateSetMoreStep
+            .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
+            .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
+            .execute();
     }
 
     @Override
-    public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
-        ctx.update(TASK_INSTANCE)
-            .setNull(TASK_INSTANCE.END_TIME)
-            .setNull(TASK_INSTANCE.TOTAL_TIME)
-            .set(TASK_INSTANCE.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
-            .where(TASK_INSTANCE.ID.eq(taskInstanceId))
+    public void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId) {
+        ctx.update(TASK_INSTANCE_APP)
+            .setNull(TASK_INSTANCE_APP.END_TIME)
+            .setNull(TASK_INSTANCE_APP.TOTAL_TIME)
+            .set(TASK_INSTANCE_APP.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
+            .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
+            .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
             .execute();
     }
 
@@ -443,20 +438,20 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     public List<Long> listTaskInstanceAppId(List<Long> inAppIdList, Long cronTaskId, Long minCreateTime) {
         List<Condition> conditions = new ArrayList<>();
         if (inAppIdList != null) {
-            conditions.add(TASK_INSTANCE.APP_ID.in(inAppIdList));
+            conditions.add(TASK_INSTANCE_APP.APP_ID.in(inAppIdList));
         }
         if (cronTaskId != null) {
-            conditions.add(TASK_INSTANCE.CRON_TASK_ID.eq(cronTaskId));
+            conditions.add(TASK_INSTANCE_APP.CRON_TASK_ID.eq(cronTaskId));
         }
         if (minCreateTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(minCreateTime));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.greaterOrEqual(minCreateTime));
         }
-        Result<? extends Record> result = ctx.selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+        Result<? extends Record> result = ctx.selectDistinct(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .fetch();
         List<Long> appIdList = new ArrayList<>();
         result.forEach(record -> {
-            Long appId = record.getValue(TASK_INSTANCE.APP_ID);
+            Long appId = record.getValue(TASK_INSTANCE_APP.APP_ID);
             if (appId != null) {
                 appIdList.add(appId);
             }
@@ -468,18 +463,18 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     public boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
-            conditions.add(TASK_INSTANCE.APP_ID.eq(appId));
+            conditions.add(TASK_INSTANCE_APP.APP_ID.eq(appId));
         }
         if (cronTaskId != null) {
-            conditions.add(TASK_INSTANCE.CRON_TASK_ID.eq(cronTaskId));
+            conditions.add(TASK_INSTANCE_APP.CRON_TASK_ID.eq(cronTaskId));
         }
         if (fromTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(fromTime));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.greaterOrEqual(fromTime));
         }
         if (toTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.lessOrEqual(toTime));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.lessOrEqual(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .limit(1)
             .fetch();
@@ -490,27 +485,28 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
-            conditions.add(TASK_INSTANCE.APP_ID.eq(appId));
+            conditions.add(TASK_INSTANCE_APP.APP_ID.eq(appId));
         }
         if (fromTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(fromTime));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.greaterOrEqual(fromTime));
         }
         if (toTime != null) {
-            conditions.add(TASK_INSTANCE.CREATE_TIME.lessThan(toTime));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.lessThan(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE.ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE_APP.ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .limit(offset, limit)
             .fetch();
         List<Long> taskInstanceIdList = new ArrayList<>();
         result.into(record -> {
-            taskInstanceIdList.add(record.get(TASK_INSTANCE.ID));
+            taskInstanceIdList.add(record.get(TASK_INSTANCE_APP.ID));
         });
         return taskInstanceIdList;
     }
 
     @Override
-    public void saveTaskInstanceHosts(long taskInstanceId,
+    public void saveTaskInstanceHosts(long appId,
+                                      long taskInstanceId,
                                       Collection<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
@@ -519,17 +515,19 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         hostBatches.forEach(batchHosts -> {
             BatchBindStep batchInsert = ctx.batch(
                 ctx.insertInto(
-                        TASK_INSTANCE_HOST,
-                        TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
-                        TASK_INSTANCE_HOST.HOST_ID,
-                        TASK_INSTANCE_HOST.IP,
-                        TASK_INSTANCE_HOST.IPV6
+                        TASK_INSTANCE_HOST_APP,
+                        TASK_INSTANCE_HOST_APP.APP_ID,
+                        TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID,
+                        TASK_INSTANCE_HOST_APP.HOST_ID,
+                        TASK_INSTANCE_HOST_APP.IP,
+                        TASK_INSTANCE_HOST_APP.IPV6
                     )
-                    .values((Long) null, null, null, null)
+                    .values((Long) null, null, null, null, null)
             );
 
             for (HostDTO host : batchHosts) {
                 batchInsert = batchInsert.bind(
+                    appId,
                     taskInstanceId,
                     host.getHostId(),
                     host.getIp(),
@@ -539,4 +537,6 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             batchInsert.execute();
         });
     }
+
+
 }

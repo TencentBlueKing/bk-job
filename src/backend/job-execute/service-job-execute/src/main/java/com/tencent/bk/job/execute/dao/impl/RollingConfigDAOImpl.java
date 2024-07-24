@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
@@ -48,9 +49,9 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     private final IdGenerator idGenerator;
 
     @Autowired
-    public RollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+    public RollingConfigDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                 @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = ctx;
+        this.CTX = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

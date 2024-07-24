@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
@@ -57,10 +58,10 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     private final IdGenerator idGenerator;
 
     @Autowired
-    public TaskInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+    public TaskInstanceVariableDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                        CipherVariableCryptoService cipherVariableCryptoService,
                                        @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.ctx = ctx;
+        this.ctx = shardingPreferDslContextProvider.get();
         this.cipherVariableCryptoService = cipherVariableCryptoService;
         this.idGenerator = idGenerator;
     }

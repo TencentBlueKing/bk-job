@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
@@ -54,9 +55,9 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
 
 
     @Autowired
-    public StepInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+    public StepInstanceVariableDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                        @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.ctx = ctx;
+        this.ctx = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

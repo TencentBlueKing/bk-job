@@ -100,8 +100,8 @@ public class ConfirmStepEventHandler extends AbstractStepEventHandler {
             Long endTime = DateUtils.currentTimeMillis();
             long taskTotalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
                 taskInstance.getTotalTime());
-            taskInstanceService.updateTaskExecutionInfo(taskInstance.getId(), RunStatusEnum.CONFIRM_TERMINATED, null,
-                null, endTime, taskTotalTime);
+            taskInstanceService.updateTaskExecutionInfo(taskInstance.getAppId(), taskInstance.getId(),
+                RunStatusEnum.CONFIRM_TERMINATED, null, null, endTime, taskTotalTime);
             long stepTotalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             stepInstanceService.updateStepExecutionInfo(stepInstance.getTaskInstanceId(), stepInstanceId,
@@ -145,7 +145,8 @@ public class ConfirmStepEventHandler extends AbstractStepEventHandler {
             }
             stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.WAITING_USER,
                 System.currentTimeMillis(), null, null);
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
+            taskInstanceService.updateTaskStatus(stepInstance.getAppId(),
+                taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
         } else {
             log.warn("Unsupported step instance run status for executing confirm step, stepInstanceId={}, status={}",
@@ -160,7 +161,8 @@ public class ConfirmStepEventHandler extends AbstractStepEventHandler {
 
         RunStatusEnum stepStatus = stepInstance.getStatus();
         if (RunStatusEnum.WAITING_USER == stepStatus) {
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
+            taskInstanceService.updateTaskStatus(stepInstance.getAppId(),
+                taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());

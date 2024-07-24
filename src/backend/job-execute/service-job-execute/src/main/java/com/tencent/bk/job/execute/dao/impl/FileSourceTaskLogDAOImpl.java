@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
@@ -64,9 +65,9 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
 
 
     @Autowired
-    public FileSourceTaskLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext defaultContext,
+    public FileSourceTaskLogDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                     @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.defaultContext = defaultContext;
+        this.defaultContext = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

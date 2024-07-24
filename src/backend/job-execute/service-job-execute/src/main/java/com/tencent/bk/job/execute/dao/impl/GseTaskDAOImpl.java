@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.tables.GseTask;
@@ -72,9 +73,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     };
 
     @Autowired
-    public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext,
+    public GseTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                           @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.dslContext = dslContext;
+        this.dslContext = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

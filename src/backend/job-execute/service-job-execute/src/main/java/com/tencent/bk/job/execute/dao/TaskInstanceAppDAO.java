@@ -35,18 +35,16 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 作业执行实例DAO
+ * 作业执行实例DAO-按照业务维度冗余 task_instance 表数据（分库分表场景）
  */
-public interface TaskInstanceDAO {
+public interface TaskInstanceAppDAO {
     Long addTaskInstance(TaskInstanceDTO taskInstance);
 
-    TaskInstanceDTO getTaskInstance(long taskInstanceId);
+    void updateTaskStatus(long appId, long taskInstanceId, int status);
 
-    void updateTaskStatus(long taskInstanceId, int status);
+    void updateTaskCurrentStepId(long appId, Long taskInstanceId, Long stepInstanceId);
 
-    void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId);
-
-    void resetTaskStatus(Long taskInstanceId);
+    void resetTaskStatus(long appId, Long taskInstanceId);
 
     /**
      * 分页查询作业执行实例
@@ -78,6 +76,7 @@ public interface TaskInstanceDAO {
     /**
      * 更新作业的执行信息
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      * @param status         作业状态
      * @param currentStepId  当前步骤实例ID
@@ -85,7 +84,8 @@ public interface TaskInstanceDAO {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateTaskExecutionInfo(long taskInstanceId,
+    void updateTaskExecutionInfo(long appId,
+                                 long taskInstanceId,
                                  RunStatusEnum status,
                                  Long currentStepId,
                                  Long startTime,
@@ -95,9 +95,10 @@ public interface TaskInstanceDAO {
     /**
      * 重置作业执行状态
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      */
-    void resetTaskExecuteInfoForRetry(long taskInstanceId);
+    void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId);
 
     /**
      * 查询大于某个时间的定时任务执行记录对应的业务Id
@@ -129,6 +130,6 @@ public interface TaskInstanceDAO {
      * @param taskInstanceId 作业实例ID
      * @param hosts          主机列表
      */
-    void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts);
+    void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts);
 
 }

@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -148,11 +149,11 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     private final IdGenerator idGenerator;
 
     @Autowired
-    public StepInstanceDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+    public StepInstanceDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                SensitiveParamCryptoService sensitiveParamCryptoService,
                                DbPasswordCryptoService dbPasswordCryptoService,
                                @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = CTX;
+        this.CTX = shardingPreferDslContextProvider.get();
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
         this.dbPasswordCryptoService = dbPasswordCryptoService;
         this.idGenerator = idGenerator;

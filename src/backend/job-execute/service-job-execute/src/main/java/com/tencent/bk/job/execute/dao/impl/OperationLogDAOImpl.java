@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import org.apache.commons.lang3.StringUtils;
@@ -50,9 +51,9 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     private final IdGenerator idGenerator;
 
     @Autowired
-    public OperationLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
+    public OperationLogDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.ctx = ctx;
+        this.ctx = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

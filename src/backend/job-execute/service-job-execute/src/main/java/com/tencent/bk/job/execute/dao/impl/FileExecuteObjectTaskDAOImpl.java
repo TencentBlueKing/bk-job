@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.IdGenerator;
+import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -94,9 +95,9 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and execute_obj_id = ?";
 
     @Autowired
-    public FileExecuteObjectTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX,
+    public FileExecuteObjectTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
                                         @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = CTX;
+        this.CTX = shardingPreferDslContextProvider.get();
         this.idGenerator = idGenerator;
     }
 

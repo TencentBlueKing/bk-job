@@ -132,7 +132,8 @@ public class JobListener extends BaseJobMqListener {
         // 首先验证作业的状态，只有状态为“未执行”的作业可以启动
         if (RunStatusEnum.BLANK == taskInstance.getStatus()) {
             StepInstanceBaseDTO stepInstance = stepInstanceService.getFirstStepInstance(jobInstanceId);
-            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, RunStatusEnum.RUNNING, stepInstance.getId(),
+            taskInstanceService.updateTaskExecutionInfo(taskInstance.getAppId(), jobInstanceId,
+                RunStatusEnum.RUNNING, stepInstance.getId(),
                 DateUtils.currentTimeMillis(), null, null);
             startStep(stepInstance);
 
@@ -154,7 +155,8 @@ public class JobListener extends BaseJobMqListener {
         RunStatusEnum taskStatus = taskInstance.getStatus();
 
         if (RunStatusEnum.RUNNING == taskStatus || RunStatusEnum.WAITING_USER == taskStatus) {
-            taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
+            taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+                jobInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
             taskExecuteMQEventDispatcher.dispatchStepEvent(
                 StepEvent.stopStep(jobInstanceId, currentStepInstanceId));
@@ -225,7 +227,8 @@ public class JobListener extends BaseJobMqListener {
                         nextStepInstance.getId());
                     stepInstanceService.updateStepStatus(taskInstance.getId(), nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
-                    taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
+                    taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+                        taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
                 } else {
                     // 执行下一步骤
                     startStep(nextStepInstance);
@@ -254,7 +257,8 @@ public class JobListener extends BaseJobMqListener {
             taskInstance.setEndTime(endTime);
             taskInstance.setTotalTime(totalTime);
             taskInstance.setStatus(jobStatus);
-            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
+            taskInstanceService.updateTaskExecutionInfo(taskInstance.getAppId(), jobInstanceId, jobStatus,
+                null, null, endTime, totalTime);
 
             // 作业执行结果消息通知
             if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
@@ -331,7 +335,8 @@ public class JobListener extends BaseJobMqListener {
     }
 
     private void startStep(StepInstanceBaseDTO stepInstance) {
-        taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
+        taskInstanceService.updateTaskCurrentStepId(stepInstance.getAppId(),
+            stepInstance.getTaskInstanceId(), stepInstance.getId());
         if (stepInstance.isRollingStep()) {
             stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
                 stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
