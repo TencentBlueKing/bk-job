@@ -59,10 +59,6 @@ public class ShardingsphereProperties {
     @ToString
     public static class DataSource {
         /**
-         * 数据源完整类名
-         */
-        private String dataSourceClassName;
-        /**
          * 数据库驱动类名，以数据库连接池自身配置为准
          */
         private String driverClassName;

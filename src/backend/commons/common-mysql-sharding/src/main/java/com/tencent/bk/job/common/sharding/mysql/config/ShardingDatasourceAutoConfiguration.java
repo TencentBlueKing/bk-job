@@ -105,7 +105,6 @@ public class ShardingDatasourceAutoConfiguration {
 
         dataSourcePropMap.forEach((name, dataSourceProp) -> {
             HikariDataSource dataSource = new HikariDataSource();
-            dataSource.setDataSourceClassName(dataSourceProp.getDataSourceClassName());
             dataSource.setDriverClassName(dataSourceProp.getDriverClassName());
             dataSource.setJdbcUrl(dataSourceProp.getJdbcUrl());
             dataSource.setUsername(dataSourceProp.getUsername());
