@@ -186,12 +186,14 @@ public class ShardingDatasourceAutoConfiguration {
 
         ShardingTableRuleConfiguration configuration = new ShardingTableRuleConfiguration(
             tableName, tableShardingRule.getActualDataNodes());
-        configuration.setKeyGenerateStrategy(
-            new KeyGenerateStrategyConfiguration(
-                tableShardingRule.getKeyGenerateStrategy().getColumn(),
-                tableShardingRule.getKeyGenerateStrategy().getKeyGeneratorName()
-            )
-        );
+        if (tableShardingRule.getKeyGenerateStrategy() != null) {
+            configuration.setKeyGenerateStrategy(
+                new KeyGenerateStrategyConfiguration(
+                    tableShardingRule.getKeyGenerateStrategy().getColumn(),
+                    tableShardingRule.getKeyGenerateStrategy().getKeyGeneratorName()
+                )
+            );
+        }
         if (tableShardingRule.getDatabaseStrategy() != null) {
             configuration.setDatabaseShardingStrategy(
                 createShardingStrategyConfiguration(tableShardingRule.getDatabaseStrategy()));
