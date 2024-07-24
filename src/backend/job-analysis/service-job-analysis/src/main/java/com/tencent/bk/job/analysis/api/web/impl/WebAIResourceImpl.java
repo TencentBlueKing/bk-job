@@ -33,6 +33,7 @@ import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
+import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
@@ -55,14 +56,17 @@ public class WebAIResourceImpl implements WebAIResource {
     private final ChatService chatService;
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
+    private final AIChatHistoryService aiChatHistoryService;
 
     @Autowired
     public WebAIResourceImpl(ChatService chatService,
                              AICheckScriptService aiCheckScriptService,
-                             AIAnalyzeErrorService aiAnalyzeErrorService) {
+                             AIAnalyzeErrorService aiAnalyzeErrorService,
+                             AIChatHistoryService aiChatHistoryService) {
         this.chatService = chatService;
         this.aiCheckScriptService = aiCheckScriptService;
         this.aiAnalyzeErrorService = aiAnalyzeErrorService;
+        this.aiChatHistoryService = aiChatHistoryService;
     }
 
     @Override
@@ -123,7 +127,8 @@ public class WebAIResourceImpl implements WebAIResource {
                                                            AppResourceScope appResourceScope,
                                                            String scopeType,
                                                            String scopeId) {
-        return Response.buildSuccessResp(new ClearChatHistoryResp(0));
+        int deletedTotalCount = aiChatHistoryService.softDeleteChatHistory(username);
+        return Response.buildSuccessResp(new ClearChatHistoryResp(deletedTotalCount));
     }
 
 }

@@ -33,7 +33,6 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * 步骤实例API-服务内部调用
@@ -41,9 +40,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Api(tags = {"StepInstance"})
 @SmartFeignClient(value = "job-execute", contextId = "stepInstanceResource")
 @InternalAPI
-@RequestMapping("/service/stepInstance")
 public interface ServiceStepInstanceResource {
-    @GetMapping("/appIds/{appId}/stepInstanceIds/{stepInstanceId}")
+    @GetMapping("/service/stepInstance/appIds/{appId}/stepInstanceIds/{stepInstanceId}")
     InternalResponse<ServiceStepInstanceDTO> getStepInstance(
         @RequestHeader("username")
         String username,

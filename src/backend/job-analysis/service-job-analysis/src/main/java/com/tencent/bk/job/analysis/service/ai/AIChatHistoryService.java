@@ -63,4 +63,12 @@ public interface AIChatHistoryService {
      * @return 最近的聊天记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 软删除聊天记录
+     *
+     * @param username 用户名
+     * @return 删除的聊天记录数量
+     */
+    int softDeleteChatHistory(String username);
 }

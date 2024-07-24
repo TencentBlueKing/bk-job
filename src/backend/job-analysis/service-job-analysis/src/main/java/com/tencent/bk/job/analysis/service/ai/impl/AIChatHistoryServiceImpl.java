@@ -47,10 +47,10 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
 
     @Override
     public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
-                                                   Long startTime,
-                                                   String userInput,
-                                                   String aiInput,
-                                                   AIAnswer aiAnswer) {
+                                                  Long startTime,
+                                                  String userInput,
+                                                  String aiInput,
+                                                  AIAnswer aiAnswer) {
         AIChatHistoryDTO aiChatHistoryDTO = new AIChatHistoryDTO();
         aiChatHistoryDTO.setUsername(username);
         aiChatHistoryDTO.setUserInput(userInput);
@@ -74,5 +74,18 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     @Override
     public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
         return aiChatHistoryDAO.getLatestChatHistoryList(username, start, length);
+    }
+
+    @Override
+    public int softDeleteChatHistory(String username) {
+        int batchSize = 10000;
+        int deletedCount = 0;
+        int deletedTotalCount = 0;
+        do {
+            deletedCount = aiChatHistoryDAO.softDeleteChatHistory(username, batchSize);
+            deletedTotalCount += deletedCount;
+        } while (deletedCount == batchSize);
+        log.info("{} chat history of user {} soft deleted", deletedTotalCount, username);
+        return deletedTotalCount;
     }
 }

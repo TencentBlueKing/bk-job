@@ -155,9 +155,9 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
     }
 
     private String getAppSecret() {
-        String appCode = bkAIDevConfig.getAppCode();
-        if (StringUtils.isNotBlank(appCode)) {
-            return appCode;
+        String appSecret = bkAIDevConfig.getAppSecret();
+        if (StringUtils.isNotBlank(appSecret)) {
+            return appSecret;
         }
         return appProperties.getSecret();
     }

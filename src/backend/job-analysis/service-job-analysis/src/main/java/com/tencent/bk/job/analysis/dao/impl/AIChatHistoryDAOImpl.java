@@ -110,6 +110,19 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         return listByConditions(conditions, start, length);
     }
 
+    @Override
+    public int softDeleteChatHistory(String username, Integer limit) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.eq(username));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        return dslContext.update(defaultTable)
+            .set(defaultTable.IS_DELETED, JooqDataTypeUtil.buildUByte(1))
+            .where(conditions)
+            .orderBy(defaultTable.START_TIME)
+            .limit(limit)
+            .execute();
+    }
+
     private List<AIChatHistoryDTO> listByConditions(Collection<Condition> conditions,
                                                     Integer start,
                                                     Integer length) {

@@ -46,4 +46,13 @@ public interface AIChatHistoryDAO {
      * @return 最近的聊天记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 软删除聊天记录（优先删除创建时间较早的）
+     *
+     * @param username 用户名
+     * @param limit    最大删除数量
+     * @return 删除的记录条数
+     */
+    int softDeleteChatHistory(String username, Integer limit);
 }
