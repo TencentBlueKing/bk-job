@@ -208,7 +208,7 @@ public class ShardingDatasourceAutoConfiguration {
 
     private ShardingStrategyConfiguration createShardingStrategyConfiguration(
         ShardingsphereProperties.ShardingStrategy shardingStrategyProps) {
-        if (isStandardShardingAlgorithm(shardingStrategyProps.getShardingAlgorithmName())) {
+        if (isStandardShardingAlgorithm(shardingStrategyProps.getType())) {
             return new StandardShardingStrategyConfiguration(
                 shardingStrategyProps.getShardingColumn(),
                 shardingStrategyProps.getShardingAlgorithmName()
@@ -218,8 +218,8 @@ public class ShardingDatasourceAutoConfiguration {
         }
     }
 
-    private boolean isStandardShardingAlgorithm(String shardingAlgorithmName) {
-        return shardingAlgorithmName.equalsIgnoreCase("standard");
+    private boolean isStandardShardingAlgorithm(String shardingAlgorithmType) {
+        return shardingAlgorithmType.equalsIgnoreCase("standard");
     }
 
     @Qualifier("jobShardingTransactionManager")
