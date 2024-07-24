@@ -24,33 +24,37 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.consts.PromptTemplateCodeEnum;
+import com.tencent.bk.job.analysis.dao.AIPromptTemplateDAO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
-import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
-import com.tencent.bk.job.analysis.service.ai.AIService;
-import com.tencent.bk.job.analysis.service.ai.CheckScriptAIPromptService;
+import com.tencent.bk.job.analysis.model.dto.AIPromptTemplateDTO;
+import com.tencent.bk.job.analysis.service.ai.FileTransferTaskErrorAIPromptService;
+import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AICheckScriptServiceImpl extends AIBaseService implements AICheckScriptService {
-
-    private final CheckScriptAIPromptService checkScriptAIPromptService;
+public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptService
+    implements FileTransferTaskErrorAIPromptService {
 
     @Autowired
-    public AICheckScriptServiceImpl(CheckScriptAIPromptService checkScriptAIPromptService,
-                                    AIService aiService,
-                                    AIChatHistoryService aiChatHistoryService) {
-        super(aiService, aiChatHistoryService);
-        this.checkScriptAIPromptService = checkScriptAIPromptService;
+    public FileTransferTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO) {
+        super(aiPromptTemplateDAO);
     }
 
     @Override
-    public AIAnswer check(String username, Integer type, String scriptContent) {
-        AIPromptDTO aiPromptDTO = checkScriptAIPromptService.getPrompt(type, scriptContent);
-        return getAIAnswer(username, aiPromptDTO);
+    public AIPromptDTO getPrompt(FileTaskContext context, String errorContent) {
+        String templateCode = PromptTemplateCodeEnum.ANALYZE_FILE_TRANSFER_TASK_ERROR.name();
+        AIPromptTemplateDTO promptTemplate = getPromptTemplate(templateCode);
+        String renderedPrompt = renderPrompt(promptTemplate.getTemplate(), context, errorContent);
+        return new AIPromptDTO(promptTemplate.getRawPrompt(), renderedPrompt);
+    }
+
+    private String renderPrompt(String promptTemplateContent, FileTaskContext context, String errorContent) {
+        // TODO:补充文件任务报错分析模板渲染相关内容
+        return promptTemplateContent
+            .replace("{error_content}", errorContent);
     }
 }

@@ -24,49 +24,64 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
+import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AIPromptService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
+import com.tencent.bk.job.analysis.service.ai.FileTransferTaskErrorAIPromptService;
+import com.tencent.bk.job.analysis.service.ai.ScriptExecuteTaskErrorAIPromptService;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AIAnalyzeErrorServiceImpl implements AIAnalyzeErrorService {
+public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyzeErrorService {
 
-    private final AIPromptService aiPromptService;
-    private final AIService aiService;
-    private final AIChatHistoryService aiChatHistoryService;
+    private final TaskContextService taskContextService;
+    private final ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService;
+    private final FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService;
 
     @Autowired
-    public AIAnalyzeErrorServiceImpl(AIPromptService aiPromptService,
+    public AIAnalyzeErrorServiceImpl(TaskContextService taskContextService,
+                                     ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService,
+                                     FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService,
                                      AIService aiService,
                                      AIChatHistoryService aiChatHistoryService) {
-        this.aiPromptService = aiPromptService;
-        this.aiService = aiService;
-        this.aiChatHistoryService = aiChatHistoryService;
+        super(aiService, aiChatHistoryService);
+        this.taskContextService = taskContextService;
+        this.scriptExecuteTaskErrorAIPromptService = scriptExecuteTaskErrorAIPromptService;
+        this.fileTransferTaskErrorAIPromptService = fileTransferTaskErrorAIPromptService;
     }
 
     @Override
-    public AIAnswer analyze(String username, String errorContent) {
-        long startTime = System.currentTimeMillis();
-        Pair<String, String> pair = aiPromptService.getAnalyzeErrorPrompt(errorContent);
-        String rawPrompt = pair.getLeft();
-        String renderedPrompt = pair.getRight();
-        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
-        AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
+    public AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req) {
+        TaskContext taskContext = taskContextService.getTaskContext(
             username,
-            startTime,
-            rawPrompt,
-            renderedPrompt,
-            aiAnswer
+            appId,
+            req.getStepInstanceId()
         );
-        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
-        return aiAnswer;
+        String errorContent = req.getContent();
+        AIPromptDTO aiPromptDTO;
+        if (taskContext.isScriptTask()) {
+            aiPromptDTO = scriptExecuteTaskErrorAIPromptService.getPrompt(
+                taskContext.getScriptTaskContext(),
+                errorContent
+            );
+        } else if (taskContext.isFileTask()) {
+            aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(
+                taskContext.getFileTaskContext(),
+                errorContent
+            );
+        } else {
+            throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
+        }
+        return getAIAnswer(username, aiPromptDTO);
     }
 }

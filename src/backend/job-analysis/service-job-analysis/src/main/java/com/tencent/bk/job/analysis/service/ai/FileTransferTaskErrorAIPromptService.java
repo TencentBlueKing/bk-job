@@ -22,24 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
+import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+public interface FileTransferTaskErrorAIPromptService {
+
     /**
-     * 检查脚本
+     * 获取分析文件分发任务报错信息的AI提示符
+     *
+     * @param context      文件分发任务上下文
+     * @param errorContent 报错内容
+     * @return AI提示符
      */
-    CHECK_SCRIPT,
-    /**
-     * 分析脚本执行任务报错信息
-     */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+    AIPromptDTO getPrompt(FileTaskContext context, String errorContent);
 }

@@ -38,13 +38,17 @@ import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-//@RestController("jobAnalysisWebAIResource")
+@Primary
+@RestController("jobAnalysisWebAIResource")
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
 
@@ -52,7 +56,7 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
 
-    //    @Autowired
+    @Autowired
     public WebAIResourceImpl(ChatService chatService,
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService) {
@@ -110,8 +114,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                            String scopeType,
                                            String scopeId,
                                            AIAnalyzeErrorReq req) {
-
-        AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, req.getContent());
+        AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, appResourceScope.getAppId(), req);
         return Response.buildSuccessResp(aiAnswer);
     }
 

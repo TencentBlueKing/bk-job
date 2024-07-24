@@ -22,26 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.execute.model.inner;
 
-import org.apache.commons.lang3.tuple.Pair;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-public interface AIPromptService {
+@ApiModel("步骤实例")
+@Data
+public class ServiceStepInstanceDTO {
+    /**
+     * 步骤实例ID
+     */
+    @ApiModelProperty("步骤实例ID")
+    private Long id;
 
     /**
-     * 获取检查脚本的AI提示符
-     *
-     * @param type          脚本类型
-     * @param scriptContent 脚本内容
-     * @return <原始提示符，通过模板渲染的AI提示符>
+     * 步骤类型
      */
-    Pair<String, String> getCheckScriptPrompt(Integer type, String scriptContent);
+    @ApiModelProperty("步骤类型")
+    private Integer executeType;
 
     /**
-     * 获取分析报错信息的AI提示符
-     *
-     * @param errorContent 报错内容
-     * @return <原始提示符，通过模板渲染的AI提示符>
+     * 步骤类型
      */
-    Pair<String, String> getAnalyzeErrorPrompt(String errorContent);
+    @ApiModelProperty("脚本任务步骤")
+    private ServiceScriptStepInstanceDTO scriptStepInstance;
+
 }

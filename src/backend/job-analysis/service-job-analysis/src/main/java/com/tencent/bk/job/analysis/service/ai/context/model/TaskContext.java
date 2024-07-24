@@ -22,24 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
 @AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+@Data
+public class TaskContext {
+
     /**
-     * 检查脚本
+     * 步骤类型
      */
-    CHECK_SCRIPT,
+    private Integer executeType;
     /**
-     * 分析脚本执行任务报错信息
+     * 脚本任务上下文
      */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
+    private ScriptTaskContext scriptTaskContext;
     /**
-     * 分析文件分发任务报错信息
+     * 文件任务上下文
      */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+    private FileTaskContext fileTaskContext;
+
+    public boolean isScriptTask() {
+        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
+        return stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SCRIPT
+            || stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SQL;
+    }
+
+    public boolean isFileTask() {
+        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
+        return stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE;
+    }
 }

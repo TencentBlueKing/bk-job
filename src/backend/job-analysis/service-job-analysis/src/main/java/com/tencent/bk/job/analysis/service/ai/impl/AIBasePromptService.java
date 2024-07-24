@@ -22,24 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.analysis.dao.AIPromptTemplateDAO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptTemplateDTO;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
-    /**
-     * 检查脚本
-     */
-    CHECK_SCRIPT,
-    /**
-     * 分析脚本执行任务报错信息
-     */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+@Slf4j
+public class AIBasePromptService {
+
+    private final AIPromptTemplateDAO aiPromptTemplateDAO;
+
+    public AIBasePromptService(AIPromptTemplateDAO aiPromptTemplateDAO) {
+        this.aiPromptTemplateDAO = aiPromptTemplateDAO;
+    }
+
+    protected AIPromptTemplateDTO getPromptTemplate(String templateCode) {
+        String userLang = JobContextUtil.getUserLang();
+        AIPromptTemplateDTO promptTemplate = aiPromptTemplateDAO.getAIPromptTemplate(
+            templateCode,
+            userLang
+        );
+        if (promptTemplate == null) {
+            String message = "Cannot find prompt template for (" +
+                "code=" + templateCode +
+                ", userLang=" + userLang +
+                "), please check template config in DB";
+            throw new InternalException(message, ErrorCode.INTERNAL_ERROR);
+        }
+        log.info(
+            "Use prompt template [{}(id={})], userLang={}",
+            promptTemplate.getName(),
+            promptTemplate.getId(),
+            userLang
+        );
+        return promptTemplate;
+    }
+
 }

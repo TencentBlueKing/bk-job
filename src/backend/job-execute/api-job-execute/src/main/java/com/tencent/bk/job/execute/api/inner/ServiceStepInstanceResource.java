@@ -22,24 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.execute.api.inner;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
-    /**
-     * 检查脚本
-     */
-    CHECK_SCRIPT,
-    /**
-     * 分析脚本执行任务报错信息
-     */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+/**
+ * 步骤实例API-服务内部调用
+ */
+@Api(tags = {"StepInstance"})
+@SmartFeignClient(value = "job-execute", contextId = "stepInstanceResource")
+@InternalAPI
+@RequestMapping("/service/stepInstance")
+public interface ServiceStepInstanceResource {
+    @GetMapping("/appIds/{appId}/stepInstanceIds/{stepInstanceId}")
+    InternalResponse<ServiceStepInstanceDTO> getStepInstance(
+        @RequestHeader("username")
+        String username,
+        @ApiParam(value = "作业平台业务ID", required = true)
+        @PathVariable(value = "appId")
+        Long appId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+        Long stepInstanceId);
 }

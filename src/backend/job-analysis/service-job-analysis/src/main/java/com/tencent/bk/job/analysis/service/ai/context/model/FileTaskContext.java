@@ -22,24 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
-    /**
-     * 检查脚本
-     */
-    CHECK_SCRIPT,
-    /**
-     * 分析脚本执行任务报错信息
-     */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+@Data
+public class FileTaskContext {
 }

@@ -51,5 +51,15 @@ public class BkApiGatewayProperties {
          * 蓝鲸Api Gateway url
          */
         private String url;
+
+        /**
+         * 蓝鲸Api Gateway appCode，若配置了则优先使用，覆盖app.code配置项
+         */
+        private String appCode;
+
+        /**
+         * 蓝鲸Api Gateway appSecret，若配置了则优先使用，覆盖app.secret配置项
+         */
+        private String appSecret;
     }
 }

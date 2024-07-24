@@ -27,6 +27,9 @@ package com.tencent.bk.job.execute.model;
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.model.inner.ServiceScriptStepInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -294,7 +297,8 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
 
     /**
      * 遍历步骤实例包含的所有执行目标（执行目标+文件分发源执行目标）
-     * @param consumer
+     *
+     * @param consumer 消费者
      */
     public void forEachExecuteObjects(Consumer<ExecuteTargetDTO> consumer) {
         if (targetExecuteObjects != null) {
@@ -308,5 +312,20 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
                 }
             }
         }
+    }
+
+    public ServiceStepInstanceDTO toServiceStepInstanceDTO() {
+        ServiceStepInstanceDTO serviceStepInstanceDTO = new ServiceStepInstanceDTO();
+        serviceStepInstanceDTO.setId(id);
+        serviceStepInstanceDTO.setExecuteType(executeType.getValue());
+        if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT || executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
+            ServiceScriptStepInstanceDTO scriptStepInstance = new ServiceScriptStepInstanceDTO();
+            scriptStepInstance.setStepInstanceId(id);
+            scriptStepInstance.setScriptType(scriptType.getValue());
+            scriptStepInstance.setScriptContent(scriptContent);
+            scriptStepInstance.setScriptParam(scriptParam);
+            serviceStepInstanceDTO.setScriptStepInstance(scriptStepInstance);
+        }
+        return serviceStepInstanceDTO;
     }
 }

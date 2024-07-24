@@ -22,24 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.model.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.model.web.resp.UserInput;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Getter
+/**
+ * AI对话历史记录
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
 @AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+public class AIPromptDTO {
+
     /**
-     * 检查脚本
+     * 原始提示符
      */
-    CHECK_SCRIPT,
+    private String rawPrompt;
     /**
-     * 分析脚本执行任务报错信息
+     * 通过模板渲染的AI提示符
      */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+    private String renderedPrompt;
 }

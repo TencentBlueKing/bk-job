@@ -22,24 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai.context;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+public interface TaskContextService {
+
     /**
-     * 检查脚本
+     * 获取脚本任务上下文
+     *
+     * @param username       用户名
+     * @param appId          Job业务ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 脚本任务上下文
      */
-    CHECK_SCRIPT,
-    /**
-     * 分析脚本执行任务报错信息
-     */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
-    /**
-     * 分析文件分发任务报错信息
-     */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+    TaskContext getTaskContext(String username, Long appId, Long stepInstanceId);
 }

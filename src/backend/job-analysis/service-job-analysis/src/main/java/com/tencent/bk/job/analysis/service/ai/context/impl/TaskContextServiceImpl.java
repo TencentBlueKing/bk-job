@@ -1,0 +1,94 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.analysis.service.ai.context.impl;
+
+import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.execute.api.inner.ServiceStepInstanceResource;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.model.inner.ServiceScriptStepInstanceDTO;
+import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * 任务上下文服务
+ */
+@Service
+public class TaskContextServiceImpl implements TaskContextService {
+
+    private final ServiceStepInstanceResource serviceStepInstanceResource;
+
+    @Autowired
+    public TaskContextServiceImpl(ServiceStepInstanceResource serviceStepInstanceResource) {
+        this.serviceStepInstanceResource = serviceStepInstanceResource;
+    }
+
+    @Override
+    public TaskContext getTaskContext(String username, Long appId, Long stepInstanceId) {
+        InternalResponse<ServiceStepInstanceDTO> resp = serviceStepInstanceResource.getStepInstance(
+            username,
+            appId,
+            stepInstanceId
+        );
+        if (resp.isSuccess()) {
+            ServiceStepInstanceDTO stepInstance = resp.getData();
+            return buildTaskContext(stepInstance);
+        }
+        if (resp.getAuthResult() != null && !resp.getAuthResult().isPass()) {
+            throw new PermissionDeniedException(AuthResult.fromAuthResultDTO(resp.getAuthResult()));
+        }
+        throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
+    }
+
+    private TaskContext buildTaskContext(ServiceStepInstanceDTO stepInstance) {
+        ServiceScriptStepInstanceDTO scriptStepInstance = stepInstance.getScriptStepInstance();
+        ScriptTaskContext scriptTaskContext = null;
+        FileTaskContext fileTaskContext = null;
+        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(stepInstance.getExecuteType());
+        if (stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SCRIPT
+            || stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SQL) {
+            scriptTaskContext = new ScriptTaskContext(
+                scriptStepInstance.getScriptType(),
+                scriptStepInstance.getScriptContent(),
+                scriptStepInstance.getScriptParam()
+            );
+        } else if (stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE) {
+            fileTaskContext = new FileTaskContext();
+        }
+        return new TaskContext(
+            stepInstance.getExecuteType(),
+            scriptTaskContext,
+            fileTaskContext
+        );
+    }
+}

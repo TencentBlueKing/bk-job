@@ -24,33 +24,42 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
-import com.tencent.bk.job.analysis.service.ai.CheckScriptAIPromptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AICheckScriptServiceImpl extends AIBaseService implements AICheckScriptService {
+public class AIBaseService {
 
-    private final CheckScriptAIPromptService checkScriptAIPromptService;
+    private final AIService aiService;
+    private final AIChatHistoryService aiChatHistoryService;
 
     @Autowired
-    public AICheckScriptServiceImpl(CheckScriptAIPromptService checkScriptAIPromptService,
-                                    AIService aiService,
-                                    AIChatHistoryService aiChatHistoryService) {
-        super(aiService, aiChatHistoryService);
-        this.checkScriptAIPromptService = checkScriptAIPromptService;
+    public AIBaseService(AIService aiService,
+                         AIChatHistoryService aiChatHistoryService) {
+        this.aiService = aiService;
+        this.aiChatHistoryService = aiChatHistoryService;
     }
 
-    @Override
-    public AIAnswer check(String username, Integer type, String scriptContent) {
-        AIPromptDTO aiPromptDTO = checkScriptAIPromptService.getPrompt(type, scriptContent);
-        return getAIAnswer(username, aiPromptDTO);
+    public AIAnswer getAIAnswer(String username, AIPromptDTO aiPromptDTO) {
+        long startTime = System.currentTimeMillis();
+        String rawPrompt = aiPromptDTO.getRawPrompt();
+        String renderedPrompt = aiPromptDTO.getRenderedPrompt();
+        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
+        AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
+            username,
+            startTime,
+            rawPrompt,
+            renderedPrompt,
+            aiAnswer
+        );
+        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        return aiAnswer;
     }
 }

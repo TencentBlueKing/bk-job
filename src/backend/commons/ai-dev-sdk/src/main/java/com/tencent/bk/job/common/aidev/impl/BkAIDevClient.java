@@ -50,6 +50,7 @@ import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,7 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
         "/aidev/intelligence/raw_service/model-self_host-hunyuan-ChatCompletion/execute/";
 
     private final AppProperties appProperties;
+    private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
 
     public BkAIDevClient(MeterRegistry meterRegistry,
@@ -74,6 +76,7 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
             HttpHelperFactory.getDefaultHttpHelper()
         );
         this.appProperties = appProperties;
+        this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
         this.customPaasLoginProperties = customPaasLoginProperties;
     }
 
@@ -130,17 +133,33 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
     private BkApiAuthorization buildAuthorization(String token) {
         if (customPaasLoginProperties.isEnabled()) {
             return BkApiAuthorization.bkTicketUserAuthorization(
-                appProperties.getCode(),
-                appProperties.getSecret(),
+                getAppCode(),
+                getAppSecret(),
                 token
             );
         } else {
             return BkApiAuthorization.bkTokenUserAuthorization(
-                appProperties.getCode(),
-                appProperties.getSecret(),
+                getAppCode(),
+                getAppSecret(),
                 token
             );
         }
+    }
+
+    private String getAppCode() {
+        String appCode = bkAIDevConfig.getAppCode();
+        if (StringUtils.isNotBlank(appCode)) {
+            return appCode;
+        }
+        return appProperties.getCode();
+    }
+
+    private String getAppSecret() {
+        String appCode = bkAIDevConfig.getAppCode();
+        if (StringUtils.isNotBlank(appCode)) {
+            return appCode;
+        }
+        return appProperties.getSecret();
     }
 
     /**

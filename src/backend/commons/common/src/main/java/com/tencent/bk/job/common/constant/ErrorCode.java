@@ -456,4 +456,8 @@ public class ErrorCode {
     // 迁移失败，任务: {0}, 详情: {1}
     public static final int MIGRATION_FAIL = 1263001;
 
+    // 统计分析服务job-analysis错误码 start
+    // AI分析任务报错信息仅支持脚本或文件任务步骤
+    public static final int AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP = 1264001;
+    // 统计分析服务job-analysis错误码 end
 }

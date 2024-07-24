@@ -22,24 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.execute.model.inner;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
-public enum PromptTemplateCodeEnum {
+@ApiModel("脚本步骤实例")
+@Data
+public class ServiceScriptStepInstanceDTO {
     /**
-     * 检查脚本
+     * 步骤实例ID
      */
-    CHECK_SCRIPT,
+    private Long stepInstanceId;
+
     /**
-     * 分析脚本执行任务报错信息
+     * 脚本类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)、6(SQL脚本)
      */
-    ANALYZE_SCRIPT_EXECUTE_TASK_ERROR,
+    private Integer scriptType;
+
     /**
-     * 分析文件分发任务报错信息
+     * 脚本内容
      */
-    ANALYZE_FILE_TRANSFER_TASK_ERROR
+    private String scriptContent;
+
+    /**
+     * 脚本参数
+     */
+    private String scriptParam;
 }
