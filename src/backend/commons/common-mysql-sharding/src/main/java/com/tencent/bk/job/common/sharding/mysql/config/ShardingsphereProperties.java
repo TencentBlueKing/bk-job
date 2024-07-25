@@ -31,6 +31,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 @ConfigurationProperties(prefix = "shardingsphere")
 @Getter
@@ -56,7 +57,6 @@ public class ShardingsphereProperties {
 
     @Getter
     @Setter
-    @ToString
     public static class DataSource {
         /**
          * 数据库驱动类名，以数据库连接池自身配置为准
@@ -68,6 +68,16 @@ public class ShardingsphereProperties {
         private String jdbcUrl;
         private String username;
         private String password;
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DataSource.class.getSimpleName() + "[", "]")
+                .add("driverClassName='" + driverClassName + "'")
+                .add("jdbcUrl='" + jdbcUrl + "'")
+                .add("username='" + username + "'")
+                .add("password='******'")
+                .toString();
+        }
     }
 
 

@@ -976,11 +976,11 @@ executeConfig:
       # datasources:
       #   # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
       #   - index: 0
-      #     jdbcUrl: jdbc:mysql://localhost:3306/job_execute
+      #     jdbcUrl: jdbc:otel:mysql://localhost:3306/job_execute
       #     username: job
       #     password: job
       #   - index: 1
-      #     jdbcUrl: jdbc:mysql://localhost:3307/job_execute
+      #     jdbcUrl: jdbc:otel:mysql://localhost:3307/job_execute
       #     username: job
       #     password: job
 

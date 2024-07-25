@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.sharding.mysql.config;
 import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
 import com.tencent.bk.job.common.sharding.mysql.ShardingConfigParseException;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.shardingsphere.driver.api.ShardingSphereDataSourceFactory;
@@ -71,6 +72,7 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties({ShardingsphereProperties.class})
 @ConditionalOnProperty(value = "shardingsphere.enabled", havingValue = "true")
 @Import(LeafDbConfig.class)
+@Slf4j
 public class ShardingDatasourceAutoConfiguration {
 
     @Bean("jooqLeafIdAllocator")
@@ -80,6 +82,7 @@ public class ShardingDatasourceAutoConfiguration {
 
     @Bean("jobShardingDataSource")
     public DataSource shardingDataSource(ShardingsphereProperties shardingsphereProperties) throws SQLException {
+        log.info("Init sharding datasource start ...");
         // 指定逻辑 Database 名称
         String databaseName = shardingsphereProperties.getDatabaseName();
         // 构建运行模式
@@ -89,21 +92,26 @@ public class ShardingDatasourceAutoConfiguration {
         // 构建具体规则
         List<RuleConfiguration> ruleConfigs = new ArrayList<>();
         ruleConfigs.add(createShardingRuleConfiguration(shardingsphereProperties.getShardingRule()));
-        return ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig,
+        DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig,
             dataSourceMap, ruleConfigs, null);
+        log.info("Init sharding datasource successfully");
+        return dataSource;
     }
 
     private ModeConfiguration createModeConfiguration() {
+        log.info("Load sharding mode, type: Standalone");
         return new ModeConfiguration("Standalone",
             new StandalonePersistRepositoryConfiguration("JDBC", new Properties()));
     }
 
     private Map<String, DataSource> createDataSources(
         Map<String, ShardingsphereProperties.DataSource> dataSourcePropMap) {
+        log.info("Init datasourceMap start ...");
 
         Map<String, DataSource> dataSourceMap = new HashMap<>();
 
         dataSourcePropMap.forEach((name, dataSourceProp) -> {
+            log.info("Create sharding datasource, name : {}, dataSourceProp: {}", name, dataSourceProp);
             HikariDataSource dataSource = new HikariDataSource();
             dataSource.setDriverClassName(dataSourceProp.getDriverClassName());
             dataSource.setJdbcUrl(dataSourceProp.getJdbcUrl());
@@ -111,52 +119,69 @@ public class ShardingDatasourceAutoConfiguration {
             dataSource.setPassword(dataSourceProp.getPassword());
             dataSourceMap.put(name, dataSource);
         });
-
+        log.info("Init datasourceMap successfully");
         return dataSourceMap;
     }
 
     private ShardingRuleConfiguration createShardingRuleConfiguration(
         ShardingsphereProperties.ShardingRule shardingRuleProps) {
+        log.info("Init sharding rule configuration start ...");
 
         ShardingRuleConfiguration shardingRuleConfiguration = new ShardingRuleConfiguration();
+
+        // 分片表规则列表
         shardingRuleConfiguration.getTables()
             .addAll(createShardingTableRuleConfigurations(shardingRuleProps.getTables()));
 
+        // 绑定表规则列表
         if (CollectionUtils.isNotEmpty(shardingRuleProps.getBindingTables())) {
             shardingRuleProps.getBindingTables().forEach(bindingTables -> {
                 String ruleName = "binding_rule_" +
                     Arrays.stream(bindingTables.split(",")).map(String::trim).collect(Collectors.joining("_"));
+                log.info("Create binding table group, ruleName: {}, bindingTables: {}", ruleName, bindingTables);
                 shardingRuleConfiguration.getBindingTableGroups().add(
                     new ShardingTableReferenceRuleConfiguration(ruleName, bindingTables));
             });
-
         }
 
+        // 默认分库策略
         if (shardingRuleProps.getDefaultDatabaseStrategy() != null) {
+            log.info("Create default database sharding strategy, strategy: {}",
+                shardingRuleProps.getDefaultDatabaseStrategy());
+
             shardingRuleConfiguration.setDefaultDatabaseShardingStrategy(
                 createShardingStrategyConfiguration(shardingRuleProps.getDefaultDatabaseStrategy()));
         }
 
+        // 默认分表策略
         if (shardingRuleProps.getDefaultTableStrategy() != null) {
+            log.info("Create default table sharding strategy, strategy: {}",
+                shardingRuleProps.getDefaultTableStrategy());
             shardingRuleConfiguration.setDefaultTableShardingStrategy(
                 createShardingStrategyConfiguration(shardingRuleProps.getDefaultTableStrategy()));
         }
 
+        // 分片算法配置
         if (MapUtils.isNotEmpty(shardingRuleProps.getShardingAlgorithms())) {
             shardingRuleProps.getShardingAlgorithms().forEach((name, algorithm) -> {
+                log.info("Create sharding algorithms, name: {}, type: {}", name, algorithm.getType());
                 Properties props = toProperties(algorithm.getProps());
                 shardingRuleConfiguration.getShardingAlgorithms()
                     .put(name, new AlgorithmConfiguration(algorithm.getType(), props));
             });
         }
 
+        // 自增列生成算法配置
         if (MapUtils.isNotEmpty(shardingRuleProps.getKeyGenerators())) {
             shardingRuleProps.getKeyGenerators().forEach((name, generator) -> {
+                log.info("Create key generator, name: {}, type: {}", name, generator.getType());
                 Properties props = toProperties(generator.getProps());
                 shardingRuleConfiguration.getKeyGenerators()
                     .put(name, new AlgorithmConfiguration(generator.getType(), props));
             });
         }
+
+        log.info("Init sharding rule configuration successfully");
 
         return shardingRuleConfiguration;
     }
@@ -182,10 +207,16 @@ public class ShardingDatasourceAutoConfiguration {
     private ShardingTableRuleConfiguration createShardingTableRuleConfiguration(
         String tableName,
         ShardingsphereProperties.TableShardingRule tableShardingRule) {
+        log.info("[{}] Create sharding table rule configuration, tableShardingRule: {}",
+            tableName, tableShardingRule);
 
         ShardingTableRuleConfiguration configuration = new ShardingTableRuleConfiguration(
             tableName, tableShardingRule.getActualDataNodes());
         if (tableShardingRule.getKeyGenerateStrategy() != null) {
+            log.info("[{}] Create key generate strategy configuration, column: {}, keyGeneratorName: {}",
+                tableName,
+                tableShardingRule.getKeyGenerateStrategy().getColumn(),
+                tableShardingRule.getKeyGenerateStrategy().getKeyGeneratorName());
             configuration.setKeyGenerateStrategy(
                 new KeyGenerateStrategyConfiguration(
                     tableShardingRule.getKeyGenerateStrategy().getColumn(),
@@ -194,10 +225,14 @@ public class ShardingDatasourceAutoConfiguration {
             );
         }
         if (tableShardingRule.getDatabaseStrategy() != null) {
+            log.info("[{}] Create database sharding strategy, strategy: {}",
+                tableName, tableShardingRule.getDatabaseStrategy());
             configuration.setDatabaseShardingStrategy(
                 createShardingStrategyConfiguration(tableShardingRule.getDatabaseStrategy()));
         }
         if (tableShardingRule.getTableStrategy() != null) {
+            log.info("[{}] Create table sharding strategy, strategy: {}",
+                tableName, tableShardingRule.getTableStrategy());
             configuration.setTableShardingStrategy(
                 createShardingStrategyConfiguration(tableShardingRule.getTableStrategy()));
         }

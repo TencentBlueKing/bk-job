@@ -224,8 +224,7 @@ data:
       dataSources:
         {{- range .Values.executeConfig.sharding.mariadb.datasources }}
         ds_{{ .index }}:
-          dataSourceClassName: com.zaxxer.hikari.HikariDataSource
-          driverClassName: com.mysql.jdbc.Driver
+          driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
           jdbcUrl: {{ .jdbcUrl }}
           username: {{ .username }}
           password: {{ .password }}
