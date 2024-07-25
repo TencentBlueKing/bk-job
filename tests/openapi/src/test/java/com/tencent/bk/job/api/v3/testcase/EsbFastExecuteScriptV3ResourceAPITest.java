@@ -7,6 +7,7 @@ import com.tencent.bk.job.api.constant.ScriptTypeEnum;
 import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.util.ApiUtil;
+import com.tencent.bk.job.api.util.Base64Util;
 import com.tencent.bk.job.api.util.JsonUtil;
 import com.tencent.bk.job.api.util.Operations;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
@@ -175,6 +176,38 @@ class EsbFastExecuteScriptV3ResourceAPITest extends BaseTest {
             rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
             rollingConfig.setExpression("10%");
             req.setRollingConfig(rollingConfig);
+            ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
+        }
+
+        @Test
+        @DisplayName("快速执行脚本-脚本参数超过长度限制")
+        void testFastExecuteScriptWithWrongScriptParam() {
+            EsbFastExecuteScriptV3Request req = new EsbFastExecuteScriptV3Request();
+            req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+            req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+            req.setContent(TestProps.DEFAULT_SHELL_SCRIPT_CONTENT);
+            req.setScriptLanguage(ScriptTypeEnum.SHELL.getValue());
+            req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
+            req.setName(Operations.buildJobName());
+            EsbServerV3DTO targetServer = new EsbServerV3DTO();
+            List<EsbIpDTO> ips = new ArrayList<>();
+            ips.add(TestProps.HOST_1_DEFAULT_BIZ);
+            ips.add(TestProps.HOST_2_DEFAULT_BIZ);
+            targetServer.setIps(ips);
+            req.setTargetServer(targetServer);
+            EsbRollingConfigDTO rollingConfig = new EsbRollingConfigDTO();
+            rollingConfig.setMode(RollingModeEnum.IGNORE_ERROR.getValue());
+            rollingConfig.setExpression("10%");
+            req.setRollingConfig(rollingConfig);
+
+            // 脚本参数长度不能超过5000
+            StringBuilder stringBuilder = new StringBuilder();
+            String str = "job";
+            int repeatCount = (5000 / str.length()) + 1;
+            for (int i = 0; i < repeatCount; i++) {
+                stringBuilder.append(str);
+            }
+            req.setScriptParam(Base64Util.base64EncodeContentToStr(stringBuilder.toString()));
             ApiUtil.assertPostErrorResponse(APIV3Urls.FAST_EXECUTE_SCRIPT, req, ErrorCode.BAD_REQUEST);
         }
 

@@ -52,4 +52,6 @@ public class ValidationConstants {
 
     // 批量查询作业执行日志, 主机数限制
     public static final int MAX_BATCH_SEARCH_LOGS_HOSTS_LIMIT = 500;
+    // 脚本参数最大长度
+    public static final int MAX_SCRIPT_PARAM_LENGTH = 5000;
 }

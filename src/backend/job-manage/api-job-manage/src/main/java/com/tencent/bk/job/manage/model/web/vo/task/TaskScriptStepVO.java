@@ -34,6 +34,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
@@ -64,6 +65,10 @@ public class TaskScriptStepVO {
     private Integer scriptLanguage;
 
     @ApiModelProperty("脚本参数")
+    @Length(
+        max = ValidationConstants.MAX_SCRIPT_PARAM_LENGTH,
+        message = "{validation.constraints.InvalidScriptParam_outOfLength.message}"
+    )
     private String scriptParam;
 
     @ApiModelProperty("脚本超时时间")

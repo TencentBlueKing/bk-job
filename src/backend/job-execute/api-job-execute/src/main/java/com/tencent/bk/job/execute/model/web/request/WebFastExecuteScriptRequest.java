@@ -132,6 +132,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本参数
      */
     @ApiModelProperty(value = "脚本参数")
+    @Length(
+        max = ValidationConstants.MAX_SCRIPT_PARAM_LENGTH,
+        message = "{validation.constraints.InvalidScriptParam_outOfLength.message}"
+    )
     private String scriptParam;
 
     /**
