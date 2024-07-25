@@ -191,7 +191,7 @@ data:
           idle-timeout: 600000
           poolName: "job-leaf"
           validationTimeout: 5000
-        {{- end -}}
+        {{- end }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -438,6 +438,6 @@ data:
         enable: false
       name: job-leaf
         
-    {{- end -}}
+    {{- end }}
 
 {{- end }}
