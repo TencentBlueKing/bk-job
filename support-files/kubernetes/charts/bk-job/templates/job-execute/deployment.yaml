@@ -89,7 +89,7 @@ spec:
               containerPort: {{ .Values.executeConfig.containerPort }}
               protocol: TCP
             {{- if .Values.executeConfig.jvm.debug.enabled }}
-            - name: jvmDebug
+            - name: jvm-debug
               containerPort: {{ .Values.executeConfig.jvm.debug.port }}
               protocol: TCP
             {{- end }}
