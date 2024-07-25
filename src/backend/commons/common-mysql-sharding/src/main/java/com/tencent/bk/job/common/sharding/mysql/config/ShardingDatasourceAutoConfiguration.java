@@ -223,7 +223,7 @@ public class ShardingDatasourceAutoConfiguration {
 
     @Qualifier("jobShardingTransactionManager")
     @Bean(name = "jobShardingTransactionManager")
-    @DependsOn("job-sharding-data-source")
+    @DependsOn("jobShardingDataSource")
     public DataSourceTransactionManager transactionManager(
         @Qualifier("jobShardingDataSource") DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);

@@ -175,6 +175,23 @@ data:
           idle-timeout: 600000
           poolName: "job-execute"
           validationTimeout: 5000
+        {{ if .Values.executeConfig.sharding.mariadb.enabled }}
+        leaf:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 50
+          minimum-idle: 10
+          idle-timeout: 600000
+          poolName: "job-leaf"
+          validationTimeout: 5000
+        {{- end -}}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0

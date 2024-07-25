@@ -60,46 +60,46 @@ public class IdGenerator {
     }
 
     public Long genTaskInstanceId() {
-        return gen("task_instance");
+        return gen("job_execute.task_instance");
     }
 
     public Long genStepInstanceId() {
-        return gen("step_instance");
+        return gen("job_execute.step_instance");
     }
 
     public Long genGseTaskId() {
-        return gen("gse_task");
+        return gen("job_execute.gse_task");
     }
 
     public Long genOperationLogId() {
-        return gen("operation_log");
+        return gen("job_execute.operation_log");
     }
 
     public Long genFileSourceTaskLogId() {
-        return gen("file_source_task_log");
+        return gen("job_execute.file_source_task_log");
     }
 
     public Long genGseFileExecuteObjTaskId() {
-        return gen("gse_file_execute_obj_task");
+        return gen("job_execute.gse_file_execute_obj_task");
     }
 
     public Long genGseScriptExecuteObjTaskId() {
-        return gen("gse_script_execute_obj_task");
+        return gen("job_execute.gse_script_execute_obj_task");
     }
 
     public Long genRollingConfigId() {
-        return gen("rolling_config");
+        return gen("job_execute.rolling_config");
     }
 
     public Long genStepInstanceRollingTaskId() {
-        return gen("step_instance_rolling_task");
+        return gen("job_execute.step_instance_rolling_task");
     }
 
     public Long genStepInstanceVariableId() {
-        return gen("step_instance_variable");
+        return gen("job_execute.step_instance_variable");
     }
 
     public Long genTaskInstanceVariableId() {
-        return gen("task_instance_variable");
+        return gen("job_execute.task_instance_variable");
     }
 }

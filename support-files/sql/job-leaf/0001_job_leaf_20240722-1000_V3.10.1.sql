@@ -13,14 +13,14 @@ CREATE TABLE IF NOT EXISTS `t_leaf_alloc` (
 ) ENGINE=InnoDB;
 
 
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('task_instance', 1, 2000, 'job_execute.task_instance');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('step_instance', 1, 2000, 'job_execute.step_instance');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('gse_task', 1, 2000, 'job_execute.gse_task');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('operation_log', 1, 2000, 'job_execute.operation_log');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('file_source_task_log', 1, 2000, 'job_execute.file_source_task_log');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('gse_file_execute_obj_task', 1, 2000, 'job_execute.gse_file_execute_obj_task');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('gse_script_execute_obj_task', 1, 2000, 'job_execute.gse_script_execute_obj_task');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('rolling_config', 1, 2000, 'job_execute.rolling_config');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('step_instance_rolling_task', 1, 2000, 'job_execute.step_instance_rolling_task');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('step_instance_variable', 1, 2000, 'job_execute.step_instance_variable');
-insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('task_instance_variable', 1, 2000, 'job_execute.task_instance_variable');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.task_instance', 1, 2000, 'job_execute.task_instance');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.step_instance', 1, 2000, 'job_execute.step_instance');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.gse_task', 1, 2000, 'job_execute.gse_task');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.operation_log', 1, 2000, 'job_execute.operation_log');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.file_source_task_log', 1, 2000, 'job_execute.file_source_task_log');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.gse_file_execute_obj_task', 1, 2000, 'job_execute.gse_file_execute_obj_task');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.gse_script_execute_obj_task', 1, 2000, 'job_execute.gse_script_execute_obj_task');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.rolling_config', 1, 2000, 'job_execute.rolling_config');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.step_instance_rolling_task', 1, 2000, 'job_execute.step_instance_rolling_task');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.step_instance_variable', 1, 2000, 'job_execute.step_instance_variable');
+insert ignore into t_leaf_alloc(biz_tag, max_id, step, description) values('job_execute.task_instance_variable', 1, 2000, 'job_execute.task_instance_variable');
