@@ -88,6 +88,11 @@ spec:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
               protocol: TCP
+            {{- if .Values.executeConfig.jvm.debug.enabled }}
+            - name: jvmDebug
+              containerPort: {{ .Values.executeConfig.jvm.debug.port }}
+              protocol: TCP
+            {{- end }}
           {{- include "job.service.probes" ( dict "port" "http" "context" . ) | nindent 10 }}
           resources:
             {{- toYaml .Values.executeConfig.resources | nindent 12 }}
