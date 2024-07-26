@@ -42,10 +42,13 @@ import org.springframework.stereotype.Service;
 public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptService {
 
     private final AIPromptTemplateDAO aiPromptTemplateDAO;
+    private final AITemplateVarService aiTemplateVarService;
 
     @Autowired
-    public CheckScriptAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO) {
+    public CheckScriptAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
+                                          AITemplateVarService aiTemplateVarService) {
         this.aiPromptTemplateDAO = aiPromptTemplateDAO;
+        this.aiTemplateVarService = aiTemplateVarService;
     }
 
     @Override
@@ -73,7 +76,7 @@ public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptServic
     private String renderCheckScriptPrompt(String promptTemplateContent, Integer type, String scriptContent) {
         String scriptTypeName = ScriptTypeEnum.getName(type);
         return promptTemplateContent
-            .replace("{script_type}", scriptTypeName)
-            .replace("{script_content}", scriptContent);
+            .replace(aiTemplateVarService.getScriptTypePlaceHolder(), scriptTypeName)
+            .replace(aiTemplateVarService.getScriptContentPlaceHolder(), scriptContent);
     }
 }

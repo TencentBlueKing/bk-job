@@ -34,14 +34,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 文件分发任务报错分析AI提示符服务
+ */
 @Slf4j
 @Service
 public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptService
     implements FileTransferTaskErrorAIPromptService {
 
+    private final AITemplateVarService aiTemplateVarService;
+
     @Autowired
-    public FileTransferTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO) {
+    public FileTransferTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
+                                                    AITemplateVarService aiTemplateVarService) {
         super(aiPromptTemplateDAO);
+        this.aiTemplateVarService = aiTemplateVarService;
     }
 
     @Override
@@ -55,6 +62,6 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
     private String renderPrompt(String promptTemplateContent, FileTaskContext context, String errorContent) {
         // TODO:补充文件任务报错分析模板渲染相关内容
         return promptTemplateContent
-            .replace("{error_content}", errorContent);
+            .replace(aiTemplateVarService.getErrorContentPlaceHolder(), errorContent);
     }
 }

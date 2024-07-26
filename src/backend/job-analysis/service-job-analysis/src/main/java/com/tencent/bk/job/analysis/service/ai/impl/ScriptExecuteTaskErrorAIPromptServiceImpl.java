@@ -35,14 +35,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 脚本任务报错检查AI提示符服务
+ */
 @Slf4j
 @Service
 public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptService
     implements ScriptExecuteTaskErrorAIPromptService {
 
+    private final AITemplateVarService aiTemplateVarService;
+
     @Autowired
-    public ScriptExecuteTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO) {
+    public ScriptExecuteTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
+                                                     AITemplateVarService aiTemplateVarService) {
         super(aiPromptTemplateDAO);
+        this.aiTemplateVarService = aiTemplateVarService;
     }
 
     @Override
@@ -57,9 +64,9 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
                                 ScriptTaskContext context,
                                 String errorContent) {
         return promptTemplateContent
-            .replace("{script_type}}", ScriptTypeEnum.getName(context.getScriptType()))
-            .replace("{script_content}", context.getScriptContent())
-            .replace("{script_params}", context.getScriptParams())
-            .replace("{error_content}", errorContent);
+            .replace(aiTemplateVarService.getScriptTypePlaceHolder(), ScriptTypeEnum.getName(context.getScriptType()))
+            .replace(aiTemplateVarService.getScriptParamsPlaceHolder(), context.getScriptParams())
+            .replace(aiTemplateVarService.getErrorContentPlaceHolder(), errorContent)
+            .replace(aiTemplateVarService.getScriptContentPlaceHolder(), context.getScriptContent());
     }
 }
