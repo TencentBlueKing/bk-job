@@ -221,6 +221,7 @@ data:
     {{ if .Values.executeConfig.sharding.mariadb.enabled }}
     shardingsphere:
       enabled: true
+      databaseName: "job_execute"
       dataSources:
         {{- range .Values.executeConfig.sharding.mariadb.datasources }}
         ds_{{ .index }}:
