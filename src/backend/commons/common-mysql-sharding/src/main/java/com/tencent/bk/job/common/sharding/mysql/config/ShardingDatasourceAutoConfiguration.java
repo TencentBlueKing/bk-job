@@ -164,7 +164,8 @@ public class ShardingDatasourceAutoConfiguration {
         // 分片算法配置
         if (MapUtils.isNotEmpty(shardingRuleProps.getShardingAlgorithms())) {
             shardingRuleProps.getShardingAlgorithms().forEach((name, algorithm) -> {
-                log.info("Create sharding algorithms, name: {}, type: {}", name, algorithm.getType());
+                log.info("Create sharding algorithms, name: {}, type: {}, props: {}",
+                    name, algorithm.getType(), algorithm.getProps());
                 Properties props = toProperties(algorithm.getProps());
                 shardingRuleConfiguration.getShardingAlgorithms()
                     .put(name, new AlgorithmConfiguration(algorithm.getType(), props));

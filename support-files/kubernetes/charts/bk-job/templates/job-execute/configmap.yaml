@@ -230,6 +230,7 @@ data:
           password: {{ .password }}
         {{- end }}
       shardingRule:
+        # 数据分片规则配置
         tables:
           task_instance:
             actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance" "context" $) }}
@@ -321,22 +322,32 @@ data:
               shardingAlgorithmName: step_instance_rolling_task_table_inline
           task_instance_app:
             actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_app" "context" $) }}
+            databaseStrategy:
+              type: standard
+              shardingColumn: app_id
+              shardingAlgorithmName: app_id_database_inline
             tableStrategy:
               type: standard
               shardingColumn: app_id
               shardingAlgorithmName: task_instance_app_table_inline
           task_instance_host_app:
             actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_host_app" "context" $) }}
+            databaseStrategy:
+              type: standard
+              shardingColumn: app_id
+              shardingAlgorithmName: app_id_database_inline
             tableStrategy:
               type: standard
               shardingColumn: app_id
               shardingAlgorithmName: task_instance_host_app_table_inline
+        # 绑定表规则
+        bindingTables: task_instance_app,task_instance_host_app
+        # 默认分库策略
         defaultDatabaseStrategy:
           type: standard
           shardingColumn: task_instance_id
           shardingAlgorithmName: default_database_inline
         ## 分库分表算法
-        ##
         shardingAlgorithms:
           ## 分库算法
           ##
@@ -350,13 +361,12 @@ data:
             type: INLINE
             props:
               algorithm-expression: {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "id" "context" $) }} 
-          # 按业务分库分表算法
-          app_id_database_inline :
+          # 按业务分库算法
+          app_id_database_inline:
             type : INLINE
             props :
               algorithm-expression : {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "app_id" "context" $) }} 
           ## 分表算法
-          ##
           task_instance_table_inline:
             type: INLINE
             props:
