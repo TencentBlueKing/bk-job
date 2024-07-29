@@ -132,7 +132,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         Result<? extends Record> result = selectConditionStep.orderBy(TABLE.BATCH.asc()).fetch();
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             stepInstanceRollingTasks = result.map(this::extract);
         }
         return stepInstanceRollingTasks;
@@ -140,6 +140,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
 
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
+        Long id = idGenerator.genStepInstanceRollingTaskId();
         Record record = CTX.insertInto(
                 TABLE,
                 TABLE.ID,
@@ -152,7 +153,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 TABLE.END_TIME,
                 TABLE.TOTAL_TIME)
             .values(
-                idGenerator.genStepInstanceRollingTaskId(),
+                id,
                 rollingTask.getTaskInstanceId(),
                 rollingTask.getStepInstanceId(),
                 JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),
@@ -163,8 +164,10 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 rollingTask.getTotalTime())
             .returning(TABLE.ID)
             .fetchOne();
-        assert record != null;
-        return record.get(TABLE.ID);
+        if (id == null) {
+            id = record != null ? record.getValue(TABLE.ID) : null;
+        }
+        return id;
     }
 
     @Override

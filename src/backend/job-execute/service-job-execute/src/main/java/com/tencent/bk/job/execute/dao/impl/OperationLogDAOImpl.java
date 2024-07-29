@@ -59,6 +59,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
 
     @Override
     public long saveOperationLog(OperationLogDTO operationLog) {
+        Long id = idGenerator.genOperationLogId();
         Record record = ctx.insertInto(
                 TABLE,
                 TABLE.ID,
@@ -68,14 +69,19 @@ public class OperationLogDAOImpl implements OperationLogDAO {
                 TABLE.CREATE_TIME,
                 TABLE.DETAIL)
             .values(
-                idGenerator.genOperationLogId(),
+                id,
                 operationLog.getTaskInstanceId(),
                 JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
                 operationLog.getOperator(),
                 operationLog.getCreateTime(),
                 JsonUtils.toJson(operationLog.getDetail()))
-            .returning(TABLE.ID).fetchOne();
-        return record.getValue(TABLE.ID);
+            .returning(TABLE.ID)
+            .fetchOne();
+
+        if (id == null) {
+            id = record != null ? record.getValue(TABLE.ID) : null;
+        }
+        return id;
     }
 
     @Override

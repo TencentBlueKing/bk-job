@@ -161,50 +161,54 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
 
     @Override
     public Long addStepInstanceBase(StepInstanceBaseDTO stepInstance) {
+        Long id = idGenerator.genStepInstanceId();
         StepInstance t = StepInstance.STEP_INSTANCE;
         Record record = CTX.insertInto(
-            t,
-            t.ID,
-            t.STEP_ID,
-            t.TASK_INSTANCE_ID,
-            t.APP_ID,
-            t.NAME,
-            t.TYPE,
-            t.OPERATOR,
-            t.STATUS,
-            t.EXECUTE_COUNT,
-            t.START_TIME,
-            t.END_TIME,
-            t.TOTAL_TIME,
-            t.TARGET_SERVERS,
-            t.CREATE_TIME,
-            t.IGNORE_ERROR,
-            t.STEP_NUM,
-            t.STEP_ORDER,
-            t.BATCH
-        ).values(
-            idGenerator.genStepInstanceId(),
-            stepInstance.getStepId(),
-            stepInstance.getTaskInstanceId(),
-            stepInstance.getAppId(),
-            stepInstance.getName(),
-            stepInstance.getExecuteType().getValue().byteValue(),
-            stepInstance.getOperator(),
-            stepInstance.getStatus().getValue().byteValue(),
-            stepInstance.getExecuteCount(),
-            stepInstance.getStartTime(),
-            stepInstance.getEndTime(),
-            stepInstance.getTotalTime(),
-            stepInstance.getTargetExecuteObjects() == null ? null :
-                JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
-            stepInstance.getCreateTime(),
-            stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
-            stepInstance.getStepNum(),
-            stepInstance.getStepOrder(),
-            (short) stepInstance.getBatch()
-        ).returning(t.ID).fetchOne();
-        assert record != null;
-        return record.getValue(t.ID);
+                t,
+                t.ID,
+                t.STEP_ID,
+                t.TASK_INSTANCE_ID,
+                t.APP_ID,
+                t.NAME,
+                t.TYPE,
+                t.OPERATOR,
+                t.STATUS,
+                t.EXECUTE_COUNT,
+                t.START_TIME,
+                t.END_TIME,
+                t.TOTAL_TIME,
+                t.TARGET_SERVERS,
+                t.CREATE_TIME,
+                t.IGNORE_ERROR,
+                t.STEP_NUM,
+                t.STEP_ORDER,
+                t.BATCH
+            ).values(
+                id,
+                stepInstance.getStepId(),
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getAppId(),
+                stepInstance.getName(),
+                stepInstance.getExecuteType().getValue().byteValue(),
+                stepInstance.getOperator(),
+                stepInstance.getStatus().getValue().byteValue(),
+                stepInstance.getExecuteCount(),
+                stepInstance.getStartTime(),
+                stepInstance.getEndTime(),
+                stepInstance.getTotalTime(),
+                stepInstance.getTargetExecuteObjects() == null ? null :
+                    JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
+                stepInstance.getCreateTime(),
+                stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
+                stepInstance.getStepNum(),
+                stepInstance.getStepOrder(),
+                (short) stepInstance.getBatch()
+            ).returning(t.ID)
+            .fetchOne();
+        if (id == null) {
+            id = record != null ? record.getValue(t.ID) : null;
+        }
+        return id;
     }
 
     @Override
@@ -295,12 +299,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     public void addConfirmStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         CTX.insertInto(t,
-            t.STEP_INSTANCE_ID,
-            t.TASK_INSTANCE_ID,
-            t.CONFIRM_MESSAGE,
-            t.CONFIRM_USERS,
-            t.CONFIRM_ROLES,
-            t.NOTIFY_CHANNELS)
+                t.STEP_INSTANCE_ID,
+                t.TASK_INSTANCE_ID,
+                t.CONFIRM_MESSAGE,
+                t.CONFIRM_USERS,
+                t.CONFIRM_ROLES,
+                t.NOTIFY_CHANNELS)
             .values(
                 stepInstance.getId(),
                 stepInstance.getTaskInstanceId(),

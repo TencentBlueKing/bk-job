@@ -113,6 +113,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
 
     @Override
     public long saveGseTask(GseTaskDTO gseTask) {
+        Long id = idGenerator.genGseTaskId();
         Record record = dslContext.insertInto(
             TABLE,
             TABLE.ID,
@@ -126,7 +127,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
             TABLE.GSE_TASK_ID,
             TABLE.TASK_INSTANCE_ID)
             .values(
-                idGenerator.genGseTaskId(),
+                id,
                 gseTask.getStepInstanceId(),
                 gseTask.getExecuteCount().shortValue(),
                 (short) gseTask.getBatch(),
@@ -138,8 +139,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
                 gseTask.getTaskInstanceId())
             .returning(TABLE.ID)
             .fetchOne();
-
-        return record == null ? 0 : record.get(TABLE.ID);
+        if (id == null) {
+            id = record != null ? record.getValue(TABLE.ID) : 0L;
+        }
+        return id;
     }
 
     @Override

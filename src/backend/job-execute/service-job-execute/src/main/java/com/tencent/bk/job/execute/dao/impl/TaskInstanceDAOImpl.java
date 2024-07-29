@@ -104,6 +104,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
+        Long id = idGenerator.genTaskInstanceId();
         Record record = ctx.insertInto(
                 TASK_INSTANCE,
                 TASK_INSTANCE.ID,
@@ -125,7 +126,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 TASK_INSTANCE.TYPE,
                 TASK_INSTANCE.APP_CODE)
             .values(
-                idGenerator.genTaskInstanceId(),
+                id,
                 taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
@@ -145,7 +146,10 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getAppCode())
             .returning(TASK_INSTANCE.ID)
             .fetchOne();
-        return record != null ? record.getValue(TASK_INSTANCE.ID) : null;
+        if (id == null) {
+            id = record != null ? record.getValue(TASK_INSTANCE.ID) : null;
+        }
+        return id;
     }
 
     @Override

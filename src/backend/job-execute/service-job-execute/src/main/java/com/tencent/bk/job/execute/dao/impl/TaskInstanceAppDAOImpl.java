@@ -96,7 +96,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
-        Record record = ctx.insertInto(
+        ctx.insertInto(
                 TASK_INSTANCE_APP,
                 TASK_INSTANCE_APP.ID,
                 TASK_INSTANCE_APP.TASK_ID,
@@ -135,9 +135,8 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
                 taskInstance.getCallbackUrl(),
                 JooqDataTypeUtil.toByte(taskInstance.getType()),
                 taskInstance.getAppCode())
-            .returning(TASK_INSTANCE_APP.ID)
-            .fetchOne();
-        return record != null ? record.getValue(TASK_INSTANCE_APP.ID) : null;
+            .execute();
+        return taskInstance.getId();
     }
 
     private TaskInstanceDTO extractInfo(Record record) {

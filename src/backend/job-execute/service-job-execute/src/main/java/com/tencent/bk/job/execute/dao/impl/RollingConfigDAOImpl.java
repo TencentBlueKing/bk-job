@@ -57,6 +57,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
 
     @Override
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
+        Long id = idGenerator.genRollingConfigId();
         Record record = CTX.insertInto(
                 TABLE,
                 TABLE.ID,
@@ -64,14 +65,17 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
                 TABLE.CONFIG_NAME,
                 TABLE.CONFIG)
             .values(
-                idGenerator.genRollingConfigId(),
+                id,
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
                 JsonUtils.toJson(rollingConfig.getConfigDetail()))
             .returning(TABLE.ID)
             .fetchOne();
-        assert record != null;
-        return record.get(TABLE.ID);
+
+        if (id == null) {
+            id = record != null ? record.getValue(TABLE.ID) : 0L;
+        }
+        return id;
     }
 
     @Override
