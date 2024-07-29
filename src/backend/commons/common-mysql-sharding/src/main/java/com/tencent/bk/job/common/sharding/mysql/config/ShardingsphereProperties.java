@@ -54,6 +54,10 @@ public class ShardingsphereProperties {
      * 分片规则
      */
     private ShardingRule shardingRule;
+    /**
+     * 系统级属性配置
+     */
+    private Map<String, String> props;
 
     @Getter
     @Setter

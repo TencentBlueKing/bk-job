@@ -285,12 +285,12 @@ data:
               type: standard
               shardingColumn: task_instance_id
               shardingAlgorithmName: gse_task_table_inline
-          file_source_log:
-            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "file_source_log" "context" $) }}
+          file_source_task_log:
+            actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "file_source_task_log" "context" $) }}
             tableStrategy:
               type: standard
               shardingColumn: task_instance_id
-              shardingAlgorithmName: file_source_log_table_inline
+              shardingAlgorithmName: ffile_source_task_log_table_inline
           operation_log:
             actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "operation_log" "context" $) }}
             tableStrategy:
@@ -401,10 +401,10 @@ data:
             type: INLINE
             props:
               algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "gse_task" "columnName" "task_instance_id" "context" $) }}
-          file_source_log_table_inline:
+          file_source_task_log_table_inline:
             type: INLINE
             props:
-              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "file_source_log" "columnName" "task_instance_id" "context" $) }}
+              algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "file_source_task_log" "columnName" "task_instance_id" "context" $) }}
           operation_log_table_inline:
             type: INLINE
             props:

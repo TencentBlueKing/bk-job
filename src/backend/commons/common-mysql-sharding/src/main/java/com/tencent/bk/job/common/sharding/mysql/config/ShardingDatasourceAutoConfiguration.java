@@ -92,8 +92,10 @@ public class ShardingDatasourceAutoConfiguration {
         // 构建具体规则
         List<RuleConfiguration> ruleConfigs = new ArrayList<>();
         ruleConfigs.add(createShardingRuleConfiguration(shardingsphereProperties.getShardingRule()));
+        // 构建系统级属性配置
+        Properties globalProps = createShardingGlobalProps(shardingsphereProperties.getProps());
         DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig,
-            dataSourceMap, ruleConfigs, null);
+            dataSourceMap, ruleConfigs, globalProps);
         log.info("Init sharding datasource successfully");
         return dataSource;
     }
@@ -255,6 +257,14 @@ public class ShardingDatasourceAutoConfiguration {
 
     private boolean isStandardShardingAlgorithm(String shardingAlgorithmType) {
         return shardingAlgorithmType.equalsIgnoreCase("standard");
+    }
+
+    private Properties createShardingGlobalProps(Map<String, String> globalPropsMap) {
+        // 配置 shardingsphere 系统级配置
+        if (globalPropsMap == null || globalPropsMap.isEmpty()) {
+            return null;
+        }
+        return toProperties(globalPropsMap);
     }
 
     @Qualifier("jobShardingTransactionManager")
