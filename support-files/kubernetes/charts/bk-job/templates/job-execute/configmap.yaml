@@ -290,7 +290,7 @@ data:
             tableStrategy:
               type: standard
               shardingColumn: task_instance_id
-              shardingAlgorithmName: ffile_source_task_log_table_inline
+              shardingAlgorithmName: file_source_task_log_table_inline
           operation_log:
             actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "operation_log" "context" $) }}
             tableStrategy:
