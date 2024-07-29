@@ -768,3 +768,18 @@ Return the job execute sharding database algorithm expression
 {{- $column_name := .columnName -}}
 {{ printf "ds_${%s %% %d}" $column_name (int .context.Values.executeConfig.sharding.mariadb.database.nodeCount) }}
 {{- end -}}
+
+{{/*
+Return the job execute sharding database algorithm expression
+*/}}
+{{- define "job.backup.sharding.database.algorithm.expression" -}}
+{{ printf "ds_${value %% %d}" (int .context.Values.executeConfig.sharding.mariadb.database.nodeCount) }}
+{{- end -}}
+
+{{/*
+Return the job execute sharding table algorithm expression
+*/}}
+{{- define "job.backup.sharding.table.algorithm.expression" -}}
+{{- $table_name := .tableName -}}
+{{ printf "%s_${value %% %d}" $table_name (int .context.Values.executeConfig.sharding.mariadb.table.nodeCount) }}
+{{- end -}}

@@ -39,6 +39,7 @@ import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableReferenceRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
+import org.apache.shardingsphere.sharding.api.config.strategy.sharding.HintShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
 import org.jooq.ConnectionProvider;
@@ -245,19 +246,22 @@ public class ShardingDatasourceAutoConfiguration {
 
     private ShardingStrategyConfiguration createShardingStrategyConfiguration(
         ShardingsphereProperties.ShardingStrategy shardingStrategyProps) {
-        if (isStandardShardingAlgorithm(shardingStrategyProps.getType())) {
-            return new StandardShardingStrategyConfiguration(
-                shardingStrategyProps.getShardingColumn(),
-                shardingStrategyProps.getShardingAlgorithmName()
-            );
-        } else {
-            throw new ShardingConfigParseException("Not support sharding algorithm");
+        String shardingStrategyType = shardingStrategyProps.getType().trim().toLowerCase();
+        switch (shardingStrategyType) {
+            case "standard":
+                return new StandardShardingStrategyConfiguration(
+                    shardingStrategyProps.getShardingColumn(),
+                    shardingStrategyProps.getShardingAlgorithmName()
+                );
+            case "hint":
+                return new HintShardingStrategyConfiguration(
+                    shardingStrategyProps.getShardingAlgorithmName()
+                );
+            default:
+                throw new ShardingConfigParseException("Not support sharding algorithm");
         }
     }
 
-    private boolean isStandardShardingAlgorithm(String shardingAlgorithmType) {
-        return shardingAlgorithmType.equalsIgnoreCase("standard");
-    }
 
     private Properties createShardingGlobalProps(Map<String, String> globalPropsMap) {
         // 配置 shardingsphere 系统级配置
