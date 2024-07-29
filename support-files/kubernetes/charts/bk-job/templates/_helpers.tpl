@@ -770,16 +770,16 @@ Return the job execute sharding database algorithm expression
 {{- end -}}
 
 {{/*
-Return the job execute sharding database algorithm expression
+Return the job backup sharding database algorithm expression
 */}}
 {{- define "job.backup.sharding.database.algorithm.expression" -}}
-{{ printf "ds_${value %% %d}" (int .context.Values.executeConfig.sharding.mariadb.database.nodeCount) }}
+{{ printf "ds_${value}" }}
 {{- end -}}
 
 {{/*
-Return the job execute sharding table algorithm expression
+Return the job-backup execute sharding table algorithm expression
 */}}
 {{- define "job.backup.sharding.table.algorithm.expression" -}}
 {{- $table_name := .tableName -}}
-{{ printf "%s_${value %% %d}" $table_name (int .context.Values.executeConfig.sharding.mariadb.table.nodeCount) }}
+{{ printf "%s_${value}" $table_name }}
 {{- end -}}

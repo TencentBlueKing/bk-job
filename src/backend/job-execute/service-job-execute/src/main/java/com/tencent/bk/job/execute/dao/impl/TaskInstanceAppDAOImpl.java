@@ -34,7 +34,6 @@ import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
-import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceApp;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceHostApp;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceAppRecord;
@@ -243,7 +242,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
+            count = ctx.selectCount().from(TASK_INSTANCE_APP)
                 .leftJoin(TASK_INSTANCE_HOST_APP).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID))
                 .where(conditions)
                 .fetchOne(0, Integer.class);
@@ -337,22 +336,21 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
                                                             Long latestTimeInSeconds,
                                                             RunStatusEnum status,
                                                             Integer limit) {
-        TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.APP_ID.eq(appId));
-        conditions.add(TABLE.CRON_TASK_ID.eq(cronTaskId));
+        conditions.add(TASK_INSTANCE_APP.APP_ID.eq(appId));
+        conditions.add(TASK_INSTANCE_APP.CRON_TASK_ID.eq(cronTaskId));
         if (latestTimeInSeconds != null) {
             long fromTimeInMillSecond = Instant.now().minusMillis(1000 * latestTimeInSeconds).toEpochMilli();
-            conditions.add(TABLE.CREATE_TIME.ge(fromTimeInMillSecond));
+            conditions.add(TASK_INSTANCE_APP.CREATE_TIME.ge(fromTimeInMillSecond));
         }
         if (status != null) {
-            conditions.add(TABLE.STATUS.eq(status.getValue().byteValue()));
+            conditions.add(TASK_INSTANCE_APP.STATUS.eq(status.getValue().byteValue()));
         }
 
         SelectSeekStep1<? extends Record, Long> select = ctx.select(ALL_FIELDS)
-            .from(TABLE)
+            .from(TASK_INSTANCE_APP)
             .where(conditions)
-            .orderBy(TABLE.CREATE_TIME.desc());
+            .orderBy(TASK_INSTANCE_APP.CREATE_TIME.desc());
         if (log.isDebugEnabled()) {
             log.debug("SQL={}", select.getSQL(ParamType.INLINED));
         }

@@ -213,7 +213,7 @@ data:
           default_database_hint_inline:
             type: HINT_INLINE
             props:
-              algorithm-expression: {{ include "job.backup.sharding.database.algorithm.expression" }}
+              algorithm-expression: {{ include "job.backup.sharding.database.algorithm.expression" . }}
           ## 分表算法
           task_instance_table_hint_inline:
             type: HINT_INLINE

@@ -47,9 +47,12 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import com.tencent.bk.job.common.sharding.mysql.config.ShardingsphereProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -79,119 +82,147 @@ public class ArchiveConfiguration {
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public static class ExecuteDaoAutoConfig {
 
+        @Bean(name = "jobExecuteDSLContext")
+        public DSLContext jobExecuteDSLContext(
+            @Autowired ObjectProvider<ShardingsphereProperties> shardingspherePropertiesObjectProperty,
+            @Autowired(required = false)
+            @Qualifier("job-execute-dsl-context") DSLContext noShardingDSLContext,
+            @Autowired(required = false)
+            @Qualifier("job-sharding-dsl-context") DSLContext shardingDSLContext
+        ) {
+            log.info("Init JobExecuteDSLContext");
+            ShardingsphereProperties shardingsphereProperties =
+                shardingspherePropertiesObjectProperty.getIfAvailable();
+            boolean shardingEnabled = shardingsphereProperties != null && shardingsphereProperties.isEnabled();
+
+            if (shardingEnabled) {
+                if (shardingDSLContext == null) {
+                    log.error("JobExecuteShardingDSLContext empty");
+                    throw new BeanCreationException("JobExecuteShardingDSLContextEmpty");
+                }
+                return shardingDSLContext;
+            } else {
+                if (noShardingDSLContext == null) {
+                    log.error("JobExecuteNoShardingDSLContext empty");
+                    throw new BeanCreationException("JobExecuteNoShardingDSLContextEmpty");
+                }
+                return noShardingDSLContext;
+            }
+        }
+
         @Bean(name = "taskInstanceRecordDAO")
-        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
+        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init TaskInstanceRecordDAO");
             return new TaskInstanceRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceRecordDAO")
-        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
+        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceRecordDAO");
             return new StepInstanceRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceScriptRecordDAO")
         public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceScriptRecordDAO");
             return new StepInstanceScriptRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceFileRecordDAO")
         public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceFileRecordDAO");
             return new StepInstanceFileRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceConfirmRecordDAO")
         public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceConfirmRecordDAO");
             return new StepInstanceConfirmRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceVariableRecordDAO")
         public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceVariableRecordDAO");
             return new StepInstanceVariableRecordDAO(context);
         }
 
         @Bean(name = "taskInstanceVariableRecordDAO")
         public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init TaskInstanceVariableRecordDAO");
             return new TaskInstanceVariableRecordDAO(context);
         }
 
         @Bean(name = "operationLogRecordDAO")
         public OperationLogRecordDAO operationLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init OperationLogRecordDAO");
             return new OperationLogRecordDAO(context);
         }
 
         @Bean(name = "fileSourceTaskLogRecordDAO")
         public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init FileSourceTaskRecordDAO");
             return new FileSourceTaskLogRecordDAO(context);
         }
 
         @Bean(name = "gseTaskRecordDAO")
         public GseTaskRecordDAO gseTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseTaskRecordDAO");
             return new GseTaskRecordDAO(context);
         }
 
         @Bean(name = "gseScriptAgentTaskRecordDAO")
         public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseScriptAgentTaskRecordDAO");
             return new GseScriptAgentTaskRecordDAO(context);
         }
 
         @Bean(name = "gseFileAgentTaskRecordDAO")
         public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseFileAgentTaskRecordDAO");
             return new GseFileAgentTaskRecordDAO(context);
         }
 
         @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
         public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseScriptExecuteObjTaskRecordDAO");
             return new GseScriptExecuteObjTaskRecordDAO(context);
         }
 
         @Bean(name = "gseFileExecuteObjTaskRecordDAO")
         public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseFileExecuteObjTaskRecordDAO");
             return new GseFileExecuteObjTaskRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceRollingTaskRecordDAO")
         public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init StepInstanceRollingTaskRecordDAO");
             return new StepInstanceRollingTaskRecordDAO(context);
         }
 
         @Bean(name = "rollingConfigRecordDAO")
         public RollingConfigRecordDAO rollingConfigRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init RollingConfigRecordDAO");
             return new RollingConfigRecordDAO(context);
         }
 
         @Bean(name = "taskInstanceHostRecordDAO")
         public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
+            @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init TaskInstanceHostRecordDAO");
             return new TaskInstanceHostRecordDAO(context);
         }
