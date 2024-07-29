@@ -22,56 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * 作业执行对象 VO
+ * 单条下载文件错误信息，提交给AI让其进行归纳总结，字段名必须清晰
  */
-@Setter
-@Getter
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+@AllArgsConstructor
+@Data
+public class DownloadFileErrorInfo {
 
     /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
+     * 源执行对象类型
      */
-    private ExecuteObjectTypeEnum type;
+    private String sourceExecuteObjectType;
 
     /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
+     * 源主机描述信息
      */
-    private Long executeObjectResourceId;
+    private HostDescription sourceHostDescription;
 
     /**
-     * 容器
+     * 源容器描述信息
      */
-    private ContainerVO container;
+    private ContainerDescription sourceContainerDescription;
 
     /**
-     * 主机
+     * 目标执行对象类型
      */
-    private HostInfoVO host;
+    private String targetExecuteObjectType;
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
+    /**
+     * 目标主机描述信息
+     */
+    private HostDescription targetHostDescription;
 
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
-    }
+    /**
+     * 目标容器描述信息
+     */
+    private ContainerDescription targetContainerDescription;
+
+    /**
+     * 目标文件路径
+     */
+    private String targetFilePath;
+
+    /**
+     * 目标文件下载报错信息
+     */
+    private String errorLog;
 }

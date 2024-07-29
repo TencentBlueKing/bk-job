@@ -27,10 +27,13 @@ package com.tencent.bk.job.execute.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.execute.model.inner.ServiceFileSourceDTO;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 文件源
@@ -105,5 +108,19 @@ public class FileSourceDTO implements Cloneable {
             cloneFileSourceDTO.setServers(servers.clone());
         }
         return cloneFileSourceDTO;
+    }
+
+    public ServiceFileSourceDTO toServiceFileSourceDTO() {
+        ServiceFileSourceDTO serviceFileSourceDTO = new ServiceFileSourceDTO();
+        serviceFileSourceDTO.setFileType(fileType);
+        if (CollectionUtils.isNotEmpty(files)) {
+            serviceFileSourceDTO.setFiles(
+                files.stream()
+                    .map(FileDetailDTO::toServiceFileDetailDTO)
+                    .collect(Collectors.toList())
+            );
+        }
+        serviceFileSourceDTO.setServers(servers.toServiceExecuteTargetDTO());
+        return serviceFileSourceDTO;
     }
 }

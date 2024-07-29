@@ -22,56 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+package com.tencent.bk.job.analysis.service.ai.context.constants;
 
 /**
- * 作业执行对象 VO
+ * 文件任务失败原因来源枚举
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+public enum FileTaskErrorSourceEnum {
+    SOURCE_FILE_UPLOAD_ERROR("源文件上传出错导致的任务失败"),
+    DOWNLOAD_ERROR("目标执行对象下载文件出错导致的任务失败"),
+    UPLOAD_AND_DOWNLOAD_ERROR("源文件上传与目标执行对象下载文件均出错导致的任务失败");
 
     /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
+     * 任务失败原因描述
      */
-    private ExecuteObjectTypeEnum type;
+    private final String description;
 
-    /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
-     */
-    private Long executeObjectResourceId;
-
-    /**
-     * 容器
-     */
-    private ContainerVO container;
-
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
+    FileTaskErrorSourceEnum(String description) {
+        this.description = description;
     }
 }

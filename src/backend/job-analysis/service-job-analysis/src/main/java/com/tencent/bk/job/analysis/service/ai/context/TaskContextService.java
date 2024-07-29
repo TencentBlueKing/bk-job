@@ -25,16 +25,16 @@
 package com.tencent.bk.job.analysis.service.ai.context;
 
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
 
 public interface TaskContextService {
 
     /**
-     * 获取脚本任务上下文
+     * 获取任务上下文
      *
-     * @param username       用户名
-     * @param appId          Job业务ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 脚本任务上下文
+     * @param username     用户名
+     * @param contextQuery 任务上下文查询条件
+     * @return 任务上下文
      */
-    TaskContext getTaskContext(String username, Long appId, Long stepInstanceId);
+    TaskContext getTaskContext(String username, TaskContextQuery contextQuery);
 }

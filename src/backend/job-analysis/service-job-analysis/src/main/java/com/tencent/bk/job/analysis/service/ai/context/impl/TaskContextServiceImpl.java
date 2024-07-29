@@ -24,10 +24,13 @@
 
 package com.tencent.bk.job.analysis.service.ai.context.impl;
 
+import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
 import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
-import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -47,22 +50,31 @@ import org.springframework.stereotype.Service;
 public class TaskContextServiceImpl implements TaskContextService {
 
     private final ServiceStepInstanceResource serviceStepInstanceResource;
+    private final FileTaskContextService fileTaskContextService;
 
     @Autowired
-    public TaskContextServiceImpl(ServiceStepInstanceResource serviceStepInstanceResource) {
+    public TaskContextServiceImpl(ServiceStepInstanceResource serviceStepInstanceResource,
+                                  FileTaskContextService fileTaskContextService) {
         this.serviceStepInstanceResource = serviceStepInstanceResource;
+        this.fileTaskContextService = fileTaskContextService;
     }
 
     @Override
-    public TaskContext getTaskContext(String username, Long appId, Long stepInstanceId) {
+    public TaskContext getTaskContext(String username, TaskContextQuery contextQuery) {
         InternalResponse<ServiceStepInstanceDTO> resp = serviceStepInstanceResource.getStepInstance(
             username,
-            appId,
-            stepInstanceId
+            contextQuery.getAppId(),
+            contextQuery.getStepInstanceId()
         );
         if (resp.isSuccess()) {
             ServiceStepInstanceDTO stepInstance = resp.getData();
-            return buildTaskContext(stepInstance);
+            if (stepInstance.isScriptStep()) {
+                return buildContextForScriptTask(stepInstance);
+            } else if (stepInstance.isFileStep()) {
+                return fileTaskContextService.getTaskContext(stepInstance, contextQuery);
+            } else {
+                throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
+            }
         }
         if (resp.getAuthResult() != null && !resp.getAuthResult().isPass()) {
             throw new PermissionDeniedException(AuthResult.fromAuthResultDTO(resp.getAuthResult()));
@@ -70,25 +82,13 @@ public class TaskContextServiceImpl implements TaskContextService {
         throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
     }
 
-    private TaskContext buildTaskContext(ServiceStepInstanceDTO stepInstance) {
+    private TaskContext buildContextForScriptTask(ServiceStepInstanceDTO stepInstance) {
         ServiceScriptStepInstanceDTO scriptStepInstance = stepInstance.getScriptStepInstance();
-        ScriptTaskContext scriptTaskContext = null;
-        FileTaskContext fileTaskContext = null;
-        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(stepInstance.getExecuteType());
-        if (stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SCRIPT
-            || stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SQL) {
-            scriptTaskContext = new ScriptTaskContext(
-                scriptStepInstance.getScriptType(),
-                scriptStepInstance.getScriptContent(),
-                scriptStepInstance.getScriptParam()
-            );
-        } else if (stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE) {
-            fileTaskContext = new FileTaskContext();
-        }
-        return new TaskContext(
-            stepInstance.getExecuteType(),
-            scriptTaskContext,
-            fileTaskContext
+        ScriptTaskContext scriptTaskContext = new ScriptTaskContext(
+            scriptStepInstance.getScriptType(),
+            scriptStepInstance.getScriptContent(),
+            scriptStepInstance.getScriptParam()
         );
+        return new TaskContext(stepInstance.getExecuteType(), scriptTaskContext, null);
     }
 }

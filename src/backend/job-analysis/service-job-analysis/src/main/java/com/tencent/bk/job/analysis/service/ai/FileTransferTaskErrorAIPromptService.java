@@ -32,9 +32,8 @@ public interface FileTransferTaskErrorAIPromptService {
     /**
      * 获取分析文件分发任务报错信息的AI提示符
      *
-     * @param context      文件分发任务上下文
-     * @param errorContent 报错内容
+     * @param context 文件分发任务上下文
      * @return AI提示符
      */
-    AIPromptDTO getPrompt(FileTaskContext context, String errorContent);
+    AIPromptDTO getPrompt(FileTaskContext context);
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -31,22 +32,30 @@ import lombok.Data;
 @ApiModel("步骤实例")
 @Data
 public class ServiceStepInstanceDTO {
-    /**
-     * 步骤实例ID
-     */
+
     @ApiModelProperty("步骤实例ID")
     private Long id;
 
-    /**
-     * 步骤类型
-     */
     @ApiModelProperty("步骤类型")
     private Integer executeType;
 
-    /**
-     * 步骤类型
-     */
+    @ApiModelProperty("创建时间")
+    private Long createTime;
+
     @ApiModelProperty("脚本任务步骤")
     private ServiceScriptStepInstanceDTO scriptStepInstance;
 
+    @ApiModelProperty("文件任务步骤")
+    private ServiceFileStepInstanceDTO fileStepInstance;
+
+    public boolean isScriptStep() {
+        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
+        return stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SCRIPT
+            || stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SQL;
+    }
+
+    public boolean isFileStep() {
+        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
+        return stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE;
+    }
 }

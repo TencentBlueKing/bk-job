@@ -22,56 +22,55 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
+import com.tencent.bk.job.common.model.dto.Container;
+import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 作业执行对象 VO
+ * 作业执行对象通用模型
  */
 @Setter
 @Getter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+@ToString
+@PersistenceObject
+@Slf4j
+public class ServiceExecuteObject {
+    /**
+     * 执行对象 ID
+     */
+    private String id;
 
     /**
      * 执行对象类型
      *
      * @see ExecuteObjectTypeEnum
      */
-    private ExecuteObjectTypeEnum type;
+    private int type;
 
     /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
+     * 执行对象资源 ID（主机 ID/容器 ID)
      */
-    private Long executeObjectResourceId;
+    private Long resourceId;
 
     /**
      * 容器
      */
-    private ContainerVO container;
+    private Container container;
 
     /**
      * 主机
      */
-    private HostInfoVO host;
+    private HostDTO host;
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
-    }
 }

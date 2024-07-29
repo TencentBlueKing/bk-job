@@ -22,56 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * 作业执行对象 VO
+ * 文件源
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@PersistenceObject
+public class ServiceFileSourceDTO {
 
     /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
+     * 文件类型
      */
-    private ExecuteObjectTypeEnum type;
-
+    @JsonProperty("fileType")
+    private Integer fileType;
     /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
+     * 文件列表
      */
-    private Long executeObjectResourceId;
-
+    @JsonProperty("files")
+    private List<ServiceFileDetailDTO> files;
     /**
-     * 容器
+     * 文件源服务器
      */
-    private ContainerVO container;
+    @JsonProperty("servers")
+    private ServiceExecuteTargetDTO servers;
 
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
-    }
 }

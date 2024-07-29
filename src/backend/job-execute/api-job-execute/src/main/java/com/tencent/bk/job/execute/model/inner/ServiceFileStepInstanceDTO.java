@@ -22,56 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-/**
- * 作业执行对象 VO
- */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+import java.util.List;
+
+@ApiModel("脚本步骤实例")
+@Data
+public class ServiceFileStepInstanceDTO {
 
     /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
+     * 文件传输的源文件
      */
-    private ExecuteObjectTypeEnum type;
+    private List<ServiceFileSourceDTO> fileSourceList;
 
     /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
+     * 执行目标
      */
-    private Long executeObjectResourceId;
-
-    /**
-     * 容器
-     */
-    private ContainerVO container;
-
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
-    }
+    protected ServiceExecuteTargetDTO targetExecuteObjects;
 }

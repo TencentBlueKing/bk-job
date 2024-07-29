@@ -52,4 +52,16 @@ public class AITemplateVarService {
     public String getErrorContentPlaceHolder() {
         return getTemplateVarPlaceHolder("error_content");
     }
+
+    public String getFileTaskErrorSourcePlaceHolder() {
+        return getTemplateVarPlaceHolder("file_task_error_source");
+    }
+
+    public String getUploadFileErrorDataPlaceHolder() {
+        return getTemplateVarPlaceHolder("upload_file_error_data");
+    }
+
+    public String getDownloadFileErrorDataPlaceHolder() {
+        return getTemplateVarPlaceHolder("download_file_error_data");
+    }
 }

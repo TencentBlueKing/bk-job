@@ -32,8 +32,9 @@ import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.FileTransferTaskErrorAIPromptService;
 import com.tencent.bk.job.analysis.service.ai.ScriptExecuteTaskErrorAIPromptService;
-import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
+import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.extern.slf4j.Slf4j;
@@ -62,11 +63,8 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
 
     @Override
     public AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req) {
-        TaskContext taskContext = taskContextService.getTaskContext(
-            username,
-            appId,
-            req.getStepInstanceId()
-        );
+        TaskContextQuery contextQuery = TaskContextQuery.fromAIAnalyzeErrorReq(appId, req);
+        TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         String errorContent = req.getContent();
         AIPromptDTO aiPromptDTO;
         if (taskContext.isScriptTask()) {
@@ -75,10 +73,7 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
                 errorContent
             );
         } else if (taskContext.isFileTask()) {
-            aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(
-                taskContext.getFileTaskContext(),
-                errorContent
-            );
+            aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(taskContext.getFileTaskContext());
         } else {
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }

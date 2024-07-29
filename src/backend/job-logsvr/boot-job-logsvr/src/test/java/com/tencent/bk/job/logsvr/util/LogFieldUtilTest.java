@@ -22,56 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.logsvr.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 作业执行对象 VO
+ * 日志字段工具类测试用例
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+public class LogFieldUtilTest {
 
-    /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
-     */
-    private ExecuteObjectTypeEnum type;
+    @Test
+    public void testBuildJobCreateDate() {
+        String timeStr = "2024-07-26T00:00:00+00:00";
+        LocalDateTime time = LocalDateTime.parse(timeStr, ISO_OFFSET_DATE_TIME);
+        long timeMills = time.toInstant(ZoneOffset.UTC).getEpochSecond() * 1000L;
+        System.out.println(timeStr + ": " + timeMills);
+        assertThat(LogFieldUtil.buildJobCreateDate(timeMills)).isEqualTo("2024_07_26");
 
-    /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
-     */
-    private Long executeObjectResourceId;
+        timeStr = "2024-07-26T12:00:00+00:00";
+        time = LocalDateTime.parse(timeStr, ISO_OFFSET_DATE_TIME);
+        timeMills = time.toInstant(ZoneOffset.UTC).getEpochSecond() * 1000L;
+        System.out.println(timeStr + ": " + timeMills);
+        assertThat(LogFieldUtil.buildJobCreateDate(timeMills)).isEqualTo("2024_07_26");
 
-    /**
-     * 容器
-     */
-    private ContainerVO container;
-
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
+        timeStr = "2024-07-26T23:59:59+00:00";
+        time = LocalDateTime.parse(timeStr, ISO_OFFSET_DATE_TIME);
+        timeMills = time.toInstant(ZoneOffset.UTC).getEpochSecond() * 1000L;
+        System.out.println(timeStr + ": " + timeMills);
+        assertThat(LogFieldUtil.buildJobCreateDate(timeMills)).isEqualTo("2024_07_26");
     }
 }

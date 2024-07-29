@@ -22,56 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.logsvr.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.tencent.bk.job.common.util.date.DateUtils;
+
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 /**
- * 作业执行对象 VO
+ * 日志字段工具类
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
+public class LogFieldUtil {
 
     /**
-     * 执行对象类型
+     * 根据任务创建时间获取创建日期，格式为：yyyy_MM_dd
      *
-     * @see ExecuteObjectTypeEnum
+     * @param createTime 任务创建时间
+     * @return 创建日期
      */
-    private ExecuteObjectTypeEnum type;
-
-    /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
-     */
-    private Long executeObjectResourceId;
-
-    /**
-     * 容器
-     */
-    private ContainerVO container;
-
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
+    public static String buildJobCreateDate(Long createTime) {
+        return DateUtils.formatUnixTimestamp(createTime, ChronoUnit.MILLIS, "yyyy_MM_dd", ZoneId.of("UTC"));
     }
 }

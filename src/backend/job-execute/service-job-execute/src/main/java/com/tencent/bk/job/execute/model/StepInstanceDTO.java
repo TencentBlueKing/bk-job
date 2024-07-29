@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.model.inner.ServiceFileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceScriptStepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * 步骤实例
@@ -318,6 +320,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         ServiceStepInstanceDTO serviceStepInstanceDTO = new ServiceStepInstanceDTO();
         serviceStepInstanceDTO.setId(id);
         serviceStepInstanceDTO.setExecuteType(executeType.getValue());
+        serviceStepInstanceDTO.setCreateTime(createTime);
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT || executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
             ServiceScriptStepInstanceDTO scriptStepInstance = new ServiceScriptStepInstanceDTO();
             scriptStepInstance.setStepInstanceId(id);
@@ -325,6 +328,19 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
             scriptStepInstance.setScriptContent(scriptContent);
             scriptStepInstance.setScriptParam(scriptParam);
             serviceStepInstanceDTO.setScriptStepInstance(scriptStepInstance);
+        } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
+            ServiceFileStepInstanceDTO fileStepInstance = new ServiceFileStepInstanceDTO();
+            if (fileSourceList != null) {
+                fileStepInstance.setFileSourceList(
+                    fileSourceList.stream()
+                        .map(FileSourceDTO::toServiceFileSourceDTO)
+                        .collect(Collectors.toList())
+                );
+            }
+            if (targetExecuteObjects != null) {
+                fileStepInstance.setTargetExecuteObjects(targetExecuteObjects.toServiceExecuteTargetDTO());
+            }
+            serviceStepInstanceDTO.setFileStepInstance(fileStepInstance);
         }
         return serviceStepInstanceDTO;
     }

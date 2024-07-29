@@ -22,56 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.web.vo;
+package com.tencent.bk.job.execute.api.inner;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
- * 作业执行对象 VO
+ * 步骤实例API-服务内部调用
  */
-@Setter
-@Getter
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("作业执行对象")
-public class ExecuteObjectVO {
-
-    /**
-     * 执行对象类型
-     *
-     * @see ExecuteObjectTypeEnum
-     */
-    private ExecuteObjectTypeEnum type;
-
-    /**
-     * 执行对象资源实例 ID（比如 主机/容器在 cmdb 对应的资源ID)
-     */
-    private Long executeObjectResourceId;
-
-    /**
-     * 容器
-     */
-    private ContainerVO container;
-
-    /**
-     * 主机
-     */
-    private HostInfoVO host;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
-        return ExecuteObjectTypeEnum.valOf(type);
-    }
-
-    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
-        return executeObjectType + ":" + executeObjectResoruceId;
-    }
+@Api(tags = {"StepInstance"})
+@SmartFeignClient(value = "job-execute", contextId = "stepInstanceResource")
+@InternalAPI
+public interface ServiceStepLogResource {
+    @GetMapping("/service/stepInstance/appIds/{appId}/stepInstanceIds/{stepInstanceId}")
+    InternalResponse<ServiceStepInstanceDTO> getStepInstance(
+        @RequestHeader("username")
+        String username,
+        @ApiParam(value = "作业平台业务ID", required = true)
+        @PathVariable(value = "appId")
+        Long appId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+        Long stepInstanceId);
 }
