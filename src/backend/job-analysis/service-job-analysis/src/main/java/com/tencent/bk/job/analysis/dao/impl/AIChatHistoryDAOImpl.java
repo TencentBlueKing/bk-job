@@ -141,7 +141,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             )
             .from(defaultTable)
             .where(conditions)
-            .orderBy(defaultTable.START_TIME.desc());
+            .orderBy(defaultTable.START_TIME);
         return listPage(query, start, length, this::convertRecordToDto);
     }
 

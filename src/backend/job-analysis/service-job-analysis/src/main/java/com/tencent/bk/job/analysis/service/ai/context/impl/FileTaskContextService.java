@@ -52,20 +52,20 @@ import java.util.List;
 @Service
 public class FileTaskContextService {
 
-    private final ServiceLogResource serviceLogResource;
+    private final ServiceLogResource logResource;
     private final FileTaskFailLogAnalyzer fileTaskFailLogAnalyzer;
 
     @Autowired
-    public FileTaskContextService(ServiceLogResource serviceLogResource,
+    public FileTaskContextService(ServiceLogResource logResource,
                                   FileTaskFailLogAnalyzer fileTaskFailLogAnalyzer) {
-        this.serviceLogResource = serviceLogResource;
+        this.logResource = logResource;
         this.fileTaskFailLogAnalyzer = fileTaskFailLogAnalyzer;
     }
 
     public TaskContext getTaskContext(ServiceStepInstanceDTO stepInstance, TaskContextQuery contextQuery) {
         String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         // 上传日志
-        InternalResponse<ServiceExecuteObjectLogDTO> resp = serviceLogResource.getFileLogByExecuteObjectId(
+        InternalResponse<ServiceExecuteObjectLogDTO> resp = logResource.getFileLogByExecuteObjectId(
             jobCreateDate,
             contextQuery.getStepInstanceId(),
             contextQuery.getExecuteCount(),
@@ -78,7 +78,7 @@ public class FileTaskContextService {
         }
         ServiceExecuteObjectLogDTO uploadExecuteObjectLog = resp.getData();
         // 下载日志
-        resp = serviceLogResource.getFileLogByExecuteObjectId(
+        resp = logResource.getFileLogByExecuteObjectId(
             jobCreateDate,
             contextQuery.getStepInstanceId(),
             contextQuery.getExecuteCount(),

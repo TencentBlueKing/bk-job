@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,9 +88,19 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  Integer start,
                                                                  Integer length) {
         List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
-        return Response.buildSuccessResp(
+        List<AIChatRecord> aiChatRecordList = new ArrayList<>();
+        aiChatRecordList.add(getStartRecord());
+        aiChatRecordList.addAll(
             chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList())
         );
+        return Response.buildSuccessResp(aiChatRecordList);
+    }
+
+    private AIChatRecord getStartRecord() {
+        AIChatRecord startRecord = new AIChatRecord();
+        startRecord.setUserInput(null);
+        startRecord.setAiAnswer(new AIAnswer("0", null, "Hello", 0L));
+        return startRecord;
     }
 
     @Override
