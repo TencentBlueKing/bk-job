@@ -37,6 +37,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.logsvr.api.ServiceLogResource;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -65,20 +66,28 @@ public class FileTaskContextService {
     public TaskContext getTaskContext(ServiceStepInstanceDTO stepInstance, TaskContextQuery contextQuery) {
         String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         // 上传日志
-        InternalResponse<ServiceExecuteObjectLogDTO> resp = logResource.getFileLogByExecuteObjectId(
+        ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
+        request.setJobCreateDate(jobCreateDate);
+        request.setStepInstanceId(contextQuery.getStepInstanceId());
+        request.setExecuteCount(contextQuery.getExecuteCount());
+        request.setMode(FileDistModeEnum.UPLOAD.getValue());
+        request.setBatch(contextQuery.getBatch());
+        InternalResponse<List<ServiceExecuteObjectLogDTO>> uploadLogResp = logResource.listFileExecuteObjectLogs(
             jobCreateDate,
             contextQuery.getStepInstanceId(),
             contextQuery.getExecuteCount(),
-            null,
-            FileDistModeEnum.UPLOAD.getValue(),
-            contextQuery.getBatch()
+            request
         );
-        if (!resp.isSuccess()) {
-            throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
+        if (!uploadLogResp.isSuccess()) {
+            throw new ServiceException(
+                uploadLogResp.getErrorMsg(),
+                ErrorType.valOf(uploadLogResp.getErrorType()),
+                uploadLogResp.getCode()
+            );
         }
-        ServiceExecuteObjectLogDTO uploadExecuteObjectLog = resp.getData();
+        List<ServiceExecuteObjectLogDTO> uploadExecuteObjectLogList = uploadLogResp.getData();
         // 下载日志
-        resp = logResource.getFileLogByExecuteObjectId(
+        InternalResponse<ServiceExecuteObjectLogDTO> downloadLogResp = logResource.getFileLogByExecuteObjectId(
             jobCreateDate,
             contextQuery.getStepInstanceId(),
             contextQuery.getExecuteCount(),
@@ -86,20 +95,26 @@ public class FileTaskContextService {
             FileDistModeEnum.DOWNLOAD.getValue(),
             contextQuery.getBatch()
         );
-        if (!resp.isSuccess()) {
-            throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
+        if (!downloadLogResp.isSuccess()) {
+            throw new ServiceException(
+                downloadLogResp.getErrorMsg(),
+                ErrorType.valOf(downloadLogResp.getErrorType()),
+                downloadLogResp.getCode()
+            );
         }
-        ServiceExecuteObjectLogDTO downloadExecuteObjectLog = resp.getData();
-        return buildContextForFileTask(stepInstance, uploadExecuteObjectLog, downloadExecuteObjectLog);
+        ServiceExecuteObjectLogDTO downloadExecuteObjectLog = downloadLogResp.getData();
+        return buildContextForFileTask(stepInstance, uploadExecuteObjectLogList, downloadExecuteObjectLog);
     }
 
     private TaskContext buildContextForFileTask(ServiceStepInstanceDTO stepInstance,
-                                                ServiceExecuteObjectLogDTO uploadExecuteObjectLog,
+                                                List<ServiceExecuteObjectLogDTO> uploadExecuteObjectLogList,
                                                 ServiceExecuteObjectLogDTO downloadExecuteObjectLog) {
         List<ServiceFileTaskLogDTO> fileTaskLogs = new ArrayList<>();
-        List<ServiceFileTaskLogDTO> uploadFileTaskLogs = uploadExecuteObjectLog.getFileTaskLogs();
-        if (CollectionUtils.isNotEmpty(uploadFileTaskLogs)) {
-            fileTaskLogs.addAll(uploadFileTaskLogs);
+        if (CollectionUtils.isNotEmpty(uploadExecuteObjectLogList)) {
+            uploadExecuteObjectLogList.forEach(uploadExecuteObjectLog -> {
+                List<ServiceFileTaskLogDTO> uploadFileTaskLogs = uploadExecuteObjectLog.getFileTaskLogs();
+                fileTaskLogs.addAll(uploadFileTaskLogs);
+            });
         }
         List<ServiceFileTaskLogDTO> downloadFileTaskLogs = downloadExecuteObjectLog.getFileTaskLogs();
         if (CollectionUtils.isNotEmpty(downloadFileTaskLogs)) {
