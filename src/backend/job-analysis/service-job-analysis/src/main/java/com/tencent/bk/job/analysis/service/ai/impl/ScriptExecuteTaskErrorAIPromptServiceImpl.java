@@ -30,6 +30,7 @@ import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptTemplateDTO;
 import com.tencent.bk.job.analysis.service.ai.ScriptExecuteTaskErrorAIPromptService;
 import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
+import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +45,15 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
     implements ScriptExecuteTaskErrorAIPromptService {
 
     private final AITemplateVarService aiTemplateVarService;
+    private final BkConfig bkConfig;
 
     @Autowired
     public ScriptExecuteTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
-                                                     AITemplateVarService aiTemplateVarService) {
+                                                     AITemplateVarService aiTemplateVarService,
+                                                     BkConfig bkConfig) {
         super(aiPromptTemplateDAO);
         this.aiTemplateVarService = aiTemplateVarService;
+        this.bkConfig = bkConfig;
     }
 
     @Override
@@ -64,6 +68,7 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
                                 ScriptTaskContext context,
                                 String errorContent) {
         return promptTemplateContent
+            .replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink())
             .replace(aiTemplateVarService.getScriptTypePlaceHolder(), ScriptTypeEnum.getName(context.getScriptType()))
             .replace(aiTemplateVarService.getScriptParamsPlaceHolder(), context.getScriptParams())
             .replace(aiTemplateVarService.getErrorContentPlaceHolder(), errorContent)

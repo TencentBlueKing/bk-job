@@ -32,6 +32,7 @@ import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
+import com.tencent.bk.job.analysis.model.web.resp.UserInput;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
@@ -98,8 +99,8 @@ public class WebAIResourceImpl implements WebAIResource {
 
     private AIChatRecord getStartRecord() {
         AIChatRecord startRecord = new AIChatRecord();
-        startRecord.setUserInput(null);
-        startRecord.setAiAnswer(new AIAnswer("0", null, "Hello", 0L));
+        startRecord.setUserInput(new UserInput("", 0L));
+        startRecord.setAiAnswer(new AIAnswer("0", null, "Hello, I`m BlueKing AI Assistant", 0L));
         return startRecord;
     }
 

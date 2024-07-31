@@ -28,6 +28,7 @@ package com.tencent.bk.job.analysis.service.ai.context.constants;
  * 文件任务失败原因来源枚举
  */
 public enum FileTaskErrorSourceEnum {
+    NO_ERROR("任务成功并未失败"),
     SOURCE_FILE_UPLOAD_ERROR("源文件上传出错导致的任务失败"),
     DOWNLOAD_ERROR("目标执行对象下载文件出错导致的任务失败"),
     UPLOAD_AND_DOWNLOAD_ERROR("源文件上传与目标执行对象下载文件均出错导致的任务失败");

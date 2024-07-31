@@ -39,6 +39,9 @@ public class ServiceStepInstanceDTO {
     @ApiModelProperty("步骤类型")
     private Integer executeType;
 
+    @ApiModelProperty("步骤状态")
+    private Integer status;
+
     @ApiModelProperty("创建时间")
     private Long createTime;
 

@@ -320,6 +320,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         ServiceStepInstanceDTO serviceStepInstanceDTO = new ServiceStepInstanceDTO();
         serviceStepInstanceDTO.setId(id);
         serviceStepInstanceDTO.setExecuteType(executeType.getValue());
+        serviceStepInstanceDTO.setStatus(status.getValue());
         serviceStepInstanceDTO.setCreateTime(createTime);
         if (executeType == StepExecuteTypeEnum.EXECUTE_SCRIPT || executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
             ServiceScriptStepInstanceDTO scriptStepInstance = new ServiceScriptStepInstanceDTO();

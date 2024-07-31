@@ -62,4 +62,18 @@ public class AIBaseService {
         aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
         return aiAnswer;
     }
+
+    public AIAnswer getSimpleAIAnswer(String username, String content) {
+        long startTime = System.currentTimeMillis();
+        AIAnswer aiAnswer = new AIAnswer("0", "", content, System.currentTimeMillis());
+        AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
+            username,
+            startTime,
+            content,
+            content,
+            aiAnswer
+        );
+        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        return aiAnswer;
+    }
 }

@@ -18,6 +18,8 @@ global:
   storageClass: ""
   # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
   bkDomain: "example.com"
+  # BK助手链接，用于AI对话回答中的跳转链接
+  bkHelperLink: ""
 deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
   mode: standard

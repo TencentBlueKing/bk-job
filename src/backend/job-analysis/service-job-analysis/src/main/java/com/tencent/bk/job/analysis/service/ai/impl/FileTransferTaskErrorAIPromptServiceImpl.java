@@ -30,6 +30,7 @@ import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptTemplateDTO;
 import com.tencent.bk.job.analysis.service.ai.FileTransferTaskErrorAIPromptService;
 import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
+import com.tencent.bk.job.common.config.BkConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,12 +44,15 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
     implements FileTransferTaskErrorAIPromptService {
 
     private final AITemplateVarService aiTemplateVarService;
+    private final BkConfig bkConfig;
 
     @Autowired
     public FileTransferTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
-                                                    AITemplateVarService aiTemplateVarService) {
+                                                    AITemplateVarService aiTemplateVarService,
+                                                    BkConfig bkConfig) {
         super(aiPromptTemplateDAO);
         this.aiTemplateVarService = aiTemplateVarService;
+        this.bkConfig = bkConfig;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
 
     private String renderPrompt(String promptTemplateContent, FileTaskContext context) {
         return promptTemplateContent
+            .replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink())
             .replace(aiTemplateVarService.getFileTaskErrorSourcePlaceHolder(), context.getFileTaskErrorSource())
             .replace(aiTemplateVarService.getUploadFileErrorDataPlaceHolder(), context.getUploadFileErrorData())
             .replace(aiTemplateVarService.getDownloadFileErrorDataPlaceHolder(), context.getDownloadFileErrorData());

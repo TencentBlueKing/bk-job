@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.analysis.service.ai.context.model;
 
+import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -36,6 +38,10 @@ public class TaskContext {
      * 步骤类型
      */
     private Integer executeType;
+    /**
+     * 步骤状态
+     */
+    private Integer status;
     /**
      * 脚本任务上下文
      */
@@ -54,5 +60,9 @@ public class TaskContext {
     public boolean isFileTask() {
         StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
         return stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE;
+    }
+
+    public boolean isSuccess() {
+        return RunStatusEnum.SUCCESS.getValue().equals(status);
     }
 }

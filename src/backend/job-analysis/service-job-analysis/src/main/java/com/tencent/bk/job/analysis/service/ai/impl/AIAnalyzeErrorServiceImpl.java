@@ -65,6 +65,9 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
     public AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req) {
         TaskContextQuery contextQuery = TaskContextQuery.fromAIAnalyzeErrorReq(appId, req);
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
+        if (taskContext.isSuccess()) {
+            return getSimpleAIAnswer(username, "Task is success, do not need to analyze");
+        }
         String errorContent = req.getContent();
         AIPromptDTO aiPromptDTO;
         if (taskContext.isScriptTask()) {

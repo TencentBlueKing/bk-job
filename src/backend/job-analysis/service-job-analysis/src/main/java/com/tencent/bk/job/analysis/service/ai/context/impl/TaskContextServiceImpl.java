@@ -89,6 +89,6 @@ public class TaskContextServiceImpl implements TaskContextService {
             scriptStepInstance.getScriptContent(),
             scriptStepInstance.getScriptParam()
         );
-        return new TaskContext(stepInstance.getExecuteType(), scriptTaskContext, null);
+        return new TaskContext(stepInstance.getExecuteType(), stepInstance.getStatus(), scriptTaskContext, null);
     }
 }

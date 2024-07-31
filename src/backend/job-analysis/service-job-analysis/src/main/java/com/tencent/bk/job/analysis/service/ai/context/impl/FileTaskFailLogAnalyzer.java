@@ -34,15 +34,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 根据上传与下载失败的日志信息分析导致出错的源头
+ * 文件分发任务失败日志分析器
  */
 @Service
 public class FileTaskFailLogAnalyzer {
 
+    /**
+     * 根据上传与下载失败的日志信息分析导致出错的源头
+     *
+     * @param uploadFailLogs   上传失败日志
+     * @param downloadFailLogs 下载失败日志
+     * @return 分析结果
+     */
     public FileTaskErrorSourceResult analyze(List<ServiceFileTaskLogDTO> uploadFailLogs,
                                              List<ServiceFileTaskLogDTO> downloadFailLogs) {
         if (uploadFailLogs.isEmpty() && downloadFailLogs.isEmpty()) {
-            return new FileTaskErrorSourceResult();
+            return new FileTaskErrorSourceResult(FileTaskErrorSourceEnum.NO_ERROR, uploadFailLogs, downloadFailLogs);
         }
         // 上传失败日志为空：说明是下载出错
         if (uploadFailLogs.isEmpty()) {

@@ -64,4 +64,8 @@ public class AITemplateVarService {
     public String getDownloadFileErrorDataPlaceHolder() {
         return getTemplateVarPlaceHolder("download_file_error_data");
     }
+
+    public String getBkHelperLinkPlaceHolder() {
+        return getTemplateVarPlaceHolder("bk_helper_link");
+    }
 }

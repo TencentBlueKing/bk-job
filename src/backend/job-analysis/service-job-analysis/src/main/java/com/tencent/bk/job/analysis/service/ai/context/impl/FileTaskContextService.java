@@ -132,7 +132,7 @@ public class FileTaskContextService {
         // 对上传失败和下载失败的日志进行分析，确定导致任务失败的主要原因
         FileTaskErrorSourceResult result = fileTaskFailLogAnalyzer.analyze(uploadFailLogs, downloadFailLogs);
         FileTaskContext fileTaskContext = new FileTaskContext(stepInstance.getFileStepInstance(), result);
-        return new TaskContext(stepInstance.getExecuteType(), null, fileTaskContext);
+        return new TaskContext(stepInstance.getExecuteType(), stepInstance.getStatus(), null, fileTaskContext);
     }
 
     private boolean isUploadFailLog(ServiceFileTaskLogDTO fileTaskLog) {
