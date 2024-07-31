@@ -1,0 +1,30 @@
+{{- if .Values.apiGatewaySync.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-sync-api-gateway-{{ .Chart.Version }}
+  labels:
+    {{ include "bk-demo.labels" . | nindent 4 }}
+    app.kubernetes.io/component: "job-sync-api-gateway"
+    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.migration.image.tag | quote }}
+spec:
+  backoffLimit: 10
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        {{ - include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component : "job-sync-api-gateway"
+    spec:
+      containers:
+        - command:
+            - bash
+          args:
+            - bin/sync-apigateway.sh
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.apiGatewaySync.image "global" .Values.global) }}
+          imagePullPolicy: "Always"
+          name: job-sync-api-gateway
+          env:
+          {{- toYaml .Values.apiGatewaySync.extraEnvVars | nindent 8 }}
+      restartPolicy: Never
+  {{- end }}

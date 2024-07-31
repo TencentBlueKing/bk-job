@@ -12,6 +12,7 @@ BUILD_FRONTEND=0
 BUILD_BACKEND=0
 BUILD_MIGRATION=0
 BUILD_STARTUP_CONTROLLER=0
+BUILD_SYNC_API_GATEWAY=0
 BUILD_MODULES=()
 BUILD_BACKEND_MODULES=()
 VERSION=latest
@@ -42,6 +43,7 @@ Usage:
             [ --backend             [Optional] Build backend image ]
             [ --migration           [Optional] Build migration image ]
             [ --startup-controller  [Optional] Build startup-controller image ]
+            [ --sync-api-gateway    [Optional] Build sync-api-gateway image ]
 			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker,job-assemble. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
@@ -100,6 +102,10 @@ while (( $# > 0 )); do
             BUILD_ALL=0
             BUILD_STARTUP_CONTROLLER=1
             ;;
+        --sync_api_gateway )
+            BUILD_ALL=0
+            BUILD_SYNC_API_GATEWAY=1
+            ;;
         -m | --modules )
 		    shift
             BUILD_ALL=0
@@ -107,6 +113,7 @@ while (( $# > 0 )); do
             BUILD_BACKEND=0
 			BUILD_MIGRATION=0
 			BUILD_STARTUP_CONTROLLER=0
+			BUILD_SYNC_API_GATEWAY=0
 			modules_str=$1
 			BUILD_MODULES=(${modules_str//,/ })
             ;;
@@ -240,6 +247,17 @@ build_migration_image(){
     fi
 }
 
+# Build sync-api-gateway image
+build_sync_api_gateway_image(){
+    log "Building sync_api_gateway image, version: ${VERSION}..."
+    rm -rf tmp/sync_api_gateway/*
+    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_api_gateway
+    docker build -f api/apiGateway.Dockerfile -t $REGISTRY/job-sync-api-gateway:$VERSION tmp/sync_api_gateway --network=host
+    if [[ $PUSH -eq 1 ]] ; then
+        docker push $REGISTRY/job-sync-api-gateway:$VERSION
+    fi
+}
+
 # Build startup-controller image
 build_startup_controller_image(){
     log "Building startup-controller image, version: ${VERSION}..."
@@ -261,6 +279,9 @@ fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
     build_migration_image
 fi
+if [[ $BUILD_ALL -eq 1 || $BUILD_SYNC_API_GATEWAY -eq 1 ]] ; then
+    build_sync_api_gateway_image
+fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
     build_startup_controller_image
 fi
@@ -275,7 +296,9 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    if [[ "$MODULE" == "job-frontend" ]]; then
 		    build_frontend_module
 	    elif [[ "$MODULE" == "job-migration" ]]; then
-		    build_migration_image
+            build_migration_image
+        elif [[ "$MODULE" == "job-sync-api-gateway" ]]; then
+		    build_sync_api_gateway_image
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
