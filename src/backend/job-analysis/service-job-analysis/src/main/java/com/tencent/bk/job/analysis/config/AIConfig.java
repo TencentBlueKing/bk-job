@@ -22,33 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis;
+package com.tencent.bk.job.analysis.config;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.analysis",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api",
-        "com.tencent.bk.job.execute.api",
-        "com.tencent.bk.job.logsvr.api",
-        "com.tencent.bk.job.crontab.api"
-    }
-)
-@EnableScheduling
-public class JobAnalysisBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobAnalysisBootApplication.class, args);
-    }
+@Slf4j
+@Configuration(value = "jobAnalysisAIConfig")
+@EnableConfigurationProperties(AIProperties.class)
+public class AIConfig {
 
 }

@@ -43,7 +43,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -51,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Primary
 @RestController("jobAnalysisWebAIResource")
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
