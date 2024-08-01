@@ -22,36 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis;
+package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.config.AIProperties;
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.analysis",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api",
-        "com.tencent.bk.job.execute.api",
-        "com.tencent.bk.job.logsvr.api",
-        "com.tencent.bk.job.crontab.api"
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+public class AIConfigService {
+    private final AIProperties aiProperties;
+
+    @Autowired
+    public AIConfigService(AIProperties aiProperties) {
+        this.aiProperties = aiProperties;
     }
-)
-@EnableScheduling
-@EnableConfigurationProperties(AIProperties.class)
-public class JobAnalysisBootApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobAnalysisBootApplication.class, args);
+    public Map<String, Object> getAIConfig() {
+        Map<String, Object> map = new HashMap<>();
+        String logMaxLengthStr = aiProperties.getAnalyzeErrorLog().getLogMaxLength();
+        long logMaxLengthBytes = FileSizeUtil.parseFileSizeBytes(logMaxLengthStr);
+        map.put("enabled", aiProperties.getEnabled());
+        map.put("analyzeErrorLogMaxLength", logMaxLengthBytes);
+        return map;
     }
 
 }

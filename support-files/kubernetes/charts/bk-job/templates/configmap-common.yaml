@@ -176,3 +176,10 @@ data:
         enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
+    ai:
+      # 是否开启AI功能，默认开启
+      enabled: {{ .Values.ai.enabled }}
+      # AI分析错误日志功能相关配置
+      analyze-error-log:
+        # 支持分析的错误日志最大长度
+        log-max-length: {{ .Values.ai.analyzeErrorLog.logMaxLength }}

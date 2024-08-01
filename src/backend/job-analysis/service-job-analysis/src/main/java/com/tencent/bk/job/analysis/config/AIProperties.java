@@ -22,36 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis;
+package com.tencent.bk.job.analysis.config;
 
-import com.tencent.bk.job.analysis.config.AIProperties;
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.analysis",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
-@EnableCaching
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api",
-        "com.tencent.bk.job.execute.api",
-        "com.tencent.bk.job.logsvr.api",
-        "com.tencent.bk.job.crontab.api"
+/**
+ * AI相关配置
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "ai")
+public class AIProperties {
+
+    private Boolean enabled = false;
+
+    /**
+     * 错误日志分析相关配置
+     */
+    private AnalyzeErrorLogConfig analyzeErrorLog;
+
+    @Getter
+    @Setter
+    @ToString
+    public static class AnalyzeErrorLogConfig {
+        /**
+         * 支持分析的错误日志最大长度
+         */
+        private String logMaxLength = "5MB";
     }
-)
-@EnableScheduling
-@EnableConfigurationProperties(AIProperties.class)
-public class JobAnalysisBootApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(JobAnalysisBootApplication.class, args);
-    }
-
 }

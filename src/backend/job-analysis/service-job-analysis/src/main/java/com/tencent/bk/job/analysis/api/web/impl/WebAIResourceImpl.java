@@ -37,6 +37,7 @@ import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
+import com.tencent.bk.job.analysis.service.ai.impl.AIConfigService;
 import com.tencent.bk.job.analysis.service.ai.impl.AIMessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -46,7 +47,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
 
+    private final AIConfigService aiConfigService;
     private final ChatService chatService;
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
@@ -63,11 +64,13 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
-    public WebAIResourceImpl(ChatService chatService,
+    public WebAIResourceImpl(AIConfigService aiConfigService,
+                             ChatService chatService,
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService,
                              AIChatHistoryService aiChatHistoryService,
                              AIMessageI18nService aiMessageI18nService) {
+        this.aiConfigService = aiConfigService;
         this.chatService = chatService;
         this.aiCheckScriptService = aiCheckScriptService;
         this.aiAnalyzeErrorService = aiAnalyzeErrorService;
@@ -80,9 +83,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("analyzeErrorLogMaxLength", 5 * 1024 * 1024L);
-        return Response.buildSuccessResp(map);
+        return Response.buildSuccessResp(aiConfigService.getAIConfig());
     }
 
     @Override
