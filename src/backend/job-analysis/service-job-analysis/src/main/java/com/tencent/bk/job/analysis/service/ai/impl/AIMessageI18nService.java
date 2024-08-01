@@ -38,6 +38,10 @@ public class AIMessageI18nService {
         this.messageI18nService = messageI18nService;
     }
 
+    public String getAIGreetingMessage() {
+        return messageI18nService.getI18n("job.analysis.ai.greetingMessage");
+    }
+
     /**
      * 获取非失败状态任务的AI分析结果信息
      *

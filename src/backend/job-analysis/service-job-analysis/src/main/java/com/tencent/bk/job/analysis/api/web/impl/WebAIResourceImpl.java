@@ -37,6 +37,7 @@ import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
+import com.tencent.bk.job.analysis.service.ai.impl.AIMessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
@@ -59,16 +60,19 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
     private final AIChatHistoryService aiChatHistoryService;
+    private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
     public WebAIResourceImpl(ChatService chatService,
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService,
-                             AIChatHistoryService aiChatHistoryService) {
+                             AIChatHistoryService aiChatHistoryService,
+                             AIMessageI18nService aiMessageI18nService) {
         this.chatService = chatService;
         this.aiCheckScriptService = aiCheckScriptService;
         this.aiAnalyzeErrorService = aiAnalyzeErrorService;
         this.aiChatHistoryService = aiChatHistoryService;
+        this.aiMessageI18nService = aiMessageI18nService;
     }
 
     @Override
@@ -90,18 +94,27 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  Integer length) {
         List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
         List<AIChatRecord> aiChatRecordList = new ArrayList<>();
-        aiChatRecordList.add(getStartRecord());
+        aiChatRecordList.add(getGreetingRecord());
         aiChatRecordList.addAll(
             chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList())
         );
         return Response.buildSuccessResp(aiChatRecordList);
     }
 
-    private AIChatRecord getStartRecord() {
-        AIChatRecord startRecord = new AIChatRecord();
-        startRecord.setUserInput(new UserInput("", 0L));
-        startRecord.setAiAnswer(new AIAnswer("0", null, "Hello, I`m BlueKing AI Assistant", 0L));
-        return startRecord;
+    private AIChatRecord getGreetingRecord() {
+        AIChatRecord greetingRecord = new AIChatRecord();
+        greetingRecord.setUserInput(new UserInput("", 0L));
+        greetingRecord.setAiAnswer(getGreetingAIAnswer());
+        return greetingRecord;
+    }
+
+    private AIAnswer getGreetingAIAnswer() {
+        return new AIAnswer(
+            "0",
+            null,
+            aiMessageI18nService.getAIGreetingMessage(),
+            0L
+        );
     }
 
     @Override
