@@ -45,14 +45,17 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
 
     private final AITemplateVarService aiTemplateVarService;
     private final BkConfig bkConfig;
+    private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
     public FileTransferTaskErrorAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
                                                     AITemplateVarService aiTemplateVarService,
-                                                    BkConfig bkConfig) {
+                                                    BkConfig bkConfig,
+                                                    AIMessageI18nService aiMessageI18nService) {
         super(aiPromptTemplateDAO);
         this.aiTemplateVarService = aiTemplateVarService;
         this.bkConfig = bkConfig;
+        this.aiMessageI18nService = aiMessageI18nService;
     }
 
     @Override
@@ -66,7 +69,10 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
     private String renderPrompt(String promptTemplateContent, FileTaskContext context) {
         return promptTemplateContent
             .replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink())
-            .replace(aiTemplateVarService.getFileTaskErrorSourcePlaceHolder(), context.getFileTaskErrorSource())
+            .replace(
+                aiTemplateVarService.getFileTaskErrorSourcePlaceHolder(),
+                aiMessageI18nService.getI18nMessage(context.getFileTaskErrorSourceI18nKey())
+            )
             .replace(aiTemplateVarService.getUploadFileErrorDataPlaceHolder(), context.getUploadFileErrorData())
             .replace(aiTemplateVarService.getDownloadFileErrorDataPlaceHolder(), context.getDownloadFileErrorData());
     }

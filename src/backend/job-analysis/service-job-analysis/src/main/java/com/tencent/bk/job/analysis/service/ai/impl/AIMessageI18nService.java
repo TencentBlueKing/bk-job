@@ -22,44 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai.context.constants;
+package com.tencent.bk.job.analysis.service.ai.impl;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import org.springframework.stereotype.Service;
 
 /**
- * 文件任务失败原因来源枚举
+ * AI消息国际化服务
  */
-@Getter
-public enum FileTaskErrorSourceEnum {
-    NO_ERROR(
-        "job.analysis.ai.fileTaskErrorSource.noError",
-        "任务成功并未失败"
-    ),
-    SOURCE_FILE_UPLOAD_ERROR(
-        "job.analysis.ai.fileTaskErrorSource.sourceFileUploadError",
-        "源文件上传出错导致的任务失败"
-    ),
-    DOWNLOAD_ERROR(
-        "job.analysis.ai.fileTaskErrorSource.downloadError",
-        "目标执行对象下载文件出错导致的任务失败"
-    ),
-    UPLOAD_AND_DOWNLOAD_ERROR(
-        "job.analysis.ai.fileTaskErrorSource.uploadAndDownloadError",
-        "源文件上传与目标执行对象下载文件均出错导致的任务失败"
-    );
+@Service
+public class AIMessageI18nService {
+    private final MessageI18nService messageI18nService;
+
+    public AIMessageI18nService(MessageI18nService messageI18nService) {
+        this.messageI18nService = messageI18nService;
+    }
 
     /**
-     * 任务失败原因描述国际化key
+     * 获取非失败状态任务的AI分析结果信息
+     *
+     * @return 国际化的AI分析结果信息
      */
-    private final String i18nKey;
+    public String getNotFailTaskAIAnswerMessage() {
+        return messageI18nService.getI18n("job.analysis.ai.notFailTaskAnswerMessage");
+    }
 
     /**
-     * 任务失败原因描述
+     * 根据国际化Key获取国际化信息
+     *
+     * @param i18nKey 国际化Key
+     * @return 国际化信息
      */
-    private final String description;
-
-    FileTaskErrorSourceEnum(String i18nKey, String description) {
-        this.i18nKey = i18nKey;
-        this.description = description;
+    public String getI18nMessage(String i18nKey) {
+        return messageI18nService.getI18n(i18nKey);
     }
 }

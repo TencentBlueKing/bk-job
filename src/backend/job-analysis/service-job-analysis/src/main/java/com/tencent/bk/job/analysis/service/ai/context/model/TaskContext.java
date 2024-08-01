@@ -26,7 +26,6 @@ package com.tencent.bk.job.analysis.service.ai.context.model;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -62,7 +61,7 @@ public class TaskContext {
         return stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE;
     }
 
-    public boolean isSuccess() {
-        return RunStatusEnum.SUCCESS.getValue().equals(status);
+    public boolean isTaskFail() {
+        return RunStatusEnum.FAIL.getValue().equals(status);
     }
 }

@@ -93,8 +93,8 @@ public class FileTaskContext {
         }
     }
 
-    public String getFileTaskErrorSource() {
-        return errorSourceResult.getErrorSource().name();
+    public String getFileTaskErrorSourceI18nKey() {
+        return errorSourceResult.getErrorSource().getI18nKey();
     }
 
     @SuppressWarnings("DuplicatedCode")

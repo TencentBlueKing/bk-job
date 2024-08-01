@@ -47,6 +47,13 @@ public class AIBaseService {
         this.aiChatHistoryService = aiChatHistoryService;
     }
 
+    /**
+     * 使用AI提示符调用AI接口生成AI回答
+     *
+     * @param username    用户名
+     * @param aiPromptDTO AI提示符
+     * @return AI回答
+     */
     public AIAnswer getAIAnswer(String username, AIPromptDTO aiPromptDTO) {
         long startTime = System.currentTimeMillis();
         String rawPrompt = aiPromptDTO.getRawPrompt();
@@ -63,17 +70,36 @@ public class AIBaseService {
         return aiAnswer;
     }
 
-    public AIAnswer getSimpleAIAnswer(String username, String content) {
+    /**
+     * 使用指定内容直接生成AI回答
+     *
+     * @param username    用户名
+     * @param aiPromptDTO AI提示符
+     * @param content     指定内容
+     * @return AI回答
+     */
+    public AIAnswer getDirectlyAIAnswer(String username, AIPromptDTO aiPromptDTO, String content) {
         long startTime = System.currentTimeMillis();
+        String rawPrompt = aiPromptDTO.getRawPrompt();
         AIAnswer aiAnswer = new AIAnswer("0", "", content, System.currentTimeMillis());
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
-            content,
-            content,
+            rawPrompt,
+            buildAIDirectlyAnswerInput(content),
             aiAnswer
         );
         aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
         return aiAnswer;
+    }
+
+    /**
+     * 构建直接回答的AI输入（无需调用AI生成回答）
+     *
+     * @param content 回答内容
+     * @return AI输入
+     */
+    private String buildAIDirectlyAnswerInput(String content) {
+        return "Answer This Directly:" + content;
     }
 }

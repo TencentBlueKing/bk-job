@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskErrorSourceR
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,8 +72,11 @@ public class FileTaskFailLogAnalyzer {
         downloadFailSrcFilePathSet.removeAll(uploadFailFilePathSet);
         if (downloadFailSrcFilePathSet.isEmpty()) {
             // 下载失败日志关联的上传文件任务均失败：说明根本原因是源文件上传出错
-            return new FileTaskErrorSourceResult(FileTaskErrorSourceEnum.SOURCE_FILE_UPLOAD_ERROR, uploadFailLogs,
-                downloadFailLogs);
+            return new FileTaskErrorSourceResult(
+                FileTaskErrorSourceEnum.SOURCE_FILE_UPLOAD_ERROR,
+                uploadFailLogs,
+                Collections.emptyList()
+            );
         } else {
             // 上传失败日志与下载失败日志均不为空，且下载失败日志并不全是上传失败导致：说明根本原因是上传下载同时出错
             // 筛选出由于下载方出错导致的下载失败日志

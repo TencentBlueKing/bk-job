@@ -48,26 +48,34 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
     private final TaskContextService taskContextService;
     private final ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService;
     private final FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService;
+    private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
     public AIAnalyzeErrorServiceImpl(TaskContextService taskContextService,
                                      ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService,
                                      FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService,
                                      AIService aiService,
-                                     AIChatHistoryService aiChatHistoryService) {
+                                     AIChatHistoryService aiChatHistoryService,
+                                     AIMessageI18nService aiMessageI18nService) {
         super(aiService, aiChatHistoryService);
         this.taskContextService = taskContextService;
         this.scriptExecuteTaskErrorAIPromptService = scriptExecuteTaskErrorAIPromptService;
         this.fileTransferTaskErrorAIPromptService = fileTransferTaskErrorAIPromptService;
+        this.aiMessageI18nService = aiMessageI18nService;
     }
 
+    /**
+     * 通过AI分析任务报错信息，并记录对话历史
+     *
+     * @param username 用户名
+     * @param appId    Job业务ID
+     * @param req      请求内容
+     * @return AI回答
+     */
     @Override
     public AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req) {
         TaskContextQuery contextQuery = TaskContextQuery.fromAIAnalyzeErrorReq(appId, req);
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
-        if (taskContext.isSuccess()) {
-            return getSimpleAIAnswer(username, "Task is success, do not need to analyze");
-        }
         String errorContent = req.getContent();
         AIPromptDTO aiPromptDTO;
         if (taskContext.isScriptTask()) {
@@ -75,8 +83,14 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
                 taskContext.getScriptTaskContext(),
                 errorContent
             );
+            if (!taskContext.isTaskFail()) {
+                return getDirectlyAIAnswer(username, aiPromptDTO, aiMessageI18nService.getNotFailTaskAIAnswerMessage());
+            }
         } else if (taskContext.isFileTask()) {
             aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(taskContext.getFileTaskContext());
+            if (!taskContext.isTaskFail()) {
+                return getDirectlyAIAnswer(username, aiPromptDTO, aiMessageI18nService.getNotFailTaskAIAnswerMessage());
+            }
         } else {
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }

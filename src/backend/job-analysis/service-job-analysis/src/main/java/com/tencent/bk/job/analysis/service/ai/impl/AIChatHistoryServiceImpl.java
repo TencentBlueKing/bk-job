@@ -32,8 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
+/**
+ * AI聊天记录管理服务
+ */
 @Slf4j
 @Service
 public class AIChatHistoryServiceImpl implements AIChatHistoryService {
@@ -71,15 +75,31 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         return aiChatHistoryDAO.insertAIChatHistory(aiChatHistoryDTO);
     }
 
+    /**
+     * 从DB获取最近的聊天记录列表，按起始时间升序排列
+     *
+     * @param username 用户名
+     * @param start    起始位置
+     * @param length   长度
+     * @return 最近的聊天记录列表
+     */
     @Override
     public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
-        return aiChatHistoryDAO.getLatestChatHistoryList(username, start, length);
+        List<AIChatHistoryDTO> aiChatHistoryList = aiChatHistoryDAO.getLatestChatHistoryList(username, start, length);
+        aiChatHistoryList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
+        return aiChatHistoryList;
     }
 
+    /**
+     * 从DB中分批软删除聊天记录（优先删除创建时间较早的）
+     *
+     * @param username 用户名
+     * @return 删除的记录条数
+     */
     @Override
     public int softDeleteChatHistory(String username) {
         int batchSize = 10000;
-        int deletedCount = 0;
+        int deletedCount;
         int deletedTotalCount = 0;
         do {
             deletedCount = aiChatHistoryDAO.softDeleteChatHistory(username, batchSize);
