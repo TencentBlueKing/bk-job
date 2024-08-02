@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 
@@ -40,6 +42,7 @@ import java.util.List;
 public interface TaskInstanceDAO {
     Long addTaskInstance(TaskInstanceDTO taskInstance);
 
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     TaskInstanceDTO getTaskInstance(long taskInstanceId);
 
     void updateTaskStatus(long taskInstanceId, int status);

@@ -124,6 +124,9 @@ public class ShardingDbMigrateAspect {
 
     private Object readFromOriginDB(Operation operation) throws Throwable {
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("ReadOriginDb");
+            }
             dslContextDynamicProvider.set(noShardingDSLContext);
             return operation.execute();
         } finally {
@@ -133,6 +136,9 @@ public class ShardingDbMigrateAspect {
 
     private Object readFromShardingDB(Operation operation) throws Throwable {
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("ReadShardingDb");
+            }
             dslContextDynamicProvider.set(shardingDSLContext);
             return operation.execute();
         } finally {
