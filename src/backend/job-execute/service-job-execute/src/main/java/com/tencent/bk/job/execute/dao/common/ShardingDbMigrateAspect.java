@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -210,6 +211,13 @@ public class ShardingDbMigrateAspect {
     private String evaluatePropValue(String propName, ResourceScope resourceScope) {
         String propValue = null;
         PropToggle propToggle = propToggleStore.getPropToggle(propName);
+        if (propToggle == null) {
+            return null;
+        }
+        if (CollectionUtils.isEmpty(propToggle.getConditions())) {
+            return propToggle.getDefaultValue();
+        }
+
         ToggleEvaluateContext ctx = ToggleEvaluateContext.builder()
             .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
         for (PropToggle.PropValueCondition condition : propToggle.getConditions()) {
@@ -220,6 +228,7 @@ public class ShardingDbMigrateAspect {
             } else {
                 if (toggleStrategy.evaluate(propName, ctx)) {
                     propValue = condition.getValue();
+                    break;
                 }
             }
         }
