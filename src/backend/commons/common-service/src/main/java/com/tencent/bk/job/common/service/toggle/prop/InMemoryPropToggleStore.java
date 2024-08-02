@@ -127,7 +127,7 @@ public class InMemoryPropToggleStore implements PropToggleStore {
         propToggle.setDefaultValue(propConfig.getDefaultValue());
 
         if (CollectionUtils.isEmpty(propConfig.getConditions())) {
-            throw new PropConfigParseException("Empty prop value condition");
+            return propToggle;
         }
 
         List<PropToggle.PropValueCondition> valueConditions = new ArrayList<>(propConfig.getConditions().size());
