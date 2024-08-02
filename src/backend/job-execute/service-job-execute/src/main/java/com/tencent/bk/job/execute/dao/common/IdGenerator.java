@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.common.sharding.mysql.SegmentIdGenerator;
+import com.tencent.bk.job.common.sharding.mysql.SegmentIdKeys;
 import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
+import com.tencent.devops.leaf.service.SegmentService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,16 +37,16 @@ import org.springframework.stereotype.Component;
 @Component("jobExecuteIdGenerator")
 public class IdGenerator {
 
-    private final SegmentIdGenerator segmentIdGenerator;
+    private final SegmentService segmentService;
 
     private volatile boolean shardingEnabled;
 
     @Autowired
     public IdGenerator(ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider,
-                       ObjectProvider<SegmentIdGenerator> segmentIdGeneratorObjectProvider) {
+                       ObjectProvider<SegmentService> segmentServicesObjectProvider) {
         ShardingProperties shardingPropertiesObjectProviderIfAvailable =
             shardingPropertiesObjectProvider.getIfAvailable();
-        this.segmentIdGenerator = segmentIdGeneratorObjectProvider.getIfAvailable();
+        this.segmentService = segmentServicesObjectProvider.getIfAvailable();
 
         if (shardingPropertiesObjectProviderIfAvailable != null) {
             shardingEnabled = shardingPropertiesObjectProviderIfAvailable.isEnabled();
@@ -54,53 +55,53 @@ public class IdGenerator {
 
     private Long gen(String key) {
         if (shardingEnabled) {
-            return segmentIdGenerator.gen(key);
+            return segmentService.getId(key).getId();
         } else {
             return null;
         }
     }
 
     public Long genTaskInstanceId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_TASK_INSTANCE);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_TASK_INSTANCE);
     }
 
     public Long genStepInstanceId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_STEP_INSTANCE);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_STEP_INSTANCE);
     }
 
     public Long genGseTaskId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_GSE_TASK);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_GSE_TASK);
     }
 
     public Long genOperationLogId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_OPERATION_LOG);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_OPERATION_LOG);
     }
 
     public Long genFileSourceTaskLogId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_FILE_SOURCE_TASK_LOG);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_FILE_SOURCE_TASK_LOG);
     }
 
     public Long genGseFileExecuteObjTaskId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_GSE_FILE_EXECUTE_OBJ_TASK);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_GSE_FILE_EXECUTE_OBJ_TASK);
     }
 
     public Long genGseScriptExecuteObjTaskId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_GSE_SCRIPT_EXECUTE_OBJ_TASK);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_GSE_SCRIPT_EXECUTE_OBJ_TASK);
     }
 
     public Long genRollingConfigId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_ROLLING_CONFIG);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_ROLLING_CONFIG);
     }
 
     public Long genStepInstanceRollingTaskId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_STEP_INSTANCE_ROLLING_TASK);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_STEP_INSTANCE_ROLLING_TASK);
     }
 
     public Long genStepInstanceVariableId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE);
     }
 
     public Long genTaskInstanceVariableId() {
-        return gen(SegmentIdGenerator.KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE);
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE);
     }
 }

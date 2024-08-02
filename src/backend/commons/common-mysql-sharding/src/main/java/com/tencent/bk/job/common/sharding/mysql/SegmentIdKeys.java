@@ -24,14 +24,10 @@
 
 package com.tencent.bk.job.common.sharding.mysql;
 
-import com.tencent.devops.leaf.service.SegmentService;
-
 /**
- * 分布式 ID 生成
+ * 分布式 ID KEY
  */
-public class SegmentIdGenerator {
-
-    private final SegmentService segmentService;
+public class SegmentIdKeys {
 
     public static final String KEY_JOB_EXECUTE_TASK_INSTANCE = "job_execute.task_instance";
     public static final String KEY_JOB_EXECUTE_STEP_INSTANCE = "job_execute.step_instance";
@@ -46,12 +42,4 @@ public class SegmentIdGenerator {
         "job_execute.step_instance_rolling_task";
     public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE = "job_execute.step_instance_variable";
     public static final String KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE = "job_execute.task_instance_variable";
-
-    public SegmentIdGenerator(SegmentService segmentService) {
-        this.segmentService = segmentService;
-    }
-
-    public Long gen(String key) {
-        return segmentService.getId(key).getId();
-    }
 }

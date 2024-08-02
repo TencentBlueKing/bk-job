@@ -25,8 +25,6 @@
 package com.tencent.bk.job.common.sharding.mysql.config;
 
 import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
-import com.tencent.bk.job.common.sharding.mysql.SegmentIdGenerator;
-import com.tencent.devops.leaf.service.SegmentService;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -96,11 +94,6 @@ public class LeafDbConfig {
     public TransactionAwareDataSourceProxy
     transactionAwareDataSourceProxy(@Qualifier("leaf-data-source") DataSource dataSource) {
         return new TransactionAwareDataSourceProxy(dataSource);
-    }
-
-    @Bean
-    public SegmentIdGenerator segmentIdGenerator(SegmentService segmentService) {
-        return new SegmentIdGenerator(segmentService);
     }
 
     @Bean("jooqLeafIdAllocator")
