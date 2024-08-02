@@ -58,8 +58,6 @@ const i18n = new VueI18n({
   messages,
 });
 
-console.log('i18n = ', i18n);
-
 if (localeLanguage === 'zh-CN') {
   locale.use(lang.zhCN);
 } else {
@@ -79,7 +77,7 @@ export const loadLanguage = (localPackage) => {
 export const setLocale = (locale) => {
   const realLocal = locale === 'en' ? 'en-US' : 'zh-CN';
   if (Object.prototype.hasOwnProperty.call(messages, realLocal)) {
-    i18n.locale = realLocal;
+    i18n._vm.locale = realLocal; // eslint-disable-line no-underscore-dangle
     document.querySelector('html').setAttribute('lang', realLocal);
   }
 };

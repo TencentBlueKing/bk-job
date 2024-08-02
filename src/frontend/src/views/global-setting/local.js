@@ -132,7 +132,7 @@ export default {
     设置允许范围: 'Allowed from',
     设置禁止范围: 'Limited from',
     不允许为空: 'is required',
-    '上传文件后缀校验规则': 'Start with dot(.), followed by letter / numbers / _ or -, up to 24 characters ',
+    上传文件后缀校验规则: 'Start with dot(.), followed by letter / numbers / _ or -, up to 24 characters ',
     报错提示信息设置: 'Error Message Setting',
     助手链接: '"Help" link',
     '请输入平台客服助手的通信跳转链接，方便用户快速反馈问题': 'Enter the platform customer service link to help the user to feedback the problem quickly.',

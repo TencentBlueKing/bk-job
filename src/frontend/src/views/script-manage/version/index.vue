@@ -164,6 +164,7 @@
                 @click.stop="">
                 <jb-popover-confirm
                   v-if="!row.isOnline"
+                  key="online"
                   class="mr10"
                   :confirm-handler="() => handleOnline(row.id, row.scriptVersionId)"
                   :content="$t('script.上线后，之前的线上版本将被置为_已下线_状态，但不影响作业使用')"
@@ -180,6 +181,7 @@
                 </jb-popover-confirm>
                 <jb-popover-confirm
                   v-if="row.isBanable"
+                  key="disabled"
                   class="mr10"
                   :confirm-handler="() => handleOffline(row.id, row.scriptVersionId)"
                   :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
@@ -194,6 +196,7 @@
                 </jb-popover-confirm>
                 <auth-button
                   v-if="row.isDraft"
+                  key="edit"
                   auth="script/edit"
                   class="mr10"
                   :permission="row.canManage"
@@ -204,6 +207,7 @@
                 </auth-button>
                 <span
                   v-if="!row.isDraft"
+                  key="clone"
                   class="mr10"
                   :tippy-tips="isCopyCreateDisabled ? $t('script.已有_未上线_版本') : ''">
                   <auth-button
@@ -218,6 +222,7 @@
                 </span>
                 <auth-button
                   v-if="row.isOnline"
+                  key="execute"
                   auth="script/execute"
                   :disabled="row.isExecuteDisable"
                   :permission="row.canManage"
@@ -227,10 +232,10 @@
                   {{ $t('script.去执行') }}
                 </auth-button>
                 <span
-                  v-if="!isPublicScript"
-                  :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
+                  v-if="!isPublicScript && row.isOnline"
+                  key="sync"
+                  :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本') : ''">
                   <auth-button
-                    v-if="row.isOnline"
                     auth="script/edit"
                     class="ml10"
                     :disabled="!row.syncEnabled"
@@ -243,6 +248,7 @@
                 </span>
                 <jb-popover-confirm
                   v-if="row.isVersionEnableRemove"
+                  key="remove"
                   :confirm-handler="() => handleRemove(row.scriptVersionId)"
                   :content="$t('script.删除后不可恢复，请谨慎操作！')"
                   :title="$t('script.确定删除该版本？')">

@@ -47,21 +47,21 @@
         <div slot="content">
           <div
             class="item"
-            :class="{ active: currentLangType === 'lang-en' }"
-            @click="handleToggleLang('en')">
-            <icon
-              class="lang-flag"
-              type="lang-en" />
-            <span>English</span>
-          </div>
-          <div
-            class="item"
             :class="{ active: currentLangType === 'lang-zh' }"
             @click="handleToggleLang('zh-CN')">
             <icon
               class="lang-flag"
               type="lang-zh" />
             <span>中文</span>
+          </div>
+          <div
+            class="item"
+            :class="{ active: currentLangType === 'lang-en' }"
+            @click="handleToggleLang('en')">
+            <icon
+              class="lang-flag"
+              type="lang-en" />
+            <span>English</span>
           </div>
         </div>
       </bk-popover>
@@ -248,11 +248,12 @@
       handleToggleLang(lang) {
         Cookie.remove('blueking_language', { path: '' });
         Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
-          expires: 3600,
+          expires: 365,
           domain: this.envConfig.bkDomain,
         });
         setLocale(lang);
         jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang.toLocaleLowerCase()}`);
+        window.location.reload();
       },
       /**
        * @desc 显示版本更新日志
