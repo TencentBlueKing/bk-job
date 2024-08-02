@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
@@ -84,6 +86,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
         return dslContextProvider.get().insertInto(
@@ -111,6 +114,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog) {
         List<Condition> conditionList = new ArrayList<>();
         conditionList.add(defaultTable.STEP_INSTANCE_ID.eq(fileSourceTaskLog.getStepInstanceId()));
@@ -127,6 +131,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public FileSourceTaskLogDTO getFileSourceTaskLog(Long taskInstanceId, long stepInstanceId, int executeCount) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
         Record record = dslContextProvider.get().select(
@@ -147,6 +152,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(Long taskInstanceId, String fileSourceBatchTaskId) {
         Record record = dslContextProvider.get().select(ALL_FIELDS)
             .from(defaultTable)
@@ -157,6 +163,7 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public int updateTimeConsumingByBatchTaskId(Long taskInstanceId,
                                                 String fileSourceBatchTaskId,
                                                 Long startTime,

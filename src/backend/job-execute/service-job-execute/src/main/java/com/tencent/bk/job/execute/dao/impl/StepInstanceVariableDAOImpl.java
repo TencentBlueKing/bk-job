@@ -29,6 +29,8 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +64,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
         dslContextProvider.get().insertInto(
                 TABLE,
@@ -82,6 +85,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
                                                                long stepInstanceId,
                                                                int executeCount,
@@ -120,6 +124,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<StepInstanceVariableValuesDTO> listStepOutputVariableValuesByTaskInstanceId(long taskInstanceId) {
         Result result = dslContextProvider.get().select(FIELDS)
             .from(TABLE)
@@ -136,6 +141,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId,
                                                                                      long stepInstanceId) {
         Result result = dslContextProvider.get().select(FIELDS)

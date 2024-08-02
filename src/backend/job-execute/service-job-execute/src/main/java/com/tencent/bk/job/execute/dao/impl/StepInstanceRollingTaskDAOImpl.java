@@ -28,6 +28,8 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
@@ -68,6 +70,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
                                                        long stepInstanceId,
                                                        int executeCount,
@@ -107,6 +110,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<StepInstanceRollingTaskDTO> listRollingTasks(Long taskInstanceId,
                                                              long stepInstanceId,
                                                              Integer executeCount,
@@ -132,6 +136,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
         Record record = dslContextProvider.get().insertInto(
                 TABLE,
@@ -161,6 +166,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void updateRollingTask(Long taskInstanceId,
                                   long stepInstanceId,
                                   int executeCount,

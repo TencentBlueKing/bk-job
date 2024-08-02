@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
@@ -60,6 +62,7 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
         Result<Record6<Long, Long, String, Byte, Byte, String>> result = dslContextProvider.get().select(
                 TABLE.ID,
@@ -103,6 +106,7 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
         InsertValuesStep6<TaskInstanceVariableRecord, Long, Long, String, Byte, String, Byte> insertStep =
             dslContextProvider.get().insertInto(TABLE)

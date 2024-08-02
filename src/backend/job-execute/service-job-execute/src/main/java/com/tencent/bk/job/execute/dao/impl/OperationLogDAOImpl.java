@@ -29,6 +29,8 @@ import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +53,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public long saveOperationLog(OperationLogDTO operationLog) {
         Record record = dslContextProvider.get().insertInto(
                 TABLE,
@@ -74,6 +77,7 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
         Result result = dslContextProvider.get()
             .select(

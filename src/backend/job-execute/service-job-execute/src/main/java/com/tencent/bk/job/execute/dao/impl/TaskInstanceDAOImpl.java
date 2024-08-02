@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
@@ -53,6 +54,7 @@ import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -92,12 +94,17 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     private final DSLContextDynamicProvider dslContextProvider;
 
+    private final DSLContext noShardingDSLContext;
+
     @Autowired
-    public TaskInstanceDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+    public TaskInstanceDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider,
+                               @Qualifier("job-execute-dsl-context") DSLContext noShardingDSLContext) {
         this.dslContextProvider = dslContextDynamicProvider;
+        this.noShardingDSLContext = noShardingDSLContext;
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
         Record record = dslContextProvider.get().insertInto(
                 TASK_INSTANCE,
@@ -145,6 +152,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
         Record record = dslContextProvider.get().select(ALL_FIELDS)
             .from(TASK_INSTANCE)
@@ -190,6 +198,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId) {
         dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, stepInstanceId)
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
@@ -197,6 +206,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void resetTaskStatus(Long taskInstanceId) {
         dslContextProvider.get().update(TASK_INSTANCE)
             .setNull(TASK_INSTANCE.START_TIME).setNull(TASK_INSTANCE.END_TIME)
@@ -232,7 +242,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
-        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
+        Result<?> result = noShardingDSLContext.select(ALL_FIELDS)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .where(buildSearchCondition(taskQuery))
             .orderBy(orderFields)
@@ -253,7 +263,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = dslContextProvider.get().selectCount().from(TaskInstance.TASK_INSTANCE)
+            count = noShardingDSLContext.selectCount().from(TaskInstance.TASK_INSTANCE)
                 .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
                 .where(conditions)
                 .fetchOne(0, Integer.class);
@@ -359,7 +369,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             conditions.add(TASK_INSTANCE.STATUS.eq(status.getValue().byteValue()));
         }
 
-        SelectSeekStep1<? extends Record, Long> select = dslContextProvider.get().select(ALL_FIELDS)
+        SelectSeekStep1<? extends Record, Long> select = noShardingDSLContext.select(ALL_FIELDS)
             .from(TASK_INSTANCE)
             .where(conditions)
             .orderBy(TASK_INSTANCE.CREATE_TIME.desc());
@@ -383,6 +393,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void updateTaskExecutionInfo(long taskInstanceId,
                                         RunStatusEnum status,
                                         Long currentStepId,
@@ -434,6 +445,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
         dslContextProvider.get().update(TASK_INSTANCE)
             .setNull(TASK_INSTANCE.END_TIME)
@@ -456,7 +468,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(minCreateTime));
         }
         Result<? extends Record> result =
-            dslContextProvider.get().selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+            noShardingDSLContext.selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
                 .where(conditions)
                 .fetch();
         List<Long> appIdList = new ArrayList<>();
@@ -484,7 +496,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.lessOrEqual(toTime));
         }
-        Result<Record1<Long>> result = dslContextProvider.get().select(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = noShardingDSLContext.select(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
             .where(conditions)
             .limit(1)
             .fetch();
@@ -503,7 +515,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.lessThan(toTime));
         }
-        Result<Record1<Long>> result = dslContextProvider.get().select(TASK_INSTANCE.ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = noShardingDSLContext.select(TASK_INSTANCE.ID).from(TASK_INSTANCE)
             .where(conditions)
             .limit(offset, limit)
             .fetch();
@@ -522,7 +534,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         List<List<HostDTO>> hostBatches = CollectionUtil.partitionCollection(hosts, 2000);
         hostBatches.forEach(batchHosts -> {
-            BatchBindStep batchInsert = dslContextProvider.get().batch(
+            BatchBindStep batchInsert = noShardingDSLContext.batch(
                 dslContextProvider.get().insertInto(
                         TASK_INSTANCE_HOST,
                         TASK_INSTANCE_HOST.TASK_INSTANCE_ID,

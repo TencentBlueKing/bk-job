@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -96,6 +98,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
         Object[][] params = new Object[tasks.size()][15];
         int batchCount = 0;
@@ -122,6 +125,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
@@ -147,6 +151,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
         Integer count = dslContextProvider.get().selectCount()
             .from(T)
@@ -168,6 +173,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
                                                      long stepInstanceId,
                                                      int executeCount,
@@ -200,6 +206,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
                                                          Long stepInstanceId,
                                                          Integer executeCount,
@@ -225,6 +232,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
                                                          Long stepInstanceId,
                                                          Integer executeCount,
@@ -294,6 +302,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasks(Long taskInstanceId,
                                              Long stepInstanceId,
                                              Integer executeCount,
@@ -345,6 +354,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByGseTaskId(Long taskInstanceId, Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
@@ -364,6 +374,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public ExecuteObjectTask getTaskByExecuteObjectId(Long taskInstanceId,
                                                       Long stepInstanceId,
                                                       Integer executeCount,
@@ -388,6 +399,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
         return dslContextProvider.get().fetchExists(
             T,
@@ -397,6 +409,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public void updateTaskFields(Long taskInstanceId,
                                  long stepInstanceId,
                                  int executeCount,

@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
@@ -49,6 +51,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
         Record record = dslContextProvider.get().insertInto(
                 TABLE,
@@ -69,6 +72,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
         Record record = dslContextProvider.get().select(
                 TABLE.ID,
@@ -82,6 +86,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public boolean existsRollingConfig(long taskInstanceId) {
         Result<Record1<Integer>> records = dslContextProvider.get().selectOne()
             .from(TABLE)

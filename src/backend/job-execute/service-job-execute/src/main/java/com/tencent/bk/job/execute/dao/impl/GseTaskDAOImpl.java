@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
+import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
+import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.tables.GseTask;
@@ -105,6 +107,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public long saveGseTask(GseTaskDTO gseTask) {
         Record record = dslContextProvider.get().insertInto(
                 TABLE,
@@ -136,6 +139,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
     public boolean updateGseTask(GseTaskDTO gseTask) {
         int affectRows = dslContextProvider.get().update(TABLE)
             .set(TABLE.START_TIME, gseTask.getStartTime())
@@ -150,6 +154,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
             dslContextProvider.get().select(ALL_FIELDS).from(TABLE)
@@ -166,6 +171,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId) {
         Record record = dslContextProvider.get().select(ALL_FIELDS).from(TABLE)
             .where(TABLE.ID.eq(gseTaskId))
@@ -175,6 +181,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId) {
         Result<Record> records = dslContextProvider.get().select(SIMPLE_FIELDS).from(TABLE)
             .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
@@ -187,6 +194,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @ShardingDbMigrate(op = DbOperationEnum.READ)
     public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId, Integer executeCount, Integer batch) {
         List<Condition> conditions = new ArrayList<>();
         if (stepInstanceId != null) {
