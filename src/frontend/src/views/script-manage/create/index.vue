@@ -35,18 +35,18 @@
       :model="formData"
       :rules="rules">
       <jb-form-item
-        :label="$t('script.脚本名称.label')"
+        :label="$t('script.脚本名称_label')"
         property="name"
         required>
         <div class="script-name input">
           <jb-input
             v-model="formData.name"
             :maxlength="60"
-            :placeholder="$t('script.推荐按照该脚本逻辑提供的使用场景来取名...')" />
+            :placeholder="$t('script.推荐按照该脚本逻辑提供的使用场景来取名')" />
         </div>
       </jb-form-item>
       <jb-form-item
-        :label="$t('script.场景标签.label')"
+        :label="$t('script.场景标签_label')"
         property="tags">
         <jb-tag-select
           v-model="formData.tags"
@@ -62,7 +62,7 @@
           type="textarea" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('script.版本号.label')"
+        :label="$t('script.版本号_label')"
         property="version"
         required>
         <jb-input
@@ -72,7 +72,7 @@
           :placeholder="$t('script.输入版本号')" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('script.脚本内容.label')"
+        :label="$t('script.脚本内容_label')"
         property="content"
         required>
         <div ref="content">

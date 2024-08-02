@@ -23,6 +23,13 @@
  * IN THE SOFTWARE.
 */
 
-export default {
 
+import enUS from './en.json';
+import zhCN from './zh.json';
+
+export default {
+  template: {
+    'zh-CN': zhCN,
+    'en-US': enUS,
+  },
 };

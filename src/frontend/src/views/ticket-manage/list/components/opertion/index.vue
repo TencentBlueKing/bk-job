@@ -38,7 +38,7 @@
         required>
         <bk-input v-model.trim="formData.name" />
       </jb-form-item>
-      <jb-form-item :label="$t('ticket.类型.label')">
+      <jb-form-item :label="$t('ticket.类型_label')">
         <div class="ticket-type-wraper">
           <bk-select
             v-model="formData.type"

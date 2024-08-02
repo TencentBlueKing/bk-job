@@ -48,7 +48,7 @@
             :outer-border="false">
             <bk-table-column
               key="index"
-              :label="$t('service.序号.colHead')"
+              :label="$t('service.序号_colHead')"
               width="60">
               <template slot-scope="{ $index }">
                 #{{ $index + 1 }}
@@ -56,7 +56,7 @@
             </bk-table-column>
             <bk-table-column
               key="name"
-              :label="$t('service.实例名.colHead')"
+              :label="$t('service.实例名_colHead')"
               prop="name"
               width="420">
               <template slot-scope="scope">
@@ -65,12 +65,12 @@
             </bk-table-column>
             <bk-table-column
               key="version"
-              :label="$t('service.版本号.label')"
+              :label="$t('service.版本号_label')"
               prop="version"
               width="310" />
             <bk-table-column
               key="status"
-              :label="$t('service.状态.colHead')"
+              :label="$t('service.状态_colHead')"
               prop="status">
               <template slot-scope="scope">
                 <icon
@@ -81,7 +81,7 @@
             </bk-table-column>
             <bk-table-column
               key="ip"
-              :label="$t('service.绑定IP.colHead')"
+              :label="$t('service.绑定IP_colHead')"
               prop="ip"
               width="150">
               <template slot-scope="scope">
@@ -99,7 +99,7 @@
             </bk-table-column>
             <bk-table-column
               key="port"
-              :label="$t('service.端口.colHead')"
+              :label="$t('service.端口_colHead')"
               prop="port"
               width="100" />
           </bk-table>
@@ -108,13 +108,13 @@
       <bk-table-column
         key="name"
         align="left"
-        :label="$t('service.服务名.colHead')"
+        :label="$t('service.服务名_colHead')"
         prop="name"
         width="480" />
       <bk-table-column
         key="version"
         align="left"
-        :label="$t('service.版本号.colHead')"
+        :label="$t('service.版本号_colHead')"
         prop="version"
         width="310">
         <template slot-scope="{ row }">
@@ -124,7 +124,7 @@
       <bk-table-column
         key="instanceList"
         align="left"
-        :label="$t('service.实例状态.colHead')"
+        :label="$t('service.实例状态_colHead')"
         prop="instanceList">
         <template slot-scope="{ row }">
           <div v-bk-tooltips="instanceTips(row)">

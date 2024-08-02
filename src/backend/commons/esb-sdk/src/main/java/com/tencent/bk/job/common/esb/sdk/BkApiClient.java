@@ -153,11 +153,20 @@ public class BkApiClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractBkApiClient] Response|requestId={}|method={}|uri={}|success={}"
+                    log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}"
                             + "|costTime={}|resp={}",
                         apiContext.getRequestId(), httpMethod.name(), requestInfo.getUri(), apiContext.isSuccess(),
                         apiContext.getCostTime(), apiContext.getOriginResp());
                 }
+            }
+            if (apiContext.getCostTime() > 5000L) {
+                log.info("SlowBkApiRequest|totalCost={}|requestCost={}|deserializeCost={}" +
+                        "|responseBodyLength={}",
+                    apiContext.getCostTime(),
+                    apiContext.getRequestCostTime(),
+                    apiContext.getDeserializeCostTime(),
+                    apiContext.getOriginResp() != null ? apiContext.getOriginResp().length() : 0L
+                );
             }
         }
     }
@@ -171,9 +180,12 @@ public class BkApiClient {
         String respStr;
         String status = EsbMetricTags.VALUE_STATUS_OK;
         HttpMethodEnum httpMethod = requestInfo.getMethod();
-        long start = System.currentTimeMillis();
+        long startTimestamp = System.currentTimeMillis();
+        long responseTimestamp;
         try {
             HttpResponse response = requestApi(httpHelper, requestInfo);
+            responseTimestamp = System.currentTimeMillis();
+            apiContext.setRequestCostTime(responseTimestamp - startTimestamp);
             apiContext.setRequestId(extractBkApiRequestId(response));
             respStr = response.getEntity();
             apiContext.setOriginResp(response.getEntity());
@@ -181,18 +193,20 @@ public class BkApiClient {
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
                     + uri + ", error: " + "Response is blank";
-                log.warn("[AbstractBkApiClient] fail: Response is blank| requestId={}|method={}|uri={}",
+                log.warn("[AbstractBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
                     apiContext.getRequestId(), httpMethod.name(), uri);
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
 
+            long deserializeStartTimestamp = System.currentTimeMillis();
             esbResp = jsonMapper.fromJson(respStr, typeReference);
+            apiContext.setDeserializeCostTime(System.currentTimeMillis() - deserializeStartTimestamp);
             apiContext.setResp(esbResp);
             if (!esbResp.isSuccess()) {
                 log.warn(
                     "[AbstractBkApiClient] fail:response code!=0" +
-                        "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
+                        "|bkApiRequestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
                     apiContext.getRequestId(),
                     esbResp.getCode(),
                     esbResp.getMessage(),
@@ -206,7 +220,7 @@ public class BkApiClient {
             if (esbResp.getData() == null) {
                 log.warn(
                     "[AbstractBkApiClient] warn: response data is null" +
-                        "|requestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
+                        "|bkApiRequestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
                     apiContext.getRequestId(),
                     esbResp.getCode(),
                     esbResp.getMessage(),
@@ -226,7 +240,7 @@ public class BkApiClient {
             status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
         } finally {
-            long cost = System.currentTimeMillis() - start;
+            long cost = System.currentTimeMillis() - startTimestamp;
             apiContext.setCostTime(cost);
             if (meterRegistry != null) {
                 meterRegistry.timer(metricName, buildMetricTags(uri, status))

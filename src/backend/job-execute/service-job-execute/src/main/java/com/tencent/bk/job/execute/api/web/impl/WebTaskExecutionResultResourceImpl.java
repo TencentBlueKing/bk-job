@@ -917,11 +917,19 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         FileDistributionDetailV2VO fileDistDetailVO = new FileDistributionDetailV2VO();
         fileDistDetailVO.setTaskId(fileLog.getTaskId());
         fileDistDetailVO.setMode(fileLog.getMode());
-        fileDistDetailVO.setSrcExecuteObject(fileLog.getSrcExecuteObject().toExecuteObjectVO());
+        if (fileLog.getSrcExecuteObject() != null) {
+            fileDistDetailVO.setSrcExecuteObject(fileLog.getSrcExecuteObject().toExecuteObjectVO());
+        } else {
+            log.warn("Missing src execute object. fileLog: {}", fileLog);
+        }
         if (FileDistModeEnum.UPLOAD.getValue().equals(fileLog.getMode())) {
             fileDistDetailVO.setFileName(fileLog.getDisplaySrcFile());
         } else {
-            fileDistDetailVO.setDestExecuteObject(fileLog.getDestExecuteObject().toExecuteObjectVO());
+            if (fileLog.getDestExecuteObject() != null) {
+                fileDistDetailVO.setDestExecuteObject(fileLog.getDestExecuteObject().toExecuteObjectVO());
+            } else {
+                log.warn("Missing dest execute object. fileLog: {}", fileLog);
+            }
             fileDistDetailVO.setFileName(fileLog.getDestFile());
         }
 
@@ -1112,30 +1120,37 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                         ExecuteObjectCompositeKey.ofExecuteObjectResource(
                             ExecuteObjectTypeEnum.valOf(executeObjectType), executeObjectResourceId),
                         FileDistModeEnum.DOWNLOAD.getValue());
-                // downloadLog为null说明步骤还未下发至GSE就被终止
-                if (downloadLog != null && CollectionUtils.isNotEmpty(downloadLog.getFileTaskLogs())) {
-                    fileDistDetailVOS =
-                        downloadLog.getFileTaskLogs().stream()
-                            .map(this::convertToFileDistributionDetailV2VO)
-                            .collect(Collectors.toList());
-                    result.setFinished(downloadLog.isFinished());
+                if (downloadLog == null || CollectionUtils.isEmpty(downloadLog.getFileTaskLogs())) {
+                    log.info("Can not find file execute object download log, stepInstanceId: {}, executeCount: {}, " +
+                            "batch: {}, executeObjectId: {}",
+                        stepInstanceId, actualExecuteCount, batch, executeObjectType + ":" + executeObjectResourceId);
+                    break;
                 }
+                fileDistDetailVOS =
+                    downloadLog.getFileTaskLogs().stream()
+                        .map(this::convertToFileDistributionDetailV2VO)
+                        .collect(Collectors.toList());
+                result.setFinished(downloadLog.isFinished());
                 break;
             case UPLOAD:
                 List<FileExecuteObjectLogContent> executeObjectLogContents =
                     logService.batchGetFileSourceExecuteObjectLogContent(taskInstanceId, stepInstanceId,
                         actualExecuteCount, batch);
-                if (CollectionUtils.isNotEmpty(executeObjectLogContents)) {
-                    fileDistDetailVOS =
-                        executeObjectLogContents.stream()
-                            .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                            .map(this::convertToFileDistributionDetailV2VO)
-                            .collect(Collectors.toList());
-                    result.setFinished(
-                        executeObjectLogContents.stream()
-                            .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
-                            .allMatch(fileLog -> FileDistStatusEnum.isFinishedStatus(fileLog.getStatus())));
+                if (CollectionUtils.isEmpty(executeObjectLogContents)) {
+                    log.info("Can not find file execute object upload log, stepInstanceId: {}, executeCount: {}, " +
+                            "batch: {}, executeObjectId: {}",
+                        stepInstanceId, actualExecuteCount, batch, executeObjectType + ":" + executeObjectResourceId);
+                    break;
                 }
+                fileDistDetailVOS =
+                    executeObjectLogContents.stream()
+                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                        .map(this::convertToFileDistributionDetailV2VO)
+                        .collect(Collectors.toList());
+                result.setFinished(
+                    executeObjectLogContents.stream()
+                        .flatMap(executeObjectLogContent -> executeObjectLogContent.getFileTaskLogs().stream())
+                        .allMatch(fileLog -> FileDistStatusEnum.isFinishedStatus(fileLog.getStatus())));
                 break;
         }
         Collections.sort(fileDistDetailVOS);

@@ -41,7 +41,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('cron.搜索任务ID，任务名称，更新人...')"
+          :placeholder="$t('cron.搜索任务ID，任务名称，更新人')"
           style="width: 480px;"
           @on-change="handleSearch" />
       </template>
@@ -63,7 +63,7 @@
         v-if="allRenderColumnMap.name"
         key="name"
         align="left"
-        :label="$t('cron.任务名称.colHead')"
+        :label="$t('cron.任务名称_colHead')"
         min-width="200"
         prop="name"
         show-overflow-tooltip
@@ -146,7 +146,7 @@
         v-if="allRenderColumnMap.policeText"
         key="policeText"
         align="left"
-        :label="$t('cron.执行策略.colHead')"
+        :label="$t('cron.执行策略_colHead')"
         prop="policeText"
         width="180">
         <template slot-scope="{ row }">
@@ -175,7 +175,7 @@
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         align="left"
-        :label="$t('cron.更新人.colHead')"
+        :label="$t('cron.更新人_colHead')"
         prop="lastModifyUser"
         sortable="custom"
         width="140" />
@@ -434,7 +434,7 @@
           },
         },
         {
-          name: I18n.t('cron.任务名称.colHead'),
+          name: I18n.t('cron.任务名称_colHead'),
           id: 'name',
           default: true,
         },
@@ -450,7 +450,7 @@
           inputInclude: true,
         },
         {
-          name: I18n.t('cron.更新人.colHead'),
+          name: I18n.t('cron.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -463,7 +463,7 @@
         },
         {
           id: 'name',
-          label: I18n.t('cron.任务名称.colHead'),
+          label: I18n.t('cron.任务名称_colHead'),
           disabled: true,
         },
         {
@@ -476,7 +476,7 @@
         },
         {
           id: 'policeText',
-          label: I18n.t('cron.执行策略.colHead'),
+          label: I18n.t('cron.执行策略_colHead'),
           disabled: true,
         },
         {
@@ -489,7 +489,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('cron.更新人.colHead'),
+          label: I18n.t('cron.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
@@ -594,7 +594,7 @@
                 type="circle-italics-info"
                 style="margin-left: 8px; font-size: 12px;" />
               <div slot="content">
-                <div style="font-weight: bold">{ I18n.t('cron.「周期成功率」采样规则和计算公式') }</div>
+                <div style="font-weight: bold">{ I18n.t('cron._周期成功率_采样规则和计算公式') }</div>
                 <div style="margin-top: 8px; font-weight: bold">{ I18n.t('cron.采样规则：') }</div>
                 <div>{ I18n.t('cron.近 24小时执行次数 ＞10，则 “分母” 为近 24 小时执行总数') }</div>
                 <div>{ I18n.t('cron.近 24小时执行次数 ≤ 10，则 “分母” 为近 10 次执行任务') }</div>

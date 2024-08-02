@@ -53,7 +53,7 @@
             spellcheck: false,
             autofocus: true,
           }"
-          :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名...')" />
+          :placeholder="$t('template.推荐按照该执行方案提供的使用场景来取名')" />
       </jb-form-item>
     </jb-form>
     <jb-form
@@ -64,7 +64,7 @@
       :rules="rules">
       <jb-form-item style="margin-bottom: 40px;">
         <div class="section-title">
-          <span>{{ $t('template.全局变量.label') }}</span>
+          <span>{{ $t('template.全局变量_label') }}</span>
           <span>（ {{ selectedVariable.length }} / {{ globalVariableList.length }} ）</span>
         </div>
         <render-global-var

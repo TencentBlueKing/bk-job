@@ -293,7 +293,6 @@
           .reduce((result, item) => Object.assign(result, {
             [item.name]: item,
           }), {});
-        console.log('lastExecuteVariableMap = ', this.planId, lastExecuteVariableMap);
 
         const replaceVariableValue = (variableList, lastExecuteVariableMap) => {
           const variableListResult = [...variableList];

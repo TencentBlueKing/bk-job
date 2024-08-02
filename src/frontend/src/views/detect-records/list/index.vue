@@ -69,14 +69,14 @@
         v-if="allRenderColumnMap.ruleExpression"
         key="ruleExpression"
         align="left"
-        :label="$t('detectRecords.表达式.colHead')"
+        :label="$t('detectRecords.表达式_colHead')"
         prop="ruleExpression"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.appId"
         key="scopeName"
         align="left"
-        :label="$t('detectRecords.业务.colHead')"
+        :label="$t('detectRecords.业务_colHead')"
         prop="scopeName"
         width="200">
         <template slot-scope="{ row }">
@@ -87,7 +87,7 @@
         v-if="allRenderColumnMap.operator"
         key="operator"
         align="left"
-        :label="$t('detectRecords.执行人.colHead')"
+        :label="$t('detectRecords.执行人_colHead')"
         prop="operator"
         width="140" />
       <bk-table-column
@@ -105,7 +105,7 @@
         v-if="allRenderColumnMap.startupMode"
         key="startupMode"
         align="left"
-        :label="$t('detectRecords.执行方式.colHead')"
+        :label="$t('detectRecords.执行方式_colHead')"
         prop="startupMode"
         width="140">
         <template slot-scope="{ row }">
@@ -116,13 +116,13 @@
         v-if="allRenderColumnMap.client"
         key="client"
         align="left"
-        :label="$t('detectRecords.调用方.colHead')"
+        :label="$t('detectRecords.调用方_colHead')"
         prop="client"
         width="150" />
       <bk-table-column
         v-if="allRenderColumnMap.action"
         key="mode"
-        :label="$t('detectRecords.动作.colHead')"
+        :label="$t('detectRecords.动作_colHead')"
         prop="mode"
         :render-header="renderPatternHeader"
         width="150">
@@ -134,7 +134,7 @@
         v-if="allRenderColumnMap.scriptLanguage"
         key="scriptLanguage"
         align="left"
-        :label="$t('detectRecords.脚本语言.colHead')"
+        :label="$t('detectRecords.脚本语言_colHead')"
         prop="scriptLanguage"
         width="150">
         <template slot-scope="{ row }">
@@ -243,22 +243,22 @@
           },
         },
         {
-          name: I18n.t('detectRecords.表达式.label'),
+          name: I18n.t('detectRecords.表达式_label'),
           id: 'ruleExpression',
         },
         {
-          name: I18n.t('detectRecords.业务.label'),
+          name: I18n.t('detectRecords.业务_label'),
           id: 'appId',
           remoteMethod: () => AppManageService.fetchWholeAppList().then(({ data }) => data),
         },
         {
-          name: I18n.t('detectRecords.执行人.label'),
+          name: I18n.t('detectRecords.执行人_label'),
           id: 'operator',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
         },
         {
-          name: I18n.t('detectRecords.执行方式.label'),
+          name: I18n.t('detectRecords.执行方式_label'),
           id: 'startupMode',
           children: [
             {
@@ -276,11 +276,11 @@
           ],
         },
         {
-          name: I18n.t('detectRecords.调用方.label'),
+          name: I18n.t('detectRecords.调用方_label'),
           id: 'client',
         },
         {
-          name: I18n.t('detectRecords.动作.label'),
+          name: I18n.t('detectRecords.动作_label'),
           id: 'action',
           children: [
             {
@@ -348,15 +348,15 @@
         },
         {
           id: 'ruleExpression',
-          label: I18n.t('detectRecords.表达式.colHead'),
+          label: I18n.t('detectRecords.表达式_colHead'),
         },
         {
           id: 'appId',
-          label: I18n.t('detectRecords.业务.colHead'),
+          label: I18n.t('detectRecords.业务_colHead'),
         },
         {
           id: 'operator',
-          label: I18n.t('detectRecords.执行人.colHead'),
+          label: I18n.t('detectRecords.执行人_colHead'),
         },
         {
           id: 'statusDesc',
@@ -364,19 +364,19 @@
         },
         {
           id: 'startupMode',
-          label: I18n.t('detectRecords.执行方式.colHead'),
+          label: I18n.t('detectRecords.执行方式_colHead'),
         },
         {
           id: 'client',
-          label: I18n.t('detectRecords.调用方.colHead'),
+          label: I18n.t('detectRecords.调用方_colHead'),
         },
         {
           id: 'action',
-          label: I18n.t('detectRecords.动作.colHead'),
+          label: I18n.t('detectRecords.动作_colHead'),
         },
         {
           id: 'scriptLanguage',
-          label: I18n.t('detectRecords.脚本语言.colHead'),
+          label: I18n.t('detectRecords.脚本语言_colHead'),
         },
       ];
       const columnsCache = listColumnsCache.getItem(TABLE_COLUMN_CACHE);
@@ -460,11 +460,11 @@
       renderPatternHeader(h, data) {
         const tips = [
           {
-            title: this.$t('detectRecords.【扫描】'),
+            title: this.$t('detectRecords._扫描_'),
             content: this.$t('detectRecords.命中规则的脚本执行任务仅会做记录，不会拦截'),
           },
           {
-            title: this.$t('detectRecords.【拦截】'),
+            title: this.$t('detectRecords._拦截_'),
             content: this.$t('detectRecords.命中规则的脚本执行任务会被记录，并中止运行'),
           },
         ];

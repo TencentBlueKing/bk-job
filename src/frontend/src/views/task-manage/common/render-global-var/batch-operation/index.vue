@@ -36,7 +36,7 @@
           <th>{{ $t('template.变量名称') }}<span class="require-flag" /></th>
           <th>
             <span
-              v-bk-tooltips="$t('template.请输入变量的初始值 [可选]')"
+              v-bk-tooltips="$t('template.请输入变量的初始值_可选')"
               class="hover-tips">
               {{ $t('template.初始值') }}
             </span>
@@ -85,7 +85,7 @@
       class="empty-box"
       @click="handleAppendVariable(0)">
       <icon type="add-fill" />
-      <span>{{ $t('template.全局变量.label') }}</span>
+      <span>{{ $t('template.全局变量_label') }}</span>
     </div>
   </div>
 </template>

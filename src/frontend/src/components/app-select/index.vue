@@ -508,7 +508,7 @@
       border: none;
       outline: none;
 
-      &:placeholder {
+      &::placeholder {
         color: #c4c6cc;
       }
     }

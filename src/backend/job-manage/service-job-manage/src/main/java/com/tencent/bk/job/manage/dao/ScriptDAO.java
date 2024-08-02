@@ -345,4 +345,6 @@ public interface ScriptDAO {
      * @return Map<ScriptId, List < TagId>>
      */
     Map<String, List<Long>> listAllScriptTagsCompatible();
+
+    Map<Long, JobResourceStatusEnum> batchGetScriptVersionStatus(Collection<Long> scriptVersionIds);
 }

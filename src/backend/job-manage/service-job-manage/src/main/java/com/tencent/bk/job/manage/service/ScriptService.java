@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.SyncScriptResultDTO;
@@ -267,7 +268,9 @@ public interface ScriptService {
      * @param templateStepIDs     作业模板与步骤信息
      * @return 同步结果
      */
-    List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
+    List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username,
+                                                       Long appId,
+                                                       String scriptId,
                                                        Long syncScriptVersionId,
                                                        List<TemplateStepIDDTO> templateStepIDs);
 
@@ -303,5 +306,7 @@ public interface ScriptService {
      * @return 脚本
      */
     ScriptDTO getScriptByScriptId(String scriptId);
+
+    Map<Long, JobResourceStatusEnum> batchGetScriptVersionStatus(Collection<Long> scriptVersionId);
 
 }

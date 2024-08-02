@@ -39,7 +39,7 @@
     <bk-table-column
       key="executor"
       align="left"
-      :label="$t('cron.执行人.colHead')"
+      :label="$t('cron.执行人_colHead')"
       prop="executor"
       width="180" />
     <bk-table-column

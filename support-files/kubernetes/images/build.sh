@@ -185,6 +185,13 @@ build_frontend_module () {
     cd $WORKING_DIR || exit 1
 
     rm -rf $tmp_dir/frontend/*
+
+    echo "=======$FRONTEND_DIR======="
+    ls $FRONTEND_DIR
+    echo "=======$FRONTEND_DIR  end======="
+    echo "=======$tmp_dir======="
+    ls $tmp_dir
+    echo "=======$tmp_dir  end======="
     cp -rf $FRONTEND_DIR/dist $tmp_dir/frontend/
     log "Building version logs"
     cd $VERSION_LOGS_DIR || exit 1

@@ -374,8 +374,8 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
             UByte>> result =
             context.select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION).from(TABLE)
+                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
+                    TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION).from(TABLE)
                 .where(conditions).fetch();
 
         List<TaskPlanInfoDTO> taskPlanInfoList = new ArrayList<>();
@@ -391,13 +391,13 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         List<Condition> conditions = buildTaskPlanIdsCondition(planIds);
         Result<Record6<ULong, String, String, ULong, ULong, UByte>> result =
             context.select(
-                TABLE.ID,
-                TABLE.NAME,
-                TABLE.VERSION,
-                TABLE.APP_ID,
-                TABLE.TEMPLATE_ID,
-                TABLE.TYPE
-            ).from(TABLE)
+                    TABLE.ID,
+                    TABLE.NAME,
+                    TABLE.VERSION,
+                    TABLE.APP_ID,
+                    TABLE.TEMPLATE_ID,
+                    TABLE.TYPE
+                ).from(TABLE)
                 .where(conditions).fetch();
 
         List<TaskPlanBasicInfoDTO> taskPlanBasicInfoList = new ArrayList<>();
@@ -418,8 +418,9 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
             conditions.add(TABLE.ID.notEqual(ULong.valueOf(planId)));
         }
         conditions.add(TABLE.NAME.eq(name));
-        return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Integer.class) == 0;
+        conditions.add(TABLE.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType())));
 
+        return !context.fetchExists(TABLE, conditions);
     }
 
     @Override

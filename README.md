@@ -59,7 +59,7 @@ bk-job 提供了快速执行、任务编排、定时执行等核心服务，多�
 
 ## Getting started
 - [下载与编译](docs/overview/source_compile.md)
-- [安装部署](docs/overview/installation.md)
+- [部署与运维](docs/overview/operation.md)
 
 ## Support
 1. [GitHub讨论区](https://github.com/Tencent/bk-job/discussions)

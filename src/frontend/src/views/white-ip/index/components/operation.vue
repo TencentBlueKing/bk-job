@@ -34,7 +34,7 @@
       form-type="vertical"
       :model="formData"
       :rules="rules">
-      <jb-form-item :label="$t('whiteIP.目标业务.label')">
+      <jb-form-item :label="$t('whiteIP.目标业务_label')">
         <div class="app-wraper">
           <bk-select
             v-model="scopeValue"
@@ -74,7 +74,7 @@
           @close-dialog="handleColseIpSelector" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.备注.label')"
+        :label="$t('whiteIP.备注_label')"
         property="remark"
         required>
         <bk-input
@@ -83,7 +83,7 @@
           type="textarea" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.生效范围.label')"
+        :label="$t('whiteIP.生效范围_label')"
         property="actionScopeIdList"
         required
         style="margin-bottom: 0;">

@@ -149,7 +149,9 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
                     public <T, R> void logResp(Logger log, BkApiContext<T, R> context) {
                         if (log.isInfoEnabled()) {
                             // 自定义输出，防止脚本任务结果中的执行日志字段过大导致内存溢出
-                            log.info("[AbstractBkApiClient] Response|method={}|uri={}|success={}|costTime={}|resp={}|",
+                            log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}" +
+                                    "|costTime={}|resp={}|",
+                                context.getRequestId(),
                                 context.getMethod(),
                                 context.getUri(),
                                 context.isSuccess(),

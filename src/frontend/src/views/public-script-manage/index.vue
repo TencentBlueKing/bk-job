@@ -29,14 +29,13 @@
   <jb-router-view />
 </template>
 <script>
+  import Language from '@views/script-manage/language';
+
   import {
     loadLanguage,
   } from '@/i18n';
-  import ScriptLocal from '@/views/script-manage/local';
 
-  [
-    ScriptLocal,
-  ].forEach(module => loadLanguage(module));
+  loadLanguage(Language);
 
   export default {};
 </script>

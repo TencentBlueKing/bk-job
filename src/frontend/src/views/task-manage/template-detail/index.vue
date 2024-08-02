@@ -70,7 +70,7 @@
             class="input"
             field="description"
             :maxlength="500"
-            :placeholder="$t('template.填写该模板的功能介绍等详细描述...')"
+            :placeholder="$t('template.填写该模板的功能介绍等详细描述')"
             :remote-hander="handleUpdateTemplate"
             :value="formData.description" />
           <div slot="forbid">

@@ -40,7 +40,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('account.搜索账号别名，名称，更新人...')"
+          :placeholder="$t('account.搜索账号别名，名称，更新人')"
           style="width: 420px;"
           @on-change="handleSearch" />
       </template>
@@ -64,7 +64,7 @@
         v-if="allRenderColumnMap.alias"
         key="alias"
         align="left"
-        :label="$t('account.账号别名.colHead')"
+        :label="$t('account.账号别名_colHead')"
         min-width="180"
         prop="alias"
         show-overflow-tooltip
@@ -73,7 +73,7 @@
         v-if="allRenderColumnMap.account"
         key="account"
         align="left"
-        :label="$t('account.账号名称.colHead')"
+        :label="$t('account.账号名称_colHead')"
         min-width="180"
         prop="account"
         show-overflow-tooltip
@@ -82,7 +82,7 @@
         v-if="allRenderColumnMap.remark"
         key="remark"
         align="left"
-        :label="$t('account.描述.colHead')"
+        :label="$t('account.描述_colHead')"
         min-width="180"
         prop="remark"
         show-overflow-tooltip>
@@ -94,7 +94,7 @@
         v-if="allRenderColumnMap.categoryName"
         key="categoryName"
         align="left"
-        :label="$t('account.账号用途.colHead')"
+        :label="$t('account.账号用途_colHead')"
         prop="categoryName"
         show-overflow-tooltip
         sortable="custom"
@@ -103,7 +103,7 @@
         v-if="allRenderColumnMap.typeName"
         key="typeName"
         align="left"
-        :label="$t('account.账号类型.colHead')"
+        :label="$t('account.账号类型_colHead')"
         prop="typeName"
         show-overflow-tooltip
         sortable="custom"
@@ -128,7 +128,7 @@
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         align="left"
-        :label="$t('account.更新人.colHead')"
+        :label="$t('account.更新人_colHead')"
         prop="lastModifyUser"
         show-overflow-tooltip
         width="120" />
@@ -256,16 +256,16 @@
           description: I18n.t('account.将覆盖其它条件'),
         },
         {
-          name: I18n.t('account.账号别名.colHead'),
+          name: I18n.t('account.账号别名_colHead'),
           id: 'alias',
           default: true,
         },
         {
-          name: I18n.t('account.账号名称.colHead'),
+          name: I18n.t('account.账号名称_colHead'),
           id: 'account',
         },
         {
-          name: I18n.t('account.描述.colHead'),
+          name: I18n.t('account.描述_colHead'),
           id: 'remark',
         },
         {
@@ -275,7 +275,7 @@
           inputInclude: true,
         },
         {
-          name: I18n.t('account.更新人.colHead'),
+          name: I18n.t('account.更新人_colHead'),
           id: 'lastModifyUser',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,
@@ -288,25 +288,25 @@
         },
         {
           id: 'alias',
-          label: I18n.t('account.账号别名.colHead'),
+          label: I18n.t('account.账号别名_colHead'),
           disabled: true,
         },
         {
           id: 'account',
-          label: I18n.t('account.账号名称.colHead'),
+          label: I18n.t('account.账号名称_colHead'),
           disabled: true,
         },
         {
           id: 'remark',
-          label: I18n.t('account.描述.colHead'),
+          label: I18n.t('account.描述_colHead'),
         },
         {
           id: 'categoryName',
-          label: I18n.t('account.账号用途.colHead'),
+          label: I18n.t('account.账号用途_colHead'),
         },
         {
           id: 'typeName',
-          label: I18n.t('account.账号类型.colHead'),
+          label: I18n.t('account.账号类型_colHead'),
           disabled: true,
         },
         {
@@ -319,7 +319,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('account.更新人.colHead'),
+          label: I18n.t('account.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
