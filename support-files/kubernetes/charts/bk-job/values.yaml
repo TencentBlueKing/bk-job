@@ -638,17 +638,8 @@ job:
       # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
   toggle:
+    # 动态属性开关配置
     props:
-      job_execute_sharding_migrate_read_mode:
-        defaultValue: "1"
-        conditions:
-          - value: "1"
-            strategy:
-              id: "ResourceScopeWhiteListToggleStrategy"
-              initParams:
-                resourceScopeList: "biz:2"
-      job_execute_sharding_migrate_write_mode:
-        defaultValue: "3"
 
 
   migration:
