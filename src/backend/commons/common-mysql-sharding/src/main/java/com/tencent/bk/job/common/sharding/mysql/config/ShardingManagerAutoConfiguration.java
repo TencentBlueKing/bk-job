@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 public class ShardingManagerAutoConfiguration {
 
     @Bean("shardingManager")
-    ShardingManager shardingManager(ObjectProvider<ShardingsphereProperties> shardingspherePropertiesObjectProvider) {
-        return new ShardingManager(shardingspherePropertiesObjectProvider.getIfAvailable());
+    ShardingManager shardingManager(ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider) {
+        return new ShardingManager(shardingPropertiesObjectProvider.getIfAvailable());
     }
 }

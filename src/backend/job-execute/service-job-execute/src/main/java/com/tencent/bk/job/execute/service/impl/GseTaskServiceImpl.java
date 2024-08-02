@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGenerator;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
@@ -40,13 +41,17 @@ public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, IdGenerator idGenerator) {
         this.gseTaskDAO = gseTaskDAO;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public Long saveGseTask(GseTaskDTO gseTask) {
+        gseTask.setId(idGenerator.genGseTaskId());
         return gseTaskDAO.saveGseTask(gseTask);
     }
 

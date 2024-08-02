@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
@@ -52,6 +51,7 @@ import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -88,9 +88,10 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
 
     private final DSLContext ctx;
 
-    @Autowired
-    public TaskInstanceAppDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider) {
-        this.ctx = shardingPreferDslContextProvider.get();
+
+    public TaskInstanceAppDAOImpl(@Autowired(required = false)
+                                  @Qualifier("job-sharding-dsl-context") DSLContext shardingDSLContext) {
+        this.ctx = shardingDSLContext;
     }
 
     @Override

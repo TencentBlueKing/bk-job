@@ -27,8 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
-import com.tencent.bk.job.execute.dao.IdGenerator;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -38,7 +37,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -50,7 +48,6 @@ import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.UpdateSetStep;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -82,12 +79,11 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         T.ERROR_CODE
     };
 
-    private final DSLContext CTX;
-
-    private final IdGenerator idGenerator;
+    private final DSLContextDynamicProvider dslContextProvider;
 
     public static final String BATCH_INSERT_SQL =
-        "insert into gse_file_execute_obj_task (id,task_instance_id,step_instance_id,execute_count,actual_execute_count, "
+        "insert into gse_file_execute_obj_task (id,task_instance_id,step_instance_id,execute_count," +
+            "actual_execute_count, "
             + "batch,mode,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,total_time,error_code)"
             + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     public static final String BATCH_UPDATE_SQL = "update gse_file_execute_obj_task set gse_task_id = ?, status = ?,"
@@ -95,10 +91,8 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and execute_obj_id = ?";
 
     @Autowired
-    public FileExecuteObjectTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                                        @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
+    public FileExecuteObjectTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+        this.dslContextProvider = dslContextDynamicProvider;
     }
 
     @Override
@@ -107,7 +101,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         int batchCount = 0;
         for (ExecuteObjectTask task : tasks) {
             Object[] param = new Object[15];
-            param[0] = idGenerator.genGseFileExecuteObjTaskId();
+            param[0] = task.getId();
             param[1] = task.getTaskInstanceId();
             param[2] = task.getStepInstanceId();
             param[3] = task.getExecuteCount();
@@ -124,7 +118,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             param[14] = task.getErrorCode();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_INSERT_SQL, params).execute();
+        dslContextProvider.get().batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
@@ -149,12 +143,12 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             param[10] = task.getExecuteObjectId();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_UPDATE_SQL, params).execute();
+        dslContextProvider.get().batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
     public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        Integer count = CTX.selectCount()
+        Integer count = dslContextProvider.get().selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -179,7 +173,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(T.STATUS, count().as("ip_count"))
+            dslContextProvider.get().select(T.STATUS, count().as("ip_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -211,7 +205,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                          Integer executeCount,
                                                          Integer batch,
                                                          Integer status) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -246,7 +240,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         conditions.add(T.STATUS.eq(status));
         conditions.add(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
 
-        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(conditions);
 
@@ -305,7 +299,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                              Integer executeCount,
                                              Integer batch,
                                              FileTaskModeEnum fileTaskMode) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -358,7 +352,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
 
         List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
 
-        Result<?> result = CTX.select(ALL_FIELDS)
+        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -377,7 +371,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                       FileTaskModeEnum mode,
                                                       String executeObjectId) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(ALL_FIELDS)
+            dslContextProvider.get().select(ALL_FIELDS)
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -395,7 +389,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
 
     @Override
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
-        return CTX.fetchExists(
+        return dslContextProvider.get().fetchExists(
             T,
             T.STEP_INSTANCE_ID.eq(stepInstanceId),
             buildTaskInstanceIdQueryCondition(taskInstanceId)
@@ -409,7 +403,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        UpdateSetStep<GseFileExecuteObjTaskRecord> updateSetStep = CTX.update(T);
+        UpdateSetStep<GseFileExecuteObjTaskRecord> updateSetStep = dslContextProvider.get().update(T);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,

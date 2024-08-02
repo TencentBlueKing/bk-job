@@ -30,9 +30,8 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.IdGenerator;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
@@ -43,7 +42,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
@@ -53,7 +51,6 @@ import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -91,21 +88,16 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         TASK_INSTANCE.APP_CODE
     };
 
-    private final DSLContext ctx;
-
-    private final IdGenerator idGenerator;
+    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public TaskInstanceDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                               @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.ctx = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
+    public TaskInstanceDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+        this.dslContextProvider = dslContextDynamicProvider;
     }
 
     @Override
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
-        Long id = idGenerator.genTaskInstanceId();
-        Record record = ctx.insertInto(
+        Record record = dslContextProvider.get().insertInto(
                 TASK_INSTANCE,
                 TASK_INSTANCE.ID,
                 TASK_INSTANCE.TASK_ID,
@@ -126,7 +118,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 TASK_INSTANCE.TYPE,
                 TASK_INSTANCE.APP_CODE)
             .values(
-                id,
+                taskInstance.getId(),
                 taskInstance.getPlanId(),
                 taskInstance.getCronTaskId(),
                 taskInstance.getTaskTemplateId(),
@@ -146,15 +138,13 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                 taskInstance.getAppCode())
             .returning(TASK_INSTANCE.ID)
             .fetchOne();
-        if (id == null) {
-            id = record != null ? record.getValue(TASK_INSTANCE.ID) : null;
-        }
-        return id;
+
+        return taskInstance.getId() != null ? taskInstance.getId() : record.getValue(TASK_INSTANCE.ID);
     }
 
     @Override
     public TaskInstanceDTO getTaskInstance(long taskInstanceId) {
-        Record record = ctx.select(ALL_FIELDS)
+        Record record = dslContextProvider.get().select(ALL_FIELDS)
             .from(TASK_INSTANCE)
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .fetchOne();
@@ -189,7 +179,8 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public void updateTaskStatus(long taskInstanceId, int status) {
-        ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS, Byte.valueOf(String.valueOf(status)))
+        dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS,
+                Byte.valueOf(String.valueOf(status)))
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();
     }
@@ -197,14 +188,14 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId) {
-        ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, stepInstanceId)
+        dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, stepInstanceId)
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();
     }
 
     @Override
     public void resetTaskStatus(Long taskInstanceId) {
-        ctx.update(TASK_INSTANCE)
+        dslContextProvider.get().update(TASK_INSTANCE)
             .setNull(TASK_INSTANCE.START_TIME).setNull(TASK_INSTANCE.END_TIME)
             .setNull(TASK_INSTANCE.TOTAL_TIME)
             .setNull(TASK_INSTANCE.CURRENT_STEP_ID)
@@ -238,7 +229,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
-        Result<?> result = ctx.select(ALL_FIELDS)
+        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .where(buildSearchCondition(taskQuery))
             .orderBy(orderFields)
@@ -259,7 +250,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
+            count = dslContextProvider.get().selectCount().from(TaskInstance.TASK_INSTANCE)
                 .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
                 .where(conditions)
                 .fetchOne(0, Integer.class);
@@ -269,7 +260,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
-        Result<? extends Record> result = ctx.select(ALL_FIELDS)
+        Result<? extends Record> result = dslContextProvider.get().select(ALL_FIELDS)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
             .where(conditions)
@@ -299,7 +290,8 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
     @SuppressWarnings("all")
     private int getPageTaskInstanceCount(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
-        return ctx.selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0, Integer.class);
+        return dslContextProvider.get().selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0,
+            Integer.class);
     }
 
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
@@ -364,7 +356,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             conditions.add(TASK_INSTANCE.STATUS.eq(status.getValue().byteValue()));
         }
 
-        SelectSeekStep1<? extends Record, Long> select = ctx.select(ALL_FIELDS)
+        SelectSeekStep1<? extends Record, Long> select = dslContextProvider.get().select(ALL_FIELDS)
             .from(TASK_INSTANCE)
             .where(conditions)
             .orderBy(TASK_INSTANCE.CREATE_TIME.desc());
@@ -396,33 +388,38 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
                                         Long totalTime) {
         UpdateSetMoreStep<TaskInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS,
+            updateSetMoreStep = dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.STATUS,
                 JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (currentStepId != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID, currentStepId);
+                updateSetMoreStep =
+                    dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.CURRENT_STEP_ID,
+                        currentStepId);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE.CURRENT_STEP_ID, currentStepId);
             }
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.START_TIME, startTime);
+                updateSetMoreStep = dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.START_TIME,
+                    startTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.END_TIME, endTime);
+                updateSetMoreStep = dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.END_TIME,
+                    endTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE).set(TASK_INSTANCE.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dslContextProvider.get().update(TASK_INSTANCE).set(TASK_INSTANCE.TOTAL_TIME,
+                    totalTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE.TOTAL_TIME, totalTime);
             }
@@ -435,7 +432,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
 
     @Override
     public void resetTaskExecuteInfoForRetry(long taskInstanceId) {
-        ctx.update(TASK_INSTANCE)
+        dslContextProvider.get().update(TASK_INSTANCE)
             .setNull(TASK_INSTANCE.END_TIME)
             .setNull(TASK_INSTANCE.TOTAL_TIME)
             .set(TASK_INSTANCE.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
@@ -455,9 +452,10 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (minCreateTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.greaterOrEqual(minCreateTime));
         }
-        Result<? extends Record> result = ctx.selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
-            .where(conditions)
-            .fetch();
+        Result<? extends Record> result =
+            dslContextProvider.get().selectDistinct(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+                .where(conditions)
+                .fetch();
         List<Long> appIdList = new ArrayList<>();
         result.forEach(record -> {
             Long appId = record.getValue(TASK_INSTANCE.APP_ID);
@@ -483,7 +481,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.lessOrEqual(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = dslContextProvider.get().select(TASK_INSTANCE.APP_ID).from(TASK_INSTANCE)
             .where(conditions)
             .limit(1)
             .fetch();
@@ -502,7 +500,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE.CREATE_TIME.lessThan(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE.ID).from(TASK_INSTANCE)
+        Result<Record1<Long>> result = dslContextProvider.get().select(TASK_INSTANCE.ID).from(TASK_INSTANCE)
             .where(conditions)
             .limit(offset, limit)
             .fetch();
@@ -521,8 +519,8 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         List<List<HostDTO>> hostBatches = CollectionUtil.partitionCollection(hosts, 2000);
         hostBatches.forEach(batchHosts -> {
-            BatchBindStep batchInsert = ctx.batch(
-                ctx.insertInto(
+            BatchBindStep batchInsert = dslContextProvider.get().batch(
+                dslContextProvider.get().insertInto(
                         TASK_INSTANCE_HOST,
                         TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
                         TASK_INSTANCE_HOST.HOST_ID,

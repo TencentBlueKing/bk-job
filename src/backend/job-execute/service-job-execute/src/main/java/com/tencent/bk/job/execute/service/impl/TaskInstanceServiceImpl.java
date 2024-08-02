@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRep
 import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
+import com.tencent.bk.job.execute.dao.common.IdGenerator;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -71,6 +72,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final ShardingManager shardingManager;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    TaskInstanceDAO taskInstanceDAO,
@@ -78,7 +81,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
                                    ShardingManager shardingManager,
-                                   TaskInstanceAppDAO taskInstanceAppDAO) {
+                                   TaskInstanceAppDAO taskInstanceAppDAO,
+                                   IdGenerator idGenerator) {
         this.applicationService = applicationService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
@@ -86,10 +90,12 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         this.executeAuthService = executeAuthService;
         this.shardingManager = shardingManager;
         this.taskInstanceAppDAO = taskInstanceAppDAO;
+        this.idGenerator = idGenerator;
     }
 
     @Override
     public long addTaskInstance(TaskInstanceDTO taskInstance) {
+        taskInstance.setId(idGenerator.genTaskInstanceId());
         long id = taskInstanceDAO.addTaskInstance(taskInstance);
         taskInstance.setId(id);
         if (shardingManager.isShardingEnabled()) {
@@ -290,7 +296,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         List<TaskInstanceDTO> result;
         if (shardingManager.isShardingEnabled()) {
             result = taskInstanceAppDAO.listLatestCronTaskInstance(appId, cronTaskId, latestTimeInSeconds, status,
-                    limit);
+                limit);
         } else {
             result = taskInstanceDAO.listLatestCronTaskInstance(appId, cronTaskId, latestTimeInSeconds, status, limit);
         }

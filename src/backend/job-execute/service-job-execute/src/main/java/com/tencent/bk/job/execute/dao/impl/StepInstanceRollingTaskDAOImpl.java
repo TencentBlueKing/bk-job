@@ -26,22 +26,19 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.IdGenerator;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -63,15 +60,11 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         TABLE.END_TIME,
         TABLE.TOTAL_TIME
     };
-    private final DSLContext CTX;
-
-    private final IdGenerator idGenerator;
+    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                                          @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
+    public StepInstanceRollingTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+        this.dslContextProvider = dslContextDynamicProvider;
     }
 
     @Override
@@ -79,7 +72,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                                                        long stepInstanceId,
                                                        int executeCount,
                                                        int batch) {
-        Record record = CTX.select(ALL_FIELDS)
+        Record record = dslContextProvider.get().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -118,7 +111,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                                                              long stepInstanceId,
                                                              Integer executeCount,
                                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
@@ -140,8 +133,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
 
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
-        Long id = idGenerator.genStepInstanceRollingTaskId();
-        Record record = CTX.insertInto(
+        Record record = dslContextProvider.get().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
@@ -153,7 +145,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 TABLE.END_TIME,
                 TABLE.TOTAL_TIME)
             .values(
-                id,
+                rollingTask.getId(),
                 rollingTask.getTaskInstanceId(),
                 rollingTask.getStepInstanceId(),
                 JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),
@@ -164,10 +156,8 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 rollingTask.getTotalTime())
             .returning(TABLE.ID)
             .fetchOne();
-        if (id == null) {
-            id = record != null ? record.getValue(TABLE.ID) : null;
-        }
-        return id;
+        return rollingTask.getId() != null ? rollingTask.getId() : record.getValue(TABLE.ID);
+
     }
 
     @Override
@@ -181,25 +171,26 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                                   Long totalTime) {
         UpdateSetMoreStep<StepInstanceRollingTaskRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = CTX.update(TABLE).set(TABLE.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
+            updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.STATUS,
+                JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.START_TIME, startTime);
+                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.START_TIME, startTime);
             } else {
                 updateSetMoreStep.set(TABLE.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.END_TIME, endTime);
+                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.END_TIME, endTime);
             } else {
                 updateSetMoreStep.set(TABLE.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
             } else {
                 updateSetMoreStep.set(TABLE.TOTAL_TIME, totalTime);
             }

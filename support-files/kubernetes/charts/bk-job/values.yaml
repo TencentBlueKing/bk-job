@@ -637,6 +637,19 @@ job:
       secureKey: ""
       # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
+  toggle:
+    props:
+      job_execute_sharding_migrate_read_mode:
+        defaultValue: "1"
+        conditions:
+          - value: "1"
+            strategy:
+              id: "ResourceScopeWhiteListToggleStrategy"
+              initParams:
+                resourceScopeList: "biz:2"
+      job_execute_sharding_migrate_write_mode:
+        defaultValue: "3"
+
 
   migration:
     iamModel:
@@ -970,23 +983,25 @@ executeConfig:
   sharding:
     # 分库分表，默认关闭
     mariadb:
+      enabled: true
+      database:
+        # 数据库实例数量
+        nodeCount: 2
+      table:
+        # 每个数据库实例上的表分片数量
+        nodeCount: 16
+      datasources:
+        # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
+        - index: 0
+          jdbcUrl: jdbc:otel:mysql://localhost:3306/job_execute
+          username: job
+          password: job
+        - index: 1
+          jdbcUrl: jdbc:otel:mysql://localhost:3307/job_execute
+          username: job
+          password: job
+    migration:
       enabled: false
-      # database:
-      #   # 数据库实例数量
-      #   nodeCount: 2
-      # table:
-      #   # 每个数据库实例上的表分片数量
-      #   nodeCount: 16
-      # datasources:
-      #   # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
-      #   - index: 0
-      #     jdbcUrl: jdbc:otel:mysql://localhost:3306/job_execute
-      #     username: job
-      #     password: job
-      #   - index: 1
-      #     jdbcUrl: jdbc:otel:mysql://localhost:3307/job_execute
-      #     username: job
-      #     password: job
 
 ## job-crontab定时任务配置
 crontabConfig:

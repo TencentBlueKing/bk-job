@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
+import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
+import com.tencent.bk.job.common.sharding.mysql.SegmentIdGenerator;
+import com.tencent.devops.leaf.service.SegmentService;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -44,7 +47,7 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import javax.sql.DataSource;
 
 @Configuration(value = "leafDbConfig")
-@ConditionalOnProperty(value = "shardingsphere.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")
 public class LeafDbConfig {
     @Qualifier("leaf-data-source")
     @Bean(name = "leaf-data-source")
@@ -95,4 +98,13 @@ public class LeafDbConfig {
         return new TransactionAwareDataSourceProxy(dataSource);
     }
 
+    @Bean
+    public SegmentIdGenerator segmentIdGenerator(SegmentService segmentService) {
+        return new SegmentIdGenerator(segmentService);
+    }
+
+    @Bean("jooqLeafIdAllocator")
+    public JooqLeafIdAllocator jooqLeafIdAllocator(@Qualifier("leaf-dsl-context") DSLContext dslContext) {
+        return new JooqLeafIdAllocator(dslContext);
+    }
 }

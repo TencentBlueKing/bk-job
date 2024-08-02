@@ -137,6 +137,6 @@ public class NFSUtils {
 //        String temp = ms.masterPath;
 //        ms.masterPath = ms.slavePath;
 //        ms.slavePath = temp;
-//        LOG.info(ms.tag.getName() + " change to: " + ms.masterPath);
+//        LOG.info(ms.tag.getName() + " set to: " + ms.masterPath);
 //    }
 }

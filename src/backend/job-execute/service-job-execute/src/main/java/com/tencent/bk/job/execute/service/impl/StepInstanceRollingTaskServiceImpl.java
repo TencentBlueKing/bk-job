@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGenerator;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +46,14 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
 
     private final StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
     public StepInstanceRollingTaskServiceImpl(
-        StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO) {
+            StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO,
+            IdGenerator idGenerator) {
         this.stepInstanceRollingTaskDAO = stepInstanceRollingTaskDAO;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -104,6 +109,7 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
 
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
+        rollingTask.setId(idGenerator.genStepInstanceRollingTaskId());
         return stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
     }
 

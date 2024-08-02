@@ -27,6 +27,8 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework:spring-web'
+    implementation 'org.aspectj:aspectjrt'
+    implementation 'org.aspectj:aspectjweaver'
     api 'org.apache.shardingsphere:shardingsphere-jdbc-core'
     api 'org.yaml:snakeyaml'
     api 'com.tencent.devops.leaf:leaf-boot-starter'

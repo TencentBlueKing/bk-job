@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGenerator;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -30,13 +31,17 @@ public class ScriptExecuteObjectTaskServiceImpl
     private final ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO;
     private final ScriptAgentTaskDAO scriptAgentTaskDAO;
 
+    private final IdGenerator idGenerator;
+
     @Autowired
     public ScriptExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
                                               ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO,
-                                              ScriptAgentTaskDAO scriptAgentTaskDAO) {
+                                              ScriptAgentTaskDAO scriptAgentTaskDAO,
+                                              IdGenerator idGenerator) {
         super(stepInstanceService);
         this.scriptExecuteObjectTaskDAO = scriptExecuteObjectTaskDAO;
         this.scriptAgentTaskDAO = scriptAgentTaskDAO;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -45,6 +50,7 @@ public class ScriptExecuteObjectTaskServiceImpl
             return;
         }
 
+        tasks.forEach(task -> task.setId(idGenerator.genGseScriptExecuteObjTaskId()));
         if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             scriptExecuteObjectTaskDAO.batchSaveTasks(tasks);
         } else {

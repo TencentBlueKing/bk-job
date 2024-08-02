@@ -172,7 +172,7 @@ public class LogServiceImpl implements LogService {
                 logs.clear();
                 accumulatedSize = 0;
                 if (log.isDebugEnabled()) {
-                    log.debug("The current script log is too large, exceeding {}, and should be saved in batches, " +
+                    log.debug("The get script log is too large, exceeding {}, and should be saved in batches, " +
                             "stepInstanceId:{}, executeCount:{}, batch: {}",
                         requestContentSizeThreshold, stepInstanceId, executeCount, batch);
                 }

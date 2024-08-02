@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
-import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
 import com.tencent.bk.job.common.sharding.mysql.ShardingConfigParseException;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -70,20 +69,16 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({ShardingsphereProperties.class})
-@ConditionalOnProperty(value = "shardingsphere.enabled", havingValue = "true")
+@EnableConfigurationProperties({ShardingProperties.class})
+@ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")
 @Import(LeafDbConfig.class)
 @Slf4j
 public class ShardingDatasourceAutoConfiguration {
 
-    @Bean("jooqLeafIdAllocator")
-    public JooqLeafIdAllocator jooqLeafIdAllocator(@Qualifier("leaf-dsl-context") DSLContext dslContext) {
-        return new JooqLeafIdAllocator(dslContext);
-    }
-
     @Bean("jobShardingDataSource")
-    public DataSource shardingDataSource(ShardingsphereProperties shardingsphereProperties) throws SQLException {
+    public DataSource shardingDataSource(ShardingProperties shardingProperties) throws SQLException {
         log.info("Init sharding datasource start ...");
+        ShardingProperties.ShardingsphereProperties shardingsphereProperties = shardingProperties.getShardingsphere();
         // 指定逻辑 Database 名称
         String databaseName = shardingsphereProperties.getDatabaseName();
         // 构建运行模式
@@ -108,7 +103,7 @@ public class ShardingDatasourceAutoConfiguration {
     }
 
     private Map<String, DataSource> createDataSources(
-        Map<String, ShardingsphereProperties.DataSource> dataSourcePropMap) {
+        Map<String, ShardingProperties.ShardingsphereProperties.DataSource> dataSourcePropMap) {
         log.info("Init datasourceMap start ...");
 
         Map<String, DataSource> dataSourceMap = new HashMap<>();
@@ -127,7 +122,7 @@ public class ShardingDatasourceAutoConfiguration {
     }
 
     private ShardingRuleConfiguration createShardingRuleConfiguration(
-        ShardingsphereProperties.ShardingRule shardingRuleProps) {
+        ShardingProperties.ShardingsphereProperties.ShardingRule shardingRuleProps) {
         log.info("Init sharding rule configuration start ...");
 
         ShardingRuleConfiguration shardingRuleConfiguration = new ShardingRuleConfiguration();
@@ -198,7 +193,7 @@ public class ShardingDatasourceAutoConfiguration {
 
 
     private List<ShardingTableRuleConfiguration> createShardingTableRuleConfigurations(
-        Map<String, ShardingsphereProperties.TableShardingRule> tables) {
+        Map<String, ShardingProperties.ShardingsphereProperties.TableShardingRule> tables) {
 
         List<ShardingTableRuleConfiguration> configurations = new ArrayList<>(tables.size());
 
@@ -210,7 +205,7 @@ public class ShardingDatasourceAutoConfiguration {
 
     private ShardingTableRuleConfiguration createShardingTableRuleConfiguration(
         String tableName,
-        ShardingsphereProperties.TableShardingRule tableShardingRule) {
+        ShardingProperties.ShardingsphereProperties.TableShardingRule tableShardingRule) {
         log.info("[{}] Create sharding table rule configuration, tableShardingRule: {}",
             tableName, tableShardingRule);
 
@@ -245,7 +240,7 @@ public class ShardingDatasourceAutoConfiguration {
     }
 
     private ShardingStrategyConfiguration createShardingStrategyConfiguration(
-        ShardingsphereProperties.ShardingStrategy shardingStrategyProps) {
+        ShardingProperties.ShardingsphereProperties.ShardingStrategy shardingStrategyProps) {
         String shardingStrategyType = shardingStrategyProps.getType().trim().toLowerCase();
         switch (shardingStrategyType) {
             case "standard":

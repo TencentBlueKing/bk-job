@@ -31,6 +31,8 @@ import lombok.Data;
  */
 @Data
 public class FileSourceTaskLogDTO {
+    private Long id;
+
     private Long taskInstanceId;
 
     private Long stepInstanceId;

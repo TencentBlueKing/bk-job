@@ -27,19 +27,16 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
-import com.tencent.bk.job.execute.dao.IdGenerator;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
-import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep6;
 import org.jooq.Record;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -52,23 +49,19 @@ import java.util.List;
 public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
 
-    private final DSLContext ctx;
+    private final DSLContextDynamicProvider dslContextProvider;
     private final CipherVariableCryptoService cipherVariableCryptoService;
 
-    private final IdGenerator idGenerator;
-
     @Autowired
-    public TaskInstanceVariableDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                                       CipherVariableCryptoService cipherVariableCryptoService,
-                                       @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.ctx = shardingPreferDslContextProvider.get();
+    public TaskInstanceVariableDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider,
+                                       CipherVariableCryptoService cipherVariableCryptoService) {
+        this.dslContextProvider = dslContextDynamicProvider;
         this.cipherVariableCryptoService = cipherVariableCryptoService;
-        this.idGenerator = idGenerator;
     }
 
     @Override
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
-        Result<Record6<Long, Long, String, Byte, Byte, String>> result = ctx.select(
+        Result<Record6<Long, Long, String, Byte, Byte, String>> result = dslContextProvider.get().select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.NAME,
@@ -112,7 +105,7 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     @Override
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
         InsertValuesStep6<TaskInstanceVariableRecord, Long, Long, String, Byte, String, Byte> insertStep =
-            ctx.insertInto(TABLE)
+            dslContextProvider.get().insertInto(TABLE)
                 .columns(
                     TABLE.ID,
                     TABLE.TASK_INSTANCE_ID,
@@ -125,7 +118,7 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
         taskVarList.forEach(taskVar -> {
             TaskVariableTypeEnum taskVarType = TaskVariableTypeEnum.valOf(taskVar.getType());
             insertStep.values(
-                idGenerator.genTaskInstanceVariableId(),
+                taskVar.getId(),
                 taskVar.getTaskInstanceId(),
                 taskVar.getName(),
                 JooqDataTypeUtil.toByte(taskVar.getType()),

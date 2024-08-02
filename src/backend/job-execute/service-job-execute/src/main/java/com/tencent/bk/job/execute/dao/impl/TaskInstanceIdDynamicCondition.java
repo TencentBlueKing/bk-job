@@ -26,10 +26,10 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,7 @@ public class TaskInstanceIdDynamicCondition {
         }
         if (FeatureToggle.checkFeature(
             FeatureIdConstants.DAO_ADD_TASK_INSTANCE_ID,
-            FeatureExecutionContext.builder()
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     JobContextUtil.getAppResourceScope()))) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {

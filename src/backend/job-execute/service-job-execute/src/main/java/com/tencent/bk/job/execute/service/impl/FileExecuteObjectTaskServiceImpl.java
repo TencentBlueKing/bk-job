@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGenerator;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -11,7 +12,6 @@ import com.tencent.bk.job.execute.model.ResultGroupDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -31,17 +31,18 @@ public class FileExecuteObjectTaskServiceImpl
 
     private final FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO;
     private final FileAgentTaskDAO fileAgentTaskDAO;
-    private final TaskInstanceService taskInstanceService;
+
+    private final IdGenerator idGenerator;
 
     @Autowired
     public FileExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
                                             FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO,
                                             FileAgentTaskDAO fileAgentTaskDAO,
-                                            TaskInstanceService taskInstanceService) {
+                                            IdGenerator idGenerator) {
         super(stepInstanceService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.fileExecuteObjectTaskDAO = fileExecuteObjectTaskDAO;
-        this.taskInstanceService = taskInstanceService;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -49,6 +50,7 @@ public class FileExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
+        tasks.forEach(task -> task.setId(idGenerator.genGseFileExecuteObjTaskId()));
 
         if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             fileExecuteObjectTaskDAO.batchSaveTasks(tasks);

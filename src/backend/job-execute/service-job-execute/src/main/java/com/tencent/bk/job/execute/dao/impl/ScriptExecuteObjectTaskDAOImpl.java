@@ -27,9 +27,8 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -38,7 +37,6 @@ import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRe
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -49,7 +47,6 @@ import org.jooq.TableField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.UpdateSetStep;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -84,9 +81,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         T.LOG_OFFSET
     };
 
-    private final DSLContext CTX;
-
-    private final IdGenerator idGenerator;
+    private final DSLContextDynamicProvider dslContextProvider;
 
     private static final String BATCH_INSERT_SQL =
         "insert into gse_script_execute_obj_task (id,task_instance_id,step_instance_id,execute_count,"
@@ -99,10 +94,8 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             + " where task_instance_id = ? and step_instance_id = ? and execute_count = ? and batch = ?"
             + " and execute_obj_id = ?";
 
-    public ScriptExecuteObjectTaskDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                                          @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
+    public ScriptExecuteObjectTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+        this.dslContextProvider = dslContextDynamicProvider;
     }
 
     @Override
@@ -111,7 +104,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         int batchCount = 0;
         for (ExecuteObjectTask task : tasks) {
             Object[] param = new Object[17];
-            param[0] = idGenerator.genGseScriptExecuteObjTaskId();
+            param[0] = task.getId();
             param[1] = task.getTaskInstanceId();
             param[2] = task.getStepInstanceId();
             param[3] = task.getExecuteCount();
@@ -130,7 +123,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[16] = task.getScriptLogOffset();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_INSERT_SQL, params).execute();
+        dslContextProvider.get().batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
@@ -158,12 +151,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[13] = task.getExecuteObjectId();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_UPDATE_SQL, params).execute();
+        dslContextProvider.get().batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
     public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        Integer count = CTX.selectCount()
+        Integer count = dslContextProvider.get().selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -187,7 +180,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(T.STATUS, T.TAG, count().as("task_count"))
+            dslContextProvider.get().select(T.STATUS, T.TAG, count().as("task_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T.EXECUTE_COUNT.eq((short) executeCount))
@@ -219,7 +212,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
                                                           Integer batch,
                                                           Integer status,
                                                           String tag) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -280,7 +273,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         conditions.add(T.TAG.eq(tag == null ? "" : tag));
         conditions.add(buildTaskInstanceIdQueryCondition(taskInstanceId));
 
-        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(conditions);
 
@@ -344,7 +337,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
                                              Long stepInstanceId,
                                              Integer executeCount,
                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -371,7 +364,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
 
         List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
 
-        Result<?> result = CTX.select(ALL_FIELDS)
+        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -389,7 +382,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
                                                       Integer batch,
                                                       String executeObjectId) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(ALL_FIELDS)
+            dslContextProvider.get().select(ALL_FIELDS)
                 .from(T)
                 .where(buildTaskInstanceIdQueryCondition(taskInstanceId))
                 .and(T.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -406,7 +399,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
 
     @Override
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
-        return CTX.fetchExists(
+        return dslContextProvider.get().fetchExists(
             T,
             T.STEP_INSTANCE_ID.eq(stepInstanceId),
             buildTaskInstanceIdQueryCondition(taskInstanceId));
@@ -419,7 +412,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = CTX.update(T);
+        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = dslContextProvider.get().update(T);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,

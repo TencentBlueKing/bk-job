@@ -25,62 +25,52 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.dao.IdGenerator;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
-import com.tencent.bk.job.execute.dao.ShardingPreferDSLContextProvider;
+import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class RollingConfigDAOImpl implements RollingConfigDAO {
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
-    private final DSLContext CTX;
-
-    private final IdGenerator idGenerator;
+    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public RollingConfigDAOImpl(ShardingPreferDSLContextProvider shardingPreferDslContextProvider,
-                                @Qualifier("jobExecuteIdGenerator") IdGenerator idGenerator) {
-        this.CTX = shardingPreferDslContextProvider.get();
-        this.idGenerator = idGenerator;
+    public RollingConfigDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
+        this.dslContextProvider = dslContextDynamicProvider;
     }
 
     @Override
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
-        Long id = idGenerator.genRollingConfigId();
-        Record record = CTX.insertInto(
+        Record record = dslContextProvider.get().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
                 TABLE.CONFIG)
             .values(
-                id,
+                rollingConfig.getId(),
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
                 JsonUtils.toJson(rollingConfig.getConfigDetail()))
             .returning(TABLE.ID)
             .fetchOne();
 
-        if (id == null) {
-            id = record != null ? record.getValue(TABLE.ID) : 0L;
-        }
-        return id;
+        return rollingConfig.getId() != null ? rollingConfig.getId() : record.getValue(TABLE.ID);
+
     }
 
     @Override
     public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
-        Record record = CTX.select(
+        Record record = dslContextProvider.get().select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
@@ -93,7 +83,7 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
 
     @Override
     public boolean existsRollingConfig(long taskInstanceId) {
-        Result<Record1<Integer>> records = CTX.selectOne()
+        Result<Record1<Integer>> records = dslContextProvider.get().selectOne()
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .limit(1)

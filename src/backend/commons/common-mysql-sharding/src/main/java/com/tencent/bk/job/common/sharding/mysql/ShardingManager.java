@@ -24,16 +24,16 @@
 
 package com.tencent.bk.job.common.sharding.mysql;
 
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingsphereProperties;
+import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
 
 public class ShardingManager {
 
     private boolean shardingEnabled = false;
 
 
-    public ShardingManager(ShardingsphereProperties shardingsphereProperties) {
-        if (shardingsphereProperties != null) {
-            this.shardingEnabled = shardingsphereProperties.isEnabled();
+    public ShardingManager(ShardingProperties shardingProperties) {
+        if (shardingProperties != null) {
+            this.shardingEnabled = shardingProperties.isEnabled();
         }
     }
 

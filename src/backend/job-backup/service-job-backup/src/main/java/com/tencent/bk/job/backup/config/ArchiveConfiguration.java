@@ -47,7 +47,7 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingsphereProperties;
+import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.BeanCreationException;
@@ -84,16 +84,16 @@ public class ArchiveConfiguration {
 
         @Bean(name = "jobExecuteDSLContext")
         public DSLContext jobExecuteDSLContext(
-            @Autowired ObjectProvider<ShardingsphereProperties> shardingspherePropertiesObjectProperty,
+            @Autowired ObjectProvider<ShardingProperties> shardingPropertiesObjectProperty,
             @Autowired(required = false)
             @Qualifier("job-execute-dsl-context") DSLContext noShardingDSLContext,
             @Autowired(required = false)
             @Qualifier("job-sharding-dsl-context") DSLContext shardingDSLContext
         ) {
             log.info("Init JobExecuteDSLContext");
-            ShardingsphereProperties shardingsphereProperties =
-                shardingspherePropertiesObjectProperty.getIfAvailable();
-            boolean shardingEnabled = shardingsphereProperties != null && shardingsphereProperties.isEnabled();
+            ShardingProperties shardingProperties =
+                shardingPropertiesObjectProperty.getIfAvailable();
+            boolean shardingEnabled = shardingProperties != null && shardingProperties.isEnabled();
 
             if (shardingEnabled) {
                 if (shardingDSLContext == null) {
