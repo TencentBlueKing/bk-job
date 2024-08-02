@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.config;
 
-import lombok.Data;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,5 +54,9 @@ public class AIProperties {
          * 支持分析的错误日志最大长度
          */
         private String logMaxLength = "5MB";
+
+        public Long getLogMaxLengthBytes() {
+            return FileSizeUtil.parseFileSizeBytes(logMaxLength);
+        }
     }
 }

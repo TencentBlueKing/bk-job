@@ -22,29 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.analysis.model.web.req.validation;
 
-import com.tencent.bk.job.analysis.model.web.req.validation.MaxLength;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import javax.validation.constraints.NotEmpty;
+public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
+    private Long maxLength;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI通用对话请求体")
-@Data
-public class AIGeneralChatReq {
+    @Override
+    public void initialize(MaxLength maxLengthAnnotation) {
+        this.maxLength = maxLengthAnnotation.value();
+    }
 
-    /**
-     * 用户输入内容
-     */
-    @ApiModelProperty(value = "用户输入内容")
-    @NotEmpty(message = "{validation.constraints.AIGeneralChat_contentEmpty.message}")
-    @MaxLength(value = 5 * 1024L * 1024L,
-        message = "{validation.constraints.AIGeneralChat_contentExceedMaxLength.message}")
-    private String content;
+    @Override
+    public boolean isValid(String content,
+                           ConstraintValidatorContext constraintValidatorContext) {
+        if (content == null) {
+            return true;
+        }
+        return content.length() <= maxLength;
+    }
 }

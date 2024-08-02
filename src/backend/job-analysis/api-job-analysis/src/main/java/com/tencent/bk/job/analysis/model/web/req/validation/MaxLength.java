@@ -22,29 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.analysis.model.web.req.validation;
 
-import com.tencent.bk.job.analysis.model.web.req.validation.MaxLength;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import javax.validation.constraints.NotEmpty;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI通用对话请求体")
-@Data
-public class AIGeneralChatReq {
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = MaxLengthValidator.class)
+@Documented
+public @interface MaxLength {
+    long value();
 
-    /**
-     * 用户输入内容
-     */
-    @ApiModelProperty(value = "用户输入内容")
-    @NotEmpty(message = "{validation.constraints.AIGeneralChat_contentEmpty.message}")
-    @MaxLength(value = 5 * 1024L * 1024L,
-        message = "{validation.constraints.AIGeneralChat_contentExceedMaxLength.message}")
-    private String content;
+    String message() default "{validation.constraints.ExceedMaxLength.message}";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 }

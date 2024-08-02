@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.api.web.impl;
 
 import com.tencent.bk.job.analysis.api.web.WebAIResource;
+import com.tencent.bk.job.analysis.config.AIProperties;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
@@ -39,8 +40,12 @@ import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.analysis.service.ai.impl.AIConfigService;
 import com.tencent.bk.job.analysis.service.ai.impl.AIMessageI18nService;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,6 +65,7 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
     private final AIChatHistoryService aiChatHistoryService;
     private final AIMessageI18nService aiMessageI18nService;
+    private final AIProperties aiProperties;
 
     @Autowired
     public WebAIResourceImpl(AIConfigService aiConfigService,
@@ -67,13 +73,15 @@ public class WebAIResourceImpl implements WebAIResource {
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService,
                              AIChatHistoryService aiChatHistoryService,
-                             AIMessageI18nService aiMessageI18nService) {
+                             AIMessageI18nService aiMessageI18nService,
+                             AIProperties aiProperties) {
         this.aiConfigService = aiConfigService;
         this.chatService = chatService;
         this.aiCheckScriptService = aiCheckScriptService;
         this.aiAnalyzeErrorService = aiAnalyzeErrorService;
         this.aiChatHistoryService = aiChatHistoryService;
         this.aiMessageI18nService = aiMessageI18nService;
+        this.aiProperties = aiProperties;
     }
 
     @Override
@@ -142,8 +150,27 @@ public class WebAIResourceImpl implements WebAIResource {
                                            String scopeType,
                                            String scopeId,
                                            AIAnalyzeErrorReq req) {
+        checkScriptLogContentLength(req);
         AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, appResourceScope.getAppId(), req);
         return Response.buildSuccessResp(aiAnswer);
+    }
+
+    /**
+     * 结合动态配置的限制值检查脚本日志内容长度是否超限
+     *
+     * @param req 请求体
+     */
+    private void checkScriptLogContentLength(AIAnalyzeErrorReq req) {
+        if (StepExecuteTypeEnum.EXECUTE_SCRIPT.getValue().equals(req.getStepExecuteType())) {
+            Long logMaxLengthBytes = aiProperties.getAnalyzeErrorLog().getLogMaxLengthBytes();
+            if (req.getContent().length() > logMaxLengthBytes) {
+                throw new ServiceException(
+                    ErrorType.INVALID_PARAM,
+                    ErrorCode.AI_ANALYZE_ERROR_CONTENT_EXCEED_MAX_LENGTH,
+                    new Object[]{aiProperties.getAnalyzeErrorLog().getLogMaxLength()}
+                );
+            }
+        }
     }
 
     @Override

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.model.web.req;
 
+import com.tencent.bk.job.analysis.model.web.req.validation.MaxLength;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
@@ -55,5 +56,7 @@ public class AICheckScriptReq {
      */
     @ApiModelProperty(value = "脚本内容，BASE64编码")
     @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
+    @MaxLength(value = 5 * 1024L * 1024L,
+        message = "{validation.constraints.AICheckScript_contentExceedMaxLength.message}")
     private String content;
 }

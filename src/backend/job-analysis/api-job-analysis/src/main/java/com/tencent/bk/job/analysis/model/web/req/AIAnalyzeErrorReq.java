@@ -30,7 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
@@ -42,6 +41,10 @@ public class AIAnalyzeErrorReq {
     @ApiModelProperty(value = "任务ID")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_taskInstanceIdEmpty.message}")
     private Long taskInstanceId;
+
+    @ApiModelProperty("步骤执行类型：1-脚本，2-文件")
+//    @NotNull(message = "{validation.constraints.AIAnalyzeError_stepExecuteTypeEmpty.message}")
+    private Integer stepExecuteType;
 
     @ApiModelProperty(value = "步骤ID")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_stepInstanceIdEmpty.message}")
@@ -66,7 +69,6 @@ public class AIAnalyzeErrorReq {
     @ApiModelProperty(value = "文件任务上传下载标识,0-上传,1-下载")
     private Integer mode;
 
-    @ApiModelProperty(value = "报错信息内容")
-    @NotEmpty(message = "{validation.constraints.AIAnalyzeError_contentEmpty.message}")
+    @ApiModelProperty(value = "脚本任务报错信息内容")
     private String content;
 }

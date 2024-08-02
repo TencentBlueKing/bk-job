@@ -54,6 +54,7 @@ import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
+@Validated
 @Api(tags = {"job-analysis:web:AI"})
 @RequestMapping("/web/ai/scope/{scopeType}/{scopeId}")
 @RestController
@@ -93,13 +94,13 @@ public interface WebAIResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "start", name = "对话记录起始位置，不传默认为0")
+        @ApiParam(value = "对话记录起始位置，不传默认为0")
         @RequestParam(value = "start", defaultValue = "0")
         @Min(value = 0L, message = "{validation.constraints.AIInvalidHistoryStart.message}")
         Integer start,
-        @ApiParam(value = "length", name = "需要获取的对话记录条数，最大200条，不传默认20条")
+        @ApiParam(value = "需要获取的对话记录条数，最大200条，不传默认20条")
         @RequestParam(value = "length", defaultValue = "20")
-        @Range(min = 0L, max = 200L, message = "{validation.constraints.AIInvalidHistoryLength.message}")
+        @Range(max = 200L, message = "{validation.constraints.AIInvalidHistoryLength.message}")
         Integer length
     );
 

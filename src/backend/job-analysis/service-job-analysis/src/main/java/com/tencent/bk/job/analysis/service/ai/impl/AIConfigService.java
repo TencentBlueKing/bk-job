@@ -43,8 +43,7 @@ public class AIConfigService {
 
     public Map<String, Object> getAIConfig() {
         Map<String, Object> map = new HashMap<>();
-        String logMaxLengthStr = aiProperties.getAnalyzeErrorLog().getLogMaxLength();
-        long logMaxLengthBytes = FileSizeUtil.parseFileSizeBytes(logMaxLengthStr);
+        Long logMaxLengthBytes = aiProperties.getAnalyzeErrorLog().getLogMaxLengthBytes();
         map.put("enabled", aiProperties.getEnabled());
         map.put("analyzeErrorLogMaxLength", logMaxLengthBytes);
         return map;
