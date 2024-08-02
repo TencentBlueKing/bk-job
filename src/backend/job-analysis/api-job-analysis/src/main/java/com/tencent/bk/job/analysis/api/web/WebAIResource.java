@@ -36,6 +36,8 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +50,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
@@ -92,9 +95,11 @@ public interface WebAIResource {
         String scopeId,
         @ApiParam(value = "start", name = "对话记录起始位置，不传默认为0")
         @RequestParam(value = "start", defaultValue = "0")
+        @Min(value = 0L, message = "{validation.constraints.AIInvalidHistoryStart.message}")
         Integer start,
         @ApiParam(value = "length", name = "需要获取的对话记录条数，最大200条，不传默认20条")
         @RequestParam(value = "length", defaultValue = "20")
+        @Range(min = 0L, max = 200L, message = "{validation.constraints.AIInvalidHistoryLength.message}")
         Integer length
     );
 
@@ -114,6 +119,7 @@ public interface WebAIResource {
         @PathVariable(value = "scopeId")
         String scopeId,
         @ApiParam(value = "AI通用聊天参数", required = true)
+        @Validated
         @RequestBody AIGeneralChatReq req
     );
 
@@ -133,6 +139,7 @@ public interface WebAIResource {
         @PathVariable(value = "scopeId")
         String scopeId,
         @ApiParam(value = "AI检查脚本参数", required = true)
+        @Validated
         @RequestBody AICheckScriptReq req
     );
 
@@ -152,6 +159,7 @@ public interface WebAIResource {
         @PathVariable(value = "scopeId")
         String scopeId,
         @ApiParam(value = "AI分析报错信息参数", required = true)
+        @Validated
         @RequestBody AIAnalyzeErrorReq req
     );
 

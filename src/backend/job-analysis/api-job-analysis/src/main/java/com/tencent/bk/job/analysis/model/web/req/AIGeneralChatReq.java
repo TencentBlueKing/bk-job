@@ -42,6 +42,6 @@ public class AIGeneralChatReq {
      * 用户输入内容
      */
     @ApiModelProperty(value = "用户输入内容")
-    @NotEmpty(message = "{validation.constraints.AIGeneralChatContent_empty.message}")
+    @NotEmpty(message = "{validation.constraints.AIGeneralChat_contentEmpty.message}")
     private String content;
 }

@@ -31,6 +31,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,27 +40,33 @@ import javax.validation.constraints.NotEmpty;
 public class AIAnalyzeErrorReq {
 
     @ApiModelProperty(value = "任务ID")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_taskInstanceIdEmpty.message}")
     private Long taskInstanceId;
 
     @ApiModelProperty(value = "步骤ID")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_stepInstanceIdEmpty.message}")
     private Long stepInstanceId;
 
     @ApiModelProperty(value = "执行次数")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_executeCountEmpty.message}")
     private Integer executeCount;
 
     @ApiModelProperty(value = "滚动批次，非滚动步骤不需要传入")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_batchEmpty.message}")
     private Integer batch;
 
     @ApiModelProperty(value = "执行对象类型")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_executeObjectTypeEmpty.message}")
     private Integer executeObjectType;
 
     @ApiModelProperty(value = "执行对象资源 ID")
+    @NotNull(message = "{validation.constraints.AIAnalyzeError_executeObjectResourceIdEmpty.message}")
     private Long executeObjectResourceId;
 
     @ApiModelProperty(value = "文件任务上传下载标识,0-上传,1-下载")
     private Integer mode;
 
     @ApiModelProperty(value = "报错信息内容")
-    @NotEmpty(message = "{validation.constraints.AIAnalyzeErrorContent_empty.message}")
+    @NotEmpty(message = "{validation.constraints.AIAnalyzeError_contentEmpty.message}")
     private String content;
 }
