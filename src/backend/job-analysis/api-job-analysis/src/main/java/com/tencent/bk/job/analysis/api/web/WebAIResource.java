@@ -61,7 +61,9 @@ import java.util.Map;
 @WebAPI
 public interface WebAIResource {
 
-    @ApiOperation(value = "获取AI相关的配置参数，取值：analyzeErrorLogMaxLength表示分析报错信息时支持的最大日志长度，单位为字符",
+    @ApiOperation(value = "获取AI相关的配置参数，取值：\n" +
+        "enabled：表示是否启用AI功能；\n" +
+        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；",
         produces = "application/json")
     @GetMapping("/config")
     Response<Map<String, Object>> getAIConfig(
