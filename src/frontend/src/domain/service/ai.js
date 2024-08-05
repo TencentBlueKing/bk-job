@@ -49,15 +49,18 @@ export default {
   fetchLatestChatHistoryList(params = {}) {
     return AiSource.getLatestChatHistoryList(params)
       .then(({ data }) => data.reduce((result, item) => {
+        if (item.userInput.content) {
+          result.push({
+            type: 'user',
+            content: item.userInput.content,
+            status: '',
+          });
+        }
+
         result.push({
           type: 'ai',
           content: item.aiAnswer.content,
           status: item.aiAnswer.errorCode === 0 ? 'success' : 'error',
-        });
-        result.push({
-          type: 'user',
-          content: item.userInput.content,
-          status: '',
         });
 
         return result;
