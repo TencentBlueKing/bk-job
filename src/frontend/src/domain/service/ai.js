@@ -60,7 +60,7 @@ export default {
         result.push({
           type: 'ai',
           content: item.aiAnswer.content,
-          status: item.aiAnswer.errorCode === 0 ? 'success' : 'error',
+          status: item.aiAnswer.errorCode === '0' ? 'success' : 'error',
         });
 
         return result;

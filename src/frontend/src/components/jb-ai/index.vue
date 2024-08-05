@@ -103,7 +103,7 @@
   };
 
   const handleClear = () => {
-    AiService.fetchGeneraChat();
+    AiService.deleteChatHistory();
     messages.value = [];
   };
 

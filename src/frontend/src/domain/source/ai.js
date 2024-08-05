@@ -64,7 +64,7 @@ class Ai extends ModuleBase {
   }
 
   deleteChatHistory() {
-    return Request.get(`${this.path}/clearChatHistory`);
+    return Request.delete(`${this.path}/clearChatHistory`);
   }
 }
 
