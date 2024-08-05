@@ -71,7 +71,7 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
                          BkApiGatewayProperties bkApiGatewayProperties) {
         super(
             meterRegistry,
-            CommonMetricNames.BK_NOTICE_API,
+            CommonMetricNames.BK_AI_DEV_API,
             getBkAIDevUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.getDefaultHttpHelper()
         );
