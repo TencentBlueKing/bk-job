@@ -311,3 +311,10 @@
 [data-bkpop-container="true"] .bk-dialog-wrapper .bk-dialog{
   top: initial !important;
 }
+
+.bk-notice-component-dialog.bk-dialog-wrapper {
+  .bk-dialog-content{
+    position:  relative !important;
+    overflow: hidden;
+  }
+}
