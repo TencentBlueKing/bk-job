@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.UserInput;
@@ -123,6 +124,8 @@ public class AIChatHistoryDTO {
         aiAnswer.setErrorCode(errorCode);
         aiAnswer.setErrorMessage(errorMessage);
         aiChatRecord.setAiAnswer(aiAnswer);
+        // TODO:使用真实数据
+        aiChatRecord.setStatus(AIChatStatusEnum.FINISHED.getStatus());
         return aiChatRecord;
     }
 }

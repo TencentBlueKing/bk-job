@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.api.web.impl;
 
 import com.tencent.bk.job.analysis.api.web.WebAIResource;
 import com.tencent.bk.job.analysis.config.AIProperties;
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
@@ -112,6 +113,7 @@ public class WebAIResourceImpl implements WebAIResource {
         AIChatRecord greetingRecord = new AIChatRecord();
         greetingRecord.setUserInput(new UserInput("", 0L));
         greetingRecord.setAiAnswer(getGreetingAIAnswer());
+        greetingRecord.setStatus(AIChatStatusEnum.FINISHED.getStatus());
         return greetingRecord;
     }
 

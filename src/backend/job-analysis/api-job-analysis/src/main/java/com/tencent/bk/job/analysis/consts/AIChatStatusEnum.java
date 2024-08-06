@@ -22,30 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.resp;
+package com.tencent.bk.job.analysis.consts;
 
-import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("一条AI对话记录")
-@Data
-public class AIChatRecord {
-
-    @ApiModelProperty(value = "用户输入")
-    private UserInput userInput;
-
-    @ApiModelProperty("AI回答")
-    private AIAnswer aiAnswer;
-
+/**
+ * AI对话状态
+ */
+public enum AIChatStatusEnum {
     /**
-     * 对话状态，取值源于{@link AIChatStatusEnum}.
+     * 正在回答
      */
-    @ApiModelProperty("对话状态：1-正在回答，2-已完成")
-    private Integer status;
+    REPLYING(1),
+    /**
+     * 已完成
+     */
+    FINISHED(2);
+
+    private final int status;
+
+    AIChatStatusEnum(int status) {
+        this.status = status;
+    }
+
+    public static AIChatStatusEnum getAIChatStatus(int status) {
+        for (AIChatStatusEnum aiChatStatusEnum : AIChatStatusEnum.values()) {
+            if (aiChatStatusEnum.getStatus() == status) {
+                return aiChatStatusEnum;
+            }
+        }
+        throw new RuntimeException("Unknown AIChat status " + status);
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
 }
