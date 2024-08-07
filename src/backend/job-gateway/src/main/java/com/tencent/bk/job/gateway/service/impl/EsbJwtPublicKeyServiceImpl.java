@@ -26,14 +26,18 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.model.esb.EsbPublicKeyDTO;
 import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -49,14 +53,18 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
     private final EsbProperties esbProperties;
     private final RestTemplate restTemplate;
     private volatile String publicKey;
+    private volatile String gatewayPublicKey;
+    private BkApiGatewayProperties bkApiGatewayProperties;
 
     @Autowired
     public EsbJwtPublicKeyServiceImpl(AppProperties appProperties,
                                       EsbProperties esbProperties,
-                                      RestTemplate restTemplate) {
+                                      RestTemplate restTemplate,
+                                      BkApiGatewayProperties bkApiGatewayProperties) {
         this.appProperties = appProperties;
         this.esbProperties = esbProperties;
         this.restTemplate = restTemplate;
+        this.bkApiGatewayProperties = bkApiGatewayProperties;
     }
 
     @Override
@@ -83,6 +91,36 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
         return publicKey;
     }
 
+    @Override
+    public String getGatewayJWTPublicKey() {
+        if (StringUtils.isNotEmpty(gatewayPublicKey)) {
+            return gatewayPublicKey;
+        }
+        String url = getGatewayUrl() + "api/v1/apis/bk-job/public_key/";
+        Map<String, Object> authInfo = new HashMap<>();
+        authInfo.put("bk_app_code", appProperties.getCode());
+        authInfo.put("bk_app_secret", appProperties.getSecret());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Bkapi-Authorization", JsonUtils.toJson(authInfo));
+        EsbResp<EsbPublicKeyDTO> resp = restTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            new HttpEntity<>(null, headers),
+            new ParameterizedTypeReference<EsbResp<EsbPublicKeyDTO>>() {
+            }
+        ).getBody();
+
+        log.info("Get gateway jwt public key, resp: {}", resp);
+        if (resp == null || !resp.getCode().equals(ErrorCode.RESULT_OK) || resp.getData() == null) {
+            log.error("Get gateway jwt public key fail!");
+            throw new RuntimeException("Get gateway jwt public key fail");
+        }
+        String gatewayPublicKey = resp.getData().getPublicKey();
+        log.info("Get gateway public key success, public key : {}", gatewayPublicKey);
+        this.gatewayPublicKey = gatewayPublicKey;
+        return gatewayPublicKey;
+    }
+
     private String getEsbUrl() {
         String esbUrl = esbProperties.getService().getUrl();
         if (StringUtils.isEmpty(esbUrl)) {
@@ -92,5 +130,16 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
             esbUrl = esbUrl + "/";
         }
         return esbUrl;
+    }
+
+    private String getGatewayUrl() {
+        String gatewayUrl = bkApiGatewayProperties.getBkGateway().getUrl();
+        if (StringUtils.isEmpty(gatewayUrl)) {
+            throw new RuntimeException("Illegal gateway url!");
+        }
+        if (!gatewayUrl.endsWith("/")) {
+            gatewayUrl = gatewayUrl + "/";
+        }
+        return gatewayUrl;
     }
 }

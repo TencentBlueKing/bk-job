@@ -1508,29 +1508,37 @@ migrationInit:
       cpu: 500m
       memory: 1Gi
 
-## 接入蓝鲸网关(方式：chart + 自定义镜像)配置
-apiGatewaySync:
-  enabled: true
+## 蓝鲸网关配置，接入方式：chart + 自定义镜像
+apiGatewayConfig:
+  # 是否自动同步蓝鲸网关
+  sync: false
+  # 是否接入apigw jwt认证
+  enabled: false
+  # 接入的网关名称，蓝鲸官方网关都是bk-开头
+  gatewayName: "bk-job"
+  # 同步蓝鲸网关url
+  syncUrl: "http://bkapi.example.com/api/{api_name}"
+  # 蓝鲸网关接口url
+  apiUrl: "http://bkapi.example.com/api/{api_name}/{env}"
+  # 接入环境
+  stage: "prod"
+  # 接入的api资源目录, 默认是/data/apidocs/
+  resourceDir: "/data/apidocs/"
   image:
-    registry : hub.bktencent.com
-    repository : blueking/job-sync-api-gateway
-    tag : "{{APP_VERSION}}"
-    pullPolicy : IfNotPresent
-    pullSecrets : []
+    # 镜像拉取仓库根地址
+    registry: hub.bktencent.com
+    # 镜像拉取仓库组织与镜像名称
+    repository: blueking/job-sync-api-gateway
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+    pullSecrets: []
   # 任务资源限制
-  resources :
-    limits :
-      cpu : 500m
-      memory : 1Gi
-  extraEnvVars:
-    - name: BK_APIGW_NAME
-      value: "bk-job"
-    - name: BK_APP_CODE
-      value: "bk_job"
-    - name: BK_APP_SECRET
-      value: "c0d3ac79-871b-431d-8b51-3392142a407d"
-    - name: BK_API_URL_TMPL
-      value: "https://job-dev.paas3-dev.bktencent.com"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:

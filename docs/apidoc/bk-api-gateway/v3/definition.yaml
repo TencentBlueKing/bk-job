@@ -1,22 +1,21 @@
-# spec_version 配置文件版本号，必填，固定值 1
-# 如果之前接入过的，建议将 sepc_version改成 2，并将原先 stage:改成 stages: []
-spec_version: 1
+# definition.yaml 配置文件版本号，必填，固定值 1/2
+# 1：key为stage; 只支持单个 stage， 并且 proxy_http只能配置一个后端服务
+# 用sdk用最新的或者基础镜像版本apigw-manager:3.0.4不用区分，直接用2
+spec_version: 2
 
-# 定义发布内容，用于命令 `create_version_and_release_apigw`
 release:
-  # 发布版本号；
-  # 资源配置更新，需更新此版本号才会发布资源版本，此版本号和 sdk 版本号一致，错误设置会影响调用方使用
+  # 发布版本号
+  # 每次同步资源到网关会对比，如果资源有变更就会新增版本号，如果这里指定了版本号就用这里指定的，
+  # 如果没有，就会用时间戳+上次的版本号生成一个，即上一次版本号+时间戳
   version: 1.0.0
-  # 版本标题
-  title: "job测试标题"
-  # 版本描述
-  comment: "job测试描述"
+  title: "1.0.0"
+  comment: "1.0.0"
 
 # 定义网关基本信息，用于命令 `sync_apigw_config`
 apigateway:
-  description: "蓝鲸作业平台"
+  description: "蓝鲸作业平台API"
   # 网关的英文描述，蓝鲸官方网关需提供英文描述，以支持国际化
-  description_en: "BlueKing Job"
+  description_en: "BlueKing Job API"
   # 是否公开；公开，则用户可查看资源文档、申请资源权限；不公开，则网关对用户隐藏
   is_public: true
   # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；非官方网关，可去除此配置
@@ -30,93 +29,70 @@ apigateway:
   allow_delete_sensitive_params: false
   # 网关维护人员，仅维护人员有管理网关的权限
   maintainers:
-    #- {{ environ.BK_CMDB_MAINTAINER }}
     - "admin"
 
-# 定义环境信息，用于命令 `sync_apigw_stage`
-stage:
-  name: "prod"
-  description: "作业平台正式环境"
-  # 环境的英文名，蓝鲸官方网关需提供，以支持国际化
-  description_en: "Job prod Environment"
-  # 环境变量；如未使用，可去除此配置
-  # vars:
-  #   key: "value"
-  # 代理配置
-  # proxy_http 与 backends 二选一， 推荐使用 backends 方式配置
-  # 网关版本 <= 1.13.3, 只支持一个后端服务, 默认是 default
-  # 网关版本 1.13.3之后引入 backends 配置方式,支持多后端服务
-  # 注意: 资源中引用的 backend 一定要配置， 否则会导入失败,不配置则会选  择 default 后端服务
-  #      如果 backends 没有配置 default 且 resource 未指定 backend 则会导致版本发布校验失败
-  backends:
-    - name: "default"
-      config:
-      timeout: 60
-      loadbalance: "roundrobin"
-      hosts:
-        # 网关调用后端服务的默认域名或IP，不包含Path，比如：      http://api.example.com
-        #- host: "{{Values.job.web.apiDomain}}"
-        - host: "https://job-dev.paas3-dev.bktencent.com"
-          weight: 100
+stages:
+  - name: "{{ environ.BK_JOB_STAGE_NAME }}"
+    description: "蓝鲸作业平台API"
+    description_en: "BlueKing Job API"
+    # 环境变量；如未使用，可去除此配置
+    # vars:
+    #   key: "value"
+    # 代理配置
+    # proxy_http 与 backends 二选一， 推荐使用 backends 方式配置
+    # 网关版本 <= 1.13.3, 只支持一个后端服务, 默认是 default
+    # 网关版本 1.13.3之后引入 backends 配置方式,支持多后端服务
+    # 注意: 资源中引用的 backend 一定要配置， 否则会导入失败,不配置则会选  择 default 后端服务
+    #      如果 backends 没有配置 default 且 resource 未指定 backend 则会导致版本发布校验失败
+    backends:
+      - name: "default"
+        config:
+          timeout: 60
+          loadbalance: "roundrobin"
+          hosts:
+            # 网关调用后端服务的默认域名或IP，不包含Path，比如：http://api.example.com
+            - host: {{ environ.BK_JOB_API_URL }}
+              weight: 100
 
-  # 环境插件配置
-  # plugin_configs:
-  #     - type: bk-rate-limit
-  #       yaml: |-
-  #         rates:
-  #           __default:
-  #           - period: 1
-  #             tokens: 100
-  #     - type: bk-header-rewrite
-  #       yaml: |-
-  #         set:
-  #           - key: test
-  #             value: '2'
-  #         remove: []
-  #     - type: bk-cors
-  #       yaml: |-
-  #         allow_origins: '*'
-  #         allow_methods: '*'
-  #         allow_headers: '*'
-  #         expose_headers: '*'
-  #         max_age: 86400
-  #         allow_credential: false
+    # 环境插件配置
+    plugin_configs:
+    #     - type: bk-rate-limit
+    #       yaml: |-
+    #         rates:
+    #           __default:
+    #           - period: 1
+    #             tokens: 100
+      # Header转换插件, 添加网关请求标识头
+      - type: bk-header-rewrite
+        yaml: |-
+          set:
+            - key: X-Bkapi-From
+              value: 'apigw'
+          remove: []
+    #     - type: bk-cors
+    #       yaml: |-
+    #         allow_origins: '*'
+    #         allow_methods: '*'
+    #         allow_headers: '*'
+    #         expose_headers: '*'
+    #         max_age: 86400
+    #         allow_credential: false
 
-# 主动授权，网关主动给应用，添加访问网关所有资源或者具体某个资源的权限；
-# 用于命令 `grant_apigw_permissions`
-grant_permissions:
-  - bk_app_code: "{{ settings.BK_APP_CODE }}" ## 环境变量方式："{{ environ.BK_APP_CODE }}"
-    # 授权维度，可选值：
-    # gateway: 按网关授权，包括网关下所有资源，以及未来新创建的资源
-    # resource: 按资源维度授权
-    grant_dimension: "gateway"
-    # 如果是按照 resource 维度授权,需要提供如下的具体resource_name
-    # resource_names:
-    #   - resource_name_1
-    #   - resource_name_2
-
-# 应用申请指定网关所有资源的权限，待网关管理员审批后，应用才可访问网关资源；
-# 用于命令 `apply_apigw_permissions`
-# apply_permissions:
-#   - gateway_name: "{{ settings.BK_APIGW_NAME }}" ## 环境变量方式："{{ environ.BK_APIGW_NAME }}"
-#     # 权限维度，可选值：gateway，按网关授权，包括网关下所有资源，以及未来新创建的资源
-#     grant_dimension: "gateway"
-
-# 为网关添加关联应用，关联应用可以通过网关 bk-apigateway 的接口操作网关数据；每个网关最多可有 10 个关联应用；
-# 用于命令 `add_related_apps`
-related_apps:
-  - "{{ settings.BK_APP_CODE }}" ## 环境变量方式："{{ environ.BK_APP_CODE }}"
-
-# 定义资源文档路径，用于命令 `sync_resource_docs_by_archive`；
-# 资源文档的目录格式样例如下，en 为英文文档，zh 为中文文档，创建归档文件可使用指令 `tar czvf xxx.tgz en zh`：
+# 资源文档
+# 资源文档的目录格式样例如下，en 为英文文档，zh 为中文文档：
 # ./
 # - en
-#   - get_user.md
+#   - anything.md
 # - zh
-#   - get_user.md
+#   - anything.md
 resource_docs:
   # 资源文档的归档文件，可为 tar.gz，zip 格式文件
   archivefile: "{{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}" ## 环境变量方式："{{ environ.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}"
   # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
   # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}" ## 环境变量方式："{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
-  basedir: "/data/apidocs/"
+  basedir: "{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
+
+# 主动授权，网关主动给应用，添加访问网关所有资源的权限
+grant_permissions:
+  - bk_app_code: "{{ environ.BK_APP_CODE }}"
+    grant_dimension: "gateway"

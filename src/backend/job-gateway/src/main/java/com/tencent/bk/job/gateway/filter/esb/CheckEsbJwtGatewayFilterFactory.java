@@ -69,8 +69,10 @@ public class CheckEsbJwtGatewayFilterFactory
             ServerHttpRequest request = exchange.getRequest();
 
             String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
+            String requestFrom = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_FROM);
+
             if (StringUtils.isEmpty(token)) {
-                log.warn("Esb token is empty!");
+                log.warn("Esb token is empty! requestFrom={}", requestFrom);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
@@ -81,7 +83,7 @@ public class CheckEsbJwtGatewayFilterFactory
                 authInfo = esbJwtService.extractFromJwt(token,
                     RSAUtils.getPublicKey(securityProperties.getPublicKeyBase64()));
             } else {
-                authInfo = esbJwtService.extractFromJwt(token);
+                authInfo = esbJwtService.extractFromJwt(token, requestFrom);
             }
 
             if (authInfo == null) {

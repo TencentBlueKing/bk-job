@@ -22,23 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.service;
+package com.tencent.bk.job.gateway.config;
 
-/**
- * ESB JWT 公钥获取服务
- */
-public interface EsbJwtPublicKeyService {
-    /**
-     * 获取ESB JWT 公钥
-     *
-     * @return
-     */
-    String getEsbJWTPublicKey();
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+
+@Getter
+@Setter
+@Configuration
+public class BkGatewayConfig {
 
     /**
-     * 获取bkgateway JWT 公钥
-     *
-     * @return
+     * 蓝鲸网关认证
      */
-    String getGatewayJWTPublicKey();
+    @Value("${job.bkGateway.enabled:false}")
+    private boolean enabled;
+
+    /**
+     * 蓝鲸网关请求标识
+     */
+    @Value("${job.bkGateway.requestFrom:apigw}")
+    private String requestFrom;
 }

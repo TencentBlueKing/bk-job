@@ -1,30 +1,45 @@
-{{- if .Values.apiGatewaySync.enabled }}
+{{- if .Values.apiGatewayConfig.sync }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "common.names.fullname" . }}-sync-api-gateway-{{ .Chart.Version }}
   labels:
-    {{ include "bk-demo.labels" . | nindent 4 }}
+    {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component: "job-sync-api-gateway"
-    {{ include "job.labelKeys.imageTag" . }}: {{ .Values.migration.image.tag | quote }}
+    {{ include "job.labelKeys.imageTag" . }} : {{ .Values.apiGatewayConfig.image.tag | quote }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
-  backoffLimit: 10
+  backoffLimit: 2
   parallelism: 1
   template:
     metadata:
-      labels:
-        {{ - include "common.labels.matchLabels" . | nindent 8 }}
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component : "job-sync-api-gateway"
     spec:
       containers:
-        - command:
-            - bash
-          args:
-            - bin/sync-apigateway.sh
-          image: {{ include "common.images.image" (dict "imageRoot" .Values.apiGatewaySync.image "global" .Values.global) }}
-          imagePullPolicy: "Always"
-          name: job-sync-api-gateway
-          env:
-          {{- toYaml .Values.apiGatewaySync.extraEnvVars | nindent 8 }}
+      - command:
+        - bash
+        args:
+        - bin/sync-apigateway.sh
+        image: {{ include "job-sync-api-gateway.image" . }}
+        imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+        name: job-sync-api-gateway
+        env:
+        - name: BK_APIGW_NAME
+          value: {{ .Values.apiGatewayConfig.gatewayName }}
+        - name: BK_APP_CODE
+          value: {{ .Values.appCode }}
+        - name: BK_APP_SECRET
+          value: {{ .Values.appSecret }}
+        - name: BK_API_URL_TMPL
+          value: {{ .Values.apiGatewayConfig.syncUrl }}
+        - name: BK_JOB_STAGE_NAME
+          value: {{ .Values.apiGatewayConfig.stage }}
+        - name : BK_APIGW_RESOURCE_DOCS_BASE_DIR
+          value : {{ .Values.apiGatewayConfig.resourceDir }}
+        - name: BK_JOB_API_URL
+          value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
       restartPolicy: Never
-  {{- end }}
+{{- end }}

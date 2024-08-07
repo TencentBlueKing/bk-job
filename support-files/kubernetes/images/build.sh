@@ -176,6 +176,7 @@ mkdir -p $tmp_dir/frontend
 mkdir -p $tmp_dir/backend
 mkdir -p $tmp_dir/startup_controller
 mkdir -p $tmp_dir/migration
+mkdir -p $tmp_dir/sync_api_gateway
 
 # Automatically clean up the tmp directory when executing exit
 trap 'rm -rf $tmp_dir' EXIT TERM
@@ -251,8 +252,8 @@ build_migration_image(){
 build_sync_api_gateway_image(){
     log "Building sync_api_gateway image, version: ${VERSION}..."
     rm -rf tmp/sync_api_gateway/*
-    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_api_gateway
-    docker build -f api/apiGateway.Dockerfile -t $REGISTRY/job-sync-api-gateway:$VERSION tmp/sync_api_gateway --network=host
+    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_api_gateway/
+    docker build -f api-gateway/apiGateway.Dockerfile -t $REGISTRY/job-sync-api-gateway:$VERSION tmp/sync_api_gateway --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-sync-api-gateway:$VERSION
     fi

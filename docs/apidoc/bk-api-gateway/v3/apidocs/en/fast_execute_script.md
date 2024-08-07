@@ -8,11 +8,12 @@ Fast execute script
 
 #### Header params
 
-| 字段      |  类型      | 必选   |  描述      |
-|-----------|------------|--------|------------|
-| X-Bkapi-Authorization       |  string    | 是     | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
-| Accept       |  string    | 是     | 固定值。application/json|
-| Content-Type |  string    | 是     | 固定值。application/json|
+| Fields      |  Type      | Required | Description                                                                                                                                                                  |
+|-----------|------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| X-Bkapi-Authorization       |  string    | yes      | Authentication information. Details for reference [GATEWAY API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept       |  string    | yes        | fixed value.application/json                                                                                                                                                 |
+| Content-Type |  string    | yes        | fixed value.application/json                                                                                                                                                 |
+
 
 #### Body params
 
