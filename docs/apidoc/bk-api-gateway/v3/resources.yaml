@@ -917,4 +917,29 @@ paths:
           userVerifiedRequired: true
           resourcePermissionRequired: false
         descriptionEn:
-
+  /v2/jobv3/callback_protocol:
+    get:
+      operationId: callback_protocol
+      description: 回调协议文档
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-manage/callback_protocol
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: false
+          userVerifiedRequired: false
+          resourcePermissionRequired: false
+        descriptionEn:
