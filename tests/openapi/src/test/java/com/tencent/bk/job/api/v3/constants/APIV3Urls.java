@@ -81,4 +81,9 @@ public interface APIV3Urls {
     String CREATE_CREDENTIAL = "/api/job/v3/job-manage/create_credential";
     String UPDATE_CREDENTIAL = "/api/job/v3/job-manage/update_credential";
     String GET_CREDENTIAL_DETAIL = "/api/job/v3/job-manage/get_credential_detail";
+
+    String CREATE_ACCOUNT = "/api/job/v3/job-manage/create_account";
+    String UPDATE_ACCOUNT = "/api/job/v3/job-manage/update_account";
+    String DELETE_ACCOUNT = "/api/job/v3/job-manage/delete_account";
+    String GET_ACCOUNT_LIST = "/api/job/v3/job-manage/get_account_list";
 }
