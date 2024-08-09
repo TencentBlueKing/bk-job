@@ -25,11 +25,13 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class NotifyMsgListener {
+public class NotifyMsgListener extends BaseJobMqListener {
     private final NotifyService notifyService;
 
     @Autowired
@@ -45,7 +47,9 @@ public class NotifyMsgListener {
         this.notifyService = notifyService;
     }
 
-    public void handleMessage(TaskNotifyDTO taskNotifyDTO) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        TaskNotifyDTO taskNotifyDTO = (TaskNotifyDTO) message.getPayload();
         log.info("Begin to send msg:{}", JsonUtils.toJson(taskNotifyDTO));
         ExecuteStatusEnum executeStatus = ExecuteStatusEnum.get(taskNotifyDTO.getResourceExecuteStatus());
         if (executeStatus == null) {

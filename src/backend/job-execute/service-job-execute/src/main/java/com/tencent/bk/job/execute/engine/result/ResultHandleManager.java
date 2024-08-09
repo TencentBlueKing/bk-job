@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -162,8 +163,16 @@ public class ResultHandleManager implements SmartLifecycle {
         resultHandleLimiter.acquire();
         log.info("Handle delivered task: {}", task);
         ScheduledContinuousResultHandleTask scheduleTask =
-            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
-                resultHandleTaskKeepaliveManager, resultHandleLimiter, runningJobKeepaliveManager);
+            new ScheduledContinuousResultHandleTask(
+                resultHandleTaskSampler,
+                tracer,
+                task,
+                this,
+                resultHandleTaskKeepaliveManager,
+                resultHandleLimiter,
+                runningJobKeepaliveManager,
+                JobExecuteContextThreadLocalRepo.get()
+            );
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.warn("ResultHandleManager is not active, reject! task: {}", task);

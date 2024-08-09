@@ -136,6 +136,12 @@ public abstract class AbstractLocalCacheAppScopeMappingService implements AppSco
     }
 
     @Override
+    public AppResourceScope getAppResourceScope(Long appId) {
+        ResourceScope resourceScope = getScopeByAppId(appId);
+        return new AppResourceScope(appId, resourceScope);
+    }
+
+    @Override
     public AppResourceScope getAppResourceScope(String scopeType, String scopeId) {
         return new AppResourceScope(scopeType, scopeId, getAppIdByScope(scopeType, scopeId));
     }

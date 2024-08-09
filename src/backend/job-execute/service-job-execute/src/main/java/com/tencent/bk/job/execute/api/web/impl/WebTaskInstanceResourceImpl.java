@@ -121,8 +121,18 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                          String scopeId,
                                                          Long stepInstanceId) {
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-            appResourceScope.getAppId(), stepInstanceId);
+        return getStepInstanceDetailV2(username, appResourceScope, scopeType, scopeId, null, stepInstanceId);
+    }
+
+    @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
+    public Response<ExecuteStepVO> getStepInstanceDetailV2(String username,
+                                                           AppResourceScope appResourceScope,
+                                                           String scopeType,
+                                                           String scopeId,
+                                                           Long taskInstanceId,
+                                                           Long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
         taskInstanceAccessProcessor.processBeforeAccess(username,
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());

@@ -92,6 +92,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StepInstanceService stepInstanceService;
@@ -256,7 +257,8 @@ public class NotifyServiceImpl implements NotifyService {
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
         long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
-        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(currentStepId);
+        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(
+            taskInstanceDTO.getId(), currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
             if (stepInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.step.duration", "" + stepInstanceDTO.getTotalTime() / 1000.0);
@@ -271,11 +273,17 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = fileExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = fileExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
                 variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));
@@ -383,7 +391,8 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
                                                StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
+        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(
+            taskInstance.getId(), stepInstance.getId());
         if (stepInstanceDetail == null) {
             log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
             return;

@@ -57,6 +57,9 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
+import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.exception.RunningJobQuotaLimitExceedException;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -367,6 +370,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         watch.start("saveInstance");
         long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
         taskInstance.setId(taskInstanceId);
+
+        // 添加作业执行上下文，用于全局共享、传播上下文信息
+        addJobInstanceContext(taskInstance);
+
         stepInstance.setTaskInstanceId(taskInstanceId);
         stepInstance.setStepNum(1);
         stepInstance.setStepOrder(1);
@@ -385,7 +392,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("saveRollingConfig");
             RollingConfigDTO rollingConfig = rollingConfigService.saveRollingConfigForFastJob(fastTask);
             long rollingConfigId = rollingConfig.getId();
-            stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
+            stepInstanceService.updateStepRollingConfigId(taskInstanceId, stepInstanceId, rollingConfigId);
             watch.stop();
         }
 
@@ -403,6 +410,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstanceId
         );
         watch.stop();
+    }
+
+    private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
+        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
+        if (jobExecuteContext != null) {
+            JobInstanceContext jobInstanceContext = new JobInstanceContext(taskInstance.getId());
+            jobExecuteContext.setJobInstanceContext(jobInstanceContext);
+            JobExecuteContextThreadLocalRepo.set(jobExecuteContext);
+        }
     }
 
     private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
@@ -1784,10 +1800,15 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                    StepOperationDTO stepOperation) {
         long stepInstanceId = stepOperation.getStepInstanceId();
         StepOperationEnum operation = stepOperation.getOperation();
+
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, stepOperation.getTaskInstanceId());
+        addJobInstanceContext(taskInstance);
+
+        StepInstanceDTO stepInstance = queryStepInstanceAndCheckExist(
+            appId, stepOperation.getTaskInstanceId(), stepInstanceId);
 
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
@@ -1827,6 +1848,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return executeCount;
     }
 
+    private TaskInstanceDTO queryTaskInstanceAndCheckExist(long appId, long taskInstanceId) {
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
+            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        return taskInstance;
+    }
+
+    private StepInstanceDTO queryStepInstanceAndCheckExist(long appId, long taskInstanceId, long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+            taskInstanceId, stepInstanceId);
+        if (stepInstance == null) {
+            log.warn("Step instance {} is not exist", stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        if (!stepInstance.getAppId().equals(appId)) {
+            log.warn("Step instance {} is not in app:{}", stepInstance, appId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        return stepInstance;
+    }
+
     private void continueRolling(StepInstanceDTO stepInstance) {
         // 只有“等待用户”的滚动步骤可以继续滚动
         if (stepInstance.getStatus() != RunStatusEnum.WAITING_USER) {
@@ -1842,8 +1886,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
-            stepInstance.getBatch() + 1));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), stepInstance.getBatch() + 1));
     }
 
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
@@ -1866,10 +1910,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getTaskInstanceId(), stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getTaskInstanceId(), stepInstance.getId(), operator);
 
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepTerminate(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.confirmStepTerminate(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void confirmRestart(StepInstanceDTO stepInstance, String operator) {
@@ -1886,7 +1931,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.CONFIRM_RESTART));
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(
+            stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
@@ -1961,13 +2007,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getTaskInstanceId(), stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getTaskInstanceId(), stepInstance.getId(), operator);
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
 
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepContinue(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.confirmStepContinue(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void nextStep(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
@@ -1987,7 +2034,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.nextStep(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.nextStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void retryStepFail(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
@@ -2003,8 +2051,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getId()));
+        stepInstanceService.addStepInstanceExecuteCount(
+            stepInstance.getTaskInstanceId(), stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getTaskInstanceId(),
+            stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2023,8 +2073,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepAll(stepInstance.getId()));
+        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getTaskInstanceId(), stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.retryStepAll(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_ALL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2052,7 +2103,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.ignoreError(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.ignoreError(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.IGNORE_ERROR);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -2070,7 +2122,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
             taskInstance.getId()
         );
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.skipStep(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.skipStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator, UserOperationEnum.SKIP_STEP);
         taskOperationLogService.saveOperationLog(operationLog);
     }
@@ -2109,29 +2162,33 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public void terminateJob(String username, Long appId, Long taskInstanceId) throws ServiceException {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+    public void terminateJob(String username, Long appId, Long taskInstanceId) {
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        terminateJob(username, taskInstance);
+    }
+
+    private void terminateJob(String operator, TaskInstanceDTO taskInstance) {
+        addJobInstanceContext(taskInstance);
         if (RunStatusEnum.RUNNING != taskInstance.getStatus()
             && RunStatusEnum.WAITING_USER != taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
-        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstance.getId()));
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.TERMINATE_JOB);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
     @Override
-    public void doTaskOperation(Long appId, String operator, long taskInstanceId,
-                                TaskOperationEnum operation) throws ServiceException {
+    public void doTaskOperation(Long appId,
+                                String operator,
+                                long taskInstanceId,
+                                TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
         if (operation == TaskOperationEnum.TERMINATE_JOB) {
-            terminateJob(operator, appId, taskInstanceId);
+            terminateJob(operator, taskInstance);
         } else {
             log.warn("Undefined task operation!");
         }
