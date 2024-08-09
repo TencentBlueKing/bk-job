@@ -28,9 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -44,9 +48,15 @@ public class EsbExecuteJobV3Request extends EsbAppScopeReq {
      * 执行方案 ID
      */
     @JsonProperty("job_plan_id")
+    @NotNull(message = "{validation.constraints.InvalidPlanId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidPlanId.message}"
+    )
     private Long taskId;
 
     @JsonProperty("global_var_list")
+    @Valid
     private List<EsbGlobalVarV3DTO> globalVars;
 
     /**

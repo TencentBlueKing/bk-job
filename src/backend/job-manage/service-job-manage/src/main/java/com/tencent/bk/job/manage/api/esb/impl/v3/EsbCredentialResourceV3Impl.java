@@ -43,7 +43,6 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialV3DTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,26 +68,11 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
-        checkCreateParam(req);
-
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
         CredentialDTO createCredential = credentialService.createCredential(username, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(createCredential.toEsbCredentialSimpleInfoV3DTO());
-    }
-
-    private void checkCreateParam(EsbCreateOrUpdateCredentialV3Req req) {
-        String name = req.getName();
-        String type = req.getType();
-        if (StringUtils.isBlank(name)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"name", "name cannot be null or blank"});
-        }
-        if (StringUtils.isBlank(type)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"type", "type cannot be null or blank"});
-        }
     }
 
     @Override
@@ -99,8 +83,6 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
-        checkUpdateParam(req);
-
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
         CredentialDTO updateCredential = credentialService.updateCredential(username, req.getAppId(),
             createUpdateReq);
@@ -134,13 +116,6 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         @AuditRequestBody EsbGetCredentialDetailV3Req req) {
         CredentialDTO credentialDTO = credentialService.getCredentialById(req.getId());
         return EsbResp.buildSuccessResp(credentialDTO.toEsbCredentialV3DTO());
-    }
-
-    private void checkUpdateParam(EsbCreateOrUpdateCredentialV3Req req) {
-        if (StringUtils.isBlank(req.getId())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"id", "id cannot be null or blank"});
-        }
     }
 
     private CredentialCreateUpdateReq convertToCreateUpdateReq(

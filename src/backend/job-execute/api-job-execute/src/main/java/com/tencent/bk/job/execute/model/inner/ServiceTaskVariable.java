@@ -24,17 +24,33 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @ApiModel("全局变量")
 @Data
 public class ServiceTaskVariable {
     @ApiModelProperty(value = "全局变量ID", required = true)
+    @NotNull(message = "{validation.constraints.InvalidGlobalVarId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidGlobalVarId.message}"
+    )
     private Long id;
 
     @ApiModelProperty(value = "变量类型，1-字符 2-命名空间 3-主机变量 4-密码")
+    @NotNull(message = "{validation.constraints.InvalidGlobalVarId.message}")
+    @CheckEnum(
+        enumClass = TaskVariableTypeEnum.class,
+        message = "{validation.constraints.InvalidGlobalVarType_empty.message}"
+    )
     private Integer type;
 
     @ApiModelProperty(value = "字符变量值", required = false)

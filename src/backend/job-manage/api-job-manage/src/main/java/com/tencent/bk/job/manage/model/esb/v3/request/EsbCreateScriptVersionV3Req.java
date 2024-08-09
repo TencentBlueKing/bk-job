@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -60,9 +61,16 @@ public class EsbCreateScriptVersionV3Req extends EsbAppScopeReq {
      * 脚本版本
      */
     @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
-        groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptVersion_outOfLength.message}",
+        groups = Create.class
+    )
+    @Pattern(
+        regexp = ValidationConstants.SCRIPT_VERSION_PATTERN,
+        message = "{validation.constraints.ScriptVersion_illegal.message}",
+        groups = Create.class
+    )
     private String version;
 
     /**

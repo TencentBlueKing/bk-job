@@ -26,8 +26,12 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -37,12 +41,22 @@ public class EsbGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      * 作业执行实例 ID
      */
     @JsonProperty("job_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidJobInstanceId.message}"
+    )
     private Long taskInstanceId;
 
     /**
      * 作业步骤实例ID
      */
     @JsonProperty("step_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidStepInstanceId.message}"
+    )
     private Long stepInstanceId;
 
     /**

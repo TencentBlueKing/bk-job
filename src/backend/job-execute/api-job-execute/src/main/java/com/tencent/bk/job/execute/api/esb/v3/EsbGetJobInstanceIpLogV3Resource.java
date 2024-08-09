@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.esb.v3.EsbIpLogV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3Request;
 import org.springframework.validation.annotation.Validated;
@@ -38,12 +39,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 /**
  * 根据ip查询作业执行日志 -V3
  */
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbGetJobInstanceIpLogV3Resource {
 
     @PostMapping("/get_job_instance_ip_log")
@@ -62,7 +67,17 @@ public interface EsbGetJobInstanceIpLogV3Resource {
         @RequestParam(value = "bk_biz_id", required = false) Long bizId,
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
+            message = "{validation.constraints.InvalidJobInstanceId.message}"
+        )
         @RequestParam(value = "job_instance_id") Long taskInstanceId,
+        @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+        @Min(
+            value = ValidationConstants.COMMON_MIN_1,
+            message = "{validation.constraints.InvalidStepInstanceId.message}"
+        )
         @RequestParam(value = "step_instance_id") Long stepInstanceId,
         @RequestParam(value = "bk_host_id", required = false) Long hostId,
         @RequestParam(value = "bk_cloud_id", required = false) Long cloudAreaId,

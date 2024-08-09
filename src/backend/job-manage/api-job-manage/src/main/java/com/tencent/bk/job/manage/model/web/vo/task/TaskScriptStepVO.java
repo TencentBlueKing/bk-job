@@ -28,12 +28,16 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
+
+import javax.validation.Valid;
 
 @Data
 @ApiModel("任务脚本步骤信息")
@@ -41,6 +45,11 @@ import org.hibernate.validator.constraints.Range;
 public class TaskScriptStepVO {
 
     @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
+    @Range(
+        min = ValidationConstants.COMMON_MIN_1,
+        max = ValidationConstants.COMMON_MAX_3,
+        message = "{validation.constraints.ScriptSource_Illegal.message}"
+    )
     private Integer scriptSource;
 
     @ApiModelProperty("脚本 ID")
@@ -56,6 +65,10 @@ public class TaskScriptStepVO {
     private Integer scriptLanguage;
 
     @ApiModelProperty("脚本参数")
+    @Length(
+        max = ValidationConstants.MAX_SCRIPT_PARAM_LENGTH,
+        message = "{validation.constraints.InvalidScriptParam_outOfLength.message}"
+    )
     private String scriptParam;
 
     @ApiModelProperty("脚本超时时间")
@@ -70,6 +83,7 @@ public class TaskScriptStepVO {
     private String accountName;
 
     @ApiModelProperty("执行目标")
+    @Valid
     private TaskTargetVO executeTarget;
 
     @ApiModelProperty("敏感参数")

@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Data
@@ -37,6 +38,7 @@ public class BatchPatchResourceTagReq {
 
     @ApiModelProperty(value = "资源类型, 可选值: 1-业务脚本,5-作业模板", required = true)
     @JsonProperty("resourceTypeList")
+    @NotEmpty(message= "{validation.constraints.InvalidResourceType_empty.message}")
     private List<Integer> resourceTypeList;
 
     @ApiModelProperty(value = "新增的标签ID列表")

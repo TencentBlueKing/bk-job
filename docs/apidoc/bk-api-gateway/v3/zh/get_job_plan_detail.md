@@ -39,7 +39,7 @@
     "data": {
         "bk_scope_type": "biz",
         "bk_scope_id": "1",
-        "job_plan_id": 100,
+        "id": 100,
         "name": "test",
         "creator": "admin",
         "create_time": 1546272000000,
@@ -208,7 +208,7 @@
 |------------------|-----------|-----------|
 | bk_scope_type | string |资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
 | bk_scope_id   | string | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_plan_id      | long       | 执行方案 ID |
+| id      | long       | 执行方案 ID |
 | name             | string    | 作业名称 |
 | creator          | string    | 作业创建人账号 |
 | create_time      | long      | 创建时间，Unix 时间戳 |

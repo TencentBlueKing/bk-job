@@ -31,19 +31,15 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.DataSizeConverter;
-import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
@@ -109,12 +105,6 @@ public class EsbFastTransferFileV3ResourceImpl
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(String username,
                                                         String appCode,
                                                         @AuditRequestBody EsbFastTransferFileV3Request request) {
-        ValidateResult checkResult = checkFastTransferFileRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Fast transfer file request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         if (StringUtils.isEmpty(request.getName())) {
             request.setName(generateDefaultFastTaskName());
         }
@@ -138,81 +128,6 @@ public class EsbFastTransferFileV3ResourceImpl
         jobExecuteInfo.setStepInstanceId(stepInstance.getId());
         jobExecuteInfo.setTaskName(stepInstance.getName());
         return EsbResp.buildSuccessResp(jobExecuteInfo);
-    }
-
-    private ValidateResult checkFileSource(EsbFileSourceV3DTO fileSource) {
-        Integer fileType = fileSource.getFileType();
-        // fileType是后加的字段，为null则默认为服务器文件不校验
-        if (fileType != null && !TaskFileTypeEnum.isValid(fileType)) {
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.file_type");
-        }
-        List<String> files = fileSource.getFiles();
-        if (files == null || files.isEmpty()) {
-            log.warn("File source contains empty file list");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.file_list");
-        }
-        for (String file : files) {
-            if ((fileType == null
-                || TaskFileTypeEnum.SERVER.getType() == fileType)
-                && !FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
-                log.warn("Invalid path:{}", file);
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.file_list");
-            }
-        }
-        if (null == fileType || TaskFileTypeEnum.SERVER.getType() == fileType) {
-            //对文件源类型为服务器文件的文件源校验账号和服务器信息
-            EsbAccountV3BasicDTO account = fileSource.getAccount();
-            if (account == null) {
-                log.warn("File source account is null!");
-                return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.account");
-            }
-            if ((account.getId() == null || account.getId() < 1L) && StringUtils.isBlank(account.getAlias())) {
-                log.warn("File source account is empty!");
-                return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                    "file_source.account.account_id|file_source.account.account_alias");
-            }
-            if (!checkServer(fileSource.getServer()).isPass()) {
-                log.warn("File source server is empty!");
-                return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.server");
-            }
-        } else if (TaskFileTypeEnum.FILE_SOURCE.getType() == fileType) {
-            //对文件源类型为第三方文件源的文件源校验Id与Code
-            Integer fileSourceId = fileSource.getFileSourceId();
-            String fileSourceCode = fileSource.getFileSourceCode();
-            if ((fileSourceId == null || fileSourceId <= 0) && StringUtils.isBlank(fileSourceCode)) {
-                return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                    "file_source.file_source_id/file_source.file_source_code");
-            }
-        }
-        return null;
-    }
-
-    private ValidateResult checkFastTransferFileRequest(EsbFastTransferFileV3Request request) {
-        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTargetPath())) {
-            log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");
-        }
-        if ((request.getAccountId() == null || request.getAccountId() <= 0L)
-            && StringUtils.isBlank(request.getAccountAlias())) {
-            log.warn("Fast transfer file, account is empty!");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "account_id|account_alias");
-        }
-        if (!checkServer(request.getTargetServer()).isPass()) {
-            log.warn("Fast transfer file, targetServer is illegal!");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "target_server");
-        }
-
-        if (request.getFileSources() == null || request.getFileSources().isEmpty()) {
-            log.warn("Fast transfer file, file source list is null or empty!");
-            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source_list");
-        }
-        List<EsbFileSourceV3DTO> fileSources = request.getFileSources();
-        for (EsbFileSourceV3DTO fileSource : fileSources) {
-            ValidateResult result = checkFileSource(fileSource);
-            if (result != null) return result;
-        }
-
-        return ValidateResult.pass();
     }
 
     private TaskInstanceDTO buildFastFileTaskInstance(String username,

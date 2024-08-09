@@ -25,26 +25,50 @@
 package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.common.esb.validate.EsbAccountBasicV3GroupSequenceProvider;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * 账号信息
  */
 @Data
+@GroupSequenceProvider(EsbAccountBasicV3GroupSequenceProvider.class)
 public class EsbAccountV3BasicDTO {
     /**
      * 账号ID
      */
     @JsonPropertyDescription("Account id")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
     private Long id;
+
     /**
      * 账号名称
      */
     @JsonPropertyDescription("Account name")
     private String name;
+
     /**
      * 账号别名
      */
     @JsonPropertyDescription("Account alias")
+    @NotBlankField(
+        message = "{validation.constraints.AccountAlias_empty.message}",
+        groups = ValidationGroups.Account.AccountAlias.class
+    )
     private String alias;
 }

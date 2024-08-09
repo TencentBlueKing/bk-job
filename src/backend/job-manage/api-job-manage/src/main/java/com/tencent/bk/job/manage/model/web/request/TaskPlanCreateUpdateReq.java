@@ -24,11 +24,16 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -55,6 +60,12 @@ public class TaskPlanCreateUpdateReq {
      * 执行方案名称
      */
     @ApiModelProperty(value = "执行方案名称", required = true)
+    @NotBlankField(message = "{validation.constraints.InvalidTaskPlanName_empty.message}")
+    @NotContainSpecialChar
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.InvalidTaskPlanName_outOfLength.message}"
+    )
     private String name;
 
     /**
@@ -67,6 +78,13 @@ public class TaskPlanCreateUpdateReq {
      * 执行方案变量
      */
     @ApiModelProperty(value = "执行方案变量，新增、修改时需要传入", required = true)
+    @Valid
     private List<TaskVariableVO> variables;
+
+    public void trim() {
+        if (name != null) {
+            name = name.trim();
+        }
+    }
 
 }

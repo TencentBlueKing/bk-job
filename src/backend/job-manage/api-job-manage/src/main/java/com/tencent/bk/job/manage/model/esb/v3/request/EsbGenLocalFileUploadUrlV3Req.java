@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Setter
@@ -41,6 +42,7 @@ public class EsbGenLocalFileUploadUrlV3Req extends EsbAppScopeReq {
      * 文件名列表
      */
     @JsonProperty("file_name_list")
+    @NotEmpty(message = "{validation.constraints.FileNameList_empty.message}")
     private List<String> fileNameList;
 
 }

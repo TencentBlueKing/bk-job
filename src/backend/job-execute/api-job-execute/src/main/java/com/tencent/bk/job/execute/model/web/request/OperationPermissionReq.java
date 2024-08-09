@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.request;
 
+import com.tencent.bk.job.common.validation.NotBlankField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -32,6 +33,7 @@ import lombok.Data;
 @ApiModel("web页面操作预鉴权请求")
 public class OperationPermissionReq {
     @ApiModelProperty("操作ID,取值为: [task_instance/view,task_instance/redo]")
+    @NotBlankField(message = "{validation.constraints.InvalidOperation_empty.message}")
     private String operation;
 
     @ApiModelProperty("资源ID,比如执行实例ID/执行步骤实例ID;对于部分不需要资源ID的操作(新建),不需要传参")

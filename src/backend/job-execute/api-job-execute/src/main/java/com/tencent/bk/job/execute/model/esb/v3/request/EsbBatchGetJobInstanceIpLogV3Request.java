@@ -27,18 +27,24 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.validation.EsbBatchGetJobInstanceIpLogV3RequestGroupSequenceProvider;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
 @Setter
 @ToString
+@GroupSequenceProvider(EsbBatchGetJobInstanceIpLogV3RequestGroupSequenceProvider.class)
 public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
 
     /**
@@ -46,7 +52,7 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("job_instance_id")
     @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_1, message = "{validation.constraints.InvalidJobInstanceId.message}")
     private Long taskInstanceId;
 
     /**
@@ -54,13 +60,18 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("step_instance_id")
     @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_1, message = "{validation.constraints.InvalidStepInstanceId.message}")
     private Long stepInstanceId;
 
     /**
      * 目标服务器IP列表
      */
     @JsonProperty("ip_list")
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.BkHostId_null.message}",
+        groups = ValidationGroups.EsbServerV3.IP.class
+    )
     @Valid
     private List<EsbIpDTO> ipList;
 
@@ -68,5 +79,14 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
      * 目标主机ID列表
      */
     @JsonProperty("host_id_list")
+    @NotNull(
+        message = "{validation.constraints.ExecuteTarget_empty.message}",
+        groups = ValidationGroups.EsbServerV3.HostId.class
+    )
+    @Size(
+        min = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.BkHostId_null.message}",
+        groups = ValidationGroups.EsbServerV3.HostId.class
+    )
     private List<Long> hostIdList;
 }

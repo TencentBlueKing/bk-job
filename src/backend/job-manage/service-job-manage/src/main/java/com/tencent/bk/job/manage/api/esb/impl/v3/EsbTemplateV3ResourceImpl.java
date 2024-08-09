@@ -28,11 +28,9 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.esb.v3.EsbTemplateV3Resource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
@@ -98,11 +96,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         String username,
         String appCode,
         EsbGetTemplateListV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get template list, request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
         long appId = request.getAppId();
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
@@ -132,12 +125,6 @@ public class EsbTemplateV3ResourceImpl implements EsbTemplateV3Resource {
         EsbPageDataV3<EsbTemplateBasicInfoV3DTO> esbPageData = EsbPageDataV3.from(pageTemplates,
             this::convertToEsbTemplateBasicInfo);
         return EsbResp.buildSuccessResp(esbPageData);
-    }
-
-
-    private ValidateResult checkRequest(EsbGetTemplateListV3Request request) {
-        // TODO 暂不校验，后面补上
-        return ValidateResult.pass();
     }
 
     private EsbTemplateBasicInfoV3DTO convertToEsbTemplateBasicInfo(TaskTemplateInfoDTO taskTemplate) {

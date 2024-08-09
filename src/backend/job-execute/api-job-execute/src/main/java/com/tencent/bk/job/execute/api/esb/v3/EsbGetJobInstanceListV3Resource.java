@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbTaskInstanceV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceListV3Request;
 import org.springframework.validation.annotation.Validated;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbGetJobInstanceListV3Resource {
 
     @PostMapping("/get_job_instance_list")
@@ -69,6 +72,10 @@ public interface EsbGetJobInstanceListV3Resource {
         @RequestParam(value = "operator", required = false) String operator,
         @RequestParam(value = "name", required = false) String taskName,
         @RequestParam(value = "launch_mode", required = false) Integer startupMode,
+        @CheckEnum(
+            enumClass = TaskTypeEnum.class,
+            message = "{validation.constraints.InvalidTaskType_illegal.message}"
+        )
         @RequestParam(value = "type", required = false) Integer taskType,
         @RequestParam(value = "status", required = false) Integer taskStatus,
         @RequestParam(value = "ip", required = false) String ip,

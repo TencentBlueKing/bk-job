@@ -10,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import lombok.Data;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.config;
+import static io.restassured.RestAssured.given;
 import static io.restassured.config.LogConfig.logConfig;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -84,6 +86,19 @@ public class ApiUtil {
         builder.expectBody("result", equalTo(false));
         builder.expectBody("code", equalTo(code));
         return builder.build();
+    }
+
+    /**
+     * 断言错误的post请求，如403、500
+     */
+    public static Response assertPostErrorResponse(String url, Object request, int errorCode) {
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(request))
+            .post(url)
+            .then()
+            .spec(ApiUtil.failResponseSpec(errorCode))
+            .extract().response();
     }
 
     private static Map<String, String> buildRequestHeaders(String username) {

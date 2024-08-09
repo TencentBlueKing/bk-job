@@ -27,10 +27,12 @@ package com.tencent.bk.job.execute.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.execute.model.web.request.OperationPermissionReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/web/permission/execute")
 @RestController
 @WebAPI
+@Validated
 public interface WebPermissionResource {
 
     /**
@@ -59,7 +62,9 @@ public interface WebPermissionResource {
         @RequestHeader("username")
             String username,
         @ApiParam("权限检查请求")
-        @RequestBody OperationPermissionReq req
+        @RequestBody
+        @Validated
+        OperationPermissionReq req
     );
 
     /**
@@ -87,6 +92,7 @@ public interface WebPermissionResource {
             String scopeId,
         @ApiParam("操作ID,取值为: [task_instance/view,task_instance/redo]")
         @RequestParam(value = "operation")
+        @NotBlankField(message = "{validation.constraints.InvalidOperation_empty.message}")
             String operation,
         @ApiParam(value = "资源ID,比如作业ID,定时任务ID;对于部分不需要资源ID的操作(新建),不需要传参")
         @RequestParam(value = "resourceId", required = false)

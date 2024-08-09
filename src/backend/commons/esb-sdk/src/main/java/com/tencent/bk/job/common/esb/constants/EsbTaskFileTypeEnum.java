@@ -22,44 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.common.esb.constants;
 
-/**
- * 作业步骤执行操作
- */
-public enum StepOperationEnum {
-    RETRY_FAIL_IP(2, "失败IP重做"),
-    IGNORE_ERROR(3, "忽略错误"),
-    CONFIRM_CONTINUE(6, "确认继续"),
-    RETRY_ALL_IP(8, "全部重试"),
-    CONFIRM_TERMINATE(9, "终止确认流程"),
-    CONFIRM_RESTART(10, "重新发起确认"),
-    NEXT_STEP(11, "进入下一步"),
-    SKIP(12, "强制跳过"),
-    ROLLING_CONTINUE(13, "继续滚动");
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-    private final Integer value;
-    private final String name;
+@Getter
+@AllArgsConstructor
+public enum EsbTaskFileTypeEnum {
+    /**
+     * 服务器文件
+     */
+    SERVER(1),
 
-    StepOperationEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
+    /**
+     * 文件源文件
+     */
+    FILE_SOURCE(3),
 
-    public static StepOperationEnum getStepOperation(int status) {
-        for (StepOperationEnum runStatusEnum : values()) {
-            if (runStatusEnum.getValue() == status) {
-                return runStatusEnum;
+    /**
+     * Base64编码的文件
+     */
+    BASE64_FILE(4);
+
+    private final int type;
+
+    public static EsbTaskFileTypeEnum valueOf(int type) {
+        for (EsbTaskFileTypeEnum fileType : values()) {
+            if (fileType.type == type) {
+                return fileType;
             }
         }
         return null;
     }
 
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getName() {
-        return name;
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valueOf(type) != null;
     }
 }

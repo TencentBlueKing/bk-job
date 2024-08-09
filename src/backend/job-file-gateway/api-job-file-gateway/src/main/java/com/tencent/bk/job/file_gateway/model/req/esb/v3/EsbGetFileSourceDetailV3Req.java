@@ -15,7 +15,7 @@ public class EsbGetFileSourceDetailV3Req extends EsbAppScopeReq {
      * 文件源Code
      */
     @ApiModelProperty(value = "文件源Code")
-    @NotBlankField(fieldName = "code")
-    @NotContainSpecialChar(fieldName = "code")
+    @NotBlankField(message = "{validation.constraints.InvalidFileSourceCode_empty.message}")
+    @NotContainSpecialChar(message = "{validation.constraints.InvalidFileSourceCode_illegal.message}")
     private String code;
 }

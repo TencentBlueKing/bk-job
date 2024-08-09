@@ -28,9 +28,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.validation.EsbPushConfigFileV3RequestGroupSequenceProvider;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -38,6 +47,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@GroupSequenceProvider(EsbPushConfigFileV3RequestGroupSequenceProvider.class)
 public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
 
     /**
@@ -51,27 +61,45 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
      * 目标路径
      */
     @JsonProperty("file_target_path")
+    @NotBlankField(message = "{validation.constraints.InvalidFileTargetPath_empty.message}")
     private String targetPath;
 
     /**
      * 执行账号别名
      */
     @JsonProperty("account_alias")
+    @NotBlankField(
+        message = "{validation.constraints.AccountAlias_empty.message}",
+        groups = ValidationGroups.Account.AccountAlias.class
+    )
     private String accountAlias;
 
     /**
      * 执行账号别名
      */
     @JsonProperty("account_id")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
     private Long accountId;
 
     /**
      * 目标服务器
      */
     @JsonProperty("target_server")
+    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
+    @Valid
     private EsbServerV3DTO targetServer;
 
     @JsonProperty("file_list")
+    @NotEmpty(message = "validation.constraints.InvalidSourceFileList_empty.message")
+    @Valid
     private List<EsbConfigFileDTO> fileList;
 
     /**
@@ -99,10 +127,12 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
     public static class EsbConfigFileDTO {
 
         @JsonProperty("file_name")
+        @NotBlankField(message = "{validation.constraints.InvalidFileName_empty.message}")
         private String fileName;
         /**
          * 文件内容Base64
          */
+        @NotBlankField(message = "{validation.constraints.InvalidFileContent_empty.message}")
         private String content;
     }
 

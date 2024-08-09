@@ -22,39 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.api.v3.model.request;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-/**
- * @since 28/7/2020 19:49
- */
-@Getter
-@AllArgsConstructor
-public enum SecretHandlerEnum {
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
+import lombok.Data;
+
+
+@Data
+public class EsbDeleteAccountV3Req extends EsbAppScopeReq {
+
     /**
-     * 保存空值
+     * 帐号ID
      */
-    SAVE_NULL(1),
-    /**
-     * 保存真实值
-     */
-    SAVE_REAL(2),
-    ;
+    private Long id;
 
-    @JsonValue
-    private final Integer type;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static SecretHandlerEnum valueOf(Integer type) {
-        for (SecretHandlerEnum value : values()) {
-            if (value.getType().equals(type)) {
-                return value;
-            }
-        }
-        return null;
-    }
 }

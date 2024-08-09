@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateStepInstanceResource;
-import com.tencent.bk.job.execute.constants.StepOperationEnum;
+import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbOperateStepInstanceRequest;

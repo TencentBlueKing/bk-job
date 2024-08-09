@@ -81,7 +81,7 @@ class CredentialResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_CREDENTIAL)
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
 
             req.setName(TestValueGenerator.generateUniqueStrValue("credential_name", 50));
             req.setType(null);
@@ -90,7 +90,7 @@ class CredentialResourceAPITest extends BaseTest {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_CREDENTIAL)
                 .then()
-                .spec(ApiUtil.failResponseSpec(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON));
+                .spec(ApiUtil.failResponseSpec(ErrorCode.BAD_REQUEST));
         }
     }
 

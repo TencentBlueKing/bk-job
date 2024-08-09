@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -48,7 +49,7 @@ public class EsbIpDTO {
 
     @JsonProperty("bk_cloud_id")
     @NotNull(message = "{validation.constraints.InvalidBkCloudId.message}")
-    @Min(value = 0L, message = "{validation.constraints.InvalidBkCloudId.message}")
+    @Min(value = ValidationConstants.COMMON_MIN_0, message = "{validation.constraints.InvalidBkCloudId.message}")
     @JsonPropertyDescription("BK-Network Area")
     private Long bkCloudId;
 
@@ -57,9 +58,7 @@ public class EsbIpDTO {
     private String bkCloudName;
 
     @JsonProperty("ip")
-    @Pattern(regexp = "\\b((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\.((?!\\d\\d\\d)" +
-        "\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\b",
+    @Pattern(regexp = ValidationConstants.IP_PATTERN,
         message = "{validation.constraints.InvalidIp.message}")
     @JsonPropertyDescription("ip")
     private String ip;

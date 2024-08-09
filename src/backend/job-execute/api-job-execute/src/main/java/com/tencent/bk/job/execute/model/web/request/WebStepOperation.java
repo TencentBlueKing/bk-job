@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.execute.model.web.request;
 
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.execute.common.constants.StepOperationEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 作业步骤操作
@@ -35,6 +39,11 @@ import lombok.Data;
 @ApiModel("作业步骤操作")
 public class WebStepOperation {
     @ApiModelProperty("步骤实例操作，2-失败IP重做，3-忽略错误，6-确认继续,8-全部重试，9-终止流程（人工确认），10-重新发起确认, 11-进入下一步, 12-强制跳过, 13 - 继续滚动")
+    @NotNull(message = "{validation.constraints.InvalidStepOperationType_empty.message}")
+    @CheckEnum(
+        enumClass = StepOperationEnum.class,
+        message = "{validation.constraints.InvalidStepOperationType_illegal.message}"
+    )
     private Integer operationCode;
 
     @ApiModelProperty("确认/驳回原因")

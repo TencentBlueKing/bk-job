@@ -300,10 +300,6 @@ public class WebTagResourceImpl implements WebTagResource {
     }
 
     private ValidateResult checkBatchPatchResourceTagReq(Long baseTagId, BatchPatchResourceTagReq req) {
-        if (CollectionUtils.isEmpty(req.getResourceTypeList())) {
-            log.warn("BatchPatchResourceTagReq->resourceTypeList is empty");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "resourceTypeList");
-        }
         if (CollectionUtils.isNotEmpty(req.getAddTagIdList())) {
             req.getAddTagIdList().remove(baseTagId);
         }
@@ -312,11 +308,6 @@ public class WebTagResourceImpl implements WebTagResource {
                 log.warn("BatchPatchResourceTagReq->resourceType is invalid. resourceType: {}", resourceType);
                 return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "resourceTypeList");
             }
-        }
-        if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
-            log.warn("BatchPatchResourceTagReq->No tags changed!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "addTagIdList|deleteTagIdList");
         }
         return ValidateResult.pass();
     }

@@ -24,14 +24,11 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.Base64Util;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.web.WebCustomSettingsScriptTemplateResource;
 import com.tencent.bk.job.manage.common.constants.ScriptTemplateVariableEnum;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateDTO;
@@ -125,10 +122,6 @@ public class WebCustomSettingsScriptTemplateResourceImpl implements WebCustomSet
 
     @Override
     public Response saveScriptTemplate(String username, ScriptTemplateCreateUpdateReq req) {
-        ValidateResult validateResult = checkScriptTemplateCreateUpdateReq(req);
-        if (!validateResult.isPass()) {
-            return Response.buildCommonFailResp(validateResult.getErrorCode(), validateResult.getErrorParams());
-        }
         String scriptContent = req.getScriptContent();
         if (StringUtils.isNotEmpty(scriptContent)) {
             scriptContent = Base64Util.decodeContentToStr(scriptContent);
@@ -136,16 +129,6 @@ public class WebCustomSettingsScriptTemplateResourceImpl implements WebCustomSet
         ScriptTemplateDTO scriptTemplate = new ScriptTemplateDTO(req.getScriptLanguage(), scriptContent);
         customScriptTemplateService.saveScriptTemplate(username, scriptTemplate);
         return Response.buildSuccessResp(null);
-    }
-
-    private ValidateResult checkScriptTemplateCreateUpdateReq(ScriptTemplateCreateUpdateReq req) {
-        if (req.getScriptLanguage() == null || ScriptTypeEnum.valOf(req.getScriptLanguage()) == null) {
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM);
-        }
-        if (req.getScriptContent() == null) {
-            req.setScriptContent("");
-        }
-        return ValidateResult.pass();
     }
 
     @Override

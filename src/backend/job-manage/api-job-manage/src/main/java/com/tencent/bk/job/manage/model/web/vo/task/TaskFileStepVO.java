@@ -37,6 +37,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Data
@@ -45,9 +46,11 @@ import java.util.List;
 public class TaskFileStepVO {
 
     @ApiModelProperty("源文件列表")
+    @Valid
     private List<TaskFileSourceInfoVO> fileSourceList;
 
     @ApiModelProperty("目标信息")
+    @Valid
     private TaskFileDestinationInfoVO fileDestination;
 
     @ApiModelProperty("超时")

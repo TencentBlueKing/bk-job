@@ -30,12 +30,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -87,12 +85,6 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         String username,
         String appCode,
         @AuditRequestBody EsbBatchGetJobInstanceIpLogV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Batch get job instance ip log request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         long taskInstanceId = request.getTaskInstanceId();
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
@@ -115,23 +107,6 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             buildFileLogs(ipLogs, stepInstance, hostKeys);
         }
         return EsbResp.buildSuccessResp(ipLogs);
-    }
-
-    private ValidateResult checkRequest(EsbBatchGetJobInstanceIpLogV3Request request) {
-        if (CollectionUtils.isEmpty(request.getHostIdList()) && CollectionUtils.isEmpty(request.getIpList())) {
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "host_id_list/ip_list");
-        }
-
-        int queryHostSize = CollectionUtils.isNotEmpty(request.getHostIdList()) ?
-            request.getHostIdList().size() : request.getIpList().size();
-        if (queryHostSize > 500) {
-            log.warn("Host size is gt 500, stepInstanceId={}, size: {}", request.getStepInstanceId(), queryHostSize);
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "host_id_list/ip_list");
-        }
-
-        return ValidateResult.pass();
     }
 
     private void buildScriptLogs(EsbIpLogsV3DTO ipLogs,

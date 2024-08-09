@@ -82,6 +82,13 @@ public enum TaskVariableTypeEnum {
         return null;
     }
 
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valOf(type) != null;
+    }
+
     public boolean isChangeable() {
         return changeable;
     }

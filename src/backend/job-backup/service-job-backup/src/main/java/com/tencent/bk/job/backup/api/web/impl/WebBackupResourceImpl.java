@@ -114,9 +114,6 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                               String scopeType,
                                               String scopeId,
                                               ExportRequest exportRequest) {
-        if (!exportRequest.validate()) {
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
         ExportJobInfoDTO exportJobInfoDTO = new ExportJobInfoDTO();
         exportJobInfoDTO.setAppId(appResourceScope.getAppId());
         exportJobInfoDTO.setCreator(username);
@@ -371,9 +368,6 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                          String scopeId,
                                          String jobId,
                                          ImportRequest importRequest) {
-        if (!importRequest.validate()) {
-            return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
-        }
         ImportJobInfoDTO importJobInfo = new ImportJobInfoDTO();
         importJobInfo.setId(jobId);
         importJobInfo.setCreator(username);

@@ -29,12 +29,22 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.ValidScriptParamLength;
+import com.tencent.bk.job.common.validation.ValidationConstants;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.model.esb.v3.validation.EsbFastExecuteScriptV3RequestGroupSequenceProvider;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -42,6 +52,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@GroupSequenceProvider(EsbFastExecuteScriptV3RequestGroupSequenceProvider.class)
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     /**
@@ -51,45 +62,85 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private String name;
 
     /**
-     * "脚本内容，BASE64编码
+     * 脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptContent_empty.message}",
+        groups = ValidationGroups.Script.ScriptContent.class
+    )
     private String content;
 
     /**
      * 执行账号别名
      */
     @JsonProperty("account_alias")
+    @NotBlankField(
+        message = "{validation.constraints.AccountAlias_empty.message}",
+        groups = ValidationGroups.Account.AccountAlias.class
+    )
     private String accountAlias;
 
     /**
-     * 执行账号别名
+     * 执行账号ID
      */
     @JsonProperty("account_id")
+    @NotNull(
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.AccountId_empty.message}",
+        groups = ValidationGroups.Account.AccountId.class
+    )
     private Long accountId;
 
     /**
      * 脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell
      */
     @JsonProperty("script_language")
+    @NotNull(
+        message = "{validation.constraints.ScriptType_empty.message}",
+        groups = ValidationGroups.Script.ScriptType.class
+    )
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}",
+        groups = ValidationGroups.Script.ScriptType.class
+    )
     private Integer scriptLanguage;
 
     /**
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
+    @ValidScriptParamLength
     private String scriptParam;
 
     /**
      * 脚本ID
      */
     @JsonProperty("script_id")
+    @NotBlankField(
+        message = "{validation.constraints.ScriptId_empty.message}",
+        groups = ValidationGroups.Script.ScriptId.class
+    )
     private String scriptId;
 
     /**
      * 脚本版本ID
      */
     @JsonProperty("script_version_id")
+    @NotNull(
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.ScriptVersionId_empty.message}",
+        groups = ValidationGroups.Script.ScriptVersionId.class
+    )
     private Long scriptVersionId;
 
     /**
@@ -107,6 +158,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private Integer timeout;
 
     @JsonProperty("target_server")
+    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
     @Valid
     private EsbServerV3DTO targetServer;
 
@@ -120,6 +172,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     public void trimIps() {
