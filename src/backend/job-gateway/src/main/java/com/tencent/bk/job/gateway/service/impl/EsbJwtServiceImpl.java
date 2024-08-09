@@ -27,6 +27,7 @@ package com.tencent.bk.job.gateway.service.impl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.gateway.config.BkGatewayConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -56,12 +57,16 @@ import java.util.concurrent.TimeUnit;
 public class EsbJwtServiceImpl implements EsbJwtService {
     private final EsbJwtPublicKeyService esbJwtPublicKeyService;
     private PublicKey publicKey;
+    private PublicKey gatewayPublicKey;
+    private final BkGatewayConfig bkGatewayConfig;
+
     private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
-    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService) {
+    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService, BkGatewayConfig bkGatewayConfig) {
         this.esbJwtPublicKeyService = esbJwtPublicKeyService;
+        this.bkGatewayConfig = bkGatewayConfig;
         getPublicKeyOrRetryInBackground();
     }
 
@@ -98,10 +103,19 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 return false;
             }
             this.publicKey = buildPublicKey(esbJwtPublicKey);
+
+            if (bkGatewayConfig.isEnabled()) {
+                String gatewayPublicKey = esbJwtPublicKeyService.getGatewayJWTPublicKey();
+                if (StringUtils.isEmpty(esbJwtPublicKey)) {
+                    log.error("gateway jwt public key is not configured!");
+                    return false;
+                }
+                this.gatewayPublicKey = buildPublicKey(gatewayPublicKey);
+            }
             return true;
         } catch (Throwable e) {
             // Catch all exception
-            log.error("Build esb jwt public key caught error!", e);
+            log.error("Build jwt public key caught error!", e);
             return false;
         }
     }
@@ -127,6 +141,15 @@ public class EsbJwtServiceImpl implements EsbJwtService {
     }
 
     @Override
+    public EsbJwtInfo extractFromJwt(String token, String requestFrom) {
+        if (bkGatewayConfig.isEnabled() && StringUtils.equals(bkGatewayConfig.getRequestFrom(), requestFrom)) {
+            return extractFromJwt(token, this.gatewayPublicKey);
+        } else {
+            return extractFromJwt(token);
+        }
+    }
+
+    @Override
     public EsbJwtInfo extractFromJwt(String token, PublicKey publicKey) {
         long start = System.currentTimeMillis();
         EsbJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
@@ -144,11 +167,11 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 .setSigningKey(publicKey)
                 .parseClaimsJws(token)
                 .getBody();
-
             String appCode = "";
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
-                if (appProps == null) {
+                // 原先是应用认证+用户认证，jwt中有app和user, 蓝鲸网关支持其中一种认证方式
+                if (appProps == null && !bkGatewayConfig.isEnabled()) {
                     log.warn("Invalid JWT token, app is null!");
                     return null;
                 }
@@ -157,7 +180,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(appCode)) {
                     appCode = (String) appProps.get("bk_app_code");
                 }
-                if (!isVerified || StringUtils.isEmpty(appCode)) {
+                if ((!isVerified || StringUtils.isEmpty(appCode)) && !bkGatewayConfig.isEnabled()) {
                     log.warn("App code not verified or empty, isVerified:{}, jwtAppCode:{}", isVerified, appCode);
                     return null;
                 }
@@ -166,7 +189,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
             String username = "";
             if (claims.get("user") != null) {
                 LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
-                if (userProps == null) {
+                if (userProps == null && !bkGatewayConfig.isEnabled()) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
                 }
@@ -174,10 +197,14 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(username)) {
                     username = (String) userProps.get("bk_username");
                 }
-                if (StringUtils.isEmpty(username)) {
+                if (StringUtils.isEmpty(username) && !bkGatewayConfig.isEnabled()) {
                     log.warn("Username is empty!");
                     return null;
                 }
+            }
+            if (bkGatewayConfig.isEnabled() && StringUtils.isEmpty(appCode) && StringUtils.isEmpty(username)) {
+                log.warn("Invalid JWT token, app and user are both empty!");
+                return null;
             }
             Date expireAt = claims.get("exp", Date.class);
             if (expireAt == null) {

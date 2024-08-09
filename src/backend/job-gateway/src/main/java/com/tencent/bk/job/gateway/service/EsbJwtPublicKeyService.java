@@ -34,4 +34,11 @@ public interface EsbJwtPublicKeyService {
      * @return
      */
     String getEsbJWTPublicKey();
+
+    /**
+     * 获取bkgateway JWT 公钥
+     *
+     * @return
+     */
+    String getGatewayJWTPublicKey();
 }

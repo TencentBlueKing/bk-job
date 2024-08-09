@@ -43,6 +43,8 @@ data:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
       cmdb:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
+      bkGateway:
+        url: {{ .Values.apiGatewayConfig.apiUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:
