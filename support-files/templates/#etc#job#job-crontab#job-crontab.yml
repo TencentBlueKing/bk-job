@@ -52,6 +52,11 @@ spring:
         max-wait: 1ms
       shutdown-timeout: 100ms
   quartz:
+    # 使用数据库存储
+    job-store-type : jdbc
+    jdbc :
+      # 是否自动使用 SQL 初始化 Quartz 表结构。这里设置成 never ，手动创建表结构
+      initialize-schema : never
     thread-pool:
       thread-name-prefix: QuartzThreadPoolTaskExecutor-
       thread-priority: 5
@@ -83,13 +88,6 @@ ribbon:
   ConnectTimeout: 10000
   eureka:
     enabled: false
-job:
-  crontab:
-    db:
-      url: jdbc:otel:mysql://__BK_JOB_CRONTAB_MYSQL_HOST__:__BK_JOB_CRONTAB_MYSQL_PORT__/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-      username: __BK_JOB_CRONTAB_MYSQL_USERNAME__
-      password: __BK_JOB_CRONTAB_MYSQL_PASSWORD__
-
 # 连续启动失败通知策略：默认 从第一次失败开始，连续失败每5次通知第一次 begin = 1；frequency = 5；totalTimes = -1
 notification-policy:
   failed:

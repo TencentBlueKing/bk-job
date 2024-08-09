@@ -50,6 +50,9 @@ data:
             max-wait: 1ms
           shutdown-timeout: 100ms
       quartz:
+        job-store-type: jdbc
+        jdbc:
+          initialize-schema: never
         thread-pool:
           thread-name-prefix: QuartzThreadPoolTaskExecutor-
           thread-priority: 5
@@ -81,16 +84,6 @@ data:
       ConnectTimeout: 10000
       eureka:
         enabled: false
-    job:
-      crontab:
-        db:
-          url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_crontab?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-          username: {{ include "job.mariadb.username" . }}
-          {{ if .Values.externalMariaDB.existingPasswordSecret }}
-          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-          {{- else -}}
-          password: ${mariadb-password}
-          {{- end }}
     notification-policy:
       failed:
         start:
