@@ -36,6 +36,8 @@ public interface AIChatHistoryService {
      * @param username  用户名
      * @param startTime 开始时间
      * @param userInput 用户输入
+     * @param aiInput   AI输入
+     * @param status    对话状态
      * @param aiAnswer  AI回答
      * @return AI聊天记录
      */
@@ -43,6 +45,7 @@ public interface AIChatHistoryService {
                                            Long startTime,
                                            String userInput,
                                            String aiInput,
+                                           Integer status,
                                            AIAnswer aiAnswer);
 
     /**
@@ -52,6 +55,15 @@ public interface AIChatHistoryService {
      * @return 插入记录的id
      */
     Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
+
+    /**
+     * 更新聊天记录状态
+     *
+     * @param historyId AI聊天记录ID
+     * @param aiAnswer  AI回答内容
+     * @return 受影响的行数
+     */
+    int finishAIAnswer(Long historyId, AIAnswer aiAnswer);
 
 
     /**

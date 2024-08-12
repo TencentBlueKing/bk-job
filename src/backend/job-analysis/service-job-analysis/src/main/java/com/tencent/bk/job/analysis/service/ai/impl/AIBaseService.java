@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
@@ -58,15 +59,20 @@ public class AIBaseService {
         long startTime = System.currentTimeMillis();
         String rawPrompt = aiPromptDTO.getRawPrompt();
         String renderedPrompt = aiPromptDTO.getRenderedPrompt();
-        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
+        // 1.插入初始聊天记录
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
             rawPrompt,
             renderedPrompt,
-            aiAnswer
+            AIChatStatusEnum.REPLYING.getStatus(),
+            null
         );
-        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        // 2.获取AI回答
+        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
+        // 3.更新聊天记录状态
+        aiChatHistoryService.finishAIAnswer(historyId, aiAnswer);
         return aiAnswer;
     }
 
@@ -87,6 +93,7 @@ public class AIBaseService {
             startTime,
             rawPrompt,
             buildAIDirectlyAnswerInput(content),
+            AIChatStatusEnum.FINISHED.getStatus(),
             aiAnswer
         );
         aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
@@ -54,12 +55,14 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
                                                   Long startTime,
                                                   String userInput,
                                                   String aiInput,
+                                                  Integer status,
                                                   AIAnswer aiAnswer) {
         AIChatHistoryDTO aiChatHistoryDTO = new AIChatHistoryDTO();
         aiChatHistoryDTO.setUsername(username);
         aiChatHistoryDTO.setUserInput(userInput);
         aiChatHistoryDTO.setPromptTemplateId(null);
         aiChatHistoryDTO.setAiInput(aiInput);
+        aiChatHistoryDTO.setStatus(status);
         aiChatHistoryDTO.setAiAnswer(aiAnswer.getContent());
         aiChatHistoryDTO.setErrorCode(String.valueOf(aiAnswer.getErrorCode()));
         aiChatHistoryDTO.setErrorMessage(aiAnswer.getErrorMessage());
@@ -73,6 +76,18 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     @Override
     public Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO) {
         return aiChatHistoryDAO.insertAIChatHistory(aiChatHistoryDTO);
+    }
+
+    @Override
+    public int finishAIAnswer(Long historyId, AIAnswer aiAnswer) {
+        return aiChatHistoryDAO.updateChatHistoryStatusAndAIAnswer(
+            historyId,
+            AIChatStatusEnum.FINISHED.getStatus(),
+            aiAnswer.getContent(),
+            aiAnswer.getErrorCode(),
+            aiAnswer.getErrorMessage(),
+            System.currentTimeMillis()
+        );
     }
 
     /**

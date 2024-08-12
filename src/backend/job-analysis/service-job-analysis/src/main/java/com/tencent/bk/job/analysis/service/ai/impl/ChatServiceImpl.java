@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
@@ -55,17 +56,20 @@ public class ChatServiceImpl implements ChatService {
         // 1.获取最近的聊天记录
         List<AIChatHistoryDTO> chatHistoryDTOList = getLatestChatHistoryList(username, 0, 5);
         chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
-        // 2.调用AI服务获取回答
-        AIAnswer aiAnswer = aiService.getAIAnswer(chatHistoryDTOList, userInput);
-        // 3.保存聊天记录
+        // 2.保存初始聊天记录
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
             userInput,
             userInput,
-            aiAnswer
+            AIChatStatusEnum.REPLYING.getStatus(),
+            null
         );
-        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        // 3.调用AI服务获取回答
+        AIAnswer aiAnswer = aiService.getAIAnswer(chatHistoryDTOList, userInput);
+        // 4.更新聊天记录状态与回答内容
+        aiChatHistoryService.finishAIAnswer(historyId, aiAnswer);
         return aiAnswer;
     }
 

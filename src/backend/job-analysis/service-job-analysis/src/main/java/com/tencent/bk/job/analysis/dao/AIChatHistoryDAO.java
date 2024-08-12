@@ -38,6 +38,24 @@ public interface AIChatHistoryDAO {
     Long insertAIChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
+     * 更新聊天记录状态
+     *
+     * @param historyId    AI聊天记录ID
+     * @param status       AI聊天记录状态
+     * @param aiAnswer     AI回答
+     * @param errorCode    错误码
+     * @param errorMessage 错误信息
+     * @param aiAnswerTime AI回答时间
+     * @return 受影响的行数
+     */
+    int updateChatHistoryStatusAndAIAnswer(Long historyId,
+                                           Integer status,
+                                           String aiAnswer,
+                                           String errorCode,
+                                           String errorMessage,
+                                           Long aiAnswerTime);
+
+    /**
      * 获取最近的聊天记录列表
      *
      * @param username 用户名

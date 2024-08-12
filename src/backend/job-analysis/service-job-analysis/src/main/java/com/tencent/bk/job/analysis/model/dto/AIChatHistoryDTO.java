@@ -69,6 +69,11 @@ public class AIChatHistoryDTO {
     private String aiInput;
 
     /**
+     * AI对话状态，取值源于{@link AIChatStatusEnum}.
+     */
+    private Integer status;
+
+    /**
      * AI回答的内容
      */
     private String aiAnswer;
@@ -124,8 +129,7 @@ public class AIChatHistoryDTO {
         aiAnswer.setErrorCode(errorCode);
         aiAnswer.setErrorMessage(errorMessage);
         aiChatRecord.setAiAnswer(aiAnswer);
-        // TODO:使用真实数据
-        aiChatRecord.setStatus(AIChatStatusEnum.FINISHED.getStatus());
+        aiChatRecord.setStatus(status);
         return aiChatRecord;
     }
 }

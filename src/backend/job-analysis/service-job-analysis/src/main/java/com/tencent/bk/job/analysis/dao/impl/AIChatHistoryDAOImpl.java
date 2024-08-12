@@ -103,6 +103,23 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     }
 
     @Override
+    public int updateChatHistoryStatusAndAIAnswer(Long historyId,
+                                                  Integer status,
+                                                  String aiAnswer,
+                                                  String errorCode,
+                                                  String errorMessage,
+                                                  Long aiAnswerTime) {
+        return dslContext.update(defaultTable)
+            .set(defaultTable.STATUS, status.byteValue())
+            .set(defaultTable.AI_ANSWER, aiAnswer)
+            .set(defaultTable.ERROR_CODE, errorCode)
+            .set(defaultTable.ERROR_MESSAGE, errorMessage)
+            .set(defaultTable.ANSWER_TIME, JooqDataTypeUtil.buildULong(aiAnswerTime))
+            .where(defaultTable.ID.eq(historyId))
+            .execute();
+    }
+
+    @Override
     public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
@@ -132,6 +149,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                 defaultTable.USER_INPUT,
                 defaultTable.PROMPT_TEMPLATE_ID,
                 defaultTable.AI_INPUT,
+                defaultTable.STATUS,
                 defaultTable.AI_ANSWER,
                 defaultTable.ERROR_CODE,
                 defaultTable.ERROR_MESSAGE,
@@ -152,6 +170,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         aiChatHistoryDTO.setUserInput(record.get(defaultTable.USER_INPUT));
         aiChatHistoryDTO.setPromptTemplateId(record.get(defaultTable.PROMPT_TEMPLATE_ID));
         aiChatHistoryDTO.setAiInput(record.get(defaultTable.AI_INPUT));
+        aiChatHistoryDTO.setStatus(JooqDataTypeUtil.getIntegerFromByte(record.get(defaultTable.STATUS)));
         aiChatHistoryDTO.setAiAnswer(record.get(defaultTable.AI_ANSWER));
         aiChatHistoryDTO.setErrorCode(record.get(defaultTable.ERROR_CODE));
         aiChatHistoryDTO.setErrorMessage(record.get(defaultTable.ERROR_MESSAGE));

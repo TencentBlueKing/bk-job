@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `ai_chat_history`  (
     `user_input`                  TEXT                              NOT NULL                    COMMENT '用户输入内容',
     `prompt_template_id`          int(10)                               NULL    DEFAULT NULL    COMMENT '使用的提示符模板ID',
     `ai_input`                    TEXT                              NOT NULL                    COMMENT '提交给AI的输入内容',
+    `status`                      tinyint(4)                            NULL    DEFAULT NULL    COMMENT 'AI对话状态：1表示正在回答，2表示已完成',
     `ai_answer`                   TEXT                              NOT NULL                    COMMENT 'AI回答的内容',
     `error_code`                  varchar(128)                          NULL    DEFAULT NULL    COMMENT 'AI回答失败时的错误码',
     `error_message`               varchar(512)                          NULL    DEFAULT NULL    COMMENT 'AI回答失败时的错误信息',
