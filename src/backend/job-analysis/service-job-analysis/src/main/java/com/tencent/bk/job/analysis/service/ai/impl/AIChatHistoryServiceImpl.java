@@ -63,11 +63,13 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         aiChatHistoryDTO.setPromptTemplateId(null);
         aiChatHistoryDTO.setAiInput(aiInput);
         aiChatHistoryDTO.setStatus(status);
-        aiChatHistoryDTO.setAiAnswer(aiAnswer.getContent());
-        aiChatHistoryDTO.setErrorCode(String.valueOf(aiAnswer.getErrorCode()));
-        aiChatHistoryDTO.setErrorMessage(aiAnswer.getErrorMessage());
+        if (aiAnswer != null) {
+            aiChatHistoryDTO.setAiAnswer(aiAnswer.getContent());
+            aiChatHistoryDTO.setErrorCode(String.valueOf(aiAnswer.getErrorCode()));
+            aiChatHistoryDTO.setErrorMessage(aiAnswer.getErrorMessage());
+            aiChatHistoryDTO.setAnswerTime(System.currentTimeMillis());
+        }
         aiChatHistoryDTO.setStartTime(startTime);
-        aiChatHistoryDTO.setAnswerTime(System.currentTimeMillis());
         aiChatHistoryDTO.updateTotalTime();
         aiChatHistoryDTO.setIsDeleted(false);
         return aiChatHistoryDTO;

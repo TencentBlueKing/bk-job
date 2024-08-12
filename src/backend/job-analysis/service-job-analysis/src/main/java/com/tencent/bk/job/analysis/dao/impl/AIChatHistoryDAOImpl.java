@@ -71,6 +71,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                 defaultTable.USER_INPUT,
                 defaultTable.PROMPT_TEMPLATE_ID,
                 defaultTable.AI_INPUT,
+                defaultTable.STATUS,
                 defaultTable.AI_ANSWER,
                 defaultTable.ERROR_CODE,
                 defaultTable.ERROR_MESSAGE,
@@ -84,6 +85,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                 aiChatHistoryDTO.getUserInput(),
                 aiChatHistoryDTO.getPromptTemplateId(),
                 aiChatHistoryDTO.getAiInput(),
+                JooqDataTypeUtil.getByteFromInteger(aiChatHistoryDTO.getStatus()),
                 aiChatHistoryDTO.getAiAnswer(),
                 aiChatHistoryDTO.getErrorCode(),
                 aiChatHistoryDTO.getErrorMessage(),
@@ -110,7 +112,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                                                   String errorMessage,
                                                   Long aiAnswerTime) {
         return dslContext.update(defaultTable)
-            .set(defaultTable.STATUS, status.byteValue())
+            .set(defaultTable.STATUS, JooqDataTypeUtil.getByteFromInteger(status))
             .set(defaultTable.AI_ANSWER, aiAnswer)
             .set(defaultTable.ERROR_CODE, errorCode)
             .set(defaultTable.ERROR_MESSAGE, errorMessage)
