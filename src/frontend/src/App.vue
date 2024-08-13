@@ -205,11 +205,11 @@
             this.relatedSystemUrls = Object.freeze(data);
 
             return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
-              name: '蓝鲸作业平台',
-              nameEn: 'BlueKing JOB',
+              name: '作业平台',
+              nameEn: 'JOB',
               appLogo: '/static/images/logo.png',
-              brandName: '腾讯蓝鲸智云',
-              brandNameEn: 'BlueKing',
+              brandName: '蓝鲸智云',
+              brandNameEn: 'Tencent BlueKing',
               favicon: '/static/images/favicon.icon',
               version: process.env.JOB_VERSION,
             }).then((data) => {
