@@ -43,7 +43,7 @@
         <span
           class="site-title"
           @click="handleRouterChange('home')">
-          {{ siteName }}
+          {{ productName }}
         </span>
       </template>
       <template slot="headerCenter">
@@ -324,7 +324,7 @@
 
   const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
 
-  const siteName = computed(() => (locale === 'en-US' ? store.state.platformConfig.nameEn : store.state.platformConfig.name));
+  const productName = computed(() => (locale === 'en-US' ? store.state.platformConfig.productNameEn : store.state.platformConfig.productName));
 
   watch(route, (currentRoute) => {
     routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
