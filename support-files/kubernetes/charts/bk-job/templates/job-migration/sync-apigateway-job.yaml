@@ -41,5 +41,11 @@ spec:
           value : {{ .Values.apiGatewayConfig.resourceDir }}
         - name: BK_JOB_API_URL
           value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
+        - name: BK_NODEMAN_APP_CODE
+          value: {{ .Values.apiGatewayConfig.nodemanAppCode }}
+        - name: BK_SOPS_APP_CODE
+          value: {{ .Values.apiGatewayConfig.sopsAppCode }}
+        - name: BK_CI_APP_CODE
+          value: {{ .Values.apiGatewayConfig.ciAppCode }}
       restartPolicy: Never
 {{- end }}

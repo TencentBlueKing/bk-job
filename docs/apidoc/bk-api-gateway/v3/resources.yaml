@@ -17,7 +17,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -31,8 +31,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Fast execute script
   /v2/jobv3/execute_job_plan:
     post:
       operationId: execute_job_plan
@@ -43,7 +43,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -57,8 +57,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Execute job plan
   /v2/jobv3/fast_execute_sql:
     post:
       operationId: fast_execute_sql
@@ -69,7 +69,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -83,8 +83,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Fast execute sql
   /v2/jobv3/fast_transfer_file:
     post:
       operationId: fast_transfer_file
@@ -95,7 +95,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -109,8 +109,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Fast transfer file
   /v2/jobv3/push_config_file:
     post:
       operationId: push_config_file
@@ -120,8 +120,8 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: false
-        allowApplyPermission: false
+        isPublic: true
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -135,8 +135,34 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Push config file
+  /v2/jobv3/bkci_plugin_fast_execute_script:
+    post:
+      operationId: bkci_plugin_fast_execute_script
+      description: 快速执行脚本(蓝盾作业执行插件专用，非正式公开 API)
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-execute/bkci_plugin_fast_execute_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Quick script execution
   /v2/jobv3/operate_job_instance:
     post:
       operationId: operate_job_instance
@@ -147,7 +173,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -161,8 +187,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Operate job instance
   /v2/jobv3/operate_step_instance:
     post:
       operationId: operate_step_instance
@@ -173,7 +199,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -187,8 +213,60 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Operate step instance
+  /v2/jobv3/bkci_plugin_batch_get_job_instance_execute_object_log:
+    post:
+      operationId: bkci_plugin_batch_get_job_instance_execute_object_log
+      description: 根据执行对象列表批量查询执行日志(蓝盾作业执行插件专用，非正式公开 API)
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-execute/bkci_plugin_batch_get_job_instance_execute_object_log
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch query execution logs based on the list of execution objects
+  /v2/jobv3/bkci_plugin_get_job_instance_status:
+    post:
+      operationId: bkci_plugin_get_job_instance_status
+      description: 根据作业实例 ID 查询作业执行状态(蓝盾作业执行插件专用，非正式公开 API)
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-execute/bkci_plugin_get_job_instance_status
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Query job execution status based on job instance ID
   /v2/jobv3/get_job_instance_status:
     get:
       operationId: get_job_instance_status
@@ -199,7 +277,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -213,8 +291,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance status
   /v2/jobv3/get_job_instance_global_var_value:
     get:
       operationId: get_job_instance_global_var_value
@@ -225,7 +303,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -239,8 +317,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance global var value
   /v2/jobv3/get_job_instance_ip_log:
     get:
       operationId: get_job_instance_ip_log
@@ -251,7 +329,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -265,8 +343,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance ip log
   /v2/jobv3/get_job_instance_list:
     get:
       operationId: get_job_instance_list
@@ -277,7 +355,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -291,8 +369,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance list
   /v2/jobv3/get_step_instance_detail:
     get:
       operationId: get_step_instance_detail
@@ -303,7 +381,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -317,8 +395,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get step instance detail
   /v2/jobv3/get_step_instance_status:
     get:
       operationId: get_step_instance_status
@@ -329,7 +407,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -343,8 +421,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get step instance status
   /v2/jobv3/query_agent_info:
     post:
       operationId: query_agent_info
@@ -354,7 +432,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -368,9 +446,9 @@ paths:
           transformHeaders: {}
         authConfig:
           appVerifiedRequired: true
-          userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Query agent info
   /v2/jobv3/get_job_plan_detail:
     get:
       operationId: get_job_plan_detail
@@ -381,7 +459,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -395,8 +473,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job plan detail
   /v2/jobv3/get_job_plan_list:
     get:
       operationId: get_job_plan_list
@@ -407,7 +485,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -421,8 +499,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job plan list
   /v2/jobv3/get_job_template_list:
     get:
       operationId: get_job_template_list
@@ -433,7 +511,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -447,8 +525,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get job template list
   /v2/jobv3/get_public_script_list:
     get:
       operationId: get_public_script_list
@@ -459,7 +537,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -473,8 +551,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get public script list
   /v2/jobv3/get_public_script_version_detail:
     get:
       operationId: get_public_script_version_detail
@@ -485,7 +563,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -499,8 +577,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get public script version detail
   /v2/jobv3/get_public_script_version_list:
     get:
       operationId: get_public_script_version_list
@@ -511,7 +589,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -525,8 +603,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get public script version list
   /v2/jobv3/get_script_list:
     get:
       operationId: get_script_list
@@ -537,7 +615,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -551,8 +629,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get script list
   /v2/jobv3/get_script_version_detail:
     get:
       operationId: get_script_version_detail
@@ -563,7 +641,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -577,8 +655,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get script version detail
   /v2/jobv3/get_script_version_list:
     get:
       operationId: get_script_version_list
@@ -589,7 +667,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -603,8 +681,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get script version list
   /v2/jobv3/batch_get_job_instance_ip_log:
     post:
       operationId: batch_get_job_instance_ip_log
@@ -615,7 +693,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -629,8 +707,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Batch get job instance ip log
   /v2/jobv3/create_account:
     post:
       operationId: create_account
@@ -641,7 +719,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -655,8 +733,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Create account
   /v2/jobv3/delete_account:
     post:
       operationId: delete_account
@@ -667,7 +745,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -681,8 +759,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Delete account
   /v2/jobv3/get_account_list:
     get:
       operationId: get_account_list
@@ -693,7 +771,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -707,8 +785,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get account list
   /v2/jobv3/get_credential_detail:
     get:
       operationId: get_credential_detail
@@ -719,7 +797,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -733,8 +811,216 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get credential detail
+  /v2/jobv3/update_credential:
+    post:
+      operationId: update_credential
+      description: 更新凭证
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_credential
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update credential
+  /v2/jobv3/create_credential:
+    post:
+      operationId: create_credential
+      description: 新建凭证
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_credential
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create credential
+  /v2/jobv3/create_dangerous_rule:
+    post:
+      operationId: create_dangerous_rule
+      description: 创建高危语句规则
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_dangerous_rule
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create dangerous rule
+  /v2/jobv3/delete_dangerous_rule:
+    post:
+      operationId: delete_dangerous_rule
+      description: 删除高危语句规则
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/delete_dangerous_rule
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Delete dangerous rule
+  /v2/jobv3/disable_dangerous_rule:
+    post:
+      operationId: disable_dangerous_rule
+      description: 停用高危语句规则
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/disable_dangerous_rule
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Disable dangerous rule
+  /v2/jobv3/enable_dangerous_rule:
+    post:
+      operationId: enable_dangerous_rule
+      description: 启用高危语句规则
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/enable_dangerous_rule
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Enable dangerous rule
+  /v2/jobv3/get_dangerous_rule_list:
+    post:
+      operationId: get_dangerous_rule_list
+      description: 查看高危语句规则列表
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/get_dangerous_rule_list
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get dangerous rule list
+  /v2/jobv3/update_dangerous_rule:
+    post:
+      operationId: update_dangerous_rule
+      description: 修改高危语句规则
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_dangerous_rule
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update dangerous rule
   /v2/jobv3/get_latest_service_version:
     get:
       operationId: get_latest_service_version
@@ -744,7 +1030,7 @@ paths:
         default:
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         backend:
@@ -759,8 +1045,476 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get latest service version
+  /v2/jobv3/generate_local_file_upload_url:
+    get:
+      operationId: generate_local_file_upload_url
+      description: 生成本地文件上传URL
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-manage/generate_local_file_upload_url
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Generate local file upload url
+  /v2/jobv3/check_script:
+    post:
+      operationId: check_script
+      description: 高危脚本检测
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/check_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Check script
+  /v2/jobv3/create_public_script:
+    post:
+      operationId: create_public_script
+      description: 创建公共脚本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_public_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Save public script
+  /v2/jobv3/create_public_script_version:
+    post:
+      operationId: create_public_script_version
+      description: 新建公共脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_public_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Save public script version
+  /v2/jobv3/delete_public_script_version:
+    post:
+      operationId: delete_public_script_version
+      description: 删除公共脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/delete_public_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Delete public script version
+  /v2/jobv3/disable_public_script_version:
+    post:
+      operationId: disable_public_script_version
+      description: 禁用公共脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/disable_public_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Disable public script version
+  /v2/jobv3/delete_public_script:
+    post:
+      operationId: delete_public_script
+      description: 删除公共脚本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/delete_public_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Delete public script
+  /v2/jobv3/update_public_script_basic:
+    post:
+      operationId: update_public_script_basic
+      description: 更新公共脚本基础信息
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_public_script_basic
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update public script basic
+  /v2/jobv3/update_public_script_version:
+    post:
+      operationId: update_public_script_version
+      description: 修改公共脚本版本信息
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_public_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update public script version
+  /v2/jobv3/publish_public_script_version:
+    post:
+      operationId: publish_public_script_version
+      description: 发布公共脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/publish_public_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Publish public script version
+  /v2/jobv3/create_script:
+    post:
+      operationId: create_script
+      description: 创建脚本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Save script
+  /v2/jobv3/create_script_version:
+    post:
+      operationId: create_script_version
+      description: 新建脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/create_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Save script version
+  /v2/jobv3/delete_script_version:
+    post:
+      operationId: delete_script_version
+      description: 删除脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/delete_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Delete script version
+  /v2/jobv3/delete_script:
+    post:
+      operationId: delete_script
+      description: 删除脚本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/delete_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Delete script
+  /v2/jobv3/disable_script_version:
+    post:
+      operationId: disable_script_version
+      description: 禁用脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/disable_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Disable script version
+  /v2/jobv3/update_script_basic:
+    post:
+      operationId: update_script_basic
+      description: 更新脚本基础信息
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_script_basic
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update script basic
+  /v2/jobv3/update_script_version:
+    post:
+      operationId: update_script_version
+      description: 修改脚本版本信息
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/update_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update script version
+  /v2/jobv3/publish_script_version:
+    post:
+      operationId: publish_script_version
+      description: 发布脚本版本
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-manage/publish_script_version
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Publish script version
   /v2/jobv3/delete_cron:
     post:
       operationId: delete_cron
@@ -771,7 +1525,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -785,8 +1539,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Delete cron
   /v2/jobv3/save_cron:
     post:
       operationId: save_cron
@@ -797,7 +1551,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -811,8 +1565,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Save cron
   /v2/jobv3/update_cron_status:
     post:
       operationId: update_cron_status
@@ -823,7 +1577,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -837,8 +1591,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Update cron status
   /v2/jobv3/get_cron_list:
     get:
       operationId: get_cron_list
@@ -849,7 +1603,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -863,8 +1617,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get cron list
   /v2/jobv3/get_cron_detail:
     get:
       operationId: get_cron_detail
@@ -875,7 +1629,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -889,8 +1643,8 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get cron detail
   /v2/jobv3/get_file_source_detail:
     get:
       operationId: get_file_source_detail
@@ -901,7 +1655,7 @@ paths:
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
-        allowApplyPermission: false
+        allowApplyPermission: true
         matchSubpath: false
         backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
@@ -915,8 +1669,60 @@ paths:
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
-          resourcePermissionRequired: false
-        descriptionEn:
+          resourcePermissionRequired: true
+        descriptionEn: Get file source detail
+  /v2/jobv3/update_file_source:
+    post:
+      operationId: update_file_source
+      description: 更新文件源
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-file-gateway/update_file_source
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update file source
+  /v2/jobv3/create_file_source:
+    post:
+      operationId: create_file_source
+      description: 新建文件源
+      tags: []
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-file-gateway/create_file_source
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create file source
   /v2/jobv3/callback_protocol:
     get:
       operationId: callback_protocol
@@ -942,4 +1748,4 @@ paths:
           appVerifiedRequired: false
           userVerifiedRequired: false
           resourcePermissionRequired: false
-        descriptionEn:
+        descriptionEn: Callback protocol

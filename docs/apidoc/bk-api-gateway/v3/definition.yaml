@@ -94,5 +94,14 @@ resource_docs:
 
 # 主动授权，网关主动给应用，添加访问网关所有资源的权限
 grant_permissions:
-  - bk_app_code: "{{ environ.BK_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_NODEMAN_APP_CODE }}"
     grant_dimension: "gateway"
+  - bk_app_code: "{{ environ.BK_SOPS_APP_CODE }}"
+    grant_dimension: "gateway"
+  - bk_app_code: "{{ environ.BK_CI_APP_CODE }}"
+    grant_dimension: "gateway"
+# 按资源授权
+#  - bk_app_code: {{environ.BK_CI_APP_CODE}}
+#    grant_dimension: "resource"
+#    resource_names:
+#      - bkci_plugin_fast_execute_script

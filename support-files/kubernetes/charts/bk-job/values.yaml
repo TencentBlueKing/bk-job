@@ -1524,6 +1524,10 @@ apiGatewayConfig:
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/
   resourceDir: "/data/apidocs/"
+  # 网关主动授权给应用的appCode
+  nodemanAppCode: "bk_nodeman"
+  sopsAppCode: "bk_sops"
+  ciAppCode: "bk_ci"
   image:
     # 镜像拉取仓库根地址
     registry: hub.bktencent.com
