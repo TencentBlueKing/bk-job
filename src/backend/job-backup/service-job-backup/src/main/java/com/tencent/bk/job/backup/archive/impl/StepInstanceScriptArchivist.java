@@ -26,8 +26,8 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -41,7 +41,7 @@ import java.util.concurrent.CountDownLatch;
 public class StepInstanceScriptArchivist extends AbstractArchivist<StepInstanceScriptRecord> {
 
     public StepInstanceScriptArchivist(StepInstanceScriptRecordDAO executeRecordDAO,
-                                       ExecuteArchiveDAO executeArchiveDAO,
+                                       JobInstanceColdDAO jobInstanceColdDAO,
                                        ArchiveProgressService archiveProgressService,
                                        ArchiveDBProperties archiveDBProperties,
                                        ArchiveTaskLock archiveTaskLock,
@@ -49,7 +49,7 @@ public class StepInstanceScriptArchivist extends AbstractArchivist<StepInstanceS
                                        CountDownLatch countDownLatch,
                                        ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         super(executeRecordDAO,
-            executeArchiveDAO,
+            jobInstanceColdDAO,
             archiveProgressService,
             archiveDBProperties,
             archiveTaskLock,

@@ -25,14 +25,18 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
+import com.tencent.bk.job.backup.archive.ArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.archive.JobInstanceHotDataArchiveTaskGenerator;
+import com.tencent.bk.job.backup.archive.JobInstanceHotDataArchiveTaskScheduler;
+import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileJobInstanceHotObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptJobInstanceHotObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
@@ -193,17 +197,17 @@ public class ArchiveConfiguration {
         }
 
         @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
-        public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
+        public GseScriptJobInstanceHotObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
             @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseScriptExecuteObjTaskRecordDAO");
-            return new GseScriptExecuteObjTaskRecordDAO(context);
+            return new GseScriptJobInstanceHotObjTaskRecordDAO(context);
         }
 
         @Bean(name = "gseFileExecuteObjTaskRecordDAO")
-        public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
+        public GseFileJobInstanceHotObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
             @Qualifier("jobExecuteDSLContext") DSLContext context) {
             log.info("Init GseFileExecuteObjTaskRecordDAO");
-            return new GseFileExecuteObjTaskRecordDAO(context);
+            return new GseFileJobInstanceHotObjTaskRecordDAO(context);
         }
 
         @Bean(name = "stepInstanceRollingTaskRecordDAO")
@@ -236,7 +240,7 @@ public class ArchiveConfiguration {
     @Conditional(ExecuteBackupDbConfiguration.JobExecuteBackupDbInitCondition.class)
     public static class ExecuteBackupDAOConfig {
         @Bean(name = "execute-archive-dao")
-        public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+        public JobInstanceColdDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
             log.info("Init ExecuteArchiveDAO");
             return new ExecuteArchiveDAOImpl(context);
         }
@@ -247,6 +251,49 @@ public class ArchiveConfiguration {
     public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveTaskLock");
         return new ArchiveTaskLock(redisTemplate);
+    }
+
+    @Bean
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+    public ArchiveTaskScheduleLock archiveTaskScheduleLock() {
+        log.info("Init ArchiveTaskScheduleLock");
+        return new ArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+    public JobInstanceHotDataArchiveTaskGenerator archiveTaskGenerator(
+        ArchiveTaskDAO archiveTaskDAO,
+        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        ArchiveDBProperties archiveDBProperties,
+        ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider) {
+        log.info("Init ArchiveTaskGenerator");
+        return new JobInstanceHotDataArchiveTaskGenerator(
+            archiveTaskDAO,
+            taskInstanceRecordDAO,
+            archiveDBProperties,
+            shardingPropertiesObjectProvider.getIfAvailable()
+        );
+    }
+
+    @Bean
+    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+    public JobInstanceHotDataArchiveTaskScheduler archiveTaskScheduler(
+        ArchiveTaskDAO archiveTaskDAO,
+        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        ArchiveDBProperties archiveDBProperties,
+        ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider,
+        ArchiveTaskScheduleLock archiveTaskScheduleLock,
+        JobInstanceHotDataArchiveTaskGenerator jobInstanceHotDataArchiveTaskGenerator) {
+        log.info("Init ArchiveTaskScheduler");
+        return new JobInstanceHotDataArchiveTaskScheduler(
+            archiveTaskDAO,
+            taskInstanceRecordDAO,
+            archiveDBProperties,
+            shardingPropertiesObjectProvider.getIfAvailable(),
+            archiveTaskScheduleLock,
+            jobInstanceHotDataArchiveTaskGenerator
+        );
     }
 
 
@@ -265,12 +312,12 @@ public class ArchiveConfiguration {
         ObjectProvider<GseTaskRecordDAO> gseTaskRecordDAOObjectProvider,
         ObjectProvider<GseScriptAgentTaskRecordDAO> gseScriptAgentTaskRecordDAOObjectProvider,
         ObjectProvider<GseFileAgentTaskRecordDAO> gseFileAgentTaskRecordDAOObjectProvider,
-        ObjectProvider<GseScriptExecuteObjTaskRecordDAO> gseScriptExecuteObjTaskRecordDAOObjectProvider,
-        ObjectProvider<GseFileExecuteObjTaskRecordDAO> gseFileExecuteObjTaskRecordDAOObjectProvider,
+        ObjectProvider<GseScriptJobInstanceHotObjTaskRecordDAO> gseScriptExecuteObjTaskRecordDAOObjectProvider,
+        ObjectProvider<GseFileJobInstanceHotObjTaskRecordDAO> gseFileExecuteObjTaskRecordDAOObjectProvider,
         ObjectProvider<StepInstanceRollingTaskRecordDAO> stepInstanceRollingTaskRecordDAOObjectProvider,
         ObjectProvider<RollingConfigRecordDAO> rollingConfigRecordDAOObjectProvider,
         ObjectProvider<TaskInstanceHostRecordDAO> taskInstanceHostRecordDAOObjectProvider,
-        ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
+        ObjectProvider<JobInstanceColdDAO> executeArchiveDAOObjectProvider,
         ArchiveProgressService archiveProgressService,
         @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
         ArchiveDBProperties archiveDBProperties,

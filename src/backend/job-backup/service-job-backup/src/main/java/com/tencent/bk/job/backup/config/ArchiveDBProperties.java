@@ -39,48 +39,64 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "job.backup.archive.execute")
 public class ArchiveDBProperties {
     /**
-     * 是否启用 DB 归档
+     * 作业执行历史热数据归档配置
      */
-    private boolean enabled;
-
+    private ArchiveTaskProperties jobInstanceHotData;
     /**
-     * 归档模式
-     *
-     * @see ArchiveModeEnum
+     * 作业执行历史索引表数据归档配置
      */
-    private String mode;
-
+    private ArchiveTaskProperties jobInstanceIndexData;
     /**
-     * 触发时间 CRON 表达式
+     * 作业执行历史冷数据索引表归档配置
      */
-    private String cron;
+    private ArchiveTaskProperties jobInstanceColdIndexData;
 
-    /**
-     * DB数据保留天数
-     */
-    private int keepDays = 30;
+    @Data
+    public static class ArchiveTaskProperties {
+        /**
+         * 是否启用 DB 归档
+         */
+        private boolean enabled;
 
-    /**
-     * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-     */
-    private int readIdStepSize = 1000;
+        /**
+         * 归档模式
+         *
+         * @see ArchiveModeEnum
+         */
+        private String mode;
 
-    /**
-     * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
-     */
-    private int batchInsertRowSize = 1000;
+        /**
+         * 触发时间 CRON 表达式
+         */
+        private String cron;
 
-    /**
-     * 每次执行删除的最大行数
-     */
-    private int deleteRowLimit = 1000;
+        /**
+         * DB数据保留天数
+         */
+        private int keepDays = 30;
 
-    /**
-     * 每批次从 db 表中读取的记录数量
-     */
-    private int readRowLimit = 10000;
+        /**
+         * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+         */
+        private int readIdStepSize = 1000;
 
-    private Map<String, TableConfig> tableConfigs;
+        /**
+         * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
+         */
+        private int batchInsertRowSize = 1000;
+
+        /**
+         * 每次执行删除的最大行数
+         */
+        private int deleteRowLimit = 1000;
+
+        /**
+         * 每批次从 db 表中读取的记录数量
+         */
+        private int readRowLimit = 10000;
+
+        private Map<String, TableConfig> tableConfigs;
+    }
 
     @Data
     public static class TableConfig {

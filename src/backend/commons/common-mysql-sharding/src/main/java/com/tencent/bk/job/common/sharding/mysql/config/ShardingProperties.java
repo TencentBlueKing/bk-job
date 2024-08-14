@@ -42,6 +42,14 @@ public class ShardingProperties {
      * 是否启用分库分表
      */
     private boolean enabled;
+    /**
+     * 数据库实例数量
+     */
+    private Integer dbNodeCount;
+    /**
+     * 每个数据库实例上的表分片数量
+     */
+    private Integer tableNodeCount;
 
     /**
      * 分库分表迁移配置

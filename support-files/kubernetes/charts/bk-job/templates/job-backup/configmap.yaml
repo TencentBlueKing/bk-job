@@ -31,6 +31,30 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          source: archive-task
+          bindings:
+            handleArchiveTaskEvent-in-0:
+              destination: archive.task
+              group: service.job.backup
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            archive-task-out-0:
+              destination: archive.task
+              group: service.job.backup
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+          rabbit:
+            bindings:
+              handleArchiveTaskEvent-in-0:
+                consumer:
+                  maxConcurrency: 20
+              archive-task-out-0:
+                consumer:
+                  maxConcurrency: 20
+        function:
+          definition: handleArchiveTaskEvent
       datasource:
         job-backup:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}

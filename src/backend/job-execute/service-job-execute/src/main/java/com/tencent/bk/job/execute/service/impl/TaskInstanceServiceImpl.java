@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.sharding.mysql.ShardingManager;
+import com.tencent.bk.job.common.sharding.mysql.ShardingFlag;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
@@ -70,8 +70,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final TaskInstanceAppDAO taskInstanceAppDAO;
 
-    private final ShardingManager shardingManager;
-
     private final IdGenerator idGenerator;
 
     @Autowired
@@ -80,7 +78,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
-                                   ShardingManager shardingManager,
                                    TaskInstanceAppDAO taskInstanceAppDAO,
                                    IdGenerator idGenerator) {
         this.applicationService = applicationService;
@@ -88,7 +85,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.executeAuthService = executeAuthService;
-        this.shardingManager = shardingManager;
         this.taskInstanceAppDAO = taskInstanceAppDAO;
         this.idGenerator = idGenerator;
     }
@@ -98,7 +94,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         taskInstance.setId(idGenerator.genTaskInstanceId());
         long id = taskInstanceDAO.addTaskInstance(taskInstance);
         taskInstance.setId(id);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.addTaskInstance(taskInstance);
         }
         return id;
@@ -192,7 +188,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void updateTaskStatus(long appId, long taskInstanceId, int status) {
         taskInstanceDAO.updateTaskStatus(taskInstanceId, status);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.updateTaskStatus(appId, taskInstanceId, status);
         }
     }
@@ -200,7 +196,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void updateTaskCurrentStepId(long appId, long taskInstanceId, Long stepInstanceId) {
         taskInstanceDAO.updateTaskCurrentStepId(taskInstanceId, stepInstanceId);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.updateTaskCurrentStepId(appId, taskInstanceId, stepInstanceId);
         }
     }
@@ -208,7 +204,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void resetTaskStatus(long appId, long taskInstanceId) {
         taskInstanceDAO.resetTaskStatus(taskInstanceId);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.resetTaskStatus(appId, taskInstanceId);
         }
     }
@@ -216,7 +212,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId) {
         taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.resetTaskExecuteInfoForRetry(appId, taskInstanceId);
         }
     }
@@ -230,7 +226,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                         Long endTime,
                                         Long totalTime) {
         taskInstanceDAO.updateTaskExecutionInfo(taskInstanceId, status, currentStepId, startTime, endTime, totalTime);
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.updateTaskExecutionInfo(appId, taskInstanceId, status, currentStepId,
                 startTime, endTime, totalTime);
         }
@@ -239,7 +235,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public List<Long> getJoinedAppIdList() {
         // 加全量appId作为in条件查询以便走索引
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             return taskInstanceAppDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
         } else {
             return taskInstanceDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
@@ -248,7 +244,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             return taskInstanceAppDAO.hasExecuteHistory(appId, cronTaskId, fromTime, toTime);
         } else {
             return taskInstanceDAO.hasExecuteHistory(appId, cronTaskId, fromTime, toTime);
@@ -257,7 +253,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             return taskInstanceAppDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
         } else {
             return taskInstanceDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
@@ -268,7 +264,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public void saveTaskInstanceHosts(long appId,
                                       long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
         } else {
             taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
@@ -279,7 +275,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
         PageData<TaskInstanceDTO> pageData;
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             pageData = taskInstanceAppDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
         } else {
             pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
@@ -294,7 +290,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                                             RunStatusEnum status,
                                                             Integer limit) {
         List<TaskInstanceDTO> result;
-        if (shardingManager.isShardingEnabled()) {
+        if (ShardingFlag.isShardingEnabled()) {
             result = taskInstanceAppDAO.listLatestCronTaskInstance(appId, cronTaskId, latestTimeInSeconds, status,
                 limit);
         } else {

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class ArchiveSummaryHolder {
-    private Map<String, ArchiveSummary> summaryMap = new ConcurrentHashMap<>();
+    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
     private Long endTimeInMills;
 
     private ArchiveSummaryHolder() {
@@ -50,12 +50,12 @@ public class ArchiveSummaryHolder {
         this.endTimeInMills = endTimeInMills;
     }
 
-    public void addArchiveSummary(ArchiveSummary summary) {
+    public void addArchiveSummary(ArchiveTaskSummary summary) {
         if (summary == null) {
             return;
         }
         summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTableName(), summary);
+        summaryMap.put(summary.getTaskId(), summary);
     }
 
     public void print() {

@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.backup.archive.model.ArchiveProgressDTO;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
-import com.tencent.bk.job.backup.model.dto.ArchiveSummary;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -52,10 +52,10 @@ import java.util.function.Function;
 @Data
 @Slf4j
 public abstract class AbstractArchivist<T extends TableRecord<?>> {
-    protected ExecuteRecordDAO<T> executeRecordDAO;
-    protected ExecuteArchiveDAO executeArchiveDAO;
+    protected JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
+    protected JobInstanceColdDAO jobInstanceColdDAO;
     protected ArchiveProgressService archiveProgressService;
-    private ArchiveDBProperties archiveDBProperties;
+    private ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties;
     /**
      * 需要归档的记录的最大 ID (include)
      */
@@ -79,10 +79,6 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     private CountDownLatch countDownLatch;
     /**
-     * 读取DB 步长
-     */
-    protected int readIdStepSize;
-    /**
      * 每批次从 db 表中读取的记录数量
      */
     protected int readRowLimit;
@@ -99,37 +95,35 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
      */
     protected int deleteLimitRowCount;
     protected String tableName;
-    private ArchiveSummary archiveSummary;
+    private ArchiveTaskSummary archiveTaskSummary;
     private boolean isAcquireLock;
 
     private ArchiveTaskLock archiveTaskLock;
 
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
 
-    public AbstractArchivist(ExecuteRecordDAO<T> executeRecordDAO,
-                             ExecuteArchiveDAO executeArchiveDAO,
+    public AbstractArchivist(JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
+                             JobInstanceColdDAO jobInstanceColdDAO,
                              ArchiveProgressService archiveProgressService,
-                             ArchiveDBProperties archiveDBProperties,
+                             ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties,
                              ArchiveTaskLock archiveTaskLock,
                              Long maxNeedArchiveId,
                              CountDownLatch countDownLatch,
                              ArchiveErrorTaskCounter archiveErrorTaskCounter) {
-        this.executeRecordDAO = executeRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
+        this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
+        this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveProgressService = archiveProgressService;
-        this.archiveDBProperties = archiveDBProperties;
-        this.tableName = executeRecordDAO.getTable().getName().toLowerCase();
-        this.readIdStepSize = computeValuePreferTableConfig(archiveDBProperties.getReadIdStepSize(),
-            ArchiveDBProperties.TableConfig::getReadIdStepSize);
-        this.batchInsertRowSize = computeValuePreferTableConfig(archiveDBProperties.getBatchInsertRowSize(),
+        this.archiveTaskProperties = archiveTaskProperties;
+        this.tableName = jobInstanceHotRecordDAO.getTable().getName().toLowerCase();
+        this.batchInsertRowSize = computeValuePreferTableConfig(archiveTaskProperties.getBatchInsertRowSize(),
             ArchiveDBProperties.TableConfig::getBatchInsertRowSize);
-        this.readRowLimit = computeValuePreferTableConfig(archiveDBProperties.getReadRowLimit(),
+        this.readRowLimit = computeValuePreferTableConfig(archiveTaskProperties.getReadRowLimit(),
             ArchiveDBProperties.TableConfig::getReadRowLimit);
-        this.deleteLimitRowCount = computeValuePreferTableConfig(archiveDBProperties.getDeleteRowLimit(),
+        this.deleteLimitRowCount = computeValuePreferTableConfig(archiveTaskProperties.getDeleteRowLimit(),
             ArchiveDBProperties.TableConfig::getDeleteRowLimit);
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
-        this.archiveSummary = new ArchiveSummary(this.tableName);
+        this.archiveTaskSummary = new ArchiveTaskSummary(this.tableName);
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
     }
@@ -146,9 +140,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     ) {
 
         V value = defaultValue;
-        if (archiveDBProperties.getTableConfigs() != null
-            && archiveDBProperties.getTableConfigs().containsKey(tableName)) {
-            ArchiveDBProperties.TableConfig tableConfig = archiveDBProperties.getTableConfigs().get(tableName);
+        if (archiveTaskProperties.getTableConfigs() != null
+            && archiveTaskProperties.getTableConfigs().containsKey(tableName)) {
+            ArchiveDBProperties.TableConfig tableConfig = archiveTaskProperties.getTableConfigs().get(tableName);
             V tableValue = tableValueProvider.apply(tableConfig);
             if (tableValue != null) {
                 value = tableValue;
@@ -160,30 +154,30 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     public void archive() {
         try {
             if (!acquireLock()) {
-                archiveSummary.setSkip(!isAcquireLock);
+                archiveTaskSummary.setSkip(!isAcquireLock);
                 return;
             }
 
-            if (!archiveDBProperties.isEnabled()) {
-                archiveSummary.setSkip(true);
+            if (!archiveTaskProperties.isEnabled()) {
+                archiveTaskSummary.setSkip(true);
                 log.info("[{}] Archive is disabled, skip archive", tableName);
                 return;
             }
-            archiveSummary.setEnabled(true);
+            archiveTaskSummary.setEnabled(true);
 
             log.info("[{}] Start archive", tableName);
 
             initArchiveIdSettings();
 
-            log.info("[{}] Archive record config, readIdStepSize: {}, readRowLimit: {}, batchInsertRowSize: {}, " +
+            log.info("[{}] Archive record config, readRowLimit: {}, batchInsertRowSize: {}, " +
                     "deleteLimitRowCount: {}",
-                tableName, readIdStepSize, readRowLimit, batchInsertRowSize, deleteLimitRowCount);
+                tableName, readRowLimit, batchInsertRowSize, deleteLimitRowCount);
 
             if (minExistedRecordArchiveId == null) {
                 // min 查询返回 null，说明是空表，无需归档
-                archiveSummary.setSkip(true);
-                archiveSummary.setSuccess(true);
-                archiveSummary.setMessage("Empty table, do not need archive");
+                archiveTaskSummary.setSkip(true);
+                archiveTaskSummary.setSuccess(true);
+                archiveTaskSummary.setMessage("Empty table, do not need archive");
                 log.info("[{}] Empty table, do not need archive!", tableName);
                 return;
             }
@@ -191,9 +185,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             if (maxNeedArchiveId < this.minNeedArchiveId) {
                 log.info("[{}] MinNeedArchiveId {} is greater than maxNeedArchiveId {}, skip archive table!",
                     tableName, minNeedArchiveId, maxNeedArchiveId);
-                archiveSummary.setSkip(true);
-                archiveSummary.setSuccess(true);
-                archiveSummary.setMessage("MinNeedArchiveId is greater than maxNeedArchiveId, skip archive table");
+                archiveTaskSummary.setSkip(true);
+                archiveTaskSummary.setSuccess(true);
+                archiveTaskSummary.setMessage("MinNeedArchiveId is greater than maxNeedArchiveId, skip archive table");
                 return;
             }
 
@@ -207,9 +201,9 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             ).getMessage();
             log.error(msg, e);
             archiveErrorTaskCounter.increment();
-            archiveSummary.setMessage(e.getMessage());
+            archiveTaskSummary.setMessage(e.getMessage());
         } finally {
-            archiveSummary.setArchiveMode(archiveDBProperties.getMode());
+            archiveTaskSummary.setArchiveMode(archiveTaskProperties.getMode());
             storeArchiveSummary();
             if (this.isAcquireLock) {
                 archiveTaskLock.unlock(tableName);
@@ -219,8 +213,8 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private void backupAndDelete() throws IOException {
-        boolean backupEnabled = isBackupEnable(archiveDBProperties);
-        boolean deleteEnabled = isDeleteEnable(archiveDBProperties);
+        boolean backupEnabled = isBackupEnable();
+        boolean deleteEnabled = isDeleteEnable();
         long backupRows = 0;
         long readRows = 0;
         long deleteRows = 0;
@@ -231,12 +225,12 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         long backupReadRecordCost = 0;
         long backupWriteRecordCost = 0;
         long deleteCost = 0;
-        log.info("[{}] Start backup and delete process, backupEnabled: {}, deleteEnabled: {}", tableName,
+        log.info("[{}] Start backup and deleteJobInstanceHotData process, backupEnabled: {}, deleteEnabled: {}", tableName,
             backupEnabled, deleteEnabled);
         try {
             while (maxNeedArchiveId > start) {
                 // start < id <= stop
-                stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
+//                stop = Math.min(maxNeedArchiveId, start + readIdStepSize);
 
                 log.info("[{}] LoopArchive, current: [{}-{}]", tableName, start, stop);
 
@@ -253,7 +247,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                     long deleteStartTime = System.currentTimeMillis();
                     if (backupResult != null) {
                         if (backupResult.getReadRows() > 0) {
-                            // 降低 delete 执行次数：备份过程中读取的数据行数大于 0，才会执行 delete 操作
+                            // 降低 deleteJobInstanceHotData 执行次数：备份过程中读取的数据行数大于 0，才会执行 deleteJobInstanceHotData 操作
                             deleteRows += delete(start, stop);
                         }
                     } else {
@@ -281,7 +275,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
                 deleteRows,
                 archiveCost
             );
-            setArchiveSummary(
+            setArchiveTaskSummary(
                 minNeedArchiveId,
                 maxNeedArchiveId,
                 readRows,
@@ -298,15 +292,15 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         }
     }
 
-    protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
-        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveDBProperties.getMode());
-        return archiveDBProperties.isEnabled()
+    protected boolean isBackupEnable() {
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveTaskProperties.getMode());
+        return archiveTaskProperties.isEnabled()
             && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.BACKUP_ONLY == archiveMode);
     }
 
-    protected boolean isDeleteEnable(ArchiveDBProperties archiveDBProperties) {
-        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveDBProperties.getMode());
-        return archiveDBProperties.isEnabled()
+    protected boolean isDeleteEnable() {
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveTaskProperties.getMode());
+        return archiveTaskProperties.isEnabled()
             && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.DELETE_ONLY == archiveMode);
     }
 
@@ -408,30 +402,30 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
         }
     }
 
-    private void setArchiveSummary(Long minNeedArchiveId,
-                                   Long maxNeedArchiveId,
-                                   long readRows,
-                                   long backupRows,
-                                   long deleteRows,
-                                   Long lastBackupId,
-                                   Long lastDeleteId,
-                                   long archiveCost,
-                                   boolean success,
-                                   long backupReadCost,
-                                   long backupWriteCost,
-                                   long deleteCost) {
-        archiveSummary.setArchiveIdStart(minNeedArchiveId);
-        archiveSummary.setArchiveIdEnd(maxNeedArchiveId);
-        archiveSummary.setNeedArchiveRecordSize(readRows);
-        archiveSummary.setBackupRecordSize(backupRows);
-        archiveSummary.setDeleteRecordSize(deleteRows);
-        archiveSummary.setLastBackupId(lastBackupId);
-        archiveSummary.setLastDeletedId(lastDeleteId);
-        archiveSummary.setArchiveCost(archiveCost);
-        archiveSummary.setSuccess(success);
-        archiveSummary.setBackupReadCost(backupReadCost);
-        archiveSummary.setBackupWriteCost(backupWriteCost);
-        archiveSummary.setDeleteCost(deleteCost);
+    private void setArchiveTaskSummary(Long minNeedArchiveId,
+                                       Long maxNeedArchiveId,
+                                       long readRows,
+                                       long backupRows,
+                                       long deleteRows,
+                                       Long lastBackupId,
+                                       Long lastDeleteId,
+                                       long archiveCost,
+                                       boolean success,
+                                       long backupReadCost,
+                                       long backupWriteCost,
+                                       long deleteCost) {
+        archiveTaskSummary.setArchiveIdStart(minNeedArchiveId);
+        archiveTaskSummary.setArchiveIdEnd(maxNeedArchiveId);
+        archiveTaskSummary.setNeedArchiveRecordSize(readRows);
+        archiveTaskSummary.setBackupRecordSize(backupRows);
+        archiveTaskSummary.setDeleteRecordSize(deleteRows);
+        archiveTaskSummary.setLastBackupId(lastBackupId);
+        archiveTaskSummary.setLastDeletedId(lastDeleteId);
+        archiveTaskSummary.setArchiveCost(archiveCost);
+        archiveTaskSummary.setSuccess(success);
+        archiveTaskSummary.setBackupReadCost(backupReadCost);
+        archiveTaskSummary.setBackupWriteCost(backupWriteCost);
+        archiveTaskSummary.setDeleteCost(deleteCost);
     }
 
     /**
@@ -443,7 +437,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
             0 : archiveProgress.getLastBackupId();
         this.lastDeleteId = (archiveProgress == null || archiveProgress.getLastDeletedId() == null) ?
             0 : archiveProgress.getLastDeletedId();
-        this.minExistedRecordArchiveId = executeRecordDAO.getMinArchiveId();
+        this.minExistedRecordArchiveId = jobInstanceHotRecordDAO.getMinArchiveId();
         this.minNeedArchiveId = minExistedRecordArchiveId;
         log.info("[{}] Init archive id settings, lastBackupId: {}, lastDeleteId: {}, minExistedRecordArchiveId: {},"
                 + " minNeedArchiveId: {}, maxNeedArchiveId: {}",
@@ -477,7 +471,7 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
         int deleteCount = deleteRecord(start, stop);
         updateDeleteProgress(stop);
-        log.info("Delete {}, start: {}, stop: {}, delete rows: {}, cost: {}ms", tableName,
+        log.info("Delete {}, start: {}, stop: {}, deleteJobInstanceHotData rows: {}, cost: {}ms", tableName,
             start, stop, deleteCount, System.currentTimeMillis() - startTime);
         return deleteCount;
     }
@@ -501,18 +495,18 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
     }
 
     private void storeArchiveSummary() {
-        ArchiveSummaryHolder.getInstance().addArchiveSummary(this.archiveSummary);
+        ArchiveSummaryHolder.getInstance().addArchiveSummary(this.archiveTaskSummary);
     }
 
     private List<T> listRecord(Long start, Long stop, Long offset, Long limit) {
-        return executeRecordDAO.listRecords(start, stop, offset, limit);
+        return jobInstanceHotRecordDAO.listRecords(start, stop, offset, limit);
     }
 
     private int batchInsert(List<T> recordList) throws IOException {
-        return executeArchiveDAO.batchInsert(recordList, batchInsertRowSize);
+        return jobInstanceColdDAO.batchInsert(recordList, batchInsertRowSize);
     }
 
     private int deleteRecord(Long start, Long stop) {
-        return executeRecordDAO.deleteRecords(start, stop, deleteLimitRowCount);
+        return jobInstanceHotRecordDAO.deleteRecords(start, stop, deleteLimitRowCount);
     }
 }

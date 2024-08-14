@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.service;
 
-import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
+import com.tencent.bk.job.backup.archive.model.ArchiveProgressDTO;
 
 public interface ArchiveProgressService {
     ArchiveProgressDTO queryArchiveProgress(String table);

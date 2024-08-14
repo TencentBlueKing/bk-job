@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchivist;
 import com.tencent.bk.job.backup.archive.impl.GseFileExecuteObjTaskArchivist;
@@ -41,14 +43,13 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchivist;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchivist;
+import com.tencent.bk.job.backup.archive.model.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseFileJobInstanceHotObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptJobInstanceHotObjTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
@@ -62,7 +63,6 @@ import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
@@ -91,12 +91,12 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
     private final GseTaskRecordDAO gseTaskRecordDAO;
     private final GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO;
     private final GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO;
-    private final GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO;
-    private final GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO;
+    private final GseScriptJobInstanceHotObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO;
+    private final GseFileJobInstanceHotObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO;
     private final StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO;
     private final RollingConfigRecordDAO rollingConfigRecordDAO;
     private final TaskInstanceHostRecordDAO taskInstanceHostRecordDAO;
-    private final ExecuteArchiveDAO executeArchiveDAO;
+    private final JobInstanceColdDAO jobInstanceColdDAO;
     private final ArchiveTaskLock archiveTaskLock;
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
 
@@ -118,12 +118,12 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
                                    GseTaskRecordDAO gseTaskRecordDAO,
                                    GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
                                    GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
-                                   GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
-                                   GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
+                                   GseScriptJobInstanceHotObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
+                                   GseFileJobInstanceHotObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
                                    StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
                                    RollingConfigRecordDAO rollingConfigRecordDAO,
                                    TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
-                                   ExecuteArchiveDAO executeArchiveDAO,
+                                   JobInstanceColdDAO jobInstanceColdDAO,
                                    ArchiveProgressService archiveProgressService,
                                    ArchiveDBProperties archiveDBProperties,
                                    ExecutorService archiveExecutor,
@@ -150,7 +150,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
         this.stepInstanceRollingTaskRecordDAO = stepInstanceRollingTaskRecordDAO;
         this.rollingConfigRecordDAO = rollingConfigRecordDAO;
         this.taskInstanceHostRecordDAO = taskInstanceHostRecordDAO;
-        this.executeArchiveDAO = executeArchiveDAO;
+        this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
     }
@@ -198,17 +198,17 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
 
         @Override
         public void run() {
-            try {
-                log.info("Job Execute archive task begin, archiveConfig: {}", archiveDBProperties);
-                if (archiveDBProperties.isEnabled()) {
-                    doArchive(getEndTime(archiveDBProperties.getKeepDays()));
-                } else {
-                    log.info("Archive tasks are disabled, skip archive");
-                }
-                log.info("Job Execute archive task finished");
-            } catch (InterruptedException e) {
-                log.warn("Thread interrupted!");
-            }
+//            try {
+//                log.info("Job Execute archive task begin, archiveConfig: {}", archiveDBProperties);
+//                if (archiveDBProperties.isEnabled()) {
+//                    doArchive(getEndTime(archiveDBProperties.getKeepDays()));
+//                } else {
+//                    log.info("Archive tasks are disabled, skip archive");
+//                }
+//                log.info("Job Execute archive task finished");
+//            } catch (InterruptedException e) {
+//                log.warn("Thread interrupted!");
+//            }
         }
 
         private Long getEndTime(int archiveDays) {
@@ -262,8 +262,8 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             return Math.max(lastArchivedId, maxId);
         }
 
-        private long getLastArchiveId(ExecuteRecordDAO<?> executeRecordDAO) {
-            String tableName = executeRecordDAO.getTable().getName().toLowerCase();
+        private long getLastArchiveId(JobInstanceHotRecordDAO<?> jobInstanceHotRecordDAO) {
+            String tableName = jobInstanceHotRecordDAO.getTable().getName().toLowerCase();
             ArchiveProgressDTO archiveProgress =
                 archiveProgressService.queryArchiveProgress(tableName);
             return archiveProgress != null ? archiveProgress.getLastBackupId() : 0L;
@@ -320,7 +320,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new TaskInstanceArchivist(
                     taskInstanceRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -335,7 +335,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceArchivist(
                     stepInstanceRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -350,7 +350,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceConfirmArchivist(
                     stepInstanceConfirmRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -365,7 +365,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceFileArchivist(
                     stepInstanceFileRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -380,7 +380,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceScriptArchivist(
                     stepInstanceScriptRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -395,7 +395,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new FileSourceTaskLogArchivist(
                     fileSourceTaskLogRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -410,7 +410,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new TaskInstanceVariableArchivist(
                     taskInstanceVariableRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -425,7 +425,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceVariableArchivist(
                     stepInstanceVariableRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -440,7 +440,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new OperationLogArchivist(
                     operationLogRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -454,7 +454,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new GseTaskArchivist(
                     gseTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -469,7 +469,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new GseScriptAgentTaskArchivist(
                     gseScriptAgentTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -484,7 +484,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new GseFileAgentTaskArchivist(
                     gseFileAgentTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -499,7 +499,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new StepInstanceRollingTaskArchivist(
                     stepInstanceRollingTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -514,7 +514,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new GseScriptExecuteObjTaskArchivist(
                     gseScriptExecuteObjTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -529,7 +529,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new GseFileExecuteObjTaskArchivist(
                     gseFileExecuteObjTaskRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -544,7 +544,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new RollingConfigArchivist(
                     rollingConfigRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,
@@ -559,7 +559,7 @@ public class JobExecuteArchiveManage implements SmartLifecycle {
             archiveExecutor.execute(() ->
                 new TaskInstanceHostArchivist(
                     taskInstanceHostRecordDAO,
-                    executeArchiveDAO,
+                    jobInstanceColdDAO,
                     archiveProgressService,
                     archiveDBProperties,
                     archiveTaskLock,

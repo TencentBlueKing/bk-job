@@ -1,3 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.sharding.mysql.config.ShardingDatasourceAutoConfiguration,\
-com.tencent.bk.job.common.sharding.mysql.config.ShardingManagerAutoConfiguration
+com.tencent.bk.job.common.sharding.mysql.config.ShardingDatasourceAutoConfiguration
