@@ -27,7 +27,6 @@ package com.tencent.bk.job.analysis.api.web;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.common.annotation.WebAPI;
@@ -48,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.constraints.Min;
@@ -106,9 +106,12 @@ public interface WebAIResource {
         Integer length
     );
 
-    @ApiOperation(value = "通用聊天接口", produces = "application/json")
+    @ApiOperation(value = "通用聊天接口（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
+        "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
+        "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
+        "\"errorDetail\": null}", produces = "application/json")
     @PostMapping("/general/chat")
-    Response<AIAnswer> generalChat(
+    StreamingResponseBody generalChat(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -126,9 +129,12 @@ public interface WebAIResource {
         @RequestBody AIGeneralChatReq req
     );
 
-    @ApiOperation(value = "检查脚本", produces = "application/json")
+    @ApiOperation(value = "检查脚本（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
+        "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
+        "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
+        "\"errorDetail\": null}", produces = "application/json")
     @PostMapping("/checkScript")
-    Response<AIAnswer> checkScript(
+    StreamingResponseBody checkScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -146,9 +152,12 @@ public interface WebAIResource {
         @RequestBody AICheckScriptReq req
     );
 
-    @ApiOperation(value = "分析报错信息", produces = "application/json")
+    @ApiOperation(value = "分析报错信息（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
+        "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
+        "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
+        "\"errorDetail\": null}", produces = "application/json")
     @PostMapping("/analyzeError")
-    Response<AIAnswer> analyzeError(
+    StreamingResponseBody analyzeError(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,

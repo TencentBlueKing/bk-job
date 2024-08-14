@@ -47,10 +47,13 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.sdk.iam.util.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -127,34 +130,56 @@ public class WebAIResourceImpl implements WebAIResource {
     }
 
     @Override
-    public Response<AIAnswer> generalChat(String username,
-                                          AppResourceScope appResourceScope,
-                                          String scopeType,
-                                          String scopeId,
-                                          AIGeneralChatReq req) {
+    public StreamingResponseBody generalChat(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
+                                             AIGeneralChatReq req) {
         AIAnswer aiAnswer = chatService.chatWithAI(username, req.getContent());
-        return Response.buildSuccessResp(aiAnswer);
+        Response<AIAnswer> response = Response.buildSuccessResp(aiAnswer);
+        return buildStreamingResponseBody(response);
     }
 
     @Override
-    public Response<AIAnswer> checkScript(String username,
-                                          AppResourceScope appResourceScope,
-                                          String scopeType,
-                                          String scopeId,
-                                          AICheckScriptReq req) {
+    public StreamingResponseBody checkScript(String username,
+                                             AppResourceScope appResourceScope,
+                                             String scopeType,
+                                             String scopeId,
+                                             AICheckScriptReq req) {
         AIAnswer aiAnswer = aiCheckScriptService.check(username, req.getType(), req.getContent());
-        return Response.buildSuccessResp(aiAnswer);
+        Response<AIAnswer> response = Response.buildSuccessResp(aiAnswer);
+        return buildStreamingResponseBody(response);
     }
 
     @Override
-    public Response<AIAnswer> analyzeError(String username,
-                                           AppResourceScope appResourceScope,
-                                           String scopeType,
-                                           String scopeId,
-                                           AIAnalyzeErrorReq req) {
+    public StreamingResponseBody analyzeError(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              AIAnalyzeErrorReq req) {
         checkScriptLogContentLength(req);
         AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, appResourceScope.getAppId(), req);
-        return Response.buildSuccessResp(aiAnswer);
+        Response<AIAnswer> response = Response.buildSuccessResp(aiAnswer);
+        return buildStreamingResponseBody(response);
+    }
+
+    private StreamingResponseBody buildStreamingResponseBody(Object response) {
+        return outputStream -> {
+            try {
+                outputStream.write(JsonUtil.toJson(response).getBytes());
+                outputStream.flush();
+            } catch (IOException e) {
+                // 处理写入数据时的异常
+                log.error("Fail to write data", e);
+            } finally {
+                // 确保输出流被关闭
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    log.error("Fail to close output stream", e);
+                }
+            }
+        };
     }
 
     /**
