@@ -77,7 +77,7 @@ public class FileExecuteObjectTaskServiceImpl
         if (isStepInstanceRecordExist(taskInstanceId, stepInstanceId)) {
             return fileExecuteObjectTaskDAO.getSuccessTaskCount(taskInstanceId, stepInstanceId, executeCount);
         } else {
-            return fileAgentTaskDAO.getSuccessAgentTaskCount(stepInstanceId, executeCount);
+            return fileAgentTaskDAO.getSuccessAgentTaskCount(taskInstanceId, stepInstanceId, executeCount);
         }
     }
 
@@ -94,7 +94,8 @@ public class FileExecuteObjectTaskServiceImpl
                 stepInstance.getTaskInstanceId(), gseTaskId);
         } else {
             // 兼容老版本数据
-            executeObjectTasks = fileAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
+            executeObjectTasks = fileAgentTaskDAO.listAgentTasksByGseTaskId(
+                stepInstance.getTaskInstanceId(), gseTaskId);
         }
 
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
@@ -122,8 +123,8 @@ public class FileExecuteObjectTaskServiceImpl
         } else {
             // 兼容老版本不使用执行对象的场景(仅支持主机）
             Long hostId = executeObject.getHost().getHostId();
-            executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                batch, fileTaskMode, hostId);
+            executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch, fileTaskMode, hostId);
         }
         executeObjectTask.setExecuteObject(executeObject);
         return executeObjectTask;
@@ -159,7 +160,8 @@ public class FileExecuteObjectTaskServiceImpl
                 stepInstance.getTaskInstanceId(), stepInstanceId, executeCount, batch);
         } else {
             // 兼容历史数据
-            resultGroups = fileAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+            resultGroups = fileAgentTaskDAO.listResultGroups(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch);
         }
         return resultGroups;
     }
@@ -178,7 +180,7 @@ public class FileExecuteObjectTaskServiceImpl
         } else {
             // 兼容历史数据
             executeObjectTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(
-                stepInstance.getId(), executeCount, batch, status);
+                stepInstance.getTaskInstanceId(), stepInstance.getId(), executeCount, batch, status);
         }
 
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
@@ -210,8 +212,16 @@ public class FileExecuteObjectTaskServiceImpl
             );
         } else {
             // 兼容历史数据
-            executeObjectTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(), executeCount,
-                batch, status, limit, orderField, order);
+            executeObjectTasks = fileAgentTaskDAO.listAgentTaskByResultGroup(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                status,
+                limit,
+                orderField,
+                order
+            );
         }
 
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
@@ -239,8 +249,14 @@ public class FileExecuteObjectTaskServiceImpl
             );
         } else {
             // 兼容老版本方式
-            fileAgentTaskDAO.updateAgentTaskFields(stepInstance.getId(), executeCount, batch,
-                actualExecuteCount, gseTaskId);
+            fileAgentTaskDAO.updateAgentTaskFields(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                actualExecuteCount,
+                gseTaskId
+            );
         }
     }
 
@@ -256,7 +272,8 @@ public class FileExecuteObjectTaskServiceImpl
                 stepInstance.getTaskInstanceId(), stepInstanceId, executeCount, batch, fileTaskMode);
         } else {
             // 兼容老版本数据
-            executeObjectTasks = fileAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch, fileTaskMode);
+            executeObjectTasks = fileAgentTaskDAO.listAgentTasks(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch, fileTaskMode);
         }
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
         return executeObjectTasks;
