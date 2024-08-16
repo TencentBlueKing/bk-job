@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.crypto.util.RSAUtils;
 import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
 import com.tencent.bk.job.common.service.SpringProfile;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.EsbJwtService;
@@ -68,9 +69,9 @@ public class CheckEsbJwtGatewayFilterFactory
             ServerHttpResponse response = exchange.getResponse();
             ServerHttpRequest request = exchange.getRequest();
 
-            String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
             String requestFrom = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_FROM);
-
+            JobContextUtil.setRequestFrom(requestFrom);
+            String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
             if (StringUtils.isEmpty(token)) {
                 log.warn("Esb token is empty! requestFrom={}", requestFrom);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -83,7 +84,7 @@ public class CheckEsbJwtGatewayFilterFactory
                 authInfo = esbJwtService.extractFromJwt(token,
                     RSAUtils.getPublicKey(securityProperties.getPublicKeyBase64()));
             } else {
-                authInfo = esbJwtService.extractFromJwt(token, requestFrom);
+                authInfo = esbJwtService.extractFromJwt(token);
             }
 
             if (authInfo == null) {

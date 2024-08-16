@@ -1,0 +1,70 @@
+### Function Description
+
+Query file source details
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields        | Type   | Required | Description                                                                                 |
+|---------------|--------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| code          | String | yes      | File source code                                                                            |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/get_file_source_detail?bk_scope_type=biz&bk_scope_id=2&code=bkrepo-1
+```
+
+### Example of responses
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "",
+  "data": {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 10001,
+    "code": "bkrepo-1",
+    "alias": "xxx",
+    "status": 0,
+    "file_source_type_code": "BLUEKING_ARTIFACTORY",
+    "is_public": false,
+    "credential_id": "xxx",
+    "enable": true,
+    "creator": "admin",
+    "create_time": 1712050614742,
+    "last_modify_user": "admin",
+    "last_modify_time": 1712050614742
+  }
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields                | Type   | Description                                                                                 |
+|-----------------------|--------|---------------------------------------------------------------------------------------------|
+| bk_scope_type         | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id           | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id                    | int    | File Source ID                                                                              |
+| code                  | string | File Source code                                                                            |
+| alias                 | string | File Source alias                                                                           |
+| status                | int    | Status                                                                                      |
+| file_source_type_code | string | File Source code。optional value：BLUEKING_ARTIFACTORY                                        |
+| is_public             | bool   | Is public                                                                                   |
+| credential_id         | string | Credential ID                                                                               |
+| enable                | bool   | Enable                                                                                      |
+| creator               | string | Job creator                                                                                 |
+| create_time           | long   | Created time, Unix timestamp                                                                |
+| last_modify_user      | string | Job modifier                                                                                |
+| last_modify_time      | long   | Last modified time, Unix timestamp                                                          |

@@ -1,0 +1,40 @@
+### 功能描述
+
+查询作业平台最新服务版本号
+
+### 请求参数
+
+#### Query参数
+
+无
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v3/get_latest_service_version
+```
+
+### 返回结果示例
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "success",
+  "data": {
+    "version": "3.6.4"
+  }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| 字段      | 类型     | 描述      |
+|---------|--------|---------|
+| version | string | 服务最新版本号 |

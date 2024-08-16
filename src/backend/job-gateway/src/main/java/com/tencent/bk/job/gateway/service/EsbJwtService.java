@@ -41,15 +41,6 @@ public interface EsbJwtService {
     /**
      * 从jwt提取数据
      *
-     * @param token token
-     * @param requestFrom 请求来源
-     * @return 解析 JWT 结果
-     */
-    EsbJwtInfo extractFromJwt(String token, String requestFrom);
-
-    /**
-     * 从jwt提取数据
-     *
      * @param token     token
      * @param publicKey 公钥
      * @return 解析 JWT 结果

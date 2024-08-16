@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
@@ -137,15 +138,10 @@ public class EsbJwtServiceImpl implements EsbJwtService {
 
     @Override
     public EsbJwtInfo extractFromJwt(String token) {
-        return extractFromJwt(token, this.publicKey);
-    }
-
-    @Override
-    public EsbJwtInfo extractFromJwt(String token, String requestFrom) {
-        if (bkGatewayConfig.isEnabled() && StringUtils.equals(bkGatewayConfig.getRequestFrom(), requestFrom)) {
+        if (requestFromApiGw()) {
             return extractFromJwt(token, this.gatewayPublicKey);
         } else {
-            return extractFromJwt(token);
+            return extractFromJwt(token, this.publicKey);
         }
     }
 
@@ -170,8 +166,9 @@ public class EsbJwtServiceImpl implements EsbJwtService {
             String appCode = "";
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
-                // 原先是应用认证+用户认证，jwt中有app和user, 蓝鲸网关支持其中一种认证方式
-                if (appProps == null && !bkGatewayConfig.isEnabled()) {
+                // esb请求是应用认证+用户认证方式，jwt中有app和user
+                // 蓝鲸网关支持其中一种认证方式，如应用认证会没有user信息
+                if (appProps == null && !requestFromApiGw()) {
                     log.warn("Invalid JWT token, app is null!");
                     return null;
                 }
@@ -180,7 +177,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(appCode)) {
                     appCode = (String) appProps.get("bk_app_code");
                 }
-                if ((!isVerified || StringUtils.isEmpty(appCode)) && !bkGatewayConfig.isEnabled()) {
+                if ((!isVerified || StringUtils.isEmpty(appCode)) && !requestFromApiGw()) {
                     log.warn("App code not verified or empty, isVerified:{}, jwtAppCode:{}", isVerified, appCode);
                     return null;
                 }
@@ -189,7 +186,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
             String username = "";
             if (claims.get("user") != null) {
                 LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
-                if (userProps == null && !bkGatewayConfig.isEnabled()) {
+                if (userProps == null && !requestFromApiGw()) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
                 }
@@ -197,12 +194,12 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(username)) {
                     username = (String) userProps.get("bk_username");
                 }
-                if (StringUtils.isEmpty(username) && !bkGatewayConfig.isEnabled()) {
+                if (StringUtils.isEmpty(username) && !requestFromApiGw()) {
                     log.warn("Username is empty!");
                     return null;
                 }
             }
-            if (bkGatewayConfig.isEnabled() && StringUtils.isEmpty(appCode) && StringUtils.isEmpty(username)) {
+            if (requestFromApiGw() && StringUtils.isEmpty(appCode) && StringUtils.isEmpty(username)) {
                 log.warn("Invalid JWT token, app and user are both empty!");
                 return null;
             }
@@ -225,4 +222,12 @@ public class EsbJwtServiceImpl implements EsbJwtService {
         return esbJwtInfo;
     }
 
+    // 请求是否来自蓝鲸网关
+    private boolean requestFromApiGw() {
+        String requestFrom = JobContextUtil.getRequestFrom();
+        if (bkGatewayConfig.isEnabled() && StringUtils.equals(bkGatewayConfig.getRequestFrom(), requestFrom)) {
+            return true;
+        }
+        return false;
+    }
 }
