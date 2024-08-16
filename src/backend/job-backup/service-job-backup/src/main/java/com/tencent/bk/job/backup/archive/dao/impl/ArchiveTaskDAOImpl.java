@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
-import com.tencent.bk.job.backup.archive.DbDataNode;
-import com.tencent.bk.job.backup.archive.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
-import com.tencent.bk.job.backup.archive.model.HourArchiveTask;
+import com.tencent.bk.job.backup.archive.model.DbDataNode;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.model.tables.ArchiveTask;
@@ -71,7 +71,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public HourArchiveTask getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
+    public JobInstanceArchiveTask getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
         Record record = ctx.select(ALL_FIELDS)
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
@@ -81,11 +81,11 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         return extract(record);
     }
 
-    private HourArchiveTask extract(Record record) {
+    private JobInstanceArchiveTask extract(Record record) {
         if (record == null) {
             return null;
         }
-        HourArchiveTask archiveTask = new HourArchiveTask();
+        JobInstanceArchiveTask archiveTask = new JobInstanceArchiveTask();
         archiveTask.setTaskType(ArchiveTaskTypeEnum.valOf(record.get(T.TASK_TYPE)));
         archiveTask.setDbDataNode(DbDataNode.fromDataNodeId(record.get(T.DATA_NODE)));
         archiveTask.setDay(record.get(T.DAY));
@@ -101,7 +101,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public void saveArchiveTask(HourArchiveTask hourArchiveTask) {
+    public void saveArchiveTask(JobInstanceArchiveTask jobInstanceArchiveTask) {
         long createTime = System.currentTimeMillis();
         ctx.insertInto(
                 T,
@@ -117,15 +117,15 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                 T.CREATE_TIME,
                 T.LAST_UPDATE_TIME)
             .values(
-                JooqDataTypeUtil.toByte(hourArchiveTask.getTaskType().getType()),
-                hourArchiveTask.getDbDataNode().toDataNodeId(),
-                hourArchiveTask.getDay(),
-                JooqDataTypeUtil.toByte(hourArchiveTask.getHour()),
-                hourArchiveTask.getFromTimestamp(),
-                hourArchiveTask.getToTimestamp(),
-                hourArchiveTask.getTaskDesc(),
-                hourArchiveTask.getProcess() != null ? hourArchiveTask.getProcess().toPersistentProcess() : null,
-                JooqDataTypeUtil.toByte(hourArchiveTask.getStatus().getStatus()),
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getTaskType().getType()),
+                jobInstanceArchiveTask.getDbDataNode().toDataNodeId(),
+                jobInstanceArchiveTask.getDay(),
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getHour()),
+                jobInstanceArchiveTask.getFromTimestamp(),
+                jobInstanceArchiveTask.getToTimestamp(),
+                jobInstanceArchiveTask.getTaskDesc(),
+                jobInstanceArchiveTask.getProcess() != null ? jobInstanceArchiveTask.getProcess().toPersistentProcess() : null,
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getStatus().getStatus()),
                 createTime,
                 createTime
             )
@@ -133,20 +133,20 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public List<HourArchiveTask> listRunningTasks(ArchiveTaskTypeEnum taskType) {
+    public List<JobInstanceArchiveTask> listRunningTasks(ArchiveTaskTypeEnum taskType) {
         Result<Record> result = ctx.select(ALL_FIELDS)
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .and(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
             .fetch();
 
-        List<HourArchiveTask> tasks = new ArrayList<>(result.size());
+        List<JobInstanceArchiveTask> tasks = new ArrayList<>(result.size());
         result.forEach(record -> tasks.add(extract(record)));
         return tasks;
     }
 
     @Override
-    public List<HourArchiveTask> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
+    public List<JobInstanceArchiveTask> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
         Result<Record> result = ctx.select(ALL_FIELDS)
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
@@ -158,13 +158,13 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .limit(limit)
             .fetch();
 
-        List<HourArchiveTask> tasks = new ArrayList<>(result.size());
+        List<JobInstanceArchiveTask> tasks = new ArrayList<>(result.size());
         result.forEach(record -> tasks.add(extract(record)));
         return tasks;
     }
 
     @Override
-    public void updateTask(HourArchiveTask archiveTask) {
+    public void updateTask(JobInstanceArchiveTask archiveTask) {
         if (archiveTask.getStatus() == null && archiveTask.getProcess() == null) {
             // 无需更新
             return;

@@ -35,7 +35,7 @@ public class ArchiveTaskSummary {
     /**
      * 归档任务
      */
-    private HourArchiveTask archiveTask;
+    private JobInstanceArchiveTask archiveTask;
 
     /**
      * 归档模式
@@ -62,7 +62,7 @@ public class ArchiveTaskSummary {
      */
     private boolean skip;
 
-    public ArchiveTaskSummary(HourArchiveTask archiveTask, String archiveMode) {
+    public ArchiveTaskSummary(JobInstanceArchiveTask archiveTask, String archiveMode) {
         this.archiveTask = archiveTask;
         this.archiveMode = archiveMode;
     }

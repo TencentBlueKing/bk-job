@@ -27,8 +27,11 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceHostRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
+
+import java.util.Collection;
 
 public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceHostRecord> {
 
@@ -46,5 +49,10 @@ public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<T
     @Override
     public TableField<TaskInstanceHostRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        throw new UnsupportedOperationException("List records not support");
     }
 }

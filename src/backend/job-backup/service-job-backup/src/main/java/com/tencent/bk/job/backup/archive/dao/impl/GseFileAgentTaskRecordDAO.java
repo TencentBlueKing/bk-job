@@ -44,11 +44,8 @@ public class GseFileAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<G
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.EXECUTE_COUNT.asc());
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.BATCH.asc());
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.MODE.asc());
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.HOST_ID.asc());
+        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.ID.asc());
     }
 
     public GseFileAgentTaskRecordDAO(DSLContext context) {
@@ -62,7 +59,7 @@ public class GseFileAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<G
 
     @Override
     public TableField<GseFileAgentTaskRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override

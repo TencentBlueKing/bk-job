@@ -27,11 +27,18 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
+import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 import org.jooq.TableField;
 
-import static org.jooq.impl.DSL.max;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import static org.jooq.impl.DSL.min;
 
 /**
@@ -40,6 +47,13 @@ import static org.jooq.impl.DSL.min;
 public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceRecord> {
 
     private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.CREATE_TIME.asc());
+        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
+    }
 
     public TaskInstanceRecordDAO(DSLContext context) {
         super(context);
@@ -55,21 +69,10 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
         return TABLE.ID;
     }
 
-    public Long getMaxId(Long endTime) {
-        Record1<Long> record =
-            context.select(max(TABLE.ID))
-                .from(TABLE)
-                .where(TABLE.CREATE_TIME.lessOrEqual(endTime))
-                .fetchOne();
-        if (record != null) {
-            Long maxId = (Long) record.get(0);
-            if (maxId != null) {
-                return maxId;
-            }
-        }
-        return 0L;
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
-
 
     public Long getMinJobCreateTime() {
         Record1<Long> record =
@@ -83,6 +86,24 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
             }
         }
         return null;
+    }
+
+    public List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
+                                                                   Long endTimestamp,
+                                                                   Long fromJobInstanceId,
+                                                                   int limit) {
+        SelectConditionStep<Record> selectConditionStep =
+            context.select()
+                .from(TABLE)
+                .where(TABLE.CREATE_TIME.greaterOrEqual(fromTimestamp))
+                .and(TABLE.CREATE_TIME.lessThan(endTimestamp));
+        if (fromJobInstanceId != null) {
+            selectConditionStep.and(TABLE.ID.greaterThan(fromJobInstanceId));
+        }
+        Result<Record> result = selectConditionStep.orderBy(TABLE.CREATE_TIME.asc(), TABLE.ID.asc())
+            .limit(limit)
+            .fetch();
+        return result.into(TABLE);
     }
 
 

@@ -22,22 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
+import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * db 数据节点信息
+ */
 @Data
-public class TableReadWriteProps {
+@NoArgsConstructor
+public class DbDataNode {
     /**
-     * 从 热 DB 表中读取归档数据，每次读取的记录数量限制
+     * db 数据节点类型
      */
-    protected int readRowLimit;
+    private DbDataNodeTypeEnum type;
     /**
-     * 写入归档数据到冷 DB，单批次最小行数
+     * db 实例位置索引，从 0 开始。单库单表架构始终为 0。
      */
-    protected int batchInsertRowSize;
+    private Integer dbIndex;
+
     /**
-     * 从热 DB 删除数据，每次删除的最大行数
+     * 表位置索引，从 0 开始。单库单表架构始终为 0。
      */
-    protected int deleteLimitRowCount;
+    private Integer tableIndex;
+
+    public DbDataNode(DbDataNodeTypeEnum type, Integer dbIndex, Integer tableIndex) {
+        this.type = type;
+        this.dbIndex = dbIndex;
+        this.tableIndex = tableIndex;
+    }
+
+    public String toDataNodeId() {
+        return type + ":" + dbIndex + ":" + tableIndex;
+    }
+
+    public static DbDataNode fromDataNodeId(String dataNodeId) {
+        String[] dataNodeParts = dataNodeId.split(":");
+        return new DbDataNode(
+            DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0])),
+            Integer.parseInt(dataNodeParts[1]),
+            Integer.parseInt(dataNodeParts[2])
+        );
+    }
+
+    @Override
+    public DbDataNode clone() {
+        return new DbDataNode(type, dbIndex, tableIndex);
+    }
 }

@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.impl.GseScriptJobInstanceHotObjTaskRecordDAO;
+import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
@@ -40,7 +40,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class GseScriptExecuteObjTaskArchivist extends AbstractArchivist<GseScriptExecuteObjTaskRecord> {
 
-    public GseScriptExecuteObjTaskArchivist(GseScriptJobInstanceHotObjTaskRecordDAO executeRecordDAO,
+    public GseScriptExecuteObjTaskArchivist(GseScriptExecuteObjTaskRecordDAO executeRecordDAO,
                                             JobInstanceColdDAO jobInstanceColdDAO,
                                             ArchiveProgressService archiveProgressService,
                                             ArchiveDBProperties archiveDBProperties,

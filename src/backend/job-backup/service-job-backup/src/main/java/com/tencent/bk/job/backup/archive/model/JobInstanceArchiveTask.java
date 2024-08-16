@@ -24,19 +24,17 @@
 
 package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.DbDataNode;
-import com.tencent.bk.job.backup.archive.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import lombok.Data;
 import lombok.ToString;
 
 /**
- * 每小时归档任务
+ * 作业实例归档任务
  */
 @Data
 @ToString
-public class HourArchiveTask {
+public class JobInstanceArchiveTask {
     /**
      * 归档任务类型
      */
@@ -83,8 +81,8 @@ public class HourArchiveTask {
      */
     private Long lastUpdateTime;
 
-    public HourArchiveTask clone() {
-        HourArchiveTask archiveTask = new HourArchiveTask();
+    public JobInstanceArchiveTask clone() {
+        JobInstanceArchiveTask archiveTask = new JobInstanceArchiveTask();
         archiveTask.setTaskType(taskType);
         archiveTask.setDbDataNode(dbDataNode.clone());
         archiveTask.setDay(day);

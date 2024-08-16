@@ -27,11 +27,13 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.StepInstance;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import org.jooq.DSLContext;
-import org.jooq.Record1;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
 
-import static org.jooq.impl.DSL.max;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * step_instance DAO
@@ -39,6 +41,13 @@ import static org.jooq.impl.DSL.max;
 public class StepInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<StepInstanceRecord> {
 
     private static final StepInstance TABLE = StepInstance.STEP_INSTANCE;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(StepInstance.STEP_INSTANCE.ID.asc());
+    }
 
     public StepInstanceRecordDAO(DSLContext context) {
         super(context);
@@ -49,29 +58,13 @@ public class StepInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<StepI
         return TABLE;
     }
 
-    /**
-     * 获取作业实例ID范围内的步骤实例ID最大值
-     *
-     * @param taskInstanceId 作业实例ID
-     * @return 步骤实例ID 最大值
-     */
-    public Long getMaxId(Long taskInstanceId) {
-        Record1<Long> record =
-            context.select(max(TABLE.ID))
-                .from(TABLE)
-                .where(TABLE.TASK_INSTANCE_ID.lessOrEqual(taskInstanceId))
-                .fetchOne();
-        if (record != null) {
-            Long maxId = (Long) record.get(0);
-            if (maxId != null) {
-                return maxId;
-            }
-        }
-        return 0L;
+    @Override
+    public TableField<StepInstanceRecord, Long> getJobInstanceIdField() {
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override
-    public TableField<StepInstanceRecord, Long> getJobInstanceIdField() {
-        return TABLE.ID;
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
 }

@@ -27,8 +27,13 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * rolling_config DAO
@@ -36,6 +41,12 @@ import org.jooq.TableField;
 public class RollingConfigRecordDAO extends AbstractJobInstanceHotRecordDAO<RollingConfigRecord> {
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(RollingConfig.ROLLING_CONFIG.TASK_INSTANCE_ID.asc());
+    }
 
     public RollingConfigRecordDAO(DSLContext context) {
         super(context);
@@ -49,5 +60,10 @@ public class RollingConfigRecordDAO extends AbstractJobInstanceHotRecordDAO<Roll
     @Override
     public TableField<RollingConfigRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
 }

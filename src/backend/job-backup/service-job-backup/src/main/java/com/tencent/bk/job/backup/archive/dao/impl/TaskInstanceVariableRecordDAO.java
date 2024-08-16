@@ -27,8 +27,13 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * task_instance_variable DAO
@@ -36,6 +41,13 @@ import org.jooq.TableField;
 public class TaskInstanceVariableRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceVariableRecord> {
 
     private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(TaskInstanceVariable.TASK_INSTANCE_VARIABLE.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(TaskInstanceVariable.TASK_INSTANCE_VARIABLE.ID.asc());
+    }
 
     public TaskInstanceVariableRecordDAO(DSLContext context) {
         super(context);
@@ -49,5 +61,10 @@ public class TaskInstanceVariableRecordDAO extends AbstractJobInstanceHotRecordD
     @Override
     public TableField<TaskInstanceVariableRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
 }

@@ -25,21 +25,17 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
-import com.tencent.bk.job.backup.archive.model.HourArchiveTask;
+import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
 import com.tencent.bk.job.backup.config.ArchiveDBProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
-import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 作业执行历史热数据归档任务调度
@@ -84,14 +80,13 @@ public class JobInstanceHotDataArchiveTaskScheduler {
             archiveTaskScheduleLock.lock(archiveTaskType);
             // 生成归档任务，并存储到 db 中
             jobInstanceHotDataArchiveTaskGenerator.generate();
-            List<HourArchiveTask> runningTasks =
+            List<JobInstanceArchiveTask> runningTasks =
                 archiveTaskDAO.listRunningTasks(ArchiveTaskTypeEnum.JOB_INSTANCE_HOT);
 
-            List<Integer> dbPriorityIndexList =
-                computeDbPriorityByRunningTasks(runningTasks, shardingProperties.getDbNodeCount());
-
-            List<HourArchiveTask> needScheduleTasks =
+            List<JobInstanceArchiveTask> needScheduleTasks =
                 archiveTaskDAO.listScheduleTasks(ArchiveTaskTypeEnum.JOB_INSTANCE_HOT, 100);
+
+            ArchiveTaskPriorityEvaluator.sort(runningTasks, shardingProperties.getDbNodeCount(), needScheduleTasks);
 
 
         } finally {
@@ -100,69 +95,8 @@ public class JobInstanceHotDataArchiveTaskScheduler {
 
     }
 
-    private HourArchiveTask chooseNextArchiveTask(List<HourArchiveTask> needScheduleTasks,
-                                                  List<Integer> dbPriorityIndexList) {
-        needScheduleTasks.sort((task1, task2) -> {
-            int task1DbPriority = dbPriorityIndexList.indexOf(task1.getDbNodeIndex());
-            int task2DbPriority = dbPriorityIndexList.indexOf(task2.getDbNodeIndex());
-            if (task1DbPriority < task2DbPriority) {
-                return -1;
-            } else if (task1DbPriority > task2DbPriority) {
-                return 1;
-            } else {
-                int day1 = task1.getDay();
-                int day2 = task2.getDay();
-                if (day1 < day2) {
-                    return -1;
-                } else if (day1 > day2) {
-                    return 1;
-                } else {
-                    int hour1 = task1.getHour();
-                    int hour2 = task2.getHour();
-                    return Integer.compare(hour1, hour2);
-                }
-            }
-        });
-        return needScheduleTasks.get(0);
-    }
-
-    private List<Integer> computeDbPriorityByRunningTasks(List<HourArchiveTask> runningTasks, int dbNodeCount) {
-        Map<Integer, Integer> dbTaskCountMap = tasksCountGroupByDB(runningTasks, dbNodeCount);
-
-        return dbTaskCountMap.entrySet()
-            .stream()
-            .sorted(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList());
-    }
-
-
-    private Map<Integer, Integer> tasksCountGroupByDB(List<HourArchiveTask> runningTasks, int dbNodeCount) {
-        Map<Integer, Integer> dbTaskCountMap = new HashMap<>();
-        if (CollectionUtils.isEmpty(runningTasks)) {
-            return dbTaskCountMap;
-        }
-
-        runningTasks.forEach(task -> {
-            Integer dbIndex = task.getDbNodeIndex();
-            dbTaskCountMap.compute(dbIndex, (k, v) -> {
-                if (v == null) {
-                    v = 1;
-                } else {
-                    v++;
-                }
-                return v;
-            });
-        });
-
-        for (int dbIndex = 0; dbIndex < dbNodeCount; dbIndex++) {
-            dbTaskCountMap.putIfAbsent(dbIndex, 0);
-        }
-        return dbTaskCountMap;
-    }
-
-    private void startArchiveTask() {
-        ArchiveTaskWorker worker = new ArchiveTaskWorker();
+    private void startArchiveTask(JobInstanceArchiveTask archiveTask) {
+        ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask);
         workers.add(worker);
         worker.start();
     }

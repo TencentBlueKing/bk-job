@@ -44,10 +44,8 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.asc());
-        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.BATCH.asc());
-        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.HOST_ID.asc());
+        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.ID.asc());
     }
 
     public GseScriptAgentTaskRecordDAO(DSLContext context) {
@@ -61,7 +59,7 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
 
     @Override
     public TableField<GseScriptAgentTaskRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override

@@ -44,9 +44,8 @@ public class StepInstanceRollingTaskRecordDAO extends AbstractJobInstanceHotReco
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.STEP_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.EXECUTE_COUNT.asc());
-        ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.BATCH.asc());
+        ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.ID.asc());
     }
 
     public StepInstanceRollingTaskRecordDAO(DSLContext context) {
@@ -60,7 +59,7 @@ public class StepInstanceRollingTaskRecordDAO extends AbstractJobInstanceHotReco
 
     @Override
     public TableField<StepInstanceRollingTaskRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override

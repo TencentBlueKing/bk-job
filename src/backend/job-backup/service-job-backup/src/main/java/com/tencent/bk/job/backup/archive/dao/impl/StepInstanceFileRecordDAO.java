@@ -27,8 +27,13 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFile;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceFileRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * step_instance_file DAO
@@ -36,6 +41,13 @@ import org.jooq.TableField;
 public class StepInstanceFileRecordDAO extends AbstractJobInstanceHotRecordDAO<StepInstanceFileRecord> {
 
     private static final StepInstanceFile TABLE = StepInstanceFile.STEP_INSTANCE_FILE;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(StepInstanceFile.STEP_INSTANCE_FILE.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(StepInstanceFile.STEP_INSTANCE_FILE.STEP_INSTANCE_ID.asc());
+    }
 
     public StepInstanceFileRecordDAO(DSLContext context) {
         super(context);
@@ -48,6 +60,11 @@ public class StepInstanceFileRecordDAO extends AbstractJobInstanceHotRecordDAO<S
 
     @Override
     public TableField<StepInstanceFileRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
 }

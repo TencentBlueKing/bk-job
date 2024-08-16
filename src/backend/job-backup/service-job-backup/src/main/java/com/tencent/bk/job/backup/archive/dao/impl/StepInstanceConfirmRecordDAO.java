@@ -27,8 +27,13 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
 import org.jooq.DSLContext;
+import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * step_instance_confirm DAO
@@ -37,6 +42,14 @@ public class StepInstanceConfirmRecordDAO extends AbstractJobInstanceHotRecordDA
 
 
     private static final StepInstanceConfirm TABLE = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(StepInstanceConfirm.STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(StepInstanceConfirm.STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.asc());
+    }
+
 
     public StepInstanceConfirmRecordDAO(DSLContext context) {
         super(context);
@@ -49,6 +62,11 @@ public class StepInstanceConfirmRecordDAO extends AbstractJobInstanceHotRecordDA
 
     @Override
     public TableField<StepInstanceConfirmRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
     }
 }

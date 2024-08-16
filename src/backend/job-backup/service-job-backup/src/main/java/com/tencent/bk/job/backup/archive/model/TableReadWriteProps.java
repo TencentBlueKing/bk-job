@@ -22,43 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
-/**
- * 基于数据创建时间（primary)+id(secondary) 的归档进度
- */
 @Data
-@NoArgsConstructor
-public class TimeAndIdBasedArchiveProcess {
-    private Long timestamp;
-    private Long id;
-
-    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
-        this.timestamp = timestamp;
-        this.id = id;
-    }
-
-    @Override
-    public TimeAndIdBasedArchiveProcess clone() {
-        return new TimeAndIdBasedArchiveProcess(timestamp, id);
-    }
-
-    public String toPersistentProcess() {
-        return timestamp + ":" + id;
-    }
-
-    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
-        if (StringUtils.isEmpty(process)) {
-            return null;
-        }
-        String[] processParts = process.split(":");
-        return new TimeAndIdBasedArchiveProcess(
-            Long.parseLong(processParts[0]),
-            Long.parseLong(processParts[1])
-        );
-    }
+public class TableReadWriteProps {
+    /**
+     * 从 热 DB 表中读取归档数据，每次读取的记录数量限制
+     */
+    protected int readRowLimit;
+    /**
+     * 写入归档数据到冷 DB，单批次最小行数
+     */
+    protected int batchInsertRowSize;
+    /**
+     * 从热 DB 删除数据，每次删除的最大行数
+     */
+    protected int deleteLimitRowCount;
 }

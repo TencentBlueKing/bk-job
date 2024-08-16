@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.HourArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -38,12 +38,12 @@ class ArchiveTaskPriorityEvaluatorTest {
     void getHighestPriorityTask() {
         Integer dbNodeCount = 2;
 
-        List<HourArchiveTask> runningTasks = new ArrayList<>();
+        List<JobInstanceArchiveTask> runningTasks = new ArrayList<>();
         runningTasks.add(genTask("0:0", 20240808, 1));
         runningTasks.add(genTask("0:1", 20240808, 2));
         runningTasks.add(genTask("1:0", 20240808, 3));
 
-        List<HourArchiveTask> candidateTasks = new ArrayList<>();
+        List<JobInstanceArchiveTask> candidateTasks = new ArrayList<>();
         candidateTasks.add(genTask("0:0", 20240807, 21));
         candidateTasks.add(genTask("0:0", 20240809, 22));
         candidateTasks.add(genTask("1:0", 20240808, 21));
@@ -79,8 +79,8 @@ class ArchiveTaskPriorityEvaluatorTest {
 
     }
 
-    private HourArchiveTask genTask(String dataNodeIndex, Integer day, Integer hour) {
-        HourArchiveTask task = new HourArchiveTask();
+    private JobInstanceArchiveTask genTask(String dataNodeIndex, Integer day, Integer hour) {
+        JobInstanceArchiveTask task = new JobInstanceArchiveTask();
         task.setDataNode(dataNodeIndex);
         String[] dbAndTableParts = dataNodeIndex.split(":");
         task.setDbNodeIndex(Integer.parseInt(dbAndTableParts[0]));

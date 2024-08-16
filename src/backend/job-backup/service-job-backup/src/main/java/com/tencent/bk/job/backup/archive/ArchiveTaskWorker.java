@@ -24,15 +24,15 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.HourArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ArchiveTaskWorker extends Thread {
 
-    private HourArchiveTask archiveTask;
+    private JobInstanceArchiveTask archiveTask;
 
-    public ArchiveTaskWorker(HourArchiveTask archiveTask) {
+    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
         this.setName("ArchiveWorker");
         this.archiveTask = archiveTask;
     }

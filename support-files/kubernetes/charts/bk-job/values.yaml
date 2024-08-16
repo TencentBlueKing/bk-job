@@ -1188,6 +1188,7 @@ backupConfig:
         deleteRowLimit: 1000
       # 作业执行历史索引表数据
       jobInstanceIndexData:
+        # 分库分表场景下需要开启
         enabled: false
         cron: 0 0 4 * * *
         keepDays: 30
@@ -1195,6 +1196,7 @@ backupConfig:
         deleteRowLimit: 1000
       # 作业执行历史冷数据索引表
       jobInstanceColdIndexData:
+        # 冷热分离场景下需要开启
         enabled: false
         keepDays: 30
         cron: 0 0 4 * * *

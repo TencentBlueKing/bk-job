@@ -22,53 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-/**
- * db 数据节点信息
- */
 @Data
-@NoArgsConstructor
-public class DbDataNode {
+public class BackupResult {
     /**
-     * db 数据节点类型
+     * 读取的记录数量
      */
-    private DbDataNodeTypeEnum type;
+    private long readRows;
     /**
-     * db 实例位置索引，从 0 开始。单库单表架构始终为 0。
+     * 备份成功的记录数量
      */
-    private Integer dbIndex;
-
+    private long backupRows;
     /**
-     * 表位置索引，从 0 开始。单库单表架构始终为 0。
+     * 读取耗时
      */
-    private Integer tableIndex;
+    private long readCost;
+    /**
+     * 备份写入耗时
+     */
+    private long writeCost;
 
-    public DbDataNode(DbDataNodeTypeEnum type, Integer dbIndex, Integer tableIndex) {
-        this.type = type;
-        this.dbIndex = dbIndex;
-        this.tableIndex = tableIndex;
-    }
-
-    public String toDataNodeId() {
-        return type + ":" + dbIndex + ":" + tableIndex;
-    }
-
-    public static DbDataNode fromDataNodeId(String dataNodeId) {
-        String[] dataNodeParts = dataNodeId.split(":");
-        return new DbDataNode(
-            DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0])),
-            Integer.parseInt(dataNodeParts[1]),
-            Integer.parseInt(dataNodeParts[2])
-        );
-    }
-
-    @Override
-    public DbDataNode clone() {
-        return new DbDataNode(type, dbIndex, tableIndex);
+    public BackupResult(long readRows, long backupRows, long readCost, long writeCost) {
+        this.readRows = readRows;
+        this.backupRows = backupRows;
+        this.readCost = readCost;
+        this.writeCost = writeCost;
     }
 }

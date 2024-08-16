@@ -22,14 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.service;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveProgressDTO;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
-public interface ArchiveProgressService {
-    ArchiveProgressDTO queryArchiveProgress(String table);
+/**
+ * 基于数据创建时间（primary)+id(secondary) 的归档进度
+ */
+@Data
+@NoArgsConstructor
+public class TimeAndIdBasedArchiveProcess {
+    private Long timestamp;
+    private Long id;
 
-    void saveArchiveProgress(ArchiveProgressDTO archiveProgress);
+    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
+        this.timestamp = timestamp;
+        this.id = id;
+    }
 
-    void saveDeleteProgress(ArchiveProgressDTO deleteProgress);
+    @Override
+    public TimeAndIdBasedArchiveProcess clone() {
+        return new TimeAndIdBasedArchiveProcess(timestamp, id);
+    }
+
+    public String toPersistentProcess() {
+        return timestamp + ":" + id;
+    }
+
+    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
+        if (StringUtils.isEmpty(process)) {
+            return null;
+        }
+        String[] processParts = process.split(":");
+        return new TimeAndIdBasedArchiveProcess(
+            Long.parseLong(processParts[0]),
+            Long.parseLong(processParts[1])
+        );
+    }
 }

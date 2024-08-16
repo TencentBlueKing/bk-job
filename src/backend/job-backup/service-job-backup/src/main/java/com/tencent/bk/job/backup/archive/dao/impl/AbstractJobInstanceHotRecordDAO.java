@@ -66,7 +66,11 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions, long maxLimitedDeleteRows) {
         int totalDeleteRows = 0;
         while (true) {
-            int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
+            int deletedRows = context
+                .delete(table)
+                .where(conditions)
+                .limit(maxLimitedDeleteRows)
+                .execute();
             totalDeleteRows += deletedRows;
             if (deletedRows < maxLimitedDeleteRows) {
                 break;

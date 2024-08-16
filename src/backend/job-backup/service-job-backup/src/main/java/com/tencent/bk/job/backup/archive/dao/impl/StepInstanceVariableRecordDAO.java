@@ -44,8 +44,8 @@ public class StepInstanceVariableRecordDAO extends AbstractJobInstanceHotRecordD
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(StepInstanceVariable.STEP_INSTANCE_VARIABLE.STEP_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(StepInstanceVariable.STEP_INSTANCE_VARIABLE.EXECUTE_COUNT.asc());
+        ORDER_FIELDS.add(StepInstanceVariable.STEP_INSTANCE_VARIABLE.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(StepInstanceVariable.STEP_INSTANCE_VARIABLE.ID.asc());
     }
 
     public StepInstanceVariableRecordDAO(DSLContext context) {
@@ -59,7 +59,7 @@ public class StepInstanceVariableRecordDAO extends AbstractJobInstanceHotRecordD
 
     @Override
     public TableField<StepInstanceVariableRecord, Long> getJobInstanceIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override
