@@ -26,9 +26,8 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,17 +40,15 @@ import java.util.List;
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    private final AIService aiService;
     private final AIChatHistoryService aiChatHistoryService;
 
     @Autowired
-    public ChatServiceImpl(AIService aiService, AIChatHistoryService aiChatHistoryService) {
-        this.aiService = aiService;
+    public ChatServiceImpl(AIChatHistoryService aiChatHistoryService) {
         this.aiChatHistoryService = aiChatHistoryService;
     }
 
     @Override
-    public AIAnswer chatWithAI(String username, String userInput) {
+    public AIChatRecord chatWithAI(String username, String userInput) {
         Long startTime = System.currentTimeMillis();
         // 1.获取最近的聊天记录
         List<AIChatHistoryDTO> chatHistoryDTOList = getLatestChatHistoryList(username, 0, 5);
@@ -66,11 +63,8 @@ public class ChatServiceImpl implements ChatService {
             null
         );
         Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
-        // 3.调用AI服务获取回答
-        AIAnswer aiAnswer = aiService.getAIAnswer(chatHistoryDTOList, userInput);
-        // 4.更新聊天记录状态与回答内容
-        aiChatHistoryService.finishAIAnswer(historyId, aiAnswer);
-        return aiAnswer;
+        aiChatHistoryDTO.setId(historyId);
+        return aiChatHistoryDTO.toAIChatRecord();
     }
 
     @Override

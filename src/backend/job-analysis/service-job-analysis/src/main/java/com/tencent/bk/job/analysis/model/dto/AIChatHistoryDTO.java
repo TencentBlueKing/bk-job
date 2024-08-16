@@ -119,6 +119,7 @@ public class AIChatHistoryDTO {
 
     public AIChatRecord toAIChatRecord() {
         AIChatRecord aiChatRecord = new AIChatRecord();
+        aiChatRecord.setId(id);
         UserInput userInput = new UserInput();
         userInput.setContent(this.userInput);
         userInput.setTime(startTime);

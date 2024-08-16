@@ -26,10 +26,9 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.FileTransferTaskErrorAIPromptService;
 import com.tencent.bk.job.analysis.service.ai.ScriptExecuteTaskErrorAIPromptService;
 import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
@@ -54,10 +53,9 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
     public AIAnalyzeErrorServiceImpl(TaskContextService taskContextService,
                                      ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService,
                                      FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService,
-                                     AIService aiService,
                                      AIChatHistoryService aiChatHistoryService,
                                      AIMessageI18nService aiMessageI18nService) {
-        super(aiService, aiChatHistoryService);
+        super(aiChatHistoryService);
         this.taskContextService = taskContextService;
         this.scriptExecuteTaskErrorAIPromptService = scriptExecuteTaskErrorAIPromptService;
         this.fileTransferTaskErrorAIPromptService = fileTransferTaskErrorAIPromptService;
@@ -70,10 +68,10 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
      * @param username 用户名
      * @param appId    Job业务ID
      * @param req      请求内容
-     * @return AI回答
+     * @return AI对话记录
      */
     @Override
-    public AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req) {
+    public AIChatRecord analyze(String username, Long appId, AIAnalyzeErrorReq req) {
         TaskContextQuery contextQuery = TaskContextQuery.fromAIAnalyzeErrorReq(appId, req);
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         String errorContent = req.getContent();
@@ -84,16 +82,24 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
                 errorContent
             );
             if (!taskContext.isTaskFail()) {
-                return getDirectlyAIAnswer(username, aiPromptDTO, aiMessageI18nService.getNotFailTaskAIAnswerMessage());
+                return getDirectlyAIChatRecord(
+                    username,
+                    aiPromptDTO,
+                    aiMessageI18nService.getNotFailTaskAIAnswerMessage()
+                );
             }
         } else if (taskContext.isFileTask()) {
             aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(taskContext.getFileTaskContext());
             if (!taskContext.isTaskFail()) {
-                return getDirectlyAIAnswer(username, aiPromptDTO, aiMessageI18nService.getNotFailTaskAIAnswerMessage());
+                return getDirectlyAIChatRecord(
+                    username,
+                    aiPromptDTO,
+                    aiMessageI18nService.getNotFailTaskAIAnswerMessage()
+                );
             }
         } else {
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }
-        return getAIAnswer(username, aiPromptDTO);
+        return getAIChatRecord(username, aiPromptDTO);
     }
 }

@@ -37,6 +37,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class AIChatRecord {
 
+    @ApiModelProperty(value = "ID")
+    private Long id;
+
     @ApiModelProperty(value = "用户输入")
     private UserInput userInput;
 

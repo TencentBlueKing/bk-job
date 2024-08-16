@@ -49,7 +49,9 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,34 +129,54 @@ public class WebAIResourceImpl implements WebAIResource {
     }
 
     @Override
-    public Response<AIAnswer> generalChat(String username,
-                                          AppResourceScope appResourceScope,
-                                          String scopeType,
-                                          String scopeId,
-                                          AIGeneralChatReq req) {
-        AIAnswer aiAnswer = chatService.chatWithAI(username, req.getContent());
-        return Response.buildSuccessResp(aiAnswer);
+    public Response<AIChatRecord> generalChat(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              AIGeneralChatReq req) {
+        AIChatRecord aiChatRecord = chatService.chatWithAI(username, req.getContent());
+        return Response.buildSuccessResp(aiChatRecord);
     }
 
     @Override
-    public Response<AIAnswer> checkScript(String username,
-                                          AppResourceScope appResourceScope,
-                                          String scopeType,
-                                          String scopeId,
-                                          AICheckScriptReq req) {
-        AIAnswer aiAnswer = aiCheckScriptService.check(username, req.getType(), req.getContent());
-        return Response.buildSuccessResp(aiAnswer);
+    public Response<AIChatRecord> checkScript(String username,
+                                              AppResourceScope appResourceScope,
+                                              String scopeType,
+                                              String scopeId,
+                                              AICheckScriptReq req) {
+        AIChatRecord aiChatRecord = aiCheckScriptService.check(username, req.getType(), req.getContent());
+        return Response.buildSuccessResp(aiChatRecord);
     }
 
     @Override
-    public Response<AIAnswer> analyzeError(String username,
+    public Response<AIChatRecord> analyzeError(String username,
+                                               AppResourceScope appResourceScope,
+                                               String scopeType,
+                                               String scopeId,
+                                               AIAnalyzeErrorReq req) {
+        checkScriptLogContentLength(req);
+        AIChatRecord aiChatRecord = aiAnalyzeErrorService.analyze(username, appResourceScope.getAppId(), req);
+        return Response.buildSuccessResp(aiChatRecord);
+    }
+
+    @Override
+    public ResponseEntity<StreamingResponseBody> getChatStream(String username,
+                                                               AppResourceScope appResourceScope,
+                                                               String scopeType,
+                                                               String scopeId,
+                                                               Long recordId) {
+        // TODO
+        return ResponseEntity.ok().body(null);
+    }
+
+    @Override
+    public Response<Boolean> terminateChat(String username,
                                            AppResourceScope appResourceScope,
                                            String scopeType,
                                            String scopeId,
-                                           AIAnalyzeErrorReq req) {
-        checkScriptLogContentLength(req);
-        AIAnswer aiAnswer = aiAnalyzeErrorService.analyze(username, appResourceScope.getAppId(), req);
-        return Response.buildSuccessResp(aiAnswer);
+                                           Long recordId) {
+        // TODO
+        return Response.buildSuccessResp(true);
     }
 
     /**

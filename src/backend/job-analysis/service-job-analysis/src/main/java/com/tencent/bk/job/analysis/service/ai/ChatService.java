@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 
 import java.util.List;
 
@@ -36,9 +36,9 @@ public interface ChatService {
      *
      * @param username  用户名
      * @param userInput 用户输入
-     * @return AI回答结果
+     * @return AI对话记录
      */
-    AIAnswer chatWithAI(String username, String userInput);
+    AIChatRecord chatWithAI(String username, String userInput);
 
     /**
      * 获取最近的聊天记录列表

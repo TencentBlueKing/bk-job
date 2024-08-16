@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 
 public interface AIAnalyzeErrorService {
 
@@ -35,7 +35,7 @@ public interface AIAnalyzeErrorService {
      * @param username 用户名
      * @param appId    Job业务ID
      * @param req      请求内容
-     * @return AI回答
+     * @return AI对话记录
      */
-    AIAnswer analyze(String username, Long appId, AIAnalyzeErrorReq req);
+    AIChatRecord analyze(String username, Long appId, AIAnalyzeErrorReq req);
 }

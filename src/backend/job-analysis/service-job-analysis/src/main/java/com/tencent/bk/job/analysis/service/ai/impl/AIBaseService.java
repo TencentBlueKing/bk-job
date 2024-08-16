@@ -28,8 +28,8 @@ import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
-import com.tencent.bk.job.analysis.service.ai.AIService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,13 +38,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class AIBaseService {
 
-    private final AIService aiService;
     private final AIChatHistoryService aiChatHistoryService;
 
     @Autowired
-    public AIBaseService(AIService aiService,
-                         AIChatHistoryService aiChatHistoryService) {
-        this.aiService = aiService;
+    public AIBaseService(AIChatHistoryService aiChatHistoryService) {
         this.aiChatHistoryService = aiChatHistoryService;
     }
 
@@ -53,9 +50,9 @@ public class AIBaseService {
      *
      * @param username    用户名
      * @param aiPromptDTO AI提示符
-     * @return AI回答
+     * @return AI对话记录
      */
-    public AIAnswer getAIAnswer(String username, AIPromptDTO aiPromptDTO) {
+    public AIChatRecord getAIChatRecord(String username, AIPromptDTO aiPromptDTO) {
         long startTime = System.currentTimeMillis();
         String rawPrompt = aiPromptDTO.getRawPrompt();
         String renderedPrompt = aiPromptDTO.getRenderedPrompt();
@@ -69,11 +66,8 @@ public class AIBaseService {
             null
         );
         Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
-        // 2.获取AI回答
-        AIAnswer aiAnswer = aiService.getAIAnswer(renderedPrompt);
-        // 3.更新聊天记录状态
-        aiChatHistoryService.finishAIAnswer(historyId, aiAnswer);
-        return aiAnswer;
+        aiChatHistoryDTO.setId(historyId);
+        return aiChatHistoryDTO.toAIChatRecord();
     }
 
     /**
@@ -82,9 +76,9 @@ public class AIBaseService {
      * @param username    用户名
      * @param aiPromptDTO AI提示符
      * @param content     指定内容
-     * @return AI回答
+     * @return AI对话记录
      */
-    public AIAnswer getDirectlyAIAnswer(String username, AIPromptDTO aiPromptDTO, String content) {
+    public AIChatRecord getDirectlyAIChatRecord(String username, AIPromptDTO aiPromptDTO, String content) {
         long startTime = System.currentTimeMillis();
         String rawPrompt = aiPromptDTO.getRawPrompt();
         AIAnswer aiAnswer = new AIAnswer("0", "", content, System.currentTimeMillis());
@@ -96,8 +90,9 @@ public class AIBaseService {
             AIChatStatusEnum.FINISHED.getStatus(),
             aiAnswer
         );
-        aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
-        return aiAnswer;
+        Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
+        aiChatHistoryDTO.setId(historyId);
+        return aiChatHistoryDTO.toAIChatRecord();
     }
 
     /**

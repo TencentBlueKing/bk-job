@@ -25,10 +25,9 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
-import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.CheckScriptAIPromptService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,15 +41,14 @@ public class AICheckScriptServiceImpl extends AIBaseService implements AICheckSc
 
     @Autowired
     public AICheckScriptServiceImpl(CheckScriptAIPromptService checkScriptAIPromptService,
-                                    AIService aiService,
                                     AIChatHistoryService aiChatHistoryService) {
-        super(aiService, aiChatHistoryService);
+        super(aiChatHistoryService);
         this.checkScriptAIPromptService = checkScriptAIPromptService;
     }
 
     @Override
-    public AIAnswer check(String username, Integer type, String scriptContent) {
+    public AIChatRecord check(String username, Integer type, String scriptContent) {
         AIPromptDTO aiPromptDTO = checkScriptAIPromptService.getPrompt(type, scriptContent);
-        return getAIAnswer(username, aiPromptDTO);
+        return getAIChatRecord(username, aiPromptDTO);
     }
 }

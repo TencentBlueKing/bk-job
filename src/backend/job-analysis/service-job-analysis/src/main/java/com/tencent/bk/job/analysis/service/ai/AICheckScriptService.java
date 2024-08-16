@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.service.ai;
 
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 
 public interface AICheckScriptService {
 
@@ -34,7 +34,7 @@ public interface AICheckScriptService {
      * @param username      用户名
      * @param type          脚本类型
      * @param scriptContent 脚本内容
-     * @return AI回答
+     * @return AI对话记录
      */
-    AIAnswer check(String username, Integer type, String scriptContent);
+    AIChatRecord check(String username, Integer type, String scriptContent);
 }

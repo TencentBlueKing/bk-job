@@ -27,7 +27,6 @@ package com.tencent.bk.job.analysis.api.web;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.common.annotation.WebAPI;
@@ -37,17 +36,20 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.hibernate.validator.constraints.Range;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.constraints.Min;
@@ -108,7 +110,7 @@ public interface WebAIResource {
 
     @ApiOperation(value = "通用聊天接口", produces = "application/json")
     @PostMapping("/general/chat")
-    Response<AIAnswer> generalChat(
+    Response<AIChatRecord> generalChat(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -128,7 +130,7 @@ public interface WebAIResource {
 
     @ApiOperation(value = "检查脚本", produces = "application/json")
     @PostMapping("/checkScript")
-    Response<AIAnswer> checkScript(
+    Response<AIChatRecord> checkScript(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -148,7 +150,7 @@ public interface WebAIResource {
 
     @ApiOperation(value = "分析报错信息", produces = "application/json")
     @PostMapping("/analyzeError")
-    Response<AIAnswer> analyzeError(
+    Response<AIChatRecord> analyzeError(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -164,6 +166,48 @@ public interface WebAIResource {
         @ApiParam(value = "AI分析报错信息参数", required = true)
         @Validated
         @RequestBody AIAnalyzeErrorReq req
+    );
+
+    @ApiOperation(value = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0,\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\",\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null,\"errorDetail\": null}", produces = "application/json")
+    @GetMapping("/chatStream")
+    ResponseEntity<StreamingResponseBody> getChatStream(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "对话记录ID")
+        @RequestParam(value = "recordId")
+        @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
+        Long recordId
+    );
+
+    @ApiOperation(value = "终止对话", produces = "application/json")
+    @PutMapping("/terminateChat")
+    Response<Boolean> terminateChat(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "对话记录ID")
+        @RequestParam(value = "recordId")
+        @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
+        Long recordId
     );
 
     @ApiOperation(value = "清空聊天记录", produces = "application/json")
