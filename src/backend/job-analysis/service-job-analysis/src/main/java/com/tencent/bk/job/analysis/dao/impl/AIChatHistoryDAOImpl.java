@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.dao.impl;
 
+import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.tables.AiChatHistory;
@@ -105,6 +106,14 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     }
 
     @Override
+    public int updateChatHistoryStatus(Long historyId, int status) {
+        return dslContext.update(defaultTable)
+            .set(defaultTable.STATUS, JooqDataTypeUtil.getByteFromInteger(status))
+            .where(defaultTable.ID.eq(historyId))
+            .execute();
+    }
+
+    @Override
     public int updateChatHistoryStatusAndAIAnswer(Long historyId,
                                                   Integer status,
                                                   String aiAnswer,
@@ -127,6 +136,44 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         conditions.add(defaultTable.USERNAME.eq(username));
         conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
         return listByConditions(conditions, start, length);
+    }
+
+    @Override
+    public List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.eq(username));
+        conditions.add(defaultTable.STATUS.eq((byte) AIChatStatusEnum.FINISHED.getStatus()));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        return listByConditions(conditions, start, length);
+    }
+
+    @Override
+    public AIChatHistoryDTO getChatHistory(String username, Long id) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.eq(username));
+        conditions.add(defaultTable.ID.eq(id));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        val query = dslContext.select(
+                defaultTable.ID,
+                defaultTable.USERNAME,
+                defaultTable.USER_INPUT,
+                defaultTable.PROMPT_TEMPLATE_ID,
+                defaultTable.AI_INPUT,
+                defaultTable.STATUS,
+                defaultTable.AI_ANSWER,
+                defaultTable.ERROR_CODE,
+                defaultTable.ERROR_MESSAGE,
+                defaultTable.START_TIME,
+                defaultTable.ANSWER_TIME,
+                defaultTable.TOTAL_TIME
+            )
+            .from(defaultTable)
+            .where(conditions);
+        val record = query.fetchOne();
+        if (record == null) {
+            return null;
+        }
+        return convertRecordToDto(record);
     }
 
     @Override

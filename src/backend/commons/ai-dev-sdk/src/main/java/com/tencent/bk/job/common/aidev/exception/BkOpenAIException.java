@@ -22,46 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.common.aidev.exception;
+
+import com.tencent.bk.job.common.exception.InternalException;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
- * AI对话状态
+ * 调用蓝鲸OpenAI接口异常
  */
-public enum AIChatStatusEnum {
-    /**
-     * 初始状态
-     */
-    INIT(0),
-    /**
-     * 正在回答
-     */
-    REPLYING(1),
-    /**
-     * 已完成
-     */
-    FINISHED(2),
-    /**
-     * 已取消
-     */
-    CANCELED(3);
+@Getter
+@ToString
+public class BkOpenAIException extends InternalException {
 
-    private final int status;
-
-    AIChatStatusEnum(int status) {
-        this.status = status;
+    public BkOpenAIException(Throwable cause, Integer errorCode) {
+        super(cause, errorCode);
     }
-
-    public static AIChatStatusEnum getAIChatStatus(int status) {
-        for (AIChatStatusEnum aiChatStatusEnum : AIChatStatusEnum.values()) {
-            if (aiChatStatusEnum.getStatus() == status) {
-                return aiChatStatusEnum;
-            }
-        }
-        throw new RuntimeException("Unknown AIChat status " + status);
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
 }

@@ -22,46 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.support.TaskExecutorAdapter;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * AI对话状态
+ * 自定义WebMvc配置
  */
-public enum AIChatStatusEnum {
-    /**
-     * 初始状态
-     */
-    INIT(0),
-    /**
-     * 正在回答
-     */
-    REPLYING(1),
-    /**
-     * 已完成
-     */
-    FINISHED(2),
-    /**
-     * 已取消
-     */
-    CANCELED(3);
+@Slf4j
+@Configuration
+public class WebMvcConfig {
 
-    private final int status;
-
-    AIChatStatusEnum(int status) {
-        this.status = status;
+    @Bean
+    public WebMvcConfigurer jobWebMvcConfigurer(
+        @Qualifier("analysisAsyncTaskExecutor") ThreadPoolExecutor threadPoolExecutor
+    ) {
+        return new JobWebMvcConfigurer(threadPoolExecutor);
     }
 
-    public static AIChatStatusEnum getAIChatStatus(int status) {
-        for (AIChatStatusEnum aiChatStatusEnum : AIChatStatusEnum.values()) {
-            if (aiChatStatusEnum.getStatus() == status) {
-                return aiChatStatusEnum;
-            }
+    static class JobWebMvcConfigurer implements WebMvcConfigurer {
+        ThreadPoolExecutor threadPoolExecutor;
+
+        public JobWebMvcConfigurer(ThreadPoolExecutor threadPoolExecutor) {
+            this.threadPoolExecutor = threadPoolExecutor;
         }
-        throw new RuntimeException("Unknown AIChat status " + status);
-    }
 
-    public int getStatus() {
-        return status;
+        @Override
+        public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+            configurer.setTaskExecutor(new TaskExecutorAdapter(threadPoolExecutor));
+        }
     }
-
 }

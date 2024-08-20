@@ -71,4 +71,12 @@ public class AIAnswer {
         aiAnswer.setContent(content);
         return aiAnswer;
     }
+
+    public static AIAnswer failAnswer(String content) {
+        AIAnswer aiAnswer = new AIAnswer();
+        aiAnswer.setErrorCode("1");
+        aiAnswer.setTime(System.currentTimeMillis());
+        aiAnswer.setContent(content);
+        return aiAnswer;
+    }
 }

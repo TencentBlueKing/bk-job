@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -165,8 +166,8 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                String scopeType,
                                                                String scopeId,
                                                                Long recordId) {
-        // TODO
-        return ResponseEntity.ok().body(null);
+        StreamingResponseBody streamingResponseBody = chatService.getChatStream(username, recordId);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamingResponseBody);
     }
 
     @Override

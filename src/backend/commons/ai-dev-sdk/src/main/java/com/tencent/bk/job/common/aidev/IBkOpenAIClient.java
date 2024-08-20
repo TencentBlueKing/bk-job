@@ -22,47 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.common.aidev;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public interface AIService {
+public interface IBkOpenAIClient {
 
     /**
-     * 根据用户输入获取AI回答
-     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
-     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
+     * 获取混元流式回答，最终返回完整的回答结果，流式数据由partialRespConsumer接收处理
      *
-     * @param chatHistoryDTOList 历史聊天记录
-     * @param userInput          用户输入
-     * @return AI回答结果
-     */
-    AIAnswer getAIAnswer(List<AIChatHistoryDTO> chatHistoryDTOList, String userInput);
-
-    /**
-     * 根据用户输入获取AI回答（不传入历史聊天记录）
-     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
-     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
-     *
-     * @param userInput 用户输入
-     * @return AI回答结果
-     */
-    AIAnswer getAIAnswer(String userInput);
-
-    /**
-     * 获取AI回答流（流式接口）
-     *
-     * @param chatHistoryDTOList  历史聊天记录
+     * @param token               用户身份凭据
+     * @param messageHistoryList  历史消息列表
      * @param userInput           用户输入
-     * @param partialRespConsumer AI回答流回调
-     * @return AI回答结果Future
+     * @param partialRespConsumer 分块消息处理器
+     * @return 完整的回答结果Future
      */
-    CompletableFuture<String> getAIAnswerStream(List<AIChatHistoryDTO> chatHistoryDTOList,
-                                                String userInput,
-                                                Consumer<String> partialRespConsumer);
+    CompletableFuture<String> getHunYuanAnswerStream(String token,
+                                                     List<AIDevMessage> messageHistoryList,
+                                                     String userInput,
+                                                     Consumer<String> partialRespConsumer);
+
 }

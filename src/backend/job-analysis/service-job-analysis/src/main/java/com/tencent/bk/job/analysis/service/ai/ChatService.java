@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.List;
 
@@ -49,4 +50,13 @@ public interface ChatService {
      * @return 最近的聊天记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 获取聊天流式数据
+     *
+     * @param username 用户名
+     * @param recordId 对话记录ID
+     * @return 流式数据
+     */
+    StreamingResponseBody getChatStream(String username, Long recordId);
 }

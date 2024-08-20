@@ -38,6 +38,15 @@ public interface AIChatHistoryDAO {
     Long insertAIChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
+     * 设置聊天记录状态
+     *
+     * @param historyId AI聊天记录ID
+     * @param status    AI聊天记录状态
+     * @return 受影响的行数
+     */
+    int updateChatHistoryStatus(Long historyId, int status);
+
+    /**
      * 更新聊天记录状态
      *
      * @param historyId    AI聊天记录ID
@@ -64,6 +73,25 @@ public interface AIChatHistoryDAO {
      * @return 最近的聊天记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 获取最近已完成的聊天记录列表
+     *
+     * @param username 用户名
+     * @param start    起始位置
+     * @param length   长度
+     * @return 最近已完成的聊天记录列表
+     */
+    List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 获取聊天记录
+     *
+     * @param username 用户名
+     * @param id       聊天记录ID
+     * @return 聊天记录
+     */
+    AIChatHistoryDTO getChatHistory(String username, Long id);
 
     /**
      * 软删除聊天记录（优先删除创建时间较早的）

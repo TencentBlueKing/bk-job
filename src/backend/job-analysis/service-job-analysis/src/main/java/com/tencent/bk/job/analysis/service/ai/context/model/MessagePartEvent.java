@@ -22,46 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.service.ai.context.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 /**
- * AI对话状态
+ * 含有部分消息的事件
  */
-public enum AIChatStatusEnum {
+@AllArgsConstructor
+@Data
+public class MessagePartEvent {
     /**
-     * 初始状态
+     * 是否为消息结束事件
      */
-    INIT(0),
+    private boolean end;
     /**
-     * 正在回答
+     * 消息内容
      */
-    REPLYING(1),
-    /**
-     * 已完成
-     */
-    FINISHED(2),
-    /**
-     * 已取消
-     */
-    CANCELED(3);
+    private String messagePart;
 
-    private final int status;
-
-    AIChatStatusEnum(int status) {
-        this.status = status;
+    public static MessagePartEvent endEvent() {
+        return new MessagePartEvent(true, null);
     }
 
-    public static AIChatStatusEnum getAIChatStatus(int status) {
-        for (AIChatStatusEnum aiChatStatusEnum : AIChatStatusEnum.values()) {
-            if (aiChatStatusEnum.getStatus() == status) {
-                return aiChatStatusEnum;
-            }
-        }
-        throw new RuntimeException("Unknown AIChat status " + status);
+    public static MessagePartEvent normalEvent(String messagePart) {
+        return new MessagePartEvent(false, messagePart);
     }
-
-    public int getStatus() {
-        return status;
-    }
-
 }

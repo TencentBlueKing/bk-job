@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.common.aidev.config;
 
+import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
+import com.tencent.bk.job.common.aidev.impl.BkOpenAIClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,6 +45,14 @@ public class AIDevAutoConfiguration {
                                        CustomPaasLoginProperties customPaasLoginProperties,
                                        BkApiGatewayProperties bkApiGatewayProperties) {
         return new BkAIDevClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
+    }
+
+    @Bean
+    public BkOpenAIClient bkOpenAIClient(MeterRegistry meterRegistry,
+                                         AppProperties appProperties,
+                                         CustomPaasLoginProperties customPaasLoginProperties,
+                                         BkApiGatewayProperties bkApiGatewayProperties) {
+        return new BkOpenAIClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
     }
 
 }

@@ -22,46 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.common.aidev.impl;
 
-/**
- * AI对话状态
- */
-public enum AIChatStatusEnum {
-    /**
-     * 初始状态
-     */
-    INIT(0),
-    /**
-     * 正在回答
-     */
-    REPLYING(1),
-    /**
-     * 已完成
-     */
-    FINISHED(2),
-    /**
-     * 已取消
-     */
-    CANCELED(3);
+public enum BkChatCompletionModel {
 
-    private final int status;
+    HUNYUAN("hunyuan");
 
-    AIChatStatusEnum(int status) {
-        this.status = status;
+    private final String value;
+
+    BkChatCompletionModel(String value) {
+        this.value = value;
     }
 
-    public static AIChatStatusEnum getAIChatStatus(int status) {
-        for (AIChatStatusEnum aiChatStatusEnum : AIChatStatusEnum.values()) {
-            if (aiChatStatusEnum.getStatus() == status) {
-                return aiChatStatusEnum;
-            }
-        }
-        throw new RuntimeException("Unknown AIChat status " + status);
+    @Override
+    public String toString() {
+        return value;
     }
-
-    public int getStatus() {
-        return status;
-    }
-
 }

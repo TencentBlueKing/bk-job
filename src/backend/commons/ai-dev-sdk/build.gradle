@@ -34,6 +34,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.apache.commons:commons-collections4'
     implementation 'org.apache.httpcomponents:httpclient'
+    implementation 'dev.ai4j:openai4j'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.junit.jupiter:junit-jupiter'

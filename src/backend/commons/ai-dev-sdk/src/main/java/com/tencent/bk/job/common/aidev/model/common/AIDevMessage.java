@@ -40,4 +40,11 @@ public class AIDevMessage {
 
     private String content;
 
+    public boolean isUserMessage() {
+        return role.equals(ROLE_USER);
+    }
+
+    public boolean isAssistantMessage() {
+        return role.equals(ROLE_ASSISTANT);
+    }
 }

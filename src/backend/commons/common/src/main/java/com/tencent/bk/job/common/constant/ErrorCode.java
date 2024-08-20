@@ -91,6 +91,8 @@ public class ErrorCode {
     // AIDev平台异常
     // AIDev接口数据异常
     public static final int BK_AI_DEV_API_DATA_ERROR = 1218001;
+    // 蓝鲸OpenAI接口数据异常
+    public static final int BK_OPEN_AI_API_DATA_ERROR = 1218002;
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
@@ -461,5 +463,7 @@ public class ErrorCode {
     public static final int AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP = 1264001;
     // AI分析任务报错信息内容超过最大值：{0}
     public static final int AI_ANALYZE_ERROR_CONTENT_EXCEED_MAX_LENGTH = 1264002;
+    // AI聊天记录不存在：id={0}
+    public static final int AI_CHAT_HISTORY_NOT_FOUND_BY_ID = 1264003;
     // 统计分析服务job-analysis错误码 end
 }

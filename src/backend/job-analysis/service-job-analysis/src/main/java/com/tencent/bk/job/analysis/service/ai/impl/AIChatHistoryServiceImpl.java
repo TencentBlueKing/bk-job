@@ -81,6 +81,11 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     @Override
+    public int setAIAnswerReplying(Long historyId) {
+        return aiChatHistoryDAO.updateChatHistoryStatus(historyId, AIChatStatusEnum.REPLYING.getStatus());
+    }
+
+    @Override
     public int finishAIAnswer(Long historyId, AIAnswer aiAnswer) {
         return aiChatHistoryDAO.updateChatHistoryStatusAndAIAnswer(
             historyId,
@@ -105,6 +110,30 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         List<AIChatHistoryDTO> aiChatHistoryList = aiChatHistoryDAO.getLatestChatHistoryList(username, start, length);
         aiChatHistoryList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
         return aiChatHistoryList;
+    }
+
+    /**
+     * 从DB获取最近已完成的聊天记录列表，按起始时间升序排列
+     *
+     * @param username 用户名
+     * @param start    起始位置
+     * @param length   长度
+     * @return 最近已完成的聊天记录列表
+     */
+    @Override
+    public List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length) {
+        List<AIChatHistoryDTO> aiChatHistoryList = aiChatHistoryDAO.getLatestFinishedChatHistoryList(
+            username,
+            start,
+            length
+        );
+        aiChatHistoryList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
+        return aiChatHistoryList;
+    }
+
+    @Override
+    public AIChatHistoryDTO getChatHistory(String username, Long id) {
+        return aiChatHistoryDAO.getChatHistory(username, id);
     }
 
     /**

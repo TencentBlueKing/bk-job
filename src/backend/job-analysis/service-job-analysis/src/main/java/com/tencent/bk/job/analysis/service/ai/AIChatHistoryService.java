@@ -57,6 +57,14 @@ public interface AIChatHistoryService {
     Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
+     * 更新聊天记录状态为正在回答中
+     *
+     * @param historyId AI聊天记录ID
+     * @return 受影响的行数
+     */
+    int setAIAnswerReplying(Long historyId);
+
+    /**
      * 更新聊天记录状态
      *
      * @param historyId AI聊天记录ID
@@ -75,6 +83,25 @@ public interface AIChatHistoryService {
      * @return 最近的聊天记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 获取最近已完成的聊天记录列表
+     *
+     * @param username 用户名
+     * @param start    起始位置
+     * @param length   长度
+     * @return 最近的聊天记录列表
+     */
+    List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length);
+
+    /**
+     * 根据用户名与ID获取聊天记录
+     *
+     * @param username 用户名
+     * @param id       ID
+     * @return 聊天记录
+     */
+    AIChatHistoryDTO getChatHistory(String username, Long id);
 
     /**
      * 软删除聊天记录

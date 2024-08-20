@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.login.LoginTokenService;
 import com.tencent.bk.job.common.aidev.IBkAIDevClient;
+import com.tencent.bk.job.common.aidev.IBkOpenAIClient;
 import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,6 +39,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -45,11 +48,28 @@ public class AIServiceImpl implements AIService {
 
     private final LoginTokenService loginTokenService;
     private final IBkAIDevClient bkAIDevClient;
+    private final IBkOpenAIClient bkOpenAIClient;
 
     @Autowired
-    public AIServiceImpl(LoginTokenService loginTokenService, IBkAIDevClient bkAIDevClient) {
+    public AIServiceImpl(LoginTokenService loginTokenService,
+                         IBkAIDevClient bkAIDevClient,
+                         IBkOpenAIClient bkOpenAIClient) {
         this.loginTokenService = loginTokenService;
         this.bkAIDevClient = bkAIDevClient;
+        this.bkOpenAIClient = bkOpenAIClient;
+    }
+
+    @Override
+    public CompletableFuture<String> getAIAnswerStream(List<AIChatHistoryDTO> chatHistoryDTOList,
+                                                       String userInput,
+                                                       Consumer<String> partialRespConsumer) {
+        String token = loginTokenService.getToken();
+        return bkOpenAIClient.getHunYuanAnswerStream(
+            token,
+            buildMessageHistoryList(chatHistoryDTOList),
+            userInput,
+            partialRespConsumer
+        );
     }
 
     @Override

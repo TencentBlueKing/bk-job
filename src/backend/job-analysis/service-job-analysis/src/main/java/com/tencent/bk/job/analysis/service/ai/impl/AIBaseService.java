@@ -62,7 +62,7 @@ public class AIBaseService {
             startTime,
             rawPrompt,
             renderedPrompt,
-            AIChatStatusEnum.REPLYING.getStatus(),
+            AIChatStatusEnum.INIT.getStatus(),
             null
         );
         Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
