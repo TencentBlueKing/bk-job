@@ -56,7 +56,7 @@
             @click="handleViewIns">
             <span class="before" />
             <span class="after" />
-            <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
+            <span>{{ $t('新增_diff') }}（{{ ins }}）</span>
           </div>
         </div>
       </div>
@@ -262,10 +262,7 @@
 <style lang="postcss">
   .sync-script-version-diff {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     padding: 8px 24px;
     background-color: #fff;
 

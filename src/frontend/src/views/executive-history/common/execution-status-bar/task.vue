@@ -36,7 +36,7 @@
     </div>
     <div class="status-box">
       <div class="status">
-        <span>{{ parent.$t('history.状态.execute') }}：</span>
+        <span>{{ parent.$t('history.状态_execute') }}：</span>
         <span class="status-text">{{ props.data.statusDesc }}</span>
       </div>
       <div class="time">

@@ -391,7 +391,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 log.info("Stop task successfully, task: {}", task.getResultHandleTask());
             } catch (Throwable e) {
                 span.error(e);
-                String errorMsg = "Stop task caught exception, task: {}" + task;
+                String errorMsg = "Stop task caught exception, task: " + task;
                 log.warn(errorMsg, e);
             } finally {
                 if (span != null) {

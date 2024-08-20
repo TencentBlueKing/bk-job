@@ -63,7 +63,7 @@
       required>
       <jb-input
         :maxlength="32"
-        :placeholder="parent.$t('account.在出现同名账号的情况下，账号的别名显得格外重要...')"
+        :placeholder="parent.$t('account.在出现同名账号的情况下，账号的别名显得格外重要')"
         :value="props.formData.alias"
         @change="value => props.change('alias', value)" />
     </jb-form-item>
@@ -108,7 +108,7 @@
         :value="props.formData.dbSystemAccountId"
         @change="value => props.change('dbSystemAccountId', value)" />
     </jb-form-item>
-    <jb-form-item :label="parent.$t('account.描述.label')">
+    <jb-form-item :label="parent.$t('account.描述_label')">
       <bk-input
         :maxlength="200"
         :placeholder="parent.$t('account.输入账号描述')"

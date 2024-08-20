@@ -131,13 +131,13 @@
         } = this.localValue.executeObjectsInfo || {};
         const strs = [];
         if (hostList.length > 0) {
-          strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机.result')}`);
+          strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机_result')}`);
         }
         if (nodeList.length > 0) {
-          strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点.result')}`);
+          strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点_result')}`);
         }
         if (dynamicGroupList.length > 0) {
-          strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
+          strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组_result')}`);
         }
         return strs.length > 0 ? strs.join('\n') : '--';
       },

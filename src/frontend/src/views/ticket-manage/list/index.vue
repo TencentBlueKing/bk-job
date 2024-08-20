@@ -42,7 +42,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('ticket.搜索 ID、名称、描述、创建人、更新人...')"
+          :placeholder="$t('ticket.搜索 ID、名称、描述、创建人、更新人')"
           style="width: 480px;"
           @on-change="handleSearch" />
       </template>
@@ -82,7 +82,7 @@
         align="left"
         :filter-method="handelFilterType"
         :filters="sourceFilters"
-        :label="$t('ticket.类型.colHead')"
+        :label="$t('ticket.类型_colHead')"
         prop="type"
         show-overflow-tooltip
         width="180">
@@ -106,7 +106,7 @@
         v-if="allRenderColumnMap.related"
         key="related"
         align="right"
-        :label="$t('ticket.被引用.colHead')"
+        :label="$t('ticket.被引用_colHead')"
         prop="related"
         width="100">
         <template slot-scope="{ row }">
@@ -204,7 +204,7 @@
     <jb-sideslider
       :is-show.sync="showRelatedSideslider"
       :show-footer="false"
-      :title="$t('ticket.被引用.label')"
+      :title="$t('ticket.被引用_label')"
       :width="900">
       <related-ticket
         :credential-id="credentialId" />
@@ -344,7 +344,7 @@
         },
         {
           id: 'type',
-          label: I18n.t('ticket.类型.colHead'),
+          label: I18n.t('ticket.类型_colHead'),
           disabled: true,
         },
         {
@@ -353,7 +353,7 @@
         },
         {
           id: 'related',
-          label: I18n.t('ticket.被引用.colHead'),
+          label: I18n.t('ticket.被引用_colHead'),
         },
         {
           id: 'creator',

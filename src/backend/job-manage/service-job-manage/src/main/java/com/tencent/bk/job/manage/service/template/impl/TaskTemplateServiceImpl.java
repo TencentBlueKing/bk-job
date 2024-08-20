@@ -48,7 +48,6 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobVO;
-import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -102,7 +101,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final AbstractTaskStepService taskStepService;
     private final AbstractTaskVariableService taskVariableService;
     private final TaskTemplateDAO taskTemplateDAO;
-    private final TemplateStatusUpdateService templateStatusUpdateService;
+    private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
     private final TemplateAuthService templateAuthService;
     private TaskPlanService taskPlanService;
@@ -143,14 +142,14 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
         TaskTemplateDAO taskTemplateDAO,
         TagService tagService,
-        TemplateStatusUpdateService templateStatusUpdateService,
+        TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
         TemplateAuthService templateAuthService) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.tagService = tagService;
-        this.templateStatusUpdateService = templateStatusUpdateService;
+        this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
     }
@@ -480,7 +479,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             // Insert new variable
             taskVariableService.batchInsertVariable(newVariables);
 
-            templateStatusUpdateService.offerMessage(templateId);
+            templateScriptStatusUpdateService.refreshTemplateScriptStatusByTemplate(templateId);
 
             return getTaskTemplateById(taskTemplateInfo.getAppId(), templateId);
         } catch (ServiceException e) {
@@ -713,15 +712,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         return taskTemplateDAO.checkTemplateName(appId, templateId, name);
     }
 
-    @Override
-    public boolean updateScriptStatus(Long appId, String scriptId, Long scriptVersionId, JobResourceStatusEnum status) {
-        try {
-            return templateStatusUpdateService.offerMessage(scriptId, scriptVersionId, status);
-        } catch (InterruptedException e) {
-            log.error("Offer message failed! Maybe queue full!", e);
-        }
-        return false;
-    }
 
     @Override
     public List<TaskTemplateInfoDTO> getFavoredTemplateBasicInfo(Long appId, String username) {

@@ -37,7 +37,12 @@ export default {
         const $els = document.body.querySelectorAll('[tippy-tips]');
         $els.forEach(($current) => {
           const content = $current.getAttribute('tippy-tips');
+
           if (!content) {
+            if ($current._tippy) { // eslint-disable-line no-underscore-dangle
+              $current._tippy.hide(); // eslint-disable-line no-underscore-dangle
+              $current._tippy.destroy(); // eslint-disable-line no-underscore-dangle
+            }
             return;
           }
           const placement = $current.getAttribute('placement') || 'top';

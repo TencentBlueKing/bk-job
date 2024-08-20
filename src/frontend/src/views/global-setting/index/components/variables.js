@@ -60,7 +60,7 @@ export const InternalVariables = {
     {
       name: '{{ task.type }}',
       meaning: I18n.t('setting.任务的类型'),
-      examples: I18n.t('setting.快速执行脚本 / 作业任务 / 定时任务 / ...'),
+      examples: I18n.t('setting.快速执行脚本 / 作业任务 / 定时任务'),
     },
     {
       name: '{{ task.url }}',

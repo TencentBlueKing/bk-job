@@ -81,7 +81,7 @@
     },
     created() {
       this.steps = [
-        { title: I18n.t('template.用户须知.header'), icon: 1 },
+        { title: I18n.t('template.用户须知_header'), icon: 1 },
         { title: I18n.t('template.导出内容确认'), icon: 2 },
         { title: I18n.t('template.导出设置'), icon: 3 },
         { title: I18n.t('template.开始导出'), icon: 4 },

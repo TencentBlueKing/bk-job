@@ -66,7 +66,7 @@ import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
-import com.tencent.bk.job.manage.service.template.impl.TemplateStatusUpdateService;
+import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -102,7 +102,7 @@ public class ScriptManagerImpl implements ScriptManager {
     private final ScriptRelateJobTemplateDAO scriptRelateJobTemplateDAO;
     private final TaskScriptStepDAO taskScriptStepDAO;
     private final TaskTemplateDAO taskTemplateDAO;
-    private final TemplateStatusUpdateService templateStatusUpdateService;
+    private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
     private final TemplateAuthService templateAuthService;
     private final MessageI18nService i18nService;
     private TaskTemplateService taskTemplateService;
@@ -122,7 +122,7 @@ public class ScriptManagerImpl implements ScriptManager {
         ScriptRelateJobTemplateDAO scriptRelateJobTemplateDAO,
         @Qualifier("TaskTemplateScriptStepDAOImpl") TaskScriptStepDAO taskScriptStepDAO,
         TaskTemplateDAO taskTemplateDAO,
-        TemplateStatusUpdateService templateStatusUpdateService,
+        TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
         TemplateAuthService templateAuthService,
         MessageI18nService i18nService) {
         this.scriptDAO = scriptDAO;
@@ -132,7 +132,7 @@ public class ScriptManagerImpl implements ScriptManager {
         this.scriptRelateJobTemplateDAO = scriptRelateJobTemplateDAO;
         this.taskScriptStepDAO = taskScriptStepDAO;
         this.taskTemplateDAO = taskTemplateDAO;
-        this.templateStatusUpdateService = templateStatusUpdateService;
+        this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.templateAuthService = templateAuthService;
         this.i18nService = i18nService;
     }
@@ -554,11 +554,11 @@ public class ScriptManagerImpl implements ScriptManager {
             log.info("Publish script, set scriptVersion:{} offline", publishedScriptVersion.getScriptVersionId());
             scriptDAO.updateScriptVersionStatus(publishedScriptVersion.getScriptVersionId(),
                 JobResourceStatusEnum.OFFLINE.getValue());
-            taskTemplateService.updateScriptStatus(appId, scriptId, publishedScriptVersion.getScriptVersionId(),
-                JobResourceStatusEnum.OFFLINE);
+            templateScriptStatusUpdateService.refreshTemplateScriptStatusByScript(scriptId,
+                publishedScriptVersion.getScriptVersionId());
         }
         scriptDAO.updateScriptVersionStatus(scriptVersionId, JobResourceStatusEnum.ONLINE.getValue());
-        taskTemplateService.updateScriptStatus(appId, scriptId, scriptVersionId, JobResourceStatusEnum.ONLINE);
+        templateScriptStatusUpdateService.refreshTemplateScriptStatusByScript(scriptId, scriptVersionId);
         log.info("Publish script successfully, scriptId={}, scriptVersionId={}", scriptId, scriptVersionId);
     }
 
@@ -606,8 +606,8 @@ public class ScriptManagerImpl implements ScriptManager {
 
         scriptDAO.updateScriptVersionStatus(scriptVersionToBeDisabled.getScriptVersionId(),
             JobResourceStatusEnum.DISABLED.getValue());
-        taskTemplateService.updateScriptStatus(appId, scriptId, scriptVersionToBeDisabled.getScriptVersionId(),
-            JobResourceStatusEnum.DISABLED);
+        templateScriptStatusUpdateService.refreshTemplateScriptStatusByScript(scriptId,
+            scriptVersionToBeDisabled.getScriptVersionId());
         log.info("Disable script successfully, scriptId={}, scriptVersionId={}", scriptId, scriptVersionId);
     }
 
@@ -804,7 +804,7 @@ public class ScriptManagerImpl implements ScriptManager {
                 boolean success = updateTemplateRefScript(appId, templateId, stepId, syncScriptVersionId);
                 if (success) {
                     syncResults.add(SyncScriptResultDTO.buildSuccessSyncResult(updateStep));
-                    refreshTemplateScriptVersionStatus(templateId);
+                    templateScriptStatusUpdateService.refreshTemplateScriptStatusByTemplate(templateId);
                 } else {
                     syncResults.add(SyncScriptResultDTO.buildFailSyncResult(updateStep, ErrorCode.TEMPLATE_NOT_EXIST));
                 }
@@ -854,7 +854,7 @@ public class ScriptManagerImpl implements ScriptManager {
         //填充scriptStatusDesc
         scriptCitedTaskTemplateDTOList.forEach(scriptCitedTaskTemplateDTO ->
             scriptCitedTaskTemplateDTO.setScriptStatusDesc(i18nService.getI18n(
-                scriptCitedTaskTemplateDTO.getScriptStatus().getStatusI18nKey()
+                    scriptCitedTaskTemplateDTO.getScriptStatus().getStatusI18nKey()
                 )
             ));
         return scriptCitedTaskTemplateDTOList;
@@ -924,21 +924,6 @@ public class ScriptManagerImpl implements ScriptManager {
         );
         taskTemplateDAO.updateTaskTemplateVersion(appId, templateId, UUID.randomUUID().toString());
         return success;
-    }
-
-    /*
-     * 刷新模板引用脚本状态
-     */
-    private void refreshTemplateScriptVersionStatus(Long templateId) {
-        int retry = 3;
-        while (retry-- > 0) {
-            try {
-                templateStatusUpdateService.offerMessage(templateId);
-                return;
-            } catch (InterruptedException e) {
-                log.error("Refresh template script version status", e);
-            }
-        }
     }
 
     @Override

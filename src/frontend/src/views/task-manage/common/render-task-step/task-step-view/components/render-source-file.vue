@@ -62,7 +62,7 @@
               <th style="width: 40%;">
                 {{ $t('文件名称') }}
               </th>
-              <th>{{ $t('文件源.text') }}</th>
+              <th>{{ $t('文件源_text') }}</th>
             </thead>
             <tbody class="source-file-list">
               <tr
@@ -122,7 +122,7 @@
                   <td>
                     <render-server-agent
                       :execute-objects-info="findVariableValue(row.host.variable)"
-                      :title="`${$t('template.全局变量.label')} - ${row.host.variable}`" />
+                      :title="`${$t('template.全局变量_label')} - ${row.host.variable}`" />
                   </td>
                 </template>
                 <template v-else>

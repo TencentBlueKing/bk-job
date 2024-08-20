@@ -45,7 +45,7 @@
               :form-data="formData"
               :label="$t('execution.任务名称')"
               name="stepName"
-              :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
+              :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位')"
               @on-change="handleChange" />
             <item-factory
               field="timeout"
@@ -467,7 +467,7 @@
               // 有重名目录和文件
               this.$bkInfo({
                 title: I18n.t('execution.源文件可能出现同名'),
-                subTitle: I18n.t('execution.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。'),
+                subTitle: I18n.t('execution.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用_源服务器IP_的变量来尽可能规避风险。'),
                 okText: I18n.t('execution.好的，我调整一下'),
                 cancelText: I18n.t('execution.已知悉，确定执行'),
                 maskClose: false,

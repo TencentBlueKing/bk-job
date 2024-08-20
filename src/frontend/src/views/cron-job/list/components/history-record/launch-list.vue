@@ -73,7 +73,7 @@
       <bk-table-column
         key="statusDesc"
         align="left"
-        :label="$t('cron.任务状态.colHead')"
+        :label="$t('cron.任务状态_colHead')"
         prop="statusDesc">
         <template slot-scope="{ row }">
           <span v-html="row.statusDescHtml" />
@@ -82,13 +82,13 @@
       <bk-table-column
         key="operator"
         align="left"
-        :label="$t('cron.执行人.colHead')"
+        :label="$t('cron.执行人_colHead')"
         prop="operator"
         width="160" />
       <bk-table-column
         key="createTime"
         align="left"
-        :label="$t('cron.开始时间.colHead')"
+        :label="$t('cron.开始时间_colHead')"
         prop="createTime"
         width="180" />
       <bk-table-column
@@ -142,7 +142,7 @@
         this.searchParams.status = 4;
         this.searchAppendValue = [
           {
-            name: I18n.t('cron.任务状态.label'),
+            name: I18n.t('cron.任务状态_label'),
             id: 'status',
             values: [{
               id: this.searchParams.status,
@@ -167,7 +167,7 @@
           },
         },
         {
-          name: I18n.t('cron.任务状态.colHead'),
+          name: I18n.t('cron.任务状态_colHead'),
           id: 'status',
           children: [
             {
@@ -209,7 +209,7 @@
           ],
         },
         {
-          name: I18n.t('cron.执行人.colHead'),
+          name: I18n.t('cron.执行人_colHead'),
           id: 'operator',
           remoteMethod: NotifyService.fetchUsersOfSearch,
           inputInclude: true,

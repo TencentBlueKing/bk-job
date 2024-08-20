@@ -99,7 +99,7 @@
             <icon
               class="create-flag"
               type="plus" />
-            <span>{{ $t('template.全局变量.label') }}</span>
+            <span>{{ $t('template.全局变量_label') }}</span>
           </div>
           <div
             v-bk-tooltips="$t('template.使用指引')"

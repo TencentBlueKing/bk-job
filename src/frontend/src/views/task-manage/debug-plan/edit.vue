@@ -37,7 +37,7 @@
         ref="editPlanForm"
         :model="formData"
         :rules="rules">
-        <jb-form-item :label="$t('template.全局变量.label')">
+        <jb-form-item :label="$t('template.全局变量_label')">
           <render-global-var
             :list="variableList"
             mode="editOfPlan"

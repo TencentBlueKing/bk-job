@@ -107,7 +107,7 @@
         if (this.type) {
           return this.type;
         }
-        return `${I18n.t('template.全局变量.label')} - ${this.name}`;
+        return `${I18n.t('template.全局变量_label')} - ${this.name}`;
       },
       isEmpty() {
         return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.executeObjectsInfo);
