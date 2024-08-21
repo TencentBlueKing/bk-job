@@ -47,6 +47,8 @@ spec:
               value: {{ include "job.mariadb.port" . | quote }}
             - name: BK_JOB_MYSQL_ROOT_PASSWORD
               value: {{ include "job.mariadb.rootPassword" . | quote }}
+            - name: BK_JOB_MYSQL_ROOT_USERNAME
+              value: {{include "job.mariadb.rootUsername" . | quote}}
             - name: BK_IAM_URL
               value: {{ .Values.bkIamApiUrl | quote }}
             - name: BK_JOB_APP_CODE
