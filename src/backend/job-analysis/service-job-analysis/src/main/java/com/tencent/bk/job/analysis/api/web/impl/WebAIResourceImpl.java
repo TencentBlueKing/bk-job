@@ -31,6 +31,7 @@ import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
+import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
@@ -161,12 +162,12 @@ public class WebAIResourceImpl implements WebAIResource {
     }
 
     @Override
-    public ResponseEntity<StreamingResponseBody> getChatStream(String username,
-                                                               AppResourceScope appResourceScope,
-                                                               String scopeType,
-                                                               String scopeId,
-                                                               Long recordId) {
-        StreamingResponseBody streamingResponseBody = chatService.getChatStream(username, recordId);
+    public ResponseEntity<StreamingResponseBody> generateChatStream(String username,
+                                                                    AppResourceScope appResourceScope,
+                                                                    String scopeType,
+                                                                    String scopeId,
+                                                                    GenerateChatStreamReq req) {
+        StreamingResponseBody streamingResponseBody = chatService.generateChatStream(username, req.getRecordId());
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamingResponseBody);
     }
 

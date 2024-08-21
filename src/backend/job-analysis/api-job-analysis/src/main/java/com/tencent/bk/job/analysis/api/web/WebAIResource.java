@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.api.web;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
+import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.common.annotation.WebAPI;
@@ -168,9 +169,12 @@ public interface WebAIResource {
         @RequestBody AIAnalyzeErrorReq req
     );
 
-    @ApiOperation(value = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0,\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\",\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null,\"errorDetail\": null}", produces = "application/json")
-    @GetMapping("/chatStream")
-    ResponseEntity<StreamingResponseBody> getChatStream(
+    @ApiOperation(value = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
+        "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
+        "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
+        "\"errorDetail\": null}", produces = "application/json")
+    @PostMapping("/chatStream")
+    ResponseEntity<StreamingResponseBody> generateChatStream(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
@@ -183,10 +187,9 @@ public interface WebAIResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "对话记录ID")
-        @RequestParam(value = "recordId")
-        @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
-        Long recordId
+        @ApiParam(value = "生成流式响应数据请求参数", required = true)
+        @Validated
+        @RequestBody GenerateChatStreamReq req
     );
 
     @ApiOperation(value = "终止对话", produces = "application/json")
