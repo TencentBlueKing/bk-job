@@ -41,9 +41,9 @@ public enum AIChatStatusEnum {
      */
     FINISHED(2),
     /**
-     * 已取消
+     * 已终止
      */
-    CANCELED(3);
+    TERMINATED(3);
 
     private final int status;
 

@@ -73,6 +73,14 @@ public interface AIChatHistoryService {
      */
     int finishAIAnswer(Long historyId, AIAnswer aiAnswer);
 
+    /**
+     * 终止聊天
+     *
+     * @param historyId AI聊天记录ID
+     * @return 受影响的行数
+     */
+    int terminateAIAnswer(Long historyId);
+
 
     /**
      * 获取最近的聊天记录列表

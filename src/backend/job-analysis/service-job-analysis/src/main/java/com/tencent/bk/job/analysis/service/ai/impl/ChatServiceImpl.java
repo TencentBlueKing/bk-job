@@ -26,41 +26,38 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
-import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
+import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class ChatServiceImpl implements ChatService {
 
     private final AIChatHistoryService aiChatHistoryService;
+    private final AIAnswerHandler aiAnswerHandler;
     private final AIService aiService;
+    private final ConcurrentHashMap<Long, CompletableFuture<String>> futureMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ChatServiceImpl(AIChatHistoryService aiChatHistoryService,
+                           AIAnswerHandler aiAnswerHandler,
                            AIService aiService) {
         this.aiChatHistoryService = aiChatHistoryService;
+        this.aiAnswerHandler = aiAnswerHandler;
         this.aiService = aiService;
     }
 
@@ -96,66 +93,54 @@ public class ChatServiceImpl implements ChatService {
         );
         chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
         // 2.查出指定的聊天记录
-        AIChatHistoryDTO currentChatHistoryDTO = aiChatHistoryService.getChatHistory(username, recordId);
-        if (currentChatHistoryDTO == null) {
+        AIChatHistoryDTO currentChatHistoryDTO = getChatHistory(username, recordId);
+        int affectedNum = aiChatHistoryService.setAIAnswerReplying(recordId);
+        if (affectedNum == 0) {
+            log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
+        }
+        // 3.将AI回答流数据与接口输出流进行同步对接
+        int inMemoryMessageMaxNum = 10000;
+        AIAnswerStreamSynchronizer aiAnswerStreamSynchronizer = new AIAnswerStreamSynchronizer(inMemoryMessageMaxNum);
+        AsyncConsumerAndProducerPair consumerAndProducerPair =
+            aiAnswerStreamSynchronizer.buildAsyncConsumerAndProducerPair();
+        CompletableFuture<String> future = aiService.getAIAnswerStream(
+            chatHistoryDTOList,
+            currentChatHistoryDTO.getAiInput(),
+            consumerAndProducerPair.getConsumer()
+        );
+        future.whenComplete((content, throwable) -> {
+            aiAnswerStreamSynchronizer.triggerEndEvent();
+            // 4.处理AI回复内容
+            aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
+            futureMap.remove(recordId);
+        });
+        futureMap.put(recordId, future);
+        return consumerAndProducerPair.getProducer();
+    }
+
+    private AIChatHistoryDTO getChatHistory(String username, Long recordId) {
+        AIChatHistoryDTO chatHistoryDTO = aiChatHistoryService.getChatHistory(username, recordId);
+        if (chatHistoryDTO == null) {
             throw new NotFoundException(
                 ErrorCode.AI_CHAT_HISTORY_NOT_FOUND_BY_ID,
                 new String[]{String.valueOf(recordId)}
             );
         }
-        int affectedNum = aiChatHistoryService.setAIAnswerReplying(recordId);
-        if (affectedNum == 0) {
-            log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
-        }
-        // 3.获取AI回答放入阻塞队列
-        LinkedBlockingQueue<MessagePartEvent> messageQueue = new LinkedBlockingQueue<>(10000);
-        AtomicBoolean isFinished = new AtomicBoolean(false);
-        StreamingResponseBody streamingResponseBody = outputStream -> {
-            while (!isFinished.get()) {
-                try {
-                    MessagePartEvent event = messageQueue.take();
-                    if (event.isEnd()) {
-                        break;
-                    }
-                    String partMessage = event.getMessagePart();
-                    Response<AIAnswer> respBody = Response.buildSuccessResp(AIAnswer.successAnswer(partMessage));
-                    String message = JsonUtils.toJson(respBody) + "\n";
-                    outputStream.write(message.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-                } catch (InterruptedException e) {
-                    log.debug("Interrupted when take message from queue", e);
-                } catch (IOException e) {
-                    log.error("Write resp to output stream failed", e);
-                }
-            }
-            outputStream.close();
-        };
-        Consumer<String> partialRespConsumer =
-            messagePart -> messageQueue.offer(MessagePartEvent.normalEvent(messagePart));
-        CompletableFuture<String> future = aiService.getAIAnswerStream(
-            chatHistoryDTOList,
-            currentChatHistoryDTO.getAiInput(),
-            partialRespConsumer
-        );
-        future.whenComplete((content, throwable) -> {
-            isFinished.set(true);
-            messageQueue.offer(MessagePartEvent.endEvent());
-            // 4.将AI回答写入DB
-            AIAnswer aiAnswer;
-            if (throwable == null) {
-                aiAnswer = AIAnswer.successAnswer(content);
-            } else {
-                aiAnswer = AIAnswer.failAnswer(throwable.getMessage());
-            }
-            int affectedRow = aiChatHistoryService.finishAIAnswer(recordId, aiAnswer);
-            log.info(
-                "AIAnswer finished, recordId={}, length={}, affectedRow={}",
-                recordId,
-                content.length(),
-                affectedRow
-            );
-        });
-        return streamingResponseBody;
+        return chatHistoryDTO;
     }
 
+    public boolean terminateChat(String username, Long recordId) {
+        AIChatHistoryDTO chatHistoryDTO = getChatHistory(username, recordId);
+        if (!chatHistoryDTO.isInitOrReplying()) {
+            log.info("Cannot terminate chat, chat is already finished or canceled, recordId={}", recordId);
+            return false;
+        }
+        CompletableFuture<String> future = futureMap.get(recordId);
+        if (future == null) {
+            log.info("Cannot find future for recordId={}, chat maybe finished or canceled just now", recordId);
+            return false;
+        }
+        future.cancel(true);
+        return true;
+    }
 }

@@ -177,8 +177,8 @@ public class WebAIResourceImpl implements WebAIResource {
                                            String scopeType,
                                            String scopeId,
                                            Long recordId) {
-        // TODO
-        return Response.buildSuccessResp(true);
+        boolean result = chatService.terminateChat(username, recordId);
+        return Response.buildSuccessResp(result);
     }
 
     /**

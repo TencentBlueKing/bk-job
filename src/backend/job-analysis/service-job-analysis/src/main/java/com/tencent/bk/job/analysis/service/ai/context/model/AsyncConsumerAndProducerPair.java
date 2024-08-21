@@ -22,50 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-public interface ChatService {
-
+@AllArgsConstructor
+@Data
+public class AsyncConsumerAndProducerPair {
     /**
-     * 与AI聊天并处理聊天记录保存等逻辑
-     *
-     * @param username  用户名
-     * @param userInput 用户输入
-     * @return AI对话记录
+     * 消费者
      */
-    AIChatRecord chatWithAI(String username, String userInput);
-
+    Consumer<String> consumer;
     /**
-     * 获取最近的聊天记录列表
-     *
-     * @param username 用户名
-     * @param start    起始位置
-     * @param length   长度
-     * @return 最近的聊天记录列表
+     * 生产者
      */
-    List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
-
-    /**
-     * 获取聊天流式数据
-     *
-     * @param username 用户名
-     * @param recordId 对话记录ID
-     * @return 流式数据
-     */
-    StreamingResponseBody generateChatStream(String username, Long recordId);
-
-    /**
-     * 终止聊天
-     *
-     * @param username 用户名
-     * @param recordId 对话记录ID
-     * @return 是否终止成功
-     */
-    boolean terminateChat(String username, Long recordId);
+    StreamingResponseBody producer;
 }

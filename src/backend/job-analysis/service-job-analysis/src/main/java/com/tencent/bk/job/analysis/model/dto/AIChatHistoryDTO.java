@@ -133,4 +133,8 @@ public class AIChatHistoryDTO {
         aiChatRecord.setStatus(status);
         return aiChatRecord;
     }
+
+    public boolean isInitOrReplying() {
+        return status == AIChatStatusEnum.INIT.getStatus() || status == AIChatStatusEnum.REPLYING.getStatus();
+    }
 }

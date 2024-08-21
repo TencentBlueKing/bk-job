@@ -97,6 +97,11 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         );
     }
 
+    @Override
+    public int terminateAIAnswer(Long historyId) {
+        return aiChatHistoryDAO.updateChatHistoryStatus(historyId, AIChatStatusEnum.TERMINATED.getStatus());
+    }
+
     /**
      * 从DB获取最近的聊天记录列表，按起始时间升序排列
      *
