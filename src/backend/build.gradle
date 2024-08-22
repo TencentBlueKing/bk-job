@@ -116,7 +116,7 @@ ext {
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.9.2-alpha")
     set('commonsValidatorVersion', "1.6")
-    set('jcommanderVersion', "1.71")
+    set('jcommanderVersion', "1.72")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersoin:" + bkjobVersion
