@@ -25,8 +25,10 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
+import com.tencent.bk.job.analysis.listener.event.AIChatOperationEvent;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.mq.AIChatOperationEventDispatcher;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
@@ -50,15 +52,17 @@ public class ChatServiceImpl implements ChatService {
     private final AIChatHistoryService aiChatHistoryService;
     private final AIAnswerHandler aiAnswerHandler;
     private final AIService aiService;
+    private final AIChatOperationEventDispatcher aiChatOperationEventDispatcher;
     private final ConcurrentHashMap<Long, CompletableFuture<String>> futureMap = new ConcurrentHashMap<>();
 
     @Autowired
     public ChatServiceImpl(AIChatHistoryService aiChatHistoryService,
                            AIAnswerHandler aiAnswerHandler,
-                           AIService aiService) {
+                           AIService aiService, AIChatOperationEventDispatcher aiChatOperationEventDispatcher) {
         this.aiChatHistoryService = aiChatHistoryService;
         this.aiAnswerHandler = aiAnswerHandler;
         this.aiService = aiService;
+        this.aiChatOperationEventDispatcher = aiChatOperationEventDispatcher;
     }
 
     @Override
@@ -130,17 +134,25 @@ public class ChatServiceImpl implements ChatService {
     }
 
     public boolean terminateChat(String username, Long recordId) {
-        AIChatHistoryDTO chatHistoryDTO = getChatHistory(username, recordId);
-        if (!chatHistoryDTO.isInitOrReplying()) {
-            log.info("Cannot terminate chat, chat is already finished or canceled, recordId={}", recordId);
-            return false;
-        }
         CompletableFuture<String> future = futureMap.get(recordId);
         if (future == null) {
             log.info("Cannot find future for recordId={}, chat maybe finished or canceled just now", recordId);
             return false;
         }
-        future.cancel(true);
+        boolean result = future.cancel(true);
+        log.info("Terminate chat, username={}, recordId={}, result={}", username, recordId, result);
+        return result;
+    }
+
+    public boolean triggerTerminateChat(String username, Long recordId) {
+        AIChatHistoryDTO chatHistoryDTO = getChatHistory(username, recordId);
+        if (!chatHistoryDTO.isInitOrReplying()) {
+            log.info("Cannot terminate chat, chat is already finished or canceled, recordId={}", recordId);
+            return false;
+        }
+        aiChatOperationEventDispatcher.broadCastAIChatOperationEvent(
+            AIChatOperationEvent.terminateChat(username, recordId)
+        );
         return true;
     }
 }

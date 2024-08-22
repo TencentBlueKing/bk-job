@@ -15,6 +15,8 @@ data:
     spring:
       cloud:
         stream:
+          function:
+            definition: handleAIChatOperationEvent
           defaultBinder: jobCommon
           binders:
             jobCommon:
@@ -31,6 +33,38 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }} 
+            jobAnalysis:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          bindings:
+            handleAIChatOperationEvent-in-0:
+              destination: analysis.aiChatOperation.fanout
+              binder: jobAnalysis
+              consumer:
+                concurrency: 3
+            aiChatOperationFanout-out-0:
+              destination: analysis.aiChatOperation.fanout
+              binder: jobAnalysis
+          rabbit:
+            bindings:
+              handleAIChatOperationEvent-in-0:
+                consumer:
+                  maxConcurrency: 3
+                  exchangeType: fanout
+              aiChatOperationFanout-out-0:
+                producer:
+                  exchangeType: fanout
       datasource:
         job-analysis:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}

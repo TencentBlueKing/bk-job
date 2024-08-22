@@ -177,7 +177,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                            String scopeType,
                                            String scopeId,
                                            Long recordId) {
-        boolean result = chatService.terminateChat(username, recordId);
+        boolean result = chatService.triggerTerminateChat(username, recordId);
         return Response.buildSuccessResp(result);
     }
 

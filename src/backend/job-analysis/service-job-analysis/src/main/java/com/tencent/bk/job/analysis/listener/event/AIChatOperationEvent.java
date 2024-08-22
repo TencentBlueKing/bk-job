@@ -22,59 +22,63 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.analysis.listener.event;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.analysis.consts.AIChatOperationEnum;
+import com.tencent.bk.job.common.event.Event;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.StringJoiner;
 
-public interface ChatService {
-
+/**
+ * AI对话操作事件
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AIChatOperationEvent extends Event {
     /**
-     * 与AI聊天并处理聊天记录保存等逻辑
+     * AI对话相关操作
      *
-     * @param username  用户名
-     * @param userInput 用户输入
-     * @return AI对话记录
+     * @see AIChatOperationEnum
      */
-    AIChatRecord chatWithAI(String username, String userInput);
-
+    private int action;
     /**
-     * 获取最近的聊天记录列表
-     *
-     * @param username 用户名
-     * @param start    起始位置
-     * @param length   长度
-     * @return 最近的聊天记录列表
+     * 操作用户
      */
-    List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
+    private String username;
+    /**
+     * AI对话记录ID
+     */
+    private Long recordId;
 
     /**
-     * 获取聊天流式数据
+     * 构造终止AI对话事件
      *
-     * @param username 用户名
      * @param recordId 对话记录ID
-     * @return 流式数据
+     * @return 终止AI对话事件
      */
-    StreamingResponseBody generateChatStream(String username, Long recordId);
+    public static AIChatOperationEvent terminateChat(String username, long recordId) {
+        AIChatOperationEvent event = new AIChatOperationEvent();
+        event.setAction(AIChatOperationEnum.TERMINATE_CHAT.getValue());
+        event.setUsername(username);
+        event.setRecordId(recordId);
+        event.setTime(LocalDateTime.now());
+        return event;
+    }
 
-    /**
-     * 终止当前实例中的对话
-     *
-     * @param username 用户名
-     * @param recordId 对话记录ID
-     * @return 是否终止成功
-     */
-    boolean terminateChat(String username, Long recordId);
-
-    /**
-     * 触发终止对话
-     *
-     * @param username 用户名
-     * @param recordId 对话记录ID
-     * @return 是否终止成功
-     */
-    boolean triggerTerminateChat(String username, Long recordId);
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", AIChatOperationEvent.class.getSimpleName() + "[", "]")
+            .add("action=" + action)
+            .add("username=" + username)
+            .add("recordId=" + recordId)
+            .add("time=" + time)
+            .toString();
+    }
 }
