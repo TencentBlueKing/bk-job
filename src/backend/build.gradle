@@ -116,7 +116,7 @@ ext {
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
     set('okHttpVersion', "4.9.1")
-    set('jcommanderVersion', "1.71")
+    set('jcommanderVersion', "1.72")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     // Fix CVE-2023-44487
