@@ -176,7 +176,7 @@ mkdir -p $tmp_dir/frontend
 mkdir -p $tmp_dir/backend
 mkdir -p $tmp_dir/startup_controller
 mkdir -p $tmp_dir/migration
-mkdir -p $tmp_dir/sync_api_gateway
+mkdir -p $tmp_dir/sync_bk_api_gateway
 
 # Automatically clean up the tmp directory when executing exit
 trap 'rm -rf $tmp_dir' EXIT TERM
@@ -248,9 +248,9 @@ build_migration_image(){
     fi
 }
 
-# Build sync-api-gateway image
+# Build sync-bk-api-gateway image
 build_sync_bk_api_gateway_image(){
-    log "Building sync_api_gateway image, version: ${VERSION}..."
+    log "Building sync_bk_api_gateway image, version: ${VERSION}..."
     rm -rf tmp/sync_bk_api_gateway/*
     cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_bk_api_gateway/
     docker build -f migration/bkApiGateway.Dockerfile -t $REGISTRY/job-sync-bk-api-gateway:$VERSION tmp/sync_bk_api_gateway --network=host

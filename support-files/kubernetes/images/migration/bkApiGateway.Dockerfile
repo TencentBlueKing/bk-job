@@ -5,4 +5,4 @@ COPY apidocs /data/apidocs
 COPY definition.yaml /data/definition.yaml
 COPY resources.yaml /data/resources.yaml
 
-RUN chmod +x /data/bin/sync-apigateway.sh
+RUN chmod +x /data/bin/sync-bkapigateway.sh

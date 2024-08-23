@@ -22,7 +22,7 @@ spec:
       - command:
         - bash
         args:
-        - bin/sync-apigateway.sh
+        - bin/sync-bkapigateway.sh
         image: {{ include "job-sync-bk-api-gateway.image" . }}
         imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
         name: job-sync-bk-api-gateway
