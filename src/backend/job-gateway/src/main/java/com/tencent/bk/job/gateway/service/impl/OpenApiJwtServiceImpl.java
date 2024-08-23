@@ -61,6 +61,11 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private PublicKey bkApiGatewayJwtPublicKey;
     private final BkGatewayConfig bkApiGatewayConfig;
 
+    /**
+     * 蓝鲸网关请求标识
+     */
+    private static final String REQUEST_FROM_BK_API_GW = "bk-job-apigw";
+
     private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
@@ -221,7 +226,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     // 请求是否来自蓝鲸网关
     private boolean requestFromApiGw() {
         String requestFrom = JobContextUtil.getRequestFrom();
-        if (bkApiGatewayConfig.isEnabled() && StringUtils.equals(bkApiGatewayConfig.getRequestFrom(), requestFrom)) {
+        if (bkApiGatewayConfig.isEnabled() && StringUtils.equals(requestFrom, REQUEST_FROM_BK_API_GW)) {
             return true;
         }
         return false;

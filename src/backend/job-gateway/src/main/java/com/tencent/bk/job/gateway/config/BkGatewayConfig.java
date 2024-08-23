@@ -39,9 +39,4 @@ public class BkGatewayConfig {
      */
     @Value("${job.bkApiGateway.enabled:true}")
     private boolean enabled;
-
-    /**
-     * 蓝鲸网关请求标识
-     */
-    private final String requestFrom = "bk-job-apigw";
 }
