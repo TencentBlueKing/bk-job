@@ -2,7 +2,7 @@
 # Description: build and push docker image
 
 # Safe mode
-set -euo pipefail 
+set -euo pipefail
 
 PROGRAM=$(basename "$0")
 EXITCODE=0
@@ -12,7 +12,7 @@ BUILD_FRONTEND=0
 BUILD_BACKEND=0
 BUILD_MIGRATION=0
 BUILD_STARTUP_CONTROLLER=0
-BUILD_SYNC_API_GATEWAY=0
+BUILD_SYNC_BK_API_GATEWAY=0
 BUILD_MODULES=()
 BUILD_BACKEND_MODULES=()
 VERSION=latest
@@ -37,13 +37,13 @@ VERSION_LOGS_DIR=$ROOT_DIR/versionLogs
 usage () {
     cat <<EOF
 Usage:
-    $PROGRAM [OPTIONS]... 
+    $PROGRAM [OPTIONS]...
 
             [ --frontend            [Optional] Build frontend image ]
             [ --backend             [Optional] Build backend image ]
             [ --migration           [Optional] Build migration image ]
             [ --startup-controller  [Optional] Build startup-controller image ]
-            [ --sync-api-gateway    [Optional] Build sync-api-gateway image ]
+            [ --sync-bk-api-gateway [Optional] Build sync-bk-api-gateway image ]
 			[ -m, --modules         [Optional] Build specified module images, modules are separated by commas. values:job-frontend,job-migration,job-gateway,job-manage,job-execute,job-crontab,job-logsvr,job-analysis,job-backup,job-file-gateway,job-file-worker,job-assemble. Example: job-manage,job-execute ]
             [ -v, --version         [Optional] Image tag, default latest ]
             [ -p, --push            [Optional] Push the image to the docker remote repository, not push by default ]
@@ -84,7 +84,7 @@ warning () {
 
 # Parse command line
 (( $# == 0 )) && usage_and_exit 1
-while (( $# > 0 )); do 
+while (( $# > 0 )); do
     case "$1" in
         --frontend )
             BUILD_ALL=0
@@ -98,13 +98,13 @@ while (( $# > 0 )); do
             BUILD_ALL=0
             BUILD_MIGRATION=1
             ;;
+        --sync_bk_api_gateway )
+            BUILD_ALL=0
+            BUILD_SYNC_BK_API_GATEWAY=1
+            ;;
         --startup-controller )
             BUILD_ALL=0
             BUILD_STARTUP_CONTROLLER=1
-            ;;
-        --sync_api_gateway )
-            BUILD_ALL=0
-            BUILD_SYNC_API_GATEWAY=1
             ;;
         -m | --modules )
 		    shift
@@ -112,8 +112,8 @@ while (( $# > 0 )); do
 			BUILD_FRONTEND=0
             BUILD_BACKEND=0
 			BUILD_MIGRATION=0
+			BUILD_SYNC_BK_API_GATEWAY=0
 			BUILD_STARTUP_CONTROLLER=0
-			BUILD_SYNC_API_GATEWAY=0
 			modules_str=$1
 			BUILD_MODULES=(${modules_str//,/ })
             ;;
@@ -158,7 +158,7 @@ while (( $# > 0 )); do
         -*)
             error "Invalid Param: $1"
             ;;
-        *) 
+        *)
             break
             ;;
     esac
@@ -280,7 +280,7 @@ fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
     build_migration_image
 fi
-if [[ $BUILD_ALL -eq 1 || $BUILD_SYNC_API_GATEWAY -eq 1 ]] ; then
+if [[ $BUILD_ALL -eq 1 || $BUILD_SYNC_BK_API_GATEWAY -eq 1 ]] ; then
     build_sync_bk_api_gateway_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
@@ -297,14 +297,14 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    if [[ "$MODULE" == "job-frontend" ]]; then
 		    build_frontend_module
 	    elif [[ "$MODULE" == "job-migration" ]]; then
-        build_migration_image
-      elif [[ "$MODULE" == "job-sync-bk-api-gateway" ]]; then
+		    build_migration_image
+		  elif [[ "$MODULE" == "job-sync-bk-api-gateway" ]]; then
 		    build_sync_bk_api_gateway_image
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
-      elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
-        BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
-      fi
+		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
+            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
+		fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
         build_backend_modules "${BUILD_BACKEND_MODULES[*]}"

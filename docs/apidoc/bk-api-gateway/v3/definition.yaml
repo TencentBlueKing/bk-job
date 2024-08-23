@@ -67,7 +67,7 @@ stages:
         yaml: |-
           set:
             - key: X-Bkapi-From
-              value: 'apigw'
+              value: 'bk-job-apigw'
           remove: []
     #     - type: bk-cors
     #       yaml: |-
@@ -91,14 +91,3 @@ resource_docs:
   # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
   # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}" ## 环境变量方式："{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
   basedir: "{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
-
-# 主动授权，网关主动给应用，添加访问网关所有资源的权限
-grant_permissions:
-# 按网关授权
-#  - bk_app_code: "{{ environ.BK_NODEMAN_APP_CODE }}"
-#    grant_dimension: "gateway"
-# 按资源授权
-#  - bk_app_code: {{environ.BK_CI_APP_CODE}}
-#    grant_dimension: "resource"
-#    resource_names:
-#      - bkci_plugin_fast_execute_script
