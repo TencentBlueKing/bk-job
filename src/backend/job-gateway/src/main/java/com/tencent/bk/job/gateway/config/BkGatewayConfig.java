@@ -37,12 +37,12 @@ public class BkGatewayConfig {
     /**
      * 蓝鲸网关认证
      */
-    @Value("${job.bkGateway.enabled:false}")
+    @Value("${job.bkApiGateway.enabled:false}")
     private boolean enabled;
 
     /**
      * 蓝鲸网关请求标识
      */
-    @Value("${job.bkGateway.requestFrom:apigw}")
+    @Value("${job.bkApiGateway.requestFrom:apigw}")
     private String requestFrom;
 }

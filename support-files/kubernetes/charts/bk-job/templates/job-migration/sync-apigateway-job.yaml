@@ -1,12 +1,12 @@
-{{- if .Values.apiGatewayConfig.sync }}
+{{- if .Values.bkApiGatewayConfig.sync }}
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "common.names.fullname" . }}-sync-api-gateway-{{ .Chart.Version }}
   labels:
     {{- include "common.labels.standard" . | nindent 4 }}
-    app.kubernetes.io/component: "job-sync-api-gateway"
-    {{ include "job.labelKeys.imageTag" . }} : {{ .Values.apiGatewayConfig.image.tag | quote }}
+    app.kubernetes.io/component: "job-sync-bk-api-gateway"
+    {{ include "job.labelKeys.imageTag" . }} : {{ .Values.bkApiGatewayConfig.image.tag | quote }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
@@ -16,36 +16,30 @@ spec:
   template:
     metadata:
       labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
-        app.kubernetes.io/component : "job-sync-api-gateway"
+        app.kubernetes.io/component : "job-sync-bk-api-gateway"
     spec:
       containers:
       - command:
         - bash
         args:
         - bin/sync-apigateway.sh
-        image: {{ include "job-sync-api-gateway.image" . }}
+        image: {{ include "job-sync-bk-api-gateway.image" . }}
         imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
-        name: job-sync-api-gateway
+        name: job-sync-bk-api-gateway
         env:
         - name: BK_APIGW_NAME
-          value: {{ .Values.apiGatewayConfig.gatewayName }}
+          value: {{ .Values.bkApiGatewayConfig.gatewayName }}
         - name: BK_APP_CODE
           value: {{ .Values.appCode }}
         - name: BK_APP_SECRET
           value: {{ .Values.appSecret }}
         - name: BK_API_URL_TMPL
-          value: {{ .Values.apiGatewayConfig.syncUrl }}
+          value: {{ .Values.bkApiGatewayConfig.syncUrl }}
         - name: BK_JOB_STAGE_NAME
-          value: {{ .Values.apiGatewayConfig.stage }}
+          value: {{ .Values.bkApiGatewayConfig.stage }}
         - name : BK_APIGW_RESOURCE_DOCS_BASE_DIR
-          value : {{ .Values.apiGatewayConfig.resourceDir }}
+          value : {{ .Values.bkApiGatewayConfig.resourceDir }}
         - name: BK_JOB_API_URL
           value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
-        - name: BK_NODEMAN_APP_CODE
-          value: {{ .Values.apiGatewayConfig.nodemanAppCode }}
-        - name: BK_SOPS_APP_CODE
-          value: {{ .Values.apiGatewayConfig.sopsAppCode }}
-        - name: BK_CI_APP_CODE
-          value: {{ .Values.apiGatewayConfig.ciAppCode }}
       restartPolicy: Never
 {{- end }}

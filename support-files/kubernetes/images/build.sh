@@ -249,13 +249,13 @@ build_migration_image(){
 }
 
 # Build sync-api-gateway image
-build_sync_api_gateway_image(){
+build_sync_bk_api_gateway_image(){
     log "Building sync_api_gateway image, version: ${VERSION}..."
-    rm -rf tmp/sync_api_gateway/*
-    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_api_gateway/
-    docker build -f api-gateway/apiGateway.Dockerfile -t $REGISTRY/job-sync-api-gateway:$VERSION tmp/sync_api_gateway --network=host
+    rm -rf tmp/sync_bk_api_gateway/*
+    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_bk_api_gateway/
+    docker build -f migration/bkApiGateway.Dockerfile -t $REGISTRY/job-sync-bk-api-gateway:$VERSION tmp/sync_bk_api_gateway --network=host
     if [[ $PUSH -eq 1 ]] ; then
-        docker push $REGISTRY/job-sync-api-gateway:$VERSION
+        docker push $REGISTRY/job-sync-bk-api-gateway:$VERSION
     fi
 }
 
@@ -281,7 +281,7 @@ if [[ $BUILD_ALL -eq 1 || $BUILD_MIGRATION -eq 1 ]] ; then
     build_migration_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_SYNC_API_GATEWAY -eq 1 ]] ; then
-    build_sync_api_gateway_image
+    build_sync_bk_api_gateway_image
 fi
 if [[ $BUILD_ALL -eq 1 || $BUILD_STARTUP_CONTROLLER -eq 1 ]] ; then
     build_startup_controller_image
@@ -297,14 +297,14 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 	    if [[ "$MODULE" == "job-frontend" ]]; then
 		    build_frontend_module
 	    elif [[ "$MODULE" == "job-migration" ]]; then
-            build_migration_image
-        elif [[ "$MODULE" == "job-sync-api-gateway" ]]; then
-		    build_sync_api_gateway_image
+        build_migration_image
+      elif [[ "$MODULE" == "job-sync-bk-api-gateway" ]]; then
+		    build_sync_bk_api_gateway_image
 	    elif [[ "$MODULE" == "startup-controller" ]]; then
 		    build_startup_controller_image
-		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
-            BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
-		fi
+      elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
+        BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
+      fi
 	done
     if [[ ${#BUILD_BACKEND_MODULES[*]} > 0 ]] ; then
         build_backend_modules "${BUILD_BACKEND_MODULES[*]}"

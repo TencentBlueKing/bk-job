@@ -41,7 +41,7 @@ public class BkApiGatewayProperties {
 
     private ApiGwConfig cmdb;
 
-    private ApiGwConfig bkGateway;
+    private ApiGwConfig bkApiGateway;
 
     @Getter
     @Setter

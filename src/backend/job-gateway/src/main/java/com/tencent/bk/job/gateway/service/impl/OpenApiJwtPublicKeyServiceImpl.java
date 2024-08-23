@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.model.esb.EsbPublicKeyDTO;
-import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
+import com.tencent.bk.job.gateway.service.OpenApiJwtPublicKeyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,20 +47,20 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
+public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyService {
 
     private final AppProperties appProperties;
     private final EsbProperties esbProperties;
     private final RestTemplate restTemplate;
-    private volatile String publicKey;
-    private volatile String gatewayPublicKey;
+    private volatile String esbJwtPublicKey;
+    private volatile String bkApiGatewayPublicKey;
     private BkApiGatewayProperties bkApiGatewayProperties;
 
     @Autowired
-    public EsbJwtPublicKeyServiceImpl(AppProperties appProperties,
-                                      EsbProperties esbProperties,
-                                      RestTemplate restTemplate,
-                                      BkApiGatewayProperties bkApiGatewayProperties) {
+    public OpenApiJwtPublicKeyServiceImpl(AppProperties appProperties,
+                                          EsbProperties esbProperties,
+                                          RestTemplate restTemplate,
+                                          BkApiGatewayProperties bkApiGatewayProperties) {
         this.appProperties = appProperties;
         this.esbProperties = esbProperties;
         this.restTemplate = restTemplate;
@@ -69,8 +69,8 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
 
     @Override
     public String getEsbJWTPublicKey() {
-        if (StringUtils.isNotEmpty(publicKey)) {
-            return publicKey;
+        if (StringUtils.isNotEmpty(esbJwtPublicKey)) {
+            return esbJwtPublicKey;
         }
         String url = getEsbUrl() + "api/c/compapi/v2/esb/get_api_public_key?bk_app_code={bk_app_code}&bk_app_secret" +
             "={bk_app_secret}&bk_username=admin";
@@ -85,18 +85,18 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
             log.error("Get esb jwt public key fail!");
             throw new RuntimeException("Get esb jwt public key fail");
         }
-        String publicKey = resp.getData().getPublicKey();
-        log.info("Get esb public key success, public key : {}", publicKey);
-        this.publicKey = publicKey;
-        return publicKey;
+        String esbJwtPublicKey = resp.getData().getPublicKey();
+        log.info("Get esb public key success, public key : {}", esbJwtPublicKey);
+        this.esbJwtPublicKey = esbJwtPublicKey;
+        return esbJwtPublicKey;
     }
 
     @Override
-    public String getGatewayJWTPublicKey() {
-        if (StringUtils.isNotEmpty(gatewayPublicKey)) {
-            return gatewayPublicKey;
+    public String getBkApiGatewayJWTPublicKey() {
+        if (StringUtils.isNotEmpty(bkApiGatewayPublicKey)) {
+            return bkApiGatewayPublicKey;
         }
-        String url = getGatewayUrl() + "api/v1/apis/bk-job/public_key/";
+        String url = getBkApiGatewayUrl() + "api/v1/apis/bk-job/public_key/";
         Map<String, Object> authInfo = new HashMap<>();
         authInfo.put("bk_app_code", appProperties.getCode());
         authInfo.put("bk_app_secret", appProperties.getSecret());
@@ -115,10 +115,10 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
             log.error("Get gateway jwt public key fail!");
             throw new RuntimeException("Get gateway jwt public key fail");
         }
-        String gatewayPublicKey = resp.getData().getPublicKey();
-        log.info("Get gateway public key success, public key : {}", gatewayPublicKey);
-        this.gatewayPublicKey = gatewayPublicKey;
-        return gatewayPublicKey;
+        String bkApiGatewayPublicKey = resp.getData().getPublicKey();
+        log.info("Get gateway public key success, public key : {}", bkApiGatewayPublicKey);
+        this.bkApiGatewayPublicKey = bkApiGatewayPublicKey;
+        return bkApiGatewayPublicKey;
     }
 
     private String getEsbUrl() {
@@ -132,14 +132,14 @@ public class EsbJwtPublicKeyServiceImpl implements EsbJwtPublicKeyService {
         return esbUrl;
     }
 
-    private String getGatewayUrl() {
-        String gatewayUrl = bkApiGatewayProperties.getBkGateway().getUrl();
-        if (StringUtils.isEmpty(gatewayUrl)) {
+    private String getBkApiGatewayUrl() {
+        String bkApiGatewayUrl = bkApiGatewayProperties.getBkApiGateway().getUrl();
+        if (StringUtils.isEmpty(bkApiGatewayUrl)) {
             throw new RuntimeException("Illegal gateway url!");
         }
-        if (!gatewayUrl.endsWith("/")) {
-            gatewayUrl = gatewayUrl + "/";
+        if (!bkApiGatewayUrl.endsWith("/")) {
+            bkApiGatewayUrl = bkApiGatewayUrl + "/";
         }
-        return gatewayUrl;
+        return bkApiGatewayUrl;
     }
 }

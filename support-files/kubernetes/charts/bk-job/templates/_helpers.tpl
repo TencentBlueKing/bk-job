@@ -144,10 +144,10 @@ Return the proper job-assemble image name
 {{- end -}}
 
 {{/*
-Return the proper job-sync-api-gateway image name
+Return the proper job-sync-bk-api-gateway image name
 */}}
-{{- define "job-sync-api-gateway.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.apiGatewayConfig.image "global" .Values.global) }}
+{{- define "job-sync-bk-api-gateway.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.bkApiGatewayConfig.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*

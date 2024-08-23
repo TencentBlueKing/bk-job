@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
-import com.tencent.bk.job.gateway.service.EsbJwtPublicKeyService;
-import com.tencent.bk.job.gateway.service.EsbJwtService;
+import com.tencent.bk.job.gateway.service.OpenApiJwtPublicKeyService;
+import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
@@ -55,19 +55,19 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-public class EsbJwtServiceImpl implements EsbJwtService {
-    private final EsbJwtPublicKeyService esbJwtPublicKeyService;
-    private PublicKey publicKey;
-    private PublicKey gatewayPublicKey;
-    private final BkGatewayConfig bkGatewayConfig;
+public class OpenApiJwtServiceImpl implements OpenApiJwtService {
+    private final OpenApiJwtPublicKeyService openApiJwtPublicKeyService;
+    private PublicKey esbJwtPublicKey;
+    private PublicKey bkApiGatewayJwtPublicKey;
+    private final BkGatewayConfig bkApiGatewayConfig;
 
     private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
-    public EsbJwtServiceImpl(EsbJwtPublicKeyService esbJwtPublicKeyService, BkGatewayConfig bkGatewayConfig) {
-        this.esbJwtPublicKeyService = esbJwtPublicKeyService;
-        this.bkGatewayConfig = bkGatewayConfig;
+    public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService, BkGatewayConfig bkApiGatewayConfig) {
+        this.openApiJwtPublicKeyService = openApiJwtPublicKeyService;
+        this.bkApiGatewayConfig = bkApiGatewayConfig;
         getPublicKeyOrRetryInBackground();
     }
 
@@ -76,7 +76,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
         if (publicKeyGotten) {
             return;
         }
-        Thread esbPublicKeyGetter = new Thread(() -> {
+        Thread openApiPublicKeyGetter = new Thread(() -> {
             boolean keyGotten;
             int retryCount = 0;
             int sleepMillsOnce = 5000;
@@ -91,27 +91,29 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 log.error("esbJwtPublicKey not gotten after {} retry (3 days), plz check esb", maxRetryCount);
             }
         });
-        esbPublicKeyGetter.setDaemon(true);
-        esbPublicKeyGetter.setName("esbPublicKeyGetter");
-        esbPublicKeyGetter.start();
+        openApiPublicKeyGetter.setDaemon(true);
+        openApiPublicKeyGetter.setName("esbPublicKeyGetter");
+        openApiPublicKeyGetter.start();
     }
 
     private boolean tryToGetAndCachePublicKeyOnce() {
         try {
-            String esbJwtPublicKey = esbJwtPublicKeyService.getEsbJWTPublicKey();
-            if (StringUtils.isEmpty(esbJwtPublicKey)) {
-                log.error("Esb jwt public key is not configured!");
-                return false;
-            }
-            this.publicKey = buildPublicKey(esbJwtPublicKey);
-
-            if (bkGatewayConfig.isEnabled()) {
-                String gatewayPublicKey = esbJwtPublicKeyService.getGatewayJWTPublicKey();
+            if (this.esbJwtPublicKey == null) {
+                String esbJwtPublicKey = openApiJwtPublicKeyService.getEsbJWTPublicKey();
                 if (StringUtils.isEmpty(esbJwtPublicKey)) {
+                    log.error("Esb jwt public key is not configured!");
+                    return false;
+                }
+                this.esbJwtPublicKey = buildPublicKey(esbJwtPublicKey);
+            }
+
+            if (this.bkApiGatewayJwtPublicKey == null && bkApiGatewayConfig.isEnabled()) {
+                String bkApiGatewayJwtPublicKey = openApiJwtPublicKeyService.getBkApiGatewayJWTPublicKey();
+                if (StringUtils.isEmpty(bkApiGatewayJwtPublicKey)) {
                     log.error("gateway jwt public key is not configured!");
                     return false;
                 }
-                this.gatewayPublicKey = buildPublicKey(gatewayPublicKey);
+                this.bkApiGatewayJwtPublicKey = buildPublicKey(bkApiGatewayJwtPublicKey);
             }
             return true;
         } catch (Throwable e) {
@@ -139,9 +141,9 @@ public class EsbJwtServiceImpl implements EsbJwtService {
     @Override
     public EsbJwtInfo extractFromJwt(String token) {
         if (requestFromApiGw()) {
-            return extractFromJwt(token, this.gatewayPublicKey);
+            return extractFromJwt(token, this.bkApiGatewayJwtPublicKey);
         } else {
-            return extractFromJwt(token, this.publicKey);
+            return extractFromJwt(token, this.esbJwtPublicKey);
         }
     }
 
@@ -166,9 +168,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
             String appCode = "";
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
-                // esb请求是应用认证+用户认证方式，jwt中有app和user
-                // 蓝鲸网关支持其中一种认证方式，如应用认证会没有user信息
-                if (appProps == null && !requestFromApiGw()) {
+                if (appProps == null) {
                     log.warn("Invalid JWT token, app is null!");
                     return null;
                 }
@@ -177,7 +177,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(appCode)) {
                     appCode = (String) appProps.get("bk_app_code");
                 }
-                if ((!isVerified || StringUtils.isEmpty(appCode)) && !requestFromApiGw()) {
+                if (!isVerified || StringUtils.isEmpty(appCode)) {
                     log.warn("App code not verified or empty, isVerified:{}, jwtAppCode:{}", isVerified, appCode);
                     return null;
                 }
@@ -186,7 +186,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
             String username = "";
             if (claims.get("user") != null) {
                 LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
-                if (userProps == null && !requestFromApiGw()) {
+                if (userProps == null) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
                 }
@@ -194,14 +194,10 @@ public class EsbJwtServiceImpl implements EsbJwtService {
                 if (StringUtils.isEmpty(username)) {
                     username = (String) userProps.get("bk_username");
                 }
-                if (StringUtils.isEmpty(username) && !requestFromApiGw()) {
+                if (StringUtils.isEmpty(username)) {
                     log.warn("Username is empty!");
                     return null;
                 }
-            }
-            if (requestFromApiGw() && StringUtils.isEmpty(appCode) && StringUtils.isEmpty(username)) {
-                log.warn("Invalid JWT token, app and user are both empty!");
-                return null;
             }
             Date expireAt = claims.get("exp", Date.class);
             if (expireAt == null) {
@@ -225,7 +221,7 @@ public class EsbJwtServiceImpl implements EsbJwtService {
     // 请求是否来自蓝鲸网关
     private boolean requestFromApiGw() {
         String requestFrom = JobContextUtil.getRequestFrom();
-        if (bkGatewayConfig.isEnabled() && StringUtils.equals(bkGatewayConfig.getRequestFrom(), requestFrom)) {
+        if (bkApiGatewayConfig.isEnabled() && StringUtils.equals(bkApiGatewayConfig.getRequestFrom(), requestFrom)) {
             return true;
         }
         return false;

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
-import com.tencent.bk.job.gateway.service.EsbJwtService;
+import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,22 +43,22 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * ESB JWT 解析与校验，用于确认ESB-API调用方式来自于ESB
+ * OPEN API JWT 解析与校验
  */
 @Slf4j
 @Component
-public class CheckEsbJwtGatewayFilterFactory
-    extends AbstractGatewayFilterFactory<CheckEsbJwtGatewayFilterFactory.Config> {
-    private final EsbJwtService esbJwtService;
+public class CheckOpenApiJwtGatewayFilterFactory
+    extends AbstractGatewayFilterFactory<CheckOpenApiJwtGatewayFilterFactory.Config> {
+    private final OpenApiJwtService openApiJwtService;
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
 
     @Autowired
-    public CheckEsbJwtGatewayFilterFactory(EsbJwtService esbJwtService,
-                                           SpringProfile springProfile,
-                                           ServiceSecurityProperties securityProperties) {
+    public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
+                                               SpringProfile springProfile,
+                                               ServiceSecurityProperties securityProperties) {
         super(Config.class);
-        this.esbJwtService = esbJwtService;
+        this.openApiJwtService = openApiJwtService;
         this.springProfile = springProfile;
         this.securityProperties = securityProperties;
     }
@@ -81,10 +81,10 @@ public class CheckEsbJwtGatewayFilterFactory
             EsbJwtInfo authInfo;
             if (isOpenApiTestActive(request)) {
                 // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
-                authInfo = esbJwtService.extractFromJwt(token,
+                authInfo = openApiJwtService.extractFromJwt(token,
                     RSAUtils.getPublicKey(securityProperties.getPublicKeyBase64()));
             } else {
-                authInfo = esbJwtService.extractFromJwt(token);
+                authInfo = openApiJwtService.extractFromJwt(token);
             }
 
             if (authInfo == null) {

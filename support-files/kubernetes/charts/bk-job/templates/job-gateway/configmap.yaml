@@ -292,8 +292,8 @@ data:
         login-exemption:
           enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
-      bkGateway:
-        enabled: {{ .Values.apiGatewayConfig.enabled | default false }}
+      bkApiGateway:
+        enabled: {{ .Values.bkApiGatewayConfig.enabled | default false }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}
       http:
