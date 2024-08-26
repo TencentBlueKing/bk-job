@@ -1524,6 +1524,8 @@ bkApiGatewayConfig:
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/
   resourceDir: "/data/apidocs/"
+  # 网关维护人员，仅维护人员有管理网关的权限
+  maintainers: ["admin"]
   image:
     # 镜像拉取仓库根地址
     registry: hub.bktencent.com

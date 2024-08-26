@@ -28,8 +28,7 @@ apigateway:
   # 待请求网关的所有调用者，将认证参数放到请求头 X-Bkapi-Authorization 时，可将此值设置为 false
   allow_delete_sensitive_params: false
   # 网关维护人员，仅维护人员有管理网关的权限
-  maintainers:
-    - "admin"
+  maintainers: "{{ environ.BK_APIGW_MAINTAINERS }}"
 
 stages:
   - name: "{{ environ.BK_JOB_STAGE_NAME }}"

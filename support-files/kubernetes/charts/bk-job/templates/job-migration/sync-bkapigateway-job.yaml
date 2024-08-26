@@ -37,9 +37,11 @@ spec:
           value: {{ .Values.bkApiGatewayConfig.syncUrl }}
         - name: BK_JOB_STAGE_NAME
           value: {{ .Values.bkApiGatewayConfig.stage }}
-        - name : BK_APIGW_RESOURCE_DOCS_BASE_DIR
-          value : {{ .Values.bkApiGatewayConfig.resourceDir }}
+        - name: BK_APIGW_RESOURCE_DOCS_BASE_DIR
+          value: {{ .Values.bkApiGatewayConfig.resourceDir }}
         - name: BK_JOB_API_URL
           value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
+        - name: BK_APIGW_MAINTAINERS
+          value: {{ .Values.bkApiGatewayConfig.maintainers }}
       restartPolicy: Never
 {{- end }}
