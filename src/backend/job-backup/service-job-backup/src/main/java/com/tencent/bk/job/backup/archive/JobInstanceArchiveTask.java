@@ -24,28 +24,19 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import lombok.extern.slf4j.Slf4j;
+/**
+ * 作业执行实例归档任务
+ */
+public interface JobInstanceArchiveTask {
 
-@Slf4j
-public class ArchiveTaskWorker extends Thread {
+    /**
+     * 执行任务
+     */
+    void execute();
 
-    private JobInstanceArchiveTask archiveTask;
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker");
-        this.archiveTask = archiveTask;
-    }
-
-    @Override
-    public void run() {
-        try {
-            log.info("Archive task begin");
-            archiveTask.execute();
-            log.info("Archive task finished");
-        } catch (Throwable e) {
-            log.warn("Thread interrupted!");
-        }
-    }
-
+    /**
+     * 归档任务被终止时候调用
+     */
+    void stop();
 }

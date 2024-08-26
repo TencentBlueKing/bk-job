@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -43,7 +43,7 @@ public class GseFileExecuteObjTaskArchivist extends AbstractArchivist<GseFileExe
     public GseFileExecuteObjTaskArchivist(GseFileExecuteObjTaskRecordDAO executeRecordDAO,
                                           JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProgressService archiveProgressService,
-                                          ArchiveDBProperties archiveDBProperties,
+                                          ArchiveProperties archiveProperties,
                                           ArchiveTaskLock archiveTaskLock,
                                           Long maxNeedArchiveId,
                                           CountDownLatch countDownLatch,
@@ -51,7 +51,7 @@ public class GseFileExecuteObjTaskArchivist extends AbstractArchivist<GseFileExe
         super(executeRecordDAO,
             jobInstanceColdDAO,
             archiveProgressService,
-            archiveDBProperties,
+            archiveProperties,
             archiveTaskLock,
             maxNeedArchiveId,
             countDownLatch,

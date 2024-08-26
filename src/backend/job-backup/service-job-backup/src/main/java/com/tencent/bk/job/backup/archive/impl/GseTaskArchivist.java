@@ -27,10 +27,9 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
-import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.execute.model.tables.records.GseTaskRecord;
 
 import java.util.concurrent.CountDownLatch;
@@ -43,7 +42,7 @@ public class GseTaskArchivist extends AbstractArchivist<GseTaskRecord> {
     public GseTaskArchivist(GseTaskRecordDAO executeRecordDAO,
                             JobInstanceColdDAO jobInstanceColdDAO,
                             ArchiveProgressService archiveProgressService,
-                            ArchiveDBProperties archiveDBProperties,
+                            ArchiveProperties archiveProperties,
                             ArchiveTaskLock archiveTaskLock,
                             Long maxNeedArchiveId,
                             CountDownLatch countDownLatch,
@@ -51,7 +50,7 @@ public class GseTaskArchivist extends AbstractArchivist<GseTaskRecord> {
         super(executeRecordDAO,
             jobInstanceColdDAO,
             archiveProgressService,
-            archiveDBProperties,
+            archiveProperties,
             archiveTaskLock,
             maxNeedArchiveId,
             countDownLatch,

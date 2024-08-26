@@ -24,17 +24,17 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
@@ -46,77 +46,84 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 生成归档任务
+ * 生成作业实例归档任务
  */
 @Slf4j
-public class JobInstanceHotDataArchiveTaskGenerator {
+public class JobInstanceArchiveTaskGenerator {
 
-    private final ArchiveTaskDAO archiveTaskDAO;
+    private final ArchiveTaskService archiveTaskService;
 
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
 
-    private final ArchiveDBProperties archiveDBProperties;
+    private final ArchiveProperties archiveProperties;
 
     private final ShardingProperties shardingProperties;
 
 
-    public JobInstanceHotDataArchiveTaskGenerator(ArchiveTaskDAO archiveTaskDAO,
-                                                  TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                                  ArchiveDBProperties archiveDBProperties,
-                                                  ShardingProperties shardingProperties) {
+    public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
+                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                           ArchiveProperties archiveProperties,
+                                           ShardingProperties shardingProperties) {
 
-        this.archiveTaskDAO = archiveTaskDAO;
+        this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
-        this.archiveDBProperties = archiveDBProperties;
+        this.archiveProperties = archiveProperties;
         this.shardingProperties = shardingProperties;
     }
 
     @JobTransactional(transactionManager = "jobBackupTransactionManager")
     public void generate() {
-        List<JobInstanceArchiveTask> archiveTaskList = new ArrayList<>();
+        List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
         LocalDateTime startDateTime = computeArchiveStartDateTime();
         LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
-            getEndTime(archiveDBProperties.getJobInstanceHotData().getKeepDays()));
+            getEndTime(archiveProperties.getKeepDays()));
         while (startDateTime.isBefore(endDateTime)) {
             int day = computeDay(startDateTime);
             int hour = computeHour(startDateTime);
 
-            JobInstanceArchiveTask archiveTask = buildHourArchiveTask(day, hour, startDateTime);
+            JobInstanceArchiveTaskInfo archiveTask = buildBasicArchiveTask(day, hour, startDateTime);
             if (isShardingTable()) {
                 int dbNodeCount = shardingProperties.getDbNodeCount();
                 int tableNodeCount = shardingProperties.getTableNodeCount();
                 for (int dbNodeIndex = 0; dbNodeIndex < dbNodeCount; dbNodeIndex++) {
                     for (int tableNodeIndex = 0; tableNodeIndex < tableNodeCount; tableNodeIndex++) {
-                        JobInstanceArchiveTask shardingArchiveTask = archiveTask.clone();
                         DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SHARD, dbNodeIndex, tableNodeIndex);
-                        shardingArchiveTask.setTaskDesc(buildTaskDesc(dbDataNode, day, hour));
-                        shardingArchiveTask.setDbDataNode(dbDataNode);
-                        archiveTaskList.add(shardingArchiveTask);
-                        log.info("Add archive task for sharding table, dataNodeIndex: {}, day: {}, hour: {}",
-                            dbDataNode.toDataNodeId(), day, hour);
+                        // 作业实例数据归档任务
+                        archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE,
+                            dbDataNode));
+                        // 作业实例按业务冗余数据归档
+                        archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE_APP,
+                            dbDataNode));
                     }
                 }
             } else {
                 DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SINGLE, 0, 0);
                 archiveTask.setDbDataNode(dbDataNode);
-                archiveTask.setTaskDesc(buildTaskDesc(dbDataNode, day, hour));
-                archiveTaskList.add(archiveTask);
-                log.info("Add archive task for table, dataNodeIndex: {}, day: {}, hour: {}",
-                    dbDataNode.toDataNodeId(), day, hour);
+                archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE, dbDataNode));
+                archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE_APP, dbDataNode));
             }
 
             startDateTime = startDateTime.plusHours(1L);
         }
 
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
-            archiveTaskList.forEach(archiveTaskDAO::saveArchiveTask);
+            archiveTaskList.forEach(archiveTaskService::saveArchiveTask);
+            log.info("Add archive tasks : {}", JsonUtils.toJson(archiveTaskList));
         }
     }
 
-    private JobInstanceArchiveTask buildHourArchiveTask(Integer day, Integer hour, LocalDateTime startDateTime) {
-        JobInstanceArchiveTask archiveTask = new JobInstanceArchiveTask();
-        archiveTask.setTaskType(ArchiveTaskTypeEnum.JOB_INSTANCE_HOT);
+    private JobInstanceArchiveTaskInfo buildNewArchiveTask(JobInstanceArchiveTaskInfo basicArchiveTask,
+                                                           ArchiveTaskTypeEnum archiveTaskType,
+                                                           DbDataNode dbDataNode) {
+        JobInstanceArchiveTaskInfo newArchiveTask = basicArchiveTask.clone();
+        newArchiveTask.setTaskType(archiveTaskType);
+        newArchiveTask.setDbDataNode(dbDataNode);
+        return newArchiveTask;
+    }
+
+    private JobInstanceArchiveTaskInfo buildBasicArchiveTask(Integer day, Integer hour, LocalDateTime startDateTime) {
+        JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
         archiveTask.setStatus(ArchiveTaskStatusEnum.PENDING);
@@ -128,7 +135,8 @@ public class JobInstanceHotDataArchiveTaskGenerator {
 
     private LocalDateTime computeArchiveStartDateTime() {
         LocalDateTime startDateTime;
-        JobInstanceArchiveTask latestArchiveTask = archiveTaskDAO.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE_HOT);
+        JobInstanceArchiveTaskInfo latestArchiveTask =
+            archiveTaskService.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (latestArchiveTask == null) {
             log.info("Latest archive task is empty, try compute from task_instance table record");
             Long minJobCreateTime = taskInstanceRecordDAO.getMinJobCreateTime();
@@ -142,10 +150,6 @@ public class JobInstanceHotDataArchiveTaskGenerator {
 
     private boolean isShardingTable() {
         return shardingProperties != null && shardingProperties.isEnabled();
-    }
-
-    private String buildTaskDesc(DbDataNode dbDataNode, Integer day, Integer hour) {
-        return "job_instance:" + dbDataNode.toDataNodeId() + ":" + day + ":" + hour;
     }
 
     private int computeDay(LocalDateTime dateTime) {

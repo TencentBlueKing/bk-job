@@ -25,9 +25,9 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
-import com.tencent.bk.job.backup.archive.ArchiveTaskScheduleLock;
-import com.tencent.bk.job.backup.archive.JobInstanceHotDataArchiveTaskGenerator;
-import com.tencent.bk.job.backup.archive.JobInstanceHotDataArchiveTaskScheduler;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.FileSourceTaskLogRecordDAO;
@@ -67,7 +67,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 @Slf4j
-@EnableConfigurationProperties(ArchiveDBProperties.class)
+@EnableConfigurationProperties(ArchiveProperties.class)
 @Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class})
 public class ArchiveConfiguration {
 
@@ -247,65 +247,65 @@ public class ArchiveConfiguration {
 
     @Bean
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public ArchiveTaskScheduleLock archiveTaskScheduleLock() {
+    public JobInstanceArchiveTaskScheduleLock archiveTaskScheduleLock() {
         log.info("Init ArchiveTaskScheduleLock");
-        return new ArchiveTaskScheduleLock();
+        return new JobInstanceArchiveTaskScheduleLock();
     }
 
     @Bean
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobInstanceHotDataArchiveTaskGenerator archiveTaskGenerator(
+    public JobInstanceArchiveTaskGenerator archiveTaskGenerator(
         ArchiveTaskDAO archiveTaskDAO,
         TaskInstanceRecordDAO taskInstanceRecordDAO,
-        ArchiveDBProperties archiveDBProperties,
+        ArchiveProperties archiveProperties,
         ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider) {
         log.info("Init ArchiveTaskGenerator");
-        return new JobInstanceHotDataArchiveTaskGenerator(
+        return new JobInstanceArchiveTaskGenerator(
             archiveTaskDAO,
             taskInstanceRecordDAO,
-            archiveDBProperties,
+            archiveProperties,
             shardingPropertiesObjectProvider.getIfAvailable()
         );
     }
 
     @Bean
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobInstanceHotDataArchiveTaskScheduler archiveTaskScheduler(
+    public JobInstanceArchiveTaskScheduler archiveTaskScheduler(
         ArchiveTaskDAO archiveTaskDAO,
         TaskInstanceRecordDAO taskInstanceRecordDAO,
-        ArchiveDBProperties archiveDBProperties,
+        ArchiveProperties archiveProperties,
         ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider,
-        ArchiveTaskScheduleLock archiveTaskScheduleLock,
-        JobInstanceHotDataArchiveTaskGenerator jobInstanceHotDataArchiveTaskGenerator) {
+        JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
+        JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator) {
         log.info("Init ArchiveTaskScheduler");
-        return new JobInstanceHotDataArchiveTaskScheduler(
+        return new JobInstanceArchiveTaskScheduler(
             archiveTaskDAO,
             taskInstanceRecordDAO,
-            archiveDBProperties,
+            archiveProperties,
             shardingPropertiesObjectProvider.getIfAvailable(),
-            archiveTaskScheduleLock,
-            jobInstanceHotDataArchiveTaskGenerator
+            jobInstanceArchiveTaskScheduleLock,
+            jobInstanceArchiveTaskGenerator
         );
     }
 
 
     @Bean
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobInstanceHotDataArchiveTaskScheduler jobInstanceHotDataArchiveTaskScheduler(
+    public JobInstanceArchiveTaskScheduler jobInstanceHotDataArchiveTaskScheduler(
         ArchiveTaskDAO archiveTaskDAO,
         TaskInstanceRecordDAO taskInstanceRecordDAO,
-        ArchiveDBProperties archiveDBProperties,
+        ArchiveProperties archiveProperties,
         ShardingProperties shardingProperties,
-        ArchiveTaskScheduleLock archiveTaskScheduleLock,
-        JobInstanceHotDataArchiveTaskGenerator jobInstanceHotDataArchiveTaskGenerator) {
+        JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
+        JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator) {
 
         log.info("Init JobExecuteArchiveManage");
-        return new JobInstanceHotDataArchiveTaskScheduler(
+        return new JobInstanceArchiveTaskScheduler(
             archiveTaskDAO,
             taskInstanceRecordDAO,
-            archiveDBProperties,
+            archiveProperties,
             shardingProperties,
-            archiveTaskScheduleLock,
-            jobInstanceHotDataArchiveTaskGenerator);
+            jobInstanceArchiveTaskScheduleLock,
+            jobInstanceArchiveTaskGenerator);
     }
 }

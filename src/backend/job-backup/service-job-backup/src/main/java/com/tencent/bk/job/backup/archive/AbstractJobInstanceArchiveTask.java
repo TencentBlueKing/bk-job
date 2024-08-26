@@ -28,10 +28,10 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TableReadWriteProps;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
@@ -50,22 +50,22 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 作业实例数据归档基础实现
+ * 作业实例数据归档任务基础实现
  *
  * @param <T> 表记录
  */
 @Slf4j
-public abstract class AbstractJobInstanceArchivist<T extends TableRecord<?>> {
+public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>  implements JobInstanceArchiveTask {
     protected JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
     protected JobInstanceColdDAO jobInstanceColdDAO;
-    private final ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties;
+    private final ArchiveProperties archiveProperties;
     private final ArchiveTaskLock archiveTaskLock;
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     private final ArchiveTaskService archiveTaskService;
 
     protected String taskId;
     protected DbDataNode dbDataNode;
-    protected JobInstanceArchiveTask archiveTask;
+    protected JobInstanceArchiveTaskInfo archiveTask;
 
     protected Map<String, TableReadWriteProps> tableReadWritePropsMap;
 
@@ -79,31 +79,41 @@ public abstract class AbstractJobInstanceArchivist<T extends TableRecord<?>> {
     private boolean isAcquireLock;
 
 
-    public AbstractJobInstanceArchivist(JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
-                                        JobInstanceColdDAO jobInstanceColdDAO,
-                                        ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties,
-                                        ArchiveTaskLock archiveTaskLock,
-                                        ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                        JobInstanceArchiveTask archiveTask,
-                                        ArchiveTaskService archiveTaskService) {
+    public AbstractJobInstanceArchiveTask(JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
+                                          JobInstanceColdDAO jobInstanceColdDAO,
+                                          ArchiveProperties archiveDbProperties,
+                                          ArchiveTaskLock archiveTaskLock,
+                                          ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                                          JobInstanceArchiveTaskInfo archiveTask,
+                                          ArchiveTaskService archiveTaskService) {
         this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
-        this.archiveTaskProperties = archiveTaskProperties;
+        this.archiveProperties = archiveDbProperties;
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTask = archiveTask;
         this.progress = archiveTask.getProcess();
         this.taskId = buildTaskId(archiveTask);
-        this.archiveTaskSummary = new ArchiveTaskSummary(archiveTask, archiveTaskProperties.getMode());
+        this.archiveTaskSummary = new ArchiveTaskSummary(archiveTask, archiveDbProperties.getMode());
         this.archiveTaskService = archiveTaskService;
     }
 
-    private String buildTaskId(JobInstanceArchiveTask archiveTask) {
+    private String buildTaskId(JobInstanceArchiveTaskInfo archiveTask) {
         return archiveTask.getTaskType() + ":" + archiveTask.getDbDataNode().toDataNodeId()
             + ":" + archiveTask.getDay() + ":" + archiveTask.getHour();
     }
 
-    public void archive() {
+    @Override
+    public void execute() {
+        archive();
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    private void archive() {
         try {
             if (!acquireLock()) {
                 archiveTaskSummary.setSkip(!isAcquireLock);
@@ -146,7 +156,7 @@ public abstract class AbstractJobInstanceArchivist<T extends TableRecord<?>> {
 
         long startTime = System.currentTimeMillis();
         log.info("[{}] Archive task mode: {}, backupEnabled: {}, deleteEnabled: {}",
-            taskId, archiveTaskProperties.getMode(), backupEnabled, deleteEnabled);
+            taskId, archiveProperties.getMode(), backupEnabled, deleteEnabled);
         try {
             List<T> jobInstanceRecords;
             do {
@@ -208,14 +218,14 @@ public abstract class AbstractJobInstanceArchivist<T extends TableRecord<?>> {
     protected abstract void deleteJobInstanceHotData(List<Long> jobInstanceIds);
 
     protected boolean isBackupEnable() {
-        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveTaskProperties.getMode());
-        return archiveTaskProperties.isEnabled()
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveProperties.getMode());
+        return archiveProperties.isEnabled()
             && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.BACKUP_ONLY == archiveMode);
     }
 
     protected boolean isDeleteEnable() {
-        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveTaskProperties.getMode());
-        return archiveTaskProperties.isEnabled()
+        ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveProperties.getMode());
+        return archiveProperties.isEnabled()
             && (ArchiveModeEnum.BACKUP_THEN_DELETE == archiveMode || ArchiveModeEnum.DELETE_ONLY == archiveMode);
     }
 
@@ -353,13 +363,13 @@ public abstract class AbstractJobInstanceArchivist<T extends TableRecord<?>> {
     protected <V> V computeValuePreferTableConfig(
         String tableName,
         V defaultValue,
-        Function<ArchiveDBProperties.TableConfig, V> tableValueProvider
+        Function<ArchiveProperties.TableConfig, V> tableValueProvider
     ) {
 
         V value = defaultValue;
-        if (archiveTaskProperties.getTableConfigs() != null
-            && archiveTaskProperties.getTableConfigs().containsKey(tableName)) {
-            ArchiveDBProperties.TableConfig tableConfig = archiveTaskProperties.getTableConfigs().get(tableName);
+        if (archiveProperties.getTableConfigs() != null
+            && archiveProperties.getTableConfigs().containsKey(tableName)) {
+            ArchiveProperties.TableConfig tableConfig = archiveProperties.getTableConfigs().get(tableName);
             V tableValue = tableValueProvider.apply(tableConfig);
             if (tableValue != null) {
                 value = tableValue;

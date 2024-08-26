@@ -30,11 +30,11 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * 作业实例归档任务
+ * 作业实例归档任务信息
  */
 @Data
 @ToString
-public class JobInstanceArchiveTask {
+public class JobInstanceArchiveTaskInfo {
     /**
      * 归档任务类型
      */
@@ -61,10 +61,6 @@ public class JobInstanceArchiveTask {
      */
     private Long toTimestamp;
     /**
-     * 归档任务描述
-     */
-    private String taskDesc;
-    /**
      * 归档进度
      */
     private TimeAndIdBasedArchiveProcess process;
@@ -81,13 +77,12 @@ public class JobInstanceArchiveTask {
      */
     private Long lastUpdateTime;
 
-    public JobInstanceArchiveTask clone() {
-        JobInstanceArchiveTask archiveTask = new JobInstanceArchiveTask();
+    public JobInstanceArchiveTaskInfo clone() {
+        JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
         archiveTask.setTaskType(taskType);
         archiveTask.setDbDataNode(dbDataNode.clone());
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
-        archiveTask.setTaskDesc(taskDesc);
         archiveTask.setFromTimestamp(fromTimestamp);
         archiveTask.setToTimestamp(toTimestamp);
         archiveTask.setProcess(process.clone());

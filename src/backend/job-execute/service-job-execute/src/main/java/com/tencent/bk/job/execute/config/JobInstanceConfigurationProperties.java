@@ -22,30 +22,54 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Slf4j
-public class ArchiveTaskWorker extends Thread {
+/**
+ * 作业执行历史查询、存储配置
+ */
+@ConfigurationProperties(prefix = "job.job-instance")
+@Getter
+@Setter
+@ToString
+public class JobInstanceConfigurationProperties {
 
-    private JobInstanceArchiveTask archiveTask;
+    private Query query;
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker");
-        this.archiveTask = archiveTask;
+    private Store store;
+
+    @Data
+    public static class Query {
+        private Integer maxDays = Integer.MAX_VALUE;
+        private ColdQueryProperties cold;
     }
 
-    @Override
-    public void run() {
-        try {
-            log.info("Archive task begin");
-            archiveTask.execute();
-            log.info("Archive task finished");
-        } catch (Throwable e) {
-            log.warn("Thread interrupted!");
-        }
+
+    @Data
+    public static class ColdQueryProperties {
+        private boolean enabled;
     }
 
+
+    @Data
+    public static class Store {
+        private HotStoreProperties hot;
+        private ColdStoreProperties cold;
+
+    }
+
+    @Data
+    public static class HotStoreProperties {
+        private Integer maxDays = Integer.MAX_VALUE;
+    }
+
+    @Data
+    public static class ColdStoreProperties {
+        private boolean enabled;
+    }
 }

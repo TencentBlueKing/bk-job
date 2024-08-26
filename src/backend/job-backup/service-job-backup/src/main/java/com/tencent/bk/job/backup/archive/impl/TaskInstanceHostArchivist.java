@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -43,7 +43,7 @@ public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHos
     public TaskInstanceHostArchivist(TaskInstanceHostRecordDAO executeRecordDAO,
                                      JobInstanceColdDAO jobInstanceColdDAO,
                                      ArchiveProgressService archiveProgressService,
-                                     ArchiveDBProperties archiveDBProperties,
+                                     ArchiveProperties archiveProperties,
                                      ArchiveTaskLock archiveTaskLock,
                                      Long maxNeedArchiveId,
                                      CountDownLatch countDownLatch,
@@ -51,7 +51,7 @@ public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHos
         super(executeRecordDAO,
             jobInstanceColdDAO,
             archiveProgressService,
-            archiveDBProperties,
+                archiveProperties,
             archiveTaskLock,
             maxNeedArchiveId,
             countDownLatch,
@@ -59,7 +59,7 @@ public class TaskInstanceHostArchivist extends AbstractArchivist<TaskInstanceHos
         this.deleteIdStepSize = 10_000;
     }
 
-    protected boolean isBackupEnable(ArchiveDBProperties archiveDBProperties) {
+    protected boolean isBackupEnable(ArchiveProperties archiveProperties) {
         // task_instance_host 属于检索表，用于根据主机ip查询作业执行历史。该表数据较大，归档慢，且归档之后冷数据并无价值，无需归档
         return false;
     }

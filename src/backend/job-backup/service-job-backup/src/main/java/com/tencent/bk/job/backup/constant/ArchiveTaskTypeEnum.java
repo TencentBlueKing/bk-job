@@ -29,17 +29,13 @@ import lombok.Getter;
 @Getter
 public enum ArchiveTaskTypeEnum {
     /**
-     * 作业实例热数据归档
+     * 作业实例数据归档
      */
-    JOB_INSTANCE_HOT(1),
+    JOB_INSTANCE(1),
     /**
-     * 作业实例索引表数据归档
+     * 作业实例按业务冗余数据归档
      */
-    JOB_INSTANCE_INDEX(2),
-    /**
-     * 作业实例冷数据索引表归档
-     */
-    JOB_INSTANCE_COLD_INDEX(3);
+    JOB_INSTANCE_APP(2);
 
     private final int type;
 

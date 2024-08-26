@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS `archive_task` (
   `hour` TINYINT(2),
   `from_timestamp` BIGINT(20) NOT NULL,
   `to_timestamp` BIGINT(20) NOT NULL,
-  `task_desc` VARCHAR(256),
   `process` VARCHAR(256),
   `status` TINYINT(2) NOT NULL DEFAULT '0',
   `create_time` BIGINT(20) NOT NULL,

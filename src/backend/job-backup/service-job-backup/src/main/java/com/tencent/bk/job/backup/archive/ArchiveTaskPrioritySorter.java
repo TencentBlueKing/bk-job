@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.HashMap;
@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ArchiveTaskPriorityEvaluator {
+public class ArchiveTaskPrioritySorter {
 
-    public static void sort(List<JobInstanceArchiveTask> runningTasks,
+    public static void sort(List<JobInstanceArchiveTaskInfo> runningTasks,
                             Integer dbNodeCount,
-                            List<JobInstanceArchiveTask> candidateTasks) {
+                            List<JobInstanceArchiveTaskInfo> candidateTasks) {
         if (CollectionUtils.isEmpty(candidateTasks)) {
             return;
         }
@@ -45,7 +45,7 @@ public class ArchiveTaskPriorityEvaluator {
         sortArchiveTask(candidateTasks, priorityDbIndexList);
     }
 
-    private static void sortArchiveTask(List<JobInstanceArchiveTask> candidateTasks,
+    private static void sortArchiveTask(List<JobInstanceArchiveTaskInfo> candidateTasks,
                                         List<Integer> priorityDbIndexList) {
         candidateTasks.sort((task1, task2) -> {
             int task1DbPriority = priorityDbIndexList.indexOf(task1.getDbDataNode().getDbIndex());
@@ -77,7 +77,8 @@ public class ArchiveTaskPriorityEvaluator {
      * @param dbNodeCount  归档 DB 实例数量
      * @return 优先级队列。列表的值为 dbIndex, 按照优先级从高->低排序
      */
-    private static List<Integer> computeDbPriorityByRunningTasks(List<JobInstanceArchiveTask> runningTasks, int dbNodeCount) {
+    private static List<Integer> computeDbPriorityByRunningTasks(List<JobInstanceArchiveTaskInfo> runningTasks,
+                                                                 int dbNodeCount) {
         Map<Integer, Integer> dbTaskCountMap = computeDbTaskCount(runningTasks, dbNodeCount);
 
         return dbTaskCountMap.entrySet()
@@ -95,7 +96,8 @@ public class ArchiveTaskPriorityEvaluator {
      * @param dbNodeCount  归档 DB 实例数量
      * @return 任务分布情况。 key-db序号;value-正在运行中的归档任务数量
      */
-    private static Map<Integer, Integer> computeDbTaskCount(List<JobInstanceArchiveTask> runningTasks, int dbNodeCount) {
+    private static Map<Integer, Integer> computeDbTaskCount(List<JobInstanceArchiveTaskInfo> runningTasks,
+                                                            int dbNodeCount) {
         Map<Integer, Integer> dbTaskCountMap = new HashMap<>();
         if (CollectionUtils.isEmpty(runningTasks)) {
             return dbTaskCountMap;

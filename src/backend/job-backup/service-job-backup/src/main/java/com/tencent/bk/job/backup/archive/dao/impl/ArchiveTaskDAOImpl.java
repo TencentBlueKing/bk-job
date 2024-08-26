@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
@@ -58,7 +58,6 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         T.HOUR,
         T.FROM_TIMESTAMP,
         T.TO_TIMESTAMP,
-        T.TASK_DESC,
         T.PROCESS,
         T.STATUS,
         T.CREATE_TIME,
@@ -71,7 +70,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public JobInstanceArchiveTask getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
+    public JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
         Record record = ctx.select(ALL_FIELDS)
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
@@ -81,18 +80,17 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         return extract(record);
     }
 
-    private JobInstanceArchiveTask extract(Record record) {
+    private JobInstanceArchiveTaskInfo extract(Record record) {
         if (record == null) {
             return null;
         }
-        JobInstanceArchiveTask archiveTask = new JobInstanceArchiveTask();
+        JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
         archiveTask.setTaskType(ArchiveTaskTypeEnum.valOf(record.get(T.TASK_TYPE)));
         archiveTask.setDbDataNode(DbDataNode.fromDataNodeId(record.get(T.DATA_NODE)));
         archiveTask.setDay(record.get(T.DAY));
         archiveTask.setHour(JooqDataTypeUtil.toInteger(record.get(T.HOUR)));
         archiveTask.setFromTimestamp(record.get(T.FROM_TIMESTAMP));
         archiveTask.setToTimestamp(record.get(T.TO_TIMESTAMP));
-        archiveTask.setTaskDesc(record.get(T.TASK_DESC));
         archiveTask.setProcess(TimeAndIdBasedArchiveProcess.fromPersistentProcess(record.get(T.PROCESS)));
         archiveTask.setStatus(ArchiveTaskStatusEnum.valOf(record.get(T.STATUS)));
         archiveTask.setCreateTime(record.get(T.CREATE_TIME));
@@ -101,7 +99,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public void saveArchiveTask(JobInstanceArchiveTask jobInstanceArchiveTask) {
+    public void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo) {
         long createTime = System.currentTimeMillis();
         ctx.insertInto(
                 T,
@@ -111,21 +109,20 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                 T.HOUR,
                 T.FROM_TIMESTAMP,
                 T.TO_TIMESTAMP,
-                T.TASK_DESC,
                 T.PROCESS,
                 T.STATUS,
                 T.CREATE_TIME,
                 T.LAST_UPDATE_TIME)
             .values(
-                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getTaskType().getType()),
-                jobInstanceArchiveTask.getDbDataNode().toDataNodeId(),
-                jobInstanceArchiveTask.getDay(),
-                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getHour()),
-                jobInstanceArchiveTask.getFromTimestamp(),
-                jobInstanceArchiveTask.getToTimestamp(),
-                jobInstanceArchiveTask.getTaskDesc(),
-                jobInstanceArchiveTask.getProcess() != null ? jobInstanceArchiveTask.getProcess().toPersistentProcess() : null,
-                JooqDataTypeUtil.toByte(jobInstanceArchiveTask.getStatus().getStatus()),
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getTaskType().getType()),
+                jobInstanceArchiveTaskInfo.getDbDataNode().toDataNodeId(),
+                jobInstanceArchiveTaskInfo.getDay(),
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getHour()),
+                jobInstanceArchiveTaskInfo.getFromTimestamp(),
+                jobInstanceArchiveTaskInfo.getToTimestamp(),
+                jobInstanceArchiveTaskInfo.getProcess() != null ?
+                    jobInstanceArchiveTaskInfo.getProcess().toPersistentProcess() : null,
+                JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getStatus().getStatus()),
                 createTime,
                 createTime
             )
@@ -133,24 +130,22 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public List<JobInstanceArchiveTask> listRunningTasks(ArchiveTaskTypeEnum taskType) {
+    public List<JobInstanceArchiveTaskInfo> listRunningTasks() {
         Result<Record> result = ctx.select(ALL_FIELDS)
             .from(T)
-            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
-            .and(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
+            .where(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
             .fetch();
 
-        List<JobInstanceArchiveTask> tasks = new ArrayList<>(result.size());
+        List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>(result.size());
         result.forEach(record -> tasks.add(extract(record)));
         return tasks;
     }
 
     @Override
-    public List<JobInstanceArchiveTask> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
+    public List<JobInstanceArchiveTaskInfo> listScheduleTasks(int limit) {
         Result<Record> result = ctx.select(ALL_FIELDS)
             .from(T)
-            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
-            .and(T.STATUS.in(
+            .where(T.STATUS.in(
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.PENDING.getStatus()),
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()),
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
@@ -158,13 +153,13 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .limit(limit)
             .fetch();
 
-        List<JobInstanceArchiveTask> tasks = new ArrayList<>(result.size());
+        List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>(result.size());
         result.forEach(record -> tasks.add(extract(record)));
         return tasks;
     }
 
     @Override
-    public void updateTask(JobInstanceArchiveTask archiveTask) {
+    public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
         if (archiveTask.getStatus() == null && archiveTask.getProcess() == null) {
             // 无需更新
             return;

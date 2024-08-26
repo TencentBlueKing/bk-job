@@ -333,10 +333,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             if (end == null) {
                 end = System.currentTimeMillis();
             }
-            if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-                log.info("Query task instance history time span must be less than 30 days");
-                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
-            }
         }
 
         taskInstanceQuery.setStartTime(start);

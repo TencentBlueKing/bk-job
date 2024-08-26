@@ -24,28 +24,27 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 
-@Slf4j
-public class ArchiveTaskWorker extends Thread {
+public class JobInstanceArchiveCronJobs {
 
-    private JobInstanceArchiveTask archiveTask;
+    private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker");
-        this.archiveTask = archiveTask;
+    private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
+
+    public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+                                      JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler) {
+        this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
+        this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
     }
 
-    @Override
-    public void run() {
-        try {
-            log.info("Archive task begin");
-            archiveTask.execute();
-            log.info("Archive task finished");
-        } catch (Throwable e) {
-            log.warn("Thread interrupted!");
-        }
+    @Scheduled(cron = "${job.backup.archive.execute.cron:0,6,12,18 0 0 * * *}")
+    public void generateArchiveTask() {
+        jobInstanceArchiveTaskGenerator.generate();
     }
 
+    @Scheduled(cron = "${job.backup.archive.execute.cron:1,7,13,19 0 0 * * *}")
+    public void scheduleAndExecuteArchiveTask() {
+        jobInstanceArchiveTaskScheduler.schedule();
+    }
 }

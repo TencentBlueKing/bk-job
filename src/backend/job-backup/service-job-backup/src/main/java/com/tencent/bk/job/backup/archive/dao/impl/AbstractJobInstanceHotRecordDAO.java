@@ -48,9 +48,11 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
 
     @Override
     public List<T> listRecords(Collection<Long> jobInstanceIds, Long offset, Long limit) {
-        Result<Record> result = query(getTable(), buildConditions(jobInstanceIds), offset, limit);
+        Result<Record> result = query(getTable(), buildConditions(jobInstanceIds), limit);
         return result.into(getTable());
     }
+
+    protected abstract RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long limit);
 
     @Override
     public int deleteRecords(Collection<Long> jobInstanceIds, long maxLimitedDeleteRows) {
@@ -79,19 +81,21 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
         return totalDeleteRows;
     }
 
-    private Result<Record> query(Table<?> table,
+    protected List<T> query(Table<?> table,
                                  List<Condition> conditions,
-                                 Long offset,
                                  Long limit) {
         SelectConditionStep<Record> selectConditionStep = context.select()
             .from(table)
             .where(conditions);
 
+        Result<Record> result;
         if (CollectionUtils.isNotEmpty(getListRecordsOrderFields())) {
-            return selectConditionStep.orderBy(getListRecordsOrderFields()).limit(offset, limit).fetch();
+            result = selectConditionStep.orderBy(getListRecordsOrderFields()).limit(0, limit).fetch();
         } else {
-            return selectConditionStep.limit(offset, limit).fetch();
+            result = selectConditionStep.limit(0, limit).fetch();
         }
+        return result.into(getTable());
+
     }
 
     public abstract Table<T> getTable();

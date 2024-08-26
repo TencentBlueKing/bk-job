@@ -22,30 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.dao.impl;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import lombok.extern.slf4j.Slf4j;
+import org.jooq.Record;
 
-@Slf4j
-public class ArchiveTaskWorker extends Thread {
+import java.util.List;
 
-    private JobInstanceArchiveTask archiveTask;
+public interface RecordResultSet<T extends Record> {
+    boolean next();
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker");
-        this.archiveTask = archiveTask;
-    }
-
-    @Override
-    public void run() {
-        try {
-            log.info("Archive task begin");
-            archiveTask.execute();
-            log.info("Archive task finished");
-        } catch (Throwable e) {
-            log.warn("Thread interrupted!");
-        }
-    }
-
+    List<T> get();
 }

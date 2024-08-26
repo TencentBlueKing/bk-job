@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.AbstractArchivist;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -43,7 +43,7 @@ public class StepInstanceFileArchivist extends AbstractArchivist<StepInstanceFil
     public StepInstanceFileArchivist(StepInstanceFileRecordDAO executeRecordDAO,
                                      JobInstanceColdDAO jobInstanceColdDAO,
                                      ArchiveProgressService archiveProgressService,
-                                     ArchiveDBProperties archiveDBProperties,
+                                     ArchiveProperties archiveProperties,
                                      ArchiveTaskLock archiveTaskLock,
                                      Long maxNeedArchiveId,
                                      CountDownLatch countDownLatch,
@@ -51,7 +51,7 @@ public class StepInstanceFileArchivist extends AbstractArchivist<StepInstanceFil
         super(executeRecordDAO,
             jobInstanceColdDAO,
             archiveProgressService,
-            archiveDBProperties,
+                archiveProperties,
             archiveTaskLock,
             maxNeedArchiveId,
             countDownLatch,

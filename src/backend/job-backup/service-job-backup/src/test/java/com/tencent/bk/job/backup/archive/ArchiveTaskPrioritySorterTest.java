@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -32,18 +32,18 @@ import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class ArchiveTaskPriorityEvaluatorTest {
+class ArchiveTaskPrioritySorterTest {
 
     @Test
     void getHighestPriorityTask() {
         Integer dbNodeCount = 2;
 
-        List<JobInstanceArchiveTask> runningTasks = new ArrayList<>();
+        List<JobInstanceArchiveTaskInfo> runningTasks = new ArrayList<>();
         runningTasks.add(genTask("0:0", 20240808, 1));
         runningTasks.add(genTask("0:1", 20240808, 2));
         runningTasks.add(genTask("1:0", 20240808, 3));
 
-        List<JobInstanceArchiveTask> candidateTasks = new ArrayList<>();
+        List<JobInstanceArchiveTaskInfo> candidateTasks = new ArrayList<>();
         candidateTasks.add(genTask("0:0", 20240807, 21));
         candidateTasks.add(genTask("0:0", 20240809, 22));
         candidateTasks.add(genTask("1:0", 20240808, 21));
@@ -51,7 +51,7 @@ class ArchiveTaskPriorityEvaluatorTest {
         candidateTasks.add(genTask("1:0", 20240809, 21));
         candidateTasks.add(genTask("1:0", 20240809, 22));
 
-        ArchiveTaskPriorityEvaluator.sort(runningTasks, dbNodeCount, candidateTasks);
+        ArchiveTaskPrioritySorter.sort(runningTasks, dbNodeCount, candidateTasks);
         assertThat(candidateTasks.get(0)).isNotNull();
         assertThat(candidateTasks.get(0).getDataNode()).isEqualTo("1:0");
         assertThat(candidateTasks.get(0).getDay()).isEqualTo(20240808);
@@ -79,8 +79,8 @@ class ArchiveTaskPriorityEvaluatorTest {
 
     }
 
-    private JobInstanceArchiveTask genTask(String dataNodeIndex, Integer day, Integer hour) {
-        JobInstanceArchiveTask task = new JobInstanceArchiveTask();
+    private JobInstanceArchiveTaskInfo genTask(String dataNodeIndex, Integer day, Integer hour) {
+        JobInstanceArchiveTaskInfo task = new JobInstanceArchiveTaskInfo();
         task.setDataNode(dataNodeIndex);
         String[] dbAndTableParts = dataNodeIndex.split(":");
         task.setDbNodeIndex(Integer.parseInt(dbAndTableParts[0]));

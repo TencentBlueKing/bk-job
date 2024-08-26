@@ -31,6 +31,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -53,6 +54,14 @@ public abstract class AbstractTableArchivist<T extends TableRecord<?>> {
         this.batchInsertRowSize = batchInsertRowSize;
         this.deleteLimitRowCount = deleteLimitRowCount;
     }
+
+    void listRecord(Collection<Long> jobInstanceIds);
+
+    void listRecord(Collection<Long> jobInstanceIds);
+
+    void deleteRecord(Collection<Long> jobInstanceIds);
+
+    void saveCold();
 
     protected int insertAndReset(List<T> recordList) throws IOException {
         if (CollectionUtils.isEmpty(recordList)) {

@@ -32,11 +32,13 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
+import com.tencent.bk.job.execute.config.JobInstanceConfigurationProperties;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -91,6 +93,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
+import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
 
 /**
  * 作业执行结果查询Service
@@ -110,6 +113,9 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
+    private final JobInstanceConfigurationProperties jobInstanceConfigurationProperties;
+
+
     @Autowired
     public TaskResultServiceImpl(StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
@@ -121,7 +127,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  RollingConfigService rollingConfigService,
                                  StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                  TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                 StepInstanceService stepInstanceService) {
+                                 StepInstanceService stepInstanceService,
+                                 JobInstanceConfigurationProperties jobInstanceConfigurationProperties) {
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogService = fileSourceTaskLogService;
@@ -133,14 +140,32 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
+        this.jobInstanceConfigurationProperties = jobInstanceConfigurationProperties;
     }
 
     @Override
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
+        checkTaskInstanceQueryTimeRange(taskQuery);
         PageData<TaskInstanceDTO> pageData = taskInstanceService.listPageTaskInstance(taskQuery, baseSearchCondition);
         computeTotalTime(pageData.getData());
         return pageData;
+    }
+
+    private void checkTaskInstanceQueryTimeRange(TaskInstanceQuery taskQuery) {
+        long start = taskQuery.getStartTime();
+        long end = taskQuery.getEndTime();
+        if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
+            log.info("Query task instance history time span must be less than 30 days");
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
+        }
+        Integer maxQueryDays = jobInstanceConfigurationProperties.getQuery().getMaxDays();
+        long currentDayStartTime = DateUtils.getUTCCurrentDayStartTimestamp();
+        if (currentDayStartTime - end > maxQueryDays * 86400000) {
+            log.info("Query task instance history end time must be less than {} days", maxQueryDays);
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_END_TIME_TOO_EARLY,
+                new String[]{String.valueOf(maxQueryDays)});
+        }
     }
 
     private void computeTotalTime(List<TaskInstanceDTO> pageData) {
@@ -151,7 +176,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     if (status == RunStatusEnum.RUNNING || status == RunStatusEnum.WAITING_USER
                         || status == RunStatusEnum.STOPPING) {
                         taskInstanceDTO.setTotalTime((TaskCostCalculator.calculate(taskInstanceDTO.getStartTime(),
-                            taskInstanceDTO.getEndTime(), taskInstanceDTO.getTotalTime())));
+                            taskInstanceDTO.getEndTime(), null)));
                     }
                 }
             });

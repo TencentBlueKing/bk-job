@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.dao;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 
 import java.util.List;
@@ -36,18 +36,18 @@ public interface ArchiveTaskDAO {
      *
      * @param taskType 归档任务类型
      */
-    JobInstanceArchiveTask getLatestArchiveTask(ArchiveTaskTypeEnum taskType);
+    JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType);
 
-    void saveArchiveTask(JobInstanceArchiveTask jobInstanceArchiveTask);
+    void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo);
 
-    List<JobInstanceArchiveTask> listRunningTasks(ArchiveTaskTypeEnum taskType);
+    List<JobInstanceArchiveTaskInfo> listRunningTasks();
 
-    List<JobInstanceArchiveTask> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit);
+    List<JobInstanceArchiveTaskInfo> listScheduleTasks(int limit);
 
     /**
      * 更新归档任务
      *
      * @param archiveTask 归档任务
      */
-    void updateTask(JobInstanceArchiveTask archiveTask);
+    void updateTask(JobInstanceArchiveTaskInfo archiveTask);
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import org.springframework.stereotype.Service;
 
@@ -45,23 +45,23 @@ public class ArchiveTaskService {
      *
      * @param taskType 归档任务类型
      */
-    public JobInstanceArchiveTask getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
+    public JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
         return archiveTaskDAO.getLatestArchiveTask(taskType);
     }
 
-    public void saveArchiveTask(JobInstanceArchiveTask jobInstanceArchiveTask) {
-        archiveTaskDAO.saveArchiveTask(jobInstanceArchiveTask);
+    public void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo) {
+        archiveTaskDAO.saveArchiveTask(jobInstanceArchiveTaskInfo);
     }
 
-    public List<JobInstanceArchiveTask> listRunningTasks(ArchiveTaskTypeEnum taskType) {
+    public List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {
         return archiveTaskDAO.listRunningTasks(taskType);
     }
 
-    public List<JobInstanceArchiveTask> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
+    public List<JobInstanceArchiveTaskInfo> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
         return archiveTaskDAO.listScheduleTasks(taskType, limit);
     }
 
-    public void updateTask(JobInstanceArchiveTask archiveTask) {
+    public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
         archiveTaskDAO.updateTask(archiveTask);
     }
 }

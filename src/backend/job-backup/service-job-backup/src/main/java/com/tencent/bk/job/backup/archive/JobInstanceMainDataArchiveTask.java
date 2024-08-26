@@ -42,8 +42,8 @@ import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceVariableRecordDAO;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTask;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
@@ -52,10 +52,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * 作业实例热数据归档
+ * 作业实例数据归档
  **/
 @Slf4j
-public class JobInstanceHotDataArchivist extends AbstractJobInstanceArchivist<TaskInstanceRecord> {
+public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTask<TaskInstanceRecord> {
 
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
     private final StepInstanceRecordDAO stepInstanceRecordDAO;
@@ -74,29 +74,29 @@ public class JobInstanceHotDataArchivist extends AbstractJobInstanceArchivist<Ta
     private final StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO;
     private final RollingConfigRecordDAO rollingConfigRecordDAO;
 
-    public JobInstanceHotDataArchivist(TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                       StepInstanceRecordDAO stepInstanceRecordDAO,
-                                       StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
-                                       StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
-                                       StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
-                                       StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
-                                       TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
-                                       OperationLogRecordDAO operationLogRecordDAO,
-                                       FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
-                                       GseTaskRecordDAO gseTaskRecordDAO,
-                                       GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
-                                       GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
-                                       GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
-                                       GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
-                                       StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
-                                       RollingConfigRecordDAO rollingConfigRecordDAO,
-                                       JobInstanceHotRecordDAO<TaskInstanceRecord> jobInstanceHotRecordDAO,
-                                       JobInstanceColdDAO jobInstanceColdDAO,
-                                       ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties,
-                                       ArchiveTaskLock archiveTaskLock,
-                                       ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                       JobInstanceArchiveTask archiveTask,
-                                       ArchiveTaskService archiveTaskService) {
+    public JobInstanceMainDataArchiveTask(TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                          StepInstanceRecordDAO stepInstanceRecordDAO,
+                                          StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+                                          StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+                                          StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+                                          StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+                                          TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+                                          OperationLogRecordDAO operationLogRecordDAO,
+                                          FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
+                                          GseTaskRecordDAO gseTaskRecordDAO,
+                                          GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
+                                          GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
+                                          GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
+                                          GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
+                                          StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
+                                          RollingConfigRecordDAO rollingConfigRecordDAO,
+                                          JobInstanceHotRecordDAO<TaskInstanceRecord> jobInstanceHotRecordDAO,
+                                          JobInstanceColdDAO jobInstanceColdDAO,
+                                          ArchiveProperties archiveTaskProperties,
+                                          ArchiveTaskLock archiveTaskLock,
+                                          ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                                          JobInstanceArchiveTaskInfo archiveTask,
+                                          ArchiveTaskService archiveTaskService) {
         super(
             jobInstanceHotRecordDAO,
             jobInstanceColdDAO,

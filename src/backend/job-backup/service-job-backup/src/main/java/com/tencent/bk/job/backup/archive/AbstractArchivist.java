@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
@@ -54,8 +54,7 @@ import java.util.function.Function;
 public abstract class AbstractArchivist<T extends TableRecord<?>> {
     protected JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
     protected JobInstanceColdDAO jobInstanceColdDAO;
-    protected ArchiveProgressService archiveProgressService;
-    private ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties;
+    private ArchiveProperties archiveTaskProperties;
     /**
      * 需要归档的记录的最大 ID (include)
      */
@@ -104,23 +103,21 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
 
     public AbstractArchivist(JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
                              JobInstanceColdDAO jobInstanceColdDAO,
-                             ArchiveProgressService archiveProgressService,
-                             ArchiveDBProperties.ArchiveTaskProperties archiveTaskProperties,
+                             ArchiveProperties archiveTaskProperties,
                              ArchiveTaskLock archiveTaskLock,
                              Long maxNeedArchiveId,
                              CountDownLatch countDownLatch,
                              ArchiveErrorTaskCounter archiveErrorTaskCounter) {
         this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
-        this.archiveProgressService = archiveProgressService;
         this.archiveTaskProperties = archiveTaskProperties;
         this.tableName = jobInstanceHotRecordDAO.getTable().getName().toLowerCase();
         this.batchInsertRowSize = computeValuePreferTableConfig(archiveTaskProperties.getBatchInsertRowSize(),
-            ArchiveDBProperties.TableConfig::getBatchInsertRowSize);
+            ArchiveProperties.TableConfig::getBatchInsertRowSize);
         this.readRowLimit = computeValuePreferTableConfig(archiveTaskProperties.getReadRowLimit(),
-            ArchiveDBProperties.TableConfig::getReadRowLimit);
+            ArchiveProperties.TableConfig::getReadRowLimit);
         this.deleteLimitRowCount = computeValuePreferTableConfig(archiveTaskProperties.getDeleteRowLimit(),
-            ArchiveDBProperties.TableConfig::getDeleteRowLimit);
+            ArchiveProperties.TableConfig::getDeleteRowLimit);
         this.maxNeedArchiveId = maxNeedArchiveId;
         this.countDownLatch = countDownLatch;
         this.archiveTaskSummary = new ArchiveTaskSummary(this.tableName);
@@ -136,13 +133,13 @@ public abstract class AbstractArchivist<T extends TableRecord<?>> {
      */
     private <V> V computeValuePreferTableConfig(
         V defaultValue,
-        Function<ArchiveDBProperties.TableConfig, V> tableValueProvider
+        Function<ArchiveProperties.TableConfig, V> tableValueProvider
     ) {
 
         V value = defaultValue;
         if (archiveTaskProperties.getTableConfigs() != null
             && archiveTaskProperties.getTableConfigs().containsKey(tableName)) {
-            ArchiveDBProperties.TableConfig tableConfig = archiveTaskProperties.getTableConfigs().get(tableName);
+            ArchiveProperties.TableConfig tableConfig = archiveTaskProperties.getTableConfigs().get(tableName);
             V tableValue = tableValueProvider.apply(tableConfig);
             if (tableValue != null) {
                 value = tableValue;

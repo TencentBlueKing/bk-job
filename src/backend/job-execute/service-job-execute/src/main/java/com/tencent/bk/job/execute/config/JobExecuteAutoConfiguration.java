@@ -22,30 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@Slf4j
-public class ArchiveTaskWorker extends Thread {
-
-    private JobInstanceArchiveTask archiveTask;
-
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker");
-        this.archiveTask = archiveTask;
-    }
-
-    @Override
-    public void run() {
-        try {
-            log.info("Archive task begin");
-            archiveTask.execute();
-            log.info("Archive task finished");
-        } catch (Throwable e) {
-            log.warn("Thread interrupted!");
-        }
-    }
-
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({JobInstanceConfigurationProperties.class})
+public class JobExecuteAutoConfiguration {
 }

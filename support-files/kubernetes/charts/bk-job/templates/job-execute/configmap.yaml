@@ -218,6 +218,8 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        jobInstance:
+        {{- toYaml .Values.executeConfig.jobInstance | nindent 4 }}
     {{ if .Values.executeConfig.sharding.mariadb.enabled }}
     sharding:
       enabled: true
@@ -329,21 +331,21 @@ data:
               databaseStrategy:
                 type: standard
                 shardingColumn: app_id
-                shardingAlgorithmName: app_id_database_inline
+                shardingAlgorithmName: resource_scope_database_table
               tableStrategy:
                 type: standard
                 shardingColumn: app_id
-                shardingAlgorithmName: task_instance_app_table_inline
+                shardingAlgorithmName: resource_scope_database_table
             task_instance_host_app:
               actualDataNodes: {{ include "job.execute.sharding.actualDataNodes" ( dict "tableName" "task_instance_host_app" "context" $) }}
               databaseStrategy:
                 type: standard
                 shardingColumn: app_id
-                shardingAlgorithmName: app_id_database_inline
+                shardingAlgorithmName: resource_scope_database_table
               tableStrategy:
                 type: standard
                 shardingColumn: app_id
-                shardingAlgorithmName: task_instance_host_app_table_inline
+                shardingAlgorithmName: resource_scope_database_table
           # 绑定表规则
           bindingTables: 
             - task_instance_app,task_instance_host_app
@@ -366,11 +368,13 @@ data:
               type: INLINE
               props:
                 algorithm-expression: {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "id" "context" $) }} 
-            # 按业务分库算法
-            app_id_database_inline:
-              type : INLINE
+            # 按业务分库分表算法
+            resource_scope_database_table:
+              type : RESOURCE_SCOPE
               props :
-                algorithm-expression : {{ include "job.execute.sharding.database.algorithm.expression" ( dict "columnName" "app_id" "context" $) }} 
+                {{ if .Values.executeConfig.sharding.mariadb.shardingAlgorithm.manualResourceScope }}
+                manual : {{ .Values.executeConfig.sharding.mariadb.shardingAlgorithm.manualResourceScope }} 
+                {{- end }}
             ## 分表算法
             task_instance_table_inline:
               type: INLINE
@@ -428,14 +432,6 @@ data:
               type: INLINE
               props:
                 algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_rolling_task" "columnName" "task_instance_id" "context" $) }}
-            task_instance_app_table_inline:
-              type: INLINE
-              props:
-                algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance_app" "columnName" "app_id" "context" $) }}
-            task_instance_host_app_table_inline:
-              type: INLINE
-              props:
-                algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "task_instance_host_app" "columnName" "app_id" "context" $) }}
     # 分布式 ID （leaf 组件配置)
     leaf:
       segment:

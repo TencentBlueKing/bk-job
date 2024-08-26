@@ -38,11 +38,11 @@ public class JobInstanceHotArchivist {
      * @param stop  数据终止记录ID
      * @return 备份结果
      */
-    private AbstractJobInstanceArchivist.BackupResult backupRecords(List<Long> jobInstanceIds) throws IOException {
+    private AbstractJobInstanceArchiveTask.BackupResult backupRecords(List<Long> jobInstanceIds) throws IOException {
         if (lastBackupId >= stop) {
             // 说明数据已经备份过，跳过
             log.info("[{}] Record is already backup, skip. lastBackId: {}", tableName, lastBackupId);
-            return new AbstractJobInstanceArchivist.BackupResult(0L, 0L, 0L, 0L);
+            return new AbstractJobInstanceArchiveTask.BackupResult(0L, 0L, 0L, 0L);
         }
         long startId = start;
         if (lastBackupId > start) {
@@ -91,6 +91,6 @@ public class JobInstanceHotArchivist {
 
         updateArchiveProgress(stop);
 
-        return new AbstractJobInstanceArchivist.BackupResult(readRows, backupRows, readCost, writeCost);
+        return new AbstractJobInstanceArchiveTask.BackupResult(readRows, backupRows, readCost, writeCost);
     }
 }
