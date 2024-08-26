@@ -197,24 +197,24 @@ Return the MariaDB username
 {{- end -}}
 
 {{/*
-Return the MariaDB root username
+Return the MariaDB admin username
 */}}
-{{- define "job.mariadb.rootUsername" -}}
+{{- define "job.mariadb.adminUsername" -}}
 {{- if .Values.mariadb.enabled }}
-    {{- printf "%s" .Values.mariadb.auth.rootUsername -}}
+    {{- printf "%s" .Values.mariadb.auth.adminUsername -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalMariaDB.rootUsername -}}
+    {{- printf "%s" .Values.externalMariaDB.adminUsername -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the MariaDB root password
+Return the MariaDB admin password
 */}}
-{{- define "job.mariadb.rootPassword" -}}
+{{- define "job.mariadb.adminPassword" -}}
 {{- if .Values.mariadb.enabled }}
-    {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
+    {{- printf "%s" .Values.mariadb.auth.adminPassword -}}
 {{- else -}}
-    {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
+    {{- printf "%s" .Values.externalMariaDB.adminPassword -}}
 {{- end -}}
 {{- end -}}
 
