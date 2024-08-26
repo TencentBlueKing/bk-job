@@ -24,19 +24,19 @@
 
 package com.tencent.bk.job.backup.archive.dao;
 
+import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.Table;
-import org.jooq.TableField;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * 作业实例热数据 DAO
+ * DB 表操作 DAO
  *
  * @param <T> 表记录
  */
-public interface JobInstanceHotRecordDAO<T extends Record> {
+public interface RecordDAO<T extends Record> {
 
     /**
      * 获取表
@@ -45,28 +45,22 @@ public interface JobInstanceHotRecordDAO<T extends Record> {
      */
     Table<T> getTable();
 
-    /**
-     * 获取表中作业实例 ID 对应的字段
-     *
-     * @return ID字段
-     */
-    TableField<T, Long> getJobInstanceIdField();
 
     /**
-     * 根据作业实例 ID 列表获取表记录
+     * 根据条件查询表记录
      *
-     * @param jobInstanceIds 作业实例 ID 列表
+     * @param conditions 查询条件
      * @param limit          获取的记录数量
      * @return 表记录
      */
-    List<T> listRecords(Collection<Long> jobInstanceIds, Long limit);
+    List<T> listRecords(List<Condition> conditions, Long readRowLimit);
 
     /**
      * 根据起始/结束ID删除表记录
      *
      * @param jobInstanceIds       作业实例 ID 列表
-     * @param maxLimitedDeleteRows 批量删除每批次limit
+     * @param deleteRowLimit 批量删除每批次limit
      * @return 删除的记录数量
      */
-    int deleteRecords(Collection<Long> jobInstanceIds, long maxLimitedDeleteRows);
+    int deleteRecords(Collection<Long> jobInstanceIds, long deleteRowLimit);
 }

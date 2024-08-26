@@ -27,25 +27,23 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.Record;
-import org.jooq.Table;
 
 import java.util.Collection;
 import java.util.List;
 
-abstract class AbstractTableRecordResultSet<T extends Record> implements RecordResultSet<T> {
-    private final AbstractJobInstanceHotRecordDAO<T> tableDAO;
-    private final Table<T> table;
+
+abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements RecordResultSet<T> {
+    private final AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
     protected final Collection<Long> jobInstanceIds;
     protected final Long readRowLimit;
+
     protected List<T> records;
     protected boolean hasNext;
 
-    public AbstractTableRecordResultSet(AbstractJobInstanceHotRecordDAO<T> tableDAO,
-                                        Table<T> table,
-                                        Collection<Long> jobInstanceIds,
-                                        Long readRowLimit) {
-        this.tableDAO = tableDAO;
-        this.table = table;
+    public AbstractJobInstanceRecordResultSet(AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
+                                              Collection<Long> jobInstanceIds,
+                                              Long readRowLimit) {
+        this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
         this.jobInstanceIds = jobInstanceIds;
         this.readRowLimit = readRowLimit;
     }
@@ -56,8 +54,9 @@ abstract class AbstractTableRecordResultSet<T extends Record> implements RecordR
             return false;
         }
 
-        records = tableDAO.query(table,
-            buildConditions(jobInstanceIds), readRowLimit);
+        records = jobInstanceHotRecordDAO.listRecords(jobInstanceIds,
+            buildQueryConditions(), readRowLimit);
+
         if (CollectionUtils.isEmpty(records)) {
             hasNext = false;
             return false;
@@ -68,15 +67,25 @@ abstract class AbstractTableRecordResultSet<T extends Record> implements RecordR
             } else {
                 hasNext = true;
                 T last = records.get(records.size() - 1);
-                saveCurrentCursor(last);
+                saveQueryCursor(last);
             }
             return true;
         }
     }
 
-    protected abstract List<Condition> buildConditions(Collection<Long> jobInstanceIds);
+    /**
+     * 构造查询条件
+     *
+     * @return 查询条件
+     */
+    protected abstract List<Condition> buildQueryConditions();
 
-    protected abstract void saveCurrentCursor(T lastRecord);
+    /**
+     * 保存查询游标
+     *
+     * @param lastRecord 本次查询的最后一条记录
+     */
+    protected abstract void saveQueryCursor(T lastRecord);
 
     @Override
     public List<T> get() {

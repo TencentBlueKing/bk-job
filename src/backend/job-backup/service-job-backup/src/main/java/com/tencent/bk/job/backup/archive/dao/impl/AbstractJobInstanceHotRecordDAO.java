@@ -47,9 +47,13 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     }
 
     @Override
-    public List<T> listRecords(Collection<Long> jobInstanceIds, Long offset, Long limit) {
-        Result<Record> result = query(getTable(), buildConditions(jobInstanceIds), limit);
-        return result.into(getTable());
+    public List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit) {
+        return query(getTable(), buildConditions(jobInstanceIds), readRowLimit);
+    }
+
+    @Override
+    public List<T> listRecords(List<Condition> conditions, Long readRowLimit) {
+        return query(getTable(), conditions, readRowLimit);
     }
 
     protected abstract RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long limit);
@@ -82,17 +86,17 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     }
 
     protected List<T> query(Table<?> table,
-                                 List<Condition> conditions,
-                                 Long limit) {
+                            List<Condition> conditions,
+                            Long readRowLimit) {
         SelectConditionStep<Record> selectConditionStep = context.select()
             .from(table)
             .where(conditions);
 
         Result<Record> result;
         if (CollectionUtils.isNotEmpty(getListRecordsOrderFields())) {
-            result = selectConditionStep.orderBy(getListRecordsOrderFields()).limit(0, limit).fetch();
+            result = selectConditionStep.orderBy(getListRecordsOrderFields()).limit(0, readRowLimit).fetch();
         } else {
-            result = selectConditionStep.limit(0, limit).fetch();
+            result = selectConditionStep.limit(0, readRowLimit).fetch();
         }
         return result.into(getTable());
 
