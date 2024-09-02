@@ -26,8 +26,7 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.AbortedException;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
@@ -83,9 +82,11 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
         if (publicKeyGotten) {
             return;
         } else if ("abort".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
-            throw new AbortedException(ErrorCode.FAIL_TO_GET_JWB_PUBLIC_KEY);
+            throw new InternalException("Failed to get jwt public key, abort policy triggered");
         } else if ("retry".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
             getJwtPublicKeyWithBackgroundRetry();
+        } else {
+            throw new InternalException("Illegal jwt public key get fail policy");
         }
     }
 
