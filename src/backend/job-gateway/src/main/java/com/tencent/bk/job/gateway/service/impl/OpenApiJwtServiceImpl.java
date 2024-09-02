@@ -26,6 +26,8 @@ package com.tencent.bk.job.gateway.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AbortedException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
@@ -73,14 +75,21 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService, BkGatewayConfig bkApiGatewayConfig) {
         this.openApiJwtPublicKeyService = openApiJwtPublicKeyService;
         this.bkApiGatewayConfig = bkApiGatewayConfig;
-        getPublicKeyOrRetryInBackground();
+        getJwtPublicKeyByPolicy();
     }
 
-    private void getPublicKeyOrRetryInBackground() {
+    private void getJwtPublicKeyByPolicy() {
         boolean publicKeyGotten = tryToGetAndCachePublicKeyOnce();
         if (publicKeyGotten) {
             return;
+        } else if ("abort".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
+            throw new AbortedException(ErrorCode.FAIL_TO_GET_JWB_PUBLIC_KEY);
+        } else if ("retry".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
+            getJwtPublicKeyWithBackgroundRetry();
         }
+    }
+
+    private void getJwtPublicKeyWithBackgroundRetry() {
         Thread openApiPublicKeyGetter = new Thread(() -> {
             boolean keyGotten;
             int retryCount = 0;

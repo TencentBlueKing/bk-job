@@ -294,6 +294,9 @@ data:
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
       bkApiGateway:
         enabled: {{ .Values.bkApiGatewayConfig.enabled | default false }}
+        jwtPublicKey:
+          get:
+            failPolicy: {{ .Values.bkApiGatewayConfig.jwtPublicKey.failPolicy | default "retry" }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}
       http:

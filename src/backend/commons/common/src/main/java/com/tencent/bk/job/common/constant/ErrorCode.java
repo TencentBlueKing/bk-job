@@ -88,6 +88,10 @@ public class ErrorCode {
     // 消息通知中心接口数据异常
     public static final int BK_NOTICE_API_DATA_ERROR = 1217002;
 
+    // 蓝鲸网关
+    // jwt publicKey获取异常
+    public static final int FAIL_TO_GET_JWB_PUBLIC_KEY = 1218001;
+
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
     public static final int PERMISSION_DENIED = 1238001;

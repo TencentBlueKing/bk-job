@@ -1514,6 +1514,9 @@ bkApiGatewayConfig:
   sync: false
   # 是否开启apigw jwt认证
   enabled: true
+  jwtPublicKey:
+    # jwtPublicKey获取策略，重试：retry, 终止启动：abort
+    failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
   # 同步蓝鲸网关url

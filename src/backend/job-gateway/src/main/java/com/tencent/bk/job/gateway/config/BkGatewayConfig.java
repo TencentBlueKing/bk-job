@@ -39,4 +39,10 @@ public class BkGatewayConfig {
      */
     @Value("${job.bkApiGateway.enabled:true}")
     private boolean enabled;
+
+    /**
+     * jwtPublicKey获取策略，重试：retry, 终止启动：abort
+     */
+    @Value("${job.bkApiGateway.jwtPublicKey.get.failPolicy:retry}")
+    private String jwtPublicKeyFailPolicy;
 }
