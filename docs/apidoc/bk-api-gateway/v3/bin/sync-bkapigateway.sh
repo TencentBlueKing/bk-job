@@ -8,6 +8,12 @@ source /apigw-manager/bin/functions.sh
 # - 如在下面指令的参数中，未指定参数 --gateway-name，则使用 Django settings BK_APIGW_NAME
 gateway_name=$BK_APIGW_NAME
 
+title "do something before migrate"
+# 网关维护人员解析成array格式
+BK_APIGW_MAINTAINERS_ARRAY='["'${BK_APIGW_MAINTAINERS//,/\",\"}'"]'
+export BK_APIGW_MAINTAINERS="$BK_APIGW_MAINTAINERS_ARRAY"
+echo "maintainers $BK_APIGW_MAINTAINERS"
+
 # 待同步网关、资源定义文件
 definition_file="/data/definition.yaml"
 resources_file="/data/resources.yaml"
