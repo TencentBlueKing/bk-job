@@ -1,0 +1,45 @@
+### Function Description
+
+Delete cron job
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields        | Type   | Required | Description                                                                                 |
+|---------------|--------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id            | long   | yes      | cron job id                                                                                 |
+
+### Example of request
+
+- POST
+
+```json
+{
+  "bk_app_code": "esb_test",
+  "bk_app_secret": "xxx",
+  "bk_token": "xxx",
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2",
+  "id": 1000045
+}
+```
+
+### Example of responses
+
+```json
+{
+  "code": 0,
+  "result": true
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+null

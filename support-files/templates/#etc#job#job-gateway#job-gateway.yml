@@ -98,7 +98,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -108,7 +108,7 @@ spring:
           predicates:
             - Path=/api/job/v3/job-manage/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -118,7 +118,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -128,7 +128,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -138,7 +138,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v2/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -148,7 +148,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
@@ -158,7 +158,7 @@ spring:
           predicates:
             - JobEsbV2Path=/api/job/v3/job-file-gateway/{api_name}
           filters:
-            - CheckEsbJwt
+            - CheckOpenApiJwt
             - SetPath=/esb/api/v3/{api_name}
             - RecordEsbAccessLog
             - AddEsbLangHeader
