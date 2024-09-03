@@ -101,4 +101,47 @@ public interface AIChatHistoryDAO {
      * @return 删除的记录条数
      */
     int softDeleteChatHistory(String username, Integer limit);
+
+    /**
+     * 获取指定时间（包含）之前的记录最大id
+     *
+     * @param maxStartTime 最大开始时间
+     * @return 记录最大id
+     */
+    Long getMaxIdBeforeOrEqualStartTime(long maxStartTime);
+
+    /**
+     * 硬删除id小于指定id的聊天记录（按id从小到大的顺序删除）
+     *
+     * @param maxId    最大id
+     * @param limit    最大删除数量
+     * @return 删除的记录条数
+     */
+    int deleteChatHistory(long maxId, int limit);
+
+    /**
+     * 硬删除某个用户的id小于指定id的聊天记录（按id从小到大的顺序删除）
+     *
+     * @param username 用户名
+     * @param maxId    最大id
+     * @param limit    最大删除数量
+     * @return 删除的记录条数
+     */
+    int deleteChatHistory(String username, long maxId, int limit);
+
+    /**
+     * 获取所有有聊天记录（未删除）的用户
+     *
+     * @return 所有有聊天记录（未删除）的用户
+     */
+    List<String> listAllUserOfChatHistory();
+
+    /**
+     * 获取offset后第一条记录的Id
+     *
+     * @param username 用户名
+     * @param offset   偏移量
+     * @return 第一条记录的Id
+     */
+    Long getFirstIdAfterOffset(String username, int offset);
 }

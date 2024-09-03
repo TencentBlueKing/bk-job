@@ -44,7 +44,12 @@ public class AIProperties {
     /**
      * 错误日志分析相关配置
      */
-    private AnalyzeErrorLogConfig analyzeErrorLog;
+    private AnalyzeErrorLogConfig analyzeErrorLog = new AnalyzeErrorLogConfig();
+
+    /**
+     * 聊天记录相关配置
+     */
+    private ChatHistoryConfig chatHistory = new ChatHistoryConfig();
 
     @Getter
     @Setter
@@ -58,5 +63,19 @@ public class AIProperties {
         public Long getLogMaxLengthBytes() {
             return FileSizeUtil.parseFileSizeBytes(logMaxLength);
         }
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    public static class ChatHistoryConfig {
+        /**
+         * 最大保留天数
+         */
+        private Integer maxKeepDays = 31;
+        /**
+         * 单个用户最大保留的聊天记录数量
+         */
+        private Integer maxHistoryPerUser = 1000;
     }
 }

@@ -99,4 +99,6 @@ data:
       {{- toYaml .Values.analysisConfig.feign | nindent 6 }}
     server:
       port: {{ .Values.analysisConfig.containerPort }}
+    ai:
+      {{- toYaml .Values.analysisConfig.ai | nindent 6 }}
 {{- end }}

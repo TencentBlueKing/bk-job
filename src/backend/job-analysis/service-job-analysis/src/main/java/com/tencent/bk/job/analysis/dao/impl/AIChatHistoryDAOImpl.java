@@ -30,12 +30,14 @@ import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.tables.AiChatHistory;
 import com.tencent.bk.job.common.mysql.dao.BaseDAOImpl;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
+import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
@@ -187,6 +189,71 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             .orderBy(defaultTable.START_TIME)
             .limit(limit)
             .execute();
+    }
+
+    @Override
+    public Long getMaxIdBeforeOrEqualStartTime(long maxStartTime) {
+        Long existStartTime = dslContext.select(defaultTable.START_TIME)
+            .from(defaultTable)
+            .where(defaultTable.START_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxStartTime)))
+            .orderBy(defaultTable.START_TIME.desc())
+            .limit(1)
+            .fetchOneInto(Long.class);
+        if (existStartTime == null) {
+            return null;
+        }
+        Long maxId = dslContext.select(DSL.max(defaultTable.ID))
+            .from(defaultTable)
+            .where(defaultTable.START_TIME.equal(JooqDataTypeUtil.buildULong(existStartTime)))
+            .fetchOneInto(Long.class);
+        if (log.isDebugEnabled()) {
+            log.debug("existStartTime={},maxId={}", existStartTime, maxId);
+        }
+        return maxId;
+    }
+
+    @Override
+    public int deleteChatHistory(long maxId, int limit) {
+        return deleteChatHistory(null, maxId, limit);
+    }
+
+    @Override
+    public int deleteChatHistory(String username, long maxId, int limit) {
+        List<Condition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(username)) {
+            conditions.add(defaultTable.USERNAME.eq(username));
+        }
+        conditions.add(defaultTable.ID.lessOrEqual(maxId));
+        return dslContext.deleteFrom(defaultTable)
+            .where(conditions)
+            .orderBy(defaultTable.ID)
+            .limit(limit)
+            .execute();
+    }
+
+    @Override
+    public List<String> listAllUserOfChatHistory() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        return dslContext.selectDistinct(defaultTable.USERNAME)
+            .from(defaultTable)
+            .where(conditions)
+            .fetch()
+            .into(String.class);
+    }
+
+    @Override
+    public Long getFirstIdAfterOffset(String username, int offset) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.eq(username));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        return dslContext.select(defaultTable.ID)
+            .from(defaultTable)
+            .where(conditions)
+            .orderBy(defaultTable.ID.desc())
+            .offset(offset)
+            .limit(1)
+            .fetchOneInto(Long.class);
     }
 
     private List<AIChatHistoryDTO> listByConditions(Collection<Condition> conditions,
