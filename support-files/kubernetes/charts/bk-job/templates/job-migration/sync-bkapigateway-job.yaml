@@ -43,5 +43,7 @@ spec:
           value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
         - name: BK_APIGW_MAINTAINERS
           value: {{ .Values.bkApiGatewayConfig.maintainers }}
+        - name: BK_APIGW_AUTO_PUBLISH
+          value: {{.Values.bkApiGatewayConfig.autoPublish}}
       restartPolicy: Never
 {{- end }}
