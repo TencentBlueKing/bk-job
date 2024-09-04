@@ -1,16 +1,18 @@
 # chart values 更新日志
 
-## 0.6.6
+## 0.7.0
 1. 增加接入蓝鲸网关配置
 
 ```yaml
 bkApiGatewayConfig:
   # 是否自动把API注册到蓝鲸网关
   sync: false
+  # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
+  autoPublish: true
   # 是否开启apigw jwt认证
   enabled: true
   jwtPublicKey:
-    # jwtPublicKey获取策略，重试：retry, 终止启动：abort
+    # jwtPublicKey获取策略，获取失败重试：retry, 获取失败终止启动：abort
     failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
