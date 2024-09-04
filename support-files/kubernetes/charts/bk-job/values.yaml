@@ -71,13 +71,10 @@ mariadb:
   ## MariaDB Authentication parameters
   ##
   auth:
-    ## @param mariadb.auth.adminUsername username for the MariaDB `root` user (usually defaults to 'root', but allows you to override it here)
-    ##
-    adminUsername: "root"
-    ## @param mariadb.auth.adminPassword Password for the MariaDB `root` user
+    ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
     ##
-    adminPassword: "job"
+    rootPassword: "job"
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
@@ -148,12 +145,9 @@ externalMariaDB:
   ## @param externalMariaDB.password Password for the above username
   ##
   password: ""
-  ## @param externalMariaDB.adminUsername username for the MariaDB `root` user (usually defaults to 'root', but allows you to override it here)
+  ## @param externalMariaDB.rootPassword Password for the MariaDB `root` user
   ##
-  adminUsername: "root"
-  ## @param externalMariaDB.adminPassword Password for the MariaDB `root` user
-  ##
-  adminPassword: ""
+  rootPassword: ""
   ## JDBC Connection properties
   connection:
     properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
@@ -636,6 +630,11 @@ job:
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
+    mysql:
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
   # 各微服务Actuator监控端口
   managePort: 19876
   web:

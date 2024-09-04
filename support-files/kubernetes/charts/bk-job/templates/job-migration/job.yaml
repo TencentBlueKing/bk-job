@@ -48,12 +48,12 @@ spec:
             - name: BK_JOB_MYSQL_ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{printf "%s-%s" (include "job.fullname" .) "migrate-db"}}
+                  name: {{printf "%s-%s" (include "job.fullname" .) "migration-db"}}
                   key: admin-username
             - name: BK_JOB_MYSQL_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-%s" (include "job.fullname" .) "migrate-db" }}
+                  name: {{ printf "%s-%s" (include "job.fullname" .) "migration-db" }}
                   key: admin-password
             - name: BK_IAM_URL
               value: {{ .Values.bkIamApiUrl | quote }}

@@ -1,5 +1,18 @@
 # chart values 更新日志
 
+## 0.5.10
+1. 增加MySQL migration的自定义数据库账号和密码
+
+```yaml
+job:
+  migration:
+    mysql:
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
+```
+
 ## 0.5.9
 
 1. 新增备份服务中的数据归档相关配置
