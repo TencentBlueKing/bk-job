@@ -22,35 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai.context.model;
+package com.tencent.bk.job.analysis.model.web.req;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 含有部分消息的事件
- */
+import javax.validation.constraints.Min;
+
 @AllArgsConstructor
+@NoArgsConstructor
+@ApiModel("终止对话请求体")
 @Data
-public class MessagePartEvent {
-    /**
-     * 是否为消息结束事件
-     */
-    private boolean end;
-    /**
-     * 消息内容
-     */
-    private String messagePart;
-    /**
-     * 事件产生时间
-     */
-    private Long timeMills;
-
-    public static MessagePartEvent endEvent() {
-        return new MessagePartEvent(true, null, System.currentTimeMillis());
-    }
-
-    public static MessagePartEvent normalEvent(String messagePart) {
-        return new MessagePartEvent(false, messagePart, System.currentTimeMillis());
-    }
+public class TerminateChatReq {
+    @ApiParam(value = "对话记录ID")
+    @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
+    Long recordId;
 }

@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
+import com.tencent.bk.job.analysis.model.web.req.TerminateChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.common.annotation.WebAPI;
@@ -207,10 +208,9 @@ public interface WebAIResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "对话记录ID")
-        @RequestParam(value = "recordId")
-        @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
-        Long recordId
+        @ApiParam(value = "终止对话请求参数", required = true)
+        @Validated
+        @RequestBody TerminateChatReq req
     );
 
     @ApiOperation(value = "清空聊天记录", produces = "application/json")

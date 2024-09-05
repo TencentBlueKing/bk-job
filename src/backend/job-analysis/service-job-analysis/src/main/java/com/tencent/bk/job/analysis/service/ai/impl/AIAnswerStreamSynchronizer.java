@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
 import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -75,6 +76,14 @@ public class AIAnswerStreamSynchronizer {
                     String message = JsonUtils.toJson(respBody) + "\n";
                     outputStream.write(message.getBytes(StandardCharsets.UTF_8));
                     outputStream.flush();
+                    if (log.isDebugEnabled()) {
+                        log.debug(
+                            "partMessage={}, time={}, delay={}ms",
+                            partMessage,
+                            TimeUtil.formatTime(event.getTimeMills(), "yyyy-MM-dd HH:mm:ss.SSS"),
+                            System.currentTimeMillis() - event.getTimeMills()
+                        );
+                    }
                 } catch (InterruptedException e) {
                     log.debug("Interrupted when take message from queue", e);
                 } catch (IOException e) {

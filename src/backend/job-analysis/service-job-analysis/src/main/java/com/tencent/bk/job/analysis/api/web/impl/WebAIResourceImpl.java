@@ -32,6 +32,7 @@ import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
+import com.tencent.bk.job.analysis.model.web.req.TerminateChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
@@ -168,7 +169,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                     String scopeId,
                                                                     GenerateChatStreamReq req) {
         StreamingResponseBody streamingResponseBody = chatService.generateChatStream(username, req.getRecordId());
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(streamingResponseBody);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(streamingResponseBody);
     }
 
     @Override
@@ -176,8 +177,8 @@ public class WebAIResourceImpl implements WebAIResource {
                                            AppResourceScope appResourceScope,
                                            String scopeType,
                                            String scopeId,
-                                           Long recordId) {
-        boolean result = chatService.triggerTerminateChat(username, recordId);
+                                           TerminateChatReq req) {
+        boolean result = chatService.triggerTerminateChat(username, req.getRecordId());
         return Response.buildSuccessResp(result);
     }
 
