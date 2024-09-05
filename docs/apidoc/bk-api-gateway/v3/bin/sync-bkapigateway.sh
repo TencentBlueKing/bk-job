@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # 加载 apigw-manager 原始镜像中的通用函数
 source /apigw-manager/bin/functions.sh
@@ -8,7 +9,7 @@ source /apigw-manager/bin/functions.sh
 # - 如在下面指令的参数中，未指定参数 --gateway-name，则使用 Django settings BK_APIGW_NAME
 gateway_name=$BK_APIGW_NAME
 # 自动发布资源，create_version_and_release_apigw命令中指定参数 --no-pub只生成版本不发布资源，不指定生成版本且发布资源
-gateway_auto_publish = $BK_APIGW_AUTO_PUBLISH
+gateway_auto_publish=$BK_APIGW_AUTO_PUBLISH
 
 title "do something before migrate"
 # 网关维护人员解析成array格式
@@ -38,5 +39,6 @@ if [ "$gateway_auto_publish" = "true" ]; then
   call_definition_command_or_exit create_version_and_release_apigw "${definition_file}" --gateway-name=${gateway_name}
 else
   call_definition_command_or_exit create_version_and_release_apigw "${definition_file}" --gateway-name=${gateway_name} --no-pub
+fi
 
 title "done"
