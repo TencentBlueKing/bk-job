@@ -44,6 +44,6 @@ spec:
         - name: BK_APIGW_MAINTAINERS
           value: {{ .Values.bkApiGatewayConfig.maintainers }}
         - name: BK_APIGW_AUTO_PUBLISH
-          value: {{.Values.bkApiGatewayConfig.autoPublish}}
+          value: {{.Values.bkApiGatewayConfig.autoPublish | quote }}
       restartPolicy: Never
 {{- end }}
