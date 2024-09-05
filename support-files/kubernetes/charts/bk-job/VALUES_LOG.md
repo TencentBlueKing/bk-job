@@ -8,7 +8,7 @@ bkApiGatewayConfig:
   # 是否自动把API注册到蓝鲸网关
   sync: false
   # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
-  autoPublish: true
+  autoPublish: "true"
   # 是否开启apigw jwt认证
   enabled: true
   jwtPublicKey:
