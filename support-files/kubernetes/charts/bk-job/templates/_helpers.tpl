@@ -208,18 +208,18 @@ Return the MariaDB root password
 {{- end -}}
 
 {{/*
-Return the migrate mysql admin username
+Return the migrate mysqlSchema admin username
 */}}
-{{- define "job.migration.mysql.adminUsername" -}}
-{{- printf "%s" .Values.job.migration.mysql.adminUsername | default "root" -}}
+{{- define "job.migration.mysqlSchema.adminUsername" -}}
+{{- printf "%s" .Values.job.migration.mysqlSchema.adminUsername | default "root" -}}
 {{- end -}}
 
 {{/*
-Return the migrate mysql admin password
+Return the migrate mysqlSchema admin password
 */}}
-{{- define "job.migration.mysql.adminPassword" -}}
-{{- if .Values.job.migration.mysql.adminPassword -}}
-    {{- printf "%s" .Values.job.migration.mysql.adminPassword -}}
+{{- define "job.migration.mysqlSchema.adminPassword" -}}
+{{- if .Values.job.migration.mysqlSchema.adminPassword -}}
+    {{- printf "%s" .Values.job.migration.mysqlSchema.adminPassword -}}
 {{- else if .Values.externalMariaDB.rootPassword -}}
     {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
 {{- else -}}

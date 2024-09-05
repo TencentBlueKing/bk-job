@@ -6,7 +6,7 @@
 ```yaml
 job:
   migration:
-    mysql:
+    mysqlSchema:
       # mysql数据库migrate时使用的管理员用户名，不填默认是root
       adminUsername: ""
       # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
