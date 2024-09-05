@@ -645,6 +645,10 @@ job:
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
   # 各微服务Actuator监控端口
   managePort: 19876
   web:

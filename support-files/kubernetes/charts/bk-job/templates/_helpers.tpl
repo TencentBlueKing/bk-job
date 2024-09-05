@@ -215,6 +215,26 @@ Return the MariaDB root password
 {{- end -}}
 
 {{/*
+Return the migrate mysqlSchema admin username
+*/}}
+{{- define "job.migration.mysqlSchema.adminUsername" -}}
+{{- printf "%s" .Values.job.migration.mysqlSchema.adminUsername | default "root" -}}
+{{- end -}}
+
+{{/*
+Return the migrate mysqlSchema admin password
+*/}}
+{{- define "job.migration.mysqlSchema.adminPassword" -}}
+{{- if .Values.job.migration.mysqlSchema.adminPassword -}}
+    {{- printf "%s" .Values.job.migration.mysqlSchema.adminPassword -}}
+{{- else if .Values.externalMariaDB.rootPassword -}}
+    {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
+{{- else -}}
+    {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the MariaDB secret name
 */}}
 {{- define "job.mariadb.secretName" -}}
