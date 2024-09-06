@@ -252,7 +252,7 @@ build_migration_image(){
 build_sync_bk_api_gateway_image(){
     log "Building sync_bk_api_gateway image, version: ${VERSION}..."
     rm -rf tmp/sync_bk_api_gateway/*
-    cp -r $ROOT_DIR/docs/apidoc/bk-api-gateway/v3/* tmp/sync_bk_api_gateway/
+    cp -r $ROOT_DIR/support-files/bk-api-gateway/v3/* tmp/sync_bk_api_gateway/
     docker build -f migration/bkApiGateway.Dockerfile -t $REGISTRY/job-sync-bk-api-gateway:$VERSION tmp/sync_bk_api_gateway --network=host
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-sync-bk-api-gateway:$VERSION
