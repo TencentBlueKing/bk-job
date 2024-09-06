@@ -15,7 +15,6 @@ title "do something before migrate"
 # 网关维护人员解析成array格式
 BK_APIGW_MAINTAINERS_ARRAY='["'${BK_APIGW_MAINTAINERS//,/\",\"}'"]'
 export BK_APIGW_MAINTAINERS="$BK_APIGW_MAINTAINERS_ARRAY"
-echo "maintainers $BK_APIGW_MAINTAINERS"
 
 # 待同步网关、资源定义文件
 definition_file="/data/definition.yaml"
@@ -36,8 +35,10 @@ apigw-manager.sh fetch_apigw_public_key --gateway-name=${gateway_name} --print >
 
 title "releasing"
 if [ "$gateway_auto_publish" = "true" ]; then
+  echo "Generate versions and automatically publish resources to blueking api gateway"
   call_definition_command_or_exit create_version_and_release_apigw "${definition_file}" --gateway-name=${gateway_name}
 else
+  echo "Only generate version, manually publish after confirmation on the blueking api gateway management page"
   call_definition_command_or_exit create_version_and_release_apigw "${definition_file}" --gateway-name=${gateway_name} --no-pub
 fi
 
