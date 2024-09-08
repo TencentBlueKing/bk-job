@@ -12,104 +12,129 @@
       v-show="isBluekingShow"
       ref="aiRef"
       :loading="isLoading"
-      :messages="messages"
+      :messages="messageList"
+      :scroll-loading="isLoadingMoore"
       @clear="handleClear"
       @close="handleClose"
-      @send="handleSend" />
+      @scroll-load="handleLoadingMore"
+      @send="handleGeneraChat"
+      @stop="handleStop" />
   </div>
 </template>
 <script setup>
-  import { ref, shallowRef } from 'vue';
+  import dayjs from 'dayjs';
+  import { nextTick, ref } from 'vue';
 
   import AiService from '@service/ai';
 
   import eventBus from '@utils/event-bus';
 
-  import AiBlueking from '@blueking/ai-blueking/dist/vue2/index.es.min.js';
+  import AiBlueking, { MessageStatus } from '@blueking/ai-blueking/vue2';
 
   import useCloseAnimate from './use-close-animate';
+  import useStreamContent from './use-stream-content';
 
   import '@blueking/ai-blueking/dist/vue2/style.css';
 
-  let promptParamsMemo = {};
+  console.log('MessageStatus = ', MessageStatus);
 
-  const messages = shallowRef([]);
+  let currentRecordId = 0;
 
   const handleRef = ref();
   const aiRef = ref();
-  const isLoading = ref(false);
   const promptType = ref('');
   const isBluekingShow = ref(false);
   const isHandleShow = ref(true);
+  const isLoadingMoore = ref(false);
 
+  const {
+    messageList,
+    loading: isLoading,
+    fetchContent,
+  } = useStreamContent();
   const runCloseAnimate = useCloseAnimate(aiRef, handleRef, () => {
     isHandleShow.value = true;
   });
 
-  const fetchLatestChatHistoryList = () => {
-    isLoading.value = false;
-    AiService.fetchLatestChatHistoryList()
-      .then((result) => {
-        messages.value = result;
-      })
-      .finally(() => {
-        isLoading.value = false;
-      });
-  };
-  fetchLatestChatHistoryList();
 
   const handleShow = () => {
     promptType.value = 'generaChat';
     isBluekingShow.value = true;
     isHandleShow.value = false;
-  };
-
-
-  const handleCheckScript = () => {
-    isLoading.value = true;
-    AiService.fetchCheckScript(promptParamsMemo)
-      .then(() => fetchLatestChatHistoryList());
-  };
-
-  const handlerAnalyzeError = () => {
-    isLoading.value = true;
-    AiService.fetchAnalyzeError(promptParamsMemo)
-      .then(() => fetchLatestChatHistoryList());
-  };
-
-  const handleGeneraChat = (params) => {
-    isLoading.value = true;
-    AiService.fetchGeneraChat(params)
-      .then(() => {
-        fetchLatestChatHistoryList();
-      });
-  };
-
-  const handleSend = (content) => {
-    if (promptType.value === 'checkScript') {
-      handleCheckScript({
-        ...promptParamsMemo,
-        content,
-      });
-    } if (promptType.value === 'analyzeError') {
-      handlerAnalyzeError({
-        ...promptParamsMemo,
-        content,
-      });
-    }
-    handleGeneraChat({
-      content,
+    nextTick(() => {
+      aiRef.value.$el.querySelector('.ai-messages').scrollTop = Number.MAX_SAFE_INTEGER;
     });
   };
 
+  const handleCheckScript = (params) => {
+    isLoading.value = true;
+    AiService.fetchCheckScript(params)
+      .then((data) => {
+        messageList.value.push({
+          role: 'user',
+          content: data.userInput.content,
+          status: '',
+          time: data.userInput.time,
+        });
+        currentRecordId = data.id;
+        fetchContent(currentRecordId);
+      });
+  };
+
+  const handlerAnalyzeError = (params) => {
+    isLoading.value = true;
+    AiService.fetchAnalyzeError(params)
+      .then((data) => {
+        messageList.value.push({
+          role: 'user',
+          content: data.userInput.content,
+          status: '',
+          time: data.userInput.time,
+        });
+        currentRecordId = data.id;
+        fetchContent(currentRecordId);
+      });
+  };
+
+  const handleGeneraChat = (content) => {
+    isLoading.value = true;
+    messageList.value.push({
+      role: 'user',
+      content,
+      status: '',
+      time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    });
+    AiService.fetchGeneraChat({
+      content,
+    })
+      .then((data) => {
+        currentRecordId = data.id;
+        fetchContent(currentRecordId);
+      });
+  };
+
   const handleClear = () => {
-    AiService.deleteChatHistory();
-    messages.value = [];
+    AiService.deleteChatHistory()
+      .then(() => {
+        messageList.value = [];
+      });
+  };
+
+  const handleStop = () => {
+    AiService.terminateChat({
+      recordId: currentRecordId,
+    });
   };
 
   const handleClose = () => {
     isBluekingShow.value = false;
+    handleStop();
     runCloseAnimate();
+  };
+
+  const handleLoadingMore = () => {
+    isLoadingMoore.value = true;
+    console.log('asdasdasd');
   };
 
 
@@ -119,21 +144,19 @@
 
   eventBus.$on('ai:checkScript', (params) => {
     handleShow();
-    promptParamsMemo = params;
-    promptType.value = 'checkScript';
     handleCheckScript(params);
   });
 
   eventBus.$on('ai:analyzeError', (params) => {
     handleShow();
-    console.log(params);
-    promptParamsMemo = params;
-    promptType.value = 'analyzeError';
     handlerAnalyzeError(params);
   });
 </script>
 <style lang="postcss">
   .jb-ai {
+    position: relative;
+    z-index: 999999;
+
     .hander-btn{
       position: fixed;
       right: 0;
@@ -149,6 +172,23 @@
 
       &:hover{
         transform: translateX(20px);
+      }
+    }
+
+    .ai-modal-header{
+      background: none !important;
+      background-image: linear-gradient(-83deg, #162737 0%, #375B97 100%) !important;
+    }
+
+    .ai-content{
+      background: #E5ECF8 !important;
+
+      .message-content.user{
+        background: #F5F8FF !important;
+
+        &::before{
+          background: #F5F8FF !important;
+        }
       }
     }
   }

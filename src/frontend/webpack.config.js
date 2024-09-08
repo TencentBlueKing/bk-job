@@ -37,6 +37,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 // const StylelintPlugin = require('stylelint-webpack-plugin');
 const figlet = require('figlet');
 const marked = require('marked');
+const includes = require('lodash/includes');
 
 const renderer = new marked.Renderer();
 

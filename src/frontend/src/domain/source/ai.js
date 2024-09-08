@@ -33,27 +33,31 @@ class Ai extends ModuleBase {
     this.module = '/job-analysis/web/ai/';
   }
 
-  getAnalyzeError(params) {
+  getAnalyzeError(params, payload = {}) {
     return Request.post(`${this.path}/analyzeError`, {
       params,
+      payload,
     });
   }
 
-  getCheckScript(params) {
+  getCheckScript(params, payload = {}) {
     return Request.post(`${this.path}/checkScript`, {
       params,
+      payload,
     });
   }
 
-  getConfig(params) {
+  getConfig(params, payload = {}) {
     return Request.get(`${this.path}/config`, {
       params,
+      payload,
     });
   }
 
-  getGeneraChat(params) {
+  getGeneraChat(params, payload = {}) {
     return Request.post(`${this.path}/general/chat`, {
       params,
+      payload,
     });
   }
 
@@ -65,6 +69,17 @@ class Ai extends ModuleBase {
 
   deleteChatHistory() {
     return Request.delete(`${this.path}/clearChatHistory`);
+  }
+
+  getChatStream(params) {
+    return Request.get(`${this.path}/chatStream`, {
+      params,
+    });
+  }
+  terminateChat(params) {
+    return Request.put(`${this.path}/terminateChat`, {
+      params,
+    });
   }
 }
 

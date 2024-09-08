@@ -37,7 +37,8 @@ export default {
   },
 
   fetchConfig(params = {}) {
-    return AiSource.getConfig(params)
+    return AiSource.getConfig(params, {
+    })
       .then(({ data }) => data);
   },
 
@@ -51,16 +52,18 @@ export default {
       .then(({ data }) => data.reduce((result, item) => {
         if (item.userInput.content) {
           result.push({
-            type: 'user',
+            role: 'user',
             content: item.userInput.content,
             status: '',
+            time: item.userInput.time,
           });
         }
 
         result.push({
-          type: 'ai',
+          role: 'assistant',
           content: item.aiAnswer.content,
           status: item.aiAnswer.errorCode === '0' ? 'success' : 'error',
+          time: item.aiAnswer.time,
         });
 
         return result;
@@ -68,5 +71,11 @@ export default {
   },
   deleteChatHistory() {
     return AiSource.deleteChatHistory();
+  },
+  fetchChatStream(params) {
+    return AiSource.getChatStream(params);
+  },
+  terminateChat(params) {
+    return AiSource.terminateChat(params);
   },
 };

@@ -1,7 +1,9 @@
 <template>
   <div
     class="ace-editor-ai-tool"
-    :class="{'is-active': isActive}">
+    :class="{'is-active': isActive}"
+    @click="handleShow"
+    @mouseenter="handleShow">
     <span ref="referRef">
       <img
         src="/static/images/ai.png"
@@ -49,6 +51,11 @@
   const isActive = ref(false);
   const showAi = ref(!localStorage.getItem(editorAiHelperCacheKey));
 
+  let instance;
+  const handleShow = () => {
+    instance && instance.show();
+  };
+
   const handleCheckScript = () => {
     emits('checkScript');
     localStorage.setItem(editorAiHelperCacheKey, true);
@@ -62,12 +69,12 @@
   };
 
   onMounted(() => {
-    const instance = Tippy(referRef.value, {
+    instance = Tippy(referRef.value, {
       theme: 'dark ace-editor-ai-tool',
       interactive: true,
       placement: 'bottom-start',
       content: popoverContentRef.value,
-      trigger: 'click mouseenter',
+      trigger: 'manual',
       arrow: false,
       onShown() {
         isActive.value = true;
