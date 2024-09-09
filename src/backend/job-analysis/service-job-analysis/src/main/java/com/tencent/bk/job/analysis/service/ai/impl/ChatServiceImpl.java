@@ -89,6 +89,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public StreamingResponseBody generateChatStream(String username, Long recordId) {
+        log.info("Start to generateChatStream, username={}, recordId={}", username, recordId);
         // 1.获取最近已完成的聊天记录作为上下文
         List<AIChatHistoryDTO> chatHistoryDTOList = aiChatHistoryService.getLatestFinishedChatHistoryList(
             username,

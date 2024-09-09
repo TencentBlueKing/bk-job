@@ -92,8 +92,7 @@ public class AIAnswerStreamSynchronizer {
             }
             outputStream.close();
         };
-        Consumer<String> partialRespConsumer =
-            messagePart -> messageQueue.offer(MessagePartEvent.normalEvent(messagePart));
+        Consumer<String> partialRespConsumer = new AIMessagePartConsumer(messageQueue);
         return new AsyncConsumerAndProducerPair(partialRespConsumer, streamingResponseBody);
     }
 

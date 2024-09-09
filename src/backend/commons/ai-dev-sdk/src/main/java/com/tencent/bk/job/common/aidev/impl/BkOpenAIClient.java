@@ -26,9 +26,7 @@ package com.tencent.bk.job.common.aidev.impl;
 
 import com.tencent.bk.job.common.aidev.IBkOpenAIClient;
 import com.tencent.bk.job.common.aidev.config.CustomPaasLoginProperties;
-import com.tencent.bk.job.common.aidev.exception.BkOpenAIException;
 import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
@@ -38,18 +36,17 @@ import dev.ai4j.openai4j.chat.ChatCompletionChoice;
 import dev.ai4j.openai4j.chat.ChatCompletionRequest;
 import dev.ai4j.openai4j.chat.ChatCompletionResponse;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonMap;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
+@Slf4j
 @SuppressWarnings("SameParameterValue")
 public class BkOpenAIClient implements IBkOpenAIClient {
 
@@ -135,6 +132,9 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         Consumer<ChatCompletionResponse> partialResponseHandler = response -> {
             List<ChatCompletionChoice> choices = response.choices();
             if (choices == null || choices.isEmpty()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("choices is null or empty");
+                }
                 return;
             }
             String s = choices.get(0).delta().content();
@@ -144,6 +144,9 @@ public class BkOpenAIClient implements IBkOpenAIClient {
                 if (partialRespConsumer != null) {
                     partialRespConsumer.accept(s);
                 }
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Receive: {}", s);
             }
         };
         client.chatCompletion(context, streamRequest)

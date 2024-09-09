@@ -106,11 +106,13 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  Integer start,
                                                                  Integer length) {
         List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
+        List<AIChatRecord> aiChatRecordListInDB =
+            chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList());
         List<AIChatRecord> aiChatRecordList = new ArrayList<>();
-        aiChatRecordList.add(getGreetingRecord());
-        aiChatRecordList.addAll(
-            chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList())
-        );
+        if (start == null || start == 0) {
+            aiChatRecordList.add(getGreetingRecord());
+        }
+        aiChatRecordList.addAll(aiChatRecordListInDB);
         return Response.buildSuccessResp(aiChatRecordList);
     }
 
