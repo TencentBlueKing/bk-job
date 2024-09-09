@@ -99,7 +99,14 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
 
     @Override
     public int terminateAIAnswer(Long historyId) {
-        return aiChatHistoryDAO.updateChatHistoryStatus(historyId, AIChatStatusEnum.TERMINATED.getStatus());
+        return aiChatHistoryDAO.updateChatHistoryStatusAndAIAnswer(
+            historyId,
+            AIChatStatusEnum.TERMINATED.getStatus(),
+            AIChatStatusEnum.TERMINATED.getDescription(),
+            "1",
+            null,
+            System.currentTimeMillis()
+        );
     }
 
     /**

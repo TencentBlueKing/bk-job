@@ -113,10 +113,10 @@ public class ChatServiceImpl implements ChatService {
             consumerAndProducerPair.getConsumer()
         );
         future.whenComplete((content, throwable) -> {
-            aiAnswerStreamSynchronizer.triggerEndEvent();
             // 4.处理AI回复内容
             aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
             futureMap.remove(recordId);
+            aiAnswerStreamSynchronizer.triggerEndEvent();
         });
         futureMap.put(recordId, future);
         return consumerAndProducerPair.getProducer();

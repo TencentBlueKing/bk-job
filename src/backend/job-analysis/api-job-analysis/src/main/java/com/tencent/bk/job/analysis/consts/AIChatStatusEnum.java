@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.analysis.consts;
 
+import lombok.Getter;
+
 /**
  * AI对话状态
  */
@@ -31,24 +33,29 @@ public enum AIChatStatusEnum {
     /**
      * 初始状态
      */
-    INIT(0),
+    INIT(0, "Chat initialized."),
     /**
      * 正在回答
      */
-    REPLYING(1),
+    REPLYING(1, "Chat is replying."),
     /**
      * 已完成
      */
-    FINISHED(2),
+    FINISHED(2, "Chat finished."),
     /**
      * 已终止
      */
-    TERMINATED(3);
+    TERMINATED(3, "Chat terminated.");
 
+    @Getter
     private final int status;
 
-    AIChatStatusEnum(int status) {
+    @Getter
+    private final String description;
+
+    AIChatStatusEnum(int status, String description) {
         this.status = status;
+        this.description = description;
     }
 
     public static AIChatStatusEnum getAIChatStatus(int status) {
@@ -58,10 +65,6 @@ public enum AIChatStatusEnum {
             }
         }
         throw new RuntimeException("Unknown AIChat status " + status);
-    }
-
-    public int getStatus() {
-        return status;
     }
 
 }
