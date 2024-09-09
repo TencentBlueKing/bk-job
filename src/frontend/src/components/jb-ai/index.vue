@@ -14,6 +14,7 @@
       :loading="isLoading"
       :messages="messageList"
       :scroll-loading="isLoadingMoore"
+      :scroll-loading-end="isScrollLoadingEnd"
       @clear="handleClear"
       @close="handleClose"
       @scroll-load="handleLoadingMore"
@@ -46,6 +47,7 @@
   const isBluekingShow = ref(false);
   const isHandleShow = ref(true);
   const isLoadingMoore = ref(false);
+  const isScrollLoadingEnd = ref(false);
 
   const {
     messageList,
