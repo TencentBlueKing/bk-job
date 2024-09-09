@@ -129,7 +129,7 @@ public class WebAIResourceImpl implements WebAIResource {
             "0",
             null,
             aiMessageI18nService.getAIGreetingMessage(),
-            0L
+            System.currentTimeMillis()
         );
     }
 
