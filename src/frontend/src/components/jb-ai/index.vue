@@ -11,10 +11,11 @@
     <ai-blueking
       v-show="isBluekingShow"
       ref="aiRef"
-      :loading="isLoading"
+      :loading="isChatHistoryLoading || isContentLoading"
       :messages="messageList"
-      :scroll-loading="isLoadingMoore"
-      :scroll-loading-end="isScrollLoadingEnd"
+      :scroll-loading="isLoadingMore"
+      :scroll-loading-end="!hasMore"
+      :start-position="startPosition"
       @clear="handleClear"
       @close="handleClose"
       @scroll-load="handleLoadingMore"
@@ -32,6 +33,7 @@
 
   import AiBlueking, { MessageStatus } from '@blueking/ai-blueking/vue2';
 
+  import useChatHistory from './use-chat-history';
   import useCloseAnimate from './use-close-animate';
   import useStreamContent from './use-stream-content';
 
@@ -46,14 +48,27 @@
   const promptType = ref('');
   const isBluekingShow = ref(false);
   const isHandleShow = ref(true);
-  const isLoadingMoore = ref(false);
-  const isScrollLoadingEnd = ref(false);
+
+  const startPosition = {
+    top: Math.max(window.innerHeight - 600, 0),
+    bottom: 0,
+    left: window.innerWidth - window.innerWidth * 0.75,
+    right: 0,
+  };
 
   const {
     messageList,
-    loading: isLoading,
+    loading: isChatHistoryLoading,
+    loadingMore: isLoadingMore,
+    hasMore: hasMore,
+    loadMore: handleLoadingMore,
+  } = useChatHistory();
+
+  const {
+    loading: isContentLoading,
     fetchContent,
-  } = useStreamContent();
+  } = useStreamContent(messageList);
+
   const runCloseAnimate = useCloseAnimate(aiRef, handleRef, () => {
     isHandleShow.value = true;
   });
@@ -69,7 +84,7 @@
   };
 
   const handleCheckScript = (params) => {
-    isLoading.value = true;
+    isContentLoading.value = true;
     AiService.fetchCheckScript(params)
       .then((data) => {
         messageList.value.push({
@@ -84,7 +99,7 @@
   };
 
   const handlerAnalyzeError = (params) => {
-    isLoading.value = true;
+    isContentLoading.value = true;
     AiService.fetchAnalyzeError(params)
       .then((data) => {
         messageList.value.push({
@@ -99,7 +114,7 @@
   };
 
   const handleGeneraChat = (content) => {
-    isLoading.value = true;
+    isContentLoading.value = true;
     messageList.value.push({
       role: 'user',
       content,
@@ -115,12 +130,6 @@
       });
   };
 
-  const handleClear = () => {
-    AiService.deleteChatHistory()
-      .then(() => {
-        messageList.value = [];
-      });
-  };
 
   const handleStop = () => {
     AiService.terminateChat({
@@ -128,15 +137,18 @@
     });
   };
 
-  const handleClose = () => {
-    isBluekingShow.value = false;
+  const handleClear = () => {
     handleStop();
-    runCloseAnimate();
+    AiService.deleteChatHistory()
+      .then(() => {
+        messageList.value = [];
+      });
   };
 
-  const handleLoadingMore = () => {
-    isLoadingMoore.value = true;
-    console.log('asdasdasd');
+
+  const handleClose = () => {
+    isBluekingShow.value = false;
+    runCloseAnimate();
   };
 
 
@@ -176,6 +188,10 @@
         transform: translateX(20px);
       }
     }
+  }
+
+  .ai-modal{
+    box-shadow: 0 0 30px 8px #0000001a !important;
 
     .ai-modal-header{
       background: none !important;
@@ -194,4 +210,6 @@
       }
     }
   }
+
+
 </style>

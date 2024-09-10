@@ -229,8 +229,11 @@
             this.isRunning = !finished;
             this.logContent = _.trim(logContent || '', '\n');
             this.$nextTick(() => {
-              this.editor.setValue(this.logContent);
+              this.editor.setValue(logContent);
               this.editor.clearSelection();
+              setTimeout(() => {
+                document.body.querySelector('.ace_layer.ace_text-layer').appendChild(this.$refs.aiExtendTool);
+              }, 1000);
             });
             // 当前主机执行结束
             if (!finished) {
@@ -269,7 +272,6 @@
           this.isWillAutoScroll = height + scrollTop + 30 >= maxHeight;
         });
         this.editor = editor;
-        document.body.querySelector('.ace_layer.ace_text-layer').appendChild(this.$refs.aiExtendTool);
 
         this.$once('hook:beforeDestroy', () => {
           editor.destroy();
@@ -299,7 +301,7 @@
             executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
             executeCount: this.executeCount,
             batch: this.taskExecuteDetail.batch,
-            content: 'string',
+            content: this.editor.getValue(),
           });
         });
       },
@@ -343,8 +345,8 @@
           const { pageX, pageY } = event;
           this.aiExtendToolStyle = {
             display: 'flex',
-            top: `${pageY - 40 - contentBoxTop + parseInt(transformY, 10)}px`,
-            left: `${pageX + 4 - contentBoxLeft}px`,
+            top: `${Math.max(pageY - 40 - contentBoxTop + parseInt(transformY, 10), 8)}px`,
+            left: `${Math.max(pageX + 4 - contentBoxLeft, 8)}px`,
           };
         });
       },

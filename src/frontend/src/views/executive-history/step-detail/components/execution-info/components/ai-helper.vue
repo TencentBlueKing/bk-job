@@ -13,13 +13,13 @@
     <div
       ref="popoverContentRef"
       style="position: relative; width: 300px; padding: 12px 14px 12px 22px; font-size: 14px; line-height: 22px; color: #63656E;">
-      <div>{{ $t('日志文本过长，超出 AI 解析范围，请框选部分日志，再次出发点小鲸分析。') }}</div>
+      <div>{{ $t('history.日志文本过长，超出 AI 解析范围，请框选部分日志，再次出发点小鲸分析。') }}</div>
       <div style="margin-top: 16px;text-align: right;">
         <bk-button
           size="small"
           theme="primary"
           @click="handleHide">
-          {{ $t('确定') }}
+          {{ $t('history.确定') }}
         </bk-button>
       </div>
       <icon
@@ -33,7 +33,7 @@
         <img
           src="/static/images/blueking.png"
           style="width: 36px">
-        <span class="ml-8">{{ $t('报错日志看不懂？来提问小鲸吧～') }}</span>
+        <span class="ml-8">{{ $t('history.报错日志看不懂？来提问小鲸吧～') }}</span>
       </div>
     </div>
   </div>

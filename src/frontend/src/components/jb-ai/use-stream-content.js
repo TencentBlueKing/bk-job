@@ -1,23 +1,10 @@
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
-import AiService from '@service/ai';
 
-export default () => {
+export default (messageList) => {
   const loading = ref(false);
-  const messageList = ref([]);
 
   const apiPath = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-analysis/web/ai/scope/${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
-
-  const fetchLatestChatHistoryList = () => {
-    loading.value = true;
-    AiService.fetchLatestChatHistoryList()
-      .then((result) => {
-        messageList.value = result;
-      })
-      .finally(() => {
-        loading.value = false;
-      });
-  };
 
   const fetchContent = (recordId) => {
     loading.value = true;
@@ -38,61 +25,62 @@ export default () => {
         'Content-Type': 'application/json',
       },
     })
-      .then(response => new Promise((resolve, reject) => {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP 错误！状态：${response.status}`);
+        }
 
-        latestChatMessage.content = '';
+        return new Promise((resolve, reject) => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder('utf-8');
 
-        let fragment = '';
-        // 递归函数来读取数据
-        const read = () => {
-          reader.read()
-            .then(({ done, value }) => {
-              if (done) {
-                latestChatMessage.status = 'success';
-                return resolve();
-              }
+          latestChatMessage.content = '';
 
-              // 解码二进制数据块并添加到内容字符串
-              const chunk = `${fragment}${decoder.decode(value, { stream: true })}`;
+          let fragment = '';
+          // 递归函数来读取数据
+          const read = () => {
+            reader.read()
+              .then(({ done, value }) => {
+                if (done) {
+                  latestChatMessage.status = 'success';
+                  latestChatMessage.content = `${latestChatMessage.content}`;
+                  return resolve();
+                }
 
-              chunk.split('\n')
-                .forEach((item) => {
-                  try {
-                    latestChatMessage.content += (item ? JSON.parse(item).data.content : '');
-                  } catch {
-                    fragment += item;
-                  }
-                });
+                // 解码二进制数据块并添加到内容字符串
+                const chunk = `${fragment}${decoder.decode(value, { stream: true })}`;
 
-              // 递归读取下一块数据
-              read();
-            })
-            .catch(error => reject(error));
-        };
+                chunk.split('\n')
+                  .forEach((item) => {
+                    try {
+                      latestChatMessage.content += (item ? JSON.parse(item).data.content : '');
+                    } catch {
+                      fragment += item;
+                    }
+                  });
 
-        // 开始读取流
-        read();
-      }))
-      .then(() => {
-        fetchLatestChatHistoryList();
+                // 递归读取下一块数据
+                read();
+              })
+              .catch(error => reject(error));
+          };
+
+          // 开始读取流
+          read();
+        });
       })
       .catch((error) => {
         console.error('Fetch error:', error);
+        latestChatMessage.content = '内容生成失败！';
         latestChatMessage.status = 'error';
-        messageList.value = [...messageList.value];
+      })
+      .finally(() => {
         loading.value = false;
       });
   };
 
-  onMounted(() => {
-    fetchLatestChatHistoryList();
-  });
-
   return {
     loading,
-    messageList,
     fetchContent,
   };
 };
