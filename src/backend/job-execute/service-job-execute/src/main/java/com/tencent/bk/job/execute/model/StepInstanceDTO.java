@@ -319,6 +319,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     public ServiceStepInstanceDTO toServiceStepInstanceDTO() {
         ServiceStepInstanceDTO serviceStepInstanceDTO = new ServiceStepInstanceDTO();
         serviceStepInstanceDTO.setId(id);
+        serviceStepInstanceDTO.setName(name);
         serviceStepInstanceDTO.setExecuteType(executeType.getValue());
         serviceStepInstanceDTO.setStatus(status.getValue());
         serviceStepInstanceDTO.setCreateTime(createTime);

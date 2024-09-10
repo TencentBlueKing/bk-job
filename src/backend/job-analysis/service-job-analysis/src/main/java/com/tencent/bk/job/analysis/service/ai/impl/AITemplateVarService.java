@@ -68,4 +68,8 @@ public class AITemplateVarService {
     public String getBkHelperLinkPlaceHolder() {
         return getTemplateVarPlaceHolder("bk_helper_link");
     }
+
+    public String getStepInstanceNamePlaceHolder() {
+        return getTemplateVarPlaceHolder("step_instance_name");
+    }
 }

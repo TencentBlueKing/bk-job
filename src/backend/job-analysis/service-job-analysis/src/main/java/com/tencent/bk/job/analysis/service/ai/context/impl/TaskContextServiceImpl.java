@@ -25,7 +25,6 @@
 package com.tencent.bk.job.analysis.service.ai.context.impl;
 
 import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
-import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
@@ -37,7 +36,6 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.execute.api.inner.ServiceStepInstanceResource;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.model.inner.ServiceScriptStepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +83,7 @@ public class TaskContextServiceImpl implements TaskContextService {
     private TaskContext buildContextForScriptTask(ServiceStepInstanceDTO stepInstance) {
         ServiceScriptStepInstanceDTO scriptStepInstance = stepInstance.getScriptStepInstance();
         ScriptTaskContext scriptTaskContext = new ScriptTaskContext(
+            stepInstance.getName(),
             scriptStepInstance.getScriptType(),
             scriptStepInstance.getScriptContent(),
             scriptStepInstance.getScriptParam()

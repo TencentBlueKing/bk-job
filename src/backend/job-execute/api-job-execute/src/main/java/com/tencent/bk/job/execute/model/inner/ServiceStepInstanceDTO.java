@@ -36,6 +36,9 @@ public class ServiceStepInstanceDTO {
     @ApiModelProperty("步骤实例ID")
     private Long id;
 
+    @ApiModelProperty("步骤实例名称")
+    private String name;
+
     @ApiModelProperty("步骤类型")
     private Integer executeType;
 

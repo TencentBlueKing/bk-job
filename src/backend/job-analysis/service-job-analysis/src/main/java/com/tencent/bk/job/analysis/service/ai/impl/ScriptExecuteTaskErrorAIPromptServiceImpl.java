@@ -60,14 +60,16 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
     public AIPromptDTO getPrompt(ScriptTaskContext context, String errorContent) {
         String templateCode = PromptTemplateCodeEnum.ANALYZE_SCRIPT_EXECUTE_TASK_ERROR.name();
         AIPromptTemplateDTO promptTemplate = getPromptTemplate(templateCode);
+        String renderedRawPrompt = renderPrompt(promptTemplate.getRawPrompt(), context, errorContent);
         String renderedPrompt = renderPrompt(promptTemplate.getTemplate(), context, errorContent);
-        return new AIPromptDTO(promptTemplate.getRawPrompt(), renderedPrompt);
+        return new AIPromptDTO(renderedRawPrompt, renderedPrompt);
     }
 
     private String renderPrompt(String promptTemplateContent,
                                 ScriptTaskContext context,
                                 String errorContent) {
         return promptTemplateContent
+            .replace(aiTemplateVarService.getStepInstanceNamePlaceHolder(), context.getName())
             .replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink())
             .replace(aiTemplateVarService.getScriptTypePlaceHolder(), ScriptTypeEnum.getName(context.getScriptType()))
             .replace(aiTemplateVarService.getScriptParamsPlaceHolder(), context.getScriptParams())

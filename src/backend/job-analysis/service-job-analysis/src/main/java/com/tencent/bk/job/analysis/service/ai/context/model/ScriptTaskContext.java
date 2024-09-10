@@ -31,6 +31,10 @@ import lombok.Data;
 @Data
 public class ScriptTaskContext {
     /**
+     * 脚本任务名称
+     */
+    private String name;
+    /**
      * 脚本类型
      */
     private Integer scriptType;

@@ -22,24 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.inner;
+package com.tencent.bk.job.common.aidev.impl;
 
-import io.swagger.annotations.ApiModel;
-import lombok.Data;
+import dev.ai4j.openai4j.DefaultOpenAiClient;
+import dev.ai4j.openai4j.OpenAiClient;
+import dev.ai4j.openai4j.spi.OpenAiClientBuilderFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
-@ApiModel("文件步骤实例")
-@Data
-public class ServiceFileStepInstanceDTO {
-
-    /**
-     * 文件传输的源文件
-     */
-    private List<ServiceFileSourceDTO> fileSourceList;
-
-    /**
-     * 执行目标
-     */
-    protected ServiceExecuteTargetDTO targetExecuteObjects;
+@Slf4j
+public class JobOpenAiClientBuilderFactory implements OpenAiClientBuilderFactory {
+    @Override
+    public OpenAiClient.Builder<DefaultOpenAiClient, DefaultOpenAiClient.Builder> get() {
+        log.info("Creating a new instance of the DefaultOpenAiClient.Builder");
+        return DefaultOpenAiClient.builder();
+    }
 }

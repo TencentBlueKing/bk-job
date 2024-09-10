@@ -44,6 +44,10 @@ import java.util.Map;
 @Data
 public class FileTaskContext {
     /**
+     * 文件任务名称
+     */
+    private String name;
+    /**
      * 文件分发任务实例
      */
     ServiceFileStepInstanceDTO fileStepInstance;
@@ -54,7 +58,10 @@ public class FileTaskContext {
 
     Map<String, ServiceExecuteObject> executeObjectMap;
 
-    public FileTaskContext(ServiceFileStepInstanceDTO fileStepInstance, FileTaskErrorSourceResult errorSourceResult) {
+    public FileTaskContext(String name,
+                           ServiceFileStepInstanceDTO fileStepInstance,
+                           FileTaskErrorSourceResult errorSourceResult) {
+        this.name = name;
         this.fileStepInstance = fileStepInstance;
         this.errorSourceResult = errorSourceResult;
     }
