@@ -38,6 +38,14 @@ public interface AIChatHistoryDAO {
     Long insertAIChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
+     * 判断用户是否存在聊天记录
+     *
+     * @param username 用户名
+     * @return 是否存在聊天记录
+     */
+    boolean existsChatHistory(String username);
+
+    /**
      * 设置聊天记录状态
      *
      * @param historyId AI聊天记录ID

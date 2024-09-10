@@ -57,6 +57,14 @@ public interface AIChatHistoryService {
     Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
+     * 判断用户是否存在聊天记录
+     *
+     * @param username 用户名
+     * @return 是否存在聊天记录
+     */
+    boolean existsChatHistory(String username);
+
+    /**
      * 更新聊天记录状态为正在回答中
      *
      * @param historyId AI聊天记录ID

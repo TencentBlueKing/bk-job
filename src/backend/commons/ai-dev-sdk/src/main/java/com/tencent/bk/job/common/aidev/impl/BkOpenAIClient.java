@@ -26,22 +26,35 @@ package com.tencent.bk.job.common.aidev.impl;
 
 import com.tencent.bk.job.common.aidev.IBkOpenAIClient;
 import com.tencent.bk.job.common.aidev.config.CustomPaasLoginProperties;
+import com.tencent.bk.job.common.aidev.metrics.MetricsConstants;
 import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import dev.ai4j.openai4j.OpenAiClient;
 import dev.ai4j.openai4j.chat.ChatCompletionChoice;
 import dev.ai4j.openai4j.chat.ChatCompletionRequest;
 import dev.ai4j.openai4j.chat.ChatCompletionResponse;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.helpers.MessageFormatter;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.util.Collections.singletonMap;
@@ -51,7 +64,12 @@ import static java.util.Collections.singletonMap;
 public class BkOpenAIClient implements IBkOpenAIClient {
 
     private static final String URI_LLM_V1 = "/appspace/gateway/llm/v1/";
+    // 存储于内存中的最大消息长度：5MB
+    private static final int IN_MEMORY_MAX_MESSAGE_SIZE = 5 * 1024 * 1024;
+    // 最大日志长度：500KB
+    private static final int MAX_LOG_LENGTH = 500 * 1024;
 
+    private final MeterRegistry meterRegistry;
     private final AppProperties appProperties;
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
@@ -62,6 +80,7 @@ public class BkOpenAIClient implements IBkOpenAIClient {
                           CustomPaasLoginProperties customPaasLoginProperties,
                           BkApiGatewayProperties bkApiGatewayProperties) {
         bkAIDevUrl = getBkAIDevUrlSafely(bkApiGatewayProperties);
+        this.meterRegistry = meterRegistry;
         this.appProperties = appProperties;
         this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
         this.customPaasLoginProperties = customPaasLoginProperties;
@@ -126,35 +145,99 @@ public class BkOpenAIClient implements IBkOpenAIClient {
             .build();
         OpenAiClient.OpenAiClientContext context = new OpenAiClient.OpenAiClientContext();
         ChatCompletionRequest request = buildRequest(messageHistoryList, userInput);
+        String username = JobContextUtil.getUsername();
+        if (log.isDebugEnabled()) {
+            String requestStr = JsonUtils.toNonEmptyJson(request);
+            log.debug(
+                "username={}, request={}, length={}",
+                username,
+                getLimitedLog(requestStr),
+                requestStr.length()
+            );
+        }
         ChatCompletionRequest streamRequest = ChatCompletionRequest.builder().from(request).stream(true).build();
         CompletableFuture<String> future = new CompletableFuture<>();
         StringBuilder responseBuilder = new StringBuilder();
-        Consumer<ChatCompletionResponse> partialResponseHandler = response -> {
+        Consumer<ChatCompletionResponse> partialResponseHandler = getPartialResponseHandler(
+            username,
+            partialRespConsumer,
+            responseBuilder
+        );
+        long startTime = System.currentTimeMillis();
+        client.chatCompletion(context, streamRequest)
+            .onPartialResponse(partialResponseHandler)
+            .onComplete(() -> {
+                recordAIRespAllBlockDelay(
+                    System.currentTimeMillis() - startTime,
+                    Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_SUCCEED))
+                );
+                String respStr = responseBuilder.toString();
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        "username={}, response={}, length={}",
+                        username,
+                        getLimitedLog(respStr),
+                        respStr.length()
+                    );
+                }
+                future.complete(respStr);
+            })
+            .onError(throwable -> {
+                recordAIRespAllBlockDelay(
+                    System.currentTimeMillis() - startTime,
+                    Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_ERROR))
+                );
+                String message = MessageFormatter.format(
+                    "Fail to get stream response, username={}",
+                    username
+                ).getMessage();
+                log.warn(message, throwable);
+                future.completeExceptionally(throwable);
+            }).execute();
+        return future;
+    }
+
+    @NotNull
+    private Consumer<ChatCompletionResponse> getPartialResponseHandler(String username,
+                                                                       Consumer<String> partialRespConsumer,
+                                                                       StringBuilder responseBuilder) {
+        final AtomicInteger bytesReceived = new AtomicInteger(0);
+        final AtomicBoolean firstBlockRecorded = new AtomicBoolean(false);
+        long startTime = System.currentTimeMillis();
+        return response -> {
             List<ChatCompletionChoice> choices = response.choices();
             if (choices == null || choices.isEmpty()) {
                 if (log.isDebugEnabled()) {
-                    log.debug("choices is null or empty");
+                    log.debug("username={}, choices is null or empty", username);
                 }
                 return;
             }
-            String s = choices.get(0).delta().content();
-            if (s != null) {
-                responseBuilder.append(s);
-                // TODO:限制最大消息内容
+            String content = choices.get(0).delta().content();
+            if (content != null) {
+                if (!firstBlockRecorded.get()) {
+                    recordAIRespFirstBlockDelay(System.currentTimeMillis() - startTime);
+                    firstBlockRecorded.set(true);
+                }
+                if (bytesReceived.get() > IN_MEMORY_MAX_MESSAGE_SIZE) {
+                    log.warn(
+                        "username={}, ignore content: {}, bytesReceived={}, exceed max message size {}",
+                        username,
+                        content,
+                        bytesReceived.get(),
+                        IN_MEMORY_MAX_MESSAGE_SIZE
+                    );
+                    return;
+                }
+                responseBuilder.append(content);
+                bytesReceived.addAndGet(content.getBytes(StandardCharsets.UTF_8).length);
                 if (partialRespConsumer != null) {
-                    partialRespConsumer.accept(s);
+                    partialRespConsumer.accept(content);
                 }
             }
             if (log.isDebugEnabled()) {
-                log.debug("Receive: {}", s);
+                log.debug("username={}, receive content: {}", username, content);
             }
         };
-        client.chatCompletion(context, streamRequest)
-            .onPartialResponse(partialResponseHandler)
-            .onComplete(() -> future.complete(responseBuilder.toString()))
-            .onError(future::completeExceptionally)
-            .execute();
-        return future;
     }
 
     private ChatCompletionRequest buildRequest(List<AIDevMessage> messageHistoryList, String userInput) {
@@ -171,5 +254,30 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         }
         builder.addUserMessage(userInput);
         return builder.build();
+    }
+
+    private String getLimitedLog(String rawLog) {
+        return StringUtil.substring(rawLog, MAX_LOG_LENGTH);
+    }
+
+    private void recordAIRespFirstBlockDelay(long delayMillis) {
+        Timer.builder(MetricsConstants.NAME_AI_RESPONSE_DELAY_FIRST_BLOCK)
+            .description("AI Response First Block Delay")
+            .publishPercentileHistogram(true)
+            .minimumExpectedValue(Duration.ofMillis(500))
+            .maximumExpectedValue(Duration.ofSeconds(30L))
+            .register(meterRegistry)
+            .record(delayMillis, TimeUnit.MILLISECONDS);
+    }
+
+    private void recordAIRespAllBlockDelay(long delayMillis, Iterable<Tag> tags) {
+        Timer.builder(MetricsConstants.NAME_AI_RESPONSE_DELAY_ALL_BLOCK)
+            .description("AI Response All Block Delay")
+            .tags(tags)
+            .publishPercentileHistogram(true)
+            .minimumExpectedValue(Duration.ofSeconds(1))
+            .maximumExpectedValue(Duration.ofSeconds(180L))
+            .register(meterRegistry)
+            .record(delayMillis, TimeUnit.MILLISECONDS);
     }
 }

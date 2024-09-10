@@ -81,6 +81,11 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     @Override
+    public boolean existsChatHistory(String username) {
+        return aiChatHistoryDAO.existsChatHistory(username);
+    }
+
+    @Override
     public int setAIAnswerReplying(Long historyId) {
         return aiChatHistoryDAO.updateChatHistoryStatus(historyId, AIChatStatusEnum.REPLYING.getStatus());
     }

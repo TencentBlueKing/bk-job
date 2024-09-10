@@ -29,15 +29,18 @@ import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.UserInput;
+import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * AI对话历史记录
  */
+@Slf4j
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -136,5 +139,9 @@ public class AIChatHistoryDTO {
 
     public boolean isInitOrReplying() {
         return status == AIChatStatusEnum.INIT.getStatus() || status == AIChatStatusEnum.REPLYING.getStatus();
+    }
+
+    public String getLimitedAIAnswer() {
+        return AIAnswerUtil.getLimitedAIAnswer(aiAnswer);
     }
 }

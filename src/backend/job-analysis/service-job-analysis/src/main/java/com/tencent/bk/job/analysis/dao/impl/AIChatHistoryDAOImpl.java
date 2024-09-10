@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.tables.AiChatHistory;
+import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.mysql.dao.BaseDAOImpl;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -89,7 +90,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                 aiChatHistoryDTO.getPromptTemplateId(),
                 aiChatHistoryDTO.getAiInput(),
                 JooqDataTypeUtil.getByteFromInteger(aiChatHistoryDTO.getStatus()),
-                aiChatHistoryDTO.getAiAnswer(),
+                aiChatHistoryDTO.getLimitedAIAnswer(),
                 aiChatHistoryDTO.getErrorCode(),
                 aiChatHistoryDTO.getErrorMessage(),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getStartTime()),
@@ -105,6 +106,14 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             log.error(sql);
             throw e;
         }
+    }
+
+    @Override
+    public boolean existsChatHistory(String username) {
+        Collection<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.USERNAME.eq(username));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        return dslContext.fetchExists(defaultTable, conditions);
     }
 
     @Override
@@ -124,7 +133,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                                                   Long aiAnswerTime) {
         return dslContext.update(defaultTable)
             .set(defaultTable.STATUS, JooqDataTypeUtil.getByteFromInteger(status))
-            .set(defaultTable.AI_ANSWER, aiAnswer)
+            .set(defaultTable.AI_ANSWER, AIAnswerUtil.getLimitedAIAnswer(aiAnswer))
             .set(defaultTable.ERROR_CODE, errorCode)
             .set(defaultTable.ERROR_MESSAGE, errorMessage)
             .set(defaultTable.ANSWER_TIME, JooqDataTypeUtil.buildULong(aiAnswerTime))

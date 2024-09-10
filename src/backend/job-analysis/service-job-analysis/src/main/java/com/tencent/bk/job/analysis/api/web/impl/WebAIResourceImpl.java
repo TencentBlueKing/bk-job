@@ -33,10 +33,8 @@ import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
 import com.tencent.bk.job.analysis.model.web.req.TerminateChatReq;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
-import com.tencent.bk.job.analysis.model.web.resp.UserInput;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
@@ -56,7 +54,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -105,32 +102,33 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  String scopeId,
                                                                  Integer start,
                                                                  Integer length) {
-        List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
-        List<AIChatRecord> aiChatRecordListInDB =
-            chatRecordList.stream().map(AIChatHistoryDTO::toAIChatRecord).collect(Collectors.toList());
-        List<AIChatRecord> aiChatRecordList = new ArrayList<>();
-        if (start == null || start == 0) {
-            aiChatRecordList.add(getGreetingRecord());
+        if (!aiChatHistoryService.existsChatHistory(username)) {
+            AIChatHistoryDTO greetingChatHistory = getGreetingChatHistory(username);
+            Long id = aiChatHistoryService.insertChatHistory(greetingChatHistory);
+            log.debug("Greeting chat history created, username={}, id={}", username, id);
         }
-        aiChatRecordList.addAll(aiChatRecordListInDB);
+        List<AIChatHistoryDTO> chatRecordList = chatService.getLatestChatHistoryList(username, start, length);
+        List<AIChatRecord> aiChatRecordList = chatRecordList.stream()
+            .map(AIChatHistoryDTO::toAIChatRecord)
+            .collect(Collectors.toList());
         return Response.buildSuccessResp(aiChatRecordList);
     }
 
-    private AIChatRecord getGreetingRecord() {
-        AIChatRecord greetingRecord = new AIChatRecord();
-        greetingRecord.setUserInput(new UserInput("", 0L));
-        greetingRecord.setAiAnswer(getGreetingAIAnswer());
-        greetingRecord.setStatus(AIChatStatusEnum.FINISHED.getStatus());
-        return greetingRecord;
-    }
-
-    private AIAnswer getGreetingAIAnswer() {
-        return new AIAnswer(
-            "0",
-            null,
-            aiMessageI18nService.getAIGreetingMessage(),
-            System.currentTimeMillis()
-        );
+    private AIChatHistoryDTO getGreetingChatHistory(String username) {
+        AIChatHistoryDTO greetingChatHistory = new AIChatHistoryDTO();
+        greetingChatHistory.setUsername(username);
+        greetingChatHistory.setUserInput("");
+        greetingChatHistory.setStartTime(System.currentTimeMillis());
+        greetingChatHistory.setPromptTemplateId(null);
+        greetingChatHistory.setAiInput("");
+        greetingChatHistory.setStatus(AIChatStatusEnum.FINISHED.getStatus());
+        greetingChatHistory.setAiAnswer(aiMessageI18nService.getAIGreetingMessage());
+        greetingChatHistory.setAnswerTime(System.currentTimeMillis());
+        greetingChatHistory.updateTotalTime();
+        greetingChatHistory.setErrorCode("0");
+        greetingChatHistory.setErrorMessage(null);
+        greetingChatHistory.setIsDeleted(false);
+        return greetingChatHistory;
     }
 
     @Override

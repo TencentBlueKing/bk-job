@@ -35,6 +35,7 @@ import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -90,12 +92,18 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public StreamingResponseBody generateChatStream(String username, Long recordId) {
         log.info("Start to generateChatStream, username={}, recordId={}", username, recordId);
-        // 1.获取最近已完成的聊天记录作为上下文
+        // 1.获取最近已完成的聊天记录
         List<AIChatHistoryDTO> chatHistoryDTOList = aiChatHistoryService.getLatestFinishedChatHistoryList(
             username,
             0,
             5
         );
+        // 过滤出输入输出均不为空的聊天记录作为上下文
+        chatHistoryDTOList = chatHistoryDTOList.stream().filter(aiChatHistoryDTO -> {
+            String userInput = aiChatHistoryDTO.getUserInput();
+            String aiAnswer = aiChatHistoryDTO.getAiAnswer();
+            return StringUtils.isNotBlank(userInput) && StringUtils.isNotBlank(aiAnswer);
+        }).collect(Collectors.toList());
         chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
         // 2.查出指定的聊天记录
         AIChatHistoryDTO currentChatHistoryDTO = getChatHistory(username, recordId);
