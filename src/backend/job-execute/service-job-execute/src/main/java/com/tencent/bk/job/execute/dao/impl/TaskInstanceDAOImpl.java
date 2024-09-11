@@ -232,14 +232,6 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        int count = 0;
-        if (baseSearchCondition.isCountPageTotal()) {
-            count = getPageTaskInstanceCount(taskQuery);
-            if (count == 0) {
-                return PageData.emptyPageData(start, length);
-            }
-        }
-
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
         Result<?> result = noShardingDSLContext.select(ALL_FIELDS)
@@ -248,6 +240,12 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
+
+        int count = 0;
+        if (baseSearchCondition.isCountPageTotal()) {
+            count = getPageTaskInstanceCount(taskQuery);
+        }
+
         return buildTaskInstancePageData(start, length, count, result);
     }
 
@@ -281,6 +279,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
+
         return buildTaskInstancePageData(start, length, count, result);
     }
 

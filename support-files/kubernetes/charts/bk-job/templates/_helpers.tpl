@@ -144,6 +144,13 @@ Return the proper job-assemble image name
 {{- end -}}
 
 {{/*
+Return the proper job-sync-bk-api-gateway image name
+*/}}
+{{- define "job-sync-bk-api-gateway.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.bkApiGatewayConfig.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
@@ -204,6 +211,26 @@ Return the MariaDB root password
     {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
 {{- else -}}
     {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the migrate mysqlSchema admin username
+*/}}
+{{- define "job.migration.mysqlSchema.adminUsername" -}}
+{{- printf "%s" .Values.job.migration.mysqlSchema.adminUsername | default "root" -}}
+{{- end -}}
+
+{{/*
+Return the migrate mysqlSchema admin password
+*/}}
+{{- define "job.migration.mysqlSchema.adminPassword" -}}
+{{- if .Values.job.migration.mysqlSchema.adminPassword -}}
+    {{- printf "%s" .Values.job.migration.mysqlSchema.adminPassword -}}
+{{- else if .Values.externalMariaDB.rootPassword -}}
+    {{- printf "%s" .Values.externalMariaDB.rootPassword -}}
+{{- else -}}
+    {{- printf "%s" .Values.mariadb.auth.rootPassword -}}
 {{- end -}}
 {{- end -}}
 

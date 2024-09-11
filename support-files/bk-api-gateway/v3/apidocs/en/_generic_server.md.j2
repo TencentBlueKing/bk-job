@@ -1,0 +1,28 @@
+##### server
+
+| Fields             | Type  | Required | Description                                                                                                                                                                                              |
+|--------------------|-------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| host_id_list       | array | no       | Host ID list                                                                                                                                                                                             |
+| ip_list            | array | no       | Static IP list, see ip for definition. ***Deprecated, it is recommended to use the host_id_list parameter***; if host_id_list and ip_list exist at the same time, the ip_list parameter will be ignored. |
+| dynamic_group_list | array | no       | Dynamic grouping list, see dynamic_group for definition                                                                                                                                                  |
+| topo_node_list     | array | no       | Dynamic topo node list, see topo_node for definition                                                                                                                                                     |
+
+##### ip
+
+| Fields      | Type   | Required | Description |
+|-------------|--------|----------|-------------|
+| bk_cloud_id | long   | yes      | BK-Net ID   |
+| ip          | string | yes      | IP Address  |
+
+##### dynamic_group
+
+| Fields | Type   | Required | Description              |
+|--------|--------|----------|--------------------------|
+| id     | string | yes      | CMDB dynamic grouping ID |
+
+##### topo_node_list
+
+| Fields    | Type   | Required | Description                                                                                |
+|-----------|--------|----------|--------------------------------------------------------------------------------------------|
+| id        | long   | yes      | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
+| node_type | string | yes      | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |

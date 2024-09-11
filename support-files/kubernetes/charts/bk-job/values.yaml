@@ -649,6 +649,10 @@ job:
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
   # 各微服务Actuator监控端口
   managePort: 19876
   web:
@@ -1544,6 +1548,45 @@ migrationInit:
     tag: 1.34.0
     # 镜像拉取策略
     pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+## 蓝鲸网关配置，接入方式：chart + 自定义镜像
+bkApiGatewayConfig:
+  # 是否自动把API注册到蓝鲸网关
+  sync: false
+  # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
+  autoPublish: true
+  # 是否开启apigw jwt认证
+  enabled: true
+  jwtPublicKey:
+    # jwtPublicKey获取策略，重试：retry, 终止启动：abort
+    failPolicy: "retry"
+  # 接入的网关名称，蓝鲸官方网关都是bk-开头
+  gatewayName: "bk-job"
+  # 同步蓝鲸网关url
+  syncUrl: "http://bkapi.example.com/api/{api_name}"
+  # 蓝鲸网关接口url
+  apiUrl: "http://bkapi.example.com/api/{api_name}/{env}"
+  # 接入环境
+  stage: "prod"
+  # 接入的api资源目录, 默认是/data/apidocs/
+  resourceDir: "/data/apidocs/"
+  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2"
+  maintainers: "admin"
+  image:
+    # 镜像拉取仓库根地址
+    registry: hub.bktencent.com
+    # 镜像拉取仓库组织与镜像名称
+    repository: blueking/job-sync-bk-api-gateway
+    # 镜像标签
+    tag: "{{APP_VERSION}}"
+    # 镜像拉取策略
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  # 任务资源限制
   resources:
     limits:
       cpu: 500m
