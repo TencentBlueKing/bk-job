@@ -10,7 +10,7 @@ echo "===========EXEC========"
 mysql --version
 
 function checkMysql(){
-  c=$(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD -e "select 1"|grep 1|wc -l)
+  c=$(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD -e "select 1"|grep 1|wc -l)
   echo "c=$c"
   if [[ "$c" == "2" ]];then
     return 0
@@ -30,7 +30,7 @@ function migrateMySQL(){
   done
 
   for sql in "${ALL_SQL[@]}"; do
-    mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -uroot -p$BK_JOB_MYSQL_ROOT_PASSWORD < $sql
+    mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD < $sql
   done
 }
 

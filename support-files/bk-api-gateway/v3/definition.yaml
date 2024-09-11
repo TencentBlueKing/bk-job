@@ -1,0 +1,92 @@
+# definition.yaml 配置文件版本号，必填，固定值 1/2
+# 1：key为stage; 只支持单个 stage， 并且 proxy_http只能配置一个后端服务
+# 用sdk用最新的或者基础镜像版本apigw-manager:3.0.4不用区分，直接用2
+spec_version: 2
+
+release:
+  # 发布版本号
+  # 每次同步资源到网关会对比，如果资源有变更就会新增版本号，如果这里指定了版本号就用这里指定的，
+  # 如果没有，就会用时间戳+上次的版本号生成一个，即上一次版本号+时间戳
+  version: 3.10.0
+  title: "3.10.0"
+  comment: "3.10.0"
+
+# 定义网关基本信息，用于命令 `sync_apigw_config`
+apigateway:
+  description: "蓝鲸作业平台API"
+  # 网关的英文描述，蓝鲸官方网关需提供英文描述，以支持国际化
+  description_en: "BlueKing Job API"
+  # 是否公开；公开，则用户可查看资源文档、申请资源权限；不公开，则网关对用户隐藏
+  is_public: true
+  # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；非官方网关，可去除此配置
+  api_type: 1
+  # 应用请求网关时，是否允许从请求参数 (querystring, body) 中获取蓝鲸认证信息，默认值为 true；
+  # 如果为 false，则只能从请求头 X-Bkapi-Authorization 获取蓝鲸认证信息；
+  # 新接入的网关，可以设置为 false，已接入的网关，待推动所有调用者将认证信息放到请求头后，可设置为 false
+  allow_auth_from_params: false
+  # 网关请求后端时，是否删除请求参数 (querystring, body) 中的蓝鲸认证敏感信息，比如 bk_token，为 true 表示允许删除；
+  # 待请求网关的所有调用者，将认证参数放到请求头 X-Bkapi-Authorization 时，可将此值设置为 false
+  allow_delete_sensitive_params: false
+  # 网关维护人员，仅维护人员有管理网关的权限
+  maintainers: {{ environ.BK_APIGW_MAINTAINERS }}
+
+stages:
+  - name: "{{ environ.BK_JOB_STAGE_NAME }}"
+    description: "蓝鲸作业平台API"
+    description_en: "BlueKing Job API"
+    # 环境变量；如未使用，可去除此配置
+    # vars:
+    #   key: "value"
+    # 代理配置
+    # proxy_http 与 backends 二选一， 推荐使用 backends 方式配置
+    # 网关版本 <= 1.13.3, 只支持一个后端服务, 默认是 default
+    # 网关版本 1.13.3之后引入 backends 配置方式,支持多后端服务
+    # 注意: 资源中引用的 backend 一定要配置， 否则会导入失败,不配置则会选  择 default 后端服务
+    #      如果 backends 没有配置 default 且 resource 未指定 backend 则会导致版本发布校验失败
+    backends:
+      - name: "default"
+        config:
+          timeout: 60
+          loadbalance: "roundrobin"
+          hosts:
+            # 网关调用后端服务的默认域名或IP，不包含Path，比如：http://api.example.com
+            - host: {{ environ.BK_JOB_API_URL }}
+              weight: 100
+
+    # 环境插件配置
+    plugin_configs:
+    #     - type: bk-rate-limit
+    #       yaml: |-
+    #         rates:
+    #           __default:
+    #           - period: 1
+    #             tokens: 100
+      # Header转换插件, 添加网关请求标识头
+      - type: bk-header-rewrite
+        yaml: |-
+          set:
+            - key: X-Bkapi-From
+              value: 'bk-job-apigw'
+          remove: []
+    #     - type: bk-cors
+    #       yaml: |-
+    #         allow_origins: '*'
+    #         allow_methods: '*'
+    #         allow_headers: '*'
+    #         expose_headers: '*'
+    #         max_age: 86400
+    #         allow_credential: false
+
+# 资源文档
+# 资源文档的目录格式样例如下，en 为英文文档，zh 为中文文档：
+# ./
+# - en
+#   - anything.md
+# - zh
+#   - anything.md
+resource_docs:
+  # 资源文档的归档文件，可为 tar.gz，zip 格式文件
+  archivefile: "{{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}" ## 环境变量方式："{{ environ.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}"
+  # 资源文档目录，basedir 与 archivefile 二者至少一个有效，若同时存在，则 archivefile 优先
+  # basedir: "{{ settings.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}" ## 环境变量方式："{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"
+  basedir: "{{ environ.BK_APIGW_RESOURCE_DOCS_BASE_DIR }}"

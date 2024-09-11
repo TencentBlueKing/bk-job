@@ -27,10 +27,12 @@ export default {
   namespaced: true,
   state: {
     bkAppCode: '', // appcode
-    name: '蓝鲸作业平台', // 站点的名称，通常显示在页面左上角，也会出现在网页title中
-    nameEn: 'BlueKing JOB', // 站点的名称-英文
+    name: '', // 站点的名称，通常显示在页面左上角，也会出现在网页title中
+    nameEn: '', // 站点的名称-英文
     appLogo: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wIAAgMBAAirr3kAAAAASUVORK5CYII=', // 站点logo
-    favicon: '/static/images/favicon.icon', // 站点favicon
+    favicon: '', // 站点favicon
+    productName: '', // 产品名称，展示在logo区域 1.0.5版本新增
+    productNameEn: '',
     helperText: '',
     helperTextEn: '',
     helperLink: '',

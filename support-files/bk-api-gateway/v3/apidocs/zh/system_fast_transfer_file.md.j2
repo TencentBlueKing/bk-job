@@ -1,0 +1,135 @@
+### 功能描述
+
+快速分发文件
+
+### 请求参数
+
+#### Body参数
+
+| 字段                   | 类型     | 必选 | 描述                                                                                                |
+|----------------------|--------|----|---------------------------------------------------------------------------------------------------|
+| bk_scope_type        | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                                |
+| bk_scope_id          | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                                           |
+| bk_biz_id            | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                                 |
+| task_name            | string | 否  | 自定义作业名称                                                                                           |
+| account_alias        | string | 否  | 目标执行账号别名，可从账号页面获取，推荐使用。与account_id必须存在一个。当同时存在account_alias和account_id时，account_id优先。             |
+| account_id           | long   | 否  | 目标执行账号ID，可从get_account_list接口获取。与account_alias必须存在一个。当同时存在account_alias和account_id时，account_id优先。 |
+| file_target_path     | string | 是  | 文件传输目标路径                                                                                          |
+| file_source_list     | array  | 是  | 源文件对象数组，见下面file_source定义                                                                          |
+| timeout              | int    | 否  | 任务超时时间，秒，默认值为7200。取值范围1-86400。                                                                    |
+| download_speed_limit | int    | 否  | 下载限速，单位MB。如果未传入该参数，表示不限速                                                                          |
+| upload_speed_limit   | int    | 否  | 上传限速，单位MB。如果未传入该参数，表示不限速                                                                          |
+| transfer_mode        | int    | 否  | 传输模式。1-严谨模式，2-强制模式。默认使用强制模式                                                                       |
+| target_server        | object | 否  | 目标服务器，见server定义                                                                                   |
+| callback_url         | string | 否  | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档                                     |
+| rolling_config       | object | 否  | 滚动配置，见rolling_config定义                                                                            |
+
+{% include '_generic_file_source.md.j2' %}
+
+{% include '_generic_account.md.j2' %}
+
+{% include '_generic_server.md.j2' %}
+
+{% include '_generic_rolling_config.md.j2' %}
+
+### 请求参数示例
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "file_target_path": "/tmp/",
+  "transfer_mode": 1,
+  "file_source_list": [
+    {
+      "file_list": [
+        "/tmp/REGEX:[a-z]*.txt"
+      ],
+      "account": {
+        "id": 100
+      },
+      "server": {
+        "dynamic_group_list": [
+          {
+            "id": "blo8gojho0skft7pr5q0"
+          },
+          {
+            "id": "blo8gojho0sabc7priuy"
+          }
+        ],
+        "host_id_list": [
+          101,
+          102
+        ],
+        "topo_node_list": [
+          {
+            "id": 1000,
+            "node_type": "module"
+          }
+        ]
+      },
+      "file_type": 1
+    },
+    {
+      "file_list": [
+        "testbucket/test.txt"
+      ],
+      "file_type": 3,
+      "file_source_id": 1
+    },
+    {
+      "file_list": [
+        "testbucket/test2.txt"
+      ],
+      "file_type": 3,
+      "file_source_code": "testInnerCOS"
+    }
+  ],
+  "target_server": {
+    "dynamic_group_list": [
+      {
+        "id": "blo8gojho0skft7pr5q0"
+      },
+      {
+        "id": "blo8gojho0sabc7priuy"
+      }
+    ],
+    "host_id_list": [
+      103,
+      104
+    ],
+    "topo_node_list": [
+      {
+        "id": 1000,
+        "node_type": "module"
+      }
+    ]
+  },
+  "account_id": 101
+}
+```
+
+### 返回结果示例
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "success",
+  "data": {
+    "job_instance_name": "API Quick Distribution File1521101427176",
+    "job_instance_id": 10000,
+    "step_instance_id": 10001
+  }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+{% include '_generic_response_job_instance.md.j2' %}

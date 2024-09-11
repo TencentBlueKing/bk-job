@@ -1,0 +1,133 @@
+### Function Description
+
+Quick File transfer
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields               | Type   | Required | Description                                                                                                                                                                                  |
+|----------------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type        | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                  |
+| bk_scope_id          | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                  |
+| account_alias        | string | no       | Target execution account alias, available from the account page, recommended. When both account_alias and account_id exist, account_id takes precedence.                                     |
+| account_id           | long   | no       | Target execution account ID, available from the get_account_List api. When both account_alias and account_id exist, account_id takes precedence.                                             |
+| file_target_path     | string | yes      | File transfer destination path                                                                                                                                                               |
+| file_source_list     | array  | yes      | File source object array, see file_source Definition below                                                                                                                                   |
+| timeout              | int    | no       | Task timeout in seconds, default is 7200. Value range 1 86400.                                                                                                                               |
+| download_speed_limit | int    | no       | Download speed limit in MB. If this parameter is not passed in, it means no speed limit                                                                                                      |
+| upload_speed_limit   | int    | no       | Upload speed limit, in MB. If this parameter is not passed in, it means no speed limit                                                                                                       |
+| transfer_mode        | int    | no       | Transmission mode. 1 - Strict mode, 2 - Forced mode. Force mode is used by default                                                                                                           |
+| target_server        | object | no       | Target server, see server definition                                                                                                                                                         |
+| callback_url         | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
+| rolling_config       | object | no       | Rolling config，see rolling_config definition                                                                                                                                                 |
+
+{% include '_generic_file_source.md.j2' %}
+
+{% include '_generic_account.md.j2' %}
+
+{% include '_generic_server.md.j2' %}
+
+{% include '_generic_rolling_config.md.j2' %}
+
+### Example of responses
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "file_target_path": "/tmp/",
+  "transfer_mode": 1,
+  "file_source_list": [
+    {
+      "file_list": [
+        "/tmp/REGEX:[a-z]*.txt"
+      ],
+      "account": {
+        "id": 100
+      },
+      "server": {
+        "dynamic_group_list": [
+          {
+            "id": "blo8gojho0skft7pr5q0"
+          },
+          {
+            "id": "blo8gojho0sabc7priuy"
+          }
+        ],
+        "host_id_list": [
+          101,
+          102
+        ],
+        "topo_node_list": [
+          {
+            "id": 1000,
+            "node_type": "module"
+          }
+        ]
+      },
+      "file_type": 1
+    },
+    {
+      "file_list": [
+        "testbucket/test.txt"
+      ],
+      "file_type": 3,
+      "file_source_id": 1
+    },
+    {
+      "file_list": [
+        "testbucket/test2.txt"
+      ],
+      "file_type": 3,
+      "file_source_code": "testInnerCOS"
+    }
+  ],
+  "target_server": {
+    "dynamic_group_list": [
+      {
+        "id": "blo8gojho0skft7pr5q0"
+      },
+      {
+        "id": "blo8gojho0sabc7priuy"
+      }
+    ],
+    "host_id_list": [
+      103,
+      104
+    ],
+    "topo_node_list": [
+      {
+        "id": 1000,
+        "node_type": "module"
+      }
+    ]
+  },
+  "account_id": 101
+}
+```
+
+### Example of responses
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "success",
+  "data": {
+    "job_instance_name": "API Quick Distribution File1521101427176",
+    "job_instance_id": 10000,
+    "step_instance_id": 10001
+  }
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+{% include '_generic_response_job_instance.md.j2' %}

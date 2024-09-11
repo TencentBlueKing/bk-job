@@ -133,10 +133,14 @@ ext {
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
     set('okHttpVersion', "4.12.0")
-    set('jcommanderVersion', "1.71")
+    set('jcommanderVersion', "1.72")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     set('cryptoJavaSDKVersion', "1.1.3")
+    // Fix CVE-2023-44487
+    set('tomcat.version', "9.0.90")
+    // Fix CVE-2019-10086,CVE-2014-0114
+    set('commonsBeanutilsVersion', "1.9.4")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -290,6 +294,7 @@ subprojects {
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "commons-io:commons-io:$commonsIOVersion"
             dependency "commons-codec:commons-codec:$apacheCommonsCodecVersion"
+            dependency "commons-beanutils:commons-beanutils:$commonsBeanutilsVersion"
             dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "org.jedis:jedis:$jedisVersion"
             dependency "com.h2database:h2:$h2Version"

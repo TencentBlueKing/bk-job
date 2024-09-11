@@ -1,6 +1,6 @@
 # chart values 更新日志
 
-## 0.7.0
+## 0.7.1
 1. 增加AI相关配置
 
 ```yaml
@@ -19,6 +19,34 @@ analysisConfig:
         maxKeepDays : 31
         # 单个用户最大保留的聊天记录数量，默认1000条
         maxHistoryPerUser : 1000
+```
+
+## 0.7.0
+1. 增加接入蓝鲸网关配置
+
+```yaml
+bkApiGatewayConfig:
+  # 是否自动把API注册到蓝鲸网关
+  sync: false
+  # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
+  autoPublish: true
+  # 是否开启apigw jwt认证
+  enabled: true
+  jwtPublicKey:
+    # jwtPublicKey获取策略，获取失败重试：retry, 获取失败终止启动：abort
+    failPolicy: "retry"
+  # 接入的网关名称，蓝鲸官方网关都是bk-开头
+  gatewayName: "bk-job"
+  # 同步蓝鲸网关url
+  syncUrl: "http://bkapi.example.com/api/{api_name}"
+  # 蓝鲸网关接口url
+  apiUrl: "http://bkapi.example.com/api/{api_name}/{env}"
+  # 接入环境
+  stage: "prod"
+  # 接入的api资源目录, 默认是/data/apidocs/
+  resourceDir: "/data/apidocs/"
+  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2"
+  maintainers: "admin"
 ```
 
 ## 0.6.5
@@ -83,6 +111,19 @@ job:
 ```yaml
 # cmdb API Gateway url
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+```
+
+## 0.5.10
+1. 增加MySQL migration的自定义数据库账号和密码
+
+```yaml
+job:
+  migration:
+    mysqlSchema:
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
 ```
 
 ## 0.5.9

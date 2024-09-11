@@ -1,0 +1,229 @@
+### Function Description
+
+Fast execute script (dedicated to Blue Shield job execution plugin, informally publicly available API)
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields             | Type   | Required | Description                                                                                                                                                                                  |
+|--------------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type      | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                  |
+| bk_scope_id        | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                  |
+| script_version_id  | long   | no       | Script version ID. When script_version_id is not empty, the script version corresponding to script_version_id is used                                                                        |
+| script_id          | string | no       | Script id. When script_id is passed in and script_version_id is empty, the online version of the script is used                                                                              |
+| script_content     | string | no       | Script content Base64. If script_version_id and script_id do not exist, script_content is used. Priority: script_version_id>script_id>script_content                                         |
+| task_name          | string | no       | Custom job name                                                                                                                                                                              |
+| script_param       | string | no       | Script parameter Base64 encoding.                                                                                                                                                            |
+| timeout            | long   | no       | Script execution timeout in seconds. The default value is 7200, and the value range is [1,86400]                                                                                             |
+| account_alias      | string | no       | Execution account alias.  The account_id takes precedence when both account_alias and account_id exist.                                                                                      |
+| account_id         | long   | no       | Execution account ID. The account_id takes precedence when both account_alias and account_id exist.                                                                                          |
+| is_param_sensitive | int    | no       | Sensitive parameters will be hidden on the execution details page, 0: No (default), 1: Yes                                                                                                   |
+| script_language    | int    | no       | Scripting languages: 1 - shell, 2 - bat, 3 - Perl, 4 - Python, 5 - PowerShell. Script_language needs to be specified when you pass in a custom script using script_content                   |
+| target_server      | object | no       | Target server, see server definition                                                                                                                                                         |
+| callback_url       | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
+| rolling_config     | object | no       | Rolling config，see rolling_config definition                                                                                                                                                 |
+
+##### execute_target
+
+| Fields                  | Type  | Required | Description                                                                                                         |
+|-------------------------|-------|----------|---------------------------------------------------------------------------------------------------------------------|
+| host_list               | array | no       | Host list, the caller can choose to specify the host using either bk_host_id or bk_cloud_id+IP. See host definition |
+| host_dynamic_group_list | array | no       | Host dynamic grouping list, defined in dynamic_group                                                                |
+| host_topo_node_list     | array | no       | Host dynamic topo node list, defined in host_topo_node                                                              |
+| kube_container_filters  | array | no       | Container filter, multiple filters are in OR relationship, take container union. Defined in kube_comtainer_filter   |
+
+##### host
+
+| Fields | Type | Required | Description |
+|-----------|------------|--------|
+| bk_host_id | long | no | host ID (cmdb) |
+| bk_cloud_id | long | yes | BK-Net ID |
+| ip | string | yes | IP Address |
+
+##### dynamic_group
+
+| Fields | Type   | Required | Description              |
+|--------|--------|----------|--------------------------|
+| id     | string | yes      | CMDB dynamic grouping ID |
+
+##### host_topo_node
+
+| Fields    | Type   | Required | Description                                                                                |
+|-----------|--------|----------|--------------------------------------------------------------------------------------------|
+| id        | long   | yes      | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
+| node_type | string | yes      | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
+
+##### kube_container_filter
+
+| Fields                     | Type    | Required | Description                                                                                                                                                                                                                                                                                   |
+|----------------------------|---------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| kube_cluster_filter        | object  | no       | Cluster filter Filter definition can be found in kube_cluster_filter                                                                                                                                                                                                                          |
+| kube_namespace_filter      | object  | no       | Namespace filter Filter definition can be found in kube_namespace_filter                                                                                                                                                                                                                      |
+| kube_workload_filter       | object  | no       | Workload filter Filter definition can be found in kube_forkload_filter                                                                                                                                                                                                                        |
+| kube_pod_filter            | object  | no       | Pod attribute filter, filter definition can be found in kube_pod_filter                                                                                                                                                                                                                       |
+| kube_container_prop_filter | object  | yes      | Container attribute filter, filter definition can be found in kube_comtainer_prop_filter                                                                                                                                                                                                      |
+| is_empty_filter            | boolean | yes      | Identify a filter without any conditions set; The default value is false. If it is true, other conditions (kube_cluster_filter/kupe_namespace_filter/kupe_corkload_filter/kupe_pod_filter/kupe_comtainer_prop_filter) will be ignored, and all containers under the business will be returned |
+| fetch_any_one_container    | boolean | no       | Whether to select any container from the filtered result set as the execution object (only one container will be executed); Default to false                                                                                                                                                  |
+
+##### kube_cluster_filter
+
+| Fields           | Type  | Required | Description                                   |
+|------------------|-------|----------|-----------------------------------------------|
+| cluster_uid_list | array | yes      | Cluster ID list, for example: "BCS-K8S-00001" |
+
+##### kube_namespace_filter
+
+| Fields              | Type  | Required | Description    |
+|---------------------|-------|----------|----------------|
+| namespace_name_list | array | yes      | namespace list |
+
+##### kube_workload_filter
+
+| Fields             | Type   | Required | Description                                                                                                              |
+|--------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| kind               | string | yes      | The workload types currently supported are (deployment daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job) |
+| workload_name_list | array  | no       | Workload list                                                                                                            |
+
+##### kube_pod_prop_filter
+
+| Fields              | Type   | Required | Description                                                                                                                                                                    |
+|---------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| pod_name_list       | array  | no       | Pod list                                                                                                                                                                       |
+| label_selector      | array  | no       | The label selector defined by the job consists of multiple Requirements. There is an AND relationship between multiple Requirements. See requirement definition for expression |
+| label_selector_expr | string | no       | The label selector expression officially defined by k8s,[lable selector doc](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors)        |
+
+##### requirement
+
+| Fields   | Type   | Required | Description                                                                                                 |
+|----------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| key      | string | yes      | label key                                                                                                   |
+| operator | string | yes      | Calculation operator, supports equals not_equals、in、not_in、exists、not_exists                                |
+| values   | array  | no       | The label value list needs to be set when the calculation operators are in, not_in, equals, and not_ equals |
+
+##### kube_container_prop_filter
+
+| Fields              | Type  | Required | Description    |
+|---------------------|-------|----------|----------------|
+| container_name_list | array | yes      | Container list |
+
+{% include '_generic_rolling_config.md.j2' %}
+
+##### callback
+
+| Fields | Type   | Required | Description  |
+|--------|--------|----------|--------------|
+| url    | string | yes      | Callback URL |
+
+### Example of request
+
+- Body
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "2",
+  "script_version_id": 1,
+  "script_content": "ZWNobyAkMQ==",
+  "script_param": "aGVsbG8=",
+  "timeout": 1000,
+  "account_id": 1000,
+  "is_param_sensitive": 0,
+  "script_language": 1,
+  "execute_target": {
+    "host_dynamic_group_list": [
+      {
+        "id": "blo8gojho0skft7pr5q0"
+      }
+    ],
+    "host_list": [
+      {
+        "bk_host_id": 101
+      },
+      {
+        "bk_cloud_id": 0,
+        "ip": "127.0.0.2"
+      }
+    ],
+    "host_topo_node_list": [
+      {
+        "id": 1000,
+        "node_type": "module"
+      }
+    ],
+    "kube_container_filters": [
+      {
+        "kube_cluster_filter": {
+          "cluster_uid_list": [
+            "BCS-K8S-00001",
+            "BCS-K8S-00002"
+          ]
+        },
+        "kube_namespace_filter": {
+          "namespace_name_list": [
+            "job-prod",
+            "job-gray"
+          ]
+        },
+        "kube_workload_filter": {
+          "kind": "deployment",
+          "workload_name_list": [
+            "bk-job-manage",
+            "bk-job-execute"
+          ]
+        },
+        "kube_pod_filter": {
+          "pod_name_list": [
+            "bk-job-execute-6fcd8cf5c7-jvctq",
+            "bk-job-manage-6fcd8cf5c7-abues"
+          ],
+          "label_selector": [
+            {
+              "label_key": "application",
+              "operator": "in",
+              "label_values": [
+                "job-execute",
+                "job-manage"
+              ]
+            },
+            {
+              "label_key": "env",
+              "operator": "equals",
+              "label_value": "prod"
+            }
+          ]
+        },
+        "kube_container_prop_filter": {
+          "container_name_list": [
+            "job-execute",
+            "job-manage"
+          ]
+        },
+        "fetch_any_one_container": true
+      }
+    ]
+  }
+}
+```
+
+### Example of responses
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "data": {
+    "job_instance_name": "API Quick execution script1521100521303",
+    "job_instance_id": 10000,
+    "step_instance_id": 10001
+  }
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+{% include '_generic_response_job_instance.md.j2' %}

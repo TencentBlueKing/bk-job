@@ -232,14 +232,6 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        int count = 0;
-        if (baseSearchCondition.isCountPageTotal()) {
-            count = getPageTaskInstanceCount(taskQuery);
-            if (count == 0) {
-                return PageData.emptyPageData(start, length);
-            }
-        }
-
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
         Result<?> result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
@@ -255,6 +247,12 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
+
+        int count = 0;
+        if (baseSearchCondition.isCountPageTotal()) {
+            count = getPageTaskInstanceCount(taskQuery);
+        }
+
         return buildTaskInstancePageData(start, length, count, result);
     }
 
@@ -268,16 +266,7 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        int count = 0;
-        if (baseSearchCondition.isCountPageTotal()) {
-            count = ctx.selectCount().from(TaskInstance.TASK_INSTANCE)
-                .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
-                .where(conditions)
-                .fetchOne(0, Integer.class);
-            if (count == 0) {
-                return PageData.emptyPageData(start, length);
-            }
-        }
+
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
         Result result = ctx.select(TASK_INSTANCE.ID, TASK_INSTANCE.TASK_ID, TASK_INSTANCE.CRON_TASK_ID,
@@ -295,6 +284,17 @@ public class TaskInstanceDAOImpl implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
+
+        int count = 0;
+        if (baseSearchCondition.isCountPageTotal()) {
+            count = ctx.selectCount()
+                .from(TaskInstance.TASK_INSTANCE)
+                .leftJoin(TASK_INSTANCE_HOST)
+                .on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
+                .where(conditions)
+                .fetchOne(0, Integer.class);
+        }
+
         return buildTaskInstancePageData(start, length, count, result);
     }
 
