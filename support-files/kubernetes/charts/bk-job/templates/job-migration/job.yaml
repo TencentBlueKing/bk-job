@@ -45,8 +45,16 @@ spec:
               value: {{ include "job.mariadb.host" . | quote }}
             - name: BK_JOB_MYSQL_PORT
               value: {{ include "job.mariadb.port" . | quote }}
-            - name: BK_JOB_MYSQL_ROOT_PASSWORD
-              value: {{ include "job.mariadb.rootPassword" . | quote }}
+            - name: BK_JOB_MYSQL_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{printf "%s-%s" (include "job.fullname" .) "migration-db"}}
+                  key: admin-username
+            - name: BK_JOB_MYSQL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" (include "job.fullname" .) "migration-db" }}
+                  key: admin-password
             - name: BK_IAM_URL
               value: {{ .Values.bkIamApiUrl | quote }}
             - name: BK_JOB_APP_CODE

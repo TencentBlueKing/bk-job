@@ -1,0 +1,37 @@
+### Function Description
+
+Use to perform actions on an executed job instance, such as terminating a job.
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields          | Type   | Required | Description                                                                                 |
+|-----------------|--------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id | long   | yes      | Job instance ID                                                                             |
+| operation_code  | int    | yes      | Operation Code: 1. Terminate job                                                            |
+
+### Example of request
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "job_instance_id": 100,
+  "operation_code": 1
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+| Fields          | Type | Description     |
+|-----------------|------|-----------------|
+| job_instance_id | long | Job instance ID |

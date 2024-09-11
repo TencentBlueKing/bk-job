@@ -52,6 +52,8 @@ public class JobContext {
 
     private String userLang;
 
+    private String requestFrom;
+
     private List<String> debugMessage;
 
     private ZoneId timeZone;

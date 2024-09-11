@@ -1,0 +1,97 @@
+### 功能描述
+
+获取作业实例全局变量的值
+
+### 请求参数
+
+#### Query参数
+
+| 字段              | 类型     | 必选 | 描述                                                |
+|-----------------|--------|----|---------------------------------------------------|
+| bk_scope_type   | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id     | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id       | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| job_instance_id | long   | 是  | 作业实例ID                                            |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v3/get_job_instance_global_var_value?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100
+```
+
+### 返回结果示例
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "",
+  "data": {
+    "job_instance_id": 100,
+    "step_instance_var_list": [
+      {
+        "step_instance_id": 292778,
+        "global_var_list": [
+          {
+            "name": "aa",
+            "value": "AA",
+            "type": 1
+          },
+          {
+            "name": "password",
+            "value": "mypassword",
+            "type": 4
+          }
+        ]
+      },
+      {
+        "step_instance_id": 292779,
+        "global_var_list": [
+          {
+            "name": "aa",
+            "value": "AAAA",
+            "type": 1
+          },
+          {
+            "name": "password",
+            "value": "mypassword",
+            "type": 4
+          }
+        ]
+      }
+    ]
+  }
+}
+
+```
+
+### 返回结果说明
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| 字段                     | 类型    | 描述                               |
+|------------------------|-------|----------------------------------|
+| job_instance_id        | long  | 作业实例ID                           |
+| step_instance_var_list | array | 作业步骤实例全局变量值。定义见step_instance_var |
+
+##### step_instance_var
+
+| 字段               | 类型    | 描述                    |
+|------------------|-------|-----------------------|
+| step_instance_id | long  | 步骤实例ID                |
+| global_var_list  | array | 全局变量值列表，定义见global_var |
+
+##### global_var
+
+| 字段     | 类型     | 必选 | 描述                                |
+|--------|--------|----|-----------------------------------|
+| id     | long   | 否  | 全局变量id，唯一标识。如果id为空，那么使用name作为唯一标识 |
+| name   | string | 否  | 全局变量name                          |
+| value  | string | 否  | 字符、密码、数组类型的全局变量的值                 |
+| server | object | 否  | 主机类型全局变量的值，见server定义              |
+
+{% include '_generic_server.md.j2' %}

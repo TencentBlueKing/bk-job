@@ -103,11 +103,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
             dangerousRuleDAO.updateDangerousRule(new DangerousRuleDTO(req.getId(),
                 req.getExpression(), req.getDescription(), existDangerousRuleDTO.getPriority(), scriptType, null,
                 null, username, System.currentTimeMillis(), req.getAction(), req.getStatus()));
+            // 清理缓存
+            List<Byte> existScriptTypes  = DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType());
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(existScriptTypes);
         }
-
-        // 清理缓存
-        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
-
         return getDangerousRuleById(req.getId());
     }
 
