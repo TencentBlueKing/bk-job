@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.gateway.config.BkGatewayConfig;
 import com.tencent.bk.job.gateway.model.esb.EsbPublicKeyDTO;
 import com.tencent.bk.job.gateway.service.OpenApiJwtPublicKeyService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,17 +55,22 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
     private final RestTemplate restTemplate;
     private volatile String esbJwtPublicKey;
     private volatile String bkApiGatewayPublicKey;
-    private BkApiGatewayProperties bkApiGatewayProperties;
+    private final BkApiGatewayProperties bkApiGatewayProperties;
+    private final BkGatewayConfig bkApiGatewayConfig;
+
+    private static final String URI_BK_APIGW_JWT_PUBLIC_KEY = "/api/v1/apis/{api_name}/public_key/";
 
     @Autowired
     public OpenApiJwtPublicKeyServiceImpl(AppProperties appProperties,
                                           EsbProperties esbProperties,
                                           RestTemplate restTemplate,
-                                          BkApiGatewayProperties bkApiGatewayProperties) {
+                                          BkApiGatewayProperties bkApiGatewayProperties,
+                                          BkGatewayConfig bkApiGatewayConfig) {
         this.appProperties = appProperties;
         this.esbProperties = esbProperties;
         this.restTemplate = restTemplate;
         this.bkApiGatewayProperties = bkApiGatewayProperties;
+        this.bkApiGatewayConfig = bkApiGatewayConfig;
     }
 
     @Override
@@ -96,7 +102,8 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
         if (StringUtils.isNotEmpty(bkApiGatewayPublicKey)) {
             return bkApiGatewayPublicKey;
         }
-        String url = getBkApiGatewayUrl() + "api/v1/apis/bk-job/public_key/";
+        String url = getBkApiGatewayUrl() + URI_BK_APIGW_JWT_PUBLIC_KEY.replace("{api_name}",
+                bkApiGatewayConfig.getGatewayName());
         Map<String, Object> authInfo = new HashMap<>();
         authInfo.put("bk_app_code", appProperties.getCode());
         authInfo.put("bk_app_secret", appProperties.getSecret());
