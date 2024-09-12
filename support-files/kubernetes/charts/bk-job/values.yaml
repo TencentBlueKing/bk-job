@@ -1525,10 +1525,8 @@ bkApiGatewayConfig:
     failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
-  # 同步蓝鲸网关url
-  syncUrl: "http://bkapi.example.com/api/{api_name}"
-  # 蓝鲸网关接口url
-  apiUrl: "http://bkapi.example.com/api/{api_name}/{env}"
+  # 蓝鲸网关url
+  url: "http://bkapi.example.com/api/{api_name}"
   # 接入环境
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/
