@@ -1526,7 +1526,7 @@ bkApiGatewayConfig:
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
   # 蓝鲸网关url
-  url: "http://bkapi.example.com/api/{api_name}"
+  url: "http://bkapi.example.com/api/bk-apigateway"
   # 接入环境
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/

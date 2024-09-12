@@ -144,6 +144,6 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
         if (!bkApiGatewayUrl.endsWith("/")) {
             bkApiGatewayUrl = bkApiGatewayUrl + "/";
         }
-        return bkApiGatewayUrl.replace("{api_name}", "bk-apigateway") + "prod/";
+        return bkApiGatewayUrl + "prod/";
     }
 }
