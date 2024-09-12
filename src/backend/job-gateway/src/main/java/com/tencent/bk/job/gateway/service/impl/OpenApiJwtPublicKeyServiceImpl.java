@@ -92,7 +92,6 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
             throw new RuntimeException("Get esb jwt public key fail");
         }
         String esbJwtPublicKey = resp.getData().getPublicKey();
-        log.info("Get esb public key success, public key : {}", esbJwtPublicKey);
         this.esbJwtPublicKey = esbJwtPublicKey;
         return esbJwtPublicKey;
     }
@@ -103,7 +102,7 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
             return bkApiGatewayPublicKey;
         }
         String url = getBkApiGatewayUrl() + URI_BK_APIGW_JWT_PUBLIC_KEY.replace("{api_name}",
-                bkApiGatewayConfig.getGatewayName());
+            bkApiGatewayConfig.getGatewayName());
         Map<String, Object> authInfo = new HashMap<>();
         authInfo.put("bk_app_code", appProperties.getCode());
         authInfo.put("bk_app_secret", appProperties.getSecret());
@@ -117,14 +116,12 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
             }
         ).getBody();
 
-        log.info("Get gateway jwt public key, resp: {}", resp);
+        log.info("Get bkApiGateway jwt public key, resp: {}", resp);
         if (resp == null || !resp.getCode().equals(ErrorCode.RESULT_OK) || resp.getData() == null) {
-            log.error("Get gateway jwt public key fail!");
+            log.error("Get bkApiGateway jwt public key fail!");
             throw new RuntimeException("Get gateway jwt public key fail");
         }
-        String bkApiGatewayPublicKey = resp.getData().getPublicKey();
-        log.info("Get gateway public key success, public key : {}", bkApiGatewayPublicKey);
-        this.bkApiGatewayPublicKey = bkApiGatewayPublicKey;
+        this.bkApiGatewayPublicKey = resp.getData().getPublicKey();
         return bkApiGatewayPublicKey;
     }
 

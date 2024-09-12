@@ -70,10 +70,14 @@ public class CheckOpenApiJwtGatewayFilterFactory
             ServerHttpRequest request = exchange.getRequest();
 
             String requestFrom = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_FROM);
+            if (log.isDebugEnabled()) {
+                log.debug("Open api request from : {}",
+                    StringUtils.isNotEmpty(requestFrom) ? requestFrom : "bk-job-esb");
+            }
             JobContextUtil.setRequestFrom(requestFrom);
             String token = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_JWT);
             if (StringUtils.isEmpty(token)) {
-                log.warn("Esb token is empty! requestFrom={}", requestFrom);
+                log.warn("Jwt token is empty! requestFrom={}", requestFrom);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
