@@ -58,8 +58,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private final OpenApiJwtPublicKeyService openApiJwtPublicKeyService;
-    private PublicKey esbJwtPublicKey;
-    private PublicKey bkApiGatewayJwtPublicKey;
+    private volatile PublicKey esbJwtPublicKey;
+    private volatile PublicKey bkApiGatewayJwtPublicKey;
     private final BkGatewayConfig bkApiGatewayConfig;
 
     /**
@@ -71,7 +71,8 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
-    public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService, BkGatewayConfig bkApiGatewayConfig) {
+    public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService,
+                                 BkGatewayConfig bkApiGatewayConfig) {
         this.openApiJwtPublicKeyService = openApiJwtPublicKeyService;
         this.bkApiGatewayConfig = bkApiGatewayConfig;
         getJwtPublicKeyByPolicy();
@@ -80,7 +81,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private void getJwtPublicKeyByPolicy() {
         boolean publicKeyGotten = tryToGetAndCachePublicKeyOnce();
         if (publicKeyGotten) {
-            return;
+            log.info("Get and cache bkApiGateway/esb public key success");
         } else if ("abort".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
             throw new InternalException("Failed to get jwt public key, abort policy triggered");
         } else if ("retry".equalsIgnoreCase(bkApiGatewayConfig.getJwtPublicKeyFailPolicy())) {
@@ -98,16 +99,16 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             // 最多重试3天
             int maxRetryCount = 3 * 24 * 3600 / 5;
             do {
-                log.warn("esbJwtPublicKey not gotten, retry {} after 5s", ++retryCount);
+                log.warn("Gateway public key not gotten, retry {} after 5s", ++retryCount);
                 ThreadUtils.sleep(sleepMillsOnce);
                 keyGotten = tryToGetAndCachePublicKeyOnce();
             } while (!keyGotten && retryCount <= maxRetryCount);
             if (!keyGotten) {
-                log.error("esbJwtPublicKey not gotten after {} retry (3 days), plz check esb", maxRetryCount);
+                log.error("Gateway public key not gotten after {} retry (3 days), plz check esb", maxRetryCount);
             }
         });
         openApiPublicKeyGetter.setDaemon(true);
-        openApiPublicKeyGetter.setName("esbPublicKeyGetter");
+        openApiPublicKeyGetter.setName("gatewayPublicKeyGetter");
         openApiPublicKeyGetter.start();
     }
 
@@ -120,15 +121,17 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                     return false;
                 }
                 this.esbJwtPublicKey = buildPublicKey(esbJwtPublicKey);
+                log.info("Init esb jwt public key success");
             }
 
             if (this.bkApiGatewayJwtPublicKey == null && bkApiGatewayConfig.isEnabled()) {
                 String bkApiGatewayJwtPublicKey = openApiJwtPublicKeyService.getBkApiGatewayJWTPublicKey();
                 if (StringUtils.isEmpty(bkApiGatewayJwtPublicKey)) {
-                    log.error("gateway jwt public key is not configured!");
+                    log.error("BkApiGateway jwt public key is not configured!");
                     return false;
                 }
                 this.bkApiGatewayJwtPublicKey = buildPublicKey(bkApiGatewayJwtPublicKey);
+                log.info("Init bkApiGateway jwt public key success");
             }
             return true;
         } catch (Throwable e) {
@@ -143,7 +146,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
         PemReader pemReader = new PemReader(new StringReader(pemContent));
         PemObject pemObject = pemReader.readPemObject();
         if (pemObject == null) {
-            log.error("Esb public key pem is illegal!");
+            log.error("Public key pem is illegal!");
             return null;
         }
         java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -156,8 +159,10 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     @Override
     public EsbJwtInfo extractFromJwt(String token) {
         if (requestFromApiGw()) {
+            log.debug("Extract bkApiGateway jwt");
             return extractFromJwt(token, this.bkApiGatewayJwtPublicKey);
         } else {
+            log.debug("Extract esb jwt");
             return extractFromJwt(token, this.esbJwtPublicKey);
         }
     }
@@ -223,6 +228,9 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             tokenCache.put(token, esbJwtInfo);
         } catch (Exception e) {
             log.warn("Verify jwt caught exception", e);
+            if (log.isDebugEnabled()) {
+                log.debug("Parse jwt error, token: {}", token);
+            }
             return null;
         } finally {
             long cost = System.currentTimeMillis() - start;
