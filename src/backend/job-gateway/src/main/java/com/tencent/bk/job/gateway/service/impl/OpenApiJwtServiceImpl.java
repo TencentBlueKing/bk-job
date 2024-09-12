@@ -187,7 +187,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                 .getBody();
             String appCode = "";
             if (claims.get("app") != null) {
-                LinkedHashMap<?, ?> appProps = claims.get("app", LinkedHashMap.class);
+                LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
                 if (appProps == null) {
                     log.warn("Invalid JWT token, app is null!");
                     return null;
@@ -205,7 +205,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
 
             String username = "";
             if (claims.get("user") != null) {
-                LinkedHashMap<?, ?> userProps = claims.get("user", LinkedHashMap.class);
+                LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
                 if (userProps == null) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
