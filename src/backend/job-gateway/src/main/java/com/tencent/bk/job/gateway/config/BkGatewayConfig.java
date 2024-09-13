@@ -45,4 +45,10 @@ public class BkGatewayConfig {
      */
     @Value("${job.bkApiGateway.jwtPublicKey.get.failPolicy:retry}")
     private String jwtPublicKeyFailPolicy;
+
+    /**
+     * 网关名称
+     */
+    @Value("${job.bkApiGateway.gatewayName: bk-job}")
+    private String gatewayName;
 }

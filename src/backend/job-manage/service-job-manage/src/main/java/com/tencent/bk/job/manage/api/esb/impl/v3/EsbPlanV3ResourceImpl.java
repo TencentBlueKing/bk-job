@@ -40,6 +40,7 @@ import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanDetailV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetPlanListV3Request;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanBasicInfoV3DTO;
@@ -48,6 +49,9 @@ import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @since 15/10/2020 18:08
@@ -173,8 +177,13 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlan(username,
             request.getAppId(), request.getPlanId());
 
-        // 解析步骤引用全局变量的信息
-        StepRefVariableParser.parseStepRefVars(taskPlanInfo.getStepList(), taskPlanInfo.getVariableList());
+        List<TaskStepDTO> enabledTaskStepList = taskPlanInfo.getStepList()
+                .stream()
+                .filter(taskStep -> taskStep.getEnable() != 0)
+                .collect(Collectors.toList());
+
+        // 解析启用的步骤引用全局变量的信息
+        StepRefVariableParser.parseStepRefVars(enabledTaskStepList, taskPlanInfo.getVariableList());
         return EsbResp.buildSuccessResp(TaskPlanInfoDTO.toEsbPlanInfoV3(taskPlanInfo));
     }
 
