@@ -103,4 +103,9 @@ public class CommonMetricNames {
      * 统计调用 GSE API整个过程，含反序列化
      */
     public static final String ESB_GSE_API = "job.client.gse.api";
+
+    /**
+     * 统计任务执行结束回调HTTP的请求状态
+     */
+    public static final String TASK_CALLBACK_HTTP_STATUS = "job.client.task.callback.http.status";
 }

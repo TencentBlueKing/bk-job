@@ -24,10 +24,15 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
+import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -39,40 +44,80 @@ import java.net.URL;
 @Component
 @Slf4j
 public class CallbackListener {
+    private final MeterRegistry meterRegistry;
+
+    public CallbackListener(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
 
     /**
      * 处理回调请求
      */
     public void handleMessage(JobCallbackDTO callbackDTO) {
         long taskInstanceId = callbackDTO.getId();
+        String callbackUrl = callbackDTO.getCallbackUrl();
+
         try {
             log.info("Handle callback, taskInstanceId: {}, msg: {}", taskInstanceId, callbackDTO);
-            String callbackUrl = callbackDTO.getCallbackUrl();
-            try {
-                new URL(callbackUrl);
-            } catch (MalformedURLException var5) {
-                log.warn("Callback fail, bad url: {}", callbackUrl);
-                return;
+            validateUrl(callbackUrl);
+
+            HttpResponse response = callbackRequest(callbackUrl, callbackDTO);
+
+            // 回调状态码不是200，重试一次
+            if (response.getStatusCode() != HttpStatus.SC_OK) {
+                log.warn("Callback failed, retrying. taskInstanceId: {}, statusCode: {}",
+                        taskInstanceId, response.getStatusCode());
+                response = callbackRequest(callbackUrl, callbackDTO);
             }
-            callbackDTO.setCallbackUrl(null);
-            try {
-                // TODO 需要优化，返回application/json
-                try {
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-                    log.info("Callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
-                } catch (Throwable e) { //出错重试一次
-                    String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
-                    log.warn(errorMsg, e);
-                    String rst = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-                    log.info("Retry callback success, taskInstanceId: {}, result: {}", taskInstanceId, rst);
-                }
-            } catch (Throwable e) {
-                String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
-                log.warn(errorMsg, e);
-            }
-        } catch (Throwable e) {
-            String errorMsg = "Callback fail, taskInstanceId: " + taskInstanceId;
-            log.warn(errorMsg, e);
+            log.info("Final callback {}, taskInstanceId: {}, statusCode: {}, result: {}",
+                    response.getStatusCode() == HttpStatus.SC_OK ? "success" : "fail",
+                    taskInstanceId,
+                    response.getStatusCode(),
+                    response.getEntity());
+        } catch (MalformedURLException e) {
+            log.warn("Invalid callback URL: "+callbackUrl, e);
+            recordCallbackMetrics("unknown");
         }
+    }
+
+    /**
+     * 校验URL是否合法
+     */
+    private void validateUrl(String callbackUrl) throws MalformedURLException {
+        new URL(callbackUrl);
+    }
+
+    /**
+     * 执行回调请求
+     */
+    private HttpResponse callbackRequest(String callbackUrl, JobCallbackDTO callbackDTO) {
+        try {
+            callbackDTO.setCallbackUrl(null);
+            HttpResponse response = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
+            recordCallbackMetrics(response.getStatusCode());
+            return response;
+        } catch (Throwable e) {
+            String errorMsg = String.format("Callback request failed, taskInstanceId: %s, url: %s",
+                    callbackDTO.getId(),
+                    callbackUrl);
+            log.warn(errorMsg, e);
+            recordCallbackMetrics("unknown");
+            return new HttpResponse(500, null, null);
+        }
+    }
+
+    /**
+     * 记录回调请求的监控指标
+     */
+    private void recordCallbackMetrics(int statusCode) {
+        recordCallbackMetrics(String.valueOf(statusCode));
+    }
+
+    private void recordCallbackMetrics(String statusCode) {
+        meterRegistry.counter(
+                CommonMetricNames.TASK_CALLBACK_HTTP_STATUS,
+                CommonMetricTags.KEY_HTTP_STATUS,
+                statusCode
+        ).increment();
     }
 }
