@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 
+import I18n from '@/i18n';
 
 export default (messageList) => {
   const loading = ref(false);
@@ -10,7 +11,7 @@ export default (messageList) => {
     loading.value = true;
     const latestChatMessage = {
       role: 'assistant',
-      content: '内容正在生成中...',
+      content: I18n.t('请稍等，我正在处理您的请求...'),
       status: 'loading',
     };
     messageList.value.push(latestChatMessage);
@@ -53,7 +54,9 @@ export default (messageList) => {
                 chunk.split('\n')
                   .forEach((item) => {
                     try {
-                      latestChatMessage.content += (item ? JSON.parse(item).data.content : '');
+                      const chunkData = JSON.parse(item).data;
+                      latestChatMessage.time = chunkData.time;
+                      latestChatMessage.content += chunkData.content;
                     } catch {
                       fragment += item;
                     }
@@ -71,7 +74,7 @@ export default (messageList) => {
       })
       .catch((error) => {
         console.error('Fetch error:', error);
-        latestChatMessage.content = '内容生成失败！';
+        latestChatMessage.content = I18n.t('抱歉！出了点问题，请稍后再试。');
         latestChatMessage.status = 'error';
       })
       .finally(() => {

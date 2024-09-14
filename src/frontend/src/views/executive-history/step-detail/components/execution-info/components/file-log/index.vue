@@ -66,6 +66,7 @@
 <script>
   import _ from 'lodash';
 
+  import AiService from '@service/ai';
   import TaskExecuteService from '@service/task-execute';
 
   import {
@@ -126,6 +127,7 @@
         // 被展开的文件具体日志内容
         renderContentMap: {},
         aiExtendToolStyle: {},
+        isAiEnable: false,
       };
     },
     computed: {
@@ -161,6 +163,8 @@
       this.timer = null;
       // 日志列表中是否包含日志内容标记，如果不包含需要异步获取日志内容
       this.includingLogContent = '';
+
+      this.fetchAiConfig();
     },
     mounted() {
       this.calcFirstPageNums();
@@ -215,6 +219,12 @@
         })
           .finally(() => {
             this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enable;
           });
       },
       /**
@@ -310,6 +320,9 @@
         }
       },
       handleMouseUp(event) {
+        if (!this.isAiEnable) {
+          return;
+        }
         setTimeout(() => {
           const selection = document.getSelection();
           const selectionText = selection.toString();

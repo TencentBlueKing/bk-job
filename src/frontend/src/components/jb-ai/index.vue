@@ -1,5 +1,6 @@
 <template>
-  <div class="jb-ai">
+  <div
+    class="jb-ai">
     <img
       v-show="!isBluekingShow"
       ref="handleRef"
@@ -13,6 +14,8 @@
       ref="aiRef"
       :loading="isChatHistoryLoading || isContentLoading"
       :messages="messageList"
+      name="AI-assistant"
+      :placeholder="$t('在这里输入你的问题，试试我是否可以帮助到你...')"
       :scroll-loading="isLoadingMore"
       :scroll-loading-end="!hasMore"
       :start-position="startPosition"
@@ -31,15 +34,13 @@
 
   import eventBus from '@utils/event-bus';
 
-  import AiBlueking, { MessageStatus } from '@blueking/ai-blueking/vue2';
+  import AiBlueking from '@blueking/ai-blueking/vue2';
 
   import useChatHistory from './use-chat-history';
   import useCloseAnimate from './use-close-animate';
   import useStreamContent from './use-stream-content';
 
   import '@blueking/ai-blueking/dist/vue2/style.css';
-
-  console.log('MessageStatus = ', MessageStatus);
 
   let currentRecordId = 0;
 
@@ -138,7 +139,9 @@
   };
 
   const handleClear = () => {
-    handleStop();
+    if (isContentLoading.value) {
+      handleStop();
+    }
     AiService.deleteChatHistory()
       .then(() => {
         messageList.value = [];

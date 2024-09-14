@@ -37,8 +37,7 @@ export default {
   },
 
   fetchConfig(params = {}) {
-    return AiSource.getConfig(params, {
-    })
+    return AiSource.getConfig(params)
       .then(({ data }) => data);
   },
 

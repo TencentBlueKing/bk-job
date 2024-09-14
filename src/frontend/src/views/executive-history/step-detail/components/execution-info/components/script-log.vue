@@ -77,6 +77,7 @@
   import ace from 'ace/ace';
   import _ from 'lodash';
 
+  import AiService from '@service/ai';
   import TaskExecuteService from '@service/task-execute';
 
   import {
@@ -136,6 +137,7 @@
         // 自动动滚动到底部
         isWillAutoScroll: true,
         aiExtendToolStyle: {},
+        isAiEnable: false,
       };
     },
     watch: {
@@ -189,6 +191,7 @@
         theme: 'light',
       };
       this.logContent = '';
+      this.fetchAiConfig();
     },
     mounted() {
       this.initEditor();
@@ -242,6 +245,12 @@
           })
           .finally(() => {
             this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enable;
           });
       },
       initEditor() {
@@ -330,6 +339,9 @@
         this.editor.scrollToLine(Infinity);
       },
       handleMouseUp(event) {
+        if (!this.isAiEnable) {
+          return;
+        }
         setTimeout(() => {
           if (!this.editor.getSelectedText()) {
             this.aiExtendToolStyle = {};

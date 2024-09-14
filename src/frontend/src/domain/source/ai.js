@@ -40,17 +40,16 @@ class Ai extends ModuleBase {
     });
   }
 
-  getCheckScript(params, payload = {}) {
+  getCheckScript(params) {
     return Request.post(`${this.path}/checkScript`, {
       params,
-      payload,
     });
   }
 
-  getConfig(params, payload = {}) {
+  getConfig(params) {
     return Request.get(`${this.path}/config`, {
       params,
-      payload,
+      cache: true,
     });
   }
 

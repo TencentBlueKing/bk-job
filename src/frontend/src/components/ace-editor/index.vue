@@ -64,7 +64,9 @@
           class="jb-ace-action"
           :style="{ height: `${tabHeight}px` }">
           <slot name="action" />
-          <ai-tool @checkScript="handleCheckScript" />
+          <ai-tool
+            v-if="isAiEnable"
+            @checkScript="handleCheckScript" />
           <template v-if="!readonly && !isFullScreen">
             <icon
               v-bk-tooltips="$t('上传脚本')"
@@ -151,6 +153,7 @@
   import { Base64 } from 'js-base64';
   import _ from 'lodash';
 
+  import AiService from '@service/ai';
   import PublicScriptService from '@service/public-script-manage';
   import ScriptService from '@service/script-manage';
   import ScriptTemplateService from '@service/script-template';
@@ -281,6 +284,7 @@
         tabHeight: TAB_HEIGHT,
         historyList: [],
         currentUser: {},
+        isAiEnable: false,
       };
     },
     computed: {
@@ -393,6 +397,7 @@
       this.historyTimer = '';
       this.fetchUserInfo();
       this.fetchTemplate();
+      this.fetchAiConfig();
       this.syntaxCheck = _.debounce((content) => {
         ScriptService.getScriptValidation({
           content,
@@ -482,6 +487,13 @@
         })
           .finally(() => {
             this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            console.log('data = ', data);
+            this.isAiEnable = data.enabled;
           });
       },
       /**

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="!isConfigLoading"
+    v-if="!isConfigLoading && isAiEnable"
     class="execute-history-ai-helper extend-item">
     <span
       ref="referRef"
@@ -40,7 +40,7 @@
 </template>
 <script setup>
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
-  import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+  import { onBeforeUnmount, onMounted, ref } from 'vue';
 
   import AiService from '@service/ai';
 
@@ -61,6 +61,7 @@
   const isShowGuide = ref(false);
   const isConfigLoading = ref(true);
   const analyzeErrorLogMaxLength = ref(-1);
+  const isAiEnable = ref(false);
 
   let instance;
 
@@ -78,12 +79,15 @@
   AiService.fetchConfig()
     .then((data) => {
       analyzeErrorLogMaxLength.value = data.analyzeErrorLogMaxLength;
+      isAiEnable.value = data.enabled;
+      if (data.enabled) {
+        setTimeout(() => {
+          initPop();
+        });
+      }
     })
     .finally(() => {
       isConfigLoading.value = false;
-      nextTick(() => {
-        initPop();
-      });
     });
 
   const handleHide = () => {
@@ -142,7 +146,7 @@
     .guide-tips{
       position: absolute;
       top: -44px;
-      left: -156px;
+      right: -40px;
       padding: 0 6px;
       font-size: 12px;
       color: #63656E;
@@ -165,8 +169,8 @@
 
       &::after{
         position: absolute;
+        right: 52px;
         bottom: 3px;
-        left: 150px;
         border: 0 solid transparent;
         border-bottom: 10px solid #fff;
         border-right-width: 16px;
