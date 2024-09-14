@@ -38,7 +38,6 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.conf.ParamType;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
@@ -46,12 +45,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * 仿照AnalysisTaskDAOImpl实现一个AIChatHistoryDAOImpl
- */
 @Slf4j
 @Repository
 public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDAO {
+
+    // IS_DELETED字段取值：0-未删除，1-已删除
+    private static final int VALUE_NOT_DELETED = 0;
+    private static final int VALUE_DELETED = 1;
 
     private static final AiChatHistory defaultTable = AiChatHistory.AI_CHAT_HISTORY;
 
@@ -96,7 +96,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getStartTime()),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getAnswerTime()),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getTotalTime()),
-                JooqDataTypeUtil.buildUByte(aiChatHistoryDTO.getIsDeleted() ? 1 : 0)
+                JooqDataTypeUtil.buildUByte(aiChatHistoryDTO.getIsDeleted() ? VALUE_DELETED : VALUE_NOT_DELETED)
             )
             .returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
@@ -112,7 +112,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public boolean existsChatHistory(String username) {
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return dslContext.fetchExists(defaultTable, conditions);
     }
 
@@ -145,7 +145,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return listByConditions(conditions, start, length);
     }
 
@@ -154,7 +154,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
         conditions.add(defaultTable.STATUS.eq((byte) AIChatStatusEnum.FINISHED.getStatus()));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return listByConditions(conditions, start, length);
     }
 
@@ -163,7 +163,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
         conditions.add(defaultTable.ID.eq(id));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         val query = dslContext.select(
                 defaultTable.ID,
                 defaultTable.USERNAME,
@@ -191,9 +191,9 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public int softDeleteChatHistory(String username, Integer limit) {
         Collection<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return dslContext.update(defaultTable)
-            .set(defaultTable.IS_DELETED, JooqDataTypeUtil.buildUByte(1))
+            .set(defaultTable.IS_DELETED, JooqDataTypeUtil.buildUByte(VALUE_DELETED))
             .where(conditions)
             .orderBy(defaultTable.START_TIME)
             .limit(limit)
@@ -201,29 +201,14 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     }
 
     @Override
-    public Long getMaxIdBeforeOrEqualStartTime(long maxStartTime) {
-        Long existStartTime = dslContext.select(defaultTable.START_TIME)
-            .from(defaultTable)
-            .where(defaultTable.START_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxStartTime)))
-            .orderBy(defaultTable.START_TIME.desc())
-            .limit(1)
-            .fetchOneInto(Long.class);
-        if (existStartTime == null) {
-            return null;
-        }
-        Long maxId = dslContext.select(DSL.max(defaultTable.ID))
-            .from(defaultTable)
-            .where(defaultTable.START_TIME.equal(JooqDataTypeUtil.buildULong(existStartTime)))
-            .fetchOneInto(Long.class);
-        if (log.isDebugEnabled()) {
-            log.debug("existStartTime={},maxId={}", existStartTime, maxId);
-        }
-        return maxId;
-    }
-
-    @Override
-    public int deleteChatHistory(long maxId, int limit) {
-        return deleteChatHistory(null, maxId, limit);
+    public int deleteChatHistory(long maxStartTime, int limit) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.START_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxStartTime)));
+        return dslContext.deleteFrom(defaultTable)
+            .where(conditions)
+            .orderBy(defaultTable.START_TIME)
+            .limit(limit)
+            .execute();
     }
 
     @Override
@@ -243,7 +228,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     @Override
     public List<String> listAllUserOfChatHistory() {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return dslContext.selectDistinct(defaultTable.USERNAME)
             .from(defaultTable)
             .where(conditions)
@@ -255,7 +240,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public Long getFirstIdAfterOffset(String username, int offset) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.USERNAME.eq(username));
-        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(0)));
+        conditions.add(defaultTable.IS_DELETED.eq(JooqDataTypeUtil.buildUByte(VALUE_NOT_DELETED)));
         return dslContext.select(defaultTable.ID)
             .from(defaultTable)
             .where(conditions)

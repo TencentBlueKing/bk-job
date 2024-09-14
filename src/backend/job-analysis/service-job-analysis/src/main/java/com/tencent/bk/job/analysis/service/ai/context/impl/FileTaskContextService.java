@@ -141,7 +141,6 @@ public class FileTaskContextService {
 
     private boolean isUploadFailLog(ServiceFileTaskLogDTO fileTaskLog) {
         Integer mode = fileTaskLog.getMode();
-        assert (mode != null);
         Integer status = fileTaskLog.getStatus();
         return FileTaskModeEnum.UPLOAD.getValue().equals(mode)
             && FileDistStatusEnum.FAILED.getValue().equals(status);
@@ -149,7 +148,6 @@ public class FileTaskContextService {
 
     private boolean isDownloadFailLog(ServiceFileTaskLogDTO fileTaskLog) {
         Integer mode = fileTaskLog.getMode();
-        assert (mode != null);
         Integer status = fileTaskLog.getStatus();
         return FileTaskModeEnum.DOWNLOAD.getValue().equals(mode)
             && FileDistStatusEnum.FAILED.getValue().equals(status);

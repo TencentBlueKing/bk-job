@@ -161,7 +161,7 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
      */
     @Override
     public int softDeleteChatHistory(String username) {
-        int batchSize = 10000;
+        int batchSize = 1000;
         int deletedCount;
         int deletedTotalCount = 0;
         do {

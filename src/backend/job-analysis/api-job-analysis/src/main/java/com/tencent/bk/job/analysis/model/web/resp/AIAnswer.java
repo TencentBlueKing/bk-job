@@ -25,13 +25,13 @@
 package com.tencent.bk.job.analysis.model.web.resp;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.analysis.consts.AIConsts;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -66,7 +66,7 @@ public class AIAnswer {
 
     public static AIAnswer successAnswer(String content) {
         AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode("0");
+        aiAnswer.setErrorCode(AIConsts.AI_ANSWER_ERROR_CODE_OK);
         aiAnswer.setTime(System.currentTimeMillis());
         aiAnswer.setContent(content);
         return aiAnswer;
@@ -74,7 +74,7 @@ public class AIAnswer {
 
     public static AIAnswer failAnswer(String content) {
         AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode("1");
+        aiAnswer.setErrorCode(AIConsts.AI_ANSWER_ERROR_CODE_FAILED);
         aiAnswer.setTime(System.currentTimeMillis());
         aiAnswer.setContent(content);
         return aiAnswer;

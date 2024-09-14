@@ -119,26 +119,21 @@ public class AIChatHistoryCleanTask {
             TimeUtil.getTimeStr(lastKeepDateStartTime, TIME_FORMAT),
             maxStartTimeMills
         );
-        Long maxId = aiChatHistoryDAO.getMaxIdBeforeOrEqualStartTime(maxStartTimeMills);
-        if (maxId == null) {
-            log.info("No history need to delete");
-            return;
-        }
-        int batchSize = 10000;
+        int batchSize = 1000;
         int totalDeletedNum = 0;
         int deletedNum;
         do {
-            deletedNum = aiChatHistoryDAO.deleteChatHistory(maxId, batchSize);
+            deletedNum = aiChatHistoryDAO.deleteChatHistory(maxStartTimeMills, batchSize);
             totalDeletedNum += deletedNum;
             if (deletedNum > 0) {
                 ThreadUtils.sleep(1000);
             }
         } while (deletedNum > 0);
         log.info(
-            "Finish to cleanChatHistoryByMaxKeepDays({}), totalDeletedNum={}, maxId={}",
+            "Finish to cleanChatHistoryByMaxKeepDays({}), totalDeletedNum={}, maxStartTimeMills={}",
             maxKeepDays,
             totalDeletedNum,
-            maxId
+            maxStartTimeMills
         );
     }
 
@@ -170,7 +165,7 @@ public class AIChatHistoryCleanTask {
      * @return 删除的记录条数
      */
     private int cleanChatHistoryForUser(String username, Long maxId) {
-        int batchSize = 10000;
+        int batchSize = 1000;
         int totalDeletedNum = 0;
         int deletedNum;
         do {

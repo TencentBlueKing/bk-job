@@ -111,21 +111,13 @@ public interface AIChatHistoryDAO {
     int softDeleteChatHistory(String username, Integer limit);
 
     /**
-     * 获取指定时间（包含）之前的记录最大id
-     *
-     * @param maxStartTime 最大开始时间
-     * @return 记录最大id
-     */
-    Long getMaxIdBeforeOrEqualStartTime(long maxStartTime);
-
-    /**
      * 硬删除id小于指定id的聊天记录（按id从小到大的顺序删除）
      *
-     * @param maxId    最大id
-     * @param limit    最大删除数量
+     * @param maxStartTime 最大开始时间
+     * @param limit        最大删除数量
      * @return 删除的记录条数
      */
-    int deleteChatHistory(long maxId, int limit);
+    int deleteChatHistory(long maxStartTime, int limit);
 
     /**
      * 硬删除某个用户的id小于指定id的聊天记录（按id从小到大的顺序删除）

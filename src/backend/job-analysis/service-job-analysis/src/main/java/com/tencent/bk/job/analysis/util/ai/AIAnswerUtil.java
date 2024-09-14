@@ -42,7 +42,7 @@ public class AIAnswerUtil {
             return null;
         }
         if (aiAnswer.length() > AIConsts.MAX_LENGTH_AI_ANSWER) {
-            log.warn(
+            log.info(
                 "aiAnswer is too long({}), truncated to {}",
                 aiAnswer.length(),
                 AIConsts.MAX_LENGTH_AI_ANSWER

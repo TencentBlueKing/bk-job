@@ -28,6 +28,10 @@ package com.tencent.bk.job.analysis.consts;
  * AI功能相关的常量
  */
 public class AIConsts {
+    // AI回答错误码：OK
+    public static final String AI_ANSWER_ERROR_CODE_OK = "0";
+    // AI回答错误码：Failed
+    public static final String AI_ANSWER_ERROR_CODE_FAILED = "1";
     // AI回答最大长度：1.5w字
     public static final int MAX_LENGTH_AI_ANSWER = 15_000;
 }

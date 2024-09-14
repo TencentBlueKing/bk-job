@@ -77,16 +77,16 @@ public class BaseDAOImpl {
 
     public <RecordClazz extends Record, DTOClazz> DTOClazz fetchOne(SelectConditionStep<RecordClazz> query,
                                                                     RecordDTOConverter<RecordClazz, DTOClazz> converter) {
-        String sql = "";
         try {
-            sql = query.getSQL(ParamType.INLINED);
-            log.debug("SQL={}", sql);
+            if (log.isDebugEnabled()) {
+                log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+            }
             RecordClazz record = query.fetchOne();
             return record == null ? null : converter.convert(record);
         } catch (Exception e) {
             String msg = MessageFormatter.format(
                 "error SQL={}",
-                sql
+                query.getSQL(ParamType.INLINED)
             ).getMessage();
             log.error(msg, e);
             throw e;

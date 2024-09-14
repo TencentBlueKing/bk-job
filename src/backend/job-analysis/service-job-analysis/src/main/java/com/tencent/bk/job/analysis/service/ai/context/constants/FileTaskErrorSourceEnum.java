@@ -33,7 +33,7 @@ import lombok.Getter;
 public enum FileTaskErrorSourceEnum {
     NO_ERROR(
         "job.analysis.ai.fileTaskErrorSource.noError",
-        "任务成功并未失败"
+        "任务未失败"
     ),
     SOURCE_FILE_UPLOAD_ERROR(
         "job.analysis.ai.fileTaskErrorSource.sourceFileUploadError",
