@@ -249,6 +249,8 @@ public class BkOpenAIClient implements IBkOpenAIClient {
                     builder.addUserMessage(message.getContent());
                 } else if (message.isAssistantMessage()) {
                     builder.addAssistantMessage(message.getContent());
+                } else if (message.isSystemMessage()) {
+                    builder.addSystemMessage(message.getContent());
                 }
             }
         }

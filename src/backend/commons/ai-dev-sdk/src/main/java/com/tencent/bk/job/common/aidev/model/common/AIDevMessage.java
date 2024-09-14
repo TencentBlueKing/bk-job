@@ -33,12 +33,17 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public class AIDevMessage {
 
+    public static String ROLE_SYSTEM = "system";
     public static String ROLE_USER = "user";
     public static String ROLE_ASSISTANT = "assistant";
 
     private String role;
 
     private String content;
+
+    public boolean isSystemMessage() {
+        return role.equals(ROLE_SYSTEM);
+    }
 
     public boolean isUserMessage() {
         return role.equals(ROLE_USER);

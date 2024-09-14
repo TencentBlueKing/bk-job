@@ -49,14 +49,17 @@ public class AIServiceImpl implements AIService {
     private final LoginTokenService loginTokenService;
     private final IBkAIDevClient bkAIDevClient;
     private final IBkOpenAIClient bkOpenAIClient;
+    private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
     public AIServiceImpl(LoginTokenService loginTokenService,
                          IBkAIDevClient bkAIDevClient,
-                         IBkOpenAIClient bkOpenAIClient) {
+                         IBkOpenAIClient bkOpenAIClient,
+                         AIMessageI18nService aiMessageI18nService) {
         this.loginTokenService = loginTokenService;
         this.bkAIDevClient = bkAIDevClient;
         this.bkOpenAIClient = bkOpenAIClient;
+        this.aiMessageI18nService = aiMessageI18nService;
     }
 
     @Override
@@ -93,7 +96,7 @@ public class AIServiceImpl implements AIService {
         if (CollectionUtils.isEmpty(chatHistoryDTOList)) {
             return Collections.emptyList();
         }
-        List<AIDevMessage> messageHistoryList = new ArrayList<>();
+        List<AIDevMessage> messageHistoryList = new ArrayList<>(getSystemMessageList());
         for (AIChatHistoryDTO chatHistoryDTO : chatHistoryDTOList) {
             AIDevMessage aiDevMessage = new AIDevMessage();
             aiDevMessage.setRole(AIDevMessage.ROLE_USER);
@@ -105,5 +108,14 @@ public class AIServiceImpl implements AIService {
             messageHistoryList.add(aiDevMessage);
         }
         return messageHistoryList;
+    }
+
+    private List<AIDevMessage> getSystemMessageList() {
+        List<AIDevMessage> systemMessageList = new ArrayList<>();
+        AIDevMessage aiDevMessage = new AIDevMessage();
+        aiDevMessage.setRole(AIDevMessage.ROLE_SYSTEM);
+        aiDevMessage.setContent(aiMessageI18nService.getLanguageSpecifySystemMessage());
+        systemMessageList.add(aiDevMessage);
+        return systemMessageList;
     }
 }
