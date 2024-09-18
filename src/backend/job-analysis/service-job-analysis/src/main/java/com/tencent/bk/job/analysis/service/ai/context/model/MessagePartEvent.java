@@ -45,12 +45,16 @@ public class MessagePartEvent {
      * 事件产生时间
      */
     private Long timeMills;
+    /**
+     * 异常
+     */
+    private Throwable throwable;
 
-    public static MessagePartEvent endEvent() {
-        return new MessagePartEvent(true, null, System.currentTimeMillis());
+    public static MessagePartEvent endEvent(Throwable throwable) {
+        return new MessagePartEvent(true, null, System.currentTimeMillis(), throwable);
     }
 
     public static MessagePartEvent normalEvent(String messagePart) {
-        return new MessagePartEvent(false, messagePart, System.currentTimeMillis());
+        return new MessagePartEvent(false, messagePart, System.currentTimeMillis(), null);
     }
 }

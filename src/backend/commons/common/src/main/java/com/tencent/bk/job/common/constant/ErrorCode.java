@@ -93,6 +93,8 @@ public class ErrorCode {
     public static final int BK_AI_DEV_API_DATA_ERROR = 1218001;
     // 蓝鲸OpenAI接口数据异常
     public static final int BK_OPEN_AI_API_DATA_ERROR = 1218002;
+    // 蓝鲸OpenAI接口数据超时
+    public static final int BK_OPEN_AI_API_DATA_TIMEOUT = 1218003;
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试

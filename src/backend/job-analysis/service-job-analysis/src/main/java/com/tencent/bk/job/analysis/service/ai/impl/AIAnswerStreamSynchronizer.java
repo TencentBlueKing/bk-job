@@ -27,7 +27,10 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
 import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -67,8 +71,19 @@ public class AIAnswerStreamSynchronizer {
         StreamingResponseBody streamingResponseBody = outputStream -> {
             while (!isFinished.get()) {
                 try {
-                    MessagePartEvent event = messageQueue.take();
+                    MessagePartEvent event = messageQueue.poll(25, TimeUnit.SECONDS);
+                    if (event == null) {
+                        throw new ServiceException(ErrorType.TIMEOUT, ErrorCode.BK_OPEN_AI_API_DATA_TIMEOUT);
+                    }
                     if (event.isEnd()) {
+                        Throwable throwable = event.getThrowable();
+                        if (throwable != null) {
+                            throw new ServiceException(
+                                throwable,
+                                ErrorType.INTERNAL,
+                                ErrorCode.BK_OPEN_AI_API_DATA_ERROR
+                            );
+                        }
                         break;
                     }
                     String partMessage = event.getMessagePart();
@@ -98,9 +113,11 @@ public class AIAnswerStreamSynchronizer {
 
     /**
      * 触发结束事件，消费者读取完数据后，触发生产者停止生产并清理
+     *
+     * @param throwable 异常
      */
-    public void triggerEndEvent() {
+    public void triggerEndEvent(Throwable throwable) {
         isFinished.set(true);
-        messageQueue.offer(MessagePartEvent.endEvent());
+        messageQueue.offer(MessagePartEvent.endEvent(throwable));
     }
 }

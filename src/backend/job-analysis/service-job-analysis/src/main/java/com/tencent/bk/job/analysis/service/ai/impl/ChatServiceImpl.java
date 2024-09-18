@@ -125,7 +125,7 @@ public class ChatServiceImpl implements ChatService {
             // 4.处理AI回复内容
             aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
             futureMap.remove(recordId);
-            aiAnswerStreamSynchronizer.triggerEndEvent();
+            aiAnswerStreamSynchronizer.triggerEndEvent(throwable);
         });
         futureMap.put(recordId, future);
         return consumerAndProducerPair.getProducer();
