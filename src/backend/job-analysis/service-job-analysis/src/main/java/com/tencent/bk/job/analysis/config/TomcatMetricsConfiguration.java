@@ -25,24 +25,28 @@
 package com.tencent.bk.job.analysis.config;
 
 import io.micrometer.core.instrument.binder.MeterBinder;
-import org.apache.catalina.core.StandardThreadExecutor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.Executor;
 
+@Slf4j
 @Configuration(value = "jobAnalysisTomcatMetricsConfig")
 public class TomcatMetricsConfiguration {
     @Bean
     public MeterBinder tomcatThreadPoolMetrics(TomcatServletWebServerFactory tomcatFactory) {
         return registry -> tomcatFactory.addConnectorCustomizers(connector -> {
             Executor executor = connector.getProtocolHandler().getExecutor();
-            if (executor instanceof StandardThreadExecutor) {
-                StandardThreadExecutor threadExecutor = (StandardThreadExecutor) executor;
-                registry.gauge("tomcat.threads.max", threadExecutor, StandardThreadExecutor::getMaxThreads);
-                registry.gauge("tomcat.threads.current", threadExecutor, StandardThreadExecutor::getPoolSize);
-                registry.gauge("tomcat.threads.busy", threadExecutor, StandardThreadExecutor::getActiveCount);
+            if (executor instanceof ThreadPoolExecutor) {
+                ThreadPoolExecutor threadExecutor = (ThreadPoolExecutor) executor;
+                registry.gauge("tomcat.threads.max", threadExecutor, ThreadPoolExecutor::getMaximumPoolSize);
+                registry.gauge("tomcat.threads.current", threadExecutor, ThreadPoolExecutor::getPoolSize);
+                registry.gauge("tomcat.threads.busy", threadExecutor, ThreadPoolExecutor::getActiveCount);
+            } else {
+                log.warn("Unknown executor type: {}, ignore tomcat executor metrics", executor.getClass().getName());
             }
         });
     }
