@@ -39,6 +39,8 @@ data:
     image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   job-tools-k8s-startup-controller:
     image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForDependServices.image "global" .Values.global) }}
+  bk-job-sync-api-gateway:
+    image: {{ include "common.images.image" (dict "imageRoot" .Values.bkApiGatewayConfig.image "global" .Values.global) }}
 {{- end }}
 {{- end }}
 
