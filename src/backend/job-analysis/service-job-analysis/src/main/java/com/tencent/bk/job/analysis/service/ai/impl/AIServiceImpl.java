@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -94,9 +93,9 @@ public class AIServiceImpl implements AIService {
 
     private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {
         if (CollectionUtils.isEmpty(chatHistoryDTOList)) {
-            return Collections.emptyList();
+            return getSystemMessageList();
         }
-        List<AIDevMessage> messageHistoryList = new ArrayList<>(getSystemMessageList());
+        List<AIDevMessage> messageHistoryList = new ArrayList<>();
         for (AIChatHistoryDTO chatHistoryDTO : chatHistoryDTOList) {
             AIDevMessage aiDevMessage = new AIDevMessage();
             aiDevMessage.setRole(AIDevMessage.ROLE_USER);
@@ -107,15 +106,21 @@ public class AIServiceImpl implements AIService {
             aiDevMessage.setContent(chatHistoryDTO.getAiAnswer());
             messageHistoryList.add(aiDevMessage);
         }
+        messageHistoryList.addAll(getSystemMessageList());
         return messageHistoryList;
     }
 
     private List<AIDevMessage> getSystemMessageList() {
         List<AIDevMessage> systemMessageList = new ArrayList<>();
-        AIDevMessage aiDevMessage = new AIDevMessage();
-        aiDevMessage.setRole(AIDevMessage.ROLE_SYSTEM);
-        aiDevMessage.setContent(aiMessageI18nService.getLanguageSpecifySystemMessage());
-        systemMessageList.add(aiDevMessage);
+        AIDevMessage languageSpecifyMessage = new AIDevMessage();
+        // ROLE_SYSTEM系统角色不生效，使用ROLE_USER消息代替
+        languageSpecifyMessage.setRole(AIDevMessage.ROLE_USER);
+        languageSpecifyMessage.setContent(aiMessageI18nService.getLanguageSpecifySystemMessage());
+        systemMessageList.add(languageSpecifyMessage);
+        AIDevMessage aiReplyMessage = new AIDevMessage();
+        aiReplyMessage.setRole(AIDevMessage.ROLE_ASSISTANT);
+        aiReplyMessage.setContent(aiMessageI18nService.getLanguageSpecifyAIReplyMessage());
+        systemMessageList.add(aiReplyMessage);
         return systemMessageList;
     }
 }

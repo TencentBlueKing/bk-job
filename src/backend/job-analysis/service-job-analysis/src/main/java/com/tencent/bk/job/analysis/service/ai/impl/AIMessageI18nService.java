@@ -61,6 +61,15 @@ public class AIMessageI18nService {
     }
 
     /**
+     * 获取指定环境语言的AI答复信息
+     *
+     * @return 国际化的指定环境语言的AI答复信息
+     */
+    public String getLanguageSpecifyAIReplyMessage() {
+        return messageI18nService.getI18n("job.analysis.ai.languageSpecifyAIReplyMessage");
+    }
+
+    /**
      * 根据国际化Key获取国际化信息
      *
      * @param i18nKey 国际化Key
