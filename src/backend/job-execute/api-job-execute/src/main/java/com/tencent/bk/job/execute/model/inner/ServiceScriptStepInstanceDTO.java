@@ -49,4 +49,9 @@ public class ServiceScriptStepInstanceDTO {
      * 脚本参数
      */
     private String scriptParam;
+
+    /**
+     * 脚本参数是否为敏感参数
+     */
+    private boolean secureParam;
 }

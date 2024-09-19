@@ -46,4 +46,15 @@ public class ScriptTaskContext {
      * 脚本参数
      */
     private String scriptParams;
+    /**
+     * 脚本参数是否为敏感参数
+     */
+    private boolean secureParam;
+
+    public String getInsensitiveScriptParams() {
+        if (!secureParam) {
+            return scriptParams;
+        }
+        return "[Secure params ignored]";
+    }
 }

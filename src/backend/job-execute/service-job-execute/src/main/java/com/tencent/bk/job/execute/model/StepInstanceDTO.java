@@ -329,6 +329,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
             scriptStepInstance.setScriptType(scriptType.getValue());
             scriptStepInstance.setScriptContent(scriptContent);
             scriptStepInstance.setScriptParam(scriptParam);
+            scriptStepInstance.setSecureParam(secureParam);
             serviceStepInstanceDTO.setScriptStepInstance(scriptStepInstance);
         } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
             ServiceFileStepInstanceDTO fileStepInstance = new ServiceFileStepInstanceDTO();
