@@ -22,19 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.listener;
+package com.tencent.bk.job.common.web.listener;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.ProtocolHandler;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
+import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 
 import java.util.concurrent.Executor;
 
-
+/**
+ * 监听Tomcat启动事件，注册线程池监控指标
+ */
 @Slf4j
 public class TomcatStartEventListener implements ApplicationListener<ServletWebServerInitializedEvent> {
 
@@ -46,8 +49,13 @@ public class TomcatStartEventListener implements ApplicationListener<ServletWebS
 
     @Override
     public void onApplicationEvent(ServletWebServerInitializedEvent event) {
-        log.info("ServletWebServerInitializedEvent catched");
-        TomcatWebServer tomcatWebServer = (TomcatWebServer) event.getSource();
+        log.info("ServletWebServerInitializedEvent caught");
+        WebServer webServer = event.getSource();
+        if (!(webServer instanceof TomcatWebServer)) {
+            log.info("Unknown web server type: {}, ignore tomcat executor metrics", webServer.getClass().getName());
+            return;
+        }
+        TomcatWebServer tomcatWebServer = (TomcatWebServer) webServer;
         ProtocolHandler protocolHandler = tomcatWebServer.getTomcat().getConnector().getProtocolHandler();
         log.info("protocolHandler: {}", protocolHandler);
         if (protocolHandler == null) {

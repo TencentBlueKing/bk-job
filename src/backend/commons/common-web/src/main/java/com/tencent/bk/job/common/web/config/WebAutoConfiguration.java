@@ -38,7 +38,8 @@ import org.springframework.context.annotation.Import;
     SwaggerAdapterConfig.class,
     FeignConfiguration.class,
     FilterConfig.class,
-    ValidationConfiguration.class
+    ValidationConfiguration.class,
+    TomcatMetricsConfiguration.class
 })
 @Configuration(proxyBeanMethods = false)
 public class WebAutoConfiguration {

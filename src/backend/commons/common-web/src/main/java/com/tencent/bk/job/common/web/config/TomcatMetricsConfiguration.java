@@ -22,16 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.config;
+package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.analysis.listener.TomcatStartEventListener;
+import com.tencent.bk.job.common.web.listener.TomcatStartEventListener;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
-@Configuration(value = "jobAnalysisTomcatMetricsConfig")
+@Configuration
 public class TomcatMetricsConfiguration {
 
     @Bean
