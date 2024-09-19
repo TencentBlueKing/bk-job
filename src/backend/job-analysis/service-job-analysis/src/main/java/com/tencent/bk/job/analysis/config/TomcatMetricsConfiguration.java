@@ -24,42 +24,18 @@
 
 package com.tencent.bk.job.analysis.config;
 
+import com.tencent.bk.job.analysis.listener.TomcatStartEventListener;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.ProtocolHandler;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.Executor;
 
 @Slf4j
 @Configuration(value = "jobAnalysisTomcatMetricsConfig")
 public class TomcatMetricsConfiguration {
 
     @Bean
-    public TomcatConnectorCustomizer tomcatThreadPoolCustomizer(MeterRegistry registry) {
-        return connector -> {
-            ProtocolHandler protocolHandler = connector.getProtocolHandler();
-            log.info("protocolHandler: {}", protocolHandler);
-            if (protocolHandler == null) {
-                return;
-            }
-            Executor executor = protocolHandler.getExecutor();
-            log.info("executor: {}", executor);
-            if (executor == null) {
-                return;
-            }
-            if (executor instanceof ThreadPoolExecutor) {
-                ThreadPoolExecutor threadExecutor = (ThreadPoolExecutor) executor;
-                registry.gauge("tomcat.threads.max", threadExecutor, ThreadPoolExecutor::getMaximumPoolSize);
-                registry.gauge("tomcat.threads.current", threadExecutor, ThreadPoolExecutor::getPoolSize);
-                registry.gauge("tomcat.threads.busy", threadExecutor, ThreadPoolExecutor::getActiveCount);
-                log.info("Tomcat thread pool metrics inited");
-            } else {
-                log.warn("Unknown executor type: {}, ignore tomcat executor metrics", executor.getClass().getName());
-            }
-        };
+    public TomcatStartEventListener tomcatStartEventListener(MeterRegistry registry) {
+        return new TomcatStartEventListener(registry);
     }
 }
