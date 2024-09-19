@@ -147,7 +147,7 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         ChatCompletionRequest request = buildRequest(messageHistoryList, userInput);
         String username = JobContextUtil.getUsername();
         if (log.isDebugEnabled()) {
-            String requestStr = JsonUtils.toNonEmptyJson(request);
+            String requestStr = request.toString();
             log.debug(
                 "username={}, request={}, length={}",
                 username,
