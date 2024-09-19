@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.ProtocolHandler;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +41,16 @@ public class TomcatMetricsConfiguration {
     @Bean
     public TomcatConnectorCustomizer tomcatThreadPoolCustomizer(MeterRegistry registry) {
         return connector -> {
-            Executor executor = connector.getProtocolHandler().getExecutor();
+            ProtocolHandler protocolHandler = connector.getProtocolHandler();
+            log.debug("protocolHandler: {}", protocolHandler);
+            if (protocolHandler == null) {
+                return;
+            }
+            Executor executor = protocolHandler.getExecutor();
+            log.debug("executor: {}", executor);
+            if (executor == null) {
+                return;
+            }
             if (executor instanceof ThreadPoolExecutor) {
                 ThreadPoolExecutor threadExecutor = (ThreadPoolExecutor) executor;
                 registry.gauge("tomcat.threads.max", threadExecutor, ThreadPoolExecutor::getMaximumPoolSize);
