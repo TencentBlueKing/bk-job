@@ -44,6 +44,8 @@ data:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
       bkAIDev:
         url: {{ .Values.bkAIDevApiGatewayUrl }}
+        appCode: {{ .Values.bkAIDevAppCode }}
+        appSecret: {{ .Values.bkAIDevAppSecret }}
       cmdb:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
       bkApiGateway:

@@ -4,6 +4,12 @@
 1. 增加AI相关配置
 
 ```yaml
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
 analysisConfig:
   # AI相关配置
   ai :
