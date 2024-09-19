@@ -36,14 +36,14 @@ import org.springframework.context.ApplicationListener;
 import java.util.concurrent.Executor;
 
 /**
- * 监听Tomcat启动事件，注册线程池监控指标
+ * 监听WebServer初始化完成事件，执行注册线程池监控指标等动作
  */
 @Slf4j
-public class TomcatStartEventListener implements ApplicationListener<ServletWebServerInitializedEvent> {
+public class ServletWebServerInitializedEventListener implements ApplicationListener<ServletWebServerInitializedEvent> {
 
     private final MeterRegistry registry;
 
-    public TomcatStartEventListener(MeterRegistry registry) {
+    public ServletWebServerInitializedEventListener(MeterRegistry registry) {
         this.registry = registry;
     }
 
@@ -51,18 +51,27 @@ public class TomcatStartEventListener implements ApplicationListener<ServletWebS
     public void onApplicationEvent(ServletWebServerInitializedEvent event) {
         log.info("ServletWebServerInitializedEvent caught");
         WebServer webServer = event.getSource();
+        initTomcatExecutorMetrics(webServer);
+    }
+
+    /**
+     * 注册Tomcat线程池监控指标
+     *
+     * @param webServer Web服务器
+     */
+    private void initTomcatExecutorMetrics(WebServer webServer) {
         if (!(webServer instanceof TomcatWebServer)) {
             log.info("Unknown web server type: {}, ignore tomcat executor metrics", webServer.getClass().getName());
             return;
         }
         TomcatWebServer tomcatWebServer = (TomcatWebServer) webServer;
         ProtocolHandler protocolHandler = tomcatWebServer.getTomcat().getConnector().getProtocolHandler();
-        log.info("protocolHandler: {}", protocolHandler);
+        log.debug("protocolHandler: {}", protocolHandler);
         if (protocolHandler == null) {
             return;
         }
         Executor executor = protocolHandler.getExecutor();
-        log.info("executor: {}", executor);
+        log.debug("executor: {}", executor);
         if (executor == null) {
             return;
         }

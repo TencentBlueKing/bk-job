@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.web.listener.TomcatStartEventListener;
+import com.tencent.bk.job.common.web.listener.ServletWebServerInitializedEventListener;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -32,10 +32,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-public class TomcatMetricsConfiguration {
+public class WebServerEventListenerConfiguration {
 
     @Bean
-    public TomcatStartEventListener tomcatStartEventListener(MeterRegistry registry) {
-        return new TomcatStartEventListener(registry);
+    public ServletWebServerInitializedEventListener servletWebServerInitializedEventListener(MeterRegistry registry) {
+        return new ServletWebServerInitializedEventListener(registry);
     }
 }

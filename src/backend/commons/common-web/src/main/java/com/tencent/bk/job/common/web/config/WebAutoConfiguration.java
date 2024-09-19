@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Import;
     FeignConfiguration.class,
     FilterConfig.class,
     ValidationConfiguration.class,
-    TomcatMetricsConfiguration.class
+    WebServerEventListenerConfiguration.class
 })
 @Configuration(proxyBeanMethods = false)
 public class WebAutoConfiguration {
