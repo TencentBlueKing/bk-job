@@ -42,12 +42,12 @@ public class TomcatMetricsConfiguration {
     public TomcatConnectorCustomizer tomcatThreadPoolCustomizer(MeterRegistry registry) {
         return connector -> {
             ProtocolHandler protocolHandler = connector.getProtocolHandler();
-            log.debug("protocolHandler: {}", protocolHandler);
+            log.info("protocolHandler: {}", protocolHandler);
             if (protocolHandler == null) {
                 return;
             }
             Executor executor = protocolHandler.getExecutor();
-            log.debug("executor: {}", executor);
+            log.info("executor: {}", executor);
             if (executor == null) {
                 return;
             }
@@ -56,6 +56,7 @@ public class TomcatMetricsConfiguration {
                 registry.gauge("tomcat.threads.max", threadExecutor, ThreadPoolExecutor::getMaximumPoolSize);
                 registry.gauge("tomcat.threads.current", threadExecutor, ThreadPoolExecutor::getPoolSize);
                 registry.gauge("tomcat.threads.busy", threadExecutor, ThreadPoolExecutor::getActiveCount);
+                log.info("Tomcat thread pool metrics inited");
             } else {
                 log.warn("Unknown executor type: {}, ignore tomcat executor metrics", executor.getClass().getName());
             }
