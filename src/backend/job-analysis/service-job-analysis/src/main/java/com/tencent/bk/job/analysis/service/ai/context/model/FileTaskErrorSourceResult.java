@@ -22,59 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.common.util;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
-import org.jooq.types.UByte;
-import org.jooq.types.UInteger;
-import org.jooq.types.ULong;
+import com.tencent.bk.job.analysis.service.ai.context.constants.FileTaskErrorSourceEnum;
+import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class JooqDataTypeUtil {
-    public static ULong buildULong(Long value) {
-        if (value == null) {
-            return null;
-        }
-        return ULong.valueOf(value);
-    }
+import java.util.List;
 
-    public static UInteger buildUInteger(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return UInteger.valueOf(value);
-    }
+/**
+ * 文件分发任务错误根源分析结果
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class FileTaskErrorSourceResult {
+    /**
+     * 错误根源
+     */
+    FileTaskErrorSourceEnum errorSource;
 
-    public static UByte buildUByte(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return UByte.valueOf(value);
-    }
-
-    public static Byte getByteFromInteger(Integer value) {
-        if (value == null) {
-            return null;
-        }
-        return Byte.valueOf(String.valueOf(value));
-    }
-
-    public static Integer getIntegerFromByte(Byte value) {
-        if (value == null) {
-            return null;
-        }
-        return value.intValue();
-    }
-
-    public static Long getLongFromULong(ULong value) {
-        if (value == null) {
-            return null;
-        }
-        return value.longValue();
-    }
-
-    public static Integer getIntegerFromUInteger(UInteger value) {
-        if (value == null) {
-            return null;
-        }
-        return value.intValue();
-    }
+    /**
+     * 上传失败的日志
+     */
+    List<ServiceFileTaskLogDTO> uploadFailLogs;
+    /**
+     * 下载失败的日志
+     */
+    List<ServiceFileTaskLogDTO> downloadFailLogs;
 }

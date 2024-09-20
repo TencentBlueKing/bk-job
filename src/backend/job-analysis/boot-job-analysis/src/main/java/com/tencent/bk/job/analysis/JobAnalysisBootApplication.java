@@ -40,6 +40,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     basePackages = {
         "com.tencent.bk.job.manage.api",
         "com.tencent.bk.job.execute.api",
+        "com.tencent.bk.job.logsvr.api",
         "com.tencent.bk.job.crontab.api"
     }
 )

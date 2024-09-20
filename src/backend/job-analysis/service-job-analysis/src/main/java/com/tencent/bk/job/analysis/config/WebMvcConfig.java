@@ -22,8 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource.impl;
+package com.tencent.bk.job.analysis.config;
 
-public interface RecordDTOConverter<RecordClazz, DTOClazz> {
-    DTOClazz convert(RecordClazz record);
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.support.TaskExecutorAdapter;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+/**
+ * 自定义WebMvc配置
+ */
+@Slf4j
+@Configuration
+public class WebMvcConfig {
+
+    @Bean
+    public WebMvcConfigurer jobWebMvcConfigurer(
+        @Qualifier("analysisAsyncTaskExecutor") ThreadPoolExecutor threadPoolExecutor
+    ) {
+        return new JobWebMvcConfigurer(threadPoolExecutor);
+    }
+
+    static class JobWebMvcConfigurer implements WebMvcConfigurer {
+        ThreadPoolExecutor threadPoolExecutor;
+
+        public JobWebMvcConfigurer(ThreadPoolExecutor threadPoolExecutor) {
+            this.threadPoolExecutor = threadPoolExecutor;
+        }
+
+        @Override
+        public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+            configurer.setTaskExecutor(new TaskExecutorAdapter(threadPoolExecutor));
+        }
+    }
 }

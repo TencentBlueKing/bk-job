@@ -22,28 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.config;
+package com.tencent.bk.job.analysis.service.ai.context.model;
 
-import com.tencent.bk.job.common.util.http.HttpHelperFactory;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Slf4j
-@Configuration
-public class HttpConfig {
-
-    @Bean
-    public HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
-        HttpHelperFactory.setMeterRegistry(meterRegistry);
-        log.info("meterRegistry for HttpHelperFactory init");
-        return new HttpConfigSetter();
-    }
-
-    static class HttpConfigSetter {
-        HttpConfigSetter() {
-        }
-    }
+/**
+ * 主机描述，提交给AI让其进行归纳总结，字段名必须清晰
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class HostDescription {
+    /**
+     * 云区域IP
+     */
+    private String cloudIp;
 }

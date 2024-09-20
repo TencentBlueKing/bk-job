@@ -26,11 +26,16 @@ package com.tencent.bk.job.common.service.config;
 
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @Import({JobCommonConfig.class, BkConfig.class})
 public class JobCommonAutoConfiguration {
@@ -38,5 +43,17 @@ public class JobCommonAutoConfiguration {
     @Lazy(false)
     public ApplicationContextRegister applicationContextRegister() {
         return new ApplicationContextRegister();
+    }
+
+    @Bean
+    HttpConfigSetter httpConfigSetter(@Autowired MeterRegistry meterRegistry) {
+        HttpHelperFactory.setMeterRegistry(meterRegistry);
+        log.info("meterRegistry for HttpHelperFactory init");
+        return new HttpConfigSetter();
+    }
+
+    static class HttpConfigSetter {
+        HttpConfigSetter() {
+        }
     }
 }
