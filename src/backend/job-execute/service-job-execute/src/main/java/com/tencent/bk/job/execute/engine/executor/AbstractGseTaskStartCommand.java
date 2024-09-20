@@ -197,8 +197,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 log.error("[{}] Start gse task fail, response: {}", this.gseTaskInfo, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
-                taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                    EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
+                taskExecuteMQEventDispatcher.dispatchStepEvent(
+                    StepEvent.refreshStep(
+                        taskInstanceId,
+                        stepInstanceId,
+                        EventSource.buildGseTaskEventSource(
+                            taskInstanceId,
+                            stepInstanceId,
+                            executeCount,
+                            batch,
+                            gseTask.getId()))
+                );
                 watch.stop();
                 return false;
             } else {
@@ -311,8 +320,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void finishGseTask(RunStatusEnum gseTaskStatus) {
         updateGseTaskExecutionInfo(null, gseTaskStatus, DateUtils.currentTimeMillis());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-            EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.refreshStep(
+                taskInstanceId,
+                stepInstanceId,
+                EventSource.buildGseTaskEventSource(
+                    taskInstanceId,
+                    stepInstanceId,
+                    executeCount,
+                    batch,
+                    gseTask.getId()
+                )));
     }
 
     /**

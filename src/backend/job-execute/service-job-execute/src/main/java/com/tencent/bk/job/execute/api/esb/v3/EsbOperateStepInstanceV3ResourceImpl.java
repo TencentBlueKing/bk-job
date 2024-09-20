@@ -59,6 +59,7 @@ public class EsbOperateStepInstanceV3ResourceImpl implements EsbOperateStepInsta
         }
         StepOperationEnum operationEnum = StepOperationEnum.getStepOperation(request.getOperationCode());
         StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setTaskInstanceId(request.getTaskInstanceId());
         stepOperation.setStepInstanceId(request.getStepInstanceId());
         stepOperation.setOperation(operationEnum);
         taskExecuteService.doStepOperation(request.getAppId(), username, stepOperation);

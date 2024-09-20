@@ -24,8 +24,8 @@
 
 TRUNCATE TABLE job_execute.gse_task;
 
-INSERT INTO job_execute.gse_task (id,step_instance_id,execute_count,batch,status,start_time,end_time,total_time,gse_task_id)
+INSERT INTO job_execute.gse_task (id,task_instance_id,step_instance_id,execute_count,batch,status,start_time,end_time,total_time,gse_task_id)
 VALUES
-(1,1,0,0,4,1660639901000,1660639902000,1000,'GSE_TASK_1'),
-(2,2,0,1,3,1660639903000,1660639904000,1000,'GSE_TASK_2'),
-(3,2,0,2,4,1660639905000,1660639906000,1000,'GSE_TASK_3');
+(1,1,1,0,0,4,1660639901000,1660639902000,1000,'GSE_TASK_1'),
+(2,2,2,0,1,3,1660639903000,1660639904000,1000,'GSE_TASK_2'),
+(3,2,2,0,2,4,1660639905000,1660639906000,1000,'GSE_TASK_3');

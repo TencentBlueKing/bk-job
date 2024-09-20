@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
-import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -158,7 +157,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     public FileResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                JobExecuteConfig jobExecuteConfig,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -170,7 +168,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 List<ExecuteObjectTask> executeObjectTasks) {
         super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
