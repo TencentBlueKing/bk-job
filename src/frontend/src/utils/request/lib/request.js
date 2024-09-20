@@ -113,8 +113,9 @@ export default class Request {
 
         // axio 支持更过配置项通过config.payload获取
         const axioMoreConfig = [
-            'onUploadProgress', 
+            'onUploadProgress',
             'timeout',
+            'responseType'
         ]
         axioMoreConfig.forEach(configExtend => {
             if (Object.prototype.hasOwnProperty.call(this.config.payload, configExtend)) {
@@ -126,7 +127,7 @@ export default class Request {
     // 接口请求额外的业务相关配置项
     get requestPayload () {
         const payload = this.config.payload || {}
-        
+
         return {
             ...requestPayloadDefaul,
             ...payload,
@@ -160,7 +161,7 @@ export default class Request {
         this.config = {
             ...config,
         }
-        
+
         if (this.checkCache()) {
             return this.cache.get(this.name)
         }
@@ -169,7 +170,7 @@ export default class Request {
         if (config.payload && config.payload.setCancelSource) {
             config.payload.setCancelSource(source)
         }
-        
+
         const requestHandler = axios({
             url: this.url,
             cancelToken: source.token,
