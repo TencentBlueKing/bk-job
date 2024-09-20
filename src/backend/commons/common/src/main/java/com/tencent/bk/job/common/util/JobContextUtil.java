@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -133,6 +134,11 @@ public class JobContextUtil {
     public static void setUserLang(String userLang) {
         JobContext jobContext = getOrInitContext();
         jobContext.setUserLang(userLang);
+    }
+
+    public static boolean isEnglishLocale() {
+        String normalLang = LocaleUtils.getNormalLang(getUserLang());
+        return normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US);
     }
 
     public static List<String> getDebugMessage() {
