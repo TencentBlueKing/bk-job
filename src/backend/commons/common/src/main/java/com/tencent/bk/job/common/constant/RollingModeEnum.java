@@ -64,6 +64,13 @@ public enum RollingModeEnum {
         throw new IllegalArgumentException("No RollingModeEnum constant: " + mode);
     }
 
+    public static boolean isValid(Integer type) {
+        if (type == null) {
+            return false;
+        }
+        return valOf(type) != null;
+    }
+
     public int getValue() {
         return mode;
     }

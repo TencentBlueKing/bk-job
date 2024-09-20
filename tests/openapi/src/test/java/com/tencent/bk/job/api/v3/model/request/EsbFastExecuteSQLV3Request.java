@@ -1,8 +1,7 @@
 package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.api.model.BaseEsbReq;
-import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +13,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class EsbFastExecuteSQLV3Request extends BaseEsbReq {
+public class EsbFastExecuteSQLV3Request extends EsbAppScopeReq {
     /**
      * 业务ID
      */
@@ -72,7 +71,7 @@ public class EsbFastExecuteSQLV3Request extends BaseEsbReq {
         }
     }
 
-    private void trimIps(List<HostDTO> ips) {
+    private void trimIps(List<EsbIpDTO> ips) {
         if (ips != null && ips.size() > 0) {
             ips.forEach(host -> {
                 host.setIp(host.getIp().trim());

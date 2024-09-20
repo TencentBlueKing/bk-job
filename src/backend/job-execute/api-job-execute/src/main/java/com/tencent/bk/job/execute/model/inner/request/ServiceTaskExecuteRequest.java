@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.execute.model.inner.request;
 
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -47,6 +51,11 @@ public class ServiceTaskExecuteRequest {
      * 执行方案ID
      */
     @ApiModelProperty(value = "执行方案ID", required = true)
+    @NotNull(message = "{validation.constraints.InvalidPlanId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidPlanId.message}"
+    )
     private Long planId;
 
     @ApiModelProperty(value = "定时任务ID,如果是定时执行需要填", required = false)
@@ -59,6 +68,7 @@ public class ServiceTaskExecuteRequest {
      * 全局变量
      */
     @ApiModelProperty(value = "全局变量", required = false)
+    @Valid
     private List<ServiceTaskVariable> taskVariables;
     /**
      * 启动方式

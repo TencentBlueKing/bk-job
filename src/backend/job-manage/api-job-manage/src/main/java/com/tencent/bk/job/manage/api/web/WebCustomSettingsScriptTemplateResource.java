@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVariab
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -84,6 +85,7 @@ public interface WebCustomSettingsScriptTemplateResource {
             String username,
         @ApiParam(value = "创建或更新请求体", required = true)
         @RequestBody
+        @Validated
             ScriptTemplateCreateUpdateReq req
     );
 

@@ -28,9 +28,11 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Delete;
 import com.tencent.bk.job.common.validation.Update;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCheckScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateScriptVersionV3Req;
@@ -62,6 +64,7 @@ import java.util.List;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbScriptV3Resource {
 
     @GetMapping("/get_script_list")
@@ -72,6 +75,10 @@ public interface EsbScriptV3Resource {
         @RequestParam(value = "bk_scope_type", required = false) String scopeType,
         @RequestParam(value = "bk_scope_id", required = false) String scopeId,
         @RequestParam(value = "name", required = false) String name,
+        @CheckEnum(
+            enumClass = ScriptTypeEnum.class,
+            message = "{validation.constraints.ScriptType_illegal.message}"
+        )
         @RequestParam(value = "script_language", required = false) Integer scriptLanguage,
         @RequestParam(value = "start", required = false) Integer start,
         @RequestParam(value = "length", required = false) Integer length);

@@ -33,6 +33,7 @@ import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.validation.groups.Default;
 import java.util.List;
 
 /**
@@ -96,7 +98,10 @@ public interface ServiceAccountResource {
         @ApiParam("创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
         @ApiParam("修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
         @ApiParam("最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
-        @PathVariable("appId") Long appId, @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
+        @PathVariable("appId") Long appId,
+        @RequestBody
+        @Validated
+        AccountCreateUpdateReq accountCreateUpdateReq);
 
     @ApiOperation(value = "新增账号", produces = "application/json")
     @PostMapping(value = "/service/account/app/{appId}/account")
@@ -108,6 +113,7 @@ public interface ServiceAccountResource {
             Long appId,
         @ApiParam(value = "创建账号请求")
         @RequestBody
+        @Validated(Default.class)
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 

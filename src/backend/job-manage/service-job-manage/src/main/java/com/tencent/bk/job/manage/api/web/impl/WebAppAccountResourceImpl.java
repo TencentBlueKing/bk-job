@@ -27,9 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
@@ -99,28 +97,9 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                              Long accountId,
                                              @AuditRequestBody AccountCreateUpdateReq accountCreateUpdateReq) {
         accountCreateUpdateReq.setId(accountId);
-        if (!checkUpdateAccountParam(accountCreateUpdateReq)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-
         AccountDTO updateAccount = buildUpdateAccountDTO(username, appResourceScope.getAppId(), accountCreateUpdateReq);
         AccountDTO savedAccount = accountService.updateAccount(username, updateAccount);
         return Response.buildSuccessResp(savedAccount.toAccountVO());
-    }
-
-    private boolean checkUpdateAccountParam(AccountCreateUpdateReq req) {
-        // 账号名称是不能更新的，所以这里不用校验
-        if (req.getId() == null) {
-            log.warn("Id is invalid, id=null");
-            return false;
-        }
-        if (req.getCategory() != null && req.getCategory().equals(AccountCategoryEnum.DB.getValue())
-            && (req.getDbPort() == null || req.getDbSystemAccountId() == null)) {
-            log.warn("Db port or dbSystemAccountId is empty, dbPort={}, dbSystemAccountId={}", req.getDbPort(),
-                req.getDbSystemAccountId());
-            return false;
-        }
-        return true;
     }
 
     private AccountDTO buildUpdateAccountDTO(String operator, long appId, AccountCreateUpdateReq req) {
@@ -239,9 +218,6 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                                   String scopeType,
                                                   String scopeId,
                                                   Integer category) {
-        if (category != null && AccountCategoryEnum.valOf(category) == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
         List<AccountDTO> accountDTOS =
             accountService.listAppAccount(appResourceScope.getAppId(), AccountCategoryEnum.valOf(category));
         List<AccountVO> accountVOS = new ArrayList<>();

@@ -186,6 +186,7 @@ public interface WebPublicScriptResource {
         @PathVariable("scriptId")
             String scriptId,
         @ApiParam(value = "脚本元数据更新请求报文", name = "scriptInfoUpdateReq", required = true)
+        @Validated
         @RequestBody ScriptInfoUpdateReq scriptInfoUpdateReq);
 
 
@@ -324,6 +325,7 @@ public interface WebPublicScriptResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam(value = "脚本标签批量更新请求报文", name = "tagBatchUpdateReq", required = true)
+        @Validated
         @RequestBody ScriptTagBatchPatchReq tagBatchUpdateReq
     );
 

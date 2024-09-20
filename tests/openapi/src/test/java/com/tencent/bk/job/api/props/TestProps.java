@@ -1,7 +1,7 @@
 package com.tencent.bk.job.api.props;
 
 import com.tencent.bk.job.api.exception.TestInitialException;
-import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.v3.model.request.EsbIpDTO;
 import org.junit.platform.commons.util.StringUtils;
 
 import java.io.FileInputStream;
@@ -58,21 +58,21 @@ public class TestProps {
     // 定义用于测试的服务器
     // 静态IP
     // 默认测试业务下的主机 1
-    public static final HostDTO HOST_1_DEFAULT_BIZ = new HostDTO(
+    public static final EsbIpDTO HOST_1_DEFAULT_BIZ = new EsbIpDTO(
         Long.valueOf(getPropString("host.1.default.biz").split(":")[0]),
         Long.valueOf(getPropString("host.1.default.biz").split(":")[1]),
         getPropString("host.1.default.biz").split(":")[2]);
     // 默认测试业务下的主机 2
-    public static final HostDTO HOST_2_DEFAULT_BIZ = new HostDTO(
+    public static final EsbIpDTO HOST_2_DEFAULT_BIZ = new EsbIpDTO(
         Long.valueOf(getPropString("host.2.default.biz").split(":")[0]),
         Long.valueOf(getPropString("host.2.default.biz").split(":")[1]),
         getPropString("host.2.default.biz").split(":")[2]);
     // 其他业务下的主机 1
-    public static final HostDTO HOST_1_BIZ_2 = new HostDTO(
+    public static final EsbIpDTO HOST_1_BIZ_2 = new EsbIpDTO(
         Long.valueOf(getPropString("host.1.biz.2").split(":")[0]),
         getPropString("host.1.biz.2").split(":")[1]);
     // 白名单主机 1
-    public static final HostDTO HOST_1_WHITE_LIST = new HostDTO(
+    public static final EsbIpDTO HOST_1_WHITE_LIST = new EsbIpDTO(
         Long.valueOf(getPropString("host.1.white.list").split(":")[0]),
         getPropString("host.1.white.list").split(":")[1]);
     // 动态分组
@@ -92,6 +92,15 @@ public class TestProps {
 
     // 用于测试的默认系统账号别名
     public static final String DEFAULT_OS_ACCOUNT_ALIAS = getPropString("os.account.alias.default");
+
+    // 默认的执行方案ID
+    public static final Long DEFAULT_TADK_PLAN_ID = getPropLong("task.plan.default.id");
+    // 默认的shell脚本内容
+    public static final String DEFAULT_SHELL_SCRIPT_CONTENT = getPropString("shell.script.default.content");
+    // 默认的db账号ID
+    public static final Long DEFAULT_DB_ACCOUNT_ID = getPropLong("db.account.id.default");
+    // 默认的SQL脚本内容
+    public static final String DEFAULT_SQL_SCRIPT_CONTENT = getPropString("sql.script.default.content");
 
     public static Integer getPropInteger(String key) {
 

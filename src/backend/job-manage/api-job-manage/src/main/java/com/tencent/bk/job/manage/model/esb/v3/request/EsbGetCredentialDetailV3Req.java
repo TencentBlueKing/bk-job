@@ -14,6 +14,6 @@ public class EsbGetCredentialDetailV3Req extends EsbAppScopeReq {
      * 凭证id
      */
     @ApiModelProperty(value = "凭证id")
-    @NotBlankField(fieldName = "id")
+    @NotBlankField(message = "{validation.constraints.CredentialId_empty.message}")
     private String id;
 }

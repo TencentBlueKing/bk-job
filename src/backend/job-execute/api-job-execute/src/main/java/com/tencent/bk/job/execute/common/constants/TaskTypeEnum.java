@@ -38,6 +38,13 @@ public enum TaskTypeEnum {
         this.name = name;
     }
 
+    public static boolean isValid(Integer value) {
+        if (value == null) {
+            return false;
+        }
+        return valueOf(value) != null;
+    }
+
     public static TaskTypeEnum valueOf(int type) {
         for (TaskTypeEnum taskType : values()) {
             if (taskType.getValue() == type) {

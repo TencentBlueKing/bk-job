@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NotContainSpecialChar;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -25,9 +27,12 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * 脚本名称
      */
     @NotEmpty(message = "{validation.constraints.ScriptName_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptName_outOfLength.message}", groups = Create.class)
-    @Pattern(regexp = "^[^\\\\|/:*<>\"?]+$", message = "{validation.constraints.ScriptName_illegal.message}",
-        groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptName_outOfLength.message}",
+        groups = Create.class
+    )
+    @NotContainSpecialChar(message = "{validation.constraints.ScriptName_illegal.message}",groups = Create.class)
     private String name;
 
     /**
@@ -55,9 +60,16 @@ public class EsbCreatePublicScriptV3Req extends EsbJobReq {
      * 脚本版本
      */
     @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
-    @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
-    @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
-        groups = Create.class)
+    @Length(
+        max = ValidationConstants.COMMON_MAX_60,
+        message = "{validation.constraints.ScriptVersion_outOfLength.message}",
+        groups = Create.class
+    )
+    @Pattern(
+        regexp = ValidationConstants.SCRIPT_VERSION_PATTERN,
+        message = "{validation.constraints.ScriptVersion_illegal.message}",
+        groups = Create.class
+    )
     private String version;
 
     /**

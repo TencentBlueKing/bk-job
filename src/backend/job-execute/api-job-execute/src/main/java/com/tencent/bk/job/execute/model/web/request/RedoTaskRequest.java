@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.execute.model.web.request;
 
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -41,12 +45,18 @@ public class RedoTaskRequest {
      * 执行方案ID
      */
     @ApiModelProperty(value = "作业执行实例ID", required = true)
+    @NotNull(message = "{validation.constraints.InvalidPlanId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidPlanId.message}"
+    )
     private Long taskInstanceId;
 
     /**
      * 全局变量
      */
     @ApiModelProperty(value = "全局变量", required = false)
+    @Valid
     private List<ExecuteVariableVO> taskVariables;
 
 }

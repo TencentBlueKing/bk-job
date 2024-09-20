@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -40,8 +42,13 @@ public class EsbGetScriptListV3Req extends EsbAppScopeReq {
      */
     private String name;
     /**
-     * 脚本类型。0：所有脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql。默认值为0
+     * 脚本类型。1：shell，2：bat，3：perl，4：python，5：powershell，6：sql
+     * 如果不传，默认返回所有脚本语言
      */
     @JsonProperty("script_language")
+    @CheckEnum(
+        enumClass = ScriptTypeEnum.class,
+        message = "{validation.constraints.ScriptType_illegal.message}"
+    )
     private Integer scriptLanguage;
 }

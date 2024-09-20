@@ -25,20 +25,46 @@
 package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
+import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
+import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 public class ExecuteTargetNotEmptyValidator
-    implements ConstraintValidator<ExecuteTargetNotEmpty, OpenApiExecuteTargetDTO> {
+    implements ConstraintValidator<ExecuteTargetNotEmpty, Object> {
 
     @Override
-    public boolean isValid(OpenApiExecuteTargetDTO value, ConstraintValidatorContext context) {
-        return CollectionUtils.isNotEmpty(value.getHosts())
-            || CollectionUtils.isNotEmpty(value.getHostDynamicGroups())
-            || CollectionUtils.isNotEmpty(value.getHostTopoNodes())
-            || CollectionUtils.isNotEmpty(value.getKubeContainerFilters());
+    public boolean isValid(Object value, ConstraintValidatorContext context) {
+        if (value instanceof OpenApiExecuteTargetDTO) {
+            return isValid((OpenApiExecuteTargetDTO) value);
+        } else if (value instanceof TaskHostNodeVO) {
+            return isValid((TaskHostNodeVO) value);
+        } else if (value instanceof TaskExecuteObjectsInfoVO) {
+            return isValid((TaskExecuteObjectsInfoVO) value);
+        }
+        return true;
+    }
+
+    private boolean isValid(OpenApiExecuteTargetDTO dto) {
+        return CollectionUtils.isNotEmpty(dto.getHosts())
+            || CollectionUtils.isNotEmpty(dto.getHostDynamicGroups())
+            || CollectionUtils.isNotEmpty(dto.getHostTopoNodes())
+            || CollectionUtils.isNotEmpty(dto.getKubeContainerFilters());
+    }
+
+    private boolean isValid(TaskHostNodeVO vo) {
+        return CollectionUtils.isNotEmpty(vo.getHostList())
+            || CollectionUtils.isNotEmpty(vo.getNodeList())
+            || CollectionUtils.isNotEmpty(vo.getDynamicGroupList());
+    }
+
+    private boolean isValid(TaskExecuteObjectsInfoVO vo) {
+        return CollectionUtils.isNotEmpty(vo.getHostList())
+            || CollectionUtils.isNotEmpty(vo.getNodeList())
+            || CollectionUtils.isNotEmpty(vo.getDynamicGroupList())
+            || CollectionUtils.isNotEmpty(vo.getContainerList());
     }
 
     @Override

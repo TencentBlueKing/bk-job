@@ -34,6 +34,7 @@ import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,7 +57,7 @@ public interface ServiceTaskExecuteResultResource {
     @ApiOperation(value = "获取定时作业执行结果统计", produces = "application/json")
     @PostMapping("/service/execution/task-execution-history/execute-result-statistics/cron")
     InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
-        @ApiParam("获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
+        @ApiParam("获取定时作业执行结果统计") @RequestBody @Validated ServiceGetCronTaskExecuteStatisticsRequest request);
 
     @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
     @GetMapping("/service/execution/app/{appId}/task-execution-history/list")

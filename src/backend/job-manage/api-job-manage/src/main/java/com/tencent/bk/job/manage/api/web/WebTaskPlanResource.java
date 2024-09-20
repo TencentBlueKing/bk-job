@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.QueryParam;
 import java.util.List;
 
@@ -55,6 +57,7 @@ import java.util.List;
 @RequestMapping("/web")
 @RestController
 @WebAPI
+@Validated
 public interface WebTaskPlanResource {
 
     @ApiOperation(value = "获取业务下的执行方案列表", produces = "application/json")
@@ -135,6 +138,7 @@ public interface WebTaskPlanResource {
             String scopeId,
         @ApiParam(value = "模板ID列表，用英文逗号分隔", required = true)
         @RequestParam(value = "templateIds")
+        @NotEmpty(message = "{validation.constraints.InvalidTemplateId_empty.message}")
             String templateIds
     );
 
@@ -204,6 +208,7 @@ public interface WebTaskPlanResource {
             Long planId,
         @ApiParam(value = "更新的执行方案对象", name = "planCreateUpdateReq")
         @RequestBody
+        @Validated
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 
@@ -227,6 +232,7 @@ public interface WebTaskPlanResource {
             Long templateId,
         @ApiParam(value = "更新的执行方案对象", name = "planCreateUpdateReq")
         @RequestBody
+        @Validated
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 

@@ -22,43 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.execute.model.esb.v3.validation;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpLogV3Request;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 29/7/2020 15:19
+ * EsbBatchGetJobInstanceIpLogV3Request 根据主机列表批量查询作业执行日志请求参数分组校验
  */
-@Getter
-@AllArgsConstructor
-public enum DuplicateIdHandlerEnum {
-    /**
-     * 不保留，自增
-     */
-    AUTO_INCREMENT(0),
-    /**
-     * 保留，冲突时自增
-     */
-    ON_DUPLICATE_INCREMENT(1),
-    /**
-     * 保留，冲突时不导入
-     */
-    ON_DUPLICATE_SKIP(2),
-    ;
-
-    @JsonValue
-    private final Integer type;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static DuplicateIdHandlerEnum valueOf(Integer type) {
-        for (DuplicateIdHandlerEnum value : values()) {
-            if (value.getType().equals(type)) {
-                return value;
+@Slf4j
+public class EsbBatchGetJobInstanceIpLogV3RequestGroupSequenceProvider
+    implements DefaultGroupSequenceProvider<EsbBatchGetJobInstanceIpLogV3Request> {
+    @Override
+    public List<Class<?>> getValidationGroups(EsbBatchGetJobInstanceIpLogV3Request request) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbBatchGetJobInstanceIpLogV3Request.class);
+        if (request != null) {
+            if (request.getHostIdList() != null) {
+                validationGroups.add(ValidationGroups.EsbServerV3.HostId.class);
+            } else if (request.getIpList() != null){
+                validationGroups.add(ValidationGroups.EsbServerV3.IP.class);
+            } else {
+                validationGroups.add(ValidationGroups.EsbServerV3.HostId.class);
             }
         }
-        return null;
+        return validationGroups;
     }
 }

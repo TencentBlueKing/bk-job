@@ -45,7 +45,6 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -73,19 +72,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         this.appScopeMappingService = appScopeMappingService;
     }
 
-    private void checkCodeBlank(String code) {
-        if (StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"code"});
-        }
-    }
-
-    private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
-        checkCodeBlank(fileSourceCreateUpdateReq.getCode());
-        if (StringUtils.isBlank(fileSourceCreateUpdateReq.getCredentialId())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
-        }
-    }
-
     @Override
     public Response<Boolean> checkAlias(String username,
                                         AppResourceScope appResourceScope,
@@ -107,7 +93,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
         try {
             Long appId = appResourceScope.getAppId();
-            checkParam(fileSourceCreateUpdateReq);
             FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null,
                 fileSourceCreateUpdateReq);
             FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
@@ -129,7 +114,6 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         Long appId = appResourceScope.getAppId();
         log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, fileSourceCreateUpdateReq);
-        checkParam(fileSourceCreateUpdateReq);
 
         FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(username, appId, fileSourceDTO);
         return Response.buildSuccessResp(FileSourceDTO.toVO(updateFileSource));

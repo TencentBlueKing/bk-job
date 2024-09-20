@@ -1,7 +1,7 @@
 package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.api.model.BaseEsbReq;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +10,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class EsbOperateStepInstanceV3Request extends BaseEsbReq {
+public class EsbOperateStepInstanceV3Request extends EsbAppScopeReq {
     /**
      * 业务ID
      */

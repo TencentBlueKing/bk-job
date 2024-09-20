@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.execute.constants.TaskOperationEnum;
+import com.tencent.bk.job.execute.common.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;

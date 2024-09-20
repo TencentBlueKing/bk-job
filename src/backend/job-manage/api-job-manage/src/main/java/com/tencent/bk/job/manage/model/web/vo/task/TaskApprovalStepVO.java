@@ -32,6 +32,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +48,7 @@ public class TaskApprovalStepVO {
     private Integer approvalType;
 
     @ApiModelProperty("审批人")
+    @Valid
     private UserRoleInfoVO approvalUser;
 
     @ApiModelProperty("审批消息")

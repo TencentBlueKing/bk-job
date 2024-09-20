@@ -1,5 +1,7 @@
 package com.tencent.bk.job.api.util;
 
+import com.tencent.bk.job.api.constant.AccountCategoryEnum;
+import com.tencent.bk.job.api.constant.AccountTypeEnum;
 import com.tencent.bk.job.api.constant.CredentialTypeEnum;
 import com.tencent.bk.job.api.constant.FileSourceTypeEnum;
 import com.tencent.bk.job.api.constant.HighRiskGrammarActionEnum;
@@ -9,6 +11,7 @@ import com.tencent.bk.job.api.model.EsbResp;
 import com.tencent.bk.job.api.props.TestProps;
 import com.tencent.bk.job.api.v3.constants.APIV3Urls;
 import com.tencent.bk.job.api.v3.model.EsbAccountV3BasicDTO;
+import com.tencent.bk.job.api.v3.model.EsbAccountV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbCredentialSimpleInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbCronInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbDangerousRuleV3DTO;
@@ -19,12 +22,13 @@ import com.tencent.bk.job.api.v3.model.EsbPageDataV3;
 import com.tencent.bk.job.api.v3.model.EsbPlanBasicInfoV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbScriptVersionDetailV3DTO;
 import com.tencent.bk.job.api.v3.model.EsbServerV3DTO;
-import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.v3.model.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateCredentialV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateOrUpdateFileSourceV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreatePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbCreateScriptV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeleteCronV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbDeletePublicScriptVersionV3Req;
@@ -34,6 +38,7 @@ import com.tencent.bk.job.api.v3.model.request.EsbExecuteJobV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastExecuteScriptV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbFastTransferFileV3Request;
 import com.tencent.bk.job.api.v3.model.request.EsbGetPlanListV3Request;
+import com.tencent.bk.job.api.v3.model.request.EsbIpDTO;
 import com.tencent.bk.job.api.v3.model.request.EsbManageDangerousRuleV3Req;
 import com.tencent.bk.job.api.v3.model.request.EsbSaveCronV3Request;
 import io.restassured.common.mapper.TypeRef;
@@ -69,7 +74,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.CREATE_SCRIPT)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbScriptVersionDetailV3DTO>>() {
@@ -91,7 +96,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.CREATE_PUBLIC_SCRIPT)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbScriptVersionDetailV3DTO>>() {
@@ -105,7 +110,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_SCRIPT)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static void deleteScriptVersion(EsbDeleteScriptVersionV3Req req) {
@@ -114,7 +119,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_SCRIPT_VERSION)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static void deletePublicScript(EsbDeletePublicScriptV3Req req) {
@@ -123,7 +128,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_PUBLIC_SCRIPT)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static void deletePublicScriptVersion(EsbDeletePublicScriptVersionV3Req req) {
@@ -132,7 +137,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_PUBLIC_SCRIPT_VERSION)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static void deleteDangerousRule(EsbManageDangerousRuleV3Req req) {
@@ -141,7 +146,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_DANGEROUS_RULE)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static EsbDangerousRuleV3DTO createDangerousRule() {
@@ -155,7 +160,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.CREATE_DANGEROUS_RULE)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbDangerousRuleV3DTO>>() {
@@ -172,7 +177,7 @@ public class Operations {
         req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         req.setName(buildJobName());
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         ips.add(TestProps.HOST_2_DEFAULT_BIZ);
         targetServer.setIps(ips);
@@ -183,6 +188,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
             .then()
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
             })
@@ -205,13 +211,14 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.FAST_TRANSFER_FILE)
             .then()
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
             })
             .getData();
     }
 
-    private static List<EsbFileSourceV3DTO> buildCommonFileSource() {
+    public static List<EsbFileSourceV3DTO> buildCommonFileSource() {
         List<EsbFileSourceV3DTO> fileSources = new ArrayList<>();
         EsbFileSourceV3DTO fileSource = new EsbFileSourceV3DTO();
         fileSource.setAccount(buildCommonFileSourceAccount());
@@ -223,23 +230,23 @@ public class Operations {
         return fileSources;
     }
 
-    private static EsbAccountV3BasicDTO buildCommonFileSourceAccount() {
+    public static EsbAccountV3BasicDTO buildCommonFileSourceAccount() {
         EsbAccountV3BasicDTO account = new EsbAccountV3BasicDTO();
         account.setAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         return account;
     }
 
-    private static EsbServerV3DTO buildCommonSourceServer() {
+    public static EsbServerV3DTO buildCommonSourceServer() {
         EsbServerV3DTO sourceServer = new EsbServerV3DTO();
-        List<HostDTO> sourceIps = new ArrayList<>();
+        List<EsbIpDTO> sourceIps = new ArrayList<>();
         sourceIps.add(TestProps.HOST_1_DEFAULT_BIZ);
         sourceServer.setIps(sourceIps);
         return sourceServer;
     }
 
-    private static EsbServerV3DTO buildCommonTargetServer() {
+    public static EsbServerV3DTO buildCommonTargetServer() {
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> sourceIps = new ArrayList<>();
+        List<EsbIpDTO> sourceIps = new ArrayList<>();
         sourceIps.add(TestProps.HOST_2_DEFAULT_BIZ);
         targetServer.setIps(sourceIps);
         return targetServer;
@@ -256,7 +263,7 @@ public class Operations {
         req.setAccountAlias(TestProps.DEFAULT_OS_ACCOUNT_ALIAS);
         req.setName(buildJobName());
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         targetServer.setIps(ips);
         req.setTargetServer(targetServer);
@@ -266,6 +273,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
             .then()
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
             })
@@ -284,7 +292,7 @@ public class Operations {
         req.setName("api-test-long-time-task." + DateUtils.formatLocalDateTime(LocalDateTime.now(),
             "yyyyMMddhhmmssSSS"));
         EsbServerV3DTO targetServer = new EsbServerV3DTO();
-        List<HostDTO> ips = new ArrayList<>();
+        List<EsbIpDTO> ips = new ArrayList<>();
         ips.add(TestProps.HOST_1_DEFAULT_BIZ);
         targetServer.setIps(ips);
         req.setTargetServer(targetServer);
@@ -294,6 +302,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.FAST_EXECUTE_SCRIPT)
             .then()
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
             })
@@ -303,13 +312,13 @@ public class Operations {
     public static EsbJobExecuteV3DTO executePlanTask() {
         EsbExecuteJobV3Request request = new EsbExecuteJobV3Request();
         request.setAppId(TestProps.DEFAULT_BIZ);
-//        request.setTaskId(TASK_PLAN_ID);
-
+        request.setTaskId(TestProps.DEFAULT_TADK_PLAN_ID);
         return given()
             .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
             .body(JsonUtil.toJson(request))
             .post(APIV3Urls.EXECUTE_JOB_PLAN)
             .then()
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .as(new TypeRef<EsbResp<EsbJobExecuteV3DTO>>() {
             })
@@ -332,7 +341,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.SAVE_CRON)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbCronInfoV3DTO>>() {
@@ -346,7 +355,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.DELETE_CRON)
             .then()
-            .statusCode(200);
+            .spec(ApiUtil.successResponseSpec());
     }
 
     public static Long getTaskPlanId() {
@@ -359,7 +368,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.GET_JOB_PLAN_LIST)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbPageDataV3<EsbPlanBasicInfoV3DTO>>>() {
@@ -389,7 +398,7 @@ public class Operations {
             .body(JsonUtil.toJson(req))
             .post(APIV3Urls.CREATE_FILE_SOURCE)
             .then()
-            .statusCode(200)
+            .spec(ApiUtil.successResponseSpec())
             .extract()
             .body()
             .as(new TypeRef<EsbResp<EsbFileSourceSimpleInfoV3DTO>>() {
@@ -413,7 +422,7 @@ public class Operations {
                 .body(JsonUtil.toJson(req))
                 .post(APIV3Urls.CREATE_CREDENTIAL)
                 .then()
-                .statusCode(200)
+                .spec(ApiUtil.successResponseSpec())
                 .extract()
                 .body()
                 .as(new TypeRef<EsbResp<EsbCredentialSimpleInfoV3DTO>>() {
@@ -421,7 +430,42 @@ public class Operations {
                 .getData();
     }
 
-    private static String buildJobName() {
+    public static EsbAccountV3DTO createAccount(AccountTypeEnum accountTypeEnum) {
+        EsbCreateAccountV3Req req = new EsbCreateAccountV3Req();
+        req.setScopeId(String.valueOf(TestProps.DEFAULT_BIZ));
+        req.setScopeType(ResourceScopeTypeEnum.BIZ.getValue());
+        req.setAccount(TestValueGenerator.generateUniqueStrValue("account", 50));
+        req.setAlias(TestValueGenerator.generateUniqueStrValue("alias", 50));
+        req.setRemark(TestValueGenerator.generateUniqueStrValue("remark", 50));
+        req.setCategory(AccountCategoryEnum.SYSTEM.getValue());
+        req.setType(AccountTypeEnum.LINUX.getType());
+        if (accountTypeEnum == AccountTypeEnum.WINDOW) {
+            req.setType(AccountTypeEnum.WINDOW.getType());
+            req.setPassword(TestValueGenerator.generateUniqueStrValue("password", 50));
+        }
+        return given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.CREATE_ACCOUNT)
+            .then()
+            .spec(ApiUtil.successResponseSpec())
+            .extract()
+            .body()
+            .as(new TypeRef<EsbResp<EsbAccountV3DTO>>() {
+            })
+            .getData();
+    }
+
+    public static void deleteAccount(EsbDeleteAccountV3Req req) {
+        given()
+            .spec(ApiUtil.requestSpec(TestProps.DEFAULT_TEST_USER))
+            .body(JsonUtil.toJson(req))
+            .post(APIV3Urls.DELETE_ACCOUNT)
+            .then()
+            .spec(ApiUtil.successResponseSpec());
+    }
+
+    public static String buildJobName() {
         return "api.test." + DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddhhmmssSSS");
     }
 }

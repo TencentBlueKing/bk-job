@@ -16,15 +16,16 @@
 
 #### Query参数
 
-| 字段      |  类型      | 必选   |  描述      |
-|-----------|------------|--------|------------|
-| bk_scope_type | string | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
+| 字段      |  类型      | 必选 |  描述    |
+|-----------|------------|------|----------|
+| bk_scope_type | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| bk_biz_id        |  long       | 是     | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| bk_biz_id |  long       | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
 | job_instance_id | long | 是 | 作业实例ID |
-| step_instance_id |  long    | 是     | 步骤实例ID |
-| bk_cloud_id | int | 是   | 目标服务器管控区域ID |
-| ip | string | 是 | 目标服务器IP |
+| step_instance_id |  long    | 是   | 步骤实例ID |
+| bk_cloud_id | int | 否 | 目标服务器管控区域ID |
+| ip | string | 否 | 目标服务器IP |
+| bk_host_id| long | 否 | 主机ID|
 
 ### 请求参数示例
 - GET

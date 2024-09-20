@@ -25,8 +25,7 @@
 package com.tencent.bk.job.api.v3.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.api.model.BaseEsbReq;
-import com.tencent.bk.job.api.v3.model.HostDTO;
+import com.tencent.bk.job.api.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,12 +35,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class EsbBatchGetJobInstanceIpLogV3Request extends BaseEsbReq {
-    /**
-     * 业务 ID
-     */
-    @JsonProperty("bk_biz_id")
-    private Long appId;
+public class EsbBatchGetJobInstanceIpLogV3Request extends EsbAppScopeReq {
 
     /**
      * 作业执行实例 ID
@@ -59,5 +53,11 @@ public class EsbBatchGetJobInstanceIpLogV3Request extends BaseEsbReq {
      * 目标服务器IP列表
      */
     @JsonProperty("ip_list")
-    private List<HostDTO> ipList;
+    private List<EsbIpDTO> ipList;
+
+    /**
+     * 目标主机ID列表
+     */
+    @JsonProperty("host_id_list")
+    private List<Long> hostIdList;
 }

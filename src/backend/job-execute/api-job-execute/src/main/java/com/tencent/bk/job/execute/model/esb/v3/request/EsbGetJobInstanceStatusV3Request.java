@@ -26,8 +26,12 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.ValidationConstants;
 import lombok.Getter;
 import lombok.Setter;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * get_job_instance_status,根据作业实例 ID 查询作业执行状态请求
@@ -40,6 +44,11 @@ public class EsbGetJobInstanceStatusV3Request extends EsbAppScopeReq {
      * 作业执行实例 ID
      */
     @JsonProperty("job_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(
+        value = ValidationConstants.COMMON_MIN_1,
+        message = "{validation.constraints.InvalidJobInstanceId.message}"
+    )
     private Long taskInstanceId;
 
     /**

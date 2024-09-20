@@ -18,15 +18,15 @@ The created file source has the following default features:
 #### Interface parameters
 
 | **Fields** | **Type** | **Required** | **Description** |
-|-----------------|------------|--------|------------|
-| bk_scope_type | string | yes  | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
-| bk_scope_id | string | yes | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| code            |  string    | yes  | File source identification, beginning with English characters, 1-32 English characters, underscores, numbers, cannot be changed after creation |
-| alias           |  string    | yes  | File source alias |
-| type            |  string    | yes  | File Source Type, Currently only the BlueKing Repository is supported，BLUEKING_ARTIFACTORY |
-| access_params   |  object    | yes  | File source access parameters, pass in different objects according to type, see subsequent instructions |
-| credential_id   |  string    | no   | Credential Id used by the file source |
-| file_prefix     |  string    | no   | JOB prefix for files distributed from this source, no prefix by default |
+|-----------------|------------|--------------|------------|
+| bk_scope_type | string | yes          | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
+| bk_scope_id | string | yes          | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| code            |  string    | yes          | File source identification, beginning with English characters, 1-32 English characters, underscores, numbers, cannot be changed after creation |
+| alias           |  string    | yes          | File source alias |
+| type            |  string    | yes          | File Source Type, Currently only the BlueKing Repository is supported，BLUEKING_ARTIFACTORY |
+| access_params   |  object    | yes          | File source access parameters, pass in different objects according to type, see subsequent instructions |
+| credential_id   |  string    | yes          | Credential Id used by the file source |
+| file_prefix     |  string    | no           | JOB prefix for files distributed from this source, no prefix by default |
 
 ### access_params
 Type is BLUEKING_ARTIFACTORY

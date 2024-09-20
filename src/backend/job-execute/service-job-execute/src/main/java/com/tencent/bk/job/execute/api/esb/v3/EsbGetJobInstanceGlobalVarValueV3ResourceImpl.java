@@ -26,14 +26,11 @@ package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobInstanceGlobalVarValueV3DTO;
@@ -75,12 +72,6 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         String username,
         String appCode,
         @AuditRequestBody EsbGetJobInstanceGlobalVarValueV3Request request) {
-        ValidateResult checkResult = checkRequest(request);
-        if (!checkResult.isPass()) {
-            log.warn("Get job instance global var value, request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         long taskInstanceId = request.getTaskInstanceId();
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
@@ -113,14 +104,6 @@ public class EsbGetJobInstanceGlobalVarValueV3ResourceImpl
         result.setStepGlobalVarValues(stepGlobalVarValues);
 
         return EsbResp.buildSuccessResp(result);
-    }
-
-    private ValidateResult checkRequest(EsbGetJobInstanceGlobalVarValueV3Request request) {
-        if (request.getTaskInstanceId() == null || request.getTaskInstanceId() < 1) {
-            log.warn("TaskInstanceId is empty or illegal, taskInstanceId={}", request.getTaskInstanceId());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-        }
-        return ValidateResult.pass();
     }
 
     @Override

@@ -36,6 +36,7 @@ import lombok.ToString;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @ApiModel("账号创建请求")
@@ -43,7 +44,7 @@ import javax.validation.constraints.NotEmpty;
 public class EsbCreateAccountV3Req extends EsbAppScopeReq {
 
     /**
-     * 帐号名称
+     * 账号名称
      */
     @NotEmpty(message = "{validation.constraints.AccountName_empty.message}")
     private String account;
@@ -51,15 +52,21 @@ public class EsbCreateAccountV3Req extends EsbAppScopeReq {
     /**
      * 账号类型：1-Linux，2-Windows，9-Mysql，10-Oracle，11-DB2
      */
-    @CheckEnum(enumClass = AccountTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.AccountType_illegal.message}")
+    @NotNull(message = "{validation.constraints.AccountType_empty.message}")
+    @CheckEnum(
+        enumClass = AccountTypeEnum.class,
+        message = "{validation.constraints.AccountType_illegal.message}"
+    )
     private Integer type;
 
     /**
      * 账号用途：1-系统账号，2-数据库账号
      */
-    @CheckEnum(enumClass = AccountCategoryEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.AccountCategory_illegal.message}")
+    @NotNull(message = "{validation.constraints.AccountType_empty.message}")
+    @CheckEnum(
+        enumClass = AccountCategoryEnum.class,
+        message = "{validation.constraints.AccountCategory_empty.message}"
+    )
     private Integer category;
 
     /**

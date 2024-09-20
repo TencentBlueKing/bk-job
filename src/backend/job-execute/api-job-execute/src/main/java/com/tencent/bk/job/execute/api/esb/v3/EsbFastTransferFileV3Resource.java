@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 快速执行脚本API-V3
+ * 快速分发文件API-V3
  */
 @RequestMapping("/esb/api/v3")
 @RestController

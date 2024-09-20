@@ -22,36 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.api.constant;
 
 /**
- * 作业执行操作
+ * 日志类型
  */
-public enum TaskOperationEnum {
-    TERMINATE_JOB(1, "终止任务");
+public enum LogTypeEnum {
+    /**
+     * 脚本执行任务日志
+     */
+    SCRIPT(1),
+    /**
+     * 文件分发任务日志
+     */
+    FILE(2);
 
     private final Integer value;
-    private final String name;
 
-    TaskOperationEnum(Integer val, String name) {
+    LogTypeEnum(Integer val) {
         this.value = val;
-        this.name = name;
     }
 
-    public static TaskOperationEnum getTaskOperation(int status) {
-        for (TaskOperationEnum runStatusEnum : values()) {
-            if (runStatusEnum.getValue() == status) {
-                return runStatusEnum;
+    public static LogTypeEnum getLogType(Integer logType) {
+        if (logType == null) {
+            throw new IllegalArgumentException("Empty logType value!");
+        }
+        for (LogTypeEnum logTypeEnum : values()) {
+            if (logTypeEnum.getValue().equals(logType)) {
+                return logTypeEnum;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Illegal logType: " + logType);
     }
 
     public Integer getValue() {
         return value;
-    }
-
-    public String getName() {
-        return name;
     }
 }

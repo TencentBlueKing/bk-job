@@ -30,28 +30,41 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.common.validation.TaskTargetGroupSequenceProvider;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.Valid;
 
 @Data
 @ApiModel("执行目标")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
+@GroupSequenceProvider(TaskTargetGroupSequenceProvider.class)
 public class TaskTargetVO {
 
     @ApiModelProperty(value = "全局变量名")
+    @NotBlankField(
+        message = "{validation.constraints.InvalidTaskTarget_VarName_empty.message}",
+        groups = ValidationGroups.TaskTarget.Variable.class
+    )
     private String variable;
 
     @ApiModelProperty(value = "主机节点信息, 版本升级之后作废")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "兼容 API， 发布完成后前端使用 executeObjectsInfo 参数，该参数可删除")
+    @Valid
     private TaskHostNodeVO hostNodeInfo;
 
     @ApiModelProperty(value = "任务执行对象信息")
+    @Valid
     private TaskExecuteObjectsInfoVO executeObjectsInfo;
 
     public void validate() throws InvalidParamException {

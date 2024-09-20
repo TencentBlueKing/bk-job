@@ -27,10 +27,8 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.check.ParamCheckUtil;
@@ -75,10 +73,6 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
         // fileNameList
         List<String> fileNameList = req.getFileNameList();
         String fileNameDesc = "fileName in " + EsbConsts.PARAM_FILE_NAME_LIST;
-        if (fileNameList == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{EsbConsts.PARAM_FILE_NAME_LIST, fileNameDesc + " cannot be null"});
-        }
         fileNameList.forEach(fileName -> {
             ParamCheckUtil.checkLocalUploadFileName(fileName, fileNameDesc);
         });

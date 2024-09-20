@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,12 +48,15 @@ import java.util.List;
 public class TaskHostNodeVO {
 
     @ApiModelProperty("主机列表")
+    @Valid
     private List<HostInfoVO> hostList;
 
     @ApiModelProperty("拓扑节点 ID")
+    @Valid
     private List<TargetNodeVO> nodeList;
 
     @ApiModelProperty("动态分组")
+    @Valid
     private List<DynamicGroupIdWithMeta> dynamicGroupList;
 
     public void validate() throws InvalidParamException {

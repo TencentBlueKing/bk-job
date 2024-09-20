@@ -249,10 +249,6 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         boolean isUpdateName = "scriptName".equals(updateField);
         boolean isUpdateTags = "scriptTags".equals(updateField);
 
-        if (StringUtils.isBlank(updateField) || !(isUpdateDesc || isUpdateName || isUpdateTags)) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-
         ScriptDTO updateScript;
         if (isUpdateDesc) {
             updateScript = scriptService.updateScriptDesc(appId, username, scriptId,
@@ -512,11 +508,6 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
     @Override
     public Response<List<ScriptCheckResultItemVO>> checkScript(String username, ScriptCheckReq scriptCheckReq) {
-        if (scriptCheckReq.getScriptType() == null || StringUtils.isBlank(scriptCheckReq.getContent())) {
-            log.warn("Check script, request is illegal! req={}", scriptCheckReq);
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-
         String content = new String(Base64.decodeBase64(scriptCheckReq.getContent()), StandardCharsets.UTF_8);
         List<ScriptCheckResultItemDTO> checkResultItems =
             scriptCheckService.check(ScriptTypeEnum.valOf(scriptCheckReq.getScriptType()), content);
@@ -662,8 +653,6 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                              String scopeType,
                                              String scopeId,
                                              ScriptTagBatchPatchReq req) {
-
-        req.validate();
         if (CollectionUtils.isEmpty(req.getAddTagIdList()) && CollectionUtils.isEmpty(req.getDeleteTagIdList())) {
             return Response.buildSuccessResp(true);
         }

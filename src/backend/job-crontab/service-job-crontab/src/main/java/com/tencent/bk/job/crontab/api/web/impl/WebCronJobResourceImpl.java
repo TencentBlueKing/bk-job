@@ -35,12 +35,6 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
-import com.tencent.bk.job.common.util.check.MaxLengthChecker;
-import com.tencent.bk.job.common.util.check.NotEmptyChecker;
-import com.tencent.bk.job.common.util.check.StringCheckHelper;
-import com.tencent.bk.job.common.util.check.TrimChecker;
-import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
@@ -350,7 +344,6 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                              @AuditRequestBody CronJobCreateUpdateReq cronJobCreateUpdateReq) {
 
         Long appId = appResourceScope.getAppId();
-        checkCronName(cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
             CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(username, cronJobInfoDTO);
@@ -372,8 +365,6 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
         Long appId = appResourceScope.getAppId();
         cronJobCreateUpdateReq.setId(cronJobId);
-
-        checkCronName(cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
             CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(username, cronJobInfoDTO);
@@ -381,17 +372,6 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         } else {
             log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
-    }
-
-    private void checkCronName(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
-        try {
-            StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
-            cronJobCreateUpdateReq.setName(stringCheckHelper.checkAndGetResult(cronJobCreateUpdateReq.getName()));
-        } catch (StringCheckException e) {
-            log.warn("Cron Job Name is invalid:", e);
-            throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM);
         }
     }
 
