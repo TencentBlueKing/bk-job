@@ -12,6 +12,7 @@
     <ai-blueking
       v-show="isBluekingShow"
       ref="aiRef"
+      :alert="$t('注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！')"
       :loading="isChatHistoryLoading || isContentLoading"
       :messages="messageList"
       name="AI-assistant"
