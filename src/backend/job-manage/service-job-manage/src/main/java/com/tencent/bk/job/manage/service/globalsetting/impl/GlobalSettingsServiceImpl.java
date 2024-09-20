@@ -608,9 +608,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         StringBuilder sb = new StringBuilder(docCenterBaseUrl);
         sb.append("/markdown/");
         if (JobContextUtil.isEnglishLocale()) {
-            sb.append("ZH");
-        } else {
             sb.append("EN");
+        } else {
+            sb.append("ZH");
         }
         sb.append("/JOB/");
         sb.append(getTwoDigitVersion());
