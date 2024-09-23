@@ -15,7 +15,7 @@
       :alert="$t('注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！')"
       :loading="isChatHistoryLoading || isContentLoading"
       :messages="messageList"
-      name="AI-assistant"
+      :name="$t('小鲸')"
       :placeholder="$t('在这里输入你的问题，试试我是否可以帮助到你...')"
       :scroll-loading="isLoadingMore"
       :scroll-loading-end="!hasMore"
