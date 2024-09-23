@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.common.service.config;
 
+import com.tencent.bk.job.common.VersionInfoLogApplicationRunner;
 import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,5 +41,13 @@ public class JobCommonAutoConfiguration {
     @Lazy(false)
     public ApplicationContextRegister applicationContextRegister() {
         return new ApplicationContextRegister();
+    }
+
+    @Value("${spring.application.name:bk-job}")
+    private String serviceName;
+
+    @Bean
+    public VersionInfoLogApplicationRunner versionInfoLogApplicationRunner(BuildProperties buildProperties) {
+        return new VersionInfoLogApplicationRunner(serviceName, buildProperties);
     }
 }

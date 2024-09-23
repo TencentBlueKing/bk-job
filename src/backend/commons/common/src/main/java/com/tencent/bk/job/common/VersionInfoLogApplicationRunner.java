@@ -27,28 +27,23 @@
 package com.tencent.bk.job.common;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
 public class VersionInfoLogApplicationRunner implements ApplicationRunner {
-    @Value("${spring.application.name:bk-job}")
-    private String serviceName;
+    private final String serviceName;
     private final BuildProperties buildProperties;
 
-    @Autowired
-    public VersionInfoLogApplicationRunner(BuildProperties buildProperties) {
+    public VersionInfoLogApplicationRunner(String serviceName, BuildProperties buildProperties) {
+        this.serviceName = serviceName;
         this.buildProperties = buildProperties;
     }
 
     @Override
-    public void run(ApplicationArguments args){
+    public void run(ApplicationArguments args) {
         String version = buildProperties.getVersion();
-        log.info("Service name: '{}', Version: '{}'", serviceName, version);
+        log.info("serviceName= {}, version= {}", serviceName, version);
     }
 }
