@@ -73,7 +73,7 @@ public class IndexService {
 
     private Map<String, String> getVariablesMap() {
         Map<String, String> variablesMap = new HashMap<>();
-        variablesMap.put("BK_DOCS_CENTER", globalSettingsResource.getDocCenterBaseUrl().getData());
+        variablesMap.put("BK_DOC_JOB_ROOT_URL", globalSettingsResource.getDocJobRootUrl().getData());
         return variablesMap;
     }
 
