@@ -72,7 +72,7 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
             .replace(aiTemplateVarService.getStepInstanceNamePlaceHolder(), context.getName())
             .replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink())
             .replace(aiTemplateVarService.getScriptTypePlaceHolder(), ScriptTypeEnum.getName(context.getScriptType()))
-            .replace(aiTemplateVarService.getScriptParamsPlaceHolder(), context.getInsensitiveScriptParams())
+            .replace(aiTemplateVarService.getScriptParamsPlaceHolder(), context.getInsensitiveScriptParamsStr())
             .replace(aiTemplateVarService.getErrorContentPlaceHolder(), errorContent)
             .replace(aiTemplateVarService.getScriptContentPlaceHolder(), context.getScriptContent());
     }

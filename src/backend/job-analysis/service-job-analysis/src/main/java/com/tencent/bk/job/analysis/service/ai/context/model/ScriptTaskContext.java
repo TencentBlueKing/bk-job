@@ -51,9 +51,9 @@ public class ScriptTaskContext {
      */
     private boolean secureParam;
 
-    public String getInsensitiveScriptParams() {
+    public String getInsensitiveScriptParamsStr() {
         if (!secureParam) {
-            return scriptParams;
+            return scriptParams == null ? "" : scriptParams;
         }
         return "[Secure params ignored]";
     }
