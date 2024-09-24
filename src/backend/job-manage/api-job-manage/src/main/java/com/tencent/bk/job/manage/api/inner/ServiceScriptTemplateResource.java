@@ -30,8 +30,7 @@ import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import javax.ws.rs.QueryParam;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Api(tags = {"job-manage:service:Script_Template_Management"})
 @SmartFeignClient(value = "job-manage", contextId = "scriptTemplateResource")
@@ -40,5 +39,5 @@ public interface ServiceScriptTemplateResource {
 
     @ApiOperation(value = "获取脚本模板", produces = "application/json")
     @GetMapping("/service/scriptTemplate")
-    InternalResponse<String> getScriptTemplate(@QueryParam("type") Integer type);
+    InternalResponse<String> getScriptTemplate(@RequestParam("type") Integer type);
 }

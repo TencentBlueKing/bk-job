@@ -29,15 +29,15 @@ import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceScriptTemplateResource;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
-@Service
+@RestController
 public class ServiceScriptTemplateResourceImpl implements ServiceScriptTemplateResource {
     @Override
     public InternalResponse<String> getScriptTemplate(Integer type) {
