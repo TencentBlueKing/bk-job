@@ -71,7 +71,7 @@ public class AIAnswerStreamSynchronizer {
         StreamingResponseBody streamingResponseBody = outputStream -> {
             while (!isFinished.get()) {
                 try {
-                    MessagePartEvent event = messageQueue.poll(25, TimeUnit.SECONDS);
+                    MessagePartEvent event = messageQueue.poll(90, TimeUnit.SECONDS);
                     if (event == null) {
                         throw new ServiceException(ErrorType.TIMEOUT, ErrorCode.BK_OPEN_AI_API_DATA_TIMEOUT);
                     }
