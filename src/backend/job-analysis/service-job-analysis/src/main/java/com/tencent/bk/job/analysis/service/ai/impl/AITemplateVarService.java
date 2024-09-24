@@ -41,6 +41,10 @@ public class AITemplateVarService {
         return getTemplateVarPlaceHolder("script_type");
     }
 
+    public String getScriptTemplatePlaceHolder() {
+        return getTemplateVarPlaceHolder("script_template");
+    }
+
     public String getScriptParamsPlaceHolder() {
         return getTemplateVarPlaceHolder("script_params");
     }
