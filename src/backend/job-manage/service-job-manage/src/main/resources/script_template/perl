@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use strict;
+
+sub job_localtime {
+    my @n = localtime();
+    return sprintf("%04d-%02d-%02d %02d:%02d:%02d",$n[5]+1900,$n[4]+1,$n[3], $n[2], $n[1], $n[0] );
+}
+
+##### 可在脚本开始运行时调用，打印当时的时间戳及PID。
+sub job_start {
+    print "[",&job_localtime,"][PID:$$] job_start\n";
+}
+
+##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
+sub job_success {
+    print "[",&job_localtime,"][PID:$$] job_success:[@_]\n";
+    exit 0;
+}
+
+##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
+sub job_fail {
+    print "[",&job_localtime,"][PID:$$] job_fail:[@_]\n";
+    exit 1;
+}
+
+job_start;
+
+###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值
+###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败
+###### 可在此处开始编写您的脚本逻辑代码
+
+

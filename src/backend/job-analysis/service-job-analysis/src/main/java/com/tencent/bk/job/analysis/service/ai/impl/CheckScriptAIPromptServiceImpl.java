@@ -41,12 +41,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptService {
 
+    private final ScriptTemplateService scriptTemplateService;
     private final AIPromptTemplateDAO aiPromptTemplateDAO;
     private final AITemplateVarService aiTemplateVarService;
 
     @Autowired
-    public CheckScriptAIPromptServiceImpl(AIPromptTemplateDAO aiPromptTemplateDAO,
+    public CheckScriptAIPromptServiceImpl(ScriptTemplateService scriptTemplateService,
+                                          AIPromptTemplateDAO aiPromptTemplateDAO,
                                           AITemplateVarService aiTemplateVarService) {
+        this.scriptTemplateService = scriptTemplateService;
         this.aiPromptTemplateDAO = aiPromptTemplateDAO;
         this.aiTemplateVarService = aiTemplateVarService;
     }
@@ -69,14 +72,32 @@ public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptServic
             promptTemplate.getId(),
             userLang
         );
-        String renderedPrompt = renderCheckScriptPrompt(promptTemplate.getTemplate(), type, scriptContent);
+        String scriptTemplate = scriptTemplateService.getScriptTemplate(type);
+        String renderedPrompt = renderCheckScriptPrompt(
+            promptTemplate.getTemplate(),
+            type,
+            scriptTemplate,
+            scriptContent
+        );
         return new AIPromptDTO(promptTemplate.getRawPrompt(), renderedPrompt);
     }
 
-    private String renderCheckScriptPrompt(String promptTemplateContent, Integer type, String scriptContent) {
+    private String renderCheckScriptPrompt(String promptTemplateContent,
+                                           Integer type,
+                                           String scriptTemplate,
+                                           String scriptContent) {
         String scriptTypeName = ScriptTypeEnum.getName(type);
-        return promptTemplateContent
-            .replace(aiTemplateVarService.getScriptTypePlaceHolder(), scriptTypeName)
-            .replace(aiTemplateVarService.getScriptContentPlaceHolder(), scriptContent);
+        promptTemplateContent = promptTemplateContent.replace(
+            aiTemplateVarService.getScriptTypePlaceHolder(), scriptTypeName
+        );
+        if (scriptTemplate != null) {
+            promptTemplateContent = promptTemplateContent.replace(
+                aiTemplateVarService.getScriptTemplatePlaceHolder(), scriptTemplate
+            );
+        }
+        promptTemplateContent = promptTemplateContent.replace(
+            aiTemplateVarService.getScriptContentPlaceHolder(), scriptContent
+        );
+        return promptTemplateContent;
     }
 }
