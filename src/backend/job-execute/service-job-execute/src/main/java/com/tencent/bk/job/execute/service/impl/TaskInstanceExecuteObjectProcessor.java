@@ -647,7 +647,7 @@ public class TaskInstanceExecuteObjectProcessor {
             CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
 
         // 增加 topo 信息（集群 UID，集群名称、命名空间名称等)
-        fillTopoInfo(taskInstance.getId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
+        fillTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
     }
 
     private void fillTopoInfo(long appId,
