@@ -78,28 +78,58 @@ public class Container implements Cloneable {
     private String nodeAgentId;
 
     /**
-     * 容器所在集群 ID
+     * cluster在cmdb中的唯一ID
      */
     @JsonProperty("clusterId")
-    private String clusterId;
+    private Long clusterId;
 
     /**
-     * 容器所在命名空间
+     * 集群 ID
+     */
+    @JsonProperty("clusterUID")
+    private String clusterUID;
+
+    /**
+     * 集群名称
+     */
+    @JsonProperty("clusterName")
+    private String clusterName;
+
+    /**
+     * namespace在cmdb中的唯一ID
+     */
+    @JsonProperty("namespaceId")
+    private Long namespaceId;
+
+    /**
+     * 命名空间名称
      */
     @JsonProperty("namespace")
     private String namespace;
 
     /**
-     * 容器所在 POD 名称
+     * POD 名称
      */
     @JsonProperty("podName")
     private String podName;
 
     /**
-     * 容器所在 POD 名称
+     * pod labels
      */
     @JsonProperty("podLabels")
     private Map<String, String> podLabels;
+
+    /**
+     * workload 类型(Deployment/Job ...)
+     */
+    @JsonProperty("workloadType")
+    private String workloadType;
+
+    /**
+     * workload在cmdb中的唯一ID
+     */
+    @JsonProperty("workloadId")
+    private Long workloadId;
 
     @Override
     public boolean equals(Object o) {
@@ -124,9 +154,14 @@ public class Container implements Cloneable {
         clone.setContainerId(containerId);
         clone.setPodLabels(podLabels);
         clone.setClusterId(clusterId);
+        clone.setClusterUID(clusterUID);
+        clone.setClusterName(clusterName);
+        clone.setNamespaceId(namespaceId);
         clone.setNamespace(namespace);
         clone.setPodName(podName);
         clone.setName(name);
+        clone.setWorkloadType(workloadType);
+        clone.setWorkloadId(workloadId);
         return clone;
     }
 
@@ -138,6 +173,12 @@ public class Container implements Cloneable {
         vo.setNodeHostId(nodeHostId);
         vo.setPodName(podName);
         vo.setPodLabels(podLabels);
+        vo.setClusterId(clusterId);
+        vo.setClusterUID(clusterUID);
+        vo.setClusterName(clusterName);
+        vo.setNamespaceId(namespaceId);
+        vo.setNamespace(namespace);
+        vo.setWorkloadType(workloadType);
         return vo;
     }
 
@@ -155,7 +196,12 @@ public class Container implements Cloneable {
         this.nodeHostId = container.getNodeHostId();
         this.nodeAgentId = container.getNodeAgentId();
         this.clusterId = container.getClusterId();
+        this.clusterUID = container.getClusterUID();
+        this.clusterName = container.getClusterName();
+        this.namespaceId = container.getNamespaceId();
         this.namespace = container.getNamespace();
+        this.workloadType = container.getWorkloadType();
+        this.workloadId = container.getWorkloadId();
         this.podName = container.getPodName();
         this.podLabels = container.getPodLabels();
         this.name = container.getName();
