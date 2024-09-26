@@ -85,7 +85,7 @@ spec:
             - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-common-refreshable
             - name: MALLOC_ARENA_MAX
-              value: {{ .Values.executeConfig.env.MALLOC_ARENA_MAX }}
+              value: {{ .Values.executeConfig.env.MALLOC_ARENA_MAX | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
