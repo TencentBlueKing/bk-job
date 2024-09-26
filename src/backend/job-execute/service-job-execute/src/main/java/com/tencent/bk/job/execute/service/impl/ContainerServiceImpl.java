@@ -116,6 +116,7 @@ public class ContainerServiceImpl implements ContainerService {
                 return;
             }
             container.setNodeAgentId(nodeHost.getAgentId());
+            container.setNodeIp(nodeHost.getPrimaryIp());
         });
     }
 

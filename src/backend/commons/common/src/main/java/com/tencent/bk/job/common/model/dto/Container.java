@@ -72,6 +72,12 @@ public class Container implements Cloneable {
     private Long nodeHostId;
 
     /**
+     * node 主机 ip
+     */
+    @JsonProperty("nodeIp")
+    private String nodeIp;
+
+    /**
      * 容器所在 Node 对应的 Agent ID
      */
     @JsonProperty("nodeAgentId")
@@ -150,6 +156,7 @@ public class Container implements Cloneable {
         Container clone = new Container();
         clone.setId(id);
         clone.setNodeHostId(nodeHostId);
+        clone.setNodeIp(nodeIp);
         clone.setNodeAgentId(nodeAgentId);
         clone.setContainerId(containerId);
         clone.setPodLabels(podLabels);
@@ -171,6 +178,7 @@ public class Container implements Cloneable {
         vo.setName(name);
         vo.setUid(containerId);
         vo.setNodeHostId(nodeHostId);
+        vo.setNodeIp(nodeIp);
         vo.setPodName(podName);
         vo.setPodLabels(podLabels);
         vo.setClusterId(clusterId);
