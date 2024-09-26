@@ -203,6 +203,7 @@ public class Container implements Cloneable {
         this.containerId = container.getContainerId();
         this.nodeHostId = container.getNodeHostId();
         this.nodeAgentId = container.getNodeAgentId();
+        this.nodeIp = container.getNodeIp();
         this.clusterId = container.getClusterId();
         this.clusterUID = container.getClusterUID();
         this.clusterName = container.getClusterName();
