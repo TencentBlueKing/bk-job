@@ -22,23 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
+import com.tencent.bk.sdk.iam.service.impl.EmptyTopoPathServiceImpl;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+@Slf4j
+@Configuration(value = "jobExecuteIamConfiguration")
+public class IamConfiguration {
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    @Bean
+    public TopoPathService topoPathService() {
+        return new EmptyTopoPathServiceImpl();
+    }
 }

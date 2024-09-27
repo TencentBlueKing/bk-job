@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.auth.impl;
 
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
@@ -41,8 +42,10 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -58,8 +61,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,19 +76,22 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final AuthService authService;
     private final AppAuthService appAuthService;
     private final JobExecuteConfig jobExecuteConfig;
+    private final TopoService topoService;
 
     @Autowired
     public ExecuteAuthServiceImpl(AuthHelper authHelper,
                                   @Qualifier("jobExecuteResourceNameQueryService")
-                                      ResourceNameQueryService resourceNameQueryService,
+                                  ResourceNameQueryService resourceNameQueryService,
                                   AuthService authService,
                                   AppAuthService appAuthService,
-                                  JobExecuteConfig jobExecuteConfig) {
+                                  JobExecuteConfig jobExecuteConfig,
+                                  TopoService topoService) {
         this.authHelper = authHelper;
         this.resourceNameQueryService = resourceNameQueryService;
         this.authService = authService;
         this.appAuthService = appAuthService;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.topoService = topoService;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
@@ -325,14 +333,63 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope) {
-        List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(1);
-        InstanceDTO topoNodeInstance = new InstanceDTO();
-        topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
-        topoNodeInstance.setSystem(SystemId.CMDB);
-        topoNodeInstance.setPath(buildAppScopePath(appResourceScope));
-        topoNodeInstanceList.add(topoNodeInstance);
+    private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope,
+                                                            List<DynamicServerTopoNodeDTO> topoNodes) {
+        long bizId = Long.parseLong(appResourceScope.getId());
+        List<InstanceTopologyDTO> topoNodeTopologyList = topoService.batchGetTopoNodeHierarchy(bizId, topoNodes);
+        Map<String, InstanceTopologyDTO> topoNodeTopologyMap = new HashMap<>();
+        for (InstanceTopologyDTO instanceTopologyDTO : topoNodeTopologyList) {
+            topoNodeTopologyMap.put(instanceTopologyDTO.getUniqueKey(), instanceTopologyDTO);
+        }
+        List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(topoNodes.size());
+        for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
+            String topoNodeKey = topoNode.getUniqueKey();
+            InstanceTopologyDTO nodeTopology = topoNodeTopologyMap.get(topoNodeKey);
+            if (nodeTopology == null) {
+                log.info("Cannot find topoPath for node {}, ignore", topoNodeKey);
+                continue;
+            }
+            InstanceDTO topoNodeInstance = new InstanceDTO();
+            topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
+            topoNodeInstance.setSystem(SystemId.CMDB);
+            topoNodeInstance.setPath(buildIamPathForTopoNode(nodeTopology));
+            topoNodeInstanceList.add(topoNodeInstance);
+        }
         return topoNodeInstanceList;
+    }
+
+    private PathInfoDTO buildIamPathForTopoNode(InstanceTopologyDTO nodeTopology) {
+        List<InstanceTopologyDTO> parents = nodeTopology.getParents();
+        if (CollectionUtils.isEmpty(parents)) {
+            return null;
+        }
+        // 权限路径不支持自定义节点，过滤掉
+        List<InstanceTopologyDTO> pathNodeList = parents.stream().filter(parent ->
+            CcNodeTypeEnum.BIZ.getType().equals(parent.getObjectId())
+                || CcNodeTypeEnum.SET.getType().equals(parent.getObjectId())
+                || CcNodeTypeEnum.MODULE.getType().equals(parent.getObjectId())
+        ).collect(Collectors.toList());
+        return buildPathInfoDTO(pathNodeList);
+    }
+
+    private PathInfoDTO buildPathInfoDTO(List<InstanceTopologyDTO> pathNodeList) {
+        PathInfoDTO rootPathInfo = null;
+        PathInfoDTO endPathInfo = null;
+        for (InstanceTopologyDTO pathNode : pathNodeList) {
+            if (rootPathInfo == null) {
+                rootPathInfo = new PathInfoDTO();
+                rootPathInfo.setType(pathNode.getObjectId());
+                rootPathInfo.setId(pathNode.getInstanceId().toString());
+                endPathInfo = rootPathInfo;
+            } else {
+                PathInfoDTO childPathInfo = new PathInfoDTO();
+                childPathInfo.setType(pathNode.getObjectId());
+                childPathInfo.setId(pathNode.getInstanceId().toString());
+                endPathInfo.setChild(childPathInfo);
+                endPathInfo = childPathInfo;
+            }
+        }
+        return rootPathInfo;
     }
 
     private List<InstanceDTO> buildBizStaticHostInstances(AppResourceScope appResourceScope,
@@ -375,9 +432,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             }
         }
         // 动态topo节点
-        if (!CollectionUtils.isEmpty(executeObjects.getTopoNodes())) {
-            // CMDB未提供权限中心使用的topo视图，暂时使用“业务”这个topo节点进行鉴权，不细化到集群、模块
-            hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope));
+        List<DynamicServerTopoNodeDTO> topoNodes = executeObjects.getTopoNodes();
+        if (!CollectionUtils.isEmpty(topoNodes)) {
+            hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope, topoNodes));
         }
         // 动态分组
         if (!CollectionUtils.isEmpty(executeObjects.getDynamicServerGroups())) {
