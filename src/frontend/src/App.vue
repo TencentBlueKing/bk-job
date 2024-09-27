@@ -91,6 +91,11 @@
             @click="handleLocationFeedback">
             {{ $t('问题反馈') }}
           </div>
+          <div
+            class="item"
+            @click="handleLocationOpenSource">
+            {{ $t('开源社区') }}
+          </div>
         </div>
       </bk-popover>
       <bk-popover
@@ -292,6 +297,9 @@
           return;
         }
         window.open(this.relatedSystemUrls.BK_FEED_BACK_ROOT_URL);
+      },
+      handleLocationOpenSource() {
+        window.open('https://github.com/TencentBlueKing/bk-job');
       },
       /**
        * @desc 退出登录
