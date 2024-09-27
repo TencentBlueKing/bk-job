@@ -14,8 +14,8 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@blueking/ip-selector": "0.3.0-beta.30",
-    "@blueking/login-modal": "1.0.4",
+    "@blueking/ip-selector": "0.3.0-beta.35",
+    "@blueking/login-modal": "1.0.5",
     "@blueking/notice-component-vue2": "2.0.0-beta.2",
     "@blueking/paas-login": "0.0.11",
     "@blueking/platform-config": "1.0.5",
