@@ -88,7 +88,7 @@
       <div class="page-link">
         <span>{{ $t('了解更多关于作业模板和执行方案的功能细节，请点击查阅') }}</span>
         <a
-          :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Features/Jobs.md`"
+          :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Features/Jobs.md`"
           target="_blank">
           <span>{{ $t('产品文档') }}</span>
           <icon type="link" />
@@ -104,7 +104,7 @@
     data() {
       return {
         relatedSystemUrls: {
-          BK_DOC_CENTER_ROOT_URL: '/',
+          BK_DOC_JOB_ROOT_URL: '/',
         },
       };
     },

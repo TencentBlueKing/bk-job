@@ -277,11 +277,11 @@
        * @desc 打开产品文档
        */
       handleLocationDocument() {
-        if (!this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL) {
+        if (!this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL) {
           this.messageError(I18n.t('网络错误，请刷新页面重试'));
           return;
         }
-        window.open(`${this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Introduction/What-is-Job.md`);
+        window.open(`${this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Introduction/What-is-Job.md`);
       },
       /**
        * @desc 打开问题反馈

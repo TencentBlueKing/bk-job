@@ -112,12 +112,18 @@ const IpSelector = createIpSelector({
   functionalDependency: { // 功能依赖展示
     container: {
       title: i18n.t('暂未开启“容器执行”功能'),
-      functionDesc: i18n.t('功能开启后，即可以基于配置平台的业务容器拓扑，对容器管理平台纳管的容器实例进行脚本指令执行和文件分发'),
+      functionalDesc: i18n.t('功能开启后，即可以基于配置平台的业务容器拓扑，对容器管理平台纳管的容器实例进行脚本指令执行和文件分发'),
       guideTitle: i18n.t('如需使用该功能，须具备以下条件：'),
       guideDescList: [
         i18n.t('1_部署容器管理平台（BCS）并开启容器拓扑同步至配置平台（CC）'),
         i18n.t('2_联系作业平台管理员打开容器执行功能'),
       ],
+      gotoMore: () => {
+        QueryGlobalSettingService.fetchRelatedSystemUrls()
+          .then((data) => {
+            window.open(`${data.BK_DOC_JOB_ROOT_URL}/UserGuide/Features/container-execute.md`);
+          });
+      },
     },
   },
 });
