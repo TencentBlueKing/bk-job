@@ -13,6 +13,9 @@ metadata:
 data:
   application.yaml: |-
     spring:
+      mvc:
+        async:
+          requestTimeout: 180s
       cloud:
         stream:
           function:

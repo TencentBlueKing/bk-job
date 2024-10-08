@@ -1,0 +1,46 @@
+##### 可在脚本开始运行时调用，打印当时的时间戳及PID。
+function job_start
+{
+    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "[{0}][PID:{1}] job_start" -f $cu_date,$pid
+}
+
+##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
+function job_success
+{
+    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    if($args.count -ne 0)
+    {
+        $args | foreach {$arg_str=$arg_str + " " + $_}
+        "[{0}][PID:{1}] job_success:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(' ')
+    }
+    else
+    {
+        "[{0}][PID:{1}] job_success:[]" -f $cu_date,$pid
+    }
+    exit 0
+}
+
+##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
+function job_fail
+{
+    $cu_date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    if($args.count -ne 0)
+    {
+        $args | foreach {$arg_str=$arg_str + " " + $_}
+        "[{0}][PID:{1}] job_fail:[{2}]" -f $cu_date,$pid,$arg_str.TrimStart(' ')
+    }
+    else
+    {
+        "[{0}][PID:{1}] job_fail:[]" -f $cu_date,$pid
+    }
+    exit 1
+}
+
+job_start
+
+###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值
+###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败
+###### 可在此处开始编写您的脚本逻辑代码
+
+
