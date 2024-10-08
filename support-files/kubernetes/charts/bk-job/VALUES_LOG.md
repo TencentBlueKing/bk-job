@@ -1,5 +1,58 @@
 # chart values 更新日志
 
+## 0.7.1
+1. 增加AI相关配置
+
+```yaml
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
+analysisConfig:
+  # AI相关配置
+  ai:
+    # 是否开启AI功能，默认不开启
+    enabled: false
+    # AI分析错误日志功能相关配置
+    analyzeErrorLog:
+      # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
+      logMaxLength: "5MB"
+    # AI聊天记录相关配置
+    chatHistory:
+      # 最大保留天数，默认31天
+      maxKeepDays: 31
+      # 单个用户最大保留的聊天记录数量，默认1000条
+      maxHistoryPerUser: 1000
+```
+
+## 0.7.0
+1. 增加接入蓝鲸网关配置
+
+```yaml
+bkApiGatewayConfig:
+  # 是否自动把API注册到蓝鲸网关
+  sync: false
+  # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
+  autoPublish: true
+  # 是否开启apigw jwt认证
+  enabled: true
+  jwtPublicKey:
+    # jwtPublicKey获取策略，获取失败重试：retry, 获取失败终止启动：abort
+    failPolicy: "retry"
+  # 接入的网关名称，蓝鲸官方网关都是bk-开头
+  gatewayName: "bk-job"
+  # 蓝鲸网关url
+  url: "http://bkapi.example.com/api/bk-apigateway"
+  # 接入环境
+  stage: "prod"
+  # 接入的api资源目录, 默认是/data/apidocs/
+  resourceDir: "/data/apidocs/"
+  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2"
+  maintainers: "admin"
+```
+
 ## 0.6.5
 1. 增加正在执行中的作业总量的配额限制
 

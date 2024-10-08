@@ -11,7 +11,7 @@ dist/
 
 # Dependency directories
 node_modules/
-
+yarn.lock
 # Typescript v1 declaration files
 typings/
 

@@ -195,7 +195,7 @@ public class BaseHttpHelper implements HttpHelper {
             if (httpStatusCode >= HttpStatus.SC_BAD_REQUEST) {
                 String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
                 log.warn(
-                    "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={},",
+                    "Request fail, method: {}, url={}, httpStatusCode={}, errorReason={}, body={}",
                     httpClientRequest.getMethod(),
                     httpClientRequest.getURI().getPath(),
                     httpStatusCode,

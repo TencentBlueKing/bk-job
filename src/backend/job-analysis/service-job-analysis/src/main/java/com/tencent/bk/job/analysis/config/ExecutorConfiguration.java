@@ -32,12 +32,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration(value = "jobAnalysisExecutorConfig")
 public class ExecutorConfiguration {
+
+    @Bean("analysisAsyncTaskExecutor")
+    public ThreadPoolExecutor analysisAsyncTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "analysisAsyncTaskExecutor",
+            0,
+            50,
+            180L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            (r, executor) -> log.warn("AsyncTask runnable rejected!")
+        );
+    }
 
     @Bean("analysisScheduleExecutor")
     public ThreadPoolExecutor analysisScheduleExecutor(MeterRegistry meterRegistry) {

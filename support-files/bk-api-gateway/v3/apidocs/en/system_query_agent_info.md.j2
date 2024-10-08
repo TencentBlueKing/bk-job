@@ -1,0 +1,76 @@
+### Function Description
+
+Query the information of the host agent in the job platform (executable status, version, etc.)
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields        | Type       | Required | Description                                                                                 |
+|---------------|------------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type | string     | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id   | string     | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| host_id_list  | list<long> | yes      | Host ID array, the number of hosts queried in a single query cannot exceed 5000             |
+
+### Example of request
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "host_id_list": [
+    1,
+    2,
+    3
+  ]
+}
+```
+
+### Response Description
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "",
+  "data": {
+    "agent_info_list": [
+      {
+        "bk_host_id": 1,
+        "status": 0,
+        "version": "2.1.4"
+      },
+      {
+        "bk_host_id": 2,
+        "status": 1,
+        "version": "2.1.5"
+      },
+      {
+        "bk_host_id": 3,
+        "status": 1,
+        "version": "2.1.6"
+      }
+    ]
+  }
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+| Fields          | Type         | Description                                                                                                                                                                  |
+|-----------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| agent_info_list | list<object> | Agent info, see agent_info definition，If the passed host_id does not exist in the returned result list, it means that the agent information of the host has not been queried |
+
+##### agent_info
+
+| Fields     | Type   | Description                       |
+|------------|--------|-----------------------------------|
+| bk_host_id | long   | Host ID                           |
+| status     | int    | Agent status：0-Abnormal, 1-Normal |
+| version    | string | Agent version                     |

@@ -1,0 +1,49 @@
+{{- if .Values.bkApiGatewayConfig.sync }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-sync-api-gateway-{{ .Chart.Version }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: "job-sync-bk-api-gateway"
+    {{ include "job.labelKeys.imageTag" . }} : {{ .Values.bkApiGatewayConfig.image.tag | quote }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 2
+  parallelism: 1
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component : "job-sync-bk-api-gateway"
+    spec:
+      containers:
+      - command:
+        - bash
+        args:
+        - bin/sync-bkapigateway.sh
+        image: {{ include "job-sync-bk-api-gateway.image" . }}
+        imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+        name: job-sync-bk-api-gateway
+        env:
+        - name: BK_APIGW_NAME
+          value: {{ .Values.bkApiGatewayConfig.gatewayName }}
+        - name: BK_APP_CODE
+          value: {{ .Values.appCode }}
+        - name: BK_APP_SECRET
+          value: {{ .Values.appSecret }}
+        - name: BK_API_URL_TMPL
+          value: {{ .Values.bkApiGatewayConfig.url }}
+        - name: BK_JOB_STAGE_NAME
+          value: {{ .Values.bkApiGatewayConfig.stage }}
+        - name: BK_APIGW_RESOURCE_DOCS_BASE_DIR
+          value: {{ .Values.bkApiGatewayConfig.resourceDir }}
+        - name: BK_JOB_API_URL
+          value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
+        - name: BK_APIGW_MAINTAINERS
+          value: {{ .Values.bkApiGatewayConfig.maintainers }}
+        - name: BK_APIGW_AUTO_PUBLISH
+          value: {{.Values.bkApiGatewayConfig.autoPublish | quote }}
+      restartPolicy: Never
+{{- end }}

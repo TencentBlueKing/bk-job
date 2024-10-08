@@ -54,6 +54,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
+import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -150,8 +151,7 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(scriptLogs)) {
             return;
         }
-        String jobCreateDate = DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String jobCreateDate = LogFieldUtil.buildJobCreateDate(jobCreateTime);
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());
@@ -227,8 +227,7 @@ public class LogServiceImpl implements LogService {
     }
 
     private String buildTaskCreateDateStr(StepInstanceBaseDTO stepInstance) {
-        return DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        return LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
     }
 
     private ScriptExecuteObjectLogContent convertToScriptExecuteObjectLogContent(

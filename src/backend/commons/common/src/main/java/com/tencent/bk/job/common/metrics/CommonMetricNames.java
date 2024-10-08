@@ -85,6 +85,15 @@ public class CommonMetricNames {
      */
     public static final String BK_NOTICE_API = "job.client.bknotice.api";
 
+    /**
+     * 仅统计调用AIDev后台 API的HTTP请求过程
+     */
+    public static final String BK_AI_DEV_API_HTTP = "job.client.bkAIDev.api.http";
+    /**
+     * 统计调用AIDev后台 API整个过程，含反序列化
+     */
+    public static final String BK_AI_DEV_API = "job.client.bkAIDev.api";
+
 
     /**
      * 被调用ESB API

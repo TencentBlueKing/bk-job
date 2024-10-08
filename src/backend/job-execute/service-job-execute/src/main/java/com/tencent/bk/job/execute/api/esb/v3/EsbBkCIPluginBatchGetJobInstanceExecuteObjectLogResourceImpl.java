@@ -32,7 +32,6 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
@@ -48,13 +47,12 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -118,8 +116,7 @@ public class EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogResourceImpl
                                  List<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
         executeObjectLogs.setLogType(LogTypeEnum.SCRIPT.getValue());
 
-        String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         List<ScriptExecuteObjectLogContent> executeObjectLogContentList =
             logService.batchGetScriptExecuteObjectLogContent(jobCreateDate, stepInstance,
                 stepInstance.getExecuteCount(), null, executeObjectCompositeKeys);

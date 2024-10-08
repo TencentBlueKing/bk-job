@@ -117,11 +117,13 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
+    <jb-ai v-if="isAiEnable" />
   </layout>
 </template>
 <script>
   import Cookie from 'js-cookie';
 
+  import AiService from '@service/ai';
   import EnvService from '@service/env';
   import LogoutService from '@service/logout';
   import QueryGlobalSettingService from '@service/query-global-setting';
@@ -158,6 +160,7 @@
           'esb.url': '',
           bkDomain: '',
         },
+        isAiEnable: false,
       };
     },
     computed: {
@@ -180,6 +183,7 @@
       this.fetchUserInfo();
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
+      this.fetchAiConfig();
     },
     /**
      * @desc 页面渲染完成
@@ -232,6 +236,12 @@
         EnvService.fetchProperties()
           .then((data) => {
             this.envConfig = data;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enabled;
           });
       },
       /**

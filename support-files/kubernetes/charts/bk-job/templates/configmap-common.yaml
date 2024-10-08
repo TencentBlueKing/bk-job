@@ -29,6 +29,7 @@ data:
             traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
+      bkHelperLink: {{ .Values.global.bkHelperLink }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
@@ -41,8 +42,14 @@ data:
         url: {{ .Values.bkGseApiGatewayUrl }}
       bkNotice:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
+      bkAIDev:
+        url: {{ .Values.bkAIDevApiGatewayUrl }}
+        appCode: {{ .Values.bkAIDevAppCode }}
+        appSecret: {{ .Values.bkAIDevAppSecret }}
       cmdb:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
+      bkApiGateway:
+        url: {{ .Values.bkApiGatewayConfig.url }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:

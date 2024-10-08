@@ -42,4 +42,9 @@ public interface JobCommonHeaders {
      * 蓝鲸网关-JWT
      */
     String BK_GATEWAY_JWT = "X-Bkapi-JWT";
+
+    /**
+     * 蓝鲸网关-从网关来的请求，与ESB请求区分
+     */
+    String BK_GATEWAY_FROM = "X-Bkapi-From";
 }

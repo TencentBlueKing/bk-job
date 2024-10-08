@@ -27,11 +27,14 @@
 
 <template>
   <div
+    ref="contentBox"
     v-bkloading="{
       isLoading, opacity: .1,
     }"
     class="step-execute-script-log">
-    <div class="log-wraper">
+    <div
+      class="log-wraper"
+      @mouseup="handleMouseUp">
       <div
         v-once
         id="executeScriptLog"
@@ -58,13 +61,29 @@
         <icon type="up-to-top" />
       </div>
     </div>
+    <div
+      ref="aiExtendTool"
+      class="ai-extend-tool"
+      :style="aiExtendToolStyle"
+      @click="handleSelectedAnalyzeError"
+      @mousedown.stop>
+      <img
+        src="/static/images/ai.png"
+        style="width: 16px">
+    </div>
   </div>
 </template>
 <script>
   import ace from 'ace/ace';
   import _ from 'lodash';
 
+  import AiService from '@service/ai';
   import TaskExecuteService from '@service/task-execute';
+
+  import {
+    getOffset,
+  } from '@utils/assist';
+  import eventBus from '@utils/event-bus';
 
   import I18n from '@/i18n';
 
@@ -117,6 +136,8 @@
         isRunning: false,
         // 自动动滚动到底部
         isWillAutoScroll: true,
+        aiExtendToolStyle: {},
+        isAiEnable: false,
       };
     },
     watch: {
@@ -169,9 +190,18 @@
         ],
         theme: 'light',
       };
+      this.logContent = '';
+      this.fetchAiConfig();
     },
     mounted() {
       this.initEditor();
+      const handleHideAiExtendTool = () => {
+        this.aiExtendToolStyle = {};
+      };
+      document.body.addEventListener('mousedown', handleHideAiExtendTool);
+      this.$once('hook:beforeDestroy', () => {
+        document.body.removeEventListener('mousedown', handleHideAiExtendTool);
+      });
     },
     methods: {
       /**
@@ -200,9 +230,13 @@
             logContent,
           }) => {
             this.isRunning = !finished;
+            this.logContent = _.trim(logContent || '', '\n');
             this.$nextTick(() => {
-              this.editor.setValue(_.trim(logContent || '', '\n'));
+              this.editor.setValue(logContent);
               this.editor.clearSelection();
+              setTimeout(() => {
+                document.body.querySelector('.ace_layer.ace_text-layer').appendChild(this.$refs.aiExtendTool);
+              }, 1000);
             });
             // 当前主机执行结束
             if (!finished) {
@@ -211,6 +245,12 @@
           })
           .finally(() => {
             this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enable;
           });
       },
       initEditor() {
@@ -241,6 +281,7 @@
           this.isWillAutoScroll = height + scrollTop + 30 >= maxHeight;
         });
         this.editor = editor;
+
         this.$once('hook:beforeDestroy', () => {
           editor.destroy();
           editor.container.remove();
@@ -252,6 +293,25 @@
       resize() {
         this.$nextTick(() => {
           this.editor.resize();
+        });
+      },
+      /**
+       * @desc 外部调用
+       */
+      getLog(contentSize) {
+        if (this.logContent.length > contentSize) {
+          return Promise.reject();
+        }
+        return Promise.resolve().then(() => {
+          eventBus.$emit('ai:analyzeError', {
+            taskInstanceId: this.taskInstanceId,
+            stepInstanceId: this.stepInstanceId,
+            executeObjectType: this.taskExecuteDetail.executeObject.type,
+            executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+            executeCount: this.executeCount,
+            batch: this.taskExecuteDetail.batch,
+            content: this.editor.getValue(),
+          });
         });
       },
       /**
@@ -278,144 +338,196 @@
         this.isWillAutoScroll = true;
         this.editor.scrollToLine(Infinity);
       },
+      handleMouseUp(event) {
+        if (!this.isAiEnable) {
+          return;
+        }
+        setTimeout(() => {
+          if (!this.editor.getSelectedText()) {
+            this.aiExtendToolStyle = {};
+            return;
+          }
+          const containerEle = document.body.querySelector('.ace_layer.ace_text-layer');
+          const {
+            left: contentBoxLeft,
+            top: contentBoxTop,
+          } = getOffset(containerEle);
+
+          const [transformY] = containerEle.style.transform.match(/([\d]+)[^\d]+$/);
+          const { pageX, pageY } = event;
+          this.aiExtendToolStyle = {
+            display: 'flex',
+            top: `${Math.max(pageY - 40 - contentBoxTop + parseInt(transformY, 10), 8)}px`,
+            left: `${Math.max(pageX + 4 - contentBoxLeft, 8)}px`,
+          };
+        });
+      },
+      handleSelectedAnalyzeError() {
+        this.aiExtendToolStyle = {};
+        eventBus.$emit('ai:analyzeError', {
+          taskInstanceId: this.taskInstanceId,
+          stepInstanceId: this.stepInstanceId,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          executeCount: this.executeCount,
+          batch: this.taskExecuteDetail.batch,
+          content: this.editor.getSelectedText(),
+        });
+      },
     },
   };
 </script>
 <style lang='postcss'>
-  @keyframes script-execute-loading {
-    0% {
+@keyframes script-execute-loading {
+  0% {
+    content: ".";
+  }
+
+  30% {
+    content: "..";
+  }
+
+  60% {
+    content: "...";
+  }
+}
+
+.step-execute-script-log {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  min-height: 100%;
+
+  .log-wraper {
+    position: absolute;
+    top: 0;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    padding-right: 20px;
+    /* stylelint-disable selector-class-pattern */
+    .ace_editor {
+      overflow: unset;
+      line-height: 1.6;
+      color: #c4c6cc;
+      background: #1d1d1d;
+
+      .ace_gutter {
+        padding-top: 4px;
+        margin-bottom: -4px;
+        color: #63656e;
+        background: #292929;
+      }
+
+      .ace_scroller {
+        padding-top: 4px;
+        margin-bottom: -4px;
+      }
+
+      .ace_hidden-cursors .ace_cursor {
+        opacity: 0% !important;
+      }
+
+      .ace_selected-word {
+        background: rgb(135 139 145 / 25%);
+      }
+
+      .ace_scrollbar-v,
+      .ace_scrollbar-h {
+        &::-webkit-scrollbar-thumb {
+          background-color: #3b3c42;
+          border: 1px solid #63656e;
+        }
+
+        &::-webkit-scrollbar-corner {
+          background-color: transparent;
+        }
+      }
+
+      .ace_scrollbar-v {
+        margin-right: -20px;
+
+        &::-webkit-scrollbar {
+          width: 14px;
+        }
+      }
+
+      .ace_scrollbar-h {
+        margin-bottom: -20px;
+
+        &::-webkit-scrollbar {
+          height: 14px;
+        }
+      }
+    }
+  }
+
+  .log-status {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding-left: 20px;
+    color: #fff;
+  }
+
+  .log-loading {
+    &::after {
+      display: inline-block;
       content: ".";
-    }
-
-    30% {
-      content: "..";
-    }
-
-    60% {
-      content: "...";
+      animation: script-execute-loading 2s linear infinite;
     }
   }
 
-  .step-execute-script-log {
-    position: relative;
-    height: 100%;
-    max-height: 100%;
-    min-height: 100%;
+  .keyword {
+    color: #212124;
+    background: #f0dc73;
+  }
 
-    .log-wraper {
-      position: absolute;
-      top: 0;
-      bottom: 20px;
-      left: 0;
-      width: 100%;
-      padding-right: 20px;
-      /* stylelint-disable selector-class-pattern */
-      .ace_editor {
-        overflow: unset;
-        line-height: 1.6;
-        color: #c4c6cc;
-        background: #1d1d1d;
+  .log-action-box {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 10;
+    display: flex;
 
-        .ace_gutter {
-          padding-top: 4px;
-          margin-bottom: -4px;
-          color: #63656e;
-          background: #292929;
-        }
-
-        .ace_scroller {
-          padding-top: 4px;
-          margin-bottom: -4px;
-        }
-
-        .ace_hidden-cursors .ace_cursor {
-          opacity: 0% !important;
-        }
-
-        .ace_selected-word {
-          background: rgb(135 139 145 / 25%);
-        }
-
-        .ace_scrollbar-v,
-        .ace_scrollbar-h {
-          &::-webkit-scrollbar-thumb {
-            background-color: #3b3c42;
-            border: 1px solid #63656e;
-          }
-
-          &::-webkit-scrollbar-corner {
-            background-color: transparent;
-          }
-        }
-
-        .ace_scrollbar-v {
-          margin-right: -20px;
-
-          &::-webkit-scrollbar {
-            width: 14px;
-          }
-        }
-
-        .ace_scrollbar-h {
-          margin-bottom: -20px;
-
-          &::-webkit-scrollbar {
-            height: 14px;
-          }
-        }
-      }
-    }
-
-    .log-status {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      padding-left: 20px;
-      color: #fff;
-    }
-
-    .log-loading {
-      &::after {
-        display: inline-block;
-        content: ".";
-        animation: script-execute-loading 2s linear infinite;
-      }
-    }
-
-    .keyword {
-      color: #212124;
-      background: #f0dc73;
-    }
-
-    .log-action-box {
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      z-index: 10;
+    .action-item {
+      position: relative;
       display: flex;
+      width: 32px;
+      height: 32px;
+      margin-left: 12px;
+      font-size: 18px;
+      color: #000;
+      cursor: pointer;
+      background: rgb(255 255 255 / 80%);
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
 
-      .action-item {
-        position: relative;
-        display: flex;
-        width: 32px;
-        height: 32px;
-        margin-left: 12px;
-        font-size: 18px;
-        color: #000;
-        cursor: pointer;
-        background: rgb(255 255 255 / 80%);
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
+      &:hover {
+        background: rgb(255 255 255);
+      }
 
-        &:hover {
-          background: rgb(255 255 255);
-        }
-
-        &.action-bottom {
-          transform: rotateZ(180deg);
-        }
+      &.action-bottom {
+        transform: rotateZ(180deg);
       }
     }
   }
+
+  .ai-extend-tool{
+    position: fixed;
+    z-index: 1000;
+    display: none;
+    width: 32px;
+    height: 32px;
+    pointer-events:all;
+    cursor: pointer;
+    background: #3D3D3D;
+    border: 1px solid #4F4F52;
+    border-radius: 2px;
+    box-shadow: 0 2px 10px 0 #000;;
+    align-items: center;
+    justify-content: center;
+  }
+}
 </style>

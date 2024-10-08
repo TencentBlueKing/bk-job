@@ -1,0 +1,10 @@
+##### file_source
+
+| 字段               | 类型     | 必选 | 描述                                                                                                                 |
+|------------------|--------|----|--------------------------------------------------------------------------------------------------------------------|
+| file_list        | array  | 是  | 支持多个文件，若文件源类型为服务器文件，填写源文件的绝对路径数组；若文件源类型为第三方文件源，COS文件源填写的路径为"bucket名称/文件路径"，例如：testbucket/test.txt                  |
+| account          | object | 是  | 文件源账号，见account定义，文件源类型为服务器文件源时必填，文件源类型为第三方文件源时无需填写                                                                 |
+| server           | object | 否  | 源文件服务器，见server定义                                                                                                   |
+| file_type        | int    | 否  | 文件源类型，1：服务器文件，3：第三方文件源文件，不传默认为1                                                                                    |
+| file_source_id   | int    | 否  | file_type为3时，file_source_id与file_source_code选择一个填写，若都填写，优先使用file_source_id，第三方文件源Id，可从get_job_detail接口返回结果中的步骤详情获取 |
+| file_source_code | string | 否  | file_type为3时，file_source_id与file_source_code选择一个填写，若都填写，优先使用file_source_id，第三方文件源标识，可从作业平台的文件分发页面->选择文件源文件弹框中获取    |

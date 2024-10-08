@@ -1,0 +1,268 @@
+### Function Description
+
+Query step instance details by instance ID
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields           | Type   | Required | Description                                                                                 |
+|------------------|--------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id  | long   | yes      | Job instance ID                                                                             |
+| step_instance_id | long   | yes      | Job step ID                                                                                 |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/get_step_instance_detail?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&step_instance_id=100
+```
+
+### Example of responses
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "",
+  "data": {
+    "id": 4,
+    "name": "Step 1",
+    "type": 1,
+    "script_info": {
+      "script_type": 1,
+      "script_id": null,
+      "script_version_id": null,
+      "script_content": "#!/bin/bash\n\nanynowtime=\"date +'%Y-%m-%d %H:%M:%S'\"\nNOW=\"echo [\\`$anynowtime\\`][PID:$$]\"\n\n##### 可在脚本开始运行时调用，打印当时的时间戳及PID。\nfunction job_start\n{\n echo \"`eval $NOW` job_starts\"\n}\n\n##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。 \nfunction job_success\n{\n MSG=\"$*\"\n echo \"`eval $NOW` job_success:[$MSG]\"\n exit 0\n}\n\n##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。\nfunction job_fail\n{\n MSG=\"$*\"\n echo \"`eval $NOW` job_fail:[$MSG]\"\n exit 1\n}\n\njob_start\n\n###### 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值\n###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败\n###### 可在此处开始编写您的脚本逻辑代码\n\necho 1",
+      "script_language": 1,
+      "script_param": "1 2 3",
+      "script_timeout": 1000,
+      "account": {
+        "id": 123,
+        "name": "root"
+      },
+      "server": {
+        "variable": null,
+        "ip_list": [
+          {
+            "bk_host_id": 1,
+            "bk_cloud_id": 0,
+            "bk_cloud_name": "Default Area",
+            "ip": "192.168.1.1",
+            "ipv6": null,
+            "bk_agent_id": "020000000052540079809816967513755991",
+            "alive": 1
+          }
+        ],
+        "topo_node_list": [
+          {
+            "node_type": "set",
+            "id": 123
+          }
+        ],
+        "dynamic_group_list": [
+          {
+            "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+          }
+        ]
+      },
+      "is_param_sensitive": 0,
+      "is_ignore_error": 0
+    },
+    "file_info": {
+      "file_source_list": [
+        {
+          "file_type": 1,
+          "file_list": [
+            "/tmp/1.txt",
+            "/tmp/2.txt"
+          ],
+          "server": {
+            "variable": null,
+            "server": {
+              "ip_list": [
+                {
+                  "bk_host_id": 1,
+                  "bk_cloud_id": 0,
+                  "bk_cloud_name": "Default Area",
+                  "ip": "192.168.1.1",
+                  "ipv6": null,
+                  "bk_agent_id": "020000000052540079809816967513755991",
+                  "alive": 1
+                }
+              ],
+              "topo_node_list": [
+                {
+                  "node_type": "set",
+                  "id": 123
+                }
+              ],
+              "dynamic_group_list": [
+                {
+                  "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+                }
+              ]
+            }
+          },
+          "account": {
+            "id": 1,
+            "name": "root"
+          },
+          "file_source_id": 1
+        }
+      ],
+      "file_destination": {
+        "path": "/tmp",
+        "account": {
+          "id": 1,
+          "name": "root"
+        },
+        "server": {
+          "variable": null,
+          "ip_list": [
+            {
+              "bk_host_id": 1,
+              "bk_cloud_id": 0,
+              "bk_cloud_name": "Default Area",
+              "ip": "192.168.1.1",
+              "ipv6": null,
+              "bk_agent_id": "020000000052540079809816967513755991",
+              "alive": 1
+            }
+          ],
+          "topo_node_list": [
+            {
+              "node_type": "set",
+              "id": 123
+            }
+          ],
+          "dynamic_group_list": [
+            {
+              "id": "07f99504-7bcb-11eb-980b-5254008ed702"
+            }
+          ]
+        }
+      },
+      "timeout": 1000,
+      "source_speed_limit": 10,
+      "destination_speed_limit": 10,
+      "transfer_mode": 2,
+      "is_ignore_error": 0
+    },
+    "approval_info": {
+      "approval_message": "Pass"
+    }
+  }
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields        | Type   | Required | Description                          |
+|---------------|--------|----------|--------------------------------------|
+| id            | long   | yes      | Step ID                              |
+| name          | string | yes      | Step name                            |
+| type          | int    | yes      | Step type：1-script，2-file，3-approval |
+| script_info   | object | no       | Script info                          |
+| file_info     | object | no       | Fine info                            |
+| approval_info | object | no       | Approval info                        |
+
+##### script_info
+
+| Fields             | Type   | Required | Description                                                                        |
+|--------------------|--------|----------|------------------------------------------------------------------------------------|
+| script_type        | int    | yes      | Script type：1-Local script, 2-Reference business script, 3-Reference public script |
+| script_id          | string | no       | Script ID                                                                          |
+| script_version_id  | long   | no       | Script version ID                                                                  |
+| script_content     | string | no       | Script content                                                                     |
+| script_language    | int    | yes      | Script language：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql                   |
+| script_param       | string | yes      | Script param                                                                       |
+| script_timeout     | int    | yes      | Script timeout，Unit in seconds                                                     |
+| account            | object | yes      | Account，see account definition                                                     |
+| server             | object | yes      | Server，see server definition                                                       |
+| is_param_sensitive | int    | yes      | Is the parameter sensitive? Parameters: 0- insensitive, 1- sensitive               |
+| is_ignore_error    | int    | yes      | Is ignore error：0- Do not ignore, 1- Ignore                                        |
+
+##### account
+
+| Fields | Type   | Required | Description                                                                                                                                                                |
+|--------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | no       | The source execution account ID can be obtained from the get-account list interface. There must be one with alias. When both alias and id exist, id takes priority.        |
+| alias  | string | no       | Source execution account alias, can be obtained from the account page, recommended for use. There must be one with alias. When both alias and id exist, id takes priority. |
+
+##### server
+
+| Fields             | Type  | Required | Description                                                                                                                                                                                              |
+|--------------------|-------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| host_id_list       | array | no       | Host ID list                                                                                                                                                                                             |
+| ip_list            | array | no       | Static IP list, see ip for definition. ***Deprecated, it is recommended to use the host_id_list parameter***; if host_id_list and ip_list exist at the same time, the ip_list parameter will be ignored. |
+| dynamic_group_list | array | no       | Dynamic grouping list, see dynamic_group for definition                                                                                                                                                  |
+| topo_node_list     | array | no       | Dynamic topo node list, see topo_node for definition                                                                                                                                                     |
+
+##### host
+
+| Fields        | Type   | Required | Description                                                 |
+|---------------|--------|----------|-------------------------------------------------------------|
+| bk_host_id    | long   | yes      | Host ID                                                     |
+| bk_cloud_id   | long   | no       | Area ID                                                     |
+| bk_cloud_name | string | no       | Area name                                                   |
+| ip            | string | no       | IP                                                          |
+| ipv6          | string | no       | IPv6                                                        |
+| bk_agent_id   | string | no       | Agent ID                                                    |
+| alive         | int    | no       | Is the agent normal? The values are: 1- normal, 0- abnormal |
+
+##### topo_node
+
+| Fields    | Type   | Required | Description                                                                                |
+|-----------|--------|----------|--------------------------------------------------------------------------------------------|
+| id        | long   | yes      | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
+| node_type | string | yes      | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
+
+##### dynamic_group
+
+| Fields | Type   | Required | Description              |
+|--------|--------|----------|--------------------------|
+| id     | string | yes      | CMDB dynamic grouping ID |
+
+##### file_info
+
+| Fields                  | Type              | Required | Description                                                              |
+|-------------------------|-------------------|----------|--------------------------------------------------------------------------|
+| file_source_list        | list<file_source> | yes      | File source list，see file source definition                              |
+| file_destination        | object            | yes      | File destincation，see file destination definition                        |
+| timeout                 | int               | yes      | Timeout，Unit in seconds                                                  |
+| source_speed_limit      | int               | no       | Upload speed limit，The unit is MB/s, no value indicates no speed limit   |
+| destination_speed_limit | int               | no       | Download speed limit，The unit is MB/s, no value indicates no speed limit |
+| transfer_mode           | int               | yes      | Transfer mode： 1- Strict mode, 2- Mandatory mode, 3- Safe mode           |
+| is_ignore_error         | int               | yes      | Is ignore error：0- Do not ignore, 1- Ignore                              |
+
+##### file_source
+
+| Fields         | Type   | Required | Description                                                                                                                                                                                                                                                                                         |
+|----------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| file_list      | array  | yes      | Support multiple files. If the file source type is a server file, fill in the absolute path array of the source file; If the file source type is a third-party file source, the path filled in for the COS file source is "bucket name/file path", for example: testbucket/test.txt                 |
+| account        | object | yes      | The file source account, as defined in the account, is required when the file source type is server file source, and does not need to be filled in when the file source type is third-party file source                                                                                             |
+| server         | object | no       | Source server，see server definition                                                                                                                                                                                                                                                                 |
+| file_type      | int    | yes      | File source type, 1: server file, 3: third-party file source file, default is 1 if not transmitted                                                                                                                                                                                                  |
+| file_source_id | int    | no       | When file_date is 3, choose one of file_stource_id and file_stource_comde to fill in. If both are filled in, priority should be given to using file_stource_id and the third-party file source ID. You can obtain the details of the steps in the returned result from the get-job_detail interface |
+
+##### file_destination
+
+| Fields  | Type   | Required | Description                    |
+|---------|--------|----------|--------------------------------|
+| path    | string | yes      | Target path                    |
+| account | object | yes      | Account，see account definition |
+| server  | object | yes      | Server，see server definition   |
+
+##### approval_info
+
+| Fields           | Type   | Required | Description     |
+|------------------|--------|----------|-----------------|
+| approval_message | string | yes      | Approve Message |

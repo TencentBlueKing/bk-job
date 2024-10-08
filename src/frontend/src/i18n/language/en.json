@@ -555,4 +555,11 @@
   "1_部署容器管理平台（BCS）并开启容器拓扑同步至配置平台（CC）": "1. Deploy the container management platform (BCS) and enable container topology synchronization to the configuration platform (CC).",
   "2_联系作业平台管理员打开容器执行功能": "2. Contact the JOB administrator to enable the container execution feature.",
   "开源社区": "Open Source"
+  "请稍等，我正在处理您的请求...": "Please wait, I’m processing your request...",
+  "抱歉！出了点问题，请稍后再试。": "Oops! Something went wrong, please try again later.",
+  "在这里输入你的问题，试试我是否可以帮助到你...": "Type your question here, and see if I can help you...",
+  "脚本检查": "Script check",
+  "其它": "AI more",
+  "注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！": "Attention! The AI model may use the information you provide as training material. If the content contains sensitive information, please use it cautiously!",
+  "小鲸": "AI-assistant",
 }

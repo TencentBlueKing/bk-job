@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.common.util.DbRecordMapper;
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.TaskFileStepDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
