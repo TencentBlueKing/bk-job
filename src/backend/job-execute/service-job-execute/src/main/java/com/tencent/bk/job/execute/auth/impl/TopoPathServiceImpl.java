@@ -31,8 +31,6 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -44,12 +42,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class TopoPathServiceImpl implements TopoPathService {
 
     private final BizCmdbClient bizCmdbClient;
 
-    @Autowired
     public TopoPathServiceImpl(BizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }

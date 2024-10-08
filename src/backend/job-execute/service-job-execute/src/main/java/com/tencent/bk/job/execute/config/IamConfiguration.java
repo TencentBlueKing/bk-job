@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.execute.config;
 
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.execute.auth.impl.TopoPathServiceImpl;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
-import com.tencent.bk.sdk.iam.service.impl.EmptyTopoPathServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 public class IamConfiguration {
 
     @Bean
-    public TopoPathService topoPathService() {
-        return new EmptyTopoPathServiceImpl();
+    public TopoPathService topoPathService(BizCmdbClient bizCmdbClient) {
+        return new TopoPathServiceImpl(bizCmdbClient);
     }
 }
