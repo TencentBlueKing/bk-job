@@ -646,13 +646,16 @@ public class TaskInstanceExecuteObjectProcessor {
         taskInstanceExecuteObjects.setContainsAnyContainer(
             CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
 
-        // 增加 topo 信息（集群 UID，集群名称、命名空间名称等)
-        fillTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
+        // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
+        fillContainerTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
     }
 
-    private void fillTopoInfo(long appId,
-                              Collection<Container> containers,
-                              List<StepInstanceDTO> stepInstances) {
+    private void fillContainerTopoInfo(long appId,
+                                       Collection<Container> containers,
+                                       List<StepInstanceDTO> stepInstances) {
+        if (CollectionUtils.isEmpty(containers)) {
+            return;
+        }
         long bizId = Long.parseLong(appScopeMappingService.getScopeByAppId(appId).getId());
         // 从 cmdb 获取集群信息
         List<Long> ccKubeClusterIds =
