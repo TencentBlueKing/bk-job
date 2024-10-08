@@ -360,15 +360,20 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
     private PathInfoDTO buildIamPathForTopoNode(InstanceTopologyDTO nodeTopology) {
         List<InstanceTopologyDTO> parents = nodeTopology.getParents();
-        if (CollectionUtils.isEmpty(parents)) {
-            return null;
+        if (parents == null) {
+            parents = Collections.emptyList();
         }
+        List<InstanceTopologyDTO> pathNodeList = new ArrayList<>(parents);
+        pathNodeList.add(nodeTopology);
         // 权限路径不支持自定义节点，过滤掉
-        List<InstanceTopologyDTO> pathNodeList = parents.stream().filter(parent ->
+        pathNodeList = pathNodeList.stream().filter(parent ->
             CcNodeTypeEnum.BIZ.getType().equals(parent.getObjectId())
                 || CcNodeTypeEnum.SET.getType().equals(parent.getObjectId())
                 || CcNodeTypeEnum.MODULE.getType().equals(parent.getObjectId())
         ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pathNodeList)) {
+            return null;
+        }
         return buildPathInfoDTO(pathNodeList);
     }
 
