@@ -252,7 +252,7 @@
   "主机列表": "Host",
   "密文": "Ciphertext",
   "标签名支持：汉字 A-Z a-z 0-9 _ - ! # @ $ & % ^ ~ = + .": "only letters, numbers, and _ - ! # @ $ & % ^ ~ = + . are allowed",
-  "版本日志": "Release note",
+  "版本日志": "Release Notes",
   "单次执行": "Run once",
   "周期执行": "Round-robin",
   "静态 - IP 选择": "Static - IP selector",
@@ -554,5 +554,5 @@
   "如需使用该功能，须具备以下条件：": "To use this feature, the following conditions must be met:",
   "1_部署容器管理平台（BCS）并开启容器拓扑同步至配置平台（CC）": "1. Deploy the container management platform (BCS) and enable container topology synchronization to the configuration platform (CC).",
   "2_联系作业平台管理员打开容器执行功能": "2. Contact the JOB administrator to enable the container execution feature.",
-  "开源社区": "Open source"
+  "开源社区": "Open Source"
 }
