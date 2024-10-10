@@ -252,7 +252,7 @@
   "主机列表": "Host",
   "密文": "Ciphertext",
   "标签名支持：汉字 A-Z a-z 0-9 _ - ! # @ $ & % ^ ~ = + .": "only letters, numbers, and _ - ! # @ $ & % ^ ~ = + . are allowed",
-  "版本日志": "Release notes",
+  "版本日志": "Release Notes",
   "单次执行": "Run once",
   "周期执行": "Round-robin",
   "静态 - IP 选择": "Static - IP selector",
@@ -560,5 +560,6 @@
   "脚本检查": "Script check",
   "其它": "AI more",
   "注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！": "Attention! The AI model may use the information you provide as training material. If the content contains sensitive information, please use it cautiously!",
-  "小鲸": "AI-assistant"
+  "小鲸": "AI-assistant",
+  "开源社区": "Open Source"
 }
