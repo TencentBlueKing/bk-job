@@ -22,31 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import feign.Client;
+import feign.Request;
+import feign.Response;
+import lombok.extern.slf4j.Slf4j;
 
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.execute",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class,
-        KubernetesDiscoveryClientAutoConfiguration.class})
-@EnableFeignClients(
-    basePackages = {
-        "com.tencent.bk.job.manage.api",
-        "com.tencent.bk.job.logsvr.api",
-        "com.tencent.bk.job.file_gateway.api"
-    }
-)
-public class JobExecuteBootApplication {
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.IOException;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobExecuteBootApplication.class, args);
+@Slf4j
+public class WatchableFeignClient extends Client.Default {
+
+    public WatchableFeignClient(SSLSocketFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        super(sslContextFactory, hostnameVerifier);
     }
 
+    @Override
+    public Response execute(Request request, Request.Options options) throws IOException {
+        try {
+            Response response = super.execute(request, options);
+            log.debug(
+                "SucceedToExecFeignRequest, method={}, url={}",
+                request.httpMethod().name(),
+                request.url()
+            );
+            return response;
+        } catch (Exception e) {
+            log.warn(
+                "FailToExecFeignRequest, method={}, url={}",
+                request.httpMethod().name(),
+                request.url()
+            );
+            throw e;
+        }
+    }
 
 }

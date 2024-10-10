@@ -39,6 +39,7 @@ import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInfo
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
@@ -50,19 +51,35 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnKubernetesEnabled
-@AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
+@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
     // So that CatalogSharedInformerFactory can be processed in prior to the default
     // factory
-    KubernetesInformerAutoConfiguration.class })
-@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
+    KubernetesInformerAutoConfiguration.class})
+@AutoConfigureAfter({KubernetesClientAutoConfiguration.class})
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class JobK8sDiscoveryClientConfig {
+
     @Bean
-    public JobCatalogSharedInformerFactory catalogSharedInformerFactory(
+    @ConditionalOnMissingBean
+    public JobSpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
+        KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
+        JobCatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
+        // Injecting KubernetesDiscoveryProperties here would cause it to be
+        // initialize too early
+        // Instead get the all-namespaces property value from the Environment directly
+        boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
+            Boolean.class, false);
+        return new JobSpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
+            sharedInformerFactory, allNamespaces);
+    }
+
+    @Bean
+    public JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory(
         ApiClient apiClient) {
         return new JobCatalogSharedInformerFactory();
     }
@@ -70,11 +87,11 @@ public class JobK8sDiscoveryClientConfig {
     @Bean
     public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
         KubernetesNamespaceProvider kubernetesNamespaceProvider,
-        JobCatalogSharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
+        JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory, Lister<V1Service> serviceLister,
         Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
         SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
         return new JobKubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(),
-            sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer,
+            jobCatalogSharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer,
             properties);
     }
 
