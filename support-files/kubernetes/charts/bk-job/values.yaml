@@ -976,8 +976,10 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
-  env:
-    MALLOC_ARENA_MAX: 1
+  # extraEnv:
+  #   # 设置容器使用的 linux arena 内存分配区数量（建议设置为容器使用的 CPU 核数)
+  #   - name: MALLOC_ARENA_MAX
+  #     value: 8
 
 ## job-crontab定时任务配置
 crontabConfig:

@@ -70,6 +70,9 @@ spec:
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- if .Values.executeConfig.extraEnv }}
+            {{- include "job.service.extra.env" .Values.executeConfig.extraEnv | nindent 12 }}
+            {{- end }}
             - name: BK_JOB_APP_NAME
               value: "job-execute"
             - name: BK_JOB_JVM_OPTION
@@ -84,8 +87,6 @@ spec:
               value: {{ include "common.names.fullname" . }}-execute
             - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-common-refreshable
-            - name: MALLOC_ARENA_MAX
-              value: {{ .Values.executeConfig.env.MALLOC_ARENA_MAX | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.executeConfig.containerPort }}
