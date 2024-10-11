@@ -350,6 +350,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 continue;
             }
             InstanceDTO topoNodeInstance = new InstanceDTO();
+            topoNodeInstance.setName(String.valueOf(topoNode.getTopoNodeId()));
             topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
             topoNodeInstance.setSystem(SystemId.CMDB);
             topoNodeInstance.setPath(buildIamPathForTopoNode(nodeTopology));
@@ -507,18 +508,40 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
-    private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope) {
-        List<PermissionResource> hostResources = new ArrayList<>();
-        PermissionResource resource = new PermissionResource();
-        resource.setResourceId(appResourceScope.getId());
-        resource.setResourceType(ResourceTypeEnum.HOST);
-        resource.setSubResourceType("topo");
-        resource.setResourceName(getResourceName(appResourceScope));
-        resource.setSystemId(SystemId.CMDB);
-        resource.setType(CcNodeTypeEnum.BIZ.getType());
-        resource.setParentHierarchicalResources(null);
-        hostResources.add(resource);
-        return hostResources;
+    private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope,
+                                                                              List<DynamicServerTopoNodeDTO> topoNodes) {
+        List<InstanceDTO> hostInstanceList = buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
+        return hostInstanceList.stream().map(hostInstance -> {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(null);
+            resource.setResourceType(ResourceTypeEnum.HOST);
+            resource.setSubResourceType("topo");
+            resource.setResourceName(hostInstance.getName());
+            resource.setSystemId(SystemId.CMDB);
+            resource.setType(ResourceTypeEnum.HOST.getId());
+            resource.setParentHierarchicalResources(convert(hostInstance.getPath()));
+            return resource;
+        }).collect(Collectors.toList());
+    }
+
+    private List<PermissionResource> convert(PathInfoDTO pathInfoDTO) {
+        List<PermissionResource> permissionResourceList = new ArrayList<>();
+        if (pathInfoDTO == null) {
+            return permissionResourceList;
+        }
+        PathInfoDTO currentNode = pathInfoDTO;
+        while (currentNode != null) {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(currentNode.getId());
+            resource.setResourceType(ResourceTypeEnum.HOST);
+            resource.setSubResourceType("topo");
+            resource.setResourceName(currentNode.getId());
+            resource.setSystemId(SystemId.CMDB);
+            resource.setType(currentNode.getType());
+            permissionResourceList.add(resource);
+            currentNode = currentNode.getChild();
+        }
+        return permissionResourceList;
     }
 
     private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(AppResourceScope appResourceScope,
@@ -557,6 +580,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                                                           ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
 
+        // 静态IP
         if (!CollectionUtils.isEmpty(executeTarget.getStaticIpList())) {
             switch (appResourceScope.getType()) {
                 case BIZ:
@@ -572,9 +596,12 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                         ErrorCode.NOT_SUPPORT_FEATURE);
             }
         }
-        if (!CollectionUtils.isEmpty(executeTarget.getTopoNodes())) {
-            hostResources.addAll(convertTopoNodesToPermissionResourceList(appResourceScope));
+        // 动态topo节点
+        List<DynamicServerTopoNodeDTO> topoNodes = executeTarget.getTopoNodes();
+        if (CollectionUtils.isNotEmpty(topoNodes)) {
+            hostResources.addAll(convertTopoNodesToPermissionResourceList(appResourceScope, topoNodes));
         }
+        // 动态分组
         if (!CollectionUtils.isEmpty(executeTarget.getDynamicServerGroups())) {
             hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, executeTarget));
         }
