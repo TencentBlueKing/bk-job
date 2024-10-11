@@ -29,7 +29,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -46,8 +45,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
             "com.tencent.bk.job.backup",
             "com.tencent.bk.job.common.config"
         },
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class,
-        KubernetesDiscoveryClientAutoConfiguration.class}
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"}
 )
 @EnableCaching
 @EnableScheduling

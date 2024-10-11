@@ -28,13 +28,12 @@ import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.execute",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class,
-        KubernetesDiscoveryClientAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @EnableFeignClients(
     basePackages = {
         "com.tencent.bk.job.manage.api",
