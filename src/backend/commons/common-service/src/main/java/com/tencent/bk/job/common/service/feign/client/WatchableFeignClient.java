@@ -22,39 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-backup:service-job-backup")
-    api project(":commons:common-redis")
-    api project(":commons:common-i18n")
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework:spring-webmvc'
-    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    runtimeOnly('mysql:mysql-connector-java')
+package com.tencent.bk.job.common.service.feign.client;
 
-    testImplementation("com.h2database:h2")
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.backup.JobBackupBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-backup-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-backup-${version}.jar", "job-backup-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+import feign.Client;
+import feign.Request;
+import feign.Response;
+import lombok.extern.slf4j.Slf4j;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-backup-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-backup-${version}.jar", "job-backup.jar"
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.IOException;
+
+/**
+ * FeignClient抛出的原始异常信息中仅包含负载均衡解析前的服务名称信息，
+ * 当前类用于覆盖默认Client.Default以便观察FeignClient调用异常时的真实请求信息（URL等）
+ */
+@Slf4j
+public class WatchableFeignClient extends Client.Default {
+
+    public WatchableFeignClient(SSLSocketFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        super(sslContextFactory, hostnameVerifier);
+    }
+
+    @Override
+    public Response execute(Request request, Request.Options options) throws IOException {
+        try {
+            Response response = super.execute(request, options);
+            log.debug(
+                "SucceedToExecFeignRequest, method={}, url={}",
+                request.httpMethod().name(),
+                request.url()
+            );
+            return response;
+        } catch (Exception e) {
+            log.warn(
+                "FailToExecFeignRequest, method={}, url={}",
+                request.httpMethod().name(),
+                request.url()
+            );
+            throw e;
+        }
+    }
+
 }
-copyToLatestJar.dependsOn assemble
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts

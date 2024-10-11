@@ -43,7 +43,8 @@ import javax.annotation.PreDestroy;
  * Job Gateway Spring Boot Application
  */
 @JobBootApplication(scanBasePackages = "com.tencent.bk.job.gateway",
-    exclude = {ApplicationAvailabilityAutoConfiguration.class})
+    exclude = {ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @Slf4j
 @EnableFeignClients
 public class JobGatewayBootApplication {
