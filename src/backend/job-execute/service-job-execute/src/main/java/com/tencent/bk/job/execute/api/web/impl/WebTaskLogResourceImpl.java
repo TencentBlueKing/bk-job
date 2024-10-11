@@ -133,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             repackage = false;
         }
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
@@ -193,8 +193,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId,
-            executeObjectTypeEnum, executeObjectResourceId, executeCount, logFileDir, logFileName, repackage);
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(
+            username,
+            appId,
+            taskInstanceId,
+            stepInstanceId,
+            executeObjectTypeEnum,
+            executeObjectResourceId,
+            executeCount,
+            logFileDir,
+            logFileName,
+            repackage
+        );
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
@@ -276,7 +286,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  Long executeObjectResourceId) {
         Long appId = appResourceScope.getAppId();
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             log.info("StepInstance: {} is not in app: {}", stepInstance.getId(), appResourceScope.getAppId());
             return ResponseEntity.notFound().build();
@@ -297,8 +307,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                     stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, executeObjectTypeEnum,
-                executeObjectResourceId, executeCount, logFileDir, logFileName, false);
+            exportInfo = logExportService.packageLogFile(
+                username,
+                appId,
+                taskInstanceId,
+                stepInstanceId,
+                executeObjectTypeEnum,
+                executeObjectResourceId,
+                executeCount,
+                logFileDir,
+                logFileName,
+                false
+            );
         } else {
             exportInfo = logExportService.getExportInfo(appId, stepInstanceId, null, null);
         }

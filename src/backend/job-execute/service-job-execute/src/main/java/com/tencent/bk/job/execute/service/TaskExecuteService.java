@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
@@ -89,7 +88,6 @@ public interface TaskExecuteService {
      * @param operator      操作者
      * @param stepOperation 步骤操作
      * @return 执行次数
-     * @throws ServiceException
      */
     Integer doStepOperation(Long appId, String operator, StepOperationDTO stepOperation);
 
@@ -99,7 +97,6 @@ public interface TaskExecuteService {
      * @param username       操作者
      * @param appId          业务ID
      * @param taskInstanceId 作业实例ID
-     * @throws ServiceException 终止操作异常的时候抛出
      */
     void terminateJob(String username, Long appId, Long taskInstanceId);
 

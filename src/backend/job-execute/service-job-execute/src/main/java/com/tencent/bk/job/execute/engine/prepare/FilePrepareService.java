@@ -44,9 +44,10 @@ public interface FilePrepareService {
     /**
      * 清理已准备完成的临时文件
      *
+     * @param taskInstanceId 作业实例Id
      * @param stepInstanceId 步骤实例Id
      */
-    void clearPreparedTmpFile(long stepInstanceId);
+    void clearPreparedTmpFile(long taskInstanceId, long stepInstanceId);
 
     /**
      * 是否需要准备源文件
