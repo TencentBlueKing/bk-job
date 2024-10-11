@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.k8s.config;
 
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -36,21 +36,26 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 
 import java.util.List;
 
+/**
+ * 支持打印负载均衡实例请求结果数据，用于排查相关问题
+ */
 @Slf4j
 public class JobKubernetesInformerDiscoveryClient extends KubernetesInformerDiscoveryClient {
-    public JobKubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
-                                                Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
+    public JobKubernetesInformerDiscoveryClient(String namespace,
+                                                SharedInformerFactory sharedInformerFactory,
+                                                Lister<V1Service> serviceLister,
+                                                Lister<V1Endpoints> endpointsLister,
                                                 SharedInformer<V1Service> serviceInformer,
                                                 SharedInformer<V1Endpoints> endpointsInformer,
                                                 KubernetesDiscoveryProperties properties) {
-        super(namespace, sharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer,
-            properties);
+        super(namespace, sharedInformerFactory, serviceLister,
+            endpointsLister, serviceInformer, endpointsInformer, properties);
     }
 
     @Override
     public List<ServiceInstance> getInstances(String serviceId) {
         List<ServiceInstance> serviceInstanceList = super.getInstances(serviceId);
-        log.info("serviceId={}, serviceInstanceList={}", serviceId, serviceInstanceList);
+        log.debug("serviceId={}, serviceInstanceList={}", serviceId, serviceInstanceList);
         return serviceInstanceList;
     }
 }

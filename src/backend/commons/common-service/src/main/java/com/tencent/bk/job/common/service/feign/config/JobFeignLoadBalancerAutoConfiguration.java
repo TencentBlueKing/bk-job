@@ -22,26 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.service.feign.config;
 
+import com.tencent.bk.job.common.service.feign.client.WatchableFeignClient;
 import feign.Client;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.loadbalancer.LoadBalancedRetryFactory;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.config.BlockingLoadBalancerClientAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.cloud.openfeign.loadbalancer.FeignLoadBalancerAutoConfiguration;
 import org.springframework.cloud.openfeign.loadbalancer.RetryableFeignBlockingLoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * FeignBlockingLoadBalancerClient相关的自定义Bean配置
+ */
 @Slf4j
+@AutoConfigureBefore(FeignLoadBalancerAutoConfiguration.class)
 @AutoConfigureAfter(BlockingLoadBalancerClientAutoConfiguration.class)
-public class JobFeignAutoConfiguration {
+public class JobFeignLoadBalancerAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     @ConditionalOnClass(name = "org.springframework.retry.support.RetryTemplate")
     @ConditionalOnBean(LoadBalancedRetryFactory.class)
     @ConditionalOnProperty(value = "spring.cloud.loadbalancer.retry.enabled", havingValue = "true",

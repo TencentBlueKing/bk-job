@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.service.feign.client;
 
 import feign.Client;
 import feign.Request;
@@ -33,6 +33,10 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 
+/**
+ * FeignClient抛出的原始异常信息中仅包含负载均衡解析前的服务名称信息，
+ * 当前类用于覆盖默认Client.Default以便观察FeignClient调用异常时的真实请求信息（URL等）
+ */
 @Slf4j
 public class WatchableFeignClient extends Client.Default {
 

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.k8s.config;
 
 
 import io.kubernetes.client.informer.SharedInformer;
@@ -53,6 +53,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+/**
+ * 负载均衡相关的自定义Bean配置
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnKubernetesEnabled
@@ -62,37 +65,52 @@ import org.springframework.core.env.Environment;
     KubernetesInformerAutoConfiguration.class})
 @AutoConfigureAfter({KubernetesClientAutoConfiguration.class})
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
-public class JobK8sDiscoveryClientConfig {
+public class JobK8sDiscoveryClientAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     public JobSpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-        KubernetesNamespaceProvider kubernetesNamespaceProvider, ApiClient apiClient,
-        JobCatalogSharedInformerFactory sharedInformerFactory, Environment environment) {
+        KubernetesNamespaceProvider kubernetesNamespaceProvider,
+        ApiClient apiClient,
+        JobCatalogSharedInformerFactory sharedInformerFactory,
+        Environment environment) {
         // Injecting KubernetesDiscoveryProperties here would cause it to be
         // initialize too early
         // Instead get the all-namespaces property value from the Environment directly
         boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
             Boolean.class, false);
-        return new JobSpringCloudKubernetesInformerFactoryProcessor(kubernetesNamespaceProvider, apiClient,
-            sharedInformerFactory, allNamespaces);
+        return new JobSpringCloudKubernetesInformerFactoryProcessor(
+            kubernetesNamespaceProvider,
+            apiClient,
+            sharedInformerFactory,
+            allNamespaces
+        );
     }
 
     @Bean
-    public JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory(
-        ApiClient apiClient) {
+    public JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory(ApiClient apiClient) {
         return new JobCatalogSharedInformerFactory();
     }
 
     @Bean
     public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
         KubernetesNamespaceProvider kubernetesNamespaceProvider,
-        JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory, Lister<V1Service> serviceLister,
-        Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-        SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
-        return new JobKubernetesInformerDiscoveryClient(kubernetesNamespaceProvider.getNamespace(),
-            jobCatalogSharedInformerFactory, serviceLister, endpointsLister, serviceInformer, endpointsInformer,
-            properties);
+        JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory,
+        Lister<V1Service> serviceLister,
+        Lister<V1Endpoints> endpointsLister,
+        SharedInformer<V1Service> serviceInformer,
+        SharedInformer<V1Endpoints> endpointsInformer,
+        KubernetesDiscoveryProperties properties
+    ) {
+        return new JobKubernetesInformerDiscoveryClient(
+            kubernetesNamespaceProvider.getNamespace(),
+            jobCatalogSharedInformerFactory,
+            serviceLister,
+            endpointsLister,
+            serviceInformer,
+            endpointsInformer,
+            properties
+        );
     }
 
     @KubernetesInformers({
@@ -103,9 +121,7 @@ public class JobK8sDiscoveryClientConfig {
             groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
                 resourcePlural = "endpoints"))})
     class JobCatalogSharedInformerFactory extends SharedInformerFactory {
-
         // TODO: optimization to ease memory pressure from continuous list&watch.
-
     }
 }
 

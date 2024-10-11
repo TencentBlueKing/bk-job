@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.k8s.config;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
@@ -47,7 +47,10 @@ import org.springframework.core.ResolvableType;
 
 import java.time.Duration;
 
-class JobSpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
+/**
+ * SpringCloudKubernetesInformerFactoryProcessor为非公开类，此处将其设置为公开类便于覆盖Bean时使用
+ */
+public class JobSpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
 
 	private static final Logger log = LoggerFactory.getLogger(JobSpringCloudKubernetesInformerFactoryProcessor.class);
 
@@ -61,15 +64,16 @@ class JobSpringCloudKubernetesInformerFactoryProcessor extends KubernetesInforme
 
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	@Autowired
     JobSpringCloudKubernetesInformerFactoryProcessor(KubernetesNamespaceProvider kubernetesNamespaceProvider,
-                                                                ApiClient apiClient, SharedInformerFactory sharedInformerFactory, boolean allNamespaces) {
-		super();
-		this.apiClient = apiClient;
-		this.sharedInformerFactory = sharedInformerFactory;
-		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-		this.allNamespaces = allNamespaces;
-	}
+                                                     ApiClient apiClient,
+                                                     SharedInformerFactory sharedInformerFactory,
+                                                     boolean allNamespaces) {
+        super();
+        this.apiClient = apiClient;
+        this.sharedInformerFactory = sharedInformerFactory;
+        this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+        this.allNamespaces = allNamespaces;
+    }
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

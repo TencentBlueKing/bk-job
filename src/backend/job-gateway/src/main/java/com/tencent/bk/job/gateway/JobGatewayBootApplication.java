@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.availability.ApplicationAvailabili
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.server.reactive.HttpHandler;
 
@@ -43,7 +44,8 @@ import javax.annotation.PreDestroy;
  * Job Gateway Spring Boot Application
  */
 @JobBootApplication(scanBasePackages = "com.tencent.bk.job.gateway",
-    exclude = {ApplicationAvailabilityAutoConfiguration.class})
+    exclude = {ApplicationAvailabilityAutoConfiguration.class,
+        KubernetesDiscoveryClientAutoConfiguration.class})
 @Slf4j
 @EnableFeignClients
 public class JobGatewayBootApplication {
