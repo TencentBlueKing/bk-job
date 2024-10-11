@@ -37,24 +37,32 @@ import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionRe
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
 import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
 import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
  * 负载均衡相关的自定义Bean配置
+ * 注意：该类用于使用部分自定义Bean实例覆盖KubernetesDiscoveryClientAutoConfiguration类的配置内容，框架升级时需要同步更新！！！
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesDiscoveryEnabled
@@ -66,6 +74,20 @@ import org.springframework.core.env.Environment;
 @AutoConfigureAfter({KubernetesClientAutoConfiguration.class})
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class JobK8sDiscoveryClientAutoConfiguration {
+
+    @ConditionalOnClass({HealthIndicator.class})
+    @ConditionalOnDiscoveryEnabled
+    @ConditionalOnDiscoveryHealthIndicatorEnabled
+    @Configuration
+    public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
+
+        @Bean
+        public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+            ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
+            return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+        }
+
+    }
 
     @Bean
     @ConditionalOnMissingBean

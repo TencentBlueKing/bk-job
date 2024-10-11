@@ -55,7 +55,9 @@ public class JobKubernetesInformerDiscoveryClient extends KubernetesInformerDisc
     @Override
     public List<ServiceInstance> getInstances(String serviceId) {
         List<ServiceInstance> serviceInstanceList = super.getInstances(serviceId);
-        log.debug("serviceId={}, serviceInstanceList={}", serviceId, serviceInstanceList);
+        if (log.isDebugEnabled()) {
+            log.debug("serviceId={}, serviceInstanceList={}", serviceId, serviceInstanceList);
+        }
         return serviceInstanceList;
     }
 }
