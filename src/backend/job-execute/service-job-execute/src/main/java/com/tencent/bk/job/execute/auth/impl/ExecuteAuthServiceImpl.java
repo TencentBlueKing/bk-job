@@ -511,17 +511,19 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope,
                                                                               List<DynamicServerTopoNodeDTO> topoNodes) {
         List<InstanceDTO> hostInstanceList = buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
-        return hostInstanceList.stream().map(hostInstance -> {
-            PermissionResource resource = new PermissionResource();
-            resource.setResourceId(null);
-            resource.setResourceType(ResourceTypeEnum.HOST);
-            resource.setSubResourceType("topo");
-            resource.setResourceName(hostInstance.getName());
-            resource.setSystemId(SystemId.CMDB);
-            resource.setType(ResourceTypeEnum.HOST.getId());
-            resource.setParentHierarchicalResources(convert(hostInstance.getPath()));
-            return resource;
-        }).collect(Collectors.toList());
+        List<PermissionResource> finalPermissionResourceList = new ArrayList<>();
+        for (InstanceDTO instanceDTO : hostInstanceList) {
+            List<PermissionResource> permissionResourceList = convert(instanceDTO.getPath());
+            if (CollectionUtils.isEmpty(permissionResourceList)) {
+                continue;
+            }
+            int lastNodeIndex = permissionResourceList.size() - 1;
+            PermissionResource lastNode = permissionResourceList.get(lastNodeIndex);
+            permissionResourceList.remove(lastNodeIndex);
+            lastNode.setParentHierarchicalResources(permissionResourceList);
+            finalPermissionResourceList.add(lastNode);
+        }
+        return finalPermissionResourceList;
     }
 
     private List<PermissionResource> convert(PathInfoDTO pathInfoDTO) {
@@ -535,7 +537,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             resource.setResourceId(currentNode.getId());
             resource.setResourceType(ResourceTypeEnum.HOST);
             resource.setSubResourceType("topo");
-            resource.setResourceName(currentNode.getId());
+            resource.setResourceName(currentNode.getType() + "_" + currentNode.getId());
             resource.setSystemId(SystemId.CMDB);
             resource.setType(currentNode.getType());
             permissionResourceList.add(resource);
