@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -41,7 +40,7 @@ public class IamHostTopoPathProperties {
         this.cache = cache;
     }
 
-    @Getter
+    @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CacheConfig {
