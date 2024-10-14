@@ -25,18 +25,46 @@
 package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.execute.auth.impl.CachedTopoPathServiceImpl;
+import com.tencent.bk.job.execute.auth.impl.HostTopoPathCache;
 import com.tencent.bk.job.execute.auth.impl.TopoPathServiceImpl;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @Slf4j
 @Configuration(value = "jobExecuteIamConfiguration")
+@EnableConfigurationProperties(IamHostTopoPathProperties.class)
 public class IamConfiguration {
 
     @Bean
     public TopoPathService topoPathService(BizCmdbClient bizCmdbClient) {
         return new TopoPathServiceImpl(bizCmdbClient);
+    }
+
+    @ConditionalOnIamHostTopoPathCacheEnabled
+    @Configuration
+    public static class HostTopoPathCacheConfiguration {
+
+        @Bean
+        public HostTopoPathCache hostTopoPathCache(@Qualifier("jsonRedisTemplate")
+                                                   RedisTemplate<String, Object> redisTemplate,
+                                                   IamHostTopoPathProperties iamHostTopoPathProperties,
+                                                   MeterRegistry meterRegistry) {
+            return new HostTopoPathCache(redisTemplate, iamHostTopoPathProperties, meterRegistry);
+        }
+
+        @Bean
+        @Primary
+        public TopoPathService cachedTopoPathService(TopoPathService topoPathService,
+                                                     HostTopoPathCache hostTopoPathCache) {
+            return new CachedTopoPathServiceImpl(topoPathService, hostTopoPathCache);
+        }
     }
 }

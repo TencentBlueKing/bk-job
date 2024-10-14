@@ -980,6 +980,16 @@ executeConfig:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
   #     value: 8
+  # 权限中心相关配置
+  iam:
+    # 主机拓扑路径相关配置
+    hostTopoPath:
+      # 缓存配置
+      cache:
+        # 是否开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
 
 ## job-crontab定时任务配置
 crontabConfig:
