@@ -41,6 +41,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 主机拓扑路径服务，根据主机ID从CMDB接口获取主机拓扑路径
+ */
 @Slf4j
 public class TopoPathServiceImpl implements TopoPathService {
 
