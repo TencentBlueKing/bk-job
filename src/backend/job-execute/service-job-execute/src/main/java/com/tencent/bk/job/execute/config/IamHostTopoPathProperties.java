@@ -47,7 +47,7 @@ public class IamHostTopoPathProperties {
         /**
          * 是否开启缓存
          */
-        private Boolean enabled = true;
+        private Boolean enabled = false;
         /**
          * 缓存过期时间默认为10s
          */
