@@ -25,10 +25,12 @@
 package com.tencent.bk.job.execute.auth.impl;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
+@NoArgsConstructor
 @Getter
 @Setter
 public class HostTopoPathEntry {
@@ -49,5 +51,14 @@ public class HostTopoPathEntry {
     public HostTopoPathEntry(Long hostId, List<String> topoPathList) {
         this.hostId = hostId;
         this.topoPathList = topoPathList;
+    }
+
+    @Override
+    public String toString() {
+        return "HostTopoPathEntry(" +
+            "hostId=" + hostId +
+            ", topoPathList=" + topoPathList +
+            ", cacheTime=" + cacheTime +
+            ')';
     }
 }

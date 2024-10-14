@@ -62,8 +62,10 @@ public class IamConfiguration {
 
         @Bean
         @Primary
-        public TopoPathService cachedTopoPathService(TopoPathService topoPathService,
+        public TopoPathService cachedTopoPathService(@Qualifier("topoPathService")
+                                                     TopoPathService topoPathService,
                                                      HostTopoPathCache hostTopoPathCache) {
+            log.info("cachedTopoPathService init");
             return new CachedTopoPathServiceImpl(topoPathService, hostTopoPathCache);
         }
     }

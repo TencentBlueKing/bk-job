@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.auth.impl;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +53,17 @@ public class CachedTopoPathServiceImpl implements TopoPathService {
     public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
         // 1.优先从缓存中获取拓扑路径
         List<Long> hostIdList = hostIds.stream().map(Long::parseLong).collect(Collectors.toList());
-        List<HostTopoPathEntry> hostTopoPathEntryList = hostTopoPathCache.batchGetHostTopoPathByHostIds(hostIdList);
+        List<HostTopoPathEntry> hostTopoPathEntryList;
+        try {
+            hostTopoPathEntryList = hostTopoPathCache.batchGetHostTopoPathByHostIds(hostIdList);
+        } catch (Exception e) {
+            String message = MessageFormatter.format(
+                "Fail to get hostTopoPath from cache, hostIds={}",
+                hostIds
+            ).getMessage();
+            log.warn(message, e);
+            return delegate.getTopoPathByHostIds(hostIds);
+        }
         if (CollectionUtils.isEmpty(hostTopoPathEntryList)) {
             if (log.isDebugEnabled()) {
                 log.debug("Get empty hostTopoPath from cache, hostIds={}", hostIds);
