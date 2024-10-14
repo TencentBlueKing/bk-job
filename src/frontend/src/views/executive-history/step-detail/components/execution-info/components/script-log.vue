@@ -234,9 +234,6 @@
             this.$nextTick(() => {
               this.editor.setValue(logContent);
               this.editor.clearSelection();
-              setTimeout(() => {
-                document.body.querySelector('.ace_layer.ace_text-layer').appendChild(this.$refs.aiExtendTool);
-              }, 1000);
             });
             // 当前主机执行结束
             if (!finished) {
@@ -250,7 +247,7 @@
       fetchAiConfig() {
         AiService.fetchConfig()
           .then((data) => {
-            this.isAiEnable = data.enable;
+            this.isAiEnable = data.enabled;
           });
       },
       initEditor() {
@@ -280,7 +277,16 @@
           } = editor.renderer.layerConfig;
           this.isWillAutoScroll = height + scrollTop + 30 >= maxHeight;
         });
+        editorSession.on('changeScrollTop', () => {
+          console.log('editorSession = scroll');
+        });
+
+        console.log('editor = init', editor);
         this.editor = editor;
+
+        setTimeout(() => {
+          document.body.querySelector('.ace_content').appendChild(this.$refs.aiExtendTool);
+        }, 1000);
 
         this.$once('hook:beforeDestroy', () => {
           editor.destroy();
@@ -339,6 +345,7 @@
         this.editor.scrollToLine(Infinity);
       },
       handleMouseUp(event) {
+        console.log('handleMouseUphandleMouseUphandleMouseUp', this.isAiEnable);
         if (!this.isAiEnable) {
           return;
         }
@@ -347,7 +354,8 @@
             this.aiExtendToolStyle = {};
             return;
           }
-          const containerEle = document.body.querySelector('.ace_layer.ace_text-layer');
+          console.log('handleMouseUphandleMouseUphandleMouseUp');
+          const containerEle = document.body.querySelector('.ace_content');
           const {
             left: contentBoxLeft,
             top: contentBoxTop,
