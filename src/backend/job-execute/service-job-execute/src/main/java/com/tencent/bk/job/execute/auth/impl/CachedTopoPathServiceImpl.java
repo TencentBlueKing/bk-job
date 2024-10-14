@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.auth.impl;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
@@ -38,6 +39,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 优先使用缓存数据的主机拓扑路径查询服务
+ */
 @Slf4j
 public class CachedTopoPathServiceImpl implements TopoPathService {
 
@@ -89,11 +93,18 @@ public class CachedTopoPathServiceImpl implements TopoPathService {
         }
         // 2.计算出缓存中不存在的拓扑路径，从CMDB获取
         Collection<String> notCachedHostIds = CollectionUtils.subtract(hostIds, cachedHostIds);
+        if (CollectionUtils.isEmpty(notCachedHostIds)) {
+            return hostTopoPathMap;
+        }
         Map<String, List<String>> notCachedHostTopoPathMap =
             delegate.getTopoPathByHostIds(new HashSet<>(notCachedHostIds));
-        hostTopoPathMap.putAll(notCachedHostTopoPathMap);
-        // 3.将未缓存的拓扑路径信息更新到缓存
-        updateHostTopoPathCache(notCachedHostTopoPathMap);
+
+        if (MapUtils.isNotEmpty(notCachedHostTopoPathMap)) {
+            // 3.汇总拓扑路径信息
+            hostTopoPathMap.putAll(notCachedHostTopoPathMap);
+            // 4.将未缓存的拓扑路径信息更新到缓存
+            updateHostTopoPathCache(notCachedHostTopoPathMap);
+        }
         return hostTopoPathMap;
     }
 

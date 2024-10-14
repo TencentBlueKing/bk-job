@@ -46,7 +46,7 @@ public class HostTopoPathEntry {
     /**
      * 缓存时间
      */
-    private long cacheTime;
+    private String cacheTime;
 
     public HostTopoPathEntry(Long hostId, List<String> topoPathList) {
         this.hostId = hostId;

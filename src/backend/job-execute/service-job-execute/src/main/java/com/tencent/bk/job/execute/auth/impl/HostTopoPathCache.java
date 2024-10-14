@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.auth.impl;
 
 import com.tencent.bk.job.common.redis.BaseRedisCache;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.execute.config.IamHostTopoPathProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -114,7 +115,8 @@ public class HostTopoPathCache extends BaseRedisCache {
      * @param hostTopoPathEntry 主机拓扑路径实例
      */
     public void addOrUpdateHostTopoPath(HostTopoPathEntry hostTopoPathEntry) {
-        hostTopoPathEntry.setCacheTime(System.currentTimeMillis());
+        String timeFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+        hostTopoPathEntry.setCacheTime(TimeUtil.formatTime(System.currentTimeMillis(), timeFormat));
         log.info(
             "Update hostTopoPath cache, hostId: {}, hostTopoPath: {}",
             hostTopoPathEntry.getHostId(),
