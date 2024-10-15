@@ -175,7 +175,6 @@
       const resizeHandler = _.throttle(this.init, 100);
       window.addEventListener('resize', resizeHandler);
 
-
       this.$once('hook:beforeDestroy', () => {
         window.removeEventListener('resize', resizeHandler);
       });
