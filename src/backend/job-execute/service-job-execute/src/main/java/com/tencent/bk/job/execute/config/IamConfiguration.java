@@ -25,9 +25,12 @@
 package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.execute.auth.impl.CMDBTopoPathService;
 import com.tencent.bk.job.execute.auth.impl.CachedTopoPathServiceImpl;
+import com.tencent.bk.job.execute.auth.impl.CompositeTopoPathService;
 import com.tencent.bk.job.execute.auth.impl.HostTopoPathCache;
-import com.tencent.bk.job.execute.auth.impl.TopoPathServiceImpl;
+import com.tencent.bk.job.execute.auth.impl.LocalDBTopoPathService;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +47,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class IamConfiguration {
 
     @Bean
-    public TopoPathService topoPathService(BizCmdbClient bizCmdbClient) {
-        return new TopoPathServiceImpl(bizCmdbClient);
+    public TopoPathService topoPathService(BizCmdbClient bizCmdbClient, ServiceHostResource serviceHostResource) {
+        CMDBTopoPathService cmdbTopoPathService = new CMDBTopoPathService(bizCmdbClient);
+        LocalDBTopoPathService localDBTopoPathService = new LocalDBTopoPathService(serviceHostResource);
+        CompositeTopoPathService compositeTopoPathService = new CompositeTopoPathService();
+        compositeTopoPathService.addTopoPathService(cmdbTopoPathService);
+        compositeTopoPathService.addTopoPathService(localDBTopoPathService);
+        return compositeTopoPathService;
     }
 
     @ConditionalOnIamHostTopoPathCacheEnabled

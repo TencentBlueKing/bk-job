@@ -25,10 +25,10 @@
 package com.tencent.bk.job.execute.auth.impl;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
+import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -42,29 +42,34 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 主机拓扑路径服务，根据主机ID从CMDB接口获取主机拓扑路径
+ * 主机拓扑路径服务，根据主机ID从本地DB缓存数据获取主机拓扑路径
  */
 @Slf4j
-public class TopoPathServiceImpl implements TopoPathService {
+public class LocalDBTopoPathService implements TopoPathService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final ServiceHostResource serviceHostResource;
 
-    public TopoPathServiceImpl(BizCmdbClient bizCmdbClient) {
-        this.bizCmdbClient = bizCmdbClient;
+    public LocalDBTopoPathService(ServiceHostResource serviceHostResource) {
+        this.serviceHostResource = serviceHostResource;
     }
 
     @Override
     public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyMap();
+        }
         List<Long> hostIdList = hostIds.stream().map(Long::parseLong).collect(Collectors.toList());
-        // CMDB接口限制每次最多查询500台主机
-        int batchSize = 500;
+        // 分批从job-manage查询，每次最多查询5000台主机
+        int batchSize = 5000;
         int maxBatchOfOneThread = 3;
         List<List<Long>> hostIdsSubList = Lists.partition(hostIdList, batchSize);
-        List<HostBizRelationDTO> hostBizRelationDTOList = new ArrayList<>();
+        List<ServiceHostTopoDTO> hostTopoList = new ArrayList<>();
         if (hostIdsSubList.size() <= maxBatchOfOneThread) {
             // 主机数量较小：当前线程串行拉取
             for (List<Long> subList : hostIdsSubList) {
-                hostBizRelationDTOList.addAll(bizCmdbClient.findHostBizRelations(subList));
+                hostTopoList.addAll(
+                    serviceHostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
+                );
             }
         } else {
             // 主机数量较大：多线程并发拉取
@@ -73,39 +78,26 @@ public class TopoPathServiceImpl implements TopoPathService {
                 (int) Math.ceil(hostIdsSubList.size() / (double) maxBatchOfOneThread),
                 maxThreadNum
             );
-            hostBizRelationDTOList.addAll(ConcurrencyUtil.getResultWithThreads(
+            hostTopoList.addAll(ConcurrencyUtil.getResultWithThreads(
                 hostIdsSubList,
                 threadNum,
-                bizCmdbClient::findHostBizRelations
+                (subList) -> serviceHostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
             ));
         }
-        return buildTopoPathMap(hostBizRelationDTOList);
-    }
-
-    private Map<String, List<String>> buildTopoPathMap(List<HostBizRelationDTO> hostBizRelationDTOList) {
-        if (CollectionUtils.isEmpty(hostBizRelationDTOList)) {
-            return Collections.emptyMap();
-        }
-        Map<String, List<String>> topoPathMap = new HashMap<>();
-        hostBizRelationDTOList.forEach(hostBizRelationDTO -> {
-            Long hostId = hostBizRelationDTO.getHostId();
-            Long bizId = hostBizRelationDTO.getBizId();
-            Long setId = hostBizRelationDTO.getSetId();
-            Long moduleId = hostBizRelationDTO.getModuleId();
-            String topoPath = buildTopoPath(bizId, setId, moduleId);
-            String hostIdKey = hostId.toString();
-            if (!topoPathMap.containsKey(hostIdKey)) {
-                topoPathMap.put(hostIdKey, new ArrayList<>());
+        Map<String, List<String>> hostTopoPathMap = new HashMap<>();
+        hostTopoList.forEach(hostTopoDTO -> {
+            String hostIdStr = hostTopoDTO.getHostId().toString();
+            if (!hostTopoPathMap.containsKey(hostIdStr)) {
+                hostTopoPathMap.put(hostIdStr, new ArrayList<>());
             }
-            topoPathMap.get(hostIdKey).add(topoPath);
+            hostTopoPathMap.get(hostIdStr).add(buildTopoPath(hostTopoDTO));
         });
-        return topoPathMap;
+        return hostTopoPathMap;
     }
 
-    private String buildTopoPath(Long bizId, Long setId, Long moduleId) {
-        return "/" + ResourceTypeId.BIZ + "," + bizId
-            + "/" + ResourceTypeId.SET + "," + setId
-            + "/" + ResourceTypeId.MODULE + "," + moduleId
-            + "/";
+    private String buildTopoPath(ServiceHostTopoDTO hostTopo) {
+        return "/biz," + hostTopo.getBizId() +
+            "/set," + hostTopo.getSetId()
+            + "/module," + hostTopo.getModuleId() + "/";
     }
 }
