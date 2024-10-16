@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -45,10 +47,12 @@ import java.util.stream.Collectors;
  * 主机拓扑路径服务，根据主机ID从CMDB接口获取主机拓扑路径
  */
 @Slf4j
+@Service("cmdbTopoPathService")
 public class CMDBTopoPathService implements TopoPathService {
 
     private final BizCmdbClient bizCmdbClient;
 
+    @Autowired
     public CMDBTopoPathService(BizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }

@@ -31,6 +31,9 @@ import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq
 import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -45,12 +48,14 @@ import java.util.stream.Collectors;
  * 主机拓扑路径服务，根据主机ID从本地DB缓存数据获取主机拓扑路径
  */
 @Slf4j
+@Service("localDBTopoPathService")
 public class LocalDBTopoPathService implements TopoPathService {
 
-    private final ServiceHostResource serviceHostResource;
+    private final ServiceHostResource hostResource;
 
-    public LocalDBTopoPathService(ServiceHostResource serviceHostResource) {
-        this.serviceHostResource = serviceHostResource;
+    @Autowired
+    public LocalDBTopoPathService(@Lazy ServiceHostResource serviceHostResource) {
+        this.hostResource = serviceHostResource;
     }
 
     @Override
@@ -68,7 +73,7 @@ public class LocalDBTopoPathService implements TopoPathService {
             // 主机数量较小：当前线程串行拉取
             for (List<Long> subList : hostIdsSubList) {
                 hostTopoList.addAll(
-                    serviceHostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
+                    hostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
                 );
             }
         } else {
@@ -81,7 +86,7 @@ public class LocalDBTopoPathService implements TopoPathService {
             hostTopoList.addAll(ConcurrencyUtil.getResultWithThreads(
                 hostIdsSubList,
                 threadNum,
-                (subList) -> serviceHostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
+                (subList) -> hostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
             ));
         }
         Map<String, List<String>> hostTopoPathMap = new HashMap<>();
