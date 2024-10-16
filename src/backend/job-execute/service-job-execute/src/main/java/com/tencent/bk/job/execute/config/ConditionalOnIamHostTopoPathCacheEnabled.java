@@ -37,7 +37,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = "job.execute.iam.host-topo-path.cache.enabled", havingValue = "true")
+@ConditionalOnProperty(
+    value = "job.execute.iam.host-topo-path.cache.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public @interface ConditionalOnIamHostTopoPathCacheEnabled {
 
 }

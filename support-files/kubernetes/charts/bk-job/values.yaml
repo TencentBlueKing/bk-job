@@ -986,8 +986,8 @@ executeConfig:
     hostTopoPath:
       # 缓存配置
       cache:
-        # 是否开启，默认不开启
-        enabled: false
+        # 是否开启，默认开启
+        enabled: true
         # 过期时间（s）
         expireSeconds: 10
 
