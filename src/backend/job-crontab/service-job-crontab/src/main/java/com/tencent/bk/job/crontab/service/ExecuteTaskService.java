@@ -66,7 +66,7 @@ public interface ExecuteTaskService {
      * @throws TaskExecuteAuthFailedException 鉴权失败抛出异常
      */
     void authExecuteTask(
-        long appId, long taskId, long cronTaskId, String cronName,
+        long appId, long taskId, Long cronTaskId, String cronName,
         List<ServiceTaskVariable> variableList, String operator
     ) throws TaskExecuteAuthFailedException;
 }
