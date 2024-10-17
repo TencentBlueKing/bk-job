@@ -185,7 +185,7 @@
       transition: all .1s ease-in-out;
 
       &.active{
-        transform: translateX(29px);
+        transform: translateX(39px);
       }
 
       &:hover{

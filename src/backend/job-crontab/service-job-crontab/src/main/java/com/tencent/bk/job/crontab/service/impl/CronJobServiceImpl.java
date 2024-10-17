@@ -221,6 +221,8 @@ public class CronJobServiceImpl implements CronJobService {
         checkCronJobPlanOrScript(cronJobInfo);
         saveSnapShotForHostVaiableValue(cronJobInfo);
 
+        // 有执行方案运行权限，才能用该执行方案创建定时任务
+        authExecuteTask(cronJobInfo);
         cronJobInfo.setCreateTime(DateUtils.currentTimeSeconds());
         cronJobInfo.setEnable(false);
 
@@ -253,23 +255,11 @@ public class CronJobServiceImpl implements CronJobService {
         processCronJobVariableValueMask(cronJobInfo);
 
         if (cronJobInfo.getEnable()) {
-            try {
-                List<ServiceTaskVariable> taskVariables = null;
-                if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
-                    taskVariables =
-                        cronJobInfo.getVariableValue().parallelStream()
-                            .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
-                }
-                executeTaskService.authExecuteTask(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId(),
-                    cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
-                if (cronJobDAO.updateCronJobById(cronJobInfo)) {
-                    informAllToAddJobToQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
-                } else {
-                    throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
-                }
-            } catch (TaskExecuteAuthFailedException e) {
-                log.error("Error while pre auth cron execute!", e);
-                throw e;
+            authExecuteTask(cronJobInfo);
+            if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+                informAllToAddJobToQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
+            } else {
+                throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             }
         } else {
             if (cronJobDAO.updateCronJobById(cronJobInfo)) {
@@ -287,6 +277,22 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
 
         return updateCron;
+    }
+
+    private void authExecuteTask(CronJobInfoDTO cronJobInfo){
+        try {
+            List<ServiceTaskVariable> taskVariables = null;
+            if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
+                taskVariables =
+                    cronJobInfo.getVariableValue().parallelStream()
+                        .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
+            }
+            executeTaskService.authExecuteTask(cronJobInfo.getAppId(), cronJobInfo.getTaskPlanId(),
+                cronJobInfo.getId(), cronJobInfo.getName(), taskVariables, cronJobInfo.getLastModifyUser());
+        } catch (TaskExecuteAuthFailedException e) {
+            log.error("Error while pre auth cron execute!", e);
+            throw e;
+        }
     }
 
     /**
