@@ -106,7 +106,7 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
     public void authExecuteTask(
         long appId,
         long taskId,
-        long cronTaskId,
+        Long cronTaskId,
         String cronName,
         List<ServiceTaskVariable> variableList,
         String operator
@@ -115,7 +115,6 @@ public class ExecuteTaskServiceImpl implements ExecuteTaskService {
         request.setAppId(appId);
         request.setOperator(operator);
         request.setPlanId(taskId);
-        request.setCronTaskId(cronTaskId);
         request.setTaskName(cronName);
         request.setTaskVariables(variableList);
         request.setStartupMode(3);
