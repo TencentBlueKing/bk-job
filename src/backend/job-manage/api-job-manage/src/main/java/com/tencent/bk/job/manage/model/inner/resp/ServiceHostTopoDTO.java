@@ -22,23 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.manage.model.inner.resp;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
- * CMDB topo 服务
+ * 主机拓扑
  */
-public interface TopoService {
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class ServiceHostTopoDTO {
     /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
+     * 主机Id
      */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    private Long hostId;
+    /**
+     * 业务ID
+     */
+    private Long bizId;
+    /**
+     * 集群ID
+     */
+    private Long setId;
+    /**
+     * 模块ID
+     */
+    private Long moduleId;
+    /**
+     * CMDB中的数据最后修改时间
+     */
+    private Long lastTime;
 }

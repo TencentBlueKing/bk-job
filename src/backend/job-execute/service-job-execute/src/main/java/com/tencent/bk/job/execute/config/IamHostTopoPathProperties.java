@@ -22,23 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
+@Data
+@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
+@NoArgsConstructor
+public class IamHostTopoPathProperties {
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    private CacheConfig cache;
+
+    public IamHostTopoPathProperties(CacheConfig cache) {
+        this.cache = cache;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CacheConfig {
+        /**
+         * 是否开启缓存
+         */
+        private Boolean enabled = true;
+        /**
+         * 缓存过期时间默认为10s
+         */
+        private Integer expireSeconds = 10;
+    }
 }

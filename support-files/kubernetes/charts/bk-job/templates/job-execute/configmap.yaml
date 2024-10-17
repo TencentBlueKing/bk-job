@@ -201,4 +201,6 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        iam:
+          {{- toYaml .Values.executeConfig.iam | nindent 10 }}
 {{- end }}

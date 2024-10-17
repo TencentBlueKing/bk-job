@@ -206,7 +206,7 @@ public interface IBizCmdbClient {
      */
     List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList);
 
-    List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList);
+    List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList);
 
     /**
      * 获取CMDB对象属性信息列表
