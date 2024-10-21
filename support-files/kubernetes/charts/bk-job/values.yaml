@@ -18,6 +18,8 @@ global:
   storageClass: ""
   # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
   bkDomain: "example.com"
+  # BK助手链接，用于AI对话回答中的跳转链接
+  bkHelperLink: ""
 deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
   mode: standard
@@ -429,6 +431,12 @@ bkGseApiGatewayUrl: "http://bkapi.example.com"
 bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 # 蓝鲸 CMDB API Gateway url
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -715,6 +723,7 @@ log:
     # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
     maxVolume: 40GB
 
+
 ## 蓝鲸日志采集配置
 bkLogConfig:
   # 是否开启蓝鲸日志采集
@@ -967,6 +976,10 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  # extraEnv:
+  #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
+  #   - name: MALLOC_ARENA_MAX
+  #     value: 8
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1263,6 +1276,20 @@ analysisConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 300000
+  # AI相关配置
+  ai:
+    # 是否开启AI功能，默认不开启
+    enabled: false
+    # AI分析错误日志功能相关配置
+    analyzeErrorLog:
+      # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
+      logMaxLength: "5MB"
+    # AI聊天记录相关配置
+    chatHistory:
+      # 最大保留天数，默认31天
+      maxKeepDays: 31
+      # 单个用户最大保留的聊天记录数量，默认1000条
+      maxHistoryPerUser: 1000
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:

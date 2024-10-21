@@ -100,6 +100,8 @@ public interface GlobalSettingsService {
 
     String getDocCenterBaseUrl();
 
+    String getDocJobRootUrl();
+
     Map<String, String> getRelatedSystemUrls(String username);
 
     Map<String, Object> getJobConfig(String username);

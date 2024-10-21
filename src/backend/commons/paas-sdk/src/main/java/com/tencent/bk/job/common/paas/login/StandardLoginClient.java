@@ -84,7 +84,7 @@ public class StandardLoginClient extends BkApiClient implements ILoginClient {
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_USER_INFO)
                     .addQueryParam("bk_token", bkToken)
-                    .authorization(BkApiAuthorization.userAuthorization(
+                    .authorization(BkApiAuthorization.bkTokenUserAuthorization(
                         appProperties.getCode(), appProperties.getSecret(), bkToken))
                     .build(),
                 new TypeReference<EsbResp<EsbUserDto>>() {

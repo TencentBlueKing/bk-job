@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetDTO;
 import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -616,5 +617,18 @@ public class ExecuteTargetDTO implements Cloneable {
     public boolean hasHostExecuteObject() {
         return CollectionUtils.isNotEmpty(staticIpList) || CollectionUtils.isNotEmpty(dynamicServerGroups)
             || CollectionUtils.isNotEmpty(topoNodes);
+    }
+
+    public ServiceExecuteTargetDTO toServiceExecuteTargetDTO() {
+        ServiceExecuteTargetDTO serviceExecuteTargetDTO = new ServiceExecuteTargetDTO();
+        serviceExecuteTargetDTO.setVariable(variable);
+        if (executeObjects != null) {
+            serviceExecuteTargetDTO.setExecuteObjects(
+                executeObjects.stream()
+                    .map(ExecuteObject::toServiceExecuteObject)
+                    .collect(Collectors.toList())
+            );
+        }
+        return serviceExecuteTargetDTO;
     }
 }

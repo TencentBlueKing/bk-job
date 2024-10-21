@@ -1,5 +1,32 @@
 # chart values 更新日志
 
+## 0.7.1
+1. 增加AI相关配置
+
+```yaml
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
+analysisConfig:
+  # AI相关配置
+  ai:
+    # 是否开启AI功能，默认不开启
+    enabled: false
+    # AI分析错误日志功能相关配置
+    analyzeErrorLog:
+      # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
+      logMaxLength: "5MB"
+    # AI聊天记录相关配置
+    chatHistory:
+      # 最大保留天数，默认31天
+      maxKeepDays: 31
+      # 单个用户最大保留的聊天记录数量，默认1000条
+      maxHistoryPerUser: 1000
+```
+
 ## 0.7.0
 1. 增加接入蓝鲸网关配置
 

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
+import com.tencent.bk.job.common.mysql.dao.BaseDAOImpl;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
