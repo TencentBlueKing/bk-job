@@ -22,22 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:common-i18n')
-    api project(':commons:common-otel')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'dev.ai4j:openai4j'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.tracing.util;
+
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class TraceUtil {
+
+    /**
+     * 获取当前Scope内的TraceID
+     *
+     * @return TraceId
+     */
+    public static String getTraceIdFromCurrentSpan() {
+        Span currentSpan = Span.current();
+        if (currentSpan == null) {
+            log.debug("currentSpan is null");
+            return null;
+        }
+        SpanContext spanContext = currentSpan.getSpanContext();
+        if (spanContext == null) {
+            log.debug("spanContext is null");
+            return null;
+        }
+        return spanContext.getTraceId();
+    }
 }

@@ -31,12 +31,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.tracing.util.TraceUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -78,19 +80,15 @@ public class AIAnswerStreamSynchronizer {
                     if (event.isEnd()) {
                         Throwable throwable = event.getThrowable();
                         if (throwable != null) {
-                            throw new ServiceException(
-                                throwable,
-                                ErrorType.INTERNAL,
-                                ErrorCode.BK_OPEN_AI_API_DATA_ERROR
-                            );
+                            Response<AIAnswer> respBody =
+                                Response.buildCommonFailResp(ErrorCode.BK_OPEN_AI_API_DATA_ERROR);
+                            setRequestIdAndWriteResp(outputStream, respBody);
                         }
                         break;
                     }
                     String partMessage = event.getMessagePart();
                     Response<AIAnswer> respBody = Response.buildSuccessResp(AIAnswer.successAnswer(partMessage));
-                    String message = JsonUtils.toJson(respBody) + "\n";
-                    outputStream.write(message.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
+                    setRequestIdAndWriteResp(outputStream, respBody);
                     if (log.isDebugEnabled()) {
                         log.debug(
                             "partMessage={}, time={}, delay={}ms",
@@ -109,6 +107,14 @@ public class AIAnswerStreamSynchronizer {
         };
         Consumer<String> partialRespConsumer = new AIMessagePartConsumer(messageQueue);
         return new AsyncConsumerAndProducerPair(partialRespConsumer, streamingResponseBody);
+    }
+
+    private void setRequestIdAndWriteResp(OutputStream outputStream, Response<AIAnswer> respBody) throws IOException {
+        String traceId = TraceUtil.getTraceIdFromCurrentSpan();
+        respBody.setRequestId(traceId);
+        String message = JsonUtils.toJson(respBody) + "\n";
+        outputStream.write(message.getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
     }
 
     /**

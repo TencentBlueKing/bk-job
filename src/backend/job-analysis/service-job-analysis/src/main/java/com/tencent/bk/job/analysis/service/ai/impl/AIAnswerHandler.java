@@ -55,6 +55,14 @@ public class AIAnswerHandler {
      * @param throwable AI回答过程产生的异常
      */
     public void handleAIAnswer(Long recordId, String content, Throwable throwable) {
+        try {
+            doHandleAIAnswer(recordId, content, throwable);
+        } catch (Throwable t) {
+            log.error("Fail to handleAIAnswer", t);
+        }
+    }
+
+    public void doHandleAIAnswer(Long recordId, String content, Throwable throwable) {
         AIAnswer aiAnswer;
         if (throwable == null) {
             // 1.对话正常完成
@@ -78,11 +86,11 @@ public class AIAnswerHandler {
             // 3.对话异常
             aiAnswer = AIAnswer.failAnswer(content);
             int affectedRow = aiChatHistoryService.finishAIAnswer(recordId, aiAnswer);
-            String message = MessageFormatter.format(
+            String message = MessageFormatter.arrayFormat(
                 "AIAnswer finished(fail), recordId={}, length={}, affectedRow={}",
                 new Object[]{
                     recordId,
-                    content.length(),
+                    content == null ? 0 : content.length(),
                     affectedRow
                 }
             ).getMessage();
