@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.analysis.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.model.web.resp.UserInput;
 import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -137,11 +139,26 @@ public class AIChatHistoryDTO {
         return aiChatRecord;
     }
 
+    @JsonIgnore
     public boolean isInitOrReplying() {
         return status == AIChatStatusEnum.INIT.getStatus() || status == AIChatStatusEnum.REPLYING.getStatus();
     }
 
+    @JsonIgnore
+    public boolean isFinished() {
+        return status == AIChatStatusEnum.FINISHED.getStatus();
+    }
+
+    @JsonIgnore
     public String getLimitedAIAnswer() {
         return AIAnswerUtil.getLimitedAIAnswer(aiAnswer);
+    }
+
+    @JsonIgnore
+    public String getAnswerTimeStr() {
+        if (answerTime == null) {
+            return null;
+        }
+        return TimeUtil.formatTime(answerTime, "yyyy-MM-dd HH:mm:ss.SSS");
     }
 }

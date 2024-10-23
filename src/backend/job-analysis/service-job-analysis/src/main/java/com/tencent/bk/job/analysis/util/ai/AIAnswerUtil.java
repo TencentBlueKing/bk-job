@@ -25,8 +25,16 @@
 package com.tencent.bk.job.analysis.util.ai;
 
 import com.tencent.bk.job.analysis.consts.AIConsts;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.tracing.util.TraceUtil;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class AIAnswerUtil {
@@ -50,5 +58,21 @@ public class AIAnswerUtil {
             return StringUtil.substring(aiAnswer, AIConsts.MAX_LENGTH_AI_ANSWER);
         }
         return aiAnswer;
+    }
+
+    /**
+     * 设置RequestId、序列化AIAnswer内容并写入到输出流中
+     *
+     * @param outputStream 输出流
+     * @param respBody     响应数据
+     * @throws IOException IO异常
+     */
+    public static void setRequestIdAndWriteResp(OutputStream outputStream,
+                                                Response<AIAnswer> respBody) throws IOException {
+        String traceId = TraceUtil.getTraceIdFromCurrentSpan();
+        respBody.setRequestId(traceId);
+        String message = JsonUtils.toJson(respBody) + "\n";
+        outputStream.write(message.getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
     }
 }
