@@ -84,7 +84,7 @@ public class AIAnswerHandler {
             );
         } else {
             // 3.对话异常
-            aiAnswer = AIAnswer.failAnswer(content);
+            aiAnswer = AIAnswer.failAnswer(content, throwable.getMessage());
             int affectedRow = aiChatHistoryService.finishAIAnswer(recordId, aiAnswer);
             String message = MessageFormatter.arrayFormat(
                 "AIAnswer finished(fail), recordId={}, length={}, affectedRow={}",

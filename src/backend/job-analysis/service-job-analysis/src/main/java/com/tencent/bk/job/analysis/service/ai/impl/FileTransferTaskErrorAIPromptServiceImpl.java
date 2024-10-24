@@ -64,7 +64,7 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
         AIPromptTemplateDTO promptTemplate = getPromptTemplate(templateCode);
         String renderedRawPrompt = renderPrompt(promptTemplate.getRawPrompt(), context);
         String renderedPrompt = renderPrompt(promptTemplate.getTemplate(), context);
-        return new AIPromptDTO(renderedRawPrompt, renderedPrompt);
+        return new AIPromptDTO(promptTemplate.getId(), renderedRawPrompt, renderedPrompt);
     }
 
     private String renderPrompt(String promptTemplateContent, FileTaskContext context) {

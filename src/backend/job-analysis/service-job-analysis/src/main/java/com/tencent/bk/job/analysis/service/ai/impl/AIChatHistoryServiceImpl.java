@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import lombok.extern.slf4j.Slf4j;
@@ -53,15 +54,14 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     @Override
     public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
                                                   Long startTime,
-                                                  String userInput,
-                                                  String aiInput,
+                                                  AIPromptDTO aiPromptDTO,
                                                   Integer status,
                                                   AIAnswer aiAnswer) {
         AIChatHistoryDTO aiChatHistoryDTO = new AIChatHistoryDTO();
         aiChatHistoryDTO.setUsername(username);
-        aiChatHistoryDTO.setUserInput(userInput);
-        aiChatHistoryDTO.setPromptTemplateId(null);
-        aiChatHistoryDTO.setAiInput(aiInput);
+        aiChatHistoryDTO.setUserInput(aiPromptDTO.getRawPrompt());
+        aiChatHistoryDTO.setPromptTemplateId(aiPromptDTO.getPromptTemplateId());
+        aiChatHistoryDTO.setAiInput(aiPromptDTO.getRenderedPrompt());
         aiChatHistoryDTO.setStatus(status);
         if (aiAnswer != null) {
             aiChatHistoryDTO.setAiAnswer(aiAnswer.getContent());

@@ -79,7 +79,7 @@ public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptServic
             scriptTemplate,
             scriptContent
         );
-        return new AIPromptDTO(promptTemplate.getRawPrompt(), renderedPrompt);
+        return new AIPromptDTO(promptTemplate.getId(), promptTemplate.getRawPrompt(), renderedPrompt);
     }
 
     private String renderCheckScriptPrompt(String promptTemplateContent,

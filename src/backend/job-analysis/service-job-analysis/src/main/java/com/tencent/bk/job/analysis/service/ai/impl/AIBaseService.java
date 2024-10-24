@@ -60,8 +60,7 @@ public class AIBaseService {
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
-            rawPrompt,
-            renderedPrompt,
+            aiPromptDTO,
             AIChatStatusEnum.INIT.getStatus(),
             null
         );
@@ -80,13 +79,12 @@ public class AIBaseService {
      */
     public AIChatRecord getDirectlyAIChatRecord(String username, AIPromptDTO aiPromptDTO, String content) {
         long startTime = System.currentTimeMillis();
-        String rawPrompt = aiPromptDTO.getRawPrompt();
+        aiPromptDTO.setRenderedPrompt(buildAIDirectlyAnswerInput(content));
         AIAnswer aiAnswer = new AIAnswer("0", "", content, System.currentTimeMillis());
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
-            rawPrompt,
-            buildAIDirectlyAnswerInput(content),
+            aiPromptDTO,
             AIChatStatusEnum.FINISHED.getStatus(),
             aiAnswer
         );

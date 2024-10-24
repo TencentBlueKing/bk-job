@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.listener.event.AIChatOperationEvent;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.mq.AIChatOperationEventDispatcher;
@@ -38,7 +39,6 @@ import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.TimeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,11 +75,11 @@ public class ChatServiceImpl implements ChatService {
     public AIChatRecord chatWithAI(String username, String userInput) {
         Long startTime = System.currentTimeMillis();
         // 1.保存初始聊天记录
+        AIPromptDTO aiPromptDTO = new AIPromptDTO(null, userInput, userInput);
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             startTime,
-            userInput,
-            userInput,
+            aiPromptDTO,
             AIChatStatusEnum.INIT.getStatus(),
             null
         );
