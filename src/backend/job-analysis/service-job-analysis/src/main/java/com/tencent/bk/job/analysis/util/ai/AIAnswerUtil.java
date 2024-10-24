@@ -40,6 +40,27 @@ import java.nio.charset.StandardCharsets;
 public class AIAnswerUtil {
 
     /**
+     * 获取限长的AI回答报错信息
+     *
+     * @param errorMessage AI回答报错信息
+     * @return 处理后的AI回答报错信息
+     */
+    public static String getLimitedErrorMessage(String errorMessage) {
+        if (errorMessage == null) {
+            return null;
+        }
+        if (errorMessage.length() > AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE) {
+            log.info(
+                "aiAnswer errorMessage is too long({}), truncated to {}",
+                errorMessage.length(),
+                AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE
+            );
+            return StringUtil.substring(errorMessage, AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE);
+        }
+        return errorMessage;
+    }
+
+    /**
      * 获取限长的AI回答
      *
      * @param aiAnswer AI回答

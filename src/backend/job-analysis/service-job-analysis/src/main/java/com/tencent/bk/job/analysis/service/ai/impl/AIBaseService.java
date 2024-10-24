@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
+import com.tencent.bk.job.analysis.model.dto.AIAnalyzeErrorContextDTO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
@@ -52,10 +53,23 @@ public class AIBaseService {
      * @param aiPromptDTO AI提示符
      * @return AI对话记录
      */
-    public AIChatRecord getAIChatRecord(String username, AIPromptDTO aiPromptDTO) {
+    public AIChatRecord getAIChatRecord(String username,
+                                        AIPromptDTO aiPromptDTO) {
+        return getAIChatRecord(username, aiPromptDTO, null);
+    }
+
+    /**
+     * 使用AI提示符调用AI接口生成AI回答（支持报错分析上下文）
+     *
+     * @param username            用户名
+     * @param aiPromptDTO         AI提示符
+     * @param analyzeErrorContext 报错分析上下文信息
+     * @return AI对话记录
+     */
+    public AIChatRecord getAIChatRecord(String username,
+                                        AIPromptDTO aiPromptDTO,
+                                        AIAnalyzeErrorContextDTO analyzeErrorContext) {
         long startTime = System.currentTimeMillis();
-        String rawPrompt = aiPromptDTO.getRawPrompt();
-        String renderedPrompt = aiPromptDTO.getRenderedPrompt();
         // 1.插入初始聊天记录
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
@@ -64,6 +78,7 @@ public class AIBaseService {
             AIChatStatusEnum.INIT.getStatus(),
             null
         );
+        aiChatHistoryDTO.setAiAnalyzeErrorContext(analyzeErrorContext);
         Long historyId = aiChatHistoryService.insertChatHistory(aiChatHistoryDTO);
         aiChatHistoryDTO.setId(historyId);
         return aiChatHistoryDTO.toAIChatRecord();

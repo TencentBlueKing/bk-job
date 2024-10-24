@@ -116,6 +116,11 @@ public class AIChatHistoryDTO {
      */
     private Boolean isDeleted;
 
+    /**
+     * 报错分析场景的上下文信息
+     */
+    private AIAnalyzeErrorContextDTO aiAnalyzeErrorContext;
+
     public void updateTotalTime() {
         if (startTime != null && answerTime != null) {
             totalTime = answerTime - startTime;
@@ -152,6 +157,10 @@ public class AIChatHistoryDTO {
     @JsonIgnore
     public String getLimitedAIAnswer() {
         return AIAnswerUtil.getLimitedAIAnswer(aiAnswer);
+    }
+
+    public String getLimitedErrorMessage() {
+        return AIAnswerUtil.getLimitedErrorMessage(errorMessage);
     }
 
     @JsonIgnore

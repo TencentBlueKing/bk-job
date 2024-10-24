@@ -49,6 +49,25 @@ CREATE TABLE IF NOT EXISTS `ai_chat_history`  (
 CHARACTER SET = utf8mb4;
 
 -- ------------------------
+-- 创建AI分析任务报错上下文信息表
+-- ------------------------
+CREATE TABLE IF NOT EXISTS `ai_analyze_error_context`  (
+    `ai_chat_history_id`          bigint(20)      NOT NULL,
+    `task_instance_id`            bigint(20)      NOT NULL                COMMENT '任务ID',
+    `step_instance_id`            bigint(20)      NOT NULL                COMMENT '步骤ID',
+    `execute_count`               int(11)         NOT NULL                COMMENT '执行次数',
+    `batch`                       smallint(6)     NOT NULL DEFAULT '0'    COMMENT '滚动批次',
+    `execute_object_type`         tinyint(4)          NULL DEFAULT NULL   COMMENT '执行对象类型：1-主机，2-容器',
+    `execute_object_resource_id`  bigint(20)          NULL DEFAULT NULL   COMMENT '执行对象资源ID',
+    `mode`                        tinyint(4)          NULL DEFAULT NULL   COMMENT '文件任务上传下载标识：0-上传，1-下载',
+    `content`                     mediumtext          NULL DEFAULT NULL   COMMENT '要分析的日志内容',
+    `row_create_time`             datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `row_update_time`             datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`ai_chat_history_id`) USING BTREE
+) ENGINE = InnoDB
+CHARACTER SET = utf8mb4;
+
+-- ------------------------
 -- 插入初始化数据
 -- ------------------------
 REPLACE INTO job_analysis.ai_prompt_template

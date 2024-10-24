@@ -22,18 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.consts;
+package com.tencent.bk.job.analysis.dao;
 
-/**
- * AI功能相关的常量
- */
-public class AIConsts {
-    // AI回答错误码：OK
-    public static final String AI_ANSWER_ERROR_CODE_OK = "0";
-    // AI回答错误码：Failed
-    public static final String AI_ANSWER_ERROR_CODE_FAILED = "1";
-    // AI回答最大长度：1.5w字
-    public static final int MAX_LENGTH_AI_ANSWER = 15_000;
-    // AI回答报错信息最大长度：512字
-    public static final int MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE = 512;
+import com.tencent.bk.job.analysis.model.dto.AIAnalyzeErrorContextDTO;
+
+import java.util.List;
+
+public interface AIAnalyzeErrorContextDAO {
+    /**
+     * 插入报错分析上下文记录
+     *
+     * @param aiAnalyzeErrorContextDTO 报错分析上下文记录
+     * @return 受影响的行数
+     */
+    int insert(AIAnalyzeErrorContextDTO aiAnalyzeErrorContextDTO);
+
+    /**
+     * 删除报错分析上下文记录
+     *
+     * @param chatHistoryIdList 记录ID列表
+     * @return 删除的记录条数
+     */
+    int delete(List<Long> chatHistoryIdList);
 }
