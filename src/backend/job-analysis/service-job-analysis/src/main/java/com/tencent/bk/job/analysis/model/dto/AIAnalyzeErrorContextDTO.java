@@ -22,62 +22,78 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.resp;
+package com.tencent.bk.job.analysis.model.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.analysis.consts.AIConsts;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI回答内容")
+/**
+ * AI分析报错信息上下文信息
+ */
+@Slf4j
 @Data
-public class AIAnswer {
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class AIAnalyzeErrorContextDTO {
 
     /**
-     * 错误码
+     * AI对话记录ID
      */
-    @ApiModelProperty(value = "错误码")
-    private String errorCode;
+    private Long aiChatHistoryId;
 
     /**
-     * 错误信息
+     * 任务ID
      */
-    @ApiModelProperty(value = "错误信息")
-    private String errorMessage;
+    private Long taskInstanceId;
 
     /**
-     * 内容
+     * 步骤ID
      */
-    @ApiModelProperty(value = "内容")
-    private String content;
+    private Long stepInstanceId;
 
     /**
-     * 回答时间
+     * 执行次数
      */
-    @ApiModelProperty("回答时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    private Long time;
+    private Integer executeCount;
 
-    public static AIAnswer successAnswer(String content) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode(AIConsts.AI_ANSWER_ERROR_CODE_OK);
-        aiAnswer.setTime(System.currentTimeMillis());
-        aiAnswer.setContent(content);
-        return aiAnswer;
-    }
+    /**
+     * 滚动批次
+     */
+    private Integer batch;
 
-    public static AIAnswer failAnswer(String content, String errorMessage) {
-        AIAnswer aiAnswer = new AIAnswer();
-        aiAnswer.setErrorCode(AIConsts.AI_ANSWER_ERROR_CODE_FAILED);
-        aiAnswer.setErrorMessage(errorMessage);
-        aiAnswer.setTime(System.currentTimeMillis());
-        aiAnswer.setContent(content);
-        return aiAnswer;
+    /**
+     * 执行对象类型
+     */
+    private Integer executeObjectType;
+
+    /**
+     * 执行对象资源 ID
+     */
+    private Long executeObjectResourceId;
+
+    /**
+     * 文件任务上传下载标识,0-上传,1-下载
+     */
+    private Integer mode;
+
+    public static AIAnalyzeErrorContextDTO fromAIAnalyzeErrorReq(AIAnalyzeErrorReq req) {
+        if (req == null) {
+            return null;
+        }
+        return new AIAnalyzeErrorContextDTO(
+            null,
+            req.getTaskInstanceId(),
+            req.getStepInstanceId(),
+            req.getExecuteCount(),
+            req.getBatch(),
+            req.getExecuteObjectType(),
+            req.getExecuteObjectResourceId(),
+            req.getMode()
+        );
     }
 }

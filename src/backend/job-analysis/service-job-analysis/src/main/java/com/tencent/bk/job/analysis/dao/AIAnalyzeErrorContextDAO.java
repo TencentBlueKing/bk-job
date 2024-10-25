@@ -22,22 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:esb-sdk')
-    api project(':commons:common-i18n')
-    api project(':commons:common-otel')
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation 'org.apache.commons:commons-lang3'
-    implementation "net.sf.dozer:dozer"
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'dev.ai4j:openai4j'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.analysis.dao;
+
+import com.tencent.bk.job.analysis.model.dto.AIAnalyzeErrorContextDTO;
+
+import java.util.List;
+
+public interface AIAnalyzeErrorContextDAO {
+    /**
+     * 插入报错分析上下文记录
+     *
+     * @param aiAnalyzeErrorContextDTO 报错分析上下文记录
+     * @return 受影响的行数
+     */
+    int insert(AIAnalyzeErrorContextDTO aiAnalyzeErrorContextDTO);
+
+    /**
+     * 删除报错分析上下文记录
+     *
+     * @param chatHistoryIdList 记录ID列表
+     * @return 删除的记录条数
+     */
+    int delete(List<Long> chatHistoryIdList);
 }

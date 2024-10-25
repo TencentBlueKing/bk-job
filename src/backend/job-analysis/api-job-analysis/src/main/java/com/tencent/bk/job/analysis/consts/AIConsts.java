@@ -34,4 +34,6 @@ public class AIConsts {
     public static final String AI_ANSWER_ERROR_CODE_FAILED = "1";
     // AI回答最大长度：1.5w字
     public static final int MAX_LENGTH_AI_ANSWER = 15_000;
+    // AI回答报错信息最大长度：512字
+    public static final int MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE = 512;
 }

@@ -24,11 +24,6 @@
 
 package com.tencent.bk.job.analysis.model.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
-import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
-import com.tencent.bk.job.analysis.model.web.resp.UserInput;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,6 +38,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AIPromptDTO {
 
+    /**
+     * 提示符模板ID
+     */
+    private Integer promptTemplateId;
     /**
      * 原始提示符
      */

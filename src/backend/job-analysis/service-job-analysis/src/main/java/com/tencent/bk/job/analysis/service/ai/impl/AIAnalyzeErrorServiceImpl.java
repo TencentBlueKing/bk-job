@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.service.ai.impl;
 
+import com.tencent.bk.job.analysis.model.dto.AIAnalyzeErrorContextDTO;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
@@ -100,6 +101,7 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
         } else {
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }
-        return getAIChatRecord(username, aiPromptDTO);
+        AIAnalyzeErrorContextDTO analyzeErrorContext = AIAnalyzeErrorContextDTO.fromAIAnalyzeErrorReq(req);
+        return getAIChatRecord(username, aiPromptDTO, analyzeErrorContext);
     }
 }
