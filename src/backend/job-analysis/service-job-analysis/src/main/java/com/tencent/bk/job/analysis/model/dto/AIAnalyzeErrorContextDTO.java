@@ -42,6 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 public class AIAnalyzeErrorContextDTO {
 
     /**
+     * AI对话记录ID
+     */
+    private Long aiChatHistoryId;
+
+    /**
      * 任务ID
      */
     private Long taskInstanceId;
@@ -86,6 +91,7 @@ public class AIAnalyzeErrorContextDTO {
             return null;
         }
         return new AIAnalyzeErrorContextDTO(
+            null,
             req.getTaskInstanceId(),
             req.getStepInstanceId(),
             req.getExecuteCount(),

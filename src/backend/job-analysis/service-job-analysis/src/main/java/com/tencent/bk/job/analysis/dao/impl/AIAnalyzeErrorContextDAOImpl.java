@@ -55,6 +55,7 @@ public class AIAnalyzeErrorContextDAOImpl implements AIAnalyzeErrorContextDAO {
     @Override
     public int insert(AIAnalyzeErrorContextDTO aiAnalyzeErrorContextDTO) {
         val query = dslContext.insertInto(defaultTable,
+                defaultTable.AI_CHAT_HISTORY_ID,
                 defaultTable.TASK_INSTANCE_ID,
                 defaultTable.STEP_INSTANCE_ID,
                 defaultTable.EXECUTE_COUNT,
@@ -65,6 +66,7 @@ public class AIAnalyzeErrorContextDAOImpl implements AIAnalyzeErrorContextDAO {
                 defaultTable.CONTENT
             )
             .values(
+                aiAnalyzeErrorContextDTO.getAiChatHistoryId(),
                 aiAnalyzeErrorContextDTO.getTaskInstanceId(),
                 aiAnalyzeErrorContextDTO.getStepInstanceId(),
                 aiAnalyzeErrorContextDTO.getExecuteCount(),

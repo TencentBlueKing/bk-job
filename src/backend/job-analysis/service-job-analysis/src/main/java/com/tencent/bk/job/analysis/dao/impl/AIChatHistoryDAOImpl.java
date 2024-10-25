@@ -108,8 +108,11 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             .returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
         try {
-            insertAIAnalyzeErrorContextIfNeed(aiChatHistoryDTO.getAiAnalyzeErrorContext());
-            return query.fetchOne().getId();
+            Long chatHistoryId = query.fetchOne().getId();
+            AIAnalyzeErrorContextDTO aiAnalyzeErrorContext = aiChatHistoryDTO.getAiAnalyzeErrorContext();
+            aiAnalyzeErrorContext.setAiChatHistoryId(chatHistoryId);
+            insertAIAnalyzeErrorContextIfNeed(aiAnalyzeErrorContext);
+            return chatHistoryId;
         } catch (Exception e) {
             log.error(sql);
             throw e;
