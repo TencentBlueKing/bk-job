@@ -60,7 +60,6 @@ CREATE TABLE IF NOT EXISTS `ai_analyze_error_context`  (
     `execute_object_type`         tinyint(4)          NULL DEFAULT NULL   COMMENT '执行对象类型：1-主机，2-容器',
     `execute_object_resource_id`  bigint(20)          NULL DEFAULT NULL   COMMENT '执行对象资源ID',
     `mode`                        tinyint(4)          NULL DEFAULT NULL   COMMENT '文件任务上传下载标识：0-上传，1-下载',
-    `content`                     mediumtext          NULL DEFAULT NULL   COMMENT '要分析的日志内容',
     `row_create_time`             datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`             datetime        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`ai_chat_history_id`) USING BTREE

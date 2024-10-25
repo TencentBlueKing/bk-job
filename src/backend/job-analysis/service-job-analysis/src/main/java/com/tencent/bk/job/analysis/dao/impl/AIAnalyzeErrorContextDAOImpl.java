@@ -62,8 +62,7 @@ public class AIAnalyzeErrorContextDAOImpl implements AIAnalyzeErrorContextDAO {
                 defaultTable.BATCH,
                 defaultTable.EXECUTE_OBJECT_TYPE,
                 defaultTable.EXECUTE_OBJECT_RESOURCE_ID,
-                defaultTable.MODE,
-                defaultTable.CONTENT
+                defaultTable.MODE
             )
             .values(
                 aiAnalyzeErrorContextDTO.getAiChatHistoryId(),
@@ -73,8 +72,7 @@ public class AIAnalyzeErrorContextDAOImpl implements AIAnalyzeErrorContextDAO {
                 JooqDataTypeUtil.getShortFromInteger(aiAnalyzeErrorContextDTO.getBatch()),
                 JooqDataTypeUtil.getByteFromInteger(aiAnalyzeErrorContextDTO.getExecuteObjectType()),
                 aiAnalyzeErrorContextDTO.getExecuteObjectResourceId(),
-                JooqDataTypeUtil.getByteFromInteger(aiAnalyzeErrorContextDTO.getMode()),
-                aiAnalyzeErrorContextDTO.getContent()
+                JooqDataTypeUtil.getByteFromInteger(aiAnalyzeErrorContextDTO.getMode())
             );
         val sql = query.getSQL(ParamType.INLINED);
         try {
@@ -107,7 +105,6 @@ public class AIAnalyzeErrorContextDAOImpl implements AIAnalyzeErrorContextDAO {
         aiAnalyzeErrorContextDTO.setMode(
             JooqDataTypeUtil.getIntegerFromByte(record.get(defaultTable.MODE))
         );
-        aiAnalyzeErrorContextDTO.setContent(record.get(defaultTable.CONTENT));
         return aiAnalyzeErrorContextDTO;
     }
 

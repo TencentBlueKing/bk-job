@@ -81,11 +81,6 @@ public class AIAnalyzeErrorContextDTO {
      */
     private Integer mode;
 
-    /**
-     * 脚本任务报错信息内容
-     */
-    private String content;
-
     public static AIAnalyzeErrorContextDTO fromAIAnalyzeErrorReq(AIAnalyzeErrorReq req) {
         if (req == null) {
             return null;
@@ -98,8 +93,7 @@ public class AIAnalyzeErrorContextDTO {
             req.getBatch(),
             req.getExecuteObjectType(),
             req.getExecuteObjectResourceId(),
-            req.getMode(),
-            req.getContent()
+            req.getMode()
         );
     }
 }
