@@ -104,7 +104,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                                                  Integer start,
                                                                  Integer length) {
         if (!aiChatHistoryService.existsChatHistory(username)) {
-            AIChatHistoryDTO greetingChatHistory = getGreetingChatHistory(username);
+            AIChatHistoryDTO greetingChatHistory = getGreetingChatHistory(username, appResourceScope.getAppId());
             Long id = aiChatHistoryService.insertChatHistory(greetingChatHistory);
             log.debug("Greeting chat history created, username={}, id={}", username, id);
         }
@@ -115,9 +115,10 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiChatRecordList);
     }
 
-    private AIChatHistoryDTO getGreetingChatHistory(String username) {
+    private AIChatHistoryDTO getGreetingChatHistory(String username, Long appId) {
         AIChatHistoryDTO greetingChatHistory = new AIChatHistoryDTO();
         greetingChatHistory.setUsername(username);
+        greetingChatHistory.setAppId(appId);
         greetingChatHistory.setUserInput("");
         greetingChatHistory.setStartTime(System.currentTimeMillis());
         greetingChatHistory.setPromptTemplateId(null);
@@ -138,7 +139,7 @@ public class WebAIResourceImpl implements WebAIResource {
                                               String scopeType,
                                               String scopeId,
                                               AIGeneralChatReq req) {
-        AIChatRecord aiChatRecord = chatService.chatWithAI(username, req.getContent());
+        AIChatRecord aiChatRecord = chatService.chatWithAI(username, appResourceScope.getAppId(), req.getContent());
         return Response.buildSuccessResp(aiChatRecord);
     }
 
@@ -148,7 +149,12 @@ public class WebAIResourceImpl implements WebAIResource {
                                               String scopeType,
                                               String scopeId,
                                               AICheckScriptReq req) {
-        AIChatRecord aiChatRecord = aiCheckScriptService.check(username, req.getType(), req.getContent());
+        AIChatRecord aiChatRecord = aiCheckScriptService.check(
+            username,
+            appResourceScope.getAppId(),
+            req.getType(),
+            req.getContent()
+        );
         return Response.buildSuccessResp(aiChatRecord);
     }
 

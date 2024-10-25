@@ -59,6 +59,11 @@ public class AIChatHistoryDTO {
     private String username;
 
     /**
+     * Job业务ID
+     */
+    private Long appId;
+
+    /**
      * 用户输入内容
      */
     private String userInput;

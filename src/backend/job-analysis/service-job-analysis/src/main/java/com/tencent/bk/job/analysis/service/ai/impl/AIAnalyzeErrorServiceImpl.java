@@ -85,6 +85,7 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
             if (!taskContext.isTaskFail()) {
                 return getDirectlyAIChatRecord(
                     username,
+                    appId,
                     aiPromptDTO,
                     aiMessageI18nService.getNotFailTaskAIAnswerMessage()
                 );
@@ -94,6 +95,7 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
             if (!taskContext.isTaskFail()) {
                 return getDirectlyAIChatRecord(
                     username,
+                    appId,
                     aiPromptDTO,
                     aiMessageI18nService.getNotFailTaskAIAnswerMessage()
                 );
@@ -102,6 +104,6 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }
         AIAnalyzeErrorContextDTO analyzeErrorContext = AIAnalyzeErrorContextDTO.fromAIAnalyzeErrorReq(req);
-        return getAIChatRecord(username, aiPromptDTO, analyzeErrorContext);
+        return getAIChatRecord(username, appId, aiPromptDTO, analyzeErrorContext);
     }
 }

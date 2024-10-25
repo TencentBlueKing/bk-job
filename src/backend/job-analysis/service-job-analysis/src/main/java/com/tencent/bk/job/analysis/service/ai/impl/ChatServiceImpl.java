@@ -72,12 +72,13 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public AIChatRecord chatWithAI(String username, String userInput) {
+    public AIChatRecord chatWithAI(String username, Long appId, String userInput) {
         Long startTime = System.currentTimeMillis();
         // 1.保存初始聊天记录
         AIPromptDTO aiPromptDTO = new AIPromptDTO(null, userInput, userInput);
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
+            appId,
             startTime,
             aiPromptDTO,
             AIChatStatusEnum.INIT.getStatus(),

@@ -53,12 +53,14 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
 
     @Override
     public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
+                                                  Long appId,
                                                   Long startTime,
                                                   AIPromptDTO aiPromptDTO,
                                                   Integer status,
                                                   AIAnswer aiAnswer) {
         AIChatHistoryDTO aiChatHistoryDTO = new AIChatHistoryDTO();
         aiChatHistoryDTO.setUsername(username);
+        aiChatHistoryDTO.setAppId(appId);
         aiChatHistoryDTO.setUserInput(aiPromptDTO.getRawPrompt());
         aiChatHistoryDTO.setPromptTemplateId(aiPromptDTO.getPromptTemplateId());
         aiChatHistoryDTO.setAiInput(aiPromptDTO.getRenderedPrompt());
