@@ -39,7 +39,6 @@ export default {
     brandImg: '',
     brandImgEn: '',
     brandName: '', // 品牌名，会用于拼接在站点名称后面显示在网页title中
-    favIcon: '',
     brandNameEn: '', // 品牌名-英文
     footerInfo: '', // 页脚的内容，仅支持 a 的 markdown 内容格式
     footerInfoEn: '', // 页脚的内容-英文
