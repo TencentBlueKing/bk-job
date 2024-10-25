@@ -246,7 +246,7 @@
         });
 
         setDocumentTitle(this.$store.state.platformConfig.i18n, routeMatchStack);
-        setShortcutIcon(this.$store.state.platformConfig.favIcon);
+        setShortcutIcon(this.$store.state.platformConfig.favicon);
       },
       /**
        * @desc 切换语言
