@@ -110,8 +110,10 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
         try {
             Long chatHistoryId = query.fetchOne().getId();
             AIAnalyzeErrorContextDTO aiAnalyzeErrorContext = aiChatHistoryDTO.getAiAnalyzeErrorContext();
-            aiAnalyzeErrorContext.setAiChatHistoryId(chatHistoryId);
-            insertAIAnalyzeErrorContextIfNeed(aiAnalyzeErrorContext);
+            if (aiAnalyzeErrorContext != null) {
+                aiAnalyzeErrorContext.setAiChatHistoryId(chatHistoryId);
+                insertAIAnalyzeErrorContextIfNeed(aiAnalyzeErrorContext);
+            }
             return chatHistoryId;
         } catch (Exception e) {
             log.error(sql);
