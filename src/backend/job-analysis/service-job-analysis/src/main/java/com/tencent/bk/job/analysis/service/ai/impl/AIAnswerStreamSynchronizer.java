@@ -77,6 +77,7 @@ public class AIAnswerStreamSynchronizer {
                     if (event.isEnd()) {
                         Throwable throwable = event.getThrowable();
                         if (throwable != null) {
+                            log.warn("Receive end event with throwable", throwable);
                             Response<AIAnswer> respBody =
                                 Response.buildCommonFailResp(ErrorCode.BK_OPEN_AI_API_DATA_ERROR);
                             AIAnswerUtil.setRequestIdAndWriteResp(outputStream, respBody);
