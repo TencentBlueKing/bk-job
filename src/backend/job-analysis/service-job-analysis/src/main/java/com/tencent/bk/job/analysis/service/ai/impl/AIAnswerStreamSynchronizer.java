@@ -29,9 +29,7 @@ import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProd
 import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
 import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -72,7 +70,11 @@ public class AIAnswerStreamSynchronizer {
                 try {
                     MessagePartEvent event = messageQueue.poll(90, TimeUnit.SECONDS);
                     if (event == null) {
-                        throw new ServiceException(ErrorType.TIMEOUT, ErrorCode.BK_OPEN_AI_API_DATA_TIMEOUT);
+                        Response<AIAnswer> respBody =
+                            Response.buildCommonFailResp(ErrorCode.BK_OPEN_AI_API_DATA_TIMEOUT);
+                        respBody.setData(AIAnswer.failAnswer(respBody.getErrorMsg(), respBody.getErrorMsg()));
+                        AIAnswerUtil.setRequestIdAndWriteResp(outputStream, respBody);
+                        break;
                     }
                     if (event.isEnd()) {
                         Throwable throwable = event.getThrowable();
@@ -80,6 +82,7 @@ public class AIAnswerStreamSynchronizer {
                             log.warn("Receive end event with throwable", throwable);
                             Response<AIAnswer> respBody =
                                 Response.buildCommonFailResp(ErrorCode.BK_OPEN_AI_API_DATA_ERROR);
+                            respBody.setData(AIAnswer.failAnswer(respBody.getErrorMsg(), throwable.getMessage()));
                             AIAnswerUtil.setRequestIdAndWriteResp(outputStream, respBody);
                         }
                         break;

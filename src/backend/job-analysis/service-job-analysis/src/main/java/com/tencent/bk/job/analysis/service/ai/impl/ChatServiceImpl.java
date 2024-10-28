@@ -42,11 +42,13 @@ import com.tencent.bk.job.common.model.Response;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -124,8 +126,11 @@ public class ChatServiceImpl implements ChatService {
             currentChatHistoryDTO.getAiInput(),
             consumerAndProducerPair.getConsumer()
         );
+        Locale locale = LocaleContextHolder.getLocale();
+        log.debug("language={}", locale.getLanguage());
         future.whenComplete((content, throwable) -> {
             // 5.处理AI回复内容
+            LocaleContextHolder.setLocale(locale);
             aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
             futureMap.remove(recordId);
             aiAnswerStreamSynchronizer.triggerEndEvent(throwable);
