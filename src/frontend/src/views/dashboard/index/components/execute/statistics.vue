@@ -122,6 +122,8 @@
         value,
       } = data;
 
+      const realValue = seriesName !== I18n.t('dashboard.执行失败率') ? value : `${(Number(value) * 100).toFixed(2)} %`;
+
       if (seriesType === 'bar') {
         return `
           <tr>
@@ -129,7 +131,7 @@
               <span style="display: inline-block; width: 8px; height: 8px; background: ${color}"></span>
               <span>${seriesName}</span>
             </td>
-            <td style="text-align: right">${value}</td>
+            <td style="text-align: right">${realValue}</td>
           </tr>
         `;
       } if (seriesType === 'line') {
@@ -139,7 +141,7 @@
               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color}"></span>
               <span>${seriesName}</span>
             </td>
-            <td style="text-align: right">${value}</td>
+            <td style="text-align: right">${realValue}</td>
           </tr>
         `;
       }
@@ -152,6 +154,13 @@
     } else {
       paramsArr = params;
     }
+
+    paramsArr.splice(-1, 0, {
+      seriesType: 'line',
+      seriesName: I18n.t('dashboard.执行次数'),
+      color: '#FFD695',
+      value: _.filter(paramsArr, item => item.seriesType === 'bar').reduce((result, item) => parseInt(item.value, 10) + result, 0),
+    });
 
     return `<table>${paramsArr.map(generatorHtml).join('')}</table>`;
   };
@@ -228,8 +237,9 @@
           apiList.push(API);
           cronList.push(CRON);
           normalList.push(NORMAL);
-          failList.push(failCount);
-          totalList.push(API + CRON + NORMAL);
+          const total = API + CRON + NORMAL;
+          failList.push((failCount / total).toFixed(4));
+          totalList.push(total);
         });
 
         this.myChart.clear();
@@ -241,11 +251,7 @@
               I18n.t('dashboard.API 调用'),
               I18n.t('dashboard.定时执行'),
               {
-                name: I18n.t('dashboard.执行次数'),
-                icon: 'circle',
-              },
-              {
-                name: I18n.t('dashboard.执行失败次数'),
+                name: I18n.t('dashboard.执行失败率'),
                 icon: 'circle',
               },
             ],
@@ -276,7 +282,7 @@
           grid: {
             top: 45,
             left: 40,
-            right: 0,
+            right: 40,
             bottom: 48,
             containLabel: true,
           },
@@ -298,30 +304,53 @@
               data: dateList,
             },
           ],
-          yAxis: {
-            type: 'value',
-            name: I18n.t('dashboard.执行数'),
-            nameLocation: 'middle',
-            nameTextStyle: {
-              color: '#63656E',
-            },
-            nameGap: 50,
-            axisLine: {
-              show: false,
-            },
-            axisTick: {
-              show: false,
-            },
-            axisLabel: {
-              color: '#979BA5',
-              formatter: value => formatNumber(value, true),
-            },
-            splitLine: {
-              lineStyle: {
-                color: '#F0F1F5',
+          yAxis: [
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行数'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#63656E',
+              },
+              nameGap: 50,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#979BA5',
+                formatter: value => formatNumber(value, true),
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#F0F1F5',
+                },
               },
             },
-          },
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行失败率'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#FF5656',
+              },
+              position: 'right',
+              nameGap: 50,
+              alignTicks: true,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#FF5656',
+                formatter: value => `${value * 100} %`,
+              },
+            },
+          ],
           series: [
             {
               name: I18n.t('dashboard.页面执行'),
@@ -354,20 +383,13 @@
               },
             },
             {
-              name: I18n.t('dashboard.执行次数'),
-              type: 'line',
-              data: totalList,
-              itemStyle: {
-                color: '#FFD695',
-              },
-            },
-            {
-              name: I18n.t('dashboard.执行失败次数'),
+              name: I18n.t('dashboard.执行失败率'),
               type: 'line',
               data: failList,
               itemStyle: {
                 color: '#FF5656',
               },
+              yAxisIndex: 1,
             },
           ],
         });
@@ -398,7 +420,7 @@
           executeTaskList.push(EXECUTE_TASK);
           fastExecuteScriptList.push(FAST_EXECUTE_SCRIPT);
           fastPushFileList.push(FAST_PUSH_FILE);
-          failList.push(failCount);
+          failList.push((failCount / (EXECUTE_TASK + FAST_EXECUTE_SCRIPT + FAST_PUSH_FILE)).toFixed(4));
         });
 
         this.myChart.clear();
@@ -410,7 +432,7 @@
               I18n.t('dashboard.快速分发文件'),
               I18n.t('dashboard.作业执行'),
               {
-                name: I18n.t('dashboard.执行失败次数'),
+                name: I18n.t('dashboard.执行失败率'),
                 icon: 'circle',
               },
             ],
@@ -421,15 +443,23 @@
             itemGap: 40,
           },
           tooltip: {
-            trigger: 'item',
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            borderColor: 'transparent',
+            trigger: 'axis',
+            axisPointer: {
+              type: 'line',
+              lineStyle: {
+                width: 30,
+                color: '#63656E',
+                opacity: 0.16,
+                type: 'solid',
+              },
+            },
             formatter: tooltipFormatter,
+            backgroundColor: 'rgba(0,0,0,0.8)',
           },
           grid: {
             top: 45,
             left: 40,
-            right: 0,
+            right: 40,
             bottom: 48,
             containLabel: true,
           },
@@ -451,30 +481,53 @@
               data: dateList,
             },
           ],
-          yAxis: {
-            type: 'value',
-            name: I18n.t('dashboard.执行数'),
-            nameLocation: 'middle',
-            nameTextStyle: {
-              color: '#63656E',
-            },
-            nameGap: 50,
-            axisLine: {
-              show: false,
-            },
-            axisTick: {
-              show: false,
-            },
-            axisLabel: {
-              color: '#979BA5',
-              formatter: value => formatNumber(value, true),
-            },
-            splitLine: {
-              lineStyle: {
-                color: '#F0F1F5',
+          yAxis: [
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行数'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#63656E',
+              },
+              nameGap: 50,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#979BA5',
+                formatter: value => formatNumber(value, true),
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#F0F1F5',
+                },
               },
             },
-          },
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行失败率'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#FF5656',
+              },
+              position: 'right',
+              nameGap: 50,
+              alignTicks: true,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#FF5656',
+                formatter: value => `${value * 100} %`,
+              },
+            },
+          ],
           series: [
             {
               id: 'EXECUTED_FAST_SCRIPT',
@@ -519,7 +572,7 @@
               },
             },
             {
-              name: I18n.t('dashboard.执行失败次数'),
+              name: I18n.t('dashboard.执行失败率'),
               type: 'line',
               data: failList,
               itemStyle: {
@@ -528,6 +581,7 @@
               emphasis: {
                 focus: 'series',
               },
+              yAxisIndex: 1,
             },
           ],
         });
@@ -558,7 +612,7 @@
           lessThanOneMinList.push(LESS_THAN_ONE_MIN);
           oneMinToTenMinList.push(ONE_MIN_TO_TEN_MIN);
           overTenMinList.push(OVER_TEN_MIN);
-          failList.push(failCount);
+          failList.push((failCount / (LESS_THAN_ONE_MIN + ONE_MIN_TO_TEN_MIN + OVER_TEN_MIN)).toFixed(2));
         });
 
         this.myChart.clear();
@@ -570,7 +624,7 @@
               I18n.t('dashboard.1~10分钟以内（包含10分钟）'),
               I18n.t('dashboard.1分钟以内（包含1分钟）'),
               {
-                name: I18n.t('dashboard.执行失败次数'),
+                name: I18n.t('dashboard.执行失败率'),
                 icon: 'circle',
               },
             ],
@@ -597,7 +651,7 @@
           grid: {
             top: 45,
             left: 40,
-            right: 0,
+            right: 40,
             bottom: 48,
             containLabel: true,
           },
@@ -619,30 +673,53 @@
               data: dateList,
             },
           ],
-          yAxis: {
-            type: 'value',
-            name: I18n.t('dashboard.执行数'),
-            nameLocation: 'middle',
-            nameTextStyle: {
-              color: '#63656E',
-            },
-            nameGap: 50,
-            axisLine: {
-              show: false,
-            },
-            axisTick: {
-              show: false,
-            },
-            axisLabel: {
-              color: '#979BA5',
-              formatter: value => formatNumber(value, true),
-            },
-            splitLine: {
-              lineStyle: {
-                color: '#F0F1F5',
+          yAxis: [
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行数'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#63656E',
+              },
+              nameGap: 50,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#979BA5',
+                formatter: value => formatNumber(value, true),
+              },
+              splitLine: {
+                lineStyle: {
+                  color: '#F0F1F5',
+                },
               },
             },
-          },
+            {
+              type: 'value',
+              name: I18n.t('dashboard.执行失败率'),
+              nameLocation: 'middle',
+              nameTextStyle: {
+                color: '#FF5656',
+              },
+              position: 'right',
+              nameGap: 50,
+              alignTicks: true,
+              axisLine: {
+                show: false,
+              },
+              axisTick: {
+                show: false,
+              },
+              axisLabel: {
+                color: '#FF5656',
+                formatter: value => `${value * 100} %`,
+              },
+            },
+          ],
           series: [
             {
               name: I18n.t('dashboard.≥ 10分钟'),
@@ -675,12 +752,13 @@
               },
             },
             {
-              name: I18n.t('dashboard.执行失败次数'),
+              name: I18n.t('dashboard.执行失败率'),
               type: 'line',
               data: failList,
               itemStyle: {
                 color: '#FF5656',
               },
+              yAxisIndex: 1,
             },
           ],
         });
@@ -737,7 +815,7 @@
               'PowerShell',
               'SQL',
               {
-                name: I18n.t('dashboard.执行失败次数'),
+                name: I18n.t('dashboard.执行失败率'),
                 icon: 'circle',
               },
             ],
@@ -872,7 +950,7 @@
               },
             },
             {
-              name: I18n.t('dashboard.执行失败次数'),
+              name: I18n.t('dashboard.执行失败率'),
               type: 'line',
               data: failList,
               itemStyle: {
@@ -917,7 +995,7 @@
               I18n.t('dashboard.强制模式'),
               I18n.t('dashboard.严谨模式'),
               {
-                name: I18n.t('dashboard.执行失败次数'),
+                name: I18n.t('dashboard.执行失败率'),
                 icon: 'circle',
               },
             ],
@@ -1012,7 +1090,7 @@
               },
             },
             {
-              name: I18n.t('dashboard.执行失败次数'),
+              name: I18n.t('dashboard.执行失败率'),
               type: 'line',
               data: failList,
               itemStyle: {
