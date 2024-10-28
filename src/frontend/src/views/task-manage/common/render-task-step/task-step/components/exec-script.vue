@@ -121,7 +121,7 @@
     // 脚本参数
     scriptParam: '',
     // 超时时间
-    timeout: 7200,
+    timeout: 300,
     // 敏感参数 （0-关闭 1-开启）
     secureParam: 0,
     // 执行账号
