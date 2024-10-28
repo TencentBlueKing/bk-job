@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 public class JobOpenAiClientBuilderFactory implements OpenAiClientBuilderFactory {
     @Override
     public OpenAiClient.Builder<DefaultOpenAiClient, DefaultOpenAiClient.Builder> get() {
-        log.info("Creating a new instance of the DefaultOpenAiClient.Builder");
         return DefaultOpenAiClient.builder();
     }
 }

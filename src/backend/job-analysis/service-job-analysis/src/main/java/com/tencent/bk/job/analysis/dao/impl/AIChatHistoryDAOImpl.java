@@ -79,6 +79,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public Long insertAIChatHistory(AIChatHistoryDTO aiChatHistoryDTO) {
         val query = dslContext.insertInto(defaultTable,
                 defaultTable.USERNAME,
+                defaultTable.APP_ID,
                 defaultTable.USER_INPUT,
                 defaultTable.PROMPT_TEMPLATE_ID,
                 defaultTable.AI_INPUT,
@@ -93,6 +94,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             )
             .values(
                 aiChatHistoryDTO.getUsername(),
+                aiChatHistoryDTO.getAppId(),
                 aiChatHistoryDTO.getUserInput(),
                 aiChatHistoryDTO.getPromptTemplateId(),
                 aiChatHistoryDTO.getAiInput(),

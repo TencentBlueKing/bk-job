@@ -26,6 +26,8 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,13 +86,13 @@ public class AIAnswerHandler {
             );
         } else {
             // 3.对话异常
-            aiAnswer = AIAnswer.failAnswer(content, throwable.getMessage());
+            String errorContent = I18nUtil.getI18nMessage(String.valueOf(ErrorCode.BK_OPEN_AI_API_DATA_ERROR));
+            aiAnswer = AIAnswer.failAnswer(errorContent, throwable.getMessage());
             int affectedRow = aiChatHistoryService.finishAIAnswer(recordId, aiAnswer);
             String message = MessageFormatter.arrayFormat(
-                "AIAnswer finished(fail), recordId={}, length={}, affectedRow={}",
+                "AIAnswer finished(fail), recordId={}, affectedRow={}",
                 new Object[]{
                     recordId,
-                    content == null ? 0 : content.length(),
                     affectedRow
                 }
             ).getMessage();

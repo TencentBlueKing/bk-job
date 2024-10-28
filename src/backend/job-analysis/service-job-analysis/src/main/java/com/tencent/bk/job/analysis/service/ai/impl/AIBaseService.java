@@ -50,29 +50,34 @@ public class AIBaseService {
      * 使用AI提示符调用AI接口生成AI回答
      *
      * @param username    用户名
+     * @param appId       Job业务ID
      * @param aiPromptDTO AI提示符
      * @return AI对话记录
      */
     public AIChatRecord getAIChatRecord(String username,
+                                        Long appId,
                                         AIPromptDTO aiPromptDTO) {
-        return getAIChatRecord(username, aiPromptDTO, null);
+        return getAIChatRecord(username, appId, aiPromptDTO, null);
     }
 
     /**
      * 使用AI提示符调用AI接口生成AI回答（支持报错分析上下文）
      *
      * @param username            用户名
+     * @param appId               Job业务ID
      * @param aiPromptDTO         AI提示符
      * @param analyzeErrorContext 报错分析上下文信息
      * @return AI对话记录
      */
     public AIChatRecord getAIChatRecord(String username,
+                                        Long appId,
                                         AIPromptDTO aiPromptDTO,
                                         AIAnalyzeErrorContextDTO analyzeErrorContext) {
         long startTime = System.currentTimeMillis();
         // 1.插入初始聊天记录
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
+            appId,
             startTime,
             aiPromptDTO,
             AIChatStatusEnum.INIT.getStatus(),
@@ -88,16 +93,18 @@ public class AIBaseService {
      * 使用指定内容直接生成AI回答
      *
      * @param username    用户名
+     * @param appId       Job业务ID
      * @param aiPromptDTO AI提示符
      * @param content     指定内容
      * @return AI对话记录
      */
-    public AIChatRecord getDirectlyAIChatRecord(String username, AIPromptDTO aiPromptDTO, String content) {
+    public AIChatRecord getDirectlyAIChatRecord(String username, Long appId, AIPromptDTO aiPromptDTO, String content) {
         long startTime = System.currentTimeMillis();
         aiPromptDTO.setRenderedPrompt(buildAIDirectlyAnswerInput(content));
         AIAnswer aiAnswer = new AIAnswer("0", "", content, System.currentTimeMillis());
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
+            appId,
             startTime,
             aiPromptDTO,
             AIChatStatusEnum.FINISHED.getStatus(),

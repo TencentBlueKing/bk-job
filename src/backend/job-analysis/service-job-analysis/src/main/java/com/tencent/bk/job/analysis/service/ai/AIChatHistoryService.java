@@ -35,6 +35,7 @@ public interface AIChatHistoryService {
      * 构建AI聊天记录
      *
      * @param username    用户名
+     * @param appId       Job业务ID
      * @param startTime   开始时间
      * @param aiPromptDTO AI提示符信息
      * @param status      对话状态
@@ -42,6 +43,7 @@ public interface AIChatHistoryService {
      * @return AI聊天记录
      */
     AIChatHistoryDTO buildAIChatHistoryDTO(String username,
+                                           Long appId,
                                            Long startTime,
                                            AIPromptDTO aiPromptDTO,
                                            Integer status,
