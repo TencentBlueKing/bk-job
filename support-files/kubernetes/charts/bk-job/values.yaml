@@ -868,6 +868,16 @@ executeConfig:
     port: 80
   # 运行时JVM参数
   jvmOptions: "-Xms512m -Xmx512m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 权限中心相关配置
+  iam:
+    # 主机拓扑路径相关配置
+    hostTopoPath:
+      # 缓存配置
+      cache:
+        # 是否开启，默认开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
 
 
 ## job-crontab定时任务配置

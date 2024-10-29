@@ -22,66 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Data;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * 服务器动态分组
+ * 支持从多种来源查询主机拓扑路径的服务，先添加的TopoPathService实例优先级高，若查询失败则遍历列表中其他服务进行查询，直至成功为止
  */
-@Data
 @NoArgsConstructor
-public class DynamicServerTopoNodeDTO implements Cloneable {
-    /**
-     * cmdb分布式拓扑节点ID
-     */
-    private long topoNodeId;
+@Slf4j
+public class CompositeTopoPathService implements TopoPathService {
 
-    private String nodeType;
+    private final List<TopoPathService> topoPathServiceList = new ArrayList<>();
 
-    /**
-     * 分布式拓扑节点对应的静态IP
-     */
-    private List<HostDTO> ipList;
-
-    public DynamicServerTopoNodeDTO(long topoNodeId, String nodeType) {
-        this.topoNodeId = topoNodeId;
-        this.nodeType = nodeType;
+    public void addTopoPathService(TopoPathService topoPathService) {
+        topoPathServiceList.add(topoPathService);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DynamicServerTopoNodeDTO that = (DynamicServerTopoNodeDTO) o;
-        return topoNodeId == that.topoNodeId &&
-            nodeType.equals(that.nodeType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(topoNodeId, nodeType);
-    }
-
-    public DynamicServerTopoNodeDTO clone() {
-        DynamicServerTopoNodeDTO cloneTopoNode = new DynamicServerTopoNodeDTO();
-        cloneTopoNode.setNodeType(nodeType);
-        cloneTopoNode.setTopoNodeId(topoNodeId);
-        if (ipList != null) {
-            List<HostDTO> cloneIpList = new ArrayList<>(ipList.size());
-            ipList.forEach(ip -> cloneIpList.add(ip.clone()));
-            cloneTopoNode.setIpList(cloneIpList);
+    public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
+        for (TopoPathService topoPathService : topoPathServiceList) {
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug(
+                        "Use {} to get topoPath, hostIds={}",
+                        topoPathService.getClass().getName(),
+                        hostIds
+                    );
+                }
+                return topoPathService.getTopoPathByHostIds(hostIds);
+            } catch (Exception e) {
+                String message = MessageFormatter.format(
+                    "Fail to get topoPath by hostIds using {}, hostIds={}",
+                    topoPathService.getClass().getName(),
+                    hostIds
+                ).getMessage();
+                log.warn(message, e);
+            }
         }
-        return cloneTopoNode;
-    }
-
-    public String getUniqueKey() {
-        return nodeType + "_" + topoNodeId;
+        return Collections.emptyMap();
     }
 }

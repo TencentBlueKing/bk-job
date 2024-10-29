@@ -29,11 +29,13 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -92,5 +94,17 @@ public interface ServiceHostResource {
     @PostMapping("/service/hosts/batchGet")
     InternalResponse<List<ServiceHostDTO>> batchGetHosts(
         @RequestBody
-            ServiceBatchGetHostsReq req);
+        ServiceBatchGetHostsReq req);
+
+    /**
+     * 批量获取主机拓扑信息
+     *
+     * @param req 请求
+     * @return 主机拓扑信息
+     */
+    @ApiOperation(value = "批量获取主机拓扑信息", produces = "application/json")
+    @PostMapping("/service/hostTopos/batchGet")
+    InternalResponse<List<ServiceHostTopoDTO>> batchGetHostTopos(
+        @RequestBody
+            ServiceBatchGetHostToposReq req);
 }

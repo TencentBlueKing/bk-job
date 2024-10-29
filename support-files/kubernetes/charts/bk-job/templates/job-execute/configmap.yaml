@@ -184,4 +184,8 @@ data:
       storage-backend: {{ .Values.executeConfig.logExport.storageBackend }}
       artifactory:
         repo: {{ .Values.executeConfig.logExport.artifactory.repo }}
+    job:
+      execute:
+        iam:
+          {{- toYaml .Values.executeConfig.iam | nindent 10 }}
 {{- end }}

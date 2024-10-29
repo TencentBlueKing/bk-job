@@ -79,5 +79,7 @@ public class InstanceTopologyDTO {
         return Objects.hash(objectId, instanceId);
     }
 
-
+    public String getUniqueKey() {
+        return objectId + "_" + instanceId;
+    }
 }

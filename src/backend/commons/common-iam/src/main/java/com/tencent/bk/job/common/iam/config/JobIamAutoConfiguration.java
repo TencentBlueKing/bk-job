@@ -31,8 +31,10 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -104,12 +106,12 @@ public class JobIamAutoConfiguration {
     }
 
     @Bean
-    public AuthHelper authHelper() {
-        return new AuthHelper(tokenService(), policyService(), iamConfiguration());
+    public AuthHelper authHelper(@Autowired(required = false) TopoPathService topoPathService) {
+        return new AuthHelper(tokenService(), policyService(), topoPathService, iamConfiguration());
     }
 
     @Bean
-    public BusinessAuthHelper businessAuthHelper() {
-        return new BusinessAuthHelper(tokenService(), policyService(), iamConfiguration());
+    public BusinessAuthHelper businessAuthHelper(@Autowired(required = false) TopoPathService topoPathService) {
+        return new BusinessAuthHelper(tokenService(), policyService(), topoPathService, iamConfiguration());
     }
 }

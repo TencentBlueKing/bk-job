@@ -194,3 +194,16 @@ log-export:
   # artifactory:
   #   # 存储执行日志导出临时文件的仓库名称
   #   repo: filedata
+
+job:
+  execute:
+    # 权限中心相关配置
+    iam:
+      # 主机拓扑路径相关配置
+      hostTopoPath:
+        # 缓存配置
+        cache:
+          # 是否开启，默认开启
+          enabled: true
+          # 过期时间（s）
+          expireSeconds: 10

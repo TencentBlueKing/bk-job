@@ -243,6 +243,17 @@ public class HostTopoDAOImpl implements HostTopoDAO {
     }
 
     @Override
+    public List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.HOST_ID.in(
+            hostIds.stream()
+                .map(JooqDataTypeUtil::buildULong)
+                .collect(Collectors.toList())
+        ));
+        return listHostTopoByConditions(conditions);
+    }
+
+    @Override
     public List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start,
                                                      Long limit) {
         List<Condition> conditions = new ArrayList<>();
@@ -267,7 +278,8 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             record.getHostId().longValue(),
             record.getAppId().longValue(),
             record.getSetId(),
-            record.getModuleId()
+            record.getModuleId(),
+            record.getLastTime()
         );
     }
 }
