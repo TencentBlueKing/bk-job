@@ -27,9 +27,11 @@ package com.tencent.bk.job.execute.config;
 import com.tencent.bk.job.execute.auth.impl.CachedTopoPathServiceImpl;
 import com.tencent.bk.job.execute.auth.impl.CompositeTopoPathService;
 import com.tencent.bk.job.execute.auth.impl.HostTopoPathCache;
+import com.tencent.bk.job.execute.auth.impl.SwitchableTopoPathService;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +68,6 @@ public class IamConfiguration {
         }
 
         @Bean
-        @Primary
         public TopoPathService cachedTopoPathService(@Qualifier("topoPathService")
                                                      TopoPathService topoPathService,
                                                      HostTopoPathCache hostTopoPathCache) {
@@ -74,4 +75,19 @@ public class IamConfiguration {
             return new CachedTopoPathServiceImpl(topoPathService, hostTopoPathCache);
         }
     }
+
+    @Bean
+    @Primary
+    public TopoPathService switchableTopoPathService(@Qualifier("topoPathService")
+                                                     TopoPathService topoPathService,
+                                                     @Autowired(required = false)
+                                                     @Qualifier("cachedTopoPathService")
+                                                     TopoPathService cachedTopoPathService,
+                                                     IamHostTopoPathProperties iamHostTopoPathProperties) {
+        if (cachedTopoPathService != null) {
+            return new SwitchableTopoPathService(cachedTopoPathService, iamHostTopoPathProperties);
+        }
+        return new SwitchableTopoPathService(topoPathService, iamHostTopoPathProperties);
+    }
+
 }
