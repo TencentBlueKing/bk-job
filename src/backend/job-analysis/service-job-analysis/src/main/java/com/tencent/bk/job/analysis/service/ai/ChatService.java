@@ -36,10 +36,11 @@ public interface ChatService {
      * 与AI聊天并处理聊天记录保存等逻辑
      *
      * @param username  用户名
+     * @param appId     Job业务ID
      * @param userInput 用户输入
      * @return AI对话记录
      */
-    AIChatRecord chatWithAI(String username, String userInput);
+    AIChatRecord chatWithAI(String username, Long appId, String userInput);
 
     /**
      * 获取最近的聊天记录列表

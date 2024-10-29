@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
 import java.util.List;
@@ -33,18 +34,18 @@ public interface AIChatHistoryService {
     /**
      * 构建AI聊天记录
      *
-     * @param username  用户名
-     * @param startTime 开始时间
-     * @param userInput 用户输入
-     * @param aiInput   AI输入
-     * @param status    对话状态
-     * @param aiAnswer  AI回答
+     * @param username    用户名
+     * @param appId       Job业务ID
+     * @param startTime   开始时间
+     * @param aiPromptDTO AI提示符信息
+     * @param status      对话状态
+     * @param aiAnswer    AI回答
      * @return AI聊天记录
      */
     AIChatHistoryDTO buildAIChatHistoryDTO(String username,
+                                           Long appId,
                                            Long startTime,
-                                           String userInput,
-                                           String aiInput,
+                                           AIPromptDTO aiPromptDTO,
                                            Integer status,
                                            AIAnswer aiAnswer);
 

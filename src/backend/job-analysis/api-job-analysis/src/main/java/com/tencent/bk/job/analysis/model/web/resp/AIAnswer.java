@@ -72,9 +72,10 @@ public class AIAnswer {
         return aiAnswer;
     }
 
-    public static AIAnswer failAnswer(String content) {
+    public static AIAnswer failAnswer(String content, String errorMessage) {
         AIAnswer aiAnswer = new AIAnswer();
         aiAnswer.setErrorCode(AIConsts.AI_ANSWER_ERROR_CODE_FAILED);
+        aiAnswer.setErrorMessage(errorMessage);
         aiAnswer.setTime(System.currentTimeMillis());
         aiAnswer.setContent(content);
         return aiAnswer;

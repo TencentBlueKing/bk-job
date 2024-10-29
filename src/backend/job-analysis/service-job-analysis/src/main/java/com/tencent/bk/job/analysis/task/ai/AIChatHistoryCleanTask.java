@@ -87,7 +87,7 @@ public class AIChatHistoryCleanTask {
             if (watch.isRunning()) {
                 watch.stop();
             }
-            if (successExecuted) {
+            if (successExecuted != null && successExecuted) {
                 log.info("AIChatHistoryCleanTask finished, timeConsuming={}", watch.prettyPrint());
             }
         }

@@ -32,9 +32,10 @@ public interface AICheckScriptService {
      * 检查脚本
      *
      * @param username      用户名
+     * @param appId         Job业务ID
      * @param type          脚本类型
      * @param scriptContent 脚本内容
      * @return AI对话记录
      */
-    AIChatRecord check(String username, Integer type, String scriptContent);
+    AIChatRecord check(String username, Long appId, Integer type, String scriptContent);
 }

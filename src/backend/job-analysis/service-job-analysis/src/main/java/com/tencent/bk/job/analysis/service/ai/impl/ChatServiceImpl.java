@@ -27,22 +27,28 @@ package com.tencent.bk.job.analysis.service.ai.impl;
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.listener.event.AIChatOperationEvent;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 import com.tencent.bk.job.analysis.mq.AIChatOperationEventDispatcher;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
+import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.Response;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -68,14 +74,15 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public AIChatRecord chatWithAI(String username, String userInput) {
+    public AIChatRecord chatWithAI(String username, Long appId, String userInput) {
         Long startTime = System.currentTimeMillis();
         // 1.保存初始聊天记录
+        AIPromptDTO aiPromptDTO = new AIPromptDTO(null, userInput, userInput);
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
+            appId,
             startTime,
-            userInput,
-            userInput,
+            aiPromptDTO,
             AIChatStatusEnum.INIT.getStatus(),
             null
         );
@@ -92,7 +99,56 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public StreamingResponseBody generateChatStream(String username, Long recordId) {
         log.info("Start to generateChatStream, username={}, recordId={}", username, recordId);
-        // 1.获取最近已完成的聊天记录
+        // 1.查出指定的聊天记录
+        AIChatHistoryDTO currentChatHistoryDTO = getChatHistory(username, recordId);
+        // 2.已经回答完成直接输出
+        if (currentChatHistoryDTO.isFinished()) {
+            log.info(
+                "Chat is already finished, use existing answer, lastAnswerTime={}",
+                currentChatHistoryDTO.getAnswerTimeStr()
+            );
+            return generateRespFromFinishedAIAnswer(currentChatHistoryDTO);
+        }
+        // 3.未回答完成则调用AI生成回答
+        // 获取最近已完成的聊天记录作为上下文
+        List<AIChatHistoryDTO> chatHistoryDTOList = buildChatHistory(username);
+        int affectedNum = aiChatHistoryService.setAIAnswerReplying(recordId);
+        if (affectedNum == 0) {
+            log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
+        }
+        // 4.将AI回答流数据与接口输出流进行同步对接
+        int inMemoryMessageMaxNum = 10000;
+        AIAnswerStreamSynchronizer aiAnswerStreamSynchronizer = new AIAnswerStreamSynchronizer(inMemoryMessageMaxNum);
+        AsyncConsumerAndProducerPair consumerAndProducerPair =
+            aiAnswerStreamSynchronizer.buildAsyncConsumerAndProducerPair();
+        CompletableFuture<String> future = aiService.getAIAnswerStream(
+            chatHistoryDTOList,
+            currentChatHistoryDTO.getAiInput(),
+            consumerAndProducerPair.getConsumer()
+        );
+        Locale locale = LocaleContextHolder.getLocale();
+        log.debug("language={}", locale.getLanguage());
+        future.whenComplete((content, throwable) -> {
+            // 5.处理AI回复内容
+            LocaleContextHolder.setLocale(locale);
+            aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
+            futureMap.remove(recordId);
+            aiAnswerStreamSynchronizer.triggerEndEvent(throwable);
+        });
+        futureMap.put(recordId, future);
+        return consumerAndProducerPair.getProducer();
+    }
+
+    private StreamingResponseBody generateRespFromFinishedAIAnswer(AIChatHistoryDTO currentChatHistoryDTO) {
+        return outputStream -> {
+            AIAnswer aiAnswer = AIAnswer.successAnswer(currentChatHistoryDTO.getAiAnswer());
+            Response<AIAnswer> respBody = Response.buildSuccessResp(aiAnswer);
+            AIAnswerUtil.setRequestIdAndWriteResp(outputStream, respBody);
+            outputStream.close();
+        };
+    }
+
+    private List<AIChatHistoryDTO> buildChatHistory(String username) {
         List<AIChatHistoryDTO> chatHistoryDTOList = aiChatHistoryService.getLatestFinishedChatHistoryList(
             username,
             0,
@@ -105,30 +161,7 @@ public class ChatServiceImpl implements ChatService {
             return StringUtils.isNotBlank(userInput) && StringUtils.isNotBlank(aiAnswer);
         }).collect(Collectors.toList());
         chatHistoryDTOList.sort(Comparator.comparing(AIChatHistoryDTO::getStartTime));
-        // 2.查出指定的聊天记录
-        AIChatHistoryDTO currentChatHistoryDTO = getChatHistory(username, recordId);
-        int affectedNum = aiChatHistoryService.setAIAnswerReplying(recordId);
-        if (affectedNum == 0) {
-            log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
-        }
-        // 3.将AI回答流数据与接口输出流进行同步对接
-        int inMemoryMessageMaxNum = 10000;
-        AIAnswerStreamSynchronizer aiAnswerStreamSynchronizer = new AIAnswerStreamSynchronizer(inMemoryMessageMaxNum);
-        AsyncConsumerAndProducerPair consumerAndProducerPair =
-            aiAnswerStreamSynchronizer.buildAsyncConsumerAndProducerPair();
-        CompletableFuture<String> future = aiService.getAIAnswerStream(
-            chatHistoryDTOList,
-            currentChatHistoryDTO.getAiInput(),
-            consumerAndProducerPair.getConsumer()
-        );
-        future.whenComplete((content, throwable) -> {
-            // 4.处理AI回复内容
-            aiAnswerHandler.handleAIAnswer(recordId, content, throwable);
-            futureMap.remove(recordId);
-            aiAnswerStreamSynchronizer.triggerEndEvent(throwable);
-        });
-        futureMap.put(recordId, future);
-        return consumerAndProducerPair.getProducer();
+        return chatHistoryDTOList;
     }
 
     private AIChatHistoryDTO getChatHistory(String username, Long recordId) {
