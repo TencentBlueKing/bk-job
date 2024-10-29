@@ -415,7 +415,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             List<HostTopoDTO> hostTopoDTOList = new ArrayList<>();
             for (int i = 0; i < setIdList.size(); i++) {
                 hostTopoDTOList.add(new HostTopoDTO(applicationHostDTO.getHostId(),
-                    applicationHostDTO.getBizId(), setIdList.get(i), moduleIdList.get(i)));
+                    applicationHostDTO.getBizId(), setIdList.get(i), moduleIdList.get(i), null));
             }
             return hostTopoDTOList;
         }

@@ -50,7 +50,7 @@ public class HostCache {
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<Object, Object> redisTemplate,
+    public HostCache(@Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                      AppScopeMappingService appScopeMappingService) {
         this.redisTemplate = redisTemplate;
         this.appScopeMappingService = appScopeMappingService;

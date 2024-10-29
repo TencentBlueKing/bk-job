@@ -279,7 +279,7 @@ public class HostTopoDAOImpl implements HostTopoDAO {
             record.getAppId().longValue(),
             record.getSetId(),
             record.getModuleId(),
-            record.getLastTime()
+            null
         );
     }
 }
