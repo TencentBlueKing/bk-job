@@ -117,7 +117,7 @@ public class HostTopoPathCache extends BaseRedisCache {
     public void addOrUpdateHostTopoPath(HostTopoPathEntry hostTopoPathEntry) {
         String timeFormat = "yyyy-MM-dd HH:mm:ss.SSS";
         hostTopoPathEntry.setCacheTime(TimeUtil.formatTime(System.currentTimeMillis(), timeFormat));
-        log.info(
+        log.debug(
             "Update hostTopoPath cache, hostId: {}, hostTopoPath: {}",
             hostTopoPathEntry.getHostId(),
             hostTopoPathEntry
