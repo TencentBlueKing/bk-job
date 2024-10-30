@@ -39,7 +39,7 @@
         :is-task="isTask" />
       <div class="extend-box">
         <ai-helper
-          v-if="taskExecuteDetail"
+          v-if="taskExecuteDetail && taskExecuteDetail.result === 'fail'"
           :get-log="handleGetLog"
           :task-instance-id="taskInstanceId" />
         <extend-download

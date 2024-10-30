@@ -62,6 +62,7 @@
       </div>
     </div>
     <div
+      v-if="isAiUseable"
       ref="aiExtendTool"
       class="ai-extend-tool"
       :style="aiExtendToolStyle"
@@ -140,6 +141,11 @@
         isAiEnable: false,
       };
     },
+    computed: {
+      isAiUseable() {
+        return this.isAiEnable && this.taskExecuteDetail && this.taskExecuteDetail.result !== 'fail';
+      },
+    },
     watch: {
       /**
        * @desc 查看的日志目标改变，重新获取日志
@@ -202,7 +208,6 @@
        * @desc 获取脚本日志
        */
       fetchLogContent() {
-        console.log('taskExecuteDetail = ', this.taskExecuteDetail);
         if (!this.taskExecuteDetail.executeObject) {
           this.isLoading = false;
           if (this.editor) {
@@ -280,6 +285,9 @@
         });
       },
       initAiHelper() {
+        if (!this.isAiUseable) {
+          return;
+        }
         const handleHideAiExtendTool = () => {
           this.aiExtendToolStyle = {};
         };
@@ -342,7 +350,7 @@
         this.editor.scrollToLine(Infinity);
       },
       handleMouseUp(event) {
-        if (!this.isAiEnable) {
+        if (!this.isAiUseable) {
           return;
         }
         setTimeout(() => {
