@@ -70,4 +70,10 @@ public class JobExecuteConfig {
 
     @Value("${gse.script.rootPath:/tmp/bkjob}")
     private String gseScriptFileRootPath;
+
+    /**
+     * 是否启用业务主机拓扑鉴权
+     */
+    @Value("${job.execute.feature.hostTopo.auth.enabled:false}")
+    private Boolean isHostTopoAuthEnabled;
 }
