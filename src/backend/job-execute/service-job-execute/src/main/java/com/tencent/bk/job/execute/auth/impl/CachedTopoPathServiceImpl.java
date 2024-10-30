@@ -57,13 +57,18 @@ public class CachedTopoPathServiceImpl implements TopoPathService {
     @Override
     public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
         StopWatch watch = new StopWatch();
-        Map<String, List<String>> resultMap = getTopoPathByHostIds(hostIds, watch);
-        if (watch.getTotalTimeMillis() >= 3000) {
-            log.warn("getTopoPathByHostIds slow:{}", watch.prettyPrint());
-        } else if (watch.getTotalTimeMillis() >= 1000) {
-            log.info("getTopoPathByHostIds cost:{}", watch.prettyPrint());
+        try {
+            Map<String, List<String>> resultMap = getTopoPathByHostIds(hostIds, watch);
+            if (watch.getTotalTimeMillis() >= 3000) {
+                log.warn("getTopoPathByHostIds slow:{}", watch.prettyPrint());
+            } else if (watch.getTotalTimeMillis() >= 1000) {
+                log.info("getTopoPathByHostIds cost:{}", watch.prettyPrint());
+            }
+            return resultMap;
+        } catch (Exception e) {
+            log.warn("getTopoPathByHostIds error, use delegate directly", e);
+            return delegate.getTopoPathByHostIds(hostIds);
         }
-        return resultMap;
     }
 
     private Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds, StopWatch watch) {
