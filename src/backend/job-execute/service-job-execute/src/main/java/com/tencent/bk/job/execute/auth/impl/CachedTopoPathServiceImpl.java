@@ -73,6 +73,13 @@ public class CachedTopoPathServiceImpl implements TopoPathService {
         try {
             watch.start("getHostTopoPathFromCache");
             hostTopoPathEntryList = hostTopoPathCache.batchGetHostTopoPathByHostIds(hostIdList);
+            if (hostTopoPathEntryList != null) {
+                hostTopoPathEntryList = hostTopoPathEntryList.stream()
+                    .filter(hostTopoPathEntry ->
+                        hostTopoPathEntry != null
+                            && CollectionUtils.isNotEmpty(hostTopoPathEntry.getTopoPathList()))
+                    .collect(Collectors.toList());
+            }
         } catch (Exception e) {
             String message = MessageFormatter.format(
                 "Fail to get hostTopoPath from cache, hostIds={}",
@@ -89,6 +96,9 @@ public class CachedTopoPathServiceImpl implements TopoPathService {
             }
             watch.start("getAllTopoPathByHostIds");
             Map<String, List<String>> resultMap = delegate.getTopoPathByHostIds(hostIds);
+            watch.stop();
+            watch.start("updateHostTopoPathCache");
+            updateHostTopoPathCache(resultMap);
             watch.stop();
             return resultMap;
         }
