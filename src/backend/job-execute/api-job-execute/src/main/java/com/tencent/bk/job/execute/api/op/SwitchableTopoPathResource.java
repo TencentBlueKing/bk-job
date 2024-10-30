@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.op.SwitchStatusReq;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,8 +43,8 @@ import java.util.Map;
 public interface SwitchableTopoPathResource {
 
     @ApiOperation(value = "根据hostId获取主机拓扑路径信息", produces = "application/json")
-    @GetMapping("/batchGet")
-    Response<Map<String, List<String>>> getTopoPathByHostIds(List<String> hostIdList);
+    @PostMapping("/batchGet")
+    Response<Map<String, List<String>>> getTopoPathByHostIds(@RequestBody List<String> hostIdList);
 
     @ApiOperation(value = "切换主机拓扑路径服务状态", produces = "application/json")
     @PostMapping("/switch")
