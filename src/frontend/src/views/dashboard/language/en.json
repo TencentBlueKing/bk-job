@@ -102,5 +102,6 @@
   "Solaris 数量": "Solaris",
   "Free BSD 数量": "Free BSD",
   "MacOS 数量": "MacOS",
-  "未知数量": "Unknown"
+  "未知数量": "Unknown",
+  "执行失败率": "Rate of Execution Failure"
 }

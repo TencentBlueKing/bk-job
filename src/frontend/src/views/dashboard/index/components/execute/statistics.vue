@@ -113,6 +113,8 @@
     chartsOptionsBase,
   } from '../common/assist';
 
+  let failCountList = [];
+
   const tooltipFormatter = (params) => {
     const generatorHtml = (data) => {
       const {
@@ -122,7 +124,8 @@
         value,
       } = data;
 
-      const realValue = seriesName !== I18n.t('dashboard.执行失败率') ? value : `${(Number(value) * 100).toFixed(2)} %`;
+      const realValue = seriesName === I18n.t('dashboard.执行失败率')
+        ? `${(Number(value) * 100).toFixed(2)} %(${failCountList[data.dataIndex]})` : value;
 
       if (seriesType === 'bar') {
         return `
@@ -154,6 +157,7 @@
     } else {
       paramsArr = params;
     }
+
 
     paramsArr.splice(-1, 0, {
       seriesType: 'line',
@@ -219,8 +223,9 @@
         const normalList = [];
         const cronList = [];
         const apiList = [];
-        const failList = [];
+        const failRateList = [];
         const totalList = [];
+        failCountList = [];
         data.forEach((item) => {
           const {
             date,
@@ -238,8 +243,9 @@
           cronList.push(CRON);
           normalList.push(NORMAL);
           const total = API + CRON + NORMAL;
-          failList.push((failCount / total).toFixed(4));
+          failRateList.push((failCount / total).toFixed(4));
           totalList.push(total);
+          failCountList.push(failCount);
         });
 
         this.myChart.clear();
@@ -385,7 +391,7 @@
             {
               name: I18n.t('dashboard.执行失败率'),
               type: 'line',
-              data: failList,
+              data: failRateList,
               itemStyle: {
                 color: '#FF5656',
               },
@@ -403,7 +409,8 @@
         const fastPushFileList = [];
         const fastExecuteScriptList = [];
         const executeTaskList = [];
-        const failList = [];
+        const failRateList = [];
+        failCountList = [];
         data.forEach((item) => {
           const {
             date,
@@ -420,7 +427,8 @@
           executeTaskList.push(EXECUTE_TASK);
           fastExecuteScriptList.push(FAST_EXECUTE_SCRIPT);
           fastPushFileList.push(FAST_PUSH_FILE);
-          failList.push((failCount / (EXECUTE_TASK + FAST_EXECUTE_SCRIPT + FAST_PUSH_FILE)).toFixed(4));
+          failRateList.push((failCount / (EXECUTE_TASK + FAST_EXECUTE_SCRIPT + FAST_PUSH_FILE)).toFixed(4));
+          failCountList.push(failCount);
         });
 
         this.myChart.clear();
@@ -574,7 +582,7 @@
             {
               name: I18n.t('dashboard.执行失败率'),
               type: 'line',
-              data: failList,
+              data: failRateList,
               itemStyle: {
                 color: '#FF5656',
               },
@@ -595,7 +603,8 @@
         const overTenMinList = [];
         const oneMinToTenMinList = [];
         const lessThanOneMinList = [];
-        const failList = [];
+        const failRateList = [];
+        failCountList = [];
         data.forEach((item) => {
           const {
             date,
@@ -612,7 +621,8 @@
           lessThanOneMinList.push(LESS_THAN_ONE_MIN);
           oneMinToTenMinList.push(ONE_MIN_TO_TEN_MIN);
           overTenMinList.push(OVER_TEN_MIN);
-          failList.push((failCount / (LESS_THAN_ONE_MIN + ONE_MIN_TO_TEN_MIN + OVER_TEN_MIN)).toFixed(2));
+          failRateList.push((failCount / (LESS_THAN_ONE_MIN + ONE_MIN_TO_TEN_MIN + OVER_TEN_MIN)).toFixed(2));
+          failCountList.push(failCount);
         });
 
         this.myChart.clear();
@@ -754,7 +764,7 @@
             {
               name: I18n.t('dashboard.执行失败率'),
               type: 'line',
-              data: failList,
+              data: failRateList,
               itemStyle: {
                 color: '#FF5656',
               },
@@ -776,13 +786,11 @@
         const PythonList = [];
         const ShellList = [];
         const SQLList = [];
-        const failList = [];
 
         data.forEach((item) => {
           const {
             date,
             distribution,
-            failCount,
           } = item;
           dateList.push(date);
           const {
@@ -800,7 +808,6 @@
           PythonList.push(python);
           ShellList.push(shell);
           SQLList.push(sql);
-          failList.push(failCount);
         });
 
         this.myChart.clear();
@@ -949,14 +956,6 @@
                 color: '#E7F5D7',
               },
             },
-            {
-              name: I18n.t('dashboard.执行失败率'),
-              type: 'line',
-              data: failList,
-              itemStyle: {
-                color: '#FF5656',
-              },
-            },
           ],
         });
       },
@@ -969,12 +968,10 @@
         const dateList = [];
         const forceList = [];
         const strictList = [];
-        const failList = [];
         data.forEach((item) => {
           const {
             date,
             distribution,
-            failCount,
           } = item;
           dateList.push(date);
           const {
@@ -984,7 +981,6 @@
 
           strictList.push(STRICT);
           forceList.push(FORCE);
-          failList.push(failCount);
         });
 
         this.myChart.clear();
@@ -1087,14 +1083,6 @@
               data: strictList,
               itemStyle: {
                 color: '#85CCA8',
-              },
-            },
-            {
-              name: I18n.t('dashboard.执行失败率'),
-              type: 'line',
-              data: failList,
-              itemStyle: {
-                color: '#FF5656',
               },
             },
           ],
