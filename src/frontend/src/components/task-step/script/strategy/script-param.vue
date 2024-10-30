@@ -36,7 +36,7 @@
         'is-secure-field': formData[secureField]
       }">
       <jb-input
-        :maxlength="64000"
+        :maxlength="65536"
         :placeholder="$t('脚本执行时传入的参数，同脚本在终端执行时的传参格式，如：./test.sh xxxx xxx xxx')"
         :type="paramType"
         :value="formData[paramField]"
