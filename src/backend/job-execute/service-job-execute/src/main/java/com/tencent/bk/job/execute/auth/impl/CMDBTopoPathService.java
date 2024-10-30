@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -51,10 +53,14 @@ import java.util.stream.Collectors;
 public class CMDBTopoPathService implements TopoPathService {
 
     private final BizCmdbClient bizCmdbClient;
+    private final ExecutorService executorService;
 
     @Autowired
-    public CMDBTopoPathService(BizCmdbClient bizCmdbClient) {
+    public CMDBTopoPathService(BizCmdbClient bizCmdbClient,
+                               @Qualifier("getHostTopoPathExecutor")
+                               ExecutorService executorService) {
         this.bizCmdbClient = bizCmdbClient;
+        this.executorService = executorService;
     }
 
     @Override
@@ -62,27 +68,13 @@ public class CMDBTopoPathService implements TopoPathService {
         List<Long> hostIdList = hostIds.stream().map(Long::parseLong).collect(Collectors.toList());
         // CMDB接口限制每次最多查询500台主机
         int batchSize = 500;
-        int maxBatchOfOneThread = 3;
         List<List<Long>> hostIdsSubList = Lists.partition(hostIdList, batchSize);
-        List<HostBizRelationDTO> hostBizRelationDTOList = new ArrayList<>();
-        if (hostIdsSubList.size() <= maxBatchOfOneThread) {
-            // 主机数量较小：当前线程串行拉取
-            for (List<Long> subList : hostIdsSubList) {
-                hostBizRelationDTOList.addAll(bizCmdbClient.findHostBizRelations(subList));
-            }
-        } else {
-            // 主机数量较大：多线程并发拉取
-            int maxThreadNum = 10;
-            int threadNum = Math.min(
-                (int) Math.ceil(hostIdsSubList.size() / (double) maxBatchOfOneThread),
-                maxThreadNum
-            );
-            hostBizRelationDTOList.addAll(ConcurrencyUtil.getResultWithThreads(
-                hostIdsSubList,
-                threadNum,
-                bizCmdbClient::findHostBizRelations
-            ));
-        }
+        // 多线程并发拉取
+        List<HostBizRelationDTO> hostBizRelationDTOList = ConcurrencyUtil.getResultWithThreads(
+            hostIdsSubList,
+            executorService,
+            bizCmdbClient::findHostBizRelations
+        );
         return buildTopoPathMap(hostBizRelationDTOList);
     }
 
