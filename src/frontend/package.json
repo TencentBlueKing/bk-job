@@ -30,6 +30,7 @@
     "core-js": "3.38.1",
     "cron-parser-custom": "2.13.0",
     "dayjs": "1.11.13",
+    "dexie": "4.0.9",
     "diff": "5.2.0",
     "diff2html": "3.4.48",
     "echarts": "5.5.1",
