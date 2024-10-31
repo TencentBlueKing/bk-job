@@ -1,6 +1,24 @@
 # chart values 更新日志
 
 ## 0.7.1
+1. 增加按主机拓扑路径鉴权相关配置
+```yaml
+executeConfig:
+  # 权限中心相关配置
+  iam:
+    # 按主机拓扑路径鉴权相关配置
+    hostTopoPath:
+      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
+      enabled : true
+      # 缓存配置
+      cache:
+        # 是否开启，默认开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
+```
+
+## 0.7.1
 1. 增加AI相关配置
 
 ```yaml
