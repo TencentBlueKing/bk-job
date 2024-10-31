@@ -224,7 +224,7 @@
   "确认离开当前页？": "Are you sure to leave now?",
   "不允许包含这些字符": "These character is not allowed",
   "只允许包含这些字符": "Character only allow by",
-  "变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线、和 -": "Variable names: start with letter, underscores, only letters, numbers, and underscores or hyphen symbol are allowed",
+  "变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线": "Variable names: start with letter, underscores, only letters, numbers, and underscores",
   "Linux 账号": "Linux",
   "Windows 账号": "Windows",
   "数据库账号": "Database",
