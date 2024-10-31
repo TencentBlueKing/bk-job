@@ -22,42 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.config;
+package com.tencent.bk.job.common.iam.metrics;
 
-import com.tencent.bk.job.common.iam.aspect.IamAppTransferAspect;
-import com.tencent.bk.job.common.iam.aspect.IamCallbackAspect;
-import com.tencent.bk.job.common.iam.aspect.IamExceptionHandleAspect;
-import com.tencent.bk.job.common.iam.aspect.IamMetricsAspect;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+public class MetricsConstants {
 
-/**
- * Iam 切面配置
- */
-@Configuration(proxyBeanMethods = false)
-public class IamAspectConfiguration {
+    // metric name
+    public static final String NAME_AUTH_HELPER_IS_ALLOW = "AuthHelper.isAllow";
 
-    @Bean
-    public IamCallbackAspect iamCallbackAspect() {
-        return new IamCallbackAspect();
-    }
+    // tag
+    public static final String TAG_KEY_ACTION = "action";
+    public static final String TAG_KEY_STATUS = "status";
 
-    @Bean
-    public IamAppTransferAspect iamAppTransferAspect(
-        ObjectProvider<AppScopeMappingService> appScopeMappingServiceProvider) {
-        return new IamAppTransferAspect(appScopeMappingServiceProvider.getIfAvailable());
-    }
+    // value
+    public static final String TAG_VALUE_ACTION_NONE = "none";
+    public static final String TAG_VALUE_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_RESULT_FALSE = "false";
+    public static final String TAG_VALUE_RESULT_ERROR = "error";
 
-    @Bean
-    public IamExceptionHandleAspect iamExceptionHandleAspect() {
-        return new IamExceptionHandleAspect();
-    }
-
-    @Bean
-    public IamMetricsAspect iamMetricsAspect(MeterRegistry meterRegistry) {
-        return new IamMetricsAspect(meterRegistry);
-    }
 }
