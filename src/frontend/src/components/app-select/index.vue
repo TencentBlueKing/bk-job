@@ -129,7 +129,7 @@
   import pinyin from 'bk-magic-vue/lib/utils/pinyin';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
-  import { computed, defineProps, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 
   import { useRoute, useRouter } from '@router';
 
