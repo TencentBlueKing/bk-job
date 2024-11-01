@@ -42,21 +42,11 @@ public interface TaskInstanceDAO {
 
     TaskInstanceDTO getTaskInstance(long taskInstanceId);
 
-    List<TaskInstanceDTO> getTaskInstanceByTaskId(long taskId);
-
     void updateTaskStatus(long taskInstanceId, int status);
-
-    void updateTaskStartTime(long taskInstanceId, Long startTime);
-
-    void updateTaskEndTime(long taskInstanceId, Long endTime);
 
     void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId);
 
     void resetTaskStatus(Long taskInstanceId);
-
-    void cleanTaskEndTime(Long taskInstanceId);
-
-    void updateTaskTotalTime(Long taskInstanceId, Long totalTime);
 
     /**
      * 分页查询作业执行实例
@@ -69,8 +59,6 @@ public interface TaskInstanceDAO {
                                                    BaseSearchCondition baseSearchCondition);
 
 
-    void addCallbackUrl(long taskInstanceId, String callBackUrl);
-
     /**
      * 获取定时作业执行情况
      *
@@ -81,8 +69,11 @@ public interface TaskInstanceDAO {
      * @param limit               返回记录个数；如果未NULL,那么不限制返回数量
      * @return 作业实例列表
      */
-    List<TaskInstanceDTO> listLatestCronTaskInstance(long appId, Long cronTaskId,
-                                                     Long latestTimeInSeconds, RunStatusEnum status, Integer limit);
+    List<TaskInstanceDTO> listLatestCronTaskInstance(long appId,
+                                                     Long cronTaskId,
+                                                     Long latestTimeInSeconds,
+                                                     RunStatusEnum status,
+                                                     Integer limit);
 
     /**
      * 更新作业的执行信息
@@ -94,8 +85,12 @@ public interface TaskInstanceDAO {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateTaskExecutionInfo(long taskInstanceId, RunStatusEnum status, Long currentStepId,
-                                 Long startTime, Long endTime, Long totalTime);
+    void updateTaskExecutionInfo(long taskInstanceId,
+                                 RunStatusEnum status,
+                                 Long currentStepId,
+                                 Long startTime,
+                                 Long endTime,
+                                 Long totalTime);
 
     /**
      * 重置作业执行状态

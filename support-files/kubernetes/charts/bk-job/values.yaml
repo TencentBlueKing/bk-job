@@ -18,6 +18,8 @@ global:
   storageClass: ""
   # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
   bkDomain: "example.com"
+  # BK助手链接，用于AI对话回答中的跳转链接
+  bkHelperLink: ""
 deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
   mode: standard
@@ -429,6 +431,12 @@ bkGseApiGatewayUrl: "http://bkapi.example.com"
 bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 # 蓝鲸 CMDB API Gateway url
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
 # 文档中心 url
 bkDocsCenterUrl: "https://bk.tencent.com/docs"
 # 问题反馈 url
@@ -677,7 +685,13 @@ job:
       #   appQuotaLimit:
       #     global: "20%"
       #     custom: "bk-nodeman=1000,bk-soap=50%"
-
+  # 动态属性配置
+  toggle:
+    props:
+      # prop_a:
+      #   defaultValue: "valueA"
+      # prop_b:
+      #   defaultValue: "valueB"
 ## 依赖宿主机GSE Agent的文件分发相关配置
 fileDistribute:
   # 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）
@@ -714,6 +728,7 @@ log:
     enabled: true
     # 服务后台日志可使用的最大磁盘空间（超出后将清理最旧的日志文件，但每类日志文件至少保留一个），单位支持B、KB、MB、GB、TB、PB，默认40GB
     maxVolume: 40GB
+
 
 ## 蓝鲸日志采集配置
 bkLogConfig:
@@ -967,7 +982,47 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  # extraEnv:
+  #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
+  #   - name: MALLOC_ARENA_MAX
+  #     value: 8
+  # 权限中心相关配置
+  iam:
+    # 按主机拓扑路径鉴权相关配置
+    hostTopoPath:
+      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
+      enabled : true
+      # 缓存配置
+      cache:
+        # 是否开启，默认开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
 
+  mysql:
+    # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
+    dataSourceMode: standalone
+    migration:
+      # 是否启用 db 迁移功能
+      enabled: false
+    standalone:
+      enabled: true
+    # 垂直分片配置
+    verticalSharding:
+      enabled: false
+    #   datasource:
+    #     job-execute-vertical-a:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-b:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-c:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+    #       username: "job"
+    #       password: "job"
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
@@ -1138,11 +1193,27 @@ backupConfig:
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
-      enabled: false
+      enabled: true
       # 被归档 DB 的配置
       mariadb:
         connection:
           properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+        dataSourceMode: standalone
+        # 垂直分片配置, 需要与 executeConfig 中保持一致
+        # verticalSharding:
+        #   datasource:
+        #     job-execute-vertical-a:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-b:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-c:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+        #       username: "job"
+        #       password: "job"
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00
@@ -1263,6 +1334,20 @@ analysisConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 300000
+  # AI相关配置
+  ai:
+    # 是否开启AI功能，默认不开启
+    enabled: false
+    # AI分析错误日志功能相关配置
+    analyzeErrorLog:
+      # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
+      logMaxLength: "5MB"
+    # AI聊天记录相关配置
+    chatHistory:
+      # 最大保留天数，默认31天
+      maxKeepDays: 31
+      # 单个用户最大保留的聊天记录数量，默认1000条
+      maxHistoryPerUser: 1000
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1525,10 +1610,8 @@ bkApiGatewayConfig:
     failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
-  # 同步蓝鲸网关url
-  syncUrl: "http://bkapi.example.com/api/{api_name}"
-  # 蓝鲸网关接口url
-  apiUrl: "http://bkapi.example.com/api/{api_name}/{env}"
+  # 蓝鲸网关url
+  url: "http://bkapi.example.com/api/bk-apigateway"
   # 接入环境
   stage: "prod"
   # 接入的api资源目录, 默认是/data/apidocs/

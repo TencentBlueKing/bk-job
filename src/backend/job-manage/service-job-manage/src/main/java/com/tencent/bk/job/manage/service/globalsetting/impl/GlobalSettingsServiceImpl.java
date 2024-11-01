@@ -37,10 +37,10 @@ import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.RelatedUrlKeys;
@@ -603,6 +603,27 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    public String getDocJobRootUrl() {
+        String docCenterBaseUrl = getDocCenterBaseUrl();
+        StringBuilder sb = new StringBuilder(docCenterBaseUrl);
+        sb.append("/markdown/");
+        if (JobContextUtil.isEnglishLocale()) {
+            sb.append("EN");
+        } else {
+            sb.append("ZH");
+        }
+        sb.append("/JOB/");
+        sb.append(getTwoDigitVersion());
+        return sb.toString();
+    }
+
+    private String getTwoDigitVersion() {
+        String completeVersion = buildProperties.getVersion();
+        String[] versionParts = completeVersion.split("\\.");
+        return versionParts[0] + "." + versionParts[1];
+    }
+
+    @Override
     public String getDocCenterBaseUrl() {
         String url;
         if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
@@ -656,7 +677,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             removeSuffixBackSlash(jobManageConfig.getCmdbServerUrl()) + jobManageConfig.getCmdbAppIndexPath());
         urlMap.put(RelatedUrlKeys.KEY_BK_NODEMAN_ROOT_URL, getNodemanRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocJobRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
         return urlMap;
@@ -672,7 +693,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private void addEnableFeatureFileManageConfig(Map<String, Object> configMap) {
         configMap.put(GlobalSettingKeys.KEY_ENABLE_FEATURE_FILE_MANAGE,
             FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_FILE_MANAGE,
-                FeatureExecutionContext.EMPTY));
+                ToggleEvaluateContext.EMPTY));
     }
 
     private void addEnableUploadToArtifactoryConfig(Map<String, Object> configMap) {

@@ -59,11 +59,20 @@ public class BkApiAuthorization {
     private String accessToken;
 
     /**
-     * 用户登录态 token，用于认证用户；登录蓝鲸，对应 Cookies 中 bk_token 字段的值；提供 bk_token 时，不需要再提供 bk_username
+     * 用户登录态 token，用于认证用户；登录蓝鲸，对应 Cookies 中 bk_token 字段的值；
+     * 与bk_ticket互斥，提供 bk_token 时，不需要再提供 bk_ticket/bk_username
      */
     @SkipLogFields
     @JsonProperty("bk_token")
     private String bkToken;
+
+    /**
+     * 某些环境下的用户登录态 token，用于认证用户；登录蓝鲸，对应 Cookies 中 bk_ticket 字段的值；
+     * 与bk_token互斥，提供 bk_ticket 时，不需要再提供 bk_token/bk_username
+     */
+    @SkipLogFields
+    @JsonProperty("bk_ticket")
+    private String bkTicket;
 
     /**
      * 当前用户用户名；仅用于应用免用户认证的场景中，用于指定当前用户
@@ -101,12 +110,12 @@ public class BkApiAuthorization {
     }
 
     /**
-     * 用户认证 - 根据 token
+     * 用户认证 - 根据 bk_token
      *
-     * @param bkToken 用户登录 token
+     * @param bkToken 用户登录 bk_token
      * @return 认证信息
      */
-    public static BkApiAuthorization userAuthorization(String appCode, String appSecret, String bkToken) {
+    public static BkApiAuthorization bkTokenUserAuthorization(String appCode, String appSecret, String bkToken) {
         BkApiAuthorization authorization = new BkApiAuthorization();
         authorization.setAppCode(appCode);
         authorization.setAppSecret(appSecret);
@@ -114,5 +123,18 @@ public class BkApiAuthorization {
         return authorization;
     }
 
+    /**
+     * 用户认证 - 根据 bk_ticket
+     *
+     * @param bkTicket 用户登录 bk_ticket
+     * @return 认证信息
+     */
+    public static BkApiAuthorization bkTicketUserAuthorization(String appCode, String appSecret, String bkTicket) {
+        BkApiAuthorization authorization = new BkApiAuthorization();
+        authorization.setAppCode(appCode);
+        authorization.setAppSecret(appSecret);
+        authorization.setBkTicket(bkTicket);
+        return authorization;
+    }
 
 }

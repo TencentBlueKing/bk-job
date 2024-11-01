@@ -1,6 +1,7 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 import com.tencent.bk.job.backup.dao.ExecuteRecordDAO;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -19,10 +20,13 @@ import static org.jooq.impl.DSL.min;
 
 public abstract class AbstractExecuteRecordDAO<T extends Record> implements ExecuteRecordDAO<T> {
 
-    protected final DSLContext context;
+    protected final DSLContextProvider dslContextProvider;
 
-    public AbstractExecuteRecordDAO(DSLContext context) {
-        this.context = context;
+    protected final String tableName;
+
+    public AbstractExecuteRecordDAO(DSLContextProvider dslContextProvider, String tableName) {
+        this.dslContextProvider = dslContextProvider;
+        this.tableName = tableName;
     }
 
     @Override
@@ -46,7 +50,7 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions, long maxLimitedDeleteRows) {
         int totalDeleteRows = 0;
         while (true) {
-            int deletedRows = context.delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
+            int deletedRows = dsl().delete(table).where(conditions).limit(maxLimitedDeleteRows).execute();
             totalDeleteRows += deletedRows;
             if (deletedRows < maxLimitedDeleteRows) {
                 break;
@@ -59,7 +63,7 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
                                  List<Condition> conditions,
                                  Long offset,
                                  Long limit) {
-        SelectConditionStep<Record> selectConditionStep = context.select()
+        SelectConditionStep<Record> selectConditionStep = dsl().select()
             .from(table)
             .where(conditions);
 
@@ -72,11 +76,15 @@ public abstract class AbstractExecuteRecordDAO<T extends Record> implements Exec
 
     @Override
     public Long getMinArchiveId() {
-        Record1<Long> firstArchiveIdRecord = context.select(min(getArchiveIdField())).from(getTable()).fetchOne();
+        Record1<Long> firstArchiveIdRecord = dsl().select(min(getArchiveIdField())).from(getTable()).fetchOne();
         if (firstArchiveIdRecord != null && firstArchiveIdRecord.get(0) != null) {
             return (Long) firstArchiveIdRecord.get(0);
         }
         return null;
+    }
+
+    protected DSLContext dsl() {
+        return this.dslContextProvider.get(tableName);
     }
 
     public abstract Table<T> getTable();

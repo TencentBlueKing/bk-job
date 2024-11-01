@@ -1,0 +1,4 @@
+# AutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.tencent.bk.job.common.mysql.MySQLAutoConfiguration
+

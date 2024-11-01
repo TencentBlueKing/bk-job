@@ -34,7 +34,7 @@ spec:
         - name: BK_APP_SECRET
           value: {{ .Values.appSecret }}
         - name: BK_API_URL_TMPL
-          value: {{ .Values.bkApiGatewayConfig.syncUrl }}
+          value: {{ .Values.bkApiGatewayConfig.url }}
         - name: BK_JOB_STAGE_NAME
           value: {{ .Values.bkApiGatewayConfig.stage }}
         - name: BK_APIGW_RESOURCE_DOCS_BASE_DIR

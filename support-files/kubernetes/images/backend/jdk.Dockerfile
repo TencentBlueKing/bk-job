@@ -1,6 +1,7 @@
 FROM bkjob/os:0.0.2
 
 LABEL maintainer="Tencent BlueKing Job"
+LABEL dockerfile.version="0.0.3"
 
 ## 安装JDK
 RUN mkdir -p /data && \

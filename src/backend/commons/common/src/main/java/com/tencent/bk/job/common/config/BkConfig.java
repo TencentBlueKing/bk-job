@@ -19,4 +19,8 @@ public class BkConfig {
      * 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分。
      */
     private String bkDomain;
+    /**
+     * BK助手链接。
+     */
+    private String bkHelperLink = "";
 }

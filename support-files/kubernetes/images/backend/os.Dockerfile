@@ -1,6 +1,7 @@
 FROM centos:7
 
 LABEL maintainer="Tencent BlueKing Job"
+LABEL dockerfile.version="0.0.2"
 
 ENV LANG="en_US.UTF-8"
 

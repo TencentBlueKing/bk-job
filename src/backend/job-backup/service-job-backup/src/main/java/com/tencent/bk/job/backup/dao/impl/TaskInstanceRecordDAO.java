@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
-import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -16,8 +16,8 @@ public class TaskInstanceRecordDAO extends AbstractExecuteRecordDAO<TaskInstance
 
     private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
 
-    public TaskInstanceRecordDAO(DSLContext context) {
-        super(context);
+    public TaskInstanceRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override
@@ -32,7 +32,7 @@ public class TaskInstanceRecordDAO extends AbstractExecuteRecordDAO<TaskInstance
 
     public Long getMaxId(Long endTime) {
         Record1<Long> record =
-            context.select(max(TABLE.ID))
+            dsl().select(max(TABLE.ID))
                 .from(TABLE)
                 .where(TABLE.CREATE_TIME.lessOrEqual(endTime))
                 .fetchOne();

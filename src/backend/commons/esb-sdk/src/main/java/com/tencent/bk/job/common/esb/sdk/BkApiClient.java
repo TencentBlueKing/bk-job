@@ -171,6 +171,59 @@ public class BkApiClient {
         }
     }
 
+    public <T, R> R requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
+                                              TypeReference<R> typeReference,
+                                              HttpHelper httpHelper) {
+        if (log.isInfoEnabled()) {
+            log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
+                requestInfo.getMethod().name(), requestInfo.getUri(),
+                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
+        }
+        String uri = requestInfo.getUri();
+        String respStr = null;
+        String status = EsbMetricTags.VALUE_STATUS_OK;
+        HttpMethodEnum httpMethod = requestInfo.getMethod();
+        long start = System.currentTimeMillis();
+        String bkApiRequestId = null;
+        boolean success = true;
+        try {
+            HttpResponse response = requestApi(httpHelper, requestInfo);
+            bkApiRequestId = extractBkApiRequestId(response);
+            respStr = response.getEntity();
+            if (StringUtils.isBlank(respStr)) {
+                String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
+                    + uri + ", error: " + "Response is blank";
+                log.warn(
+                    "[AbstractBkApiClient] fail: Response is blank| requestId={}|method={}|uri={}",
+                    bkApiRequestId,
+                    httpMethod.name(),
+                    uri
+                );
+                status = EsbMetricTags.VALUE_STATUS_ERROR;
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+            }
+            return jsonMapper.fromJson(respStr, typeReference);
+        } catch (Throwable e) {
+            success = false;
+            String errorMsg = "Fail to request api|method=" + httpMethod.name()
+                + "|uri=" + uri;
+            log.error(errorMsg, e);
+            status = EsbMetricTags.VALUE_STATUS_ERROR;
+            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
+        } finally {
+            long cost = System.currentTimeMillis() - start;
+            if (meterRegistry != null) {
+                meterRegistry.timer(metricName, buildMetricTags(uri, status))
+                    .record(cost, TimeUnit.MILLISECONDS);
+            }
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractBkApiClient] Response|requestId={}|method={}|uri={}|success={}"
+                        + "|costTime={}|resp={}",
+                    bkApiRequestId, httpMethod.name(), requestInfo.getUri(), success, cost, respStr);
+            }
+        }
+    }
+
     private <T, R> EsbResp<R> requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
                                                         BkApiContext<T, R> apiContext,
                                                         TypeReference<EsbResp<R>> typeReference,

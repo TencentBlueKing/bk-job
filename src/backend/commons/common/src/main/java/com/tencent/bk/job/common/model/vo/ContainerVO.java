@@ -66,4 +66,22 @@ public class ContainerVO {
 
     @ApiModelProperty("所属 Node GSE agent 状态")
     private String nodeAgentStatus;
+
+    @ApiModelProperty("cluster在cmdb中的唯一ID")
+    private Long clusterId;
+
+    @ApiModelProperty(value = "集群 ID", example = "BCS-K8S-00000")
+    private String clusterUID;
+
+    @ApiModelProperty("集群名称")
+    private String clusterName;
+
+    @ApiModelProperty("命名空间在 cmdb 的唯一 ID")
+    private Long namespaceId;
+
+    @ApiModelProperty("命名空间名称")
+    private String namespace;
+
+    @ApiModelProperty("workload 类型")
+    private String workloadType;
 }

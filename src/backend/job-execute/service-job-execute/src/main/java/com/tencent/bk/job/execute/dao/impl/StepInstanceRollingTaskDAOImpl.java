@@ -24,22 +24,23 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
+public class StepInstanceRollingTaskDAOImpl extends BaseDAO implements StepInstanceRollingTaskDAO {
 
     private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -61,19 +62,19 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         TABLE.END_TIME,
         TABLE.TOTAL_TIME
     };
-    private final DSLContext CTX;
 
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
-        this.CTX = CTX;
+    public StepInstanceRollingTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.READ)
     public StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
                                                        long stepInstanceId,
                                                        int executeCount,
                                                        int batch) {
-        Record record = CTX.select(ALL_FIELDS)
+        Record record = dsl().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -108,11 +109,12 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.READ)
     public List<StepInstanceRollingTaskDTO> listRollingTasks(Long taskInstanceId,
                                                              long stepInstanceId,
                                                              Integer executeCount,
                                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
@@ -126,25 +128,28 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         Result<? extends Record> result = selectConditionStep.orderBy(TABLE.BATCH.asc()).fetch();
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             stepInstanceRollingTasks = result.map(this::extract);
         }
         return stepInstanceRollingTasks;
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.WRITE)
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
-        Record record = CTX.insertInto(
-            TABLE,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT,
-            TABLE.BATCH,
-            TABLE.STATUS,
-            TABLE.START_TIME,
-            TABLE.END_TIME,
-            TABLE.TOTAL_TIME)
+        Record record = dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.BATCH,
+                TABLE.STATUS,
+                TABLE.START_TIME,
+                TABLE.END_TIME,
+                TABLE.TOTAL_TIME)
             .values(
+                rollingTask.getId(),
                 rollingTask.getTaskInstanceId(),
                 rollingTask.getStepInstanceId(),
                 JooqDataTypeUtil.toShort(rollingTask.getExecuteCount()),
@@ -155,11 +160,12 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                 rollingTask.getTotalTime())
             .returning(TABLE.ID)
             .fetchOne();
-        assert record != null;
-        return record.get(TABLE.ID);
+        return rollingTask.getId() != null ? rollingTask.getId() : record.getValue(TABLE.ID);
+
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.WRITE)
     public void updateRollingTask(Long taskInstanceId,
                                   long stepInstanceId,
                                   int executeCount,
@@ -170,25 +176,25 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                                   Long totalTime) {
         UpdateSetMoreStep<StepInstanceRollingTaskRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = CTX.update(TABLE).set(TABLE.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
+            updateSetMoreStep = dsl().update(TABLE).set(TABLE.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.START_TIME, startTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.START_TIME, startTime);
             } else {
                 updateSetMoreStep.set(TABLE.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.END_TIME, endTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.END_TIME, endTime);
             } else {
                 updateSetMoreStep.set(TABLE.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = CTX.update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
             } else {
                 updateSetMoreStep.set(TABLE.TOTAL_TIME, totalTime);
             }

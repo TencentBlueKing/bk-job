@@ -34,12 +34,12 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -360,7 +360,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private boolean isSupportProtocolBeforeV2() {
         return FeatureToggle.checkFeature(
             FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
-            FeatureExecutionContext.builder()
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     GlobalAppScopeMappingService.get().getScopeByAppId(appId))
         );

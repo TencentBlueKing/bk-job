@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -25,8 +25,8 @@ public class StepInstanceRollingTaskRecordDAO extends AbstractExecuteRecordDAO<S
         ORDER_FIELDS.add(StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK.BATCH.asc());
     }
 
-    public StepInstanceRollingTaskRecordDAO(DSLContext context) {
-        super(context);
+    public StepInstanceRollingTaskRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

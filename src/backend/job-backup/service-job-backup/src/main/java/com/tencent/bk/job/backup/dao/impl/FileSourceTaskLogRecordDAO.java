@@ -1,9 +1,9 @@
 package com.tencent.bk.job.backup.dao.impl;
 
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -25,8 +25,8 @@ public class FileSourceTaskLogRecordDAO extends AbstractExecuteRecordDAO<FileSou
         ORDER_FIELDS.add(FileSourceTaskLog.FILE_SOURCE_TASK_LOG.EXECUTE_COUNT.asc());
     }
 
-    public FileSourceTaskLogRecordDAO(DSLContext context) {
-        super(context);
+    public FileSourceTaskLogRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

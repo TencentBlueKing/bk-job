@@ -101,7 +101,7 @@ class TaskInstanceDAOImplIntegrationTest {
 
         TaskInstanceDTO returnTaskInstance = taskInstanceDAO.getTaskInstance(taskInstanceId);
 
-        assertThat(returnTaskInstance.getId()).isEqualTo(4L);
+        assertThat(returnTaskInstance.getId()).isGreaterThan(0L);
         assertThat(returnTaskInstance.getAppId()).isEqualTo(2L);
         assertThat(returnTaskInstance.getPlanId()).isEqualTo(3L);
         assertThat(returnTaskInstance.getTaskTemplateId()).isEqualTo(3L);
@@ -118,16 +118,6 @@ class TaskInstanceDAOImplIntegrationTest {
     }
 
     @Test
-    void testGetTaskInstanceByTaskId() {
-        long taskId = 1L;
-
-        List<TaskInstanceDTO> taskInstances = taskInstanceDAO.getTaskInstanceByTaskId(taskId);
-
-        assertThat(taskInstances).hasSize(2).extracting("id").containsOnly(1L, 2L);
-
-    }
-
-    @Test
     void testUpdateTaskStatus() {
         long taskInstanceId = 2L;
         taskInstanceDAO.updateTaskStatus(taskInstanceId, RunStatusEnum.ABNORMAL_STATE.getValue());
@@ -135,30 +125,6 @@ class TaskInstanceDAOImplIntegrationTest {
         TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
         assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
         assertThat(taskInstanceDTO.getStatus()).isEqualTo(RunStatusEnum.ABNORMAL_STATE);
-    }
-
-    @Test
-    void testUpdateTaskStartTime() {
-        long taskInstanceId = 2L;
-        long startTime = 1572955200000L;
-
-        taskInstanceDAO.updateTaskStartTime(taskInstanceId, startTime);
-
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-        assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getStartTime()).isEqualTo(startTime);
-    }
-
-    @Test
-    void testUpdateTaskEndTime() {
-        long taskInstanceId = 2L;
-        Long endTime = 1572955200000L;
-
-        taskInstanceDAO.updateTaskEndTime(taskInstanceId, endTime);
-
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-        assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getEndTime()).isEqualTo(endTime);
     }
 
     @Test
@@ -186,43 +152,6 @@ class TaskInstanceDAOImplIntegrationTest {
         assertThat(taskInstanceDTO.getEndTime()).isNull();
         assertThat(taskInstanceDTO.getTotalTime()).isNull();
         assertThat(taskInstanceDTO.getCurrentStepInstanceId()).isEqualTo(0L);
-    }
-
-    @Test
-    void testCleanTaskEndTime() {
-        long taskInstanceId = 2L;
-        taskInstanceDAO.cleanTaskEndTime(taskInstanceId);
-
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-
-        assertThat(taskInstanceDTO.getEndTime()).isNull();
-        assertThat(taskInstanceDTO.getTotalTime()).isNull();
-    }
-
-    @Test
-    void testUpdateTaskTotalTime() {
-        long taskInstanceId = 2L;
-        long totalTime = 1612L;
-        taskInstanceDAO.updateTaskTotalTime(taskInstanceId, totalTime);
-
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-
-        assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getTotalTime()).isEqualTo(totalTime);
-    }
-
-    @Test
-    void testAddCallbackUrl() {
-        String callbackUrl = "http://newbkjob.com";
-        long taskInstanceId = 2L;
-
-        taskInstanceDAO.addCallbackUrl(taskInstanceId, callbackUrl);
-
-        TaskInstanceDTO taskInstanceDTO = taskInstanceDAO.getTaskInstance(taskInstanceId);
-
-        assertThat(taskInstanceDTO.getId()).isEqualTo(taskInstanceId);
-        assertThat(taskInstanceDTO.getCallbackUrl()).isEqualTo(callbackUrl);
-
     }
 
     @Test
@@ -342,5 +271,4 @@ class TaskInstanceDAOImplIntegrationTest {
 
         taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
-
 }

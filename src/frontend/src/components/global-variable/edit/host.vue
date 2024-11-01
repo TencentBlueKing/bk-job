@@ -65,8 +65,6 @@
 </template>
 
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
 
   import {
@@ -139,7 +137,9 @@
         } else {
           this.executeObjectsInfo = this.data.targetValue.executeObjectsInfo;
         }
-        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
+        this.originalExecuteObjectsInfo = Object.freeze({
+          ...this.executeObjectsInfo,
+        });
       },
       /**
        * @desc 外部调用——移除无效主机
@@ -183,7 +183,9 @@
        */
       removeIllegalHost() {
         this.executeObjectsInfo = Object.freeze(removeIllegalHostFromExecuteObjectsInfo(this.executeObjectsInfo));
-        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
+        this.originalExecuteObjectsInfo = Object.freeze({
+          ...this.executeObjectsInfo,
+        });
       },
       /**
        * @desc 外部调用——值验证

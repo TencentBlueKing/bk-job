@@ -43,3 +43,4 @@ export * from './format-number';
 export * from './download-url';
 export * from './exec-copy';
 export * from './format-script-type-value';
+export * from './get-string-byte-count';

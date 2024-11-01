@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.manage.dao.impl;
 
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.ScriptCitedTaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.tables.ScriptVersion;

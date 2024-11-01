@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
-import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
 
@@ -13,8 +13,8 @@ public class RollingConfigRecordDAO extends AbstractExecuteRecordDAO<RollingConf
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
 
-    public RollingConfigRecordDAO(DSLContext context) {
-        super(context);
+    public RollingConfigRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

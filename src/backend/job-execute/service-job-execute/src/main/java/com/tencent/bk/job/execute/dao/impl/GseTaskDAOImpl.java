@@ -24,27 +24,27 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.tables.GseTask;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class GseTaskDAOImpl implements GseTaskDAO {
-    private final DSLContext dslContext;
+public class GseTaskDAOImpl extends BaseDAO implements GseTaskDAO {
 
     private static final GseTask TABLE = GseTask.GSE_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -69,8 +69,8 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     };
 
     @Autowired
-    public GseTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
-        this.dslContext = dslContext;
+    public GseTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     private GseTaskDTO extractInfo(Record record) {
@@ -106,19 +106,22 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.WRITE)
     public long saveGseTask(GseTaskDTO gseTask) {
-        Record record = dslContext.insertInto(
-            TABLE,
-            TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT,
-            TABLE.BATCH,
-            TABLE.START_TIME,
-            TABLE.END_TIME,
-            TABLE.TOTAL_TIME,
-            TABLE.STATUS,
-            TABLE.GSE_TASK_ID,
-            TABLE.TASK_INSTANCE_ID)
+        Record record = dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.BATCH,
+                TABLE.START_TIME,
+                TABLE.END_TIME,
+                TABLE.TOTAL_TIME,
+                TABLE.STATUS,
+                TABLE.GSE_TASK_ID,
+                TABLE.TASK_INSTANCE_ID)
             .values(
+                gseTask.getId(),
                 gseTask.getStepInstanceId(),
                 gseTask.getExecuteCount().shortValue(),
                 (short) gseTask.getBatch(),
@@ -130,13 +133,14 @@ public class GseTaskDAOImpl implements GseTaskDAO {
                 gseTask.getTaskInstanceId())
             .returning(TABLE.ID)
             .fetchOne();
+        return gseTask.getId() != null ? gseTask.getId() : record.getValue(TABLE.ID);
 
-        return record == null ? 0 : record.get(TABLE.ID);
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.WRITE)
     public boolean updateGseTask(GseTaskDTO gseTask) {
-        int affectRows = dslContext.update(TABLE)
+        int affectRows = dsl().update(TABLE)
             .set(TABLE.START_TIME, gseTask.getStartTime())
             .set(TABLE.END_TIME, gseTask.getEndTime())
             .set(TABLE.TOTAL_TIME, gseTask.getTotalTime())
@@ -149,9 +153,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            dslContext.select(ALL_FIELDS).from(TABLE)
+            dsl().select(ALL_FIELDS).from(TABLE)
                 .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(TABLE.EXECUTE_COUNT.eq((short) executeCount))
                 .and(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq));
@@ -165,8 +170,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId) {
-        Record record = dslContext.select(ALL_FIELDS).from(TABLE)
+        Record record = dsl().select(ALL_FIELDS).from(TABLE)
             .where(TABLE.ID.eq(gseTaskId))
             .and(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq))
             .fetchOne();
@@ -174,8 +180,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId) {
-        Result<Record> records = dslContext.select(SIMPLE_FIELDS).from(TABLE)
+        Result<Record> records = dsl().select(SIMPLE_FIELDS).from(TABLE)
             .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
             .limit(1)
             .fetch();
@@ -186,6 +193,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId, Integer executeCount, Integer batch) {
         List<Condition> conditions = new ArrayList<>();
         if (stepInstanceId != null) {
@@ -197,7 +205,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
         if (batch != null) {
             conditions.add(TABLE.BATCH.eq(batch.shortValue()));
         }
-        Result<Record> records = dslContext.select(SIMPLE_FIELDS).from(TABLE)
+        Result<Record> records = dsl().select(SIMPLE_FIELDS).from(TABLE)
             .where(conditions)
             .fetch();
         List<GseTaskSimpleDTO> results = new ArrayList<>();

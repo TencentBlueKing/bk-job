@@ -97,8 +97,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import CronJobService from '@service/cron-job';
 
   import Empty from '@components/empty';
@@ -155,7 +153,7 @@
       // 没有确认的定时任务，通过接口获取定时任务的name和变量
       // 默认展示模板的变量
       if (!this.info.hasConfirm) {
-        this.info.variableValue = Object.freeze(_.cloneDeep(this.variableList));
+        this.info.variableValue = Object.freeze([...this.variableList]);
         this.fetchData();
       }
     },

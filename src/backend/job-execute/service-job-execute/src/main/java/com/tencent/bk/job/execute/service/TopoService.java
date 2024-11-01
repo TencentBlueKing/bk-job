@@ -36,9 +36,9 @@ public interface TopoService {
     /**
      * 批量获取topo节点的层级
      *
-     * @param appId     业务ID
+     * @param bizId     CMDB业务ID
      * @param topoNodes cmdb topo 节点列表
      * @return topo节点层级
      */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long appId, List<DynamicServerTopoNodeDTO> topoNodes);
+    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
 }
