@@ -22,19 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.prop;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+@Slf4j
+public class PropLoadApplicationRunner implements ApplicationRunner {
+    private final PropToggleStore propToggleStore;
+
+    public PropLoadApplicationRunner(PropToggleStore propToggleStore) {
+        this.propToggleStore = propToggleStore;
+    }
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // 初始化配置；如果初始化错误，那么抛出异常终止程序启动
+        log.info("PropLoadApplicationRunner start");
+        propToggleStore.init();
+        log.info("PropLoadApplicationRunner run success");
+    }
 }

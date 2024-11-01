@@ -22,19 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.strategy;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
+import java.util.List;
+import java.util.Map;
+
+public class AnyMatchToggleStrategy extends AbstractCompositeToggleStrategy {
+
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 开关开启策略ID
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    public static final String STRATEGY_ID = "AnyMatchToggleStrategy";
+
+    public AnyMatchToggleStrategy(List<ToggleStrategy> strategies,
+                                  Map<String, String> initParams) {
+        super(STRATEGY_ID, strategies, initParams);
+    }
+
+    @Override
+    public boolean evaluate(String toggleName, ToggleEvaluateContext ctx) {
+        assertRequiredAtLeastOneStrategy();
+        for (ToggleStrategy strategy : compositeStrategies) {
+            boolean isMatch = strategy.evaluate(toggleName, ctx);
+            if (isMatch) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

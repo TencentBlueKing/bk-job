@@ -22,19 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.prop;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({PropToggleProperties.class})
+public class PropToggleAutoConfiguration {
+
+    @Bean
+    public PropToggleStore propToggleStore() {
+        return new InMemoryPropToggleStore();
+    }
+
+    @Bean
+    public PropLoadApplicationRunner propLoadApplicationRunner(PropToggleStore propToggleStore) {
+        return new PropLoadApplicationRunner(propToggleStore);
+    }
 }

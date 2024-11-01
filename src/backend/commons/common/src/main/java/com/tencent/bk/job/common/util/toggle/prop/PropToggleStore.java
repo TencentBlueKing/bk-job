@@ -22,19 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.util.toggle.prop;
 
+import com.tencent.bk.job.common.refreshable.config.RefreshableConfigStore;
+
+import java.util.List;
 import java.util.Set;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
+public interface PropToggleStore extends RefreshableConfigStore {
+
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 属性名称前缀
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    String PROP_KEY_PREFIX = "job.toggle.props";
+
+    /**
+     * 返回属性开关配置
+     *
+     * @param propName 属性名称
+     */
+    PropToggle getPropToggle(String propName);
+
+    /**
+     * 查询所有属性开关配置
+     *
+     * @return 属性开关配置列表
+     */
+    List<PropToggle> listPropToggles();
+
+    default boolean handleConfigChange(Set<String> changedKeys) {
+        return loadChange(changedKeys, true);
+    }
+
+    void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener);
+
 }

@@ -27,14 +27,21 @@ package com.tencent.bk.job.common.refreshable.config;
 import java.util.Set;
 
 /**
- * 配置刷新处理
+ * 动态配置存储仓库
  */
-public interface ConfigRefreshHandler {
+public interface RefreshableConfigStore {
+
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 初始化配置仓库，用于加载初始配置
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    void init();
+
+    /**
+     * 重载变更的配置
+     *
+     * @param changedKeys     变化的 keys
+     * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
+     * @return true: 重载成功
+     */
+    boolean loadChange(Set<String> changedKeys, boolean ignoreException);
 }

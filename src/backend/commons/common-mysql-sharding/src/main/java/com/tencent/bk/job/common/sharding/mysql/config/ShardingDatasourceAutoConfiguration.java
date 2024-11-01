@@ -22,19 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.sharding.mysql.config;
 
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties({MySQLProperties.class})
+@ConditionalOnProperty(value = "mysql.sharding.enabled", havingValue = "true")
+@Slf4j
+public class ShardingDatasourceAutoConfiguration {
+
 }

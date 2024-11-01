@@ -152,6 +152,8 @@ ext {
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
+    set('shardingJdbcVersion', "5.4.1")
+    set('snakeyamlVersion', "1.33")
 }
 
 group "com.tencent.bk.job"
@@ -348,6 +350,8 @@ subprojects {
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
             dependency "dev.ai4j:openai4j:$openai4jVersion"
+            dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
+            dependency "org.yaml:snakeyaml:$snakeyamlVersion"
         }
     }
     dependencies {

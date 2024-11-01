@@ -22,19 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
-
-import java.util.Set;
+package com.tencent.bk.job.common.service.toggle.strategy;
 
 /**
- * 配置刷新处理
+ * 开关策略配置解析异常
  */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+public class ToggleStrategyParseException extends RuntimeException {
+    public ToggleStrategyParseException() {
+    }
+
+    public ToggleStrategyParseException(String message) {
+        super(message);
+    }
+
+    public ToggleStrategyParseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ToggleStrategyParseException(Throwable cause) {
+        super(cause);
+    }
 }

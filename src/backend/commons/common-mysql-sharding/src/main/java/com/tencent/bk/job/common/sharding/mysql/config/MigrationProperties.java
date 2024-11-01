@@ -22,19 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.sharding.mysql.config;
 
-import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 配置刷新处理
+ * mysql db 切换配置
  */
-public interface ConfigRefreshHandler {
+@Getter
+@Setter
+@ToString
+public class MigrationProperties {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 是否启用数据源切换模式
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    private boolean enabled;
+
+    private String targetDataSourceName;
+
+    private String strategy;
 }

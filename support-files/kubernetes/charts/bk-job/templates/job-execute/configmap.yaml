@@ -201,4 +201,39 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+    {{ if .Values.executeConfig.mysql }}
+    mysql:
+      sharding:
+        enabled: {{ if or .Values.executeConfig.mysql.verticalSharding .Values.executeConfig.mysql.horizontalSharding }}true{{- else }}false{{- end }}
+        {{- if or .Values.executeConfig.mysql.verticalSharding .Values.executeConfig.mysql.horizontalSharding }}
+        shardingDataSources:
+          {{- if .Values.executeConfig.mysql.verticalSharding }}
+          {{- range $shardingDataSourceName, $shardingDataSource := .Values.executeConfig.mysql.verticalSharding.shardingDataSources }}
+          {{ $shardingDataSourceName }}:
+            dataSources:
+              {{- range $dataSource := $shardingDataSource.dataSources }}
+              {{ $dataSource.name }}:
+                driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+                jdbcUrl: {{ $dataSource.jdbcUrl | quote }}
+                username: {{ $dataSource.username | quote }}
+                password: {{ $dataSource.password | quote }}
+                maximumPoolSize: {{ $dataSource.maximumPoolSize | default 100 }}
+                minimumIdle: {{ $dataSource.minimumIdle | default 20 }}
+                idleTimeout: {{ $dataSource.idleTimeout | default 600000 }}
+                poolName: {{ $dataSource.poolName | default "job-execute" }}
+                validationTimeout: {{ $dataSource.validationTimeout | default 5000 }}
+              {{- end }}
+            shardingRule:
+              # 数据分片规则配置
+              tables:
+                {{- range $key, $value := $shardingDataSource.tableRoutes }}
+                {{- $tableName := trim $key }}
+                {{- $dsName := trim $value }}
+                {{ $tableName }}:
+                  actualDataNodes: "{{ $dsName }}.{{ $tableName }}"
+                {{- end }} 
+          {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
 {{- end }}

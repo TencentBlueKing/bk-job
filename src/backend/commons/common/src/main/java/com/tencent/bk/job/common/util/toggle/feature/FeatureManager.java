@@ -22,19 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.util.toggle.feature;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+
+import java.util.List;
 
 /**
- * 配置刷新处理
+ * 特性管理
  */
-public interface ConfigRefreshHandler {
+public interface FeatureManager {
     /**
-     * 处理配置动态刷新
+     * 判断特性是否开启（只考虑特性本身，忽略策略）
      *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * @param featureId 特性ID
+     * @return 是否开启
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    boolean isFeatureEnabled(String featureId);
+
+    /**
+     * 判断特性是否开启
+     *
+     * @param featureId 特性ID
+     * @param ctx       特性运行上下文
+     * @return 是否开启
+     */
+    boolean checkFeature(String featureId, ToggleEvaluateContext ctx);
+
+    /**
+     * 查询所有特性开关配置
+     *
+     * @return 特性开关配置列表
+     */
+    List<Feature> listFeatures();
 }

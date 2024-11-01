@@ -22,19 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.strategy;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * 配置刷新处理
+ * 组合策略抽象实现
  */
-public interface ConfigRefreshHandler {
+@Slf4j
+public abstract class AbstractCompositeToggleStrategy extends AbstractToggleStrategy {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 组合策略
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    protected final List<ToggleStrategy> compositeStrategies;
+
+    public AbstractCompositeToggleStrategy(String strategyId,
+                                           List<ToggleStrategy> compositeStrategies,
+                                           Map<String, String> initParams) {
+        super(strategyId, initParams);
+        this.compositeStrategies = compositeStrategies;
+        assertRequiredAtLeastOneStrategy();
+    }
+
+    protected void assertRequiredAtLeastOneStrategy() {
+        if (CollectionUtils.isEmpty(this.compositeStrategies)) {
+            String msg = "Required at least one strategy for this ToggleStrategy";
+            log.error(msg);
+            throw new ToggleStrategyParseException(msg);
+        }
+    }
 }

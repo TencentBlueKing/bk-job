@@ -22,19 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.execute.dao.common;
 
-import java.util.Set;
+import org.jooq.DSLContext;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+public interface DSLContextProvider {
+    DSLContext get();
+
+    void set(DSLContext currentDSLContext);
+
+    void unset();
 }
+

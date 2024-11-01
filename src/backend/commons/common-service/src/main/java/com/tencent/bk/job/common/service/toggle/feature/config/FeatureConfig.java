@@ -22,19 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.feature.config;
 
-import java.util.Set;
+import com.tencent.bk.job.common.service.toggle.strategy.config.ToggleStrategyConfig;
+import lombok.Data;
 
 /**
- * 配置刷新处理
+ * 特性配置
  */
-public interface ConfigRefreshHandler {
+@Data
+public class FeatureConfig {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 是否启用特性
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    private boolean enabled;
+    /**
+     * 特性启用策略；必须enabled=true,策略才会生效
+     */
+    private ToggleStrategyConfig strategy;
 }

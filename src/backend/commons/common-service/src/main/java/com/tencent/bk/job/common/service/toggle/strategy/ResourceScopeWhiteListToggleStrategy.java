@@ -22,19 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.strategy;
 
-import java.util.Set;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+
+import java.util.Map;
+import java.util.StringJoiner;
 
 /**
- * 配置刷新处理
+ * 根据资源范围白名单灰度策略
  */
-public interface ConfigRefreshHandler {
+public class ResourceScopeWhiteListToggleStrategy extends AbstractResourceScopeToggleStrategy {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 特性开关开启策略ID
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    public static final String STRATEGY_ID = "ResourceScopeWhiteListToggleStrategy";
+
+    public ResourceScopeWhiteListToggleStrategy(Map<String, String> initParams) {
+        super(STRATEGY_ID, initParams);
+    }
+
+    @Override
+    public boolean evaluate(String toggleName, ToggleEvaluateContext ctx) {
+        boolean isValidContext = checkFeatureExecuteContext(ctx);
+        if (!isValidContext) {
+            return false;
+        }
+        ResourceScope scope = (ResourceScope) ctx.getParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE);
+        return hitResourceScopeList(scope);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", ResourceScopeWhiteListToggleStrategy.class.getSimpleName() + "[", "]")
+            .add("id='" + id + "'")
+            .add("initParams=" + initParams)
+            .add("resourceScopes=" + resourceScopes)
+            .toString();
+    }
 }

@@ -22,19 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.prop;
 
-import java.util.Set;
+import com.tencent.bk.job.common.service.toggle.strategy.config.ToggleStrategyConfig;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 配置刷新处理
+ * 属性值动态切换开关配置
  */
-public interface ConfigRefreshHandler {
+@ConfigurationProperties(prefix = "job.toggle", ignoreInvalidFields = true)
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class PropToggleProperties {
+
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * key: prop_name; value: PropToggleConfig
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    private Map<String, PropToggleConfig> props = new HashMap<>();
+
+
+    @Data
+    @NoArgsConstructor
+    public static class PropToggleConfig {
+        private String defaultValue;
+
+        private List<ConditionConfig> conditions;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ConditionConfig {
+        private String value;
+        private ToggleStrategyConfig strategy;
+    }
+
+    @PostConstruct
+    public void print() {
+        log.info("PropToggleProperties init: {}", JsonUtils.toJson(this));
+    }
 }

@@ -22,19 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.execute.dao.common;
 
-import java.util.Set;
-
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
+public enum DbOperationEnum {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 读操作
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    READ(1),
+    /**
+     * 写操作
+     */
+    WRITE(2);
+
+
+    DbOperationEnum(int op) {
+        this.op = op;
+    }
+
+    private final int op;
+
+    public int getValue() {
+        return op;
+    }
 }

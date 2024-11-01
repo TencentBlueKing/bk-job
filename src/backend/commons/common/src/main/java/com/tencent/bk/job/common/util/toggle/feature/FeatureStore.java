@@ -22,19 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.util.toggle.feature;
 
+import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
+
+import java.util.List;
 import java.util.Set;
 
 /**
- * 配置刷新处理
+ * 特性开关配置存储
  */
-public interface ConfigRefreshHandler {
+public interface FeatureStore extends ConfigRefreshHandler {
     /**
-     * 处理配置动态刷新
+     * 返回特性开关配置
      *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * @param featureId 特性 ID
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    Feature getFeature(String featureId);
+
+    /**
+     * 加载配置
+     *
+     * @param changedKeys     变化的 keys
+     * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
+     * @return true: 重载成功
+     */
+    boolean load(Set<String> changedKeys, boolean ignoreException);
+
+
+    /**
+     * 查询所有特性开关配置
+     *
+     * @return 特性开关配置列表
+     */
+    List<Feature> listFeatures();
+
+    default boolean handleConfigChange(Set<String> changedKeys) {
+        return load(changedKeys, true);
+    }
+
 }

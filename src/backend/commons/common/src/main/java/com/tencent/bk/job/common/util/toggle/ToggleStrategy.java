@@ -22,19 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.util.toggle;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
- * 配置刷新处理
+ * 开关开启策略
  */
-public interface ConfigRefreshHandler {
+public interface ToggleStrategy {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 获取开关开启策略ID
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    String getId();
+
+    /**
+     * 获取初始化参数
+     */
+    Map<String, String> getInitParams();
+
+    /**
+     * 计算开关是否开启
+     *
+     * @param toggleName 开关名称
+     * @param ctx        开关评估上下文
+     * @return true: 开启；false: 关闭
+     */
+    boolean evaluate(String toggleName, ToggleEvaluateContext ctx);
 }

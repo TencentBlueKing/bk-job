@@ -43,17 +43,17 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import javax.sql.DataSource;
 
 @Configuration(value = "jobExecuteDbConfig")
+@ConfigurationProperties(prefix = "spring.datasource.job-execute")
 public class DbConfig {
 
     @Qualifier("job-execute-data-source")
     @Bean(name = "job-execute-data-source")
-    @ConfigurationProperties(prefix = "spring.datasource.job-execute")
     public DataSource dataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("jobExecuteTransactionManager")
-    @Bean(name = "jobExecuteTransactionManager")
+    @Qualifier("job-execute-transaction-manager")
+    @Bean(name = "job-execute-transaction-manager")
     @DependsOn("job-execute-data-source")
     public DataSourceTransactionManager transactionManager(
         @Qualifier("job-execute-data-source") DataSource dataSource) {
@@ -82,12 +82,12 @@ public class DbConfig {
     @Qualifier("job-execute-conn-provider")
     @Bean(name = "job-execute-conn-provider")
     public ConnectionProvider connectionProvider(
-        @Qualifier("jobExecuteTransactionAwareDataSource") DataSource dataSource) {
+        @Qualifier("job-execute-transaction-aware-data-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }
 
-    @Qualifier("jobExecuteTransactionAwareDataSource")
-    @Bean(name = "jobExecuteTransactionAwareDataSource")
+    @Qualifier("job-execute-transaction-aware-data-source")
+    @Bean(name = "job-execute-transaction-aware-data-source")
     public TransactionAwareDataSourceProxy
     transactionAwareDataSourceProxy(@Qualifier("job-execute-data-source") DataSource dataSource) {
         return new TransactionAwareDataSourceProxy(dataSource);

@@ -22,19 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.execute.dao.common;
 
-import java.util.Set;
+public enum MigrationStatus {
+    NOT_START(1),
+    WAIT(2),
+    READY(3),
+    MIGRATING(4),
+    MIGRATED(5);
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+    MigrationStatus(int status) {
+        this.status = status;
+    }
+
+    private final int status;
+
+    public int getStatus() {
+        return status;
+    }
 }

@@ -22,19 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.util.toggle.prop;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+import java.util.List;
+
+@Data
+public class PropToggle {
+    private String defaultValue;
+
+    private List<PropValueCondition> conditions;
+
+    @Data
+    @NoArgsConstructor
+    public static class PropValueCondition {
+        private String value;
+        private ToggleStrategy strategy;
+    }
 }

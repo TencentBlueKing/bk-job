@@ -22,19 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
-
-import java.util.Set;
+package com.tencent.bk.job.common.util.toggle.feature;
 
 /**
- * 配置刷新处理
+ * 特性ID定义
  */
-public interface ConfigRefreshHandler {
+public interface FeatureIdConstants {
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 特性: 任务下发对接 GSE2.0
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    String FEATURE_GSE_V2 = "gseV2";
+    /**
+     * 特性: Agent状态对接 GSE2.0
+     */
+    String FEATURE_AGENT_STATUS_GSE_V2 = "agentStatusGseV2";
+    /**
+     * 特性: OpenAPI 兼容bk_biz_id参数
+     */
+    String FEATURE_BK_BIZ_ID_COMPATIBLE = "bkBizIdCompatible";
+    /**
+     * 特性-第三方文件源
+     */
+    String FEATURE_FILE_MANAGE = "fileManage";
+
+    /**
+     * 特性-是否支持GSE 获取文件分发任务结果的API协议(2.0版本之前)
+     */
+    String GSE_FILE_PROTOCOL_BEFORE_V2 = "gseFileProtocolBeforeV2";
+    /**
+     * 特性: 执行对象
+     */
+    String FEATURE_EXECUTE_OBJECT = "executeObject";
+    /**
+     * 特性: 容器执行
+     */
+    String FEATURE_CONTAINER_EXECUTE = "containerExecution";
+    /**
+     * 特性: 作业执行增加db 所有表增加 task_instance_id 字段作为分库分表 shard_key
+     */
+    String DAO_ADD_TASK_INSTANCE_ID = "daoAddTaskInstanceId";
 }

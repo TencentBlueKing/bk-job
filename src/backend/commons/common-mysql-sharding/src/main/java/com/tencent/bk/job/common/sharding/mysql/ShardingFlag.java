@@ -22,19 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.sharding.mysql;
 
-import java.util.Set;
+import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+public class ShardingFlag {
+
+    private static volatile Boolean shardingEnabled = null;
+
+    public static boolean isShardingEnabled() {
+        if (shardingEnabled != null) {
+            return shardingEnabled;
+        }
+
+        synchronized (ShardingFlag.class) {
+            if (shardingEnabled == null) {
+                ShardingProperties shardingProperties =
+                    ApplicationContextRegister.getBean(ShardingProperties.class);
+                shardingEnabled = shardingProperties.isEnabled();
+            }
+        }
+
+        return shardingEnabled;
+    }
 }

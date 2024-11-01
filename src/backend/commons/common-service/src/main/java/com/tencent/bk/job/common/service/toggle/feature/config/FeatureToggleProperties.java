@@ -22,19 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.service.toggle.feature.config;
 
-import java.util.Set;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import javax.annotation.PostConstruct;
+import java.util.Map;
 
 /**
- * 配置刷新处理
+ * 特性开关配置
+ * <p>
+ * ignoreInvalidFields: true, 避免因为错误的配置导致微服务不可用（RefreshScopeHealthIndicator会对ConfigurationProperties
+ * 进行健康检查，如果配置有问题，会把微服务的状态设置为health=DOWN)
  */
-public interface ConfigRefreshHandler {
+@ConfigurationProperties(prefix = "job", ignoreInvalidFields = true)
+@ToString
+@Getter
+@Setter
+@Slf4j
+public class FeatureToggleProperties {
+
     /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
+     * 特性
      */
-    boolean handleConfigChange(Set<String> changedKeys);
+    private Map<String, FeatureConfig> features;
+
+    @PostConstruct
+    public void print() {
+        log.info("FeatureToggleProperties init: {}", JsonUtils.toJson(this));
+    }
 }

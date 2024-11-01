@@ -22,19 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.execute.dao.common;
 
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.DSLContext;
 
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+@Slf4j
+public class DynamicDSLContextProvider implements DSLContextProvider {
+
+    private final ThreadLocal<DSLContext> threadLocalDSLContext = new ThreadLocal<>();
+
+    @Override
+    public DSLContext get() {
+        return threadLocalDSLContext.get();
+    }
+
+    @Override
+    public void set(DSLContext currentDSLContext) {
+        threadLocalDSLContext.set(currentDSLContext);
+    }
+
+    @Override
+    public void unset() {
+        threadLocalDSLContext.remove();
+    }
 }

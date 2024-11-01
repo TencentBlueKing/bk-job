@@ -22,19 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
-
-import java.util.Set;
+package com.tencent.bk.job.common.service.toggle.prop;
 
 /**
- * 配置刷新处理
+ * 属性开关配置解析异常
  */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+public class PropConfigParseException extends RuntimeException {
+    public PropConfigParseException() {
+    }
+
+    public PropConfigParseException(String message) {
+        super(message);
+    }
+
+    public PropConfigParseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PropConfigParseException(Throwable cause) {
+        super(cause);
+    }
 }

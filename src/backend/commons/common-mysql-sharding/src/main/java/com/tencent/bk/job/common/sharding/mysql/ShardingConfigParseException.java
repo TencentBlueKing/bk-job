@@ -22,19 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
+package com.tencent.bk.job.common.sharding.mysql;
 
-import java.util.Set;
+import com.tencent.bk.job.common.exception.InternalException;
 
 /**
- * 配置刷新处理
+ * 分片配置解析异常
  */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+public class ShardingConfigParseException extends InternalException {
+
+    public ShardingConfigParseException(String message) {
+        super(message);
+    }
 }

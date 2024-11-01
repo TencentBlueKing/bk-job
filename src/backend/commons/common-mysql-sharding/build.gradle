@@ -22,19 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.refreshable.config;
-
-import java.util.Set;
-
-/**
- * 配置刷新处理
- */
-public interface ConfigRefreshHandler {
-    /**
-     * 处理配置动态刷新
-     *
-     * @param changedKeys 变化的 keys
-     * @return 是否成功处理
-     */
-    boolean handleConfigChange(Set<String> changedKeys);
+dependencies {
+    api project(":commons:common")
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    implementation 'org.springframework:spring-web'
+    implementation 'org.aspectj:aspectjrt'
+    implementation 'org.aspectj:aspectjweaver'
+    api 'org.apache.shardingsphere:shardingsphere-jdbc-core'
+    api 'org.yaml:snakeyaml'
+    api 'org.jooq:jooq'
+    api 'org.springframework.boot:spring-boot-starter-jdbc'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
