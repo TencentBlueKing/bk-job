@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbPlanInfoV3DTO;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanBasicInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -158,6 +159,18 @@ public class TaskPlanInfoDTO {
      * 关联的定时任务个数
      */
     private Long cronJobCount;
+
+    public static TaskPlanBasicInfoVO toBasicInfoVO(TaskPlanInfoDTO planInfo) {
+        TaskPlanBasicInfoVO taskPlanBasicInfoVO=new TaskPlanBasicInfoVO();
+        taskPlanBasicInfoVO.setId(planInfo.getId());
+        taskPlanBasicInfoVO.setName(planInfo.getName());
+        taskPlanBasicInfoVO.setTemplateId(planInfo.getTemplateId());
+        taskPlanBasicInfoVO.setCreator(planInfo.getCreator());
+        taskPlanBasicInfoVO.setCreateTime(planInfo.getCreateTime());
+        taskPlanBasicInfoVO.setLastModifyUser(planInfo.getLastModifyUser());
+        taskPlanBasicInfoVO.setLastModifyTime(planInfo.getLastModifyTime());
+        return taskPlanBasicInfoVO;
+    }
 
     public static TaskPlanVO toVO(TaskPlanInfoDTO planInfo) {
         TaskPlanVO planVO = new TaskPlanVO();

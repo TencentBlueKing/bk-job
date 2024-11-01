@@ -56,6 +56,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanBasicInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.CronJobService;
@@ -458,7 +459,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         if (StringUtils.isNotEmpty(planIds)) {
             List<Long> planIdList = Arrays.stream(planIds.split(",")).filter(Objects::nonNull).map(Long::valueOf)
                 .filter(id -> id > 0).collect(Collectors.toList());
-            List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoByIds(appResourceScope.getAppId(),
+            List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoWithVariablesByIds(appResourceScope.getAppId(),
                 planIdList);
             fillCronInfo(appResourceScope.getAppId(), taskPlanInfoList);
             List<TaskPlanVO> taskPlanList =
@@ -468,6 +469,31 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         } else {
             return Response.buildSuccessResp(new ArrayList<>());
         }
+    }
+
+    @Override
+    public Response<List<TaskPlanBasicInfoVO>> listTaskPlanBasicInfoByIds(String username,
+                                                                          AppResourceScope appResourceScope,
+                                                                          String scopeType,
+                                                                          String scopeId,
+                                                                          String planIds) {
+        if (StringUtils.isEmpty(planIds)) {
+            return Response.buildSuccessResp(new ArrayList<>());
+        }
+        List<Long> planIdList = Arrays.stream(planIds.split(","))
+            .filter(Objects::nonNull)
+            .map(Long::valueOf)
+            .filter(id -> id > 0)
+            .collect(Collectors.toList());
+        List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoByIds(
+            appResourceScope.getAppId(),
+            planIdList
+        );
+        List<TaskPlanBasicInfoVO> taskPlanList =
+            taskPlanInfoList.stream()
+                .map(TaskPlanInfoDTO::toBasicInfoVO)
+                .collect(Collectors.toList());
+        return Response.buildSuccessResp(taskPlanList);
     }
 
     @Override
