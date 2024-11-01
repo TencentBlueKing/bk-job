@@ -39,7 +39,7 @@ export default {
       });
   },
   fetchBatchPlan(params) {
-    return TaskPlanSource.getPlansBasicInfo(params)
+    return TaskPlanSource.getPlansInfo(params)
       .then(({ data }) => data.map(item => new PlanModel(item)));
   },
   fetchTaskPlan(params, config) {

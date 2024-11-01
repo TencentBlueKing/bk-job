@@ -40,6 +40,22 @@ export default class ExecuteObjectsInfo {
             && containerList.length < 1;
   }
 
+  static cloneExecuteObjectsInfo(executeObjectsInfo) {
+    const {
+      dynamicGroupList,
+      hostList,
+      nodeList,
+      containerList = [],
+    } = executeObjectsInfo;
+
+    return {
+      dynamicGroupList: [...dynamicGroupList],
+      hostList: [...hostList],
+      nodeList: [...nodeList],
+      containerList: [...containerList],
+    };
+  }
+
   constructor(payload = {}) {
     this.variable = payload.variable || '';
     this.executeObjectsInfo = this.initExecuteObjectsInfo(payload.executeObjectsInfo || {});
