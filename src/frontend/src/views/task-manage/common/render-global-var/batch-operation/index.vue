@@ -90,8 +90,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import GlobalVariableModel from '@model/task/global-variable';
 
   import { createVariable } from '../util';
@@ -113,7 +111,7 @@
     },
     data() {
       return {
-        variableList: _.cloneDeep(this.variable),
+        variableList: Object.freeze([...this.variable]),
       };
     },
     computed: {
@@ -154,7 +152,7 @@
         const variableList = [...this.variableList];
         const variable = new GlobalVariableModel(variableData);
         variableList.splice(index, 1, variable);
-        this.variableList = variableList;
+        this.variableList = Object.freeze(variableList);
         window.changeFlag = true;
       },
       /**
@@ -171,7 +169,7 @@
           // 删除新建的变量——直接删除
           variableList.splice(index, 1);
         }
-        this.variableList = variableList;
+        this.variableList = Object.freeze(variableList);
         window.changeFlag = true;
       },
       /**
@@ -179,7 +177,10 @@
        * @param {Number} index 编辑的变量索引
        */
       handleAppendVariable(index) {
-        this.variableList.splice(index + 1, 0, createVariable());
+        const variableList = [...this.variableList];
+        variableList.splice(index + 1, 0, createVariable());
+
+        this.variableList = Object.freeze(variableList);
         window.changeFlag = true;
       },
       /**
@@ -195,7 +196,7 @@
           queue.push(...this.$refs.variableCreate.map(item => item.validate()));
         }
         return Promise.all(queue)
-          .then(() => this.$emit('on-change', this.variableList));
+          .then(() => this.$emit('on-change', [...this.variableList]));
       },
     },
   };

@@ -91,9 +91,13 @@ class TaskPlan extends ModuleBase {
     });
   }
 
-  // 批量获取执行方案基础信息
-  getPlansBasicInfo(params = {}) {
+  // 批量获取执行方案信息
+  getPlansInfo(params = {}) {
     return Request.get(`${this.path}/task/plan`, { params });
+  }
+  // 批量获取执行方案基础信息
+  getPlansBasicinfo(params = {}) {
+    return Request.get(`${this.path}/task/plan/basicInfo`, { params });
   }
 
   // 获取业务下的执行方案列表

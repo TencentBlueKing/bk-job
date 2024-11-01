@@ -128,7 +128,7 @@
     // 源文件列表
     fileSourceList: [],
     // 超时
-    timeout: 7200,
+    timeout: 500,
     // 上传文件限速
     uploadSpeedLimit: 0,
     // 传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式
