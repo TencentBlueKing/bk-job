@@ -525,7 +525,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    public List<TaskPlanInfoDTO> listPlanBasicInfoByIds(Long appId, List<Long> planIdList) {
+    public List<TaskPlanInfoDTO> listPlanBasicInfoWithVariablesByIds(Long appId, List<Long> planIdList) {
         List<TaskPlanInfoDTO> taskPlanInfoList = taskPlanDAO.listTaskPlanByIds(
             appId,
             planIdList,
@@ -535,6 +535,16 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlanInfoList.forEach(taskPlan ->
             taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId())));
         return fillTemplateInfo(appId, taskPlanInfoList);
+    }
+
+    @Override
+    public List<TaskPlanInfoDTO> listPlanBasicInfoByIds(Long appId, List<Long> planIdList) {
+        return taskPlanDAO.listTaskPlanByIds(
+            appId,
+            planIdList,
+            null,
+            null
+        );
     }
 
     private List<TaskPlanInfoDTO> fillTemplateInfo(Long appId, List<TaskPlanInfoDTO> planList) {

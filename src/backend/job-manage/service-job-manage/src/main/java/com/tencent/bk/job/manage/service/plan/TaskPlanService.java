@@ -180,7 +180,16 @@ public interface TaskPlanService {
     TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId);
 
     /**
-     * 根据执行方案 ID 列表批量获取执行方案基本信息
+     * 根据执行方案 ID 列表批量获取执行方案基本信息（含变量与模板信息）
+     *
+     * @param appId      业务 ID
+     * @param planIdList 执行方案 ID 列表
+     * @return 执行方案基本信息列表
+     */
+    List<TaskPlanInfoDTO> listPlanBasicInfoWithVariablesByIds(Long appId, List<Long> planIdList);
+
+    /**
+     * 根据执行方案 ID 列表批量获取执行方案基本信息（不含变量与模板信息）
      *
      * @param appId      业务 ID
      * @param planIdList 执行方案 ID 列表
