@@ -24,26 +24,8 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
+public interface DynamicDSLContextProvider extends DSLContextProvider {
 
-@Slf4j
-public class DynamicDSLContextProvider implements DSLContextProvider {
+    void setProvider(DSLContextProvider provider);
 
-    private final ThreadLocal<DSLContext> threadLocalDSLContext = new ThreadLocal<>();
-
-    @Override
-    public DSLContext get() {
-        return threadLocalDSLContext.get();
-    }
-
-    @Override
-    public void set(DSLContext currentDSLContext) {
-        threadLocalDSLContext.set(currentDSLContext);
-    }
-
-    @Override
-    public void unset() {
-        threadLocalDSLContext.remove();
-    }
 }

@@ -160,6 +160,7 @@ data:
         function:
           definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
+        {{- if .Values.executeConfig.mysql.standalone.enabled }}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -173,8 +174,25 @@ data:
           maximum-pool-size: 100
           minimum-idle: 20
           idle-timeout: 600000
-          poolName: "job-execute"
+          poolName: "job-execute-standalone"
           validationTimeout: 5000
+        {{- end }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.enabled }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{- range $dsName, $ds := .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{ $dsName }}:
+            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            username: {{ $ds.username | quote }}
+            password: {{ $ds.password | quote }}
+            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
+            minimumIdle: {{ $ds.minimumIdle | default 20 }}
+            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
+            poolName: {{ $ds.poolName | default "job-execute" }}
+            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -201,39 +219,12 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
-    {{ if .Values.executeConfig.mysql }}
     mysql:
-      sharding:
-        enabled: {{ if or .Values.executeConfig.mysql.verticalSharding .Values.executeConfig.mysql.horizontalSharding }}true{{- else }}false{{- end }}
-        {{- if or .Values.executeConfig.mysql.verticalSharding .Values.executeConfig.mysql.horizontalSharding }}
-        shardingDataSources:
-          {{- if .Values.executeConfig.mysql.verticalSharding }}
-          {{- range $shardingDataSourceName, $shardingDataSource := .Values.executeConfig.mysql.verticalSharding.shardingDataSources }}
-          {{ $shardingDataSourceName }}:
-            dataSources:
-              {{- range $dataSource := $shardingDataSource.dataSources }}
-              {{ $dataSource.name }}:
-                driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
-                jdbcUrl: {{ $dataSource.jdbcUrl | quote }}
-                username: {{ $dataSource.username | quote }}
-                password: {{ $dataSource.password | quote }}
-                maximumPoolSize: {{ $dataSource.maximumPoolSize | default 100 }}
-                minimumIdle: {{ $dataSource.minimumIdle | default 20 }}
-                idleTimeout: {{ $dataSource.idleTimeout | default 600000 }}
-                poolName: {{ $dataSource.poolName | default "job-execute" }}
-                validationTimeout: {{ $dataSource.validationTimeout | default 5000 }}
-              {{- end }}
-            shardingRule:
-              # 数据分片规则配置
-              tables:
-                {{- range $key, $value := $shardingDataSource.tableRoutes }}
-                {{- $tableName := trim $key }}
-                {{- $dsName := trim $value }}
-                {{ $tableName }}:
-                  actualDataNodes: "{{ $dsName }}.{{ $tableName }}"
-                {{- end }} 
-          {{- end }}
-          {{- end }}
-        {{- end }}
-    {{- end }}
+      dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
+      standalone:
+        enabled: {{ .Values.executeConfig.mysql.standalone.enabled }}
+      verticalSharding:
+        enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
+      migration:
+        enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
 {{- end }}

@@ -28,9 +28,5 @@ import org.jooq.DSLContext;
 
 public interface DSLContextProvider {
     DSLContext get();
-
-    void set(DSLContext currentDSLContext);
-
-    void unset();
 }
 

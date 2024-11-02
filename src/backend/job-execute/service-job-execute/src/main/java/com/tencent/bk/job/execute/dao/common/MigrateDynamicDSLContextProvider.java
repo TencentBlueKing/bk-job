@@ -22,19 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(":commons:common")
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation("org.springframework.boot:spring-boot-autoconfigure")
-    implementation 'org.springframework:spring-web'
-    implementation 'org.aspectj:aspectjrt'
-    implementation 'org.aspectj:aspectjweaver'
-    api 'org.apache.shardingsphere:shardingsphere-jdbc-core'
-    api 'org.yaml:snakeyaml'
-    api 'org.jooq:jooq'
-    api 'org.springframework.boot:spring-boot-starter-jdbc'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.execute.dao.common;
+
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.DSLContext;
+
+/**
+ * DB 迁移专用 DynamicDSLContextProvider
+ */
+@Slf4j
+public class MigrateDynamicDSLContextProvider implements DynamicDSLContextProvider {
+
+    private final ThreadLocal<DSLContextProvider> threadLocalDSLContextProvider = new ThreadLocal<>();
+
+    @Override
+    public DSLContext get() {
+        return threadLocalDSLContextProvider.get().get();
+    }
+
+    @Override
+    public void setProvider(DSLContextProvider provider) {
+        threadLocalDSLContextProvider.set(provider);
+    }
 }

@@ -982,52 +982,29 @@ executeConfig:
   #     value: 8
 
   mysql:
-    primaryDataSourceName: job-execute
+    # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
+    dataSourceMode: standalone
     migration:
+      # 是否启用 db 迁移功能
+      enabled: false
+    standalone:
       enabled: true
-      targetDataSourceName: job-execute-vertical
-      strategy: lock_read_write
     # 垂直分片配置
     verticalSharding:
-      shardingDataSources:
-        job-execute-vertical:
-          # 数据源配置
-          dataSources:
-            - name: ds_0
-              jdbcUrl: jdbc:otel:mysql://db_host_0:3306/job_execute
-              username: "job"
-              password: "job"
-            - name: ds_1
-              jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
-              username: "job"
-              password: "job"
-            - name: ds_2
-              jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
-              username: "job"
-              password: "job"
-          # 表与库的路由关系
-          tableRoutes: 
-            dangerous_record: ds_0
-            file_source_task_log: ds_0
-            gse_file_agent_task: ds_0
-            gse_file_execute_obj_task: ds_0
-            gse_script_agent_task: ds_2
-            gse_script_execute_obj_task: ds_2
-            gse_task: ds_0
-            gse_task_ip_log: ds_0
-            gse_task_log: ds_0
-            operation_log: ds_0
-            rolling_config: ds_0
-            statistics: ds_0
-            step_instance: ds_0
-            step_instance_confirm: ds_0
-            step_instance_file: ds_0
-            step_instance_rolling_task: ds_0
-            step_instance_script: ds_0
-            step_instance_variable: ds_0
-            task_instance: ds_1
-            task_instance_host: ds_1
-            task_instance_variable: ds_0
+      enabled: true
+      datasource:
+        job-execute-vertical-a:
+          jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+          username: "job"
+          password: "job"
+        job-execute-vertical-b:
+          jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+          username: "job"
+          password: "job"
+        job-execute-vertical-c:
+          jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+          username: "job"
+          password: "job"
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署

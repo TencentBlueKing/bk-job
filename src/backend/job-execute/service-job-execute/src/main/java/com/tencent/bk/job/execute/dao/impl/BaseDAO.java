@@ -22,25 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql.config;
+package com.tencent.bk.job.execute.dao.impl;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.execute.dao.common.DSLContextProvider;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
+import org.jooq.DSLContext;
 
 /**
- * mysql db 切换配置
+ * DAO 层基础类
  */
-@Getter
-@Setter
-@ToString
-public class MigrationProperties {
-    /**
-     * 是否启用数据源切换模式
-     */
-    private boolean enabled;
+public class BaseDAO {
+    private final DSLContextProvider dslContextProvider;
 
-    private String targetDataSourceName;
+    public BaseDAO(DSLContextProviderFactory dslContextProviderFactory) {
+        this.dslContextProvider = dslContextProviderFactory.get();
+    }
 
-    private String strategy;
+    protected DSLContext dsl() {
+        return this.dslContextProvider.get();
+    }
 }

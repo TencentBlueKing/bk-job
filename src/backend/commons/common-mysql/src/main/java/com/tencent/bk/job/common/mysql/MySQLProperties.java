@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql.config;
+package com.tencent.bk.job.common.mysql;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,9 +37,31 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ToString
 public class MySQLProperties {
-    private String primaryDataSourceName;
 
-    private ShardingProperties sharding;
+    /**
+     * 数据源模式（单库/垂直分库/水平分库)
+     */
+    private String dataSourceMode = DataSourceMode.Constants.STANDALONE;
 
+    private StandaloneProperties standalone;
+
+    private VerticalShardingProperties verticalSharding;
+
+    /**
+     * DB 迁移配置
+     */
     private MigrationProperties migration;
+
+    @Getter
+    @Setter
+    public static class VerticalShardingProperties {
+        private boolean enabled;
+    }
+
+    @Getter
+    @Setter
+    public static class StandaloneProperties {
+        private boolean enabled;
+    }
+
 }

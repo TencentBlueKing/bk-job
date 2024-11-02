@@ -22,22 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql;
 
-public enum MigrationStatus {
-    NOT_START(1),
-    WAIT(2),
-    READY(3),
-    MIGRATING(4),
-    MIGRATED(5);
+public enum DbOperationEnum {
+    /**
+     * 读操作
+     */
+    READ(1),
+    /**
+     * 写操作
+     */
+    WRITE(2);
 
-    MigrationStatus(int status) {
-        this.status = status;
+    DbOperationEnum(int op) {
+        this.op = op;
     }
 
-    private final int status;
+    private final int op;
 
-    public int getStatus() {
-        return status;
+    public int getValue() {
+        return op;
     }
 }

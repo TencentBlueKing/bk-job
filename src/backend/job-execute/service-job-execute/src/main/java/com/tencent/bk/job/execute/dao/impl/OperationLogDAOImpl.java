@@ -24,36 +24,37 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.DbOperationEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
+import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class OperationLogDAOImpl implements OperationLogDAO {
+public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
-    private DSLContext ctx;
-
+    
     @Autowired
-    public OperationLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public OperationLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory);
     }
 
     @Override
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.WRITE)
     public long saveOperationLog(OperationLogDTO operationLog) {
-        Record record = ctx.insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
+        Record record = dsl().insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
             TABLE.CREATE_TIME, TABLE.DETAIL)
             .values(operationLog.getTaskInstanceId(),
                 JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
@@ -65,8 +66,9 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     }
 
     @Override
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.READ)
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
-        Result result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
+        Result result = dsl().select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
             , TABLE.DETAIL)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))

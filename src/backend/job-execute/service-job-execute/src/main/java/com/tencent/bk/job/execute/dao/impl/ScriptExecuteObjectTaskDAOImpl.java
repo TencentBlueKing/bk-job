@@ -27,7 +27,10 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.mysql.DbOperationEnum;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
+import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -36,7 +39,6 @@ import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRe
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -47,7 +49,6 @@ import org.jooq.TableField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.UpdateSetStep;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
 @Repository
-public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDAO {
+public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExecuteObjectTaskDAO {
 
     private static final GseScriptExecuteObjTask T = GseScriptExecuteObjTask.GSE_SCRIPT_EXECUTE_OBJ_TASK;
 
@@ -81,9 +82,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         T.TAG,
         T.LOG_OFFSET
     };
-
-    private final DSLContext CTX;
-
+    
     private static final String BATCH_INSERT_SQL =
         "insert into gse_script_execute_obj_task (task_instance_id,step_instance_id,execute_count,"
             + "actual_execute_count,batch,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,"
@@ -95,11 +94,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             + " where task_instance_id = ? and step_instance_id = ? and execute_count = ? and batch = ?"
             + " and execute_obj_id = ?";
 
-    public ScriptExecuteObjectTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
-        this.CTX = CTX;
+    public ScriptExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory);
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
         Object[][] params = new Object[tasks.size()][16];
         int batchCount = 0;
@@ -123,10 +123,11 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[15] = task.getScriptLogOffset();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_INSERT_SQL, params).execute();
+        dsl().batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
@@ -151,12 +152,13 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[13] = task.getExecuteObjectId();
             params[batchCount++] = param;
         }
-        CTX.batch(BATCH_UPDATE_SQL, params).execute();
+        dsl().batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public int getSuccessTaskCount(long stepInstanceId, int executeCount) {
-        Integer count = CTX.selectCount()
+        Integer count = dsl().selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -167,11 +169,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId,
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(T.STATUS, T.TAG, count().as("task_count"))
+            dsl().select(T.STATUS, T.TAG, count().as("task_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T.EXECUTE_COUNT.eq((short) executeCount));
@@ -196,12 +199,13 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByResultGroup(Long stepInstanceId,
                                                           Integer executeCount,
                                                           Integer batch,
                                                           Integer status,
                                                           String tag) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -245,6 +249,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByResultGroup(Long stepInstanceId,
                                                           Integer executeCount,
                                                           Integer batch,
@@ -259,7 +264,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         conditions.add(T.STATUS.eq(status));
         conditions.add(T.TAG.eq(tag == null ? "" : tag));
 
-        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dsl().select(ALL_FIELDS)
             .from(T)
             .where(conditions);
 
@@ -319,10 +324,11 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasks(Long stepInstanceId,
                                              Integer executeCount,
                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
@@ -341,6 +347,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByGseTaskId(Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
@@ -348,7 +355,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
 
         List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
 
-        Result<?> result = CTX.select(ALL_FIELDS)
+        Result<?> result = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
             .fetch();
@@ -359,12 +366,13 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public ExecuteObjectTask getTaskByExecuteObjectId(Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
                                                       String executeObjectId) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(ALL_FIELDS)
+            dsl().select(ALL_FIELDS)
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -379,17 +387,19 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(long stepInstanceId) {
-        return CTX.fetchExists(T, T.STEP_INSTANCE_ID.eq(stepInstanceId));
+        return dsl().fetchExists(T, T.STEP_INSTANCE_ID.eq(stepInstanceId));
     }
 
     @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void updateTaskFields(long stepInstanceId,
                                  int executeCount,
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = CTX.update(T);
+        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = dsl().update(T);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,

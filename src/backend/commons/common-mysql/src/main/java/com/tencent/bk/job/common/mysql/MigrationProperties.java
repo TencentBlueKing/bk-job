@@ -22,43 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql;
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Aspect
-@Slf4j
-@Order(Ordered.HIGHEST_PRECEDENCE + 20)
-public class ReadWriteLockDbMigrateAspect {
-
-    private final MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider;
-
-    private final PropBasedDynamicDataSource propBasedDynamicDataSource;
-
-
-    public ReadWriteLockDbMigrateAspect(MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider,
-                                        PropBasedDynamicDataSource propBasedDynamicDataSource) {
-        this.migrateDynamicDSLContextProvider = migrateDynamicDSLContextProvider;
-        this.propBasedDynamicDataSource = propBasedDynamicDataSource;
-    }
-
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
-    public void mysqlOperation() {
-    }
-
-    @Around("mysqlOperation()")
-    public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        try {
-            migrateDynamicDSLContextProvider.setProvider(propBasedDynamicDataSource.getCurrent());
-            return pjp.proceed();
-        } finally {
-            migrateDynamicDSLContextProvider.setProvider(null);
-        }
-    }
+/**
+ * mysql db 切换配置
+ */
+@Getter
+@Setter
+@ToString
+public class MigrationProperties {
+    /**
+     * 是否启用数据源切换模式
+     */
+    private boolean enabled;
 }

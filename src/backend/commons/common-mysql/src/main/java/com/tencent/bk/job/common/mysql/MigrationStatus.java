@@ -22,20 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
 
-/**
- * mysql db 操作注解
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Inherited
-public @interface DbMigrate {
-    DbOperationEnum op();
+@Getter
+public enum MigrationStatus {
+    /**
+     * 空闲
+     */
+    IDLE(1),
+    /**
+     * 准备迁移
+     */
+    PREPARING(2),
+    /**
+     * 迁移中
+     */
+    MIGRATING(3),
+    /**
+     * 迁移完成
+     */
+    MIGRATED(4);
+
+    MigrationStatus(int status) {
+        this.status = status;
+    }
+
+    private final int status;
+
 }

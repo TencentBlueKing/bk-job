@@ -22,16 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql;
+package com.tencent.bk.job.common.mysql;
 
-import com.tencent.bk.job.common.exception.InternalException;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 分片配置解析异常
- */
-public class ShardingConfigParseException extends InternalException {
-
-    public ShardingConfigParseException(String message) {
-        super(message);
-    }
+@Configuration
+@EnableConfigurationProperties(MySQLProperties.class)
+public class MySQLAutoConfiguration {
 }

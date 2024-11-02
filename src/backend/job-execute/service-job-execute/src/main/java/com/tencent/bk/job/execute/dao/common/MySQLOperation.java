@@ -24,41 +24,23 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import com.tencent.bk.job.common.mysql.DbOperationEnum;
 
-@Aspect
-@Slf4j
-@Order(Ordered.HIGHEST_PRECEDENCE + 20)
-public class ReadWriteLockDbMigrateAspect {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    private final MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider;
+/**
+ * mysql db 操作注解
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Inherited
+public @interface MySQLOperation {
+    String table();
 
-    private final PropBasedDynamicDataSource propBasedDynamicDataSource;
+    DbOperationEnum op();
 
-
-    public ReadWriteLockDbMigrateAspect(MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider,
-                                        PropBasedDynamicDataSource propBasedDynamicDataSource) {
-        this.migrateDynamicDSLContextProvider = migrateDynamicDSLContextProvider;
-        this.propBasedDynamicDataSource = propBasedDynamicDataSource;
-    }
-
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
-    public void mysqlOperation() {
-    }
-
-    @Around("mysqlOperation()")
-    public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        try {
-            migrateDynamicDSLContextProvider.setProvider(propBasedDynamicDataSource.getCurrent());
-            return pjp.proceed();
-        } finally {
-            migrateDynamicDSLContextProvider.setProvider(null);
-        }
-    }
 }

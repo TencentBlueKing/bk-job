@@ -22,28 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql;
+package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
-public class ShardingFlag {
+import java.lang.reflect.Method;
 
-    private static volatile Boolean shardingEnabled = null;
+@Aspect
+@Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)
+public class MySQLOperationContextInjectAspect {
 
-    public static boolean isShardingEnabled() {
-        if (shardingEnabled != null) {
-            return shardingEnabled;
+    private final ThreadLocalMySQLOpContext threadLocalMySQLOpContext;
+
+
+    public MySQLOperationContextInjectAspect(ThreadLocalMySQLOpContext threadLocalMySQLOpContext) {
+        this.threadLocalMySQLOpContext = threadLocalMySQLOpContext;
+    }
+
+    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
+    public void mysqlOperation() {
+    }
+
+    @Around("mysqlOperation()")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        try {
+            Method method = ((MethodSignature) pjp.getSignature()).getMethod();
+            MySQLOperation mySQLOperation = method.getAnnotation(MySQLOperation.class);
+            MySQLOperationContext context = new MySQLOperationContext(mySQLOperation.table(), mySQLOperation.op());
+            threadLocalMySQLOpContext.set(context);
+            return pjp.proceed();
+        } finally {
+            threadLocalMySQLOpContext.unset();
         }
-
-        synchronized (ShardingFlag.class) {
-            if (shardingEnabled == null) {
-                ShardingProperties shardingProperties =
-                    ApplicationContextRegister.getBean(ShardingProperties.class);
-                shardingEnabled = shardingProperties.isEnabled();
-            }
-        }
-
-        return shardingEnabled;
     }
 }

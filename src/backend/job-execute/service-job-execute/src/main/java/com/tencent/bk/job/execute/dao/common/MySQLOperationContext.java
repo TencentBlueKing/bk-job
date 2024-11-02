@@ -24,24 +24,26 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-public enum DbOperationEnum {
-    /**
-     * 读操作
-     */
-    READ(1),
-    /**
-     * 写操作
-     */
-    WRITE(2);
+import com.tencent.bk.job.common.mysql.DbOperationEnum;
+import lombok.Getter;
 
+@Getter
+public class MySQLOperationContext {
 
-    DbOperationEnum(int op) {
+    private final String tableName;
+
+    private final DbOperationEnum op;
+
+    public MySQLOperationContext(String tableName, DbOperationEnum op) {
+        this.tableName = tableName;
         this.op = op;
     }
 
-    private final int op;
+    public static MySQLOperationContext read(String tableName) {
+        return new MySQLOperationContext(tableName, DbOperationEnum.READ);
+    }
 
-    public int getValue() {
-        return op;
+    public static MySQLOperationContext write(String tableName) {
+        return new MySQLOperationContext(tableName, DbOperationEnum.WRITE);
     }
 }

@@ -184,18 +184,7 @@ public class InMemoryPropToggleStore implements PropToggleStore {
 
         return propToggle;
     }
-
-    @Override
-    public List<PropToggle> listPropToggles() {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    init();
-                }
-            }
-        }
-        return new ArrayList<>(propToggles.values());
-    }
+    
 
     @Override
     public void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener) {

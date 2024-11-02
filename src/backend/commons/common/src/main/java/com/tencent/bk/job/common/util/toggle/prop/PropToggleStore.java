@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.util.toggle.prop;
 
 import com.tencent.bk.job.common.refreshable.config.RefreshableConfigStore;
 
-import java.util.List;
 import java.util.Set;
 
 public interface PropToggleStore extends RefreshableConfigStore {
@@ -42,13 +41,6 @@ public interface PropToggleStore extends RefreshableConfigStore {
      * @param propName 属性名称
      */
     PropToggle getPropToggle(String propName);
-
-    /**
-     * 查询所有属性开关配置
-     *
-     * @return 属性开关配置列表
-     */
-    List<PropToggle> listPropToggles();
 
     default boolean handleConfigChange(Set<String> changedKeys) {
         return loadChange(changedKeys, true);

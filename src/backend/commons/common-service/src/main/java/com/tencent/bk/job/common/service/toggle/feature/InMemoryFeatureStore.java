@@ -63,7 +63,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(null, true);
+                    init();
                 }
             }
         }
@@ -71,10 +71,15 @@ public class InMemoryFeatureStore implements FeatureStore {
     }
 
     @Override
-    public boolean load(Set<String> changedKeys, boolean ignoreException) {
+    public void init() {
+        loadAll();
+    }
+
+    @Override
+    public boolean loadChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadInternal();
+            loadAll();
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
             loadResult = false;
@@ -87,7 +92,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         return loadResult;
     }
 
-    private void loadInternal() {
+    private void loadAll() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
             FeatureToggleProperties featureToggleProperties =
@@ -152,7 +157,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(null, true);
+                    init();
                 }
             }
         }

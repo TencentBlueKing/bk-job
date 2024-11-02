@@ -24,41 +24,21 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
-@Aspect
-@Slf4j
-@Order(Ordered.HIGHEST_PRECEDENCE + 20)
-public class ReadWriteLockDbMigrateAspect {
+@Component
+public class ThreadLocalMySQLOpContext {
+    private final ThreadLocal<MySQLOperationContext> contextHolder = new ThreadLocal<>();
 
-    private final MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider;
-
-    private final PropBasedDynamicDataSource propBasedDynamicDataSource;
-
-
-    public ReadWriteLockDbMigrateAspect(MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider,
-                                        PropBasedDynamicDataSource propBasedDynamicDataSource) {
-        this.migrateDynamicDSLContextProvider = migrateDynamicDSLContextProvider;
-        this.propBasedDynamicDataSource = propBasedDynamicDataSource;
+    public MySQLOperationContext get() {
+        return contextHolder.get();
     }
 
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
-    public void mysqlOperation() {
+    public void set(MySQLOperationContext mySQLOperationContext) {
+        contextHolder.set(mySQLOperationContext);
     }
 
-    @Around("mysqlOperation()")
-    public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        try {
-            migrateDynamicDSLContextProvider.setProvider(propBasedDynamicDataSource.getCurrent());
-            return pjp.proceed();
-        } finally {
-            migrateDynamicDSLContextProvider.setProvider(null);
-        }
+    public void unset() {
+        contextHolder.remove();
     }
 }
