@@ -24,8 +24,13 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.common.mysql.DataSourceMode;
 import com.tencent.bk.job.common.mysql.MySQLProperties;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.mysql.dynamic.ds.HorizontalShardingDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -22,11 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-import org.jooq.DSLContext;
+import lombok.Getter;
 
-public interface DSLContextProvider {
-    DSLContext get(String tableName);
+/**
+ * 数据源模式
+ */
+@Getter
+public enum DataSourceMode {
+    /**
+     * 单点 DB
+     */
+    STANDALONE(Constants.STANDALONE),
+    /**
+     * 垂直分库
+     */
+    VERTICAL_SHARDING(Constants.VERTICAL_SHARDING),
+    /**
+     * 水平分库
+     */
+    HORIZONTAL_SHARDING(Constants.HORIZONTAL_SHARDING);
+
+    public static class Constants {
+        public final static String STANDALONE = "standalone";
+        public final static String VERTICAL_SHARDING = "vertical_sharding";
+        public final static String HORIZONTAL_SHARDING = "horizontal_sharding";
+    }
+
+    private final String mode;
+
+    DataSourceMode(String mode) {
+        this.mode = mode;
+    }
+
+    public static DataSourceMode valOf(String mode) {
+        if (mode == null) {
+            return null;
+        }
+        for (DataSourceMode value : values()) {
+            if (value.getMode().equals(mode)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("No DataSourceMode constant: " + mode);
+    }
+
+    public static boolean checkValid(String mode) {
+        if (mode == null) {
+            return false;
+        }
+        for (DataSourceMode value : values()) {
+            if (value.getMode().equals(mode)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
-

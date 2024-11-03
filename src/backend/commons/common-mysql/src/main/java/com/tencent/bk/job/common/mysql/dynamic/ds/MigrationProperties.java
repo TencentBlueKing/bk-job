@@ -22,28 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-import com.tencent.bk.job.common.mysql.DbOperationEnum;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
+/**
+ * mysql db 切换配置
+ */
 @Getter
-public class MySQLOperationContext {
-
-    private final String tableName;
-
-    private final DbOperationEnum op;
-
-    public MySQLOperationContext(String tableName, DbOperationEnum op) {
-        this.tableName = tableName;
-        this.op = op;
-    }
-
-    public static MySQLOperationContext read(String tableName) {
-        return new MySQLOperationContext(tableName, DbOperationEnum.READ);
-    }
-
-    public static MySQLOperationContext write(String tableName) {
-        return new MySQLOperationContext(tableName, DbOperationEnum.WRITE);
-    }
+@Setter
+@ToString
+public class MigrationProperties {
+    /**
+     * 是否启用数据源切换模式
+     */
+    private boolean enabled;
 }

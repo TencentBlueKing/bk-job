@@ -22,9 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 
@@ -32,13 +32,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 垂直分库 MySQL Jooq DSLContext 提供者
+ * job-execute 垂直分库
  */
 @Slf4j
-public class VerticalShardingDSLContextProvider implements DSLContextProvider {
-
-    private final Map<String, DSLContext> tableNameAndDslContextMap = new HashMap<>();
-
+public class JobExecuteVerticalShardingDSLContextProvider extends VerticalShardingDSLContextProvider {
+    
     /**
      * 垂直分库，固定分成 3 个分库，每个分库与表的关系也是固定的。
      *
@@ -46,9 +44,11 @@ public class VerticalShardingDSLContextProvider implements DSLContextProvider {
      * @param dslContextB 分库 b
      * @param dslContextC 分库 c
      */
-    public VerticalShardingDSLContextProvider(DSLContext dslContextA,
-                                              DSLContext dslContextB,
-                                              DSLContext dslContextC) {
+    public JobExecuteVerticalShardingDSLContextProvider(DSLContext dslContextA,
+                                                        DSLContext dslContextB,
+                                                        DSLContext dslContextC) {
+        super();
+        Map<String, DSLContext> tableNameAndDslContextMap = new HashMap<>();
         tableNameAndDslContextMap.put("task_instance", dslContextA);
         tableNameAndDslContextMap.put("task_instance_host", dslContextA);
         tableNameAndDslContextMap.put("gse_script_execute_obj_task", dslContextB);
@@ -69,15 +69,6 @@ public class VerticalShardingDSLContextProvider implements DSLContextProvider {
         tableNameAndDslContextMap.put("step_instance_script", dslContextC);
         tableNameAndDslContextMap.put("step_instance_variable", dslContextC);
         tableNameAndDslContextMap.put("task_instance_variable", dslContextC);
-    }
-
-    @Override
-    public DSLContext get(String tableName) {
-        DSLContext dslContext = tableNameAndDslContextMap.get(tableName);
-        if (dslContext == null) {
-            log.error("DSLContext not found for table : {}", tableName);
-            throw new InternalException("DSLContext not found");
-        }
-        return dslContext;
+        super.initTableNameAndDslContextMap(tableNameAndDslContextMap);
     }
 }

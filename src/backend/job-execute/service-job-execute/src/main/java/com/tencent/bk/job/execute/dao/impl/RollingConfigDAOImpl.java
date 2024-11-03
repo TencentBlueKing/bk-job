@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.mysql.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
-import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;

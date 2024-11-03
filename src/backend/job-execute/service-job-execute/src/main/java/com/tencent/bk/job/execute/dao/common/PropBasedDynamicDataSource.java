@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.common.mysql.DataSourceMode;
-import com.tencent.bk.job.common.mysql.MigrationStatus;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus;
+import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.toggle.prop.PropChangeEventListener;
@@ -34,10 +37,10 @@ import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import static com.tencent.bk.job.common.mysql.MigrationStatus.IDLE;
-import static com.tencent.bk.job.common.mysql.MigrationStatus.MIGRATED;
-import static com.tencent.bk.job.common.mysql.MigrationStatus.MIGRATING;
-import static com.tencent.bk.job.common.mysql.MigrationStatus.PREPARING;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.IDLE;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.MIGRATED;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.MIGRATING;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.PREPARING;
 
 /**
  * 基于属性动态控制的数据源，可以根据属性值切换到不同的数据源

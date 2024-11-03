@@ -990,8 +990,8 @@ executeConfig:
     standalone:
       enabled: true
     # 垂直分片配置
-    # verticalSharding:
-    #   enabled: true
+    verticalSharding:
+      enabled: false
     #   datasource:
     #     job-execute-vertical-a:
     #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
@@ -1175,11 +1175,27 @@ backupConfig:
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
-      enabled: false
+      enabled: true
       # 被归档 DB 的配置
       mariadb:
         connection:
           properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+        dataSourceMode: standalone
+        # 垂直分片配置, 需要与 executeConfig 中保持一致
+        # verticalSharding:
+        #   datasource:
+        #     job-execute-vertical-a:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-b:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-c:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+        #       username: "job"
+        #       password: "job"
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00

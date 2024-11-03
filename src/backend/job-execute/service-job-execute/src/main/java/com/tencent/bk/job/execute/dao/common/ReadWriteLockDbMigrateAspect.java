@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -48,7 +49,7 @@ public class ReadWriteLockDbMigrateAspect {
         this.propBasedDynamicDataSource = propBasedDynamicDataSource;
     }
 
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
+    @Pointcut("@annotation(com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation)")
     public void mysqlOperation() {
     }
 

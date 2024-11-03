@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -26,8 +26,8 @@ public class GseScriptExecuteObjTaskRecordDAO extends AbstractExecuteRecordDAO<G
         ORDER_FIELDS.add(GseScriptExecuteObjTask.GSE_SCRIPT_EXECUTE_OBJ_TASK.EXECUTE_OBJ_ID.asc());
     }
 
-    public GseScriptExecuteObjTaskRecordDAO(DSLContext context) {
-        super(context);
+    public GseScriptExecuteObjTaskRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

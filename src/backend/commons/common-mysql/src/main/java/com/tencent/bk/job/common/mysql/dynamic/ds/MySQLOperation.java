@@ -22,41 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.MethodSignature;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.reflect.Method;
+/**
+ * mysql db 操作注解
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Inherited
+public @interface MySQLOperation {
+    String table();
 
-//@Aspect
-//@Slf4j
-//@Order(Ordered.HIGHEST_PRECEDENCE + 10)
-public class MySQLOperationContextInjectAspect {
+    DbOperationEnum op();
 
-    private final ThreadLocalMySQLOpContext threadLocalMySQLOpContext;
-
-
-    public MySQLOperationContextInjectAspect(ThreadLocalMySQLOpContext threadLocalMySQLOpContext) {
-        this.threadLocalMySQLOpContext = threadLocalMySQLOpContext;
-    }
-
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.MySQLOperation)")
-    public void mysqlOperation() {
-    }
-
-    @Around("mysqlOperation()")
-    public Object around(ProceedingJoinPoint pjp) throws Throwable {
-        try {
-            Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-            MySQLOperation mySQLOperation = method.getAnnotation(MySQLOperation.class);
-            MySQLOperationContext context = new MySQLOperationContext(mySQLOperation.table(), mySQLOperation.op());
-            threadLocalMySQLOpContext.set(context);
-            return pjp.proceed();
-        } finally {
-            threadLocalMySQLOpContext.unset();
-        }
-    }
 }

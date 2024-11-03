@@ -22,26 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
+import com.tencent.bk.job.common.exception.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 
+import java.util.Map;
+
 /**
- * 单点 MySQL Jooq DSLContext 提供者
+ * 垂直分库 MySQL Jooq DSLContext 提供者
  */
 @Slf4j
-public class StandaloneDSLContextProvider implements DSLContextProvider {
+public class VerticalShardingDSLContextProvider implements DSLContextProvider {
 
+    private Map<String, DSLContext> tableNameAndDslContextMap = null;
 
-    private final DSLContext dslContext;
-
-    public StandaloneDSLContextProvider(DSLContext dslContext) {
-        this.dslContext = dslContext;
+    public void initTableNameAndDslContextMap(Map<String, DSLContext> tableNameAndDslContextMap) {
+        this.tableNameAndDslContextMap = tableNameAndDslContextMap;
     }
 
     @Override
     public DSLContext get(String tableName) {
+        DSLContext dslContext = tableNameAndDslContextMap.get(tableName);
+        if (dslContext == null) {
+            log.error("DSLContext not found for table : {}", tableName);
+            throw new InternalException("DSLContext not found");
+        }
         return dslContext;
     }
 }

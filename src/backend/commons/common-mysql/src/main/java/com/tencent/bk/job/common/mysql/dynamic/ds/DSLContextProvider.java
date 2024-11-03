@@ -22,10 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-public interface DynamicDSLContextProvider extends DSLContextProvider {
+import org.jooq.DSLContext;
 
-    void setProvider(DSLContextProvider provider);
-
+public interface DSLContextProvider {
+    DSLContext get(String tableName);
 }
+

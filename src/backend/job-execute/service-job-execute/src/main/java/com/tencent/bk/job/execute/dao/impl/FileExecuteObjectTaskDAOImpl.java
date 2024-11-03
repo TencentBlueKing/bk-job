@@ -26,10 +26,10 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.mysql.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
-import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;

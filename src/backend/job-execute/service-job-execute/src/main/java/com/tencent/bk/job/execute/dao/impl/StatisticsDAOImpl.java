@@ -25,11 +25,11 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.common.mysql.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.util.ObjectWrapper;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
-import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.model.tables.Statistics;
 import com.tencent.bk.job.execute.model.tables.records.StatisticsRecord;
 import com.tencent.bk.job.execute.statistics.StatisticsKey;

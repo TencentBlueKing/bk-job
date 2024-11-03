@@ -22,25 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-public enum DbOperationEnum {
-    /**
-     * 读操作
-     */
-    READ(1),
-    /**
-     * 写操作
-     */
-    WRITE(2);
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.DSLContext;
 
-    DbOperationEnum(int op) {
-        this.op = op;
+/**
+ * 单点 MySQL Jooq DSLContext 提供者
+ */
+@Slf4j
+public class StandaloneDSLContextProvider implements DSLContextProvider {
+
+
+    private final DSLContext dslContext;
+
+    public StandaloneDSLContextProvider(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
-    private final int op;
-
-    public int getValue() {
-        return op;
+    @Override
+    public DSLContext get(String tableName) {
+        return dslContext;
     }
 }

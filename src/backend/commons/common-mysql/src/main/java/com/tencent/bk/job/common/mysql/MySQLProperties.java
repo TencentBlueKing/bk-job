@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.mysql;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrationProperties;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

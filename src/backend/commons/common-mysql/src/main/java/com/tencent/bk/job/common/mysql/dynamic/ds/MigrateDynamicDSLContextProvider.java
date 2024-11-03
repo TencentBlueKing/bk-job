@@ -22,25 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 
 /**
- * 水平分库 MySQL Jooq DSLContext 提供者
+ * DB 迁移专用 DynamicDSLContextProvider, 用于动态切换数据源
  */
 @Slf4j
-public class HorizontalShardingDSLContextProvider implements DSLContextProvider {
+public class MigrateDynamicDSLContextProvider implements DynamicDSLContextProvider {
 
-    private final DSLContext dslContext;
-
-    public HorizontalShardingDSLContextProvider(DSLContext dslContext) {
-        this.dslContext = dslContext;
-    }
+    private final ThreadLocal<DSLContextProvider> threadLocalDSLContextProvider = new ThreadLocal<>();
 
     @Override
     public DSLContext get(String tableName) {
-        return dslContext;
+        return threadLocalDSLContextProvider.get().get(tableName);
+    }
+
+    @Override
+    public void setProvider(DSLContextProvider provider) {
+        threadLocalDSLContextProvider.set(provider);
     }
 }

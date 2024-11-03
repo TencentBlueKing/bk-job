@@ -25,16 +25,15 @@
 package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.mysql.MySQLProperties;
+import com.tencent.bk.job.common.mysql.dynamic.ds.HorizontalShardingDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
-import com.tencent.bk.job.execute.dao.common.HorizontalShardingDSLContextProvider;
-import com.tencent.bk.job.execute.dao.common.MigrateDynamicDSLContextProvider;
-import com.tencent.bk.job.execute.dao.common.MySQLOperationContextInjectAspect;
+import com.tencent.bk.job.execute.dao.common.JobExecuteVerticalShardingDSLContextProvider;
 import com.tencent.bk.job.execute.dao.common.PropBasedDynamicDataSource;
 import com.tencent.bk.job.execute.dao.common.ReadWriteLockDbMigrateAspect;
-import com.tencent.bk.job.execute.dao.common.StandaloneDSLContextProvider;
-import com.tencent.bk.job.execute.dao.common.ThreadLocalMySQLOpContext;
-import com.tencent.bk.job.execute.dao.common.VerticalShardingDSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -281,7 +280,7 @@ public class DSLContextConfiguration {
             @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,
             @Qualifier("job-execute-dsl-context-c") DSLContext dslContextC
         ) {
-            return new VerticalShardingDSLContextProvider(
+            return new JobExecuteVerticalShardingDSLContextProvider(
                 dslContextA,
                 dslContextB,
                 dslContextC
@@ -341,11 +340,5 @@ public class DSLContextConfiguration {
             migrateDynamicDSLContextProviderObjectProvider.getIfAvailable(),
             mySQLProperties
         );
-    }
-
-    @Bean("mySQLOperationContextInjectAspect")
-    public MySQLOperationContextInjectAspect mySQLOperationContextInjectAspect(
-        ThreadLocalMySQLOpContext threadLocalMySQLOpContext) {
-        return new MySQLOperationContextInjectAspect(threadLocalMySQLOpContext);
     }
 }

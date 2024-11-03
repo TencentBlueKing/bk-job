@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.execute.dao.common.DSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import org.jooq.DSLContext;
 

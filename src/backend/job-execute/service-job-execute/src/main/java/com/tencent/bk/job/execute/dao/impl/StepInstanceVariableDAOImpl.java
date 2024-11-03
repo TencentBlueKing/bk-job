@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.mysql.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
-import com.tencent.bk.job.execute.dao.common.MySQLOperation;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
 import org.apache.commons.lang3.StringUtils;

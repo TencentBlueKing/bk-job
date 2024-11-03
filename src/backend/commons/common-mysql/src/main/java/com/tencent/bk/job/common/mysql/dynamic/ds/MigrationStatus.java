@@ -22,10 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
 import lombok.Getter;
 
+/**
+ * DB 迁移状态
+ */
 @Getter
 public enum MigrationStatus {
     /**

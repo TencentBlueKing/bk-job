@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
-import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.TableField;
 
@@ -13,8 +13,8 @@ public class OperationLogRecordDAO extends AbstractExecuteRecordDAO<OperationLog
 
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
 
-    public OperationLogRecordDAO(DSLContext context) {
-        super(context);
+    public OperationLogRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

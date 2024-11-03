@@ -22,21 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql;
+package com.tencent.bk.job.common.mysql.dynamic.ds;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.DSLContext;
 
 /**
- * mysql db 切换配置
+ * 水平分库 MySQL Jooq DSLContext 提供者
  */
-@Getter
-@Setter
-@ToString
-public class MigrationProperties {
-    /**
-     * 是否启用数据源切换模式
-     */
-    private boolean enabled;
+@Slf4j
+public class HorizontalShardingDSLContextProvider implements DSLContextProvider {
+
+    private final DSLContext dslContext;
+
+    public HorizontalShardingDSLContextProvider(DSLContext dslContext) {
+        this.dslContext = dslContext;
+    }
+
+    @Override
+    public DSLContext get(String tableName) {
+        return dslContext;
+    }
 }
