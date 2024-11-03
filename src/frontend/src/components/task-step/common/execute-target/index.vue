@@ -103,22 +103,34 @@
               <dropdown-menu-group>
                 <span>{{ $t('所有 IP') }}</span>
                 <template slot="action">
-                  <dropdown-menu-item @click="handleCopyIPv4">
+                  <dropdown-menu-item @click="() => handleCopyIPv4()">
                     IPv4
                   </dropdown-menu-item>
-                  <dropdown-menu-item @click="handleCopyIPv6">
+                  <dropdown-menu-item @click="() => handleCopyIPv4(true)">
+                    {{ $t('管控区域 ID:IPv4') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyIPv6()">
                     IPv6
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyIPv6(true)">
+                    {{ $t('管控区域 ID:IPv6') }}
                   </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
               <dropdown-menu-group>
                 <span>{{ $t('异常 IP') }}</span>
                 <template slot="action">
-                  <dropdown-menu-item @click="handleCopyAbnormalIPv4">
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv4()">
                     IPv4
                   </dropdown-menu-item>
-                  <dropdown-menu-item @click="handleCopyAbnormalIPv6">
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv4(true)">
+                    {{ $t('管控区域 ID:IPv4') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv6()">
                     IPv6
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv6(true)">
+                    {{ $t('管控区域 ID:IPv6') }}
                   </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
@@ -390,49 +402,55 @@
       handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
-      handleCopyIPv4() {
+      handleCopyIPv4(withNet = false) {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getHostIpv4List().then((hostList) => {
+        this.$refs.ipSelector.getIpv4HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的 IPv4'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipStr = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ip}` : item.ip)).join('\n');
+
+          execCopy(ipStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyIPv6() {
+      handleCopyIPv6(withNet = false) {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getHostIpv6List().then((hostList) => {
+        this.$refs.ipSelector.getIpv6HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的 IPv6'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipv6Str = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ipv6}` : item.ipv6)).join('\n');
+
+          execCopy(ipv6Str, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyAbnormalIPv4() {
+      handleCopyAbnormalIPv4(withNet = false) {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getAbnormalHostIpv4List().then((hostList) => {
+        this.$refs.ipSelector.getAbnormalIpv4HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的异常 IPv4'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipStr = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ip}` : item.ip)).join('\n');
+
+          execCopy(ipStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyAbnormalIPv6() {
+      handleCopyAbnormalIPv6(withNet = false) {
         this.isCopyLoading = true;
         this.$refs.ipSelector.getAbnormalHostIpv6List().then((hostList) => {
           if (hostList.length < 1) {
@@ -440,7 +458,9 @@
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipv6Str = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ipv6}` : item.ipv6)).join('\n');
+
+          execCopy(ipv6Str, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;

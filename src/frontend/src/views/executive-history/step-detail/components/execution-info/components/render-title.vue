@@ -30,8 +30,10 @@
     v-if="executeObject"
     class="render-execution-info-title"
     :class="taskExecuteDetail.result">
-    <div v-if="executeObject.container">
-      {{ executeObject.container.name }}
+    <div
+      v-if="executeObject.container"
+      class="contaier-box">
+      {{ executeObject.container.podName }}
     </div>
     <div
       v-if="executeObject.host"
@@ -62,12 +64,13 @@
 <style lang="postcss">
   .render-execution-info-title {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 325px;
     padding-left: 20px;
+    overflow: hidden;
     line-height: 14px;
     cursor: default;
+    flex-direction: column;
+    justify-content: center;
 
 
     &.success,
@@ -102,6 +105,15 @@
       &::before {
         background: #dcdee5;
       }
+    }
+
+    .contaier-box{
+      width: 100%;
+      height: 20px;
+      overflow: hidden;
+      line-height: 20px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .ip-box {

@@ -27,20 +27,20 @@
 
 <template>
   <div
-    ref="app"
+    ref="appRef"
     class="job-app-select"
     :class="{ focus: isFocus }">
     <div>
       <div
         v-if="showIcon"
         class="app-icon">
-        {{ icon }}
+        {{ valueIcon }}
       </div>
       <template v-else>
         <input
           class="app-name"
           readonly
-          :value="scopeId ? `${scopeName} (${scopeId})` : ''"
+          :value="currentScopeId ? `${currentScopeName} (${currentScopeId})` : ''"
           @keydown.down.prevent="handleStep('next')"
           @keydown.enter.prevent="handleSelect"
           @keydown.up.prevent="handleStep('prev')">
@@ -49,12 +49,12 @@
     </div>
     <div style="display: none;">
       <div
-        ref="panel"
+        ref="panelRef"
         class="app-panel">
         <div class="app-search">
           <input
-            ref="search"
-            v-model="query"
+            ref="searchRef"
+            v-model="keyword"
             :placeholder="$t('关键字')"
             spellcheck="false"
             @input="handleInputChange"
@@ -64,15 +64,15 @@
           <i class="bk-icon icon-search app-search-flag" />
         </div>
         <div
-          ref="list"
+          ref="listRef"
           class="app-list">
           <auth-component
-            v-for="(app, index) in renderList"
+            v-for="(app, index) in renderPaginationData"
             :key="app.id"
             auth="biz/access_business"
             class="app-item"
             :class="{
-              active: app.scopeType === scopeType && app.scopeId === scopeId,
+              active: app.scopeType === currentScopeType && app.scopeId === currentScopeId,
               hover: index === activeIndex,
             }"
             :permission="app.hasPermission"
@@ -108,6 +108,7 @@
               <span class="app-id">(#{{ app.scopeId }})</span>
             </div>
           </auth-component>
+          <div ref="loadingPlaceholderRef" />
           <div
             v-if="renderList.length < 1"
             class="app-list-empty">
@@ -124,12 +125,18 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
   import pinyin from 'bk-magic-vue/lib/utils/pinyin';
+  import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+
+  import { useRoute, useRouter } from '@router';
 
   import AppManageService from '@service/app-manage';
   import QueryGlobalSettingService from '@service/query-global-setting';
+
+  import { messageSuccess } from '@common/bkmagic';
 
   import I18n from '@/i18n';
   import {
@@ -139,6 +146,18 @@
   import {
     scopeCache,
   } from '@/utils/cache-helper';
+
+  import usePagination from './usePagination';
+
+  defineProps({
+    showIcon: {
+      type: Boolean,
+      default: false,
+    },
+  });
+
+  const currentRoute = useRoute();
+  const router = useRouter();
 
   const getTransformInfo = (text) => {
     const sentence = [];
@@ -185,292 +204,237 @@
     return favorList.concat(unfavorList);
   };
 
-  export default {
-    props: {
-      showIcon: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    data() {
-      return {
-        isFocus: false,
-        renderList: [],
-        scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
-        scopeId: window.PROJECT_CONFIG.SCOPE_ID,
-        scopeName: '',
-        activeIndex: -1,
-        query: '',
-        relatedSystemUrls: {
-          BK_CMDB_ROOT_URL: '',
-        },
-      };
-    },
-    computed: {
-      icon() {
-        return this.scopeName.slice(0, 1);
-      },
-    },
-    created() {
-      this.list = [];
-      this.fetchRelatedSystemUrls();
-      this.fetchWholeAppList();
-    },
-    mounted() {
-      this.initPopover();
-    },
-    methods: {
-      /**
-       * @desc 获取系统配置项
-       */
-      fetchRelatedSystemUrls() {
-        QueryGlobalSettingService.fetchRelatedSystemUrls()
-          .then((data) => {
-            this.relatedSystemUrls = Object.freeze(data);
-          });
-      },
-      /**
-       * @desc 获取业务列表
-       */
-      fetchWholeAppList() {
-        AppManageService.fetchWholeAppList()
-          .then((data) => {
-            this.list = data.data.map(item => ({
-              ...item,
-              ...getTransformInfo(item.name),
-            }));
-            this.renderList = Object.freeze([
-              ...this.list,
-            ]);
-            // eslint-disable-next-line no-plusplus
-            for (let i = 0; i < this.list.length; i++) {
-              const {
-                scopeType,
-                scopeId,
-                name,
-              } = this.list[i];
-              if (scopeType === this.scopeType && scopeId === this.scopeId) {
-                this.activeIndex = i;
-                this.scopeName = name;
-                break;
-              }
-            }
-          });
-      },
-      /**
-       * @desc 下拉列表
-       */
-      initPopover() {
-        if (!this.popperInstance) {
-          this.popperInstance = this.$bkPopover(this.$refs.app, {
-            theme: 'light app-list',
-            arrow: false,
-            interactive: true,
-            animateFill: false,
-            placement: 'bottom-start',
-            content: this.$refs.panel,
-            trigger: 'click',
-            distance: 20,
-            width: '320px',
-            size: 'small',
-            appendTo: document.querySelector('.jb-navigation-side'),
-            zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
-            onShow: () => {
-              this.isFocus = true;
-              setTimeout(() => {
-                this.$refs.search.focus();
-              });
-            },
-            onHidden: () => {
-              this.isFocus = false;
-              this.query = '';
-              this.list = sortAPPList(this.list);
-              this.handleInputChange();
-            },
-          });
-          this.$once('hook:beforeDestroy', () => {
-            this.popperInstance.destroy();
-          });
-        }
-      },
-      /**
-       * @desc 跳转cmdb创建新的业务
-       */
-      handleGoCreateApp() {
-        if (!this.relatedSystemUrls.BK_CMDB_ROOT_URL) {
-          alert(I18n.t('网络错误，请刷新页面重试'));
-          return;
-        }
-        window.open(`${this.relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`);
-      },
-      /**
-       * @desc 键盘上下键选择
-       * @param {String} step 移动方向
-       */
-      handleStep(step) {
-        if (step === 'next') {
-          this.activeIndex += 1;
-          if (this.activeIndex === this.renderList.length) {
-            this.activeIndex = 0;
-          }
-        } else if (step === 'prev') {
-          this.activeIndex -= 1;
-          if (this.activeIndex < 0) {
-            this.activeIndex = this.renderList.length - 1;
-          }
-        }
-        const $list = this.$refs.list;
-        this.$nextTick(() => {
-          const wraperHeight = $list.getBoundingClientRect().height;
-          const activeOffsetTop = $list.querySelector('.hover').offsetTop + 32;
+  let list = [];
 
-          if (activeOffsetTop > wraperHeight) {
-            $list.scrollTop = activeOffsetTop - wraperHeight + 10;
-          } else if (activeOffsetTop <= 42) {
-            $list.scrollTop = 0;
-          }
-        });
-      },
-      /**
-       * @desc 鼠标选择
-       * @param {Number} index 鼠标选中的索引
-       */
-      handleMouseenter(index) {
-        this.activeIndex = index;
-      },
-      /**
-       * @desc 上下键选择选择业务
-       *
-       * 对于无权限的业务通过click事件触发鉴权逻辑
-       */
-      handleSelect() {
-        this.$refs.list.querySelector('.hover').click();
-      },
-      /**
-       * @desc 搜索
-       * 有中文精确匹配
-       */
-      handleInputChange: _.debounce(function () {
-        const query = _.trim(this.query);
-        let renderList = [];
-        if (!query) {
-          renderList = Object.freeze(this.list);
-        } else {
-          const rule = new RegExp(encodeRegexp(this.query), 'i');
-          if (/[\u4e00-\u9fa5]/.test(query)) {
-            // 有中文精确匹配
-            renderList = _.filter(this.list, _ => rule.test(_.name));
-          } else {
-            renderList = _.filter(this.list, _ => rule.test(_.head)
-              || rule.test(_.sentence)
-              || rule.test(_.scopeId));
-          }
-        }
-        this.renderList = Object.freeze(renderList);
-        this.activeIndex = 0;
-      }, 100),
-      /**
-       * @desc 收藏业务
-       * @param {String} scopeType 业务id
-       * @param {String} scopeId 业务id
-       * @param {Boolean} favor 收藏状态
-       */
-      handleFavor(scopeType, scopeId, favor) {
-        const app = _.find(this.list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
-        if (favor) {
-          AppManageService.favorApp({
-            scopeType,
-            scopeId,
-          }).then(() => {
-            app.favor = true;
-            app.favorTime = prettyDateTimeFormat(Date.now());
-            this.renderList = Object.freeze([
-              ...this.renderList,
-            ]);
-            this.messageSuccess(I18n.t('收藏成功'));
-          });
-        } else {
-          AppManageService.cancelFavorApp({
-            scopeType,
-            scopeId,
-          }).then(() => {
-            app.favor = false;
-            this.renderList = Object.freeze([
-              ...this.renderList,
-            ]);
-            this.messageSuccess(I18n.t('取消收藏成功'));
-          });
-        }
-      },
-      /**
-       * @desc 切换业务
-       * @param { object } appInfo 最新业务信息
-       */
-      handleAppChange(appInfo) {
+  const appRef = ref();
+  const panelRef = ref();
+  const listRef = ref();
+  const searchRef = ref();
+  const loadingPlaceholderRef = ref();
+  const isFocus = ref(false);
+  const renderList = shallowRef([]);
+  const currentScopeType = window.PROJECT_CONFIG.SCOPE_TYPE;
+  const currentScopeId = window.PROJECT_CONFIG.SCOPE_ID;
+  const currentScopeName = ref('');
+  const activeIndex = ref(-1);
+  const keyword = ref('');
+  const relatedSystemUrls = ref({
+    BK_CMDB_ROOT_URL: '',
+  });
+
+  const { data: renderPaginationData } = usePagination(listRef, loadingPlaceholderRef, renderList);
+
+  const valueIcon = computed(() => currentScopeName.value.slice(0, 1));
+
+  QueryGlobalSettingService.fetchRelatedSystemUrls()
+    .then((data) => {
+      relatedSystemUrls.value = data;
+    });
+
+  AppManageService.fetchWholeAppList()
+    .then((data) => {
+      list = data.data.map(item => ({
+        ...item,
+        ...getTransformInfo(item.name),
+      }));
+
+      renderList.value = [...list];
+      // eslint-disable-next-line no-plusplus
+      for (let i = 0; i < list.length; i++) {
         const {
           scopeType,
           scopeId,
-        } = appInfo;
+          name,
+        } = list[i];
+        if (scopeType === currentScopeType && scopeId === currentScopeId) {
+          activeIndex.value = i;
+          currentScopeName.value = name;
+          break;
+        }
+      }
+    });
 
-        this.loading = true;
-        const pathRoot = `/${scopeType}/${scopeId}`;
-        if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
-          window.location.href = pathRoot;
-          return;
-        }
-
-        scopeCache.setItem({
-          scopeType,
-          scopeId,
-        });
-        const reload = (targetPath) => {
-          setTimeout(() => {
-            const path = targetPath.replace(/^\/[^/]+\/\d+/, pathRoot);
-            window.location.href = path;
-          }, 100);
-        };
-        // 1，当前路由不带参数，切换业务时停留在当前页面
-        const currentRoute = this.$route;
-        let currentRouteHasNotParams = true;
-        for (const paramKey in currentRoute.params) {
-          if (currentRoute.params[paramKey] === undefined || currentRoute.params[paramKey] === null) {
-            break;
-          }
-          currentRouteHasNotParams = false;
-        }
-        if (currentRouteHasNotParams) {
-          reload(currentRoute.path);
-          return;
-        }
-        const { matched } = this.$route;
-        // 2，当前路由带有请求参数，切换业务时则需要做回退处理
-        // 路由只匹配到了一个
-        if (matched.length < 2) {
-          const [{ path }] = matched;
-          reload(path);
-          return;
-        }
-
-        // 路由有多层嵌套
-        /* eslint-disable prefer-destructuring */
-        const { path, redirect } = matched[1];
-        // 重定向到指定的路由path
-        if (_.isString(redirect)) {
-          reload(redirect);
-          return;
-        }
-        // 重定向到指定的路由name
-        if (_.isPlainObject(redirect) && redirect.name) {
-          const route = this.$router.resolve({
-            name: redirect.name,
-          });
-          reload(route.href);
-          return;
-        }
-        reload(path);
-      },
-    },
+  const handleGoCreateApp = () => {
+    if (!relatedSystemUrls.value.BK_CMDB_ROOT_URL) {
+      alert(I18n.t('网络错误，请刷新页面重试'));
+      return;
+    }
+    window.open(`${relatedSystemUrls.value.BK_CMDB_ROOT_URL}/#/resource/business`);
   };
+
+  const handleStep = (step) => {
+    if (step === 'next') {
+      activeIndex.value += 1;
+      if (activeIndex.value === renderList.value.length) {
+        activeIndex.value = 0;
+      }
+    } else if (step === 'prev') {
+      activeIndex.value -= 1;
+      if (activeIndex.value < 0) {
+        activeIndex.value = renderList.value.length - 1;
+      }
+    }
+    nextTick(() => {
+      const wraperHeight = listRef.value.getBoundingClientRect().height;
+      const activeOffsetTop = listRef.value.querySelector('.hover').offsetTop + 32;
+
+      if (activeOffsetTop > wraperHeight) {
+        listRef.value.scrollTop = activeOffsetTop - wraperHeight + 10;
+      } else if (activeOffsetTop <= 42) {
+        listRef.value.scrollTop = 0;
+      }
+    });
+  };
+
+  const handleMouseenter = (index) => {
+    activeIndex.value = index;
+  };
+
+  const handleSelect = () => {
+    listRef.value.querySelector('.hover').click();
+  };
+
+  const handleInputChange = _.debounce(() => {
+    const query = _.trim(keyword.value);
+    let nextRenderList = [];
+    if (!query) {
+      nextRenderList = [...list];
+    } else {
+      const rule = new RegExp(encodeRegexp(query), 'i');
+      if (/[\u4e00-\u9fa5]/.test(query)) {
+        nextRenderList = _.filter(list, _ => rule.test(_.name));
+      } else {
+        nextRenderList = _.filter(list, _ => rule.test(_.head)
+          || rule.test(_.sentence)
+          || rule.test(_.scopeId));
+      }
+    }
+    renderList.value = nextRenderList;
+    activeIndex.value = 0;
+  }, 100);
+
+  const handleFavor = (scopeType, scopeId, favor) => {
+    const app = _.find(list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
+    if (favor) {
+      AppManageService.favorApp({
+        scopeType,
+        scopeId,
+      }).then(() => {
+        app.favor = true;
+        app.favorTime = prettyDateTimeFormat(Date.now());
+        renderList.value = [...renderList.value];
+        messageSuccess(I18n.t('收藏成功'));
+      });
+    } else {
+      AppManageService.cancelFavorApp({
+        scopeType,
+        scopeId,
+      }).then(() => {
+        app.favor = false;
+        renderList.value = [...renderList.value];
+        messageSuccess(I18n.t('取消收藏成功'));
+      });
+    }
+  };
+
+  const handleAppChange = (appInfo) => {
+    const {
+      scopeType,
+      scopeId,
+    } = appInfo;
+
+    const pathRoot = `/${scopeType}/${scopeId}`;
+    if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
+      window.location.href = pathRoot;
+      return;
+    }
+
+    scopeCache.setItem({
+      scopeType,
+      scopeId,
+    });
+    const reload = (targetPath) => {
+      setTimeout(() => {
+        const path = targetPath.replace(/^\/[^/]+\/\d+/, pathRoot);
+        window.location.href = path;
+      }, 100);
+    };
+    // 1，当前路由不带参数，切换业务时停留在当前页面
+    let currentRouteHasNotParams = true;
+    for (const paramKey in currentRoute.value.params) {
+      if (currentRoute.value.params[paramKey] === undefined || currentRoute.value.params[paramKey] === null) {
+        break;
+      }
+      currentRouteHasNotParams = false;
+    }
+    if (currentRouteHasNotParams) {
+      reload(currentRoute.value.path);
+      return;
+    }
+    const { matched } = currentRoute.value;
+    // 2，当前路由带有请求参数，切换业务时则需要做回退处理
+    // 路由只匹配到了一个
+    if (matched.length < 2) {
+      const [{ path }] = matched;
+      reload(path);
+      return;
+    }
+
+    // 路由有多层嵌套
+    /* eslint-disable prefer-destructuring */
+    const { path, redirect } = matched[1];
+    // 重定向到指定的路由path
+    if (_.isString(redirect)) {
+      reload(redirect);
+      return;
+    }
+    // 重定向到指定的路由name
+    if (_.isPlainObject(redirect) && redirect.name) {
+      const route = router.resolve({
+        name: redirect.name,
+      });
+      reload(route.href);
+      return;
+    }
+    reload(path);
+  };
+
+  let popperInstance;
+
+  onMounted(() => {
+    if (!popperInstance) {
+      popperInstance = Tippy(appRef.value, {
+        theme: 'light app-list',
+        arrow: false,
+        interactive: true,
+        animateFill: false,
+        placement: 'bottom-start',
+        content: panelRef.value,
+        trigger: 'click',
+        distance: 20,
+        width: '320px',
+        size: 'small',
+        appendTo: document.querySelector('.jb-navigation-side'),
+        zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
+        onShow: () => {
+          isFocus.value = true;
+          setTimeout(() => {
+            searchRef.value.focus();
+          });
+        },
+        onHidden: () => {
+          isFocus.value = false;
+          keyword.value = '';
+          list = sortAPPList(list);
+          handleInputChange();
+        },
+      });
+    }
+  });
+
+  onBeforeUnmount(() => {
+    popperInstance.destroy();
+  });
 </script>
 <style lang='postcss'>
   .job-app-select {

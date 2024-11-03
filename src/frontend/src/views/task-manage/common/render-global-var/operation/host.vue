@@ -85,8 +85,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
 
@@ -130,7 +128,7 @@
     },
     created() {
       if (this.$route.name !== 'templateCreate') {
-        this.originalExecuteObjectsInfo = _.cloneDeep(this.formData.defaultTargetValue.executeObjectsInfo);
+        this.originalExecuteObjectsInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
       } else {
         this.originalExecuteObjectsInfo = null;
       }
