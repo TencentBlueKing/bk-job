@@ -1,6 +1,7 @@
-FROM bkjob/jdk:0.0.4
+FROM bkjob/tool-set:0.0.1
 
 LABEL maintainer="Tencent BlueKing Job"
+LABEL dockerfile.version="0.0.1"
 
 ENV BK_JOB_HOME=/data/job/exec
 
