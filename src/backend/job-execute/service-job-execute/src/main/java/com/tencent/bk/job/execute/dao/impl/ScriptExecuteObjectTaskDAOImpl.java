@@ -95,7 +95,7 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
             + " and execute_obj_id = ?";
 
     public ScriptExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T.getName());
     }
 
     @Override

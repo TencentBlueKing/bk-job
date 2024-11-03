@@ -85,7 +85,7 @@ public class FileAgentTaskDAOImpl extends BaseDAO implements FileAgentTaskDAO {
 
     @Autowired
     public FileAgentTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T_GSE_FILE_AGENT_TASK.getName());
     }
 
     @Override

@@ -91,7 +91,7 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
 
     @Autowired
     public FileExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T.getName());
     }
 
     @Override

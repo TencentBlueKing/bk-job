@@ -39,8 +39,6 @@ public class VerticalShardingDSLContextProvider implements DSLContextProvider {
 
     private final Map<String, DSLContext> tableNameAndDslContextMap = new HashMap<>();
 
-    private final ThreadLocalMySQLOpContext threadLocalMySQLOpContext;
-
     /**
      * 垂直分库，固定分成 3 个分库，每个分库与表的关系也是固定的。
      *
@@ -50,9 +48,7 @@ public class VerticalShardingDSLContextProvider implements DSLContextProvider {
      */
     public VerticalShardingDSLContextProvider(DSLContext dslContextA,
                                               DSLContext dslContextB,
-                                              DSLContext dslContextC,
-                                              ThreadLocalMySQLOpContext threadLocalMySQLOpContext) {
-        this.threadLocalMySQLOpContext = threadLocalMySQLOpContext;
+                                              DSLContext dslContextC) {
         tableNameAndDslContextMap.put("task_instance", dslContextA);
         tableNameAndDslContextMap.put("task_instance_host", dslContextA);
         tableNameAndDslContextMap.put("gse_script_execute_obj_task", dslContextB);
@@ -76,11 +72,10 @@ public class VerticalShardingDSLContextProvider implements DSLContextProvider {
     }
 
     @Override
-    public DSLContext get() {
-        MySQLOperationContext context = threadLocalMySQLOpContext.get();
-        DSLContext dslContext = tableNameAndDslContextMap.get(context.getTableName());
+    public DSLContext get(String tableName) {
+        DSLContext dslContext = tableNameAndDslContextMap.get(tableName);
         if (dslContext == null) {
-            log.error("DSLContext not found for table : {}", context.getTableName());
+            log.error("DSLContext not found for table : {}", tableName);
             throw new InternalException("DSLContext not found");
         }
         return dslContext;

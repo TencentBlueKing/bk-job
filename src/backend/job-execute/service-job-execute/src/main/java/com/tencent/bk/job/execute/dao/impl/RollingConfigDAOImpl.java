@@ -46,7 +46,7 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
     
     @Autowired
     public RollingConfigDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override

@@ -24,20 +24,16 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 
-@Aspect
-@Slf4j
-@Order(Ordered.HIGHEST_PRECEDENCE + 10)
+//@Aspect
+//@Slf4j
+//@Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class MySQLOperationContextInjectAspect {
 
     private final ThreadLocalMySQLOpContext threadLocalMySQLOpContext;

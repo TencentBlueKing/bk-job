@@ -63,7 +63,7 @@ public class StepInstanceRollingTaskDAOImpl extends BaseDAO implements StepInsta
 
     @Autowired
     public StepInstanceRollingTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override

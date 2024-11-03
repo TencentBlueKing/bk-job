@@ -100,7 +100,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
     public StepInstanceDAOImpl(DSLContextProviderFactory dslContextProviderFactory,
                                SensitiveParamCryptoService sensitiveParamCryptoService,
                                DbPasswordCryptoService dbPasswordCryptoService) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T_STEP_INSTANCE.getName());
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
         this.dbPasswordCryptoService = dbPasswordCryptoService;
     }

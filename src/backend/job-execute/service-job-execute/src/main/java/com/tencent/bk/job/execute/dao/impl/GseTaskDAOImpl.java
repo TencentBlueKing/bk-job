@@ -55,7 +55,7 @@ public class GseTaskDAOImpl extends BaseDAO implements GseTaskDAO {
 
     @Autowired
     public GseTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     private GseTaskDTO extractInfo(Record record) {

@@ -34,11 +34,14 @@ import org.jooq.DSLContext;
 public class BaseDAO {
     private final DSLContextProvider dslContextProvider;
 
-    public BaseDAO(DSLContextProviderFactory dslContextProviderFactory) {
+    private String tableName;
+
+    public BaseDAO(DSLContextProviderFactory dslContextProviderFactory, String tableName) {
         this.dslContextProvider = dslContextProviderFactory.get();
+        this.tableName = tableName;
     }
 
     protected DSLContext dsl() {
-        return this.dslContextProvider.get();
+        return this.dslContextProvider.get(tableName);
     }
 }

@@ -27,6 +27,6 @@ package com.tencent.bk.job.execute.dao.common;
 import org.jooq.DSLContext;
 
 public interface DSLContextProvider {
-    DSLContext get();
+    DSLContext get(String tableName);
 }
 

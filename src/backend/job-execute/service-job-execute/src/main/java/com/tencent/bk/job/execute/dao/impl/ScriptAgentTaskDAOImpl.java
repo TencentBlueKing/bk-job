@@ -87,7 +87,7 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
     
     @Autowired
     public ScriptAgentTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T_GSE_SCRIPT_AGENT_TASK.getName());
     }
 
     @Override

@@ -70,7 +70,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
     
     @Autowired
     public TaskInstanceDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TASK_INSTANCE.getName());
     }
 
     @Override

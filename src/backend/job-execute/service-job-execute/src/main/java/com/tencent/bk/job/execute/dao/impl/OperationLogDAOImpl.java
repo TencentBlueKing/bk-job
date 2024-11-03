@@ -48,7 +48,7 @@ public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     
     @Autowired
     public OperationLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override

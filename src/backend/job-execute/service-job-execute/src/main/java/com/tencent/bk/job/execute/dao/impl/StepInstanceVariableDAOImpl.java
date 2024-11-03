@@ -52,7 +52,7 @@ public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstance
 
     @Autowired
     public StepInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override

@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 
 /**
- * DB 迁移专用 DynamicDSLContextProvider
+ * DB 迁移专用 DynamicDSLContextProvider, 用于动态切换数据源
  */
 @Slf4j
 public class MigrateDynamicDSLContextProvider implements DynamicDSLContextProvider {
@@ -36,8 +36,8 @@ public class MigrateDynamicDSLContextProvider implements DynamicDSLContextProvid
     private final ThreadLocal<DSLContextProvider> threadLocalDSLContextProvider = new ThreadLocal<>();
 
     @Override
-    public DSLContext get() {
-        return threadLocalDSLContextProvider.get().get();
+    public DSLContext get(String tableName) {
+        return threadLocalDSLContextProvider.get().get(tableName);
     }
 
     @Override

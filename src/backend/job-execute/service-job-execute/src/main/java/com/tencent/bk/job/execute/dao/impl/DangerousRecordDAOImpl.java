@@ -54,7 +54,7 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
 
     @Autowired
     public DangerousRecordDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, T.getName());
     }
 
     @Override

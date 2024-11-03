@@ -56,7 +56,7 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
     @Autowired
     public TaskInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory,
                                        CipherVariableCryptoService cipherVariableCryptoService) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, TABLE.getName());
         this.cipherVariableCryptoService = cipherVariableCryptoService;
     }
 

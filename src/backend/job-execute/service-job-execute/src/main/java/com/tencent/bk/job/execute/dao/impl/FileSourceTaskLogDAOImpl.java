@@ -44,11 +44,11 @@ import java.util.List;
 
 @Repository
 public class FileSourceTaskLogDAOImpl extends BaseDAO implements FileSourceTaskLogDAO {
-    FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
+    private static final FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
 
     @Autowired
     public FileSourceTaskLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory);
+        super(dslContextProviderFactory, defaultTable.getName());
     }
 
     private FileSourceTaskLogDTO extractInfo(Record record) {

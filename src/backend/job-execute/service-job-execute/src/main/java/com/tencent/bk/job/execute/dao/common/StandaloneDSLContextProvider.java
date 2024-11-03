@@ -41,7 +41,7 @@ public class StandaloneDSLContextProvider implements DSLContextProvider {
     }
 
     @Override
-    public DSLContext get() {
+    public DSLContext get(String tableName) {
         return dslContext;
     }
 }

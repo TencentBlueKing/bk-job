@@ -990,21 +990,21 @@ executeConfig:
     standalone:
       enabled: true
     # 垂直分片配置
-    verticalSharding:
-      enabled: true
-      datasource:
-        job-execute-vertical-a:
-          jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
-          username: "job"
-          password: "job"
-        job-execute-vertical-b:
-          jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
-          username: "job"
-          password: "job"
-        job-execute-vertical-c:
-          jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
-          username: "job"
-          password: "job"
+    # verticalSharding:
+    #   enabled: true
+    #   datasource:
+    #     job-execute-vertical-a:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-b:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-c:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+    #       username: "job"
+    #       password: "job"
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
