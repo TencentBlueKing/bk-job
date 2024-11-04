@@ -109,7 +109,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         List<TaskPlanInfoDTO> planList =
-            taskPlanService.listPlanBasicInfoByIds(appId, Collections.singletonList(planId));
+            taskPlanService.listPlanBasicInfoWithVariablesByIds(appId, Collections.singletonList(planId));
         if (CollectionUtils.isNotEmpty(planList)) {
             TaskPlanInfoDTO plan = planList.get(0);
             ServiceTaskPlanDTO planDTO = new ServiceTaskPlanDTO();

@@ -68,8 +68,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
 
   export default {
@@ -109,7 +107,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.value.executeObjectsInfo);
+      this.originalValue = ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo);
     },
     methods: {
       handleRemove() {

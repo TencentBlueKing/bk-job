@@ -124,7 +124,7 @@
       },
     },
     created() {
-      this.originalExecuteObjectsInfoInfo = _.cloneDeep(this.formData.defaultTargetValue.executeObjectsInfo);
+      this.originalExecuteObjectsInfoInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
     },
     methods: {
       handleExecuteObjectsInfoChange(executeObjectsInfo) {

@@ -24,66 +24,53 @@
 */
 
 import _ from 'lodash';
+import { computed, onBeforeUnmount, reactive, watch } from 'vue';
 
-import AgentTaskExecutionModel from '@model/execution/agent-task-execution';
+export default (scrollEle, loadingEle, list) => {
+  const pagination = reactive({
+    total: 0,
+    current: 1,
+    pageSize: 20,
+  });
 
-const STATUS_PENDING = 5;
-const STATUS_DOING = 7;
 
-// 步骤执行详情页
-// ——执行结果分组实例
-export default class ResultGroup {
-  constructor(payload) {
-    this.resultType = payload.resultType;
-    this.resultTypeDesc = payload.resultTypeDesc;
-    this.tag = payload.tag || '';
-    this.taskSize = payload.taskSize || 0;
-    this.tasks = this.initTask(payload.tasks);
-  }
+  const renderData = computed(() => list.value.slice(0, pagination.current * pagination.pageSize));
 
-  /**
-     * @desc 分组名
-     * @returns { String }
-     */
-  get groupName() {
-    let name = `${this.resultTypeDesc}`;
-    if (this.tag) {
-      name += `(${this.tag})`;
+  const handleScroll = _.throttle(() => {
+    if (pagination.current * pagination.pageSize >= pagination.total) {
+      return;
     }
-    return name;
-  }
+    const {
+      bottom: containerBottom,
+    } = scrollEle.value.getBoundingClientRect();
+    const {
+      bottom: loadingBottom,
+    } = loadingEle.value.getBoundingClientRect();
 
-  /**
-     * @desc 最大长度的 tag (256)
-     * @returns { Boolean }
-     */
-  get tagMaxLength() {
-    return this.tag.length >= 256;
-  }
-
-  /**
-     * @desc 分组结果的数据统计
-     * @returns { Number }
-     */
-  get groupNums() {
-    return this.tasks.length;
-  }
-
-  /**
-     * @desc 当前分组处于 loading 状态
-     * @returns { Boolean }
-     */
-  get isLoading() {
-    return [
-      STATUS_PENDING,
-      STATUS_DOING,
-    ].includes(this.resultType);
-  }
-
-  initTask(tasks) {
-    if (!_.isArray(tasks)) {
-      return [];
+    if (loadingBottom - 60 < containerBottom) {
+      pagination.current = pagination.current + 1;
     }
-    return tasks.map(item => Object.freeze(new AgentTaskExecutionModel(item)));
-  }
-}
+  }, 60);
+
+  watch([scrollEle, loadingEle], () => {
+    if (scrollEle.value && loadingEle.value) {
+      scrollEle.value?.addEventListener('scroll', handleScroll);
+    }
+  });
+
+  watch(list, () => {
+    pagination.total = list.value.length;
+    pagination.current = 1;
+  }, {
+    immediate: true,
+  });
+
+  onBeforeUnmount(() => {
+    scrollEle.value?.removeEventListener('scroll', handleScroll);
+  });
+
+  return {
+    data: renderData,
+    pagination,
+  };
+};

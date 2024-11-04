@@ -22,66 +22,70 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.vo;
+package com.tencent.bk.job.manage.model.web.vo.task;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-
-/**
- * 容器
- */
+@Slf4j
 @Getter
 @Setter
 @ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("容器")
-public class ContainerVO {
+@ApiModel("执行方案信息")
+public class TaskPlanBasicInfoVO {
 
-    @ApiModelProperty("容器资源 ID, 容器在 cmdb 中注册资源的 ID")
+    /**
+     * 执行方案 ID
+     */
+    @ApiModelProperty(value = "执行方案 ID")
     private Long id;
 
-    @ApiModelProperty(value = "容器 ID", example = "docker://8812391923...")
-    private String uid;
-
-    @ApiModelProperty("容器名称")
+    /**
+     * 执行方案名称
+     */
+    @ApiModelProperty(value = "执行方案名称")
     private String name;
 
-    @ApiModelProperty("Pod名称")
-    private String podName;
+    /**
+     * 模版 ID
+     */
+    @ApiModelProperty(value = "模版 ID")
+    private Long templateId;
 
-    @ApiModelProperty("所属 pod labels")
-    private Map<String, String> podLabels;
 
-    @ApiModelProperty("所属 Node hostId")
-    private Long nodeHostId;
+    /**
+     * 创建者
+     */
+    @ApiModelProperty(value = "创建者")
+    private String creator;
 
-    @ApiModelProperty("所属 Node Ip")
-    private String nodeIp;
+    /**
+     * 创建时间
+     */
+    @ApiModelProperty(value = "创建时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    private Long createTime;
 
-    @ApiModelProperty("所属 Node GSE agent 状态")
-    private String nodeAgentStatus;
+    /**
+     * 最后修改人
+     */
+    @ApiModelProperty(value = "最后更新者")
+    private String lastModifyUser;
 
-    @ApiModelProperty("cluster在cmdb中的唯一ID")
-    private Long clusterId;
-
-    @ApiModelProperty(value = "集群 ID", example = "BCS-K8S-00000")
-    private String clusterUID;
-
-    @ApiModelProperty("集群名称")
-    private String clusterName;
-
-    @ApiModelProperty("命名空间在 cmdb 的唯一 ID")
-    private Long namespaceId;
-
-    @ApiModelProperty("命名空间名称")
-    private String namespace;
-
-    @ApiModelProperty("workload 类型")
-    private String workloadType;
+    /**
+     * 最后修改时间
+     */
+    @ApiModelProperty(value = "最后更新时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    private Long lastModifyTime;
 }

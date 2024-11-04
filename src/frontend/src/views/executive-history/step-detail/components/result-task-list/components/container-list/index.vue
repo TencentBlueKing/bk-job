@@ -40,17 +40,94 @@
       @scroll-end="handleScrollEnd"
       @sort-change="handleSortChange">
       <bk-table-column
-        v-if="allShowColumn.includes('name')"
-        :label="$t('history.容器名称')"
-        :min-width="240"
-        prop="name"
-        :render-header="renderContainerNameHeader">
+        v-if="allShowColumn.includes('podName')"
+        :label="$t('history.所属 Pod 名称')"
+        :min-width="300"
+        prop="podName"
+        :render-header="renderPodNameHeader"
+        show-overflow-tooltip>
         <template slot-scope="{ row }">
           <div
             class="ip-box"
             :class="row.result">
-            {{ row.executeObject.container.name }}
+            {{ row.executeObject.container.podName || '--' }}
           </div>
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('name')"
+        :label="$t('history.容器名称')"
+        :min-width="300"
+        prop="name"
+        :render-header="renderContainerNameHeader">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.name }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('totalTime')"
+        :label="$t('history.耗时(s)')"
+        prop="totalTime"
+        sortable
+        :width="100">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.totalTime || '--' }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('exitCode')"
+        :label="$t('history.返回码')"
+        prop="exitCode"
+        sortable
+        :width="100" />
+      <bk-table-column
+        v-if="allShowColumn.includes('clusterName')"
+        :label="$t('history.集群名')"
+        prop="clusterName"
+        sortable
+        :width="150">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.clusterName || '--' }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('namespace')"
+        :label="$t('history.命名空间')"
+        prop="namespace"
+        sortable
+        :width="180">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.namespace || '--' }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('workloadType')"
+        :label="$t('history.工作负载')"
+        prop="workloadType"
+        sortable
+        :width="120">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.workloadType || '--' }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('nodeIp')"
+        :label="$t('history.节点IP')"
+        prop="nodeIp"
+        sortable
+        :width="120">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.nodeIp || '--' }}
+        </template>
+      </bk-table-column>
+      <bk-table-column
+        v-if="allShowColumn.includes('nodeHostId')"
+        :label="$t('history.节点主机ID')"
+        prop="nodeHostId"
+        sortable
+        :width="120">
+        <template slot-scope="{ row }">
+          {{ row.executeObject.container.nodeHostId || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -61,37 +138,6 @@
         :width="600">
         <template slot-scope="{ row }">
           {{ row.executeObject.container.uid || '--' }}
-        </template>
-      </bk-table-column>
-      <bk-table-column
-        v-if="allShowColumn.includes('totalTime')"
-        :label="$t('history.耗时(s)')"
-        prop="totalTime"
-        sortable
-        :width="100">
-        <template slot-scope="{ row }">
-          {{ row.totalTime || '--' }}
-        </template>
-      </bk-table-column>
-      <bk-table-column
-        v-if="allShowColumn.includes('exitCode')"
-        :label="$t('history.返回码')"
-        prop="exitCode"
-        sortable
-        :width="100">
-        <template slot-scope="{ row }">
-          {{ row.exitCode }}
-        </template>
-      </bk-table-column>
-      <bk-table-column
-        v-if="allShowColumn.includes('podName')"
-        :label="$t('history.所属 Pod 名称')"
-        prop="podName"
-        :render-header="renderPodNameHeader"
-        show-overflow-tooltip
-        :width="240">
-        <template slot-scope="{ row }">
-          {{ row.executeObject.container.podName || '--' }}
         </template>
       </bk-table-column>
       <bk-table-column
@@ -174,15 +220,16 @@
 
   const columnConfig = [
     {
-      label: I18n.t('history.容器名称'),
-      name: 'name',
+      label: I18n.t('history.所属 Pod 名称'),
+      name: 'podName',
       width: 240,
       disabled: true,
     },
     {
-      label: I18n.t('history.容器 ID'),
-      name: 'uid',
-      width: 300,
+      label: I18n.t('history.容器名称'),
+      name: 'name',
+      width: 240,
+      disabled: true,
     },
     {
       label: I18n.t('history.耗时(s)'),
@@ -196,9 +243,34 @@
       width: 100,
     },
     {
-      label: I18n.t('history.所属 Pod 名称'),
-      name: 'podName',
-      width: 240,
+      label: I18n.t('history.集群名'),
+      name: 'clusterName',
+      width: 100,
+    },
+    {
+      label: I18n.t('history.命名空间'),
+      name: 'namespace',
+      width: 100,
+    },
+    {
+      label: I18n.t('history.工作负载'),
+      name: 'workloadType',
+      width: 100,
+    },
+    {
+      label: I18n.t('history.节点IP'),
+      name: 'nodeIp',
+      width: 100,
+    },
+    {
+      label: I18n.t('history.节点主机ID'),
+      name: 'nodeHostId',
+      width: 100,
+    },
+    {
+      label: I18n.t('history.容器 ID'),
+      name: 'uid',
+      width: 300,
     },
     {
       label: 'ID',

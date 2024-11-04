@@ -121,8 +121,7 @@
   </tr>
 </template>
 <script>
-  import _ from 'lodash';
-
+  import ExecuteTargetModel from '@model/execute-target';
   import GlobalVariableModel from '@model/task/global-variable';
 
   import { globalVariableNameRule } from '@utils/validator';
@@ -149,7 +148,7 @@
     },
     data() {
       return {
-        formData: _.cloneDeep(this.data),
+        formData: { ...this.data },
         isShowChooseIp: false,
         isShowNameError: false,
         errorNameText: '',
@@ -185,7 +184,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.data.defaultTargetValue.executeObjectsInfo);
+      this.originalValue = ExecuteTargetModel.cloneExecuteObjectsInfo(this.data.defaultTargetValue.executeObjectsInfo);
 
       this.typeList = [
         {
@@ -261,7 +260,10 @@
        * @param { Object } executeObjectsInfo 主机信息
        */
       handleExecuteObjectsInfoChange(executeObjectsInfo) {
-        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
+        this.formData.defaultTargetValue = {
+          ...this.formData.defaultTargetValue,
+          executeObjectsInfo,
+        };
         this.triggerChange();
       },
       /**
