@@ -48,6 +48,7 @@ public interface StatisticsDAO {
      * @param date           日期
      * @param statisticsKey  统计 key
      * @param incrementValue 增长值
+     * @return affectRows 更新的行数
      */
-    void increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue);
+    int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue);
 }
