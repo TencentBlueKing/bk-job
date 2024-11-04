@@ -47,8 +47,8 @@ public class AICheckScriptServiceImpl extends AIBaseService implements AICheckSc
     }
 
     @Override
-    public AIChatRecord check(String username, Integer type, String scriptContent) {
+    public AIChatRecord check(String username, Long appId, Integer type, String scriptContent) {
         AIPromptDTO aiPromptDTO = checkScriptAIPromptService.getPrompt(type, scriptContent);
-        return getAIChatRecord(username, aiPromptDTO);
+        return getAIChatRecord(username, appId, aiPromptDTO);
     }
 }

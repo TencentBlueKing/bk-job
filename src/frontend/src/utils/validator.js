@@ -68,8 +68,8 @@ export const tagNameRule = {
 };
 
 export const globalVariableNameRule = {
-  validator: value => /^[a-zA-Z_][0-9a-zA-Z_-]{0,29}$/.test(value),
-  message: I18n.t('变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线、和 -'),
+  validator: value => /^[a-zA-Z_][0-9a-zA-Z_]{0,29}$/.test(value),
+  message: I18n.t('变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线'),
 };
 
 export const IPRule = {

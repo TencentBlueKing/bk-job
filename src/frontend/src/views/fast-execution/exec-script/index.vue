@@ -184,7 +184,7 @@
     // 敏感参数 0-关闭 1-开启
     secureParam: 0,
     // 超时
-    timeout: 7200,
+    timeout: 300,
     // 账号
     account: '',
     // 目标服务器

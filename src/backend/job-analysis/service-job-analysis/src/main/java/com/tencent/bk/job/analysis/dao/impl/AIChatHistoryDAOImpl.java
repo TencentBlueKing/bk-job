@@ -25,7 +25,9 @@
 package com.tencent.bk.job.analysis.dao.impl;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
+import com.tencent.bk.job.analysis.dao.AIAnalyzeErrorContextDAO;
 import com.tencent.bk.job.analysis.dao.AIChatHistoryDAO;
+import com.tencent.bk.job.analysis.model.dto.AIAnalyzeErrorContextDTO;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
 import com.tencent.bk.job.analysis.model.tables.AiChatHistory;
 import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
@@ -34,6 +36,7 @@ import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -56,9 +59,13 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     private static final AiChatHistory defaultTable = AiChatHistory.AI_CHAT_HISTORY;
 
     private final DSLContext dslContext;
+    private final AIAnalyzeErrorContextDAO aiAnalyzeErrorContextDAO;
 
-    public AIChatHistoryDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+    public AIChatHistoryDAOImpl(@Qualifier("job-analysis-dsl-context")
+                                DSLContext dslContext,
+                                AIAnalyzeErrorContextDAO aiAnalyzeErrorContextDAO) {
         this.dslContext = dslContext;
+        this.aiAnalyzeErrorContextDAO = aiAnalyzeErrorContextDAO;
     }
 
     /**
@@ -72,6 +79,7 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public Long insertAIChatHistory(AIChatHistoryDTO aiChatHistoryDTO) {
         val query = dslContext.insertInto(defaultTable,
                 defaultTable.USERNAME,
+                defaultTable.APP_ID,
                 defaultTable.USER_INPUT,
                 defaultTable.PROMPT_TEMPLATE_ID,
                 defaultTable.AI_INPUT,
@@ -86,13 +94,14 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             )
             .values(
                 aiChatHistoryDTO.getUsername(),
+                aiChatHistoryDTO.getAppId(),
                 aiChatHistoryDTO.getUserInput(),
                 aiChatHistoryDTO.getPromptTemplateId(),
                 aiChatHistoryDTO.getAiInput(),
                 JooqDataTypeUtil.getByteFromInteger(aiChatHistoryDTO.getStatus()),
                 aiChatHistoryDTO.getLimitedAIAnswer(),
                 aiChatHistoryDTO.getErrorCode(),
-                aiChatHistoryDTO.getErrorMessage(),
+                aiChatHistoryDTO.getLimitedErrorMessage(),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getStartTime()),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getAnswerTime()),
                 JooqDataTypeUtil.buildULong(aiChatHistoryDTO.getTotalTime()),
@@ -101,11 +110,25 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             .returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
         try {
-            return query.fetchOne().getId();
+            Long chatHistoryId = query.fetchOne().getId();
+            AIAnalyzeErrorContextDTO aiAnalyzeErrorContext = aiChatHistoryDTO.getAiAnalyzeErrorContext();
+            if (aiAnalyzeErrorContext != null) {
+                aiAnalyzeErrorContext.setAiChatHistoryId(chatHistoryId);
+                insertAIAnalyzeErrorContextIfNeed(aiAnalyzeErrorContext);
+            }
+            return chatHistoryId;
         } catch (Exception e) {
             log.error(sql);
             throw e;
         }
+    }
+
+    private void insertAIAnalyzeErrorContextIfNeed(AIAnalyzeErrorContextDTO aiAnalyzeErrorContext) {
+        if (aiAnalyzeErrorContext == null) {
+            return;
+        }
+        int insertedNum = aiAnalyzeErrorContextDAO.insert(aiAnalyzeErrorContext);
+        log.debug("{} AnalyzeErrorContext record inserted", insertedNum);
     }
 
     @Override
@@ -204,11 +227,15 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
     public int deleteChatHistory(long maxStartTime, int limit) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.START_TIME.lessOrEqual(JooqDataTypeUtil.buildULong(maxStartTime)));
-        return dslContext.deleteFrom(defaultTable)
+        val idList = dslContext.select(defaultTable.ID)
+            .from(defaultTable)
             .where(conditions)
             .orderBy(defaultTable.START_TIME)
             .limit(limit)
-            .execute();
+            .fetch()
+            .map(record -> record.get(defaultTable.ID));
+        deleteAnalyzeErrorContext(idList);
+        return deleteChatHistoryById(idList);
     }
 
     @Override
@@ -218,10 +245,33 @@ public class AIChatHistoryDAOImpl extends BaseDAOImpl implements AIChatHistoryDA
             conditions.add(defaultTable.USERNAME.eq(username));
         }
         conditions.add(defaultTable.ID.lessOrEqual(maxId));
-        return dslContext.deleteFrom(defaultTable)
+        val idList = dslContext.select(defaultTable.ID)
+            .from(defaultTable)
             .where(conditions)
             .orderBy(defaultTable.ID)
             .limit(limit)
+            .fetch()
+            .map(record -> record.get(defaultTable.ID));
+        deleteAnalyzeErrorContext(idList);
+        return deleteChatHistoryById(idList);
+    }
+
+    private void deleteAnalyzeErrorContext(List<Long> chatHistoryIdList) {
+        if (CollectionUtils.isEmpty(chatHistoryIdList)) {
+            return;
+        }
+        int deletedNum = aiAnalyzeErrorContextDAO.delete(chatHistoryIdList);
+        log.debug("{} AnalyzeErrorContext record deleted", deletedNum);
+    }
+
+    private int deleteChatHistoryById(List<Long> idList) {
+        List<Condition> conditions = new ArrayList<>();
+        if (CollectionUtils.isEmpty(idList)) {
+            return 0;
+        }
+        conditions.add(defaultTable.ID.in(idList));
+        return dslContext.deleteFrom(defaultTable)
+            .where(conditions)
             .execute();
     }
 

@@ -84,4 +84,18 @@ public class JooqDataTypeUtil {
         }
         return value.intValue();
     }
+
+    public static Integer getIntegerFromShort(Short value) {
+        if (value == null) {
+            return null;
+        }
+        return value.intValue();
+    }
+
+    public static Short getShortFromInteger(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        return value.shortValue();
+    }
 }

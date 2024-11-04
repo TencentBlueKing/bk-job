@@ -48,7 +48,7 @@
         </bk-button>
       </div>
       <div class="task-global-variable-box">
-        <template v-for="(item, index) in variable">
+        <template v-for="(item, index) in variableList">
           <div
             v-if="item.delete !== 1"
             :key="`${item.name}_${index}`"
@@ -158,7 +158,7 @@
           v-if="isShowBatchEditOfPlan"
           ref="planGlobalVar"
           :selected-list="selectValue"
-          :variable-list="variable"
+          :variable-list="variableList"
           @on-change="handleBatchPlanEditSubmit" />
       </jb-sideslider>
       <jb-sideslider
@@ -180,15 +180,13 @@
         :title="$t('template.批量编辑变量')">
         <batch-operation
           v-if="isShowBatchOperation"
-          :variable="variable"
+          :variable="variableList"
           @on-change="handleBatchOperationSubmit" />
       </jb-sideslider>
     </template>
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import VariableModel from '@model/task/global-variable';
 
   import I18n from '@/i18n';
@@ -250,7 +248,7 @@
         isShowBatchOperation: false,
         isShowEditOfPlan: false,
         isShowBatchEditOfPlan: false,
-        variable: [],
+        variableList: [],
         currentPopoverDetail: {},
         currentData: {},
         currentIndex: -1,
@@ -267,7 +265,7 @@
         if (this.isOperation) {
           return false;
         }
-        return this.variable.length < 1;
+        return this.variableList.length < 1;
       },
       /**
        * @desc 新建、编辑全局变量
@@ -310,7 +308,7 @@
        */
       realVariable() {
         // 过滤掉已经删除的变量
-        const validVariable = this.variable.filter(item => !item.delete);
+        const validVariable = this.variableList.filter(item => !item.delete);
         // 编辑操作不包含正在编辑的变量
         if (this.currentOperation === 'edit') {
           return validVariable.filter(item => item.name !== this.currentData.name);
@@ -337,7 +335,7 @@
     watch: {
       list: {
         handler(value) {
-          this.variable = _.cloneDeep(value);
+          this.variableList = Object.freeze([...value]);
         },
         immediate: true,
       },
@@ -350,7 +348,7 @@
        * @desc 更新外部数据
        */
       triggerChange() {
-        this.$emit('on-change', this.variable);
+        this.$emit('on-change', [...this.variableList]);
       },
       /**
        * @desc 显示全局变量详情tips
@@ -406,7 +404,7 @@
           title: I18n.t('template.确定删除该全局变量？'),
           subTitle: I18n.t('template.若该变量被步骤引用，请及时检查并更新步骤设置'),
           confirmFn: () => {
-            const currentVar = this.variable[index];
+            const currentVar = this.variableList[index];
             if (currentVar.id > 0) {
               // 删除已存在的变量
               //  —设置delete
@@ -414,7 +412,9 @@
             } else {
               // 删除新建的变量
               //  —直接删除
-              this.variable.splice(index, 1);
+              const nextVariableList = [...this.variableList];
+              nextVariableList.splice(index, 1);
+              this.variableList = Object.freeze([...nextVariableList]);
             }
             this.triggerChange();
           },
@@ -434,8 +434,10 @@
        * @param {Object} payload 全局变量数据
        */
       handlePlanEditSubmit(payload) {
-        const variable = new VariableModel(payload);
-        this.variable.splice(this.currentIndex, 1, variable);
+        const newVariable = new VariableModel(payload);
+        const nextVariableList = [...this.variableList];
+        nextVariableList.splice(this.currentIndex, 1, newVariable);
+        this.variableList = Object.freeze([...nextVariableList]);
         this.triggerChange();
       },
       /**
@@ -443,8 +445,8 @@
        * @param {Array} variableList 全局变量列表
        */
       handleBatchPlanEditSubmit(variableList) {
-        const variables = variableList.map(item => new VariableModel(item));
-        this.variable = variables;
+        const nextVariableList = variableList.map(item => new VariableModel(item));
+        this.variableList = Object.freeze(nextVariableList);
         this.triggerChange();
       },
       /**
@@ -452,14 +454,16 @@
        * @param {Object} payload 全局变量数据
        */
       handleOperationSubmit(payload) {
+        const nextVariableList = [...this.variableList];
         const payloadModel = new VariableModel(payload);
         if (this.currentOperation === 'create') {
           // 新建变量——追加
-          this.variable.push(payloadModel);
+          nextVariableList.push(payloadModel);
         } else {
           // 编辑变量——替换
-          this.variable.splice(this.currentIndex, 1, payloadModel);
+          nextVariableList.splice(this.currentIndex, 1, payloadModel);
         }
+        this.variableList = Object.freeze(nextVariableList);
         this.triggerChange();
         this.currentOperation = '';
       },
@@ -468,7 +472,7 @@
        * @param {Array} variableList 全局变量数据
        */
       handleBatchOperationSubmit(variableList) {
-        this.variable = variableList;
+        this.variableList = Object.freeze(variableList);
         this.triggerChange();
       },
       handleUseGuideToggle() {

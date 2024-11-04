@@ -47,6 +47,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.SpanNamer;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.cloud.sleuth.instrument.async.TraceRunnable;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -69,19 +73,25 @@ public class BkOpenAIClient implements IBkOpenAIClient {
     // 最大日志长度：500KB
     private static final int MAX_LOG_LENGTH = 500 * 1024;
 
+    private final Tracer tracer;
+    private final SpanNamer spanNamer;
     private final MeterRegistry meterRegistry;
     private final AppProperties appProperties;
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
     private final String bkAIDevUrl;
 
-    public BkOpenAIClient(MeterRegistry meterRegistry,
+    public BkOpenAIClient(Tracer tracer,
+                          SpanNamer spanNamer,
+                          MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           CustomPaasLoginProperties customPaasLoginProperties,
                           BkApiGatewayProperties bkApiGatewayProperties) {
-        bkAIDevUrl = getBkAIDevUrlSafely(bkApiGatewayProperties);
+        this.tracer = tracer;
+        this.spanNamer = spanNamer;
         this.meterRegistry = meterRegistry;
         this.appProperties = appProperties;
+        this.bkAIDevUrl = getBkAIDevUrlSafely(bkApiGatewayProperties);
         this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
         this.customPaasLoginProperties = customPaasLoginProperties;
     }
@@ -158,43 +168,62 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         ChatCompletionRequest streamRequest = ChatCompletionRequest.builder().from(request).stream(true).build();
         CompletableFuture<String> future = new CompletableFuture<>();
         StringBuilder responseBuilder = new StringBuilder();
-        Consumer<ChatCompletionResponse> partialResponseHandler = getPartialResponseHandler(
-            username,
-            partialRespConsumer,
-            responseBuilder
+        Consumer<ChatCompletionResponse> tracedPartialResponseHandler = getTracedConsumer(
+            getPartialResponseHandler(
+                username,
+                partialRespConsumer,
+                responseBuilder
+            )
         );
         long startTime = System.currentTimeMillis();
+        Runnable streamingCompletionCallback = () -> {
+            recordAIRespAllBlockDelay(
+                System.currentTimeMillis() - startTime,
+                Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_SUCCEED))
+            );
+            String respStr = responseBuilder.toString();
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "username={}, response={}, length={}",
+                    username,
+                    getLimitedLog(respStr),
+                    respStr.length()
+                );
+            }
+            future.complete(respStr);
+        };
+        Runnable tracedStreamingCompletionCallback = new TraceRunnable(tracer, spanNamer, streamingCompletionCallback);
+        Consumer<Throwable> errorHandler = throwable -> {
+            recordAIRespAllBlockDelay(
+                System.currentTimeMillis() - startTime,
+                Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_ERROR))
+            );
+            String message = MessageFormatter.format(
+                "Fail to get stream response, username={}",
+                username
+            ).getMessage();
+            log.warn(message, throwable);
+            future.completeExceptionally(throwable);
+        };
+        Consumer<Throwable> tracedErrorHandler = getTracedConsumer(errorHandler);
         client.chatCompletion(context, streamRequest)
-            .onPartialResponse(partialResponseHandler)
-            .onComplete(() -> {
-                recordAIRespAllBlockDelay(
-                    System.currentTimeMillis() - startTime,
-                    Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_SUCCEED))
-                );
-                String respStr = responseBuilder.toString();
-                if (log.isDebugEnabled()) {
-                    log.debug(
-                        "username={}, response={}, length={}",
-                        username,
-                        getLimitedLog(respStr),
-                        respStr.length()
-                    );
-                }
-                future.complete(respStr);
-            })
-            .onError(throwable -> {
-                recordAIRespAllBlockDelay(
-                    System.currentTimeMillis() - startTime,
-                    Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_ERROR))
-                );
-                String message = MessageFormatter.format(
-                    "Fail to get stream response, username={}",
-                    username
-                ).getMessage();
-                log.warn(message, throwable);
-                future.completeExceptionally(throwable);
-            }).execute();
+            .onPartialResponse(tracedPartialResponseHandler)
+            .onComplete(tracedStreamingCompletionCallback)
+            .onError(tracedErrorHandler)
+            .execute();
         return future;
+    }
+
+    private <T> Consumer<T> getTracedConsumer(Consumer<T> originConsumer) {
+        Span parentSpan = tracer.currentSpan();
+        return response -> {
+            Span childSpan = tracer.nextSpan(parentSpan).start();
+            try (Tracer.SpanInScope ignored = tracer.withSpan(childSpan)) {
+                originConsumer.accept(response);
+            } finally {
+                childSpan.end();
+            }
+        };
     }
 
     @NotNull

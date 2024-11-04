@@ -93,7 +93,17 @@
           }
         });
 
-        allHostList = _.uniqBy(allHostList, ({ hostId }) => ({ hostId }));
+        // perf: 主机数据量过大
+        const hostIdMap = {};
+        const allHostListMemo = [...allHostList];
+        allHostList = [];
+        allHostListMemo.forEach((hostData) => {
+          if (hostIdMap[hostData.hostId]) {
+            return;
+          }
+          allHostList.push(hostData);
+        });
+
         allNodeList = _.uniqBy(allNodeList, ({ objectId, instanceId }) => `#${objectId}#${instanceId}`);
         allDynamicGroupList = _.uniqBy(allDynamicGroupList, ({ id }) => id);
 

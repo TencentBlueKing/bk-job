@@ -153,13 +153,16 @@
     watch: {
       value: {
         handler(value) {
-          this.localValue = Object.freeze(_.cloneDeep(value));
+          this.localValue = Object.freeze({
+            ...value,
+            originalExecuteObjectsInfo: ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo),
+          });
         },
         immediate: true,
       },
     },
     created() {
-      this.originalExecuteObjectsInfo = _.cloneDeep(this.value.executeObjectsInfo);
+      this.originalExecuteObjectsInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo);
     },
     methods: {
       /**

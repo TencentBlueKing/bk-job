@@ -62,6 +62,7 @@
       </div>
     </div>
     <div
+      v-if="isAiUseable"
       ref="aiExtendTool"
       class="ai-extend-tool"
       :style="aiExtendToolStyle"
@@ -140,6 +141,11 @@
         isAiEnable: false,
       };
     },
+    computed: {
+      isAiUseable() {
+        return this.isAiEnable && this.taskExecuteDetail && this.taskExecuteDetail.result !== 'fail';
+      },
+    },
     watch: {
       /**
        * @desc 查看的日志目标改变，重新获取日志
@@ -195,13 +201,7 @@
     },
     mounted() {
       this.initEditor();
-      const handleHideAiExtendTool = () => {
-        this.aiExtendToolStyle = {};
-      };
-      document.body.addEventListener('mousedown', handleHideAiExtendTool);
-      this.$once('hook:beforeDestroy', () => {
-        document.body.removeEventListener('mousedown', handleHideAiExtendTool);
-      });
+      this.initAiHelper();
     },
     methods: {
       /**
@@ -234,9 +234,6 @@
             this.$nextTick(() => {
               this.editor.setValue(logContent);
               this.editor.clearSelection();
-              setTimeout(() => {
-                document.body.querySelector('.ace_layer.ace_text-layer').appendChild(this.$refs.aiExtendTool);
-              }, 1000);
             });
             // 当前主机执行结束
             if (!finished) {
@@ -250,7 +247,7 @@
       fetchAiConfig() {
         AiService.fetchConfig()
           .then((data) => {
-            this.isAiEnable = data.enable;
+            this.isAiEnable = data.enabled;
           });
       },
       initEditor() {
@@ -280,11 +277,24 @@
           } = editor.renderer.layerConfig;
           this.isWillAutoScroll = height + scrollTop + 30 >= maxHeight;
         });
-        this.editor = editor;
 
+        this.editor = editor;
         this.$once('hook:beforeDestroy', () => {
           editor.destroy();
           editor.container.remove();
+        });
+      },
+      initAiHelper() {
+        if (!this.isAiUseable) {
+          return;
+        }
+        const handleHideAiExtendTool = () => {
+          this.aiExtendToolStyle = {};
+        };
+
+        document.body.addEventListener('mousedown', handleHideAiExtendTool);
+        this.$once('hook:beforeDestroy', () => {
+          document.body.removeEventListener('mousedown', handleHideAiExtendTool);
         });
       },
       /**
@@ -320,6 +330,7 @@
       autoScrollTimeout() {
         if (this.isWillAutoScroll && !this.isLoading) {
           this.handleScrollBottom();
+          return;
         }
         setTimeout(() => {
           this.autoScrollTimer = this.autoScrollTimeout();
@@ -339,7 +350,7 @@
         this.editor.scrollToLine(Infinity);
       },
       handleMouseUp(event) {
-        if (!this.isAiEnable) {
+        if (!this.isAiUseable) {
           return;
         }
         setTimeout(() => {
@@ -347,17 +358,15 @@
             this.aiExtendToolStyle = {};
             return;
           }
-          const containerEle = document.body.querySelector('.ace_layer.ace_text-layer');
           const {
             left: contentBoxLeft,
             top: contentBoxTop,
-          } = getOffset(containerEle);
+          } = getOffset(this.$refs.contentBox);
 
-          const [transformY] = containerEle.style.transform.match(/([\d]+)[^\d]+$/);
           const { pageX, pageY } = event;
           this.aiExtendToolStyle = {
             display: 'flex',
-            top: `${Math.max(pageY - 40 - contentBoxTop + parseInt(transformY, 10), 8)}px`,
+            top: `${Math.max(pageY - 40 - contentBoxTop, 8)}px`,
             left: `${Math.max(pageX + 4 - contentBoxLeft, 8)}px`,
           };
         });
@@ -515,7 +524,7 @@
   }
 
   .ai-extend-tool{
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     display: none;
     width: 32px;

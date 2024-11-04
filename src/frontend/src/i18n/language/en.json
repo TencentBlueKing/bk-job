@@ -224,7 +224,7 @@
   "确认离开当前页？": "Are you sure to leave now?",
   "不允许包含这些字符": "These character is not allowed",
   "只允许包含这些字符": "Character only allow by",
-  "变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线、和 -": "Variable names: start with letter, underscores, only letters, numbers, and underscores or hyphen symbol are allowed",
+  "变量名称：以英文字符、下划线开头；只允许英文字符、数字、下划线": "Variable names: start with letter, underscores, only letters, numbers, and underscores",
   "Linux 账号": "Linux",
   "Windows 账号": "Windows",
   "数据库账号": "Database",
@@ -252,7 +252,7 @@
   "主机列表": "Host",
   "密文": "Ciphertext",
   "标签名支持：汉字 A-Z a-z 0-9 _ - ! # @ $ & % ^ ~ = + .": "only letters, numbers, and _ - ! # @ $ & % ^ ~ = + . are allowed",
-  "版本日志": "Release notes",
+  "版本日志": "Release Notes",
   "单次执行": "Run once",
   "周期执行": "Round-robin",
   "静态 - IP 选择": "Static - IP selector",
@@ -561,5 +561,6 @@
   "其它": "AI more",
   "注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！": "Attention! The AI model may use the information you provide as training material. If the content contains sensitive information, please use it cautiously!",
   "小鲸": "AI-assistant",
-  "开源社区": "Open source"
+  "开源社区": "Open Source",
+  "脚本参数最大输入为 64KB": "The maximum script parameter size is 64KB"
 }

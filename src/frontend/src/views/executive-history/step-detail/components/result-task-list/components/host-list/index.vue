@@ -172,11 +172,15 @@
 
   import Empty from '@components/empty';
 
+  import {
+    messageWarn,
+  } from '@/common/bkmagic';
   import I18n from '@/i18n';
 
   import useList from '../hooks/use-list';
 
   import ColumnSetting from './column-setting';
+  import CopyMenu from './copy-menu.vue';
 
   const COLUMN_CACHE_KEY = 'STEP_EXECUTE_IP_COLUMN3';
 
@@ -284,44 +288,36 @@
     handleClearSearch,
   } = useList(props, columnList, allShowColumn);
 
-  const handleCopyIP = () => {
+  const handleCopyIP = (withNet = false) => {
     props.getAllTaskList()
       .then((data) => {
         const fieldDataList = data.reduce((result, item) => {
           if (item.host.ip) {
-            result.push(item.host.ip);
+            result.push(withNet ? `${item.host.cloudArea.id}:${item.host.ip}` : item.host.ip);
           }
           return result;
         }, []);
 
         if (fieldDataList.length < 1) {
-          this.$bkMessage({
-            theme: 'warning',
-            message: I18n.t('history.没有可复制的 IPv4'),
-            limit: 1,
-          });
+          messageWarn(I18n.t('history.没有可复制的 IPv4'));
           return;
         }
         const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')} IP）`;
         execCopy(fieldDataList.join('\n'), successMessage);
       });
   };
-  const handleCopyIpv6 = () => {
+  const handleCopyIpv6 = (withNet = false) => {
     props.getAllTaskList()
       .then((data) => {
         const fieldDataList = data.reduce((result, item) => {
           if (item.host.ipv6) {
-            result.push(item.host.ipv6);
+            result.push(withNet ? `${item.host.cloudArea.id}:${item.host.ipv6}` : item.host.ipv6);
           }
           return result;
         }, []);
 
         if (fieldDataList.length < 1) {
-          this.$bkMessage({
-            theme: 'warning',
-            message: I18n.t('history.没有可复制的 IPv6'),
-            limit: 1,
-          });
+          messageWarn(I18n.t('history.没有可复制的 IPv6'));
           return;
         }
         const successMessage = `${I18n.t('history.复制成功')}（${fieldDataList.length} ${I18n.t('history.个')} IPv6）`;
@@ -335,12 +331,14 @@
   const renderIpHeader = (h, { column }) => (
     <div>
       {column.label}
-      <span
-        v-bk-tooltips={I18n.t('history.复制 IP')}
-        class="copy-ip-btn"
-        onClick={handleCopyIP}>
-        <icon type="step-copy" />
-      </span>
+      <CopyMenu>
+        <div onClick={() => handleCopyIP()}>
+          IPv4
+        </div>
+        <div onClick={() => handleCopyIP(true)}>
+          { I18n.t('history.管控区域_ID_IPv4')}
+        </div>
+      </CopyMenu>
     </div>
   );
   /**
@@ -349,12 +347,14 @@
   const renderIpv6Header = (h, { column }) => (
     <div>
       {column.label}
-      <span
-        v-bk-tooltips={I18n.t('history.复制 IPv6')}
-        class="copy-ip-btn"
-        onClick={handleCopyIpv6}>
-        <icon type="step-copy" />
-      </span>
+      <CopyMenu>
+        <div onClick={() => handleCopyIpv6()}>
+          IPv6
+        </div>
+        <div onClick={() => handleCopyIpv6(true)}>
+          { I18n.t('history.管控区域_ID_IPv6')}
+        </div>
+      </CopyMenu>
     </div>
   );
   /**
