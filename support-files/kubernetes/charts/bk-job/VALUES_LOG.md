@@ -1,6 +1,6 @@
 # chart values 更新日志
 
-## 0.7.1
+## 0.8.0
 1. 增加按主机拓扑路径鉴权相关配置
 ```yaml
 executeConfig:
