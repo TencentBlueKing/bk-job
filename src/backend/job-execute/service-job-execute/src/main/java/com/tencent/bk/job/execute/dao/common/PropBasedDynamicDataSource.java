@@ -65,6 +65,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
 
     private final PropToggleStore propToggleStore;
 
+    private volatile boolean isInitial = false;
     private static final String DB_MIGRATE_READY_SERVICE_INSTANCE_KEY = "job:execute:db:migrate:ready:service:instance";
     private static final String MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME =
         "job_execute_mysql_migration_target_datasource_mode";
@@ -79,13 +80,39 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         this.verticalShardingDSLContextProvider = verticalShardingDSLContextProvider;
         this.redisTemplate = redisTemplate;
         this.propToggleStore = propToggleStore;
-        // 设置当前数据源
-        DataSourceMode dataSourceMode = DataSourceMode.valOf(
-            propToggleStore.getPropToggle(MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME).getDefaultValue());
-        this.currentDataSourceMode = dataSourceMode;
-        this.currentContextProvider = chooseDSLContextProviderByMode(dataSourceMode);
         // 注册监听属性变化
         this.propToggleStore.addPropChangeEventListener(MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME, this);
+    }
+
+    public DSLContextProvider getCurrent() {
+        checkInit();
+        if (status == MigrationStatus.MIGRATING) {
+            try {
+                synchronized (lock) {
+                    log.info("Wait datasource migration");
+                    lock.wait();
+                    log.info("Continue after datasource migrated");
+                }
+            } catch (InterruptedException e) {
+                log.error("Get current DSLContext error", e);
+            }
+        }
+        return currentContextProvider;
+    }
+
+    private void checkInit() {
+        if (!isInitial) {
+            synchronized (this) {
+                if (!isInitial) {
+                    // 设置当前数据源
+                    DataSourceMode dataSourceMode = DataSourceMode.valOf(
+                        propToggleStore.getPropToggle(MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME).getDefaultValue());
+                    this.currentDataSourceMode = dataSourceMode;
+                    this.currentContextProvider = chooseDSLContextProviderByMode(dataSourceMode);
+                    this.isInitial = true;
+                }
+            }
+        }
     }
 
     private DSLContextProvider chooseDSLContextProviderByMode(DataSourceMode mode) {
@@ -102,22 +129,6 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         } else {
             throw new IllegalArgumentException("Unsupported DataSourceMode");
         }
-    }
-
-
-    public DSLContextProvider getCurrent() {
-        if (status == MigrationStatus.MIGRATING) {
-            try {
-                synchronized (lock) {
-                    log.info("Wait datasource migration");
-                    lock.wait();
-                    log.info("Continue after datasource migrated");
-                }
-            } catch (InterruptedException e) {
-                log.error("Get current DSLContext error", e);
-            }
-        }
-        return currentContextProvider;
     }
 
     @Override
