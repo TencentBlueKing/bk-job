@@ -26,4 +26,9 @@ data:
           {{- if .Values.job.resourceQuotaLimit.resources }}
           {{- toYaml .Values.job.resourceQuotaLimit.resources | nindent 10 }}
           {{- end }}
+      toggle:
+        props:
+          {{- if .Values.job.toggle.props }}
+          {{- toYaml .Values.job.toggle.props | nindent 10 }}
+          {{- end }}
           

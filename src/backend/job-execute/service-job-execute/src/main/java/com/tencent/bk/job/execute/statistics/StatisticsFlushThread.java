@@ -24,11 +24,8 @@
 
 package com.tencent.bk.job.execute.statistics;
 
-import com.tencent.bk.job.common.util.ObjectWrapper;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.Record2;
-import org.jooq.Result;
 
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -50,11 +47,10 @@ public class StatisticsFlushThread extends Thread {
         incrementMap.forEach((dateStr, metricsMap) -> {
             metricsMap.forEach((statisticsKey, value) -> {
                 final Integer incrementValue = value.get();
-                final ObjectWrapper<Result<Record2<Long, String>>> recordsWrapper = new ObjectWrapper<>(null);
-                AtomicInteger affectedRows = new AtomicInteger(0);
+                int affectRows;
                 do {
-                    statisticsDAO.increaseStatisticValue(dateStr, statisticsKey, incrementValue);
-                } while (recordsWrapper.get() == null || affectedRows.get() == 0);
+                    affectRows = statisticsDAO.increaseStatisticValue(dateStr, statisticsKey, incrementValue);
+                } while (affectRows == 0);
             });
         });
     }

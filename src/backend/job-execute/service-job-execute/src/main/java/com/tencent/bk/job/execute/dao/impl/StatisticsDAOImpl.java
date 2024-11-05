@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
-import com.tencent.bk.job.common.util.ObjectWrapper;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.tables.Statistics;
@@ -185,12 +184,11 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
-    public void increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue) {
+    public int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue) {
         Long appId = statisticsKey.getAppId();
         String resource = statisticsKey.getResource();
         String dimension = statisticsKey.getDimension();
         String dimensionValue = statisticsKey.getDimensionValue();
-        ObjectWrapper<Result<Record2<Long, String>>> recordsWrapper = new ObjectWrapper<>(null);
         AtomicInteger affectedRows = new AtomicInteger(0);
         dsl().transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
@@ -209,7 +207,6 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
                     .forUpdate();
                 log.debug("selectQuery=" + selectQuery.getSQL(ParamType.INLINED));
                 Result<Record2<Long, String>> records = selectQuery.fetch();
-                recordsWrapper.set(records);
                 if (records.isEmpty()) {
                     log.debug("records is empty");
                     // 记录不存在，先插入
@@ -261,8 +258,9 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
             } catch (Throwable t) {
                 log.info("May fail to lock", t);
             }
-            log.debug("records={},affectedRows={}", recordsWrapper.get(), affectedRows);
+            log.debug("affectedRows={}", affectedRows.get());
         });
+        return affectedRows.get();
     }
 
 }

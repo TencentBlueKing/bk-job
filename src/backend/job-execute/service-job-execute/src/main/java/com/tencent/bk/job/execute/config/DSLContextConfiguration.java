@@ -116,6 +116,7 @@ public class DSLContextConfiguration {
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
             @Qualifier("job-execute-dsl-context") DSLContext dslContext
         ) {
+            log.info("Init StandaloneDSLContextProvider");
             return new StandaloneDSLContextProvider(dslContext);
         }
     }
@@ -280,6 +281,7 @@ public class DSLContextConfiguration {
             @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,
             @Qualifier("job-execute-dsl-context-c") DSLContext dslContextC
         ) {
+            log.info("Init JobExecuteVerticalShardingDSLContextProvider");
             return new JobExecuteVerticalShardingDSLContextProvider(
                 dslContextA,
                 dslContextB,
@@ -300,7 +302,7 @@ public class DSLContextConfiguration {
         }
 
         @Bean("jobExecutePropBasedDynamicDataSource")
-        public PropBasedDynamicDataSource dataSourceSwitcher(
+        public PropBasedDynamicDataSource propBasedDynamicDataSource(
             ObjectProvider<StandaloneDSLContextProvider> standaloneDSLContextProvider,
             ObjectProvider<VerticalShardingDSLContextProvider> verticalShardingDSLContextProvider,
             @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
@@ -325,7 +327,7 @@ public class DSLContextConfiguration {
         }
     }
 
-    @Bean("dslContextProviderFactory")
+    @Bean("jobExecuteDslContextProviderFactory")
     public DSLContextProviderFactory dslContextProviderFactory(
         ObjectProvider<StandaloneDSLContextProvider> standaloneDSLContextProviderObjectProvider,
         ObjectProvider<VerticalShardingDSLContextProvider> verticalShardingDSLContextProviderObjectProvider,
