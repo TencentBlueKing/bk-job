@@ -54,4 +54,16 @@ public enum MigrationStatus {
 
     private final int status;
 
+    public static MigrationStatus valOf(Integer status) {
+        if (status == null) {
+            return null;
+        }
+        for (MigrationStatus value : values()) {
+            if (value.getStatus() == status) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("No MigrationStatus constant: " + status);
+    }
+
 }

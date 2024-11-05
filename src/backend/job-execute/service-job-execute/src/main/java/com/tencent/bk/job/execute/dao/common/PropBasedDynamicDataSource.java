@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
+import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.toggle.prop.PropChangeEventListener;
@@ -36,6 +37,11 @@ import com.tencent.bk.job.common.util.toggle.prop.PropToggle;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.IDLE;
 import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.MIGRATED;
@@ -58,18 +64,47 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-
+    /**
+     * 当前数据源模式
+     */
     private volatile DataSourceMode currentDataSourceMode;
 
+    /**
+     * 当前 DSLContextProvider
+     */
     private volatile DSLContextProvider currentContextProvider;
 
     private final PropToggleStore propToggleStore;
 
     private volatile boolean isInitial = false;
-    private static final String DB_MIGRATE_READY_SERVICE_INSTANCE_KEY = "job:execute:db:migrate:ready:service:instance";
-    private static final String MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME =
+
+    /**
+     * 动态属性名称 - 迁移目标数据源类型
+     */
+    private static final String PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE =
         "job_execute_mysql_migration_target_datasource_mode";
-    private static final String SERVICE_INSTANCE_COUNT = "job_execute_mysql_migration_service_instance_count";
+    /**
+     * 动态属性名称 - 参与 db 迁移的微服务实例数量
+     */
+    private static final String PROP_NAME_SERVICE_INSTANCE_COUNT = "job_execute_mysql_migration_service_instance_count";
+
+    /**
+     * 迁移使用的分布式锁 Redis KEY
+     */
+    private static final String DB_MIGRATION_LOCK_KEY = "job:execute:mysql:migration";
+    /**
+     * 整体迁移状态 Redis KEY
+     */
+    private static final String REDIS_KEY_GLOBAL_MIGRATION_STATUS = "job:execute:mysql:migration:global:status";
+    /**
+     * 服务实例迁移状态 Redis KEY
+     */
+    private static final String REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS =
+        "job:execute:mysql:migration:service:instance:status";
+    /**
+     * 服务节点 IP
+     */
+    private final String serviceNodeIp;
 
     public PropBasedDynamicDataSource(
         StandaloneDSLContextProvider standaloneDSLContextProvider,
@@ -80,13 +115,15 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         this.verticalShardingDSLContextProvider = verticalShardingDSLContextProvider;
         this.redisTemplate = redisTemplate;
         this.propToggleStore = propToggleStore;
+        this.serviceNodeIp = IpUtils.getFirstMachineIP();
         // 注册监听属性变化
-        this.propToggleStore.addPropChangeEventListener(MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME, this);
+        this.propToggleStore.addPropChangeEventListener(PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE, this);
     }
 
     public DSLContextProvider getCurrent() {
         checkInit();
         if (status == MigrationStatus.MIGRATING) {
+            // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
             try {
                 synchronized (lock) {
                     log.info("Wait datasource migration");
@@ -106,33 +143,39 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                 if (!isInitial) {
                     // 设置当前数据源
                     DataSourceMode dataSourceMode = DataSourceMode.valOf(
-                        propToggleStore.getPropToggle(MIGRATE_TARGET_DATASOURCE_MODE_PROP_NAME).getDefaultValue());
+                        propToggleStore.getPropToggle(PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE).getDefaultValue());
+                    log.info("Init default datasource, dataSourceMode: {}", dataSourceMode);
                     this.currentDataSourceMode = dataSourceMode;
-                    this.currentContextProvider = chooseDSLContextProviderByMode(dataSourceMode);
+                    this.currentContextProvider = chooseDefaultDSLContextProviderByMode(dataSourceMode);
                     this.isInitial = true;
                 }
             }
         }
     }
 
-    private DSLContextProvider chooseDSLContextProviderByMode(DataSourceMode mode) {
+    private DSLContextProvider chooseDefaultDSLContextProviderByMode(DataSourceMode mode) {
         if (mode == DataSourceMode.STANDALONE) {
             if (standaloneDSLContextProvider == null) {
                 throw new IllegalStateException("StandaloneDSLContextProvider not exist");
             }
+            log.info("Use StandaloneDSLContextProvider as default DSLContextProvider");
             return standaloneDSLContextProvider;
         } else if (mode == DataSourceMode.VERTICAL_SHARDING) {
             if (verticalShardingDSLContextProvider == null) {
                 throw new IllegalStateException("VerticalShardingDSLContextProvider not exist");
             }
+            log.info("Use VerticalShardingDSLContextProvider as default DSLContextProvider");
             return verticalShardingDSLContextProvider;
         } else {
+            log.error("Unsupported DataSourceMode");
             throw new IllegalArgumentException("Unsupported DataSourceMode");
         }
     }
 
     @Override
     public void handlePropChangeEvent(String propName, PropToggle currentValue) {
+        log.info("Handle prop change event, propName: {}, value: {}", propName, currentValue != null ?
+            currentValue.getDefaultValue() : null);
         String targetDataSourceModeValue = currentValue.getDefaultValue();
         if (!DataSourceMode.checkValid(targetDataSourceModeValue)) {
             log.error("Invalid target datasource mode : {}, skip migration", targetDataSourceModeValue);
@@ -140,6 +183,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         }
         DataSourceMode targetDataSourceMode = DataSourceMode.valOf(targetDataSourceModeValue);
         if (targetDataSourceMode == currentDataSourceMode) {
+            // 迁移目标不变，无需处理
             log.info("DataSourceMode is not changed, skip migration!");
             return;
         }
@@ -148,38 +192,44 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private void migrateDataSource(DataSourceMode targetDataSourceMode) {
-        DSLContextProvider targetDSLContextProvider = chooseDSLContextProviderByMode(targetDataSourceMode);
+        DSLContextProvider targetDSLContextProvider = chooseDefaultDSLContextProviderByMode(targetDataSourceMode);
         log.info("Migrate datasource from {} to {} start...", currentDataSourceMode, targetDataSourceMode);
         boolean success = false;
         try {
-            int expectedReadyServiceInstanceCount = Integer.parseInt(
-                propToggleStore.getPropToggle(SERVICE_INSTANCE_COUNT).getDefaultValue());
+            PropToggle migrateServiceInstanceCountProp =
+                propToggleStore.getPropToggle(PROP_NAME_SERVICE_INSTANCE_COUNT);
+            if (migrateServiceInstanceCountProp == null) {
+                log.error("Prop [" + PROP_NAME_SERVICE_INSTANCE_COUNT + "] is required. Skip migration");
+                return;
+            }
+            int migrateServiceInstanceCount = Integer.parseInt(migrateServiceInstanceCountProp.getDefaultValue());
             if (status == IDLE) {
                 synchronized (this) {
                     if (status == IDLE) {
                         status = PREPARING;
-                        // 为了在同一时间(接近）在多个微服务实例切换到新的数据源，需要判断处于 READY 状态的服务实例是否符合预期数量
-                        redisTemplate.opsForSet().add(DB_MIGRATE_READY_SERVICE_INSTANCE_KEY,
-                            IpUtils.getFirstMachineIP());
+                        initServiceInstanceMigrationStatus();
+                        // 为了在同一时间(接近）在多个微服务实例切换到新的数据源，需要判断处于 PREPARING 状态的服务实例是否符合预期数量
+                        updateServiceInstanceMigrationStatus(PREPARING);
                         while (true) {
-                            long readyServiceInstanceCount =
-                                redisTemplate.opsForSet().size(DB_MIGRATE_READY_SERVICE_INSTANCE_KEY);
-                            if (readyServiceInstanceCount >= expectedReadyServiceInstanceCount) {
+                            long prepareServiceInstanceCount =
+                                redisTemplate.opsForHash().size(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                            if (prepareServiceInstanceCount >= migrateServiceInstanceCount) {
                                 // 所有服务实例都确认收到DB数据源迁移事件，准备启动迁移
-                                status = MIGRATING;
-                                // 等待 5s，等待当前DB数据源正在跑的读写请求都完成
+                                updateGlobalMigrationStatus(MIGRATING);
+                                updateServiceInstanceMigrationStatus(MIGRATING);
+                                // 等待 5s，等待当前DB数据源正在执行的读写请求都完成
                                 log.info("Wait 5s before migration");
                                 ThreadUtils.sleep(5000L);
                                 break;
                             } else {
                                 log.info("Wait all service instance ready, actual: {}, expected: {}",
-                                    readyServiceInstanceCount, expectedReadyServiceInstanceCount);
+                                    prepareServiceInstanceCount, migrateServiceInstanceCount);
                                 ThreadUtils.sleep(100L);
                             }
                         }
                         this.currentDataSourceMode = targetDataSourceMode;
                         this.currentContextProvider = targetDSLContextProvider;
-                        this.status = MIGRATED;
+                        updateServiceInstanceMigrationStatus(MIGRATED);
                         success = true;
                     } else {
                         log.warn("Unexpected migration status {}, skip migration", status);
@@ -191,12 +241,80 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         } catch (Throwable e) {
             log.error("Migrate datasource error", e);
         } finally {
-            redisTemplate.delete(DB_MIGRATE_READY_SERVICE_INSTANCE_KEY);
             status = IDLE;
+            clearAfterMigration();
             synchronized (lock) {
                 lock.notifyAll();
             }
             log.info("Migrate datasource finish, isSuccess : {}", success);
         }
+    }
+
+    private void clearAfterMigration() {
+        try {
+            List<Object> allServiceInstanceMigStatus =
+                redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+            List<MigrationStatus> serviceInstancesMigStatusList =
+                castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
+            if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED)) {
+                // 清理
+                redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
+            }
+        } catch (Throwable e) {
+            log.error("Clear migration caught exception", e);
+        }
+    }
+
+    private void updateServiceInstanceMigrationStatus(MigrationStatus migrationStatus) {
+        redisTemplate.opsForHash().put(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS,
+            serviceNodeIp, migrationStatus.getStatus());
+        this.status = migrationStatus;
+    }
+
+    private void updateGlobalMigrationStatus(MigrationStatus migrationStatus) {
+        redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS,
+            migrationStatus.getStatus());
+    }
+
+    private <T, V> List<V> castList(List<T> source, Function<T, V> mapping) {
+        List<V> list = new ArrayList<>(source.size());
+        list.addAll(source.stream().map(mapping).collect(Collectors.toList()));
+        return list;
+    }
+
+    private void initServiceInstanceMigrationStatus() {
+        MigrationStatus migrationStatus = getGlobalMigrationStatus();
+        if (migrationStatus == null || migrationStatus == IDLE) {
+            try {
+                lock();
+                // 二次确认
+                migrationStatus = getGlobalMigrationStatus();
+                if (migrationStatus == null || migrationStatus == IDLE) {
+                    // 初始化迁移状态
+                    redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS, PREPARING.getStatus());
+                    redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                }
+            } finally {
+                unlock();
+            }
+        }
+    }
+
+    private MigrationStatus getGlobalMigrationStatus() {
+        Object migrationStatus = redisTemplate.opsForValue().get(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
+        if (migrationStatus == null) {
+            return null;
+        }
+        int statusValue = Integer.parseInt((String) migrationStatus);
+        return MigrationStatus.valOf(statusValue);
+    }
+
+    private boolean lock() {
+        return LockUtils.tryGetDistributedLock(DB_MIGRATION_LOCK_KEY, serviceNodeIp, 60000);
+    }
+
+    private boolean unlock() {
+        return LockUtils.releaseDistributedLock(DB_MIGRATION_LOCK_KEY, serviceNodeIp);
     }
 }
