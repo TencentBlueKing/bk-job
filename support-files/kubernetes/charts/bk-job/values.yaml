@@ -980,6 +980,18 @@ executeConfig:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
   #     value: 8
+  # 权限中心相关配置
+  iam:
+    # 按主机拓扑路径鉴权相关配置
+    hostTopoPath:
+      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
+      enabled : true
+      # 缓存配置
+      cache:
+        # 是否开启，默认开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
 
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库

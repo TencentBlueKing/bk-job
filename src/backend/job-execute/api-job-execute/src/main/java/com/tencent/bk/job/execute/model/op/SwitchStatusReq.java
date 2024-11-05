@@ -22,23 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.op;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.List;
+@Data
+@ApiModel("切换状态请求请求报文")
+public class SwitchStatusReq {
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    @ApiModelProperty(value = "目标状态，是否开启", required = true)
+    private boolean status;
+
 }

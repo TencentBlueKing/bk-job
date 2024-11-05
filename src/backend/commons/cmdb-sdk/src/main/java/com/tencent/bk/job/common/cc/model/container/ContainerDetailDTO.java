@@ -62,6 +62,10 @@ public class ContainerDetailDTO {
         }
         if (topo != null) {
             container.setNodeHostId(topo.getHostId());
+            container.setClusterId(topo.getClusterId());
+            container.setNamespaceId(topo.getNamespaceId());
+            container.setWorkloadType(topo.getWorkloadType());
+            container.setWorkloadId(topo.getWorkloadId());
         }
         return container;
     }

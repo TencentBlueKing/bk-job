@@ -22,23 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.api.op;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.execute.auth.impl.SwitchableTopoPathService;
+import com.tencent.bk.job.execute.model.op.SwitchStatusReq;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+@RestController
+@Slf4j
+public class SwitchableTopoPathResourceImpl implements SwitchableTopoPathResource {
+
+    private final SwitchableTopoPathService switchableTopoPathService;
+
+    @Autowired
+    public SwitchableTopoPathResourceImpl(SwitchableTopoPathService switchableTopoPathService) {
+        this.switchableTopoPathService = switchableTopoPathService;
+    }
+
+    @Override
+    public Response<Map<String, List<String>>> getTopoPathByHostIds(List<String> hostIdList) {
+        return Response.buildSuccessResp(switchableTopoPathService.getTopoPathByHostIds(new HashSet<>(hostIdList)));
+    }
+
+    @Override
+    public Response<Boolean> switchStatus(SwitchStatusReq req) {
+        return Response.buildSuccessResp(switchableTopoPathService.switchStatus(req.isStatus()));
+    }
 }

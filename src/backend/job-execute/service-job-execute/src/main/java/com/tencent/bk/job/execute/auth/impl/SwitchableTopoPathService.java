@@ -22,23 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.execute.config.IamHostTopoPathProperties;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * CMDB topo 服务
+ * 可以动态开关的主机拓扑路径查询服务
  */
-public interface TopoService {
+@Slf4j
+public class SwitchableTopoPathService implements TopoPathService {
+
     /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
+     * 是否开启
      */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    private volatile boolean status;
+    private final TopoPathService delegate;
+
+    public SwitchableTopoPathService(TopoPathService delegate, IamHostTopoPathProperties iamHostTopoPathProperties) {
+        this.delegate = delegate;
+        this.status = iamHostTopoPathProperties.getEnabled();
+    }
+
+    @Override
+    public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
+        if (status) {
+            return delegate.getTopoPathByHostIds(hostIds);
+        }
+        return Collections.emptyMap();
+    }
+
+    public boolean switchStatus(boolean status) {
+        log.info("Switch status from {} to {}", this.status, status);
+        this.status = status;
+        return status;
+    }
 }

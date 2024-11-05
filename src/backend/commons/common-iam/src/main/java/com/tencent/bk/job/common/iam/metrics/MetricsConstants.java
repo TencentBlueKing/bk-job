@@ -22,23 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.iam.metrics;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+public class MetricsConstants {
 
-import java.util.List;
+    // metric name
+    public static final String NAME_AUTH_HELPER_IS_ALLOW = "AuthHelper.isAllow";
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+    // tag
+    public static final String TAG_KEY_ACTION = "action";
+    public static final String TAG_KEY_STATUS = "status";
+
+    // value
+    public static final String TAG_VALUE_ACTION_NONE = "none";
+    public static final String TAG_VALUE_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_RESULT_FALSE = "false";
+    public static final String TAG_VALUE_RESULT_ERROR = "error";
+
 }
