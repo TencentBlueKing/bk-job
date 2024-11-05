@@ -120,6 +120,12 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         this.propToggleStore.addPropChangeEventListener(PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE, this);
     }
 
+    /**
+     * 获取当前 DSLContextProvider。
+     * 如果处于db 数据源切换中，会阻塞当前线程直到切换完成
+     *
+     * @return DSLContextProvider
+     */
     public DSLContextProvider getCurrent() {
         checkInit();
         if (status == MigrationStatus.MIGRATING) {
@@ -191,6 +197,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private void migrateDataSource(DataSourceMode targetDataSourceMode) {
+        long startTime = System.currentTimeMillis();
         DSLContextProvider targetDSLContextProvider = chooseDefaultDSLContextProviderByMode(targetDataSourceMode);
         log.info("Migrate datasource from {} to {} start...", currentDataSourceMode, targetDataSourceMode);
         boolean success = false;
@@ -210,6 +217,11 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                         // 为了在同一时间(接近）在多个微服务实例切换到新的数据源，需要判断处于 PREPARING 状态的服务实例是否符合预期数量
                         updateServiceInstanceMigrationStatus(PREPARING);
                         while (true) {
+                            if (System.currentTimeMillis() - startTime > 60000L) {
+                                // 超过一分钟，放弃本次迁移
+                                log.info("Prepare migration cost 1min, terminate migration");
+                                return;
+                            }
                             long prepareServiceInstanceCount =
                                 redisTemplate.opsForHash().size(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
                             if (prepareServiceInstanceCount >= migrateServiceInstanceCount) {
@@ -252,19 +264,29 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private void clearAfterMigrated() {
+        boolean locked = false;
         try {
-            List<Object> allServiceInstanceMigStatus =
-                redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
-            List<MigrationStatus> serviceInstancesMigStatusList =
-                castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
-            if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED)) {
-                // 所有服务实例都完成了 db 迁移，开始清理
-                log.info("All migration done. Delete all migration temporary data");
-                redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
-                redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
+            locked = lockForUpdate();
+            if (locked) {
+                List<Object> allServiceInstanceMigStatus =
+                    redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                List<MigrationStatus> serviceInstancesMigStatusList =
+                    castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
+                if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED)) {
+                    // 所有服务实例都完成了 db 迁移，开始清理
+                    log.info("All migration done. Delete all migration temporary data");
+                    redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                    redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
+                } else {
+                    log.info("Some service instance node not yet complete migration");
+                }
             }
         } catch (Throwable e) {
             log.error("Clear migration caught exception", e);
+        } finally {
+            if (locked) {
+                unlock();
+            }
         }
     }
 
@@ -289,19 +311,24 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
 
     private void initServiceInstanceMigrationStatus() {
         MigrationStatus migrationStatus = getGlobalMigrationStatus();
-        if (migrationStatus == null || migrationStatus == IDLE) {
+        if (migrationStatus == null) {
+            boolean locked = false;
             try {
-                lock();
-                // 二次确认
-                migrationStatus = getGlobalMigrationStatus();
-                if (migrationStatus == null || migrationStatus == IDLE) {
-                    // 初始化迁移状态
-                    log.info("Init migration status");
-                    redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS, PREPARING.getStatus());
-                    redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                locked = lockForUpdate();
+                if (locked) {
+                    // 二次确认，保证获取锁期间数据没有发生改变
+                    migrationStatus = getGlobalMigrationStatus();
+                    if (migrationStatus == null) {
+                        // 初始化迁移状态
+                        log.info("Init migration status");
+                        redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS, PREPARING.getStatus());
+                        redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                    }
                 }
             } finally {
-                unlock();
+                if (locked) {
+                    unlock();
+                }
             }
         }
     }
@@ -314,8 +341,8 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         return MigrationStatus.valOf((Integer) migrationStatus);
     }
 
-    private boolean lock() {
-        return LockUtils.tryGetDistributedLock(DB_MIGRATION_LOCK_KEY, serviceNodeIp, 60000);
+    private boolean lockForUpdate() {
+        return LockUtils.lock(DB_MIGRATION_LOCK_KEY, serviceNodeIp, 60000L, 60);
     }
 
     private boolean unlock() {
