@@ -126,9 +126,9 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
             // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
             try {
                 synchronized (lock) {
-                    log.info("Wait datasource migration");
+                    log.debug("Datasource is migrating, wait unit migrated");
                     lock.wait();
-                    log.info("Continue after datasource migrated");
+                    log.debug("Continue after datasource migrated");
                 }
             } catch (InterruptedException e) {
                 log.error("Get current DSLContext error", e);
@@ -144,9 +144,10 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                     // 设置当前数据源
                     DataSourceMode dataSourceMode = DataSourceMode.valOf(
                         propToggleStore.getPropToggle(PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE).getDefaultValue());
-                    log.info("Init default datasource, dataSourceMode: {}", dataSourceMode);
+                    log.info("Init default DSLContextProvider, dataSourceMode: {}", dataSourceMode);
                     this.currentDataSourceMode = dataSourceMode;
                     this.currentContextProvider = chooseDefaultDSLContextProviderByMode(dataSourceMode);
+                    log.info("Use {} as default DSLContextProvider", currentContextProvider.getClass());
                     this.isInitial = true;
                 }
             }
@@ -158,13 +159,11 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
             if (standaloneDSLContextProvider == null) {
                 throw new IllegalStateException("StandaloneDSLContextProvider not exist");
             }
-            log.info("Use StandaloneDSLContextProvider as default DSLContextProvider");
             return standaloneDSLContextProvider;
         } else if (mode == DataSourceMode.VERTICAL_SHARDING) {
             if (verticalShardingDSLContextProvider == null) {
                 throw new IllegalStateException("VerticalShardingDSLContextProvider not exist");
             }
-            log.info("Use VerticalShardingDSLContextProvider as default DSLContextProvider");
             return verticalShardingDSLContextProvider;
         } else {
             log.error("Unsupported DataSourceMode");
@@ -214,6 +213,8 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                             long prepareServiceInstanceCount =
                                 redisTemplate.opsForHash().size(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
                             if (prepareServiceInstanceCount >= migrateServiceInstanceCount) {
+                                log.info("All service node are ready, actualReadyNodeCount: {}, expected: {}",
+                                    prepareServiceInstanceCount, migrateServiceInstanceCount);
                                 // 所有服务实例都确认收到DB数据源迁移事件，准备启动迁移
                                 updateGlobalMigrationStatus(MIGRATING);
                                 updateServiceInstanceMigrationStatus(MIGRATING);
@@ -242,7 +243,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
             log.error("Migrate datasource error", e);
         } finally {
             status = IDLE;
-            clearAfterMigration();
+            clearAfterMigrated();
             synchronized (lock) {
                 lock.notifyAll();
             }
@@ -250,7 +251,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         }
     }
 
-    private void clearAfterMigration() {
+    private void clearAfterMigrated() {
         try {
             List<Object> allServiceInstanceMigStatus =
                 redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
@@ -268,12 +269,14 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private void updateServiceInstanceMigrationStatus(MigrationStatus migrationStatus) {
+        log.info("Update service instance migration status {}", migrationStatus);
         redisTemplate.opsForHash().put(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS,
             serviceNodeIp, migrationStatus.getStatus());
         this.status = migrationStatus;
     }
 
     private void updateGlobalMigrationStatus(MigrationStatus migrationStatus) {
+        log.info("Update global migration status {}", migrationStatus);
         redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS,
             migrationStatus.getStatus());
     }
@@ -293,6 +296,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                 migrationStatus = getGlobalMigrationStatus();
                 if (migrationStatus == null || migrationStatus == IDLE) {
                     // 初始化迁移状态
+                    log.info("Init migration status");
                     redisTemplate.opsForValue().set(REDIS_KEY_GLOBAL_MIGRATION_STATUS, PREPARING.getStatus());
                     redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
                 }
