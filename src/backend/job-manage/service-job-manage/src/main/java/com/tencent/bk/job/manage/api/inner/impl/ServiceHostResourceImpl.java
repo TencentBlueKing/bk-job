@@ -33,15 +33,19 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
@@ -51,6 +55,7 @@ import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -69,6 +74,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     private final BizTopoHostService bizTopoHostService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
     private final HostDetailService hostDetailService;
+    private final HostTopoDAO hostTopoDAO;
 
     @Autowired
     public ServiceHostResourceImpl(AppScopeMappingService appScopeMappingService,
@@ -76,13 +82,15 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                                    HostService hostService,
                                    BizTopoHostService bizTopoHostService,
                                    BizDynamicGroupHostService bizDynamicGroupHostService,
-                                   HostDetailService hostDetailService) {
+                                   HostDetailService hostDetailService,
+                                   HostTopoDAO hostTopoDAO) {
         this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.bizTopoHostService = bizTopoHostService;
         this.bizDynamicGroupHostService = bizDynamicGroupHostService;
         this.hostDetailService = hostDetailService;
+        this.hostTopoDAO = hostTopoDAO;
     }
 
     @Override
@@ -187,4 +195,14 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                 .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
     }
+
+    @Override
+    public InternalResponse<List<ServiceHostTopoDTO>> batchGetHostTopos(ServiceBatchGetHostToposReq req) {
+        List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostIds(req.getHostIdList());
+        List<ServiceHostTopoDTO> serviceHostTopoDTOList = hostTopoDTOList.stream()
+            .map(HostTopoDTO::toServiceHostTopoDTO)
+            .collect(Collectors.toList());
+        return InternalResponse.buildSuccessResp(serviceHostTopoDTOList);
+    }
+
 }

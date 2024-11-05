@@ -22,23 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.api.op;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.execute.model.op.SwitchStatusReq;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
-/**
- * CMDB topo 服务
- */
-public interface TopoService {
-    /**
-     * 批量获取topo节点的层级
-     *
-     * @param bizId     CMDB业务ID
-     * @param topoNodes cmdb topo 节点列表
-     * @return topo节点层级
-     */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
+
+@Api(tags = {"job-execute:OP:主机拓扑路径服务操作接口"})
+@RequestMapping("/op/topoPath")
+@RestController
+public interface SwitchableTopoPathResource {
+
+    @ApiOperation(value = "根据hostId获取主机拓扑路径信息", produces = "application/json")
+    @PostMapping("/batchGet")
+    Response<Map<String, List<String>>> getTopoPathByHostIds(@RequestBody List<String> hostIdList);
+
+    @ApiOperation(value = "切换主机拓扑路径服务状态", produces = "application/json")
+    @PostMapping("/switch")
+    Response<Boolean> switchStatus(@RequestBody SwitchStatusReq req);
 }

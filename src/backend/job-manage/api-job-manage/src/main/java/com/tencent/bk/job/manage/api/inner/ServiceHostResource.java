@@ -30,11 +30,13 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -93,7 +95,7 @@ public interface ServiceHostResource {
     @PostMapping("/service/hosts/batchGet")
     InternalResponse<List<ServiceHostDTO>> batchGetHosts(
         @RequestBody
-            ServiceBatchGetHostsReq req);
+        ServiceBatchGetHostsReq req);
 
     /**
      * 通过云区域ID与Ipv6地址获取主机信息
@@ -105,5 +107,17 @@ public interface ServiceHostResource {
     @PostMapping("/service/hosts/getByCloudIpv6")
     InternalResponse<List<ServiceHostDTO>> getHostsByCloudIpv6(
         @RequestBody
-            ServiceGetHostsByCloudIpv6Req req);
+        ServiceGetHostsByCloudIpv6Req req);
+
+    /**
+     * 批量获取主机拓扑信息
+     *
+     * @param req 请求
+     * @return 主机拓扑信息
+     */
+    @ApiOperation(value = "批量获取主机拓扑信息", produces = "application/json")
+    @PostMapping("/service/hostTopos/batchGet")
+    InternalResponse<List<ServiceHostTopoDTO>> batchGetHostTopos(
+        @RequestBody
+        ServiceBatchGetHostToposReq req);
 }
