@@ -257,7 +257,8 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
             List<MigrationStatus> serviceInstancesMigStatusList =
                 castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
             if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED)) {
-                // 清理
+                // 所有服务实例都完成了 db 迁移，开始清理
+                log.info("All migration done. Delete all migration temporary data");
                 redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
                 redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
             }
@@ -306,8 +307,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         if (migrationStatus == null) {
             return null;
         }
-        int statusValue = Integer.parseInt((String) migrationStatus);
-        return MigrationStatus.valOf(statusValue);
+        return MigrationStatus.valOf((Integer) migrationStatus);
     }
 
     private boolean lock() {
