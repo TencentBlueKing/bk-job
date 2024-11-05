@@ -32,9 +32,9 @@ import lombok.Getter;
 @Getter
 public enum MigrationStatus {
     /**
-     * 空闲
+     * 未启动
      */
-    IDLE(1),
+    NOT_START(1),
     /**
      * 准备迁移
      */
@@ -46,7 +46,11 @@ public enum MigrationStatus {
     /**
      * 迁移完成
      */
-    MIGRATED(4);
+    MIGRATED(4),
+    /**
+     * 迁移失败
+     */
+    FAIL(5);
 
     MigrationStatus(int status) {
         this.status = status;

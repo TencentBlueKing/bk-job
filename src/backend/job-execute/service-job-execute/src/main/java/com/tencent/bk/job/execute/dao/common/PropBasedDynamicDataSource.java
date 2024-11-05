@@ -43,9 +43,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.IDLE;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.FAIL;
 import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.MIGRATED;
 import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.MIGRATING;
+import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.NOT_START;
 import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.PREPARING;
 
 /**
@@ -58,7 +59,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
 
     private final VerticalShardingDSLContextProvider verticalShardingDSLContextProvider;
 
-    private volatile MigrationStatus status = IDLE;
+    private volatile MigrationStatus status = NOT_START;
 
     private final Object lock = new Object();
 
@@ -209,9 +210,9 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                 return;
             }
             int migrateServiceInstanceCount = Integer.parseInt(migrateServiceInstanceCountProp.getDefaultValue());
-            if (status == IDLE) {
+            if (status == NOT_START) {
                 synchronized (this) {
-                    if (status == IDLE) {
+                    if (status == NOT_START) {
                         status = PREPARING;
                         initServiceInstanceMigrationStatus();
                         // 为了在同一时间(接近）在多个微服务实例切换到新的数据源，需要判断处于 PREPARING 状态的服务实例是否符合预期数量
@@ -220,6 +221,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                             if (System.currentTimeMillis() - startTime > 60000L) {
                                 // 超过一分钟，放弃本次迁移
                                 log.info("Prepare migration cost 1min, terminate migration");
+                                updateServiceInstanceMigrationStatus(MigrationStatus.FAIL);
                                 return;
                             }
                             long prepareServiceInstanceCount =
@@ -254,7 +256,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         } catch (Throwable e) {
             log.error("Migrate datasource error", e);
         } finally {
-            status = IDLE;
+            status = NOT_START;
             clearAfterMigrated();
             synchronized (lock) {
                 lock.notifyAll();
@@ -272,7 +274,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                     redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
                 List<MigrationStatus> serviceInstancesMigStatusList =
                     castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
-                if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED)) {
+                if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED || status == FAIL)) {
                     // 所有服务实例都完成了 db 迁移，开始清理
                     log.info("All migration done. Delete all migration temporary data");
                     redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
