@@ -5,6 +5,9 @@
 executeConfig:
   # 权限中心相关配置
   iam:
+    bizTopoAuth:
+      # 是否开启业务拓扑鉴权(依赖CMDB>=3.14.3)，默认关闭
+      enabled: false
     # 按主机拓扑路径鉴权相关配置
     hostTopoPath:
       # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认关闭

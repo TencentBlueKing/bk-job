@@ -56,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -78,6 +79,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final TaskInstanceService taskInstanceService;
     private final JobExecuteConfig jobExecuteConfig;
     private final TopoService topoService;
+    @Value("${job.execute.iam.bizTopoAuth.enabled:false}")
+    private Boolean isBizTopoAuthEnabled;
 
     @Autowired
     public ExecuteAuthServiceImpl(AuthHelper authHelper,
@@ -300,8 +303,22 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
+    private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope) {
+        List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(1);
+        InstanceDTO topoNodeInstance = new InstanceDTO();
+        topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
+        topoNodeInstance.setSystem(SystemId.CMDB);
+        topoNodeInstance.setPath(buildAppScopePath(appResourceScope));
+        topoNodeInstanceList.add(topoNodeInstance);
+        return topoNodeInstanceList;
+    }
+
     private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope,
                                                             List<DynamicServerTopoNodeDTO> topoNodes) {
+        // 支持业务拓扑授权依赖高版本CMDB(>=3.14.3),低版本JOB默认使用"业务"这个topo节点进行鉴权,不细化到集群、模块
+        if (!isBizTopoAuthEnabled) {
+            return buildAppTopoNodeHostInstances(appResourceScope);
+        }
         long bizId = Long.parseLong(appResourceScope.getId());
         List<InstanceTopologyDTO> topoNodeTopologyList = topoService.batchGetTopoNodeHierarchy(bizId, topoNodes);
         Map<String, InstanceTopologyDTO> topoNodeTopologyMap = new HashMap<>();
@@ -465,9 +482,27 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
+    private List<PermissionResource> convertTopoNodesToPermissionResourceList(AppResourceScope appResourceScope) {
+        List<PermissionResource> hostResources = new ArrayList<>();
+        PermissionResource resource = new PermissionResource();
+        resource.setResourceId(appResourceScope.getId());
+        resource.setResourceType(ResourceTypeEnum.HOST);
+        resource.setSubResourceType("topo");
+        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setSystemId(SystemId.CMDB);
+        resource.setType(CcNodeTypeEnum.BIZ.getType());
+        resource.setParentHierarchicalResources(null);
+        hostResources.add(resource);
+        return hostResources;
+    }
+
     private List<PermissionResource> convertTopoNodesToPermissionResourceList(
         AppResourceScope appResourceScope,
         List<DynamicServerTopoNodeDTO> topoNodes) {
+        // 支持业务拓扑授权依赖高版本CMDB(>=3.14.3),低版本JOB默认使用"业务"这个topo节点进行鉴权,不细化到集群、模块
+        if (!isBizTopoAuthEnabled) {
+            return convertTopoNodesToPermissionResourceList(appResourceScope);
+        }
         List<InstanceDTO> hostInstanceList = buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
         List<PermissionResource> finalPermissionResourceList = new ArrayList<>();
         for (InstanceDTO instanceDTO : hostInstanceList) {
