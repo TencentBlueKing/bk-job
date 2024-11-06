@@ -22,37 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.execute.model.op;
 
-import lombok.AllArgsConstructor;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
-@NoArgsConstructor
-public class IamHostTopoPathProperties {
-    /**
-     * 是否开启主机拓扑路径鉴权服务，默认关闭
-     */
-    private Boolean enabled = false;
-    /**
-     * 主机拓扑路径缓存相关配置
-     */
-    private CacheConfig cache;
+@ApiModel("切换状态请求请求报文")
+public class SwitchStatusReq {
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class CacheConfig {
-        /**
-         * 是否开启缓存
-         */
-        private Boolean enabled = false;
-        /**
-         * 缓存过期时间默认为10s
-         */
-        private Integer expireSeconds = 10;
-    }
+    @ApiModelProperty(value = "目标状态，是否开启", required = true)
+    private boolean status;
+
 }

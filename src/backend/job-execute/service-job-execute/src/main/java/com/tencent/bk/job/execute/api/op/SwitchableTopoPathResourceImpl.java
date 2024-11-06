@@ -22,37 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.execute.api.op;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.execute.auth.impl.SwitchableTopoPathService;
+import com.tencent.bk.job.execute.model.op.SwitchStatusReq;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
-@Data
-@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
-@NoArgsConstructor
-public class IamHostTopoPathProperties {
-    /**
-     * 是否开启主机拓扑路径鉴权服务，默认关闭
-     */
-    private Boolean enabled = false;
-    /**
-     * 主机拓扑路径缓存相关配置
-     */
-    private CacheConfig cache;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class CacheConfig {
-        /**
-         * 是否开启缓存
-         */
-        private Boolean enabled = false;
-        /**
-         * 缓存过期时间默认为10s
-         */
-        private Integer expireSeconds = 10;
+@RestController
+@Slf4j
+public class SwitchableTopoPathResourceImpl implements SwitchableTopoPathResource {
+
+    private final SwitchableTopoPathService switchableTopoPathService;
+
+    @Autowired
+    public SwitchableTopoPathResourceImpl(SwitchableTopoPathService switchableTopoPathService) {
+        this.switchableTopoPathService = switchableTopoPathService;
+    }
+
+    @Override
+    public Response<Map<String, List<String>>> getTopoPathByHostIds(List<String> hostIdList) {
+        return Response.buildSuccessResp(switchableTopoPathService.getTopoPathByHostIds(new HashSet<>(hostIdList)));
+    }
+
+    @Override
+    public Response<Boolean> switchStatus(SwitchStatusReq req) {
+        return Response.buildSuccessResp(switchableTopoPathService.switchStatus(req.isStatus()));
     }
 }

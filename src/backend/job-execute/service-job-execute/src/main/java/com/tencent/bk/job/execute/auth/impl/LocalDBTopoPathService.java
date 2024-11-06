@@ -32,6 +32,7 @@ import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -52,10 +54,14 @@ import java.util.stream.Collectors;
 public class LocalDBTopoPathService implements TopoPathService {
 
     private final ServiceHostResource hostResource;
+    private final ExecutorService executorService;
 
     @Autowired
-    public LocalDBTopoPathService(@Lazy ServiceHostResource serviceHostResource) {
+    public LocalDBTopoPathService(@Lazy ServiceHostResource serviceHostResource,
+                                  @Qualifier("getHostTopoPathExecutor")
+                                  ExecutorService executorService) {
         this.hostResource = serviceHostResource;
+        this.executorService = executorService;
     }
 
     @Override
@@ -66,29 +72,13 @@ public class LocalDBTopoPathService implements TopoPathService {
         List<Long> hostIdList = hostIds.stream().map(Long::parseLong).collect(Collectors.toList());
         // 分批从job-manage查询，每次最多查询5000台主机
         int batchSize = 5000;
-        int maxBatchOfOneThread = 3;
         List<List<Long>> hostIdsSubList = Lists.partition(hostIdList, batchSize);
-        List<ServiceHostTopoDTO> hostTopoList = new ArrayList<>();
-        if (hostIdsSubList.size() <= maxBatchOfOneThread) {
-            // 主机数量较小：当前线程串行拉取
-            for (List<Long> subList : hostIdsSubList) {
-                hostTopoList.addAll(
-                    hostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
-                );
-            }
-        } else {
-            // 主机数量较大：多线程并发拉取
-            int maxThreadNum = 10;
-            int threadNum = Math.min(
-                (int) Math.ceil(hostIdsSubList.size() / (double) maxBatchOfOneThread),
-                maxThreadNum
-            );
-            hostTopoList.addAll(ConcurrencyUtil.getResultWithThreads(
-                hostIdsSubList,
-                threadNum,
-                (subList) -> hostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
-            ));
-        }
+        // 多线程并发拉取
+        List<ServiceHostTopoDTO> hostTopoList = ConcurrencyUtil.getResultWithThreads(
+            hostIdsSubList,
+            executorService,
+            (subList) -> hostResource.batchGetHostTopos(new ServiceBatchGetHostToposReq(subList)).getData()
+        );
         Map<String, List<String>> hostTopoPathMap = new HashMap<>();
         hostTopoList.forEach(hostTopoDTO -> {
             String hostIdStr = hostTopoDTO.getHostId().toString();

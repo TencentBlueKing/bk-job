@@ -22,37 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.execute.auth.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.execute.config.IamHostTopoPathProperties;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
+import lombok.extern.slf4j.Slf4j;
 
-@Data
-@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
-@NoArgsConstructor
-public class IamHostTopoPathProperties {
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * 可以动态开关的主机拓扑路径查询服务
+ */
+@Slf4j
+public class SwitchableTopoPathService implements TopoPathService {
+
     /**
-     * 是否开启主机拓扑路径鉴权服务，默认关闭
+     * 是否开启
      */
-    private Boolean enabled = false;
-    /**
-     * 主机拓扑路径缓存相关配置
-     */
-    private CacheConfig cache;
+    private volatile boolean status;
+    private final TopoPathService delegate;
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class CacheConfig {
-        /**
-         * 是否开启缓存
-         */
-        private Boolean enabled = false;
-        /**
-         * 缓存过期时间默认为10s
-         */
-        private Integer expireSeconds = 10;
+    public SwitchableTopoPathService(TopoPathService delegate, IamHostTopoPathProperties iamHostTopoPathProperties) {
+        this.delegate = delegate;
+        this.status = iamHostTopoPathProperties.getEnabled();
+    }
+
+    @Override
+    public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
+        if (status) {
+            return delegate.getTopoPathByHostIds(hostIds);
+        }
+        return Collections.emptyMap();
+    }
+
+    public boolean switchStatus(boolean status) {
+        log.info("Switch status from {} to {}", this.status, status);
+        this.status = status;
+        return status;
     }
 }

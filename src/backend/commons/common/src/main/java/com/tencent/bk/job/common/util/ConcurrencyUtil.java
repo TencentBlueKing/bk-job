@@ -55,7 +55,11 @@ public class ConcurrencyUtil {
     public static <Input, Output> List<Output> getResultWithThreads(Collection<Input> inputCollection, int threadNum,
                                                                     Handler<Input, Output> handler) {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadNum);
-        return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        try {
+            return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        } finally {
+            threadPoolExecutor.shutdown();
+        }
     }
 
     /**

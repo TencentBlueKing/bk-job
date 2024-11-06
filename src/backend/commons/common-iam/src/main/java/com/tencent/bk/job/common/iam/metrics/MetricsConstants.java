@@ -22,37 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.common.iam.metrics;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+public class MetricsConstants {
 
-@Data
-@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
-@NoArgsConstructor
-public class IamHostTopoPathProperties {
-    /**
-     * 是否开启主机拓扑路径鉴权服务，默认关闭
-     */
-    private Boolean enabled = false;
-    /**
-     * 主机拓扑路径缓存相关配置
-     */
-    private CacheConfig cache;
+    // metric name
+    public static final String NAME_AUTH_HELPER_IS_ALLOW = "AuthHelper.isAllow";
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class CacheConfig {
-        /**
-         * 是否开启缓存
-         */
-        private Boolean enabled = false;
-        /**
-         * 缓存过期时间默认为10s
-         */
-        private Integer expireSeconds = 10;
-    }
+    // tag
+    public static final String TAG_KEY_ACTION = "action";
+    public static final String TAG_KEY_STATUS = "status";
+
+    // value
+    public static final String TAG_VALUE_ACTION_NONE = "none";
+    public static final String TAG_VALUE_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_RESULT_FALSE = "false";
+    public static final String TAG_VALUE_RESULT_ERROR = "error";
+
 }
