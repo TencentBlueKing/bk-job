@@ -22,39 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.execute.model.op;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-import java.util.Collection;
-import java.util.List;
+@Data
+@ApiModel("切换状态请求请求报文")
+public class SwitchStatusReq {
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
+    @ApiModelProperty(value = "目标状态，是否开启", required = true)
+    private boolean status;
 
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
-
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
-
-    /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
-     */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
 }

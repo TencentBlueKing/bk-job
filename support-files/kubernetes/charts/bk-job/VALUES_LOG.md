@@ -1,4 +1,25 @@
 # chart values 更新日志
+## 0.3.8
+1. 增加按主机拓扑路径鉴权相关配置
+```yaml
+executeConfig:
+  # 权限中心相关配置
+  iam:
+    bizTopoAuth:
+      # 是否开启业务拓扑鉴权(依赖CMDB>=3.14.3)，默认关闭
+      enabled: false
+    # 按主机拓扑路径鉴权相关配置
+    hostTopoPath:
+      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认关闭
+      enabled : false
+      # 缓存配置
+      cache:
+        # 是否开启，默认关闭
+        enabled: false
+        # 过期时间（s）
+        expireSeconds: 10
+```
+
 ## 0.3.1-rc.7
 1.manageConfig现有配置项下增加CMDB资源同步与事件监听相关配置子项
 ```shell script

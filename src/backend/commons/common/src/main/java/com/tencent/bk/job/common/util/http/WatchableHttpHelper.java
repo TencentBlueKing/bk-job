@@ -35,6 +35,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 
 import java.util.AbstractList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * 对Http请求状态码与异常情况进行统计便于监控
@@ -42,11 +43,11 @@ import java.util.concurrent.TimeUnit;
 public class WatchableHttpHelper implements HttpHelper {
 
     private final HttpHelper httpHelper;
-    private final MeterRegistry meterRegistry;
+    private final Supplier<MeterRegistry> meterRegistrySupplier;
 
-    public WatchableHttpHelper(HttpHelper httpHelper, MeterRegistry meterRegistry) {
+    public WatchableHttpHelper(HttpHelper httpHelper, Supplier<MeterRegistry> meterRegistrySupplier) {
         this.httpHelper = httpHelper;
-        this.meterRegistry = meterRegistry;
+        this.meterRegistrySupplier = meterRegistrySupplier;
     }
 
     @Override
@@ -74,6 +75,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
+            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
@@ -101,6 +103,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
+            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
@@ -128,6 +131,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
+            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);
@@ -155,6 +159,7 @@ public class WatchableHttpHelper implements HttpHelper {
             long end = System.nanoTime();
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status", httpStatus));
+            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);

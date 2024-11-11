@@ -22,39 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.execute.config.IamHostTopoPathProperties;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
-
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
-
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
+/**
+ * 可以动态开关的主机拓扑路径查询服务
+ */
+@Slf4j
+public class SwitchableTopoPathService implements TopoPathService {
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * 是否开启
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    private volatile boolean status;
+    private final TopoPathService delegate;
+
+    public SwitchableTopoPathService(TopoPathService delegate, IamHostTopoPathProperties iamHostTopoPathProperties) {
+        this.delegate = delegate;
+        this.status = iamHostTopoPathProperties.getEnabled();
+    }
+
+    @Override
+    public Map<String, List<String>> getTopoPathByHostIds(Set<String> hostIds) {
+        if (status) {
+            return delegate.getTopoPathByHostIds(hostIds);
+        }
+        return Collections.emptyMap();
+    }
+
+    public boolean switchStatus(boolean status) {
+        log.info("Switch status from {} to {}", this.status, status);
+        this.status = status;
+        return status;
+    }
 }

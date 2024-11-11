@@ -22,39 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.iam.metrics;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+public class MetricsConstants {
 
-import java.util.Collection;
-import java.util.List;
+    // metric name
+    public static final String NAME_AUTH_HELPER_IS_ALLOW = "AuthHelper.isAllow";
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
+    // tag
+    public static final String TAG_KEY_ACTION = "action";
+    public static final String TAG_KEY_STATUS = "status";
 
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
+    // value
+    public static final String TAG_VALUE_ACTION_NONE = "none";
+    public static final String TAG_VALUE_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_RESULT_FALSE = "false";
+    public static final String TAG_VALUE_RESULT_ERROR = "error";
 
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
-
-    /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
-     */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
 }

@@ -22,39 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Collection;
-import java.util.List;
-
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
-
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
-
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
-
+@Data
+@ConfigurationProperties(prefix = "job.execute.iam.host-topo-path")
+@NoArgsConstructor
+public class IamHostTopoPathProperties {
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * 是否开启主机拓扑路径鉴权服务，默认关闭
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    private Boolean enabled = false;
+    /**
+     * 主机拓扑路径缓存相关配置
+     */
+    private CacheConfig cache;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CacheConfig {
+        /**
+         * 是否开启缓存
+         */
+        private Boolean enabled = false;
+        /**
+         * 缓存过期时间默认为10s
+         */
+        private Integer expireSeconds = 10;
+    }
 }

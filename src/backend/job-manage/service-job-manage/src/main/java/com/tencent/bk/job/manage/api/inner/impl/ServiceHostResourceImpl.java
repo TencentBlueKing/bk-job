@@ -34,14 +34,18 @@ import com.tencent.bk.job.common.model.dto.DynamicGroupWithHost;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
+import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceCheckAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByIpReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import com.tencent.bk.job.manage.model.web.request.ipchooser.AppTopologyTreeNode;
 import com.tencent.bk.job.manage.model.web.vo.NodeInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -60,12 +64,15 @@ import java.util.stream.Collectors;
 public class ServiceHostResourceImpl implements ServiceHostResource {
     private final ApplicationService applicationService;
     private final HostService hostService;
+    private final HostTopoDAO hostTopoDAO;
 
     @Autowired
     public ServiceHostResourceImpl(ApplicationService applicationService,
-                                   HostService hostService) {
+                                   HostService hostService,
+                                   HostTopoDAO hostTopoDAO) {
         this.applicationService = applicationService;
         this.hostService = hostService;
+        this.hostTopoDAO = hostTopoDAO;
     }
 
     @Override
@@ -166,5 +173,14 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public InternalResponse<List<ServiceHostTopoDTO>> batchGetHostTopos(ServiceBatchGetHostToposReq req) {
+        List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostIds(req.getHostIdList());
+        List<ServiceHostTopoDTO> serviceHostTopoDTOList = hostTopoDTOList.stream()
+            .map(HostTopoDTO::toServiceHostTopoDTO)
+            .collect(Collectors.toList());
+        return InternalResponse.buildSuccessResp(serviceHostTopoDTOList);
     }
 }

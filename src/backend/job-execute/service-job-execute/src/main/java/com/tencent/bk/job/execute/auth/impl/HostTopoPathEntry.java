@@ -22,39 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.execute.auth.impl;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Collection;
 import java.util.List;
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
-
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
-
-    void deleteHostTopoByHostId(Long appId, Long hostId);
-
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
-
-    int batchDeleteHostTopo(List<Long> hostIdList);
-
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
+@NoArgsConstructor
+@Getter
+@Setter
+public class HostTopoPathEntry {
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * 主机ID
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    private Long hostId;
+    /**
+     * 拓扑路径列表
+     */
+    private List<String> topoPathList;
+    /**
+     * 缓存时间
+     */
+    private String cacheTime;
+
+    public HostTopoPathEntry(Long hostId, List<String> topoPathList) {
+        this.hostId = hostId;
+        this.topoPathList = topoPathList;
+    }
+
+    @Override
+    public String toString() {
+        return "HostTopoPathEntry(" +
+            "hostId=" + hostId +
+            ", topoPathList=" + topoPathList +
+            ", cacheTime=" + cacheTime +
+            ')';
+    }
 }

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.auth.impl;
 
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
@@ -41,9 +42,11 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ServersDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.TopoService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -53,13 +56,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,6 +78,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private final AppAuthService appAuthService;
     private final TaskInstanceService taskInstanceService;
     private final JobExecuteConfig jobExecuteConfig;
+    private final TopoService topoService;
+    @Value("${job.execute.iam.bizTopoAuth.enabled:false}")
+    private Boolean isBizTopoAuthEnabled;
 
     @Autowired
     public ExecuteAuthServiceImpl(AuthHelper authHelper,
@@ -79,13 +88,15 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                                   AuthService authService,
                                   AppAuthService appAuthService,
                                   TaskInstanceService taskInstanceService,
-                                  JobExecuteConfig jobExecuteConfig) {
+                                  JobExecuteConfig jobExecuteConfig,
+                                  TopoService topoService) {
         this.authHelper = authHelper;
         this.resourceNameQueryService = resourceNameQueryService;
         this.authService = authService;
         this.appAuthService = appAuthService;
         this.taskInstanceService = taskInstanceService;
         this.jobExecuteConfig = jobExecuteConfig;
+        this.topoService = topoService;
         this.authService.setResourceNameQueryService(resourceNameQueryService);
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
@@ -302,6 +313,75 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return topoNodeInstanceList;
     }
 
+    private List<InstanceDTO> buildAppTopoNodeHostInstances(AppResourceScope appResourceScope,
+                                                            List<DynamicServerTopoNodeDTO> topoNodes) {
+        // 支持业务拓扑授权依赖高版本CMDB(>=3.14.3),低版本JOB默认使用"业务"这个topo节点进行鉴权,不细化到集群、模块
+        if (!isBizTopoAuthEnabled) {
+            return buildAppTopoNodeHostInstances(appResourceScope);
+        }
+        long bizId = Long.parseLong(appResourceScope.getId());
+        List<InstanceTopologyDTO> topoNodeTopologyList = topoService.batchGetTopoNodeHierarchy(bizId, topoNodes);
+        Map<String, InstanceTopologyDTO> topoNodeTopologyMap = new HashMap<>();
+        for (InstanceTopologyDTO instanceTopologyDTO : topoNodeTopologyList) {
+            topoNodeTopologyMap.put(instanceTopologyDTO.getUniqueKey(), instanceTopologyDTO);
+        }
+        List<InstanceDTO> topoNodeInstanceList = new ArrayList<>(topoNodes.size());
+        for (DynamicServerTopoNodeDTO topoNode : topoNodes) {
+            String topoNodeKey = topoNode.getUniqueKey();
+            InstanceTopologyDTO nodeTopology = topoNodeTopologyMap.get(topoNodeKey);
+            if (nodeTopology == null) {
+                log.info("Cannot find topoPath for node {}, ignore", topoNodeKey);
+                continue;
+            }
+            InstanceDTO topoNodeInstance = new InstanceDTO();
+            topoNodeInstance.setName(String.valueOf(topoNode.getTopoNodeId()));
+            topoNodeInstance.setType(ResourceTypeEnum.HOST.getId());
+            topoNodeInstance.setSystem(SystemId.CMDB);
+            topoNodeInstance.setPath(buildIamPathForTopoNode(nodeTopology));
+            topoNodeInstanceList.add(topoNodeInstance);
+        }
+        return topoNodeInstanceList;
+    }
+
+    private PathInfoDTO buildIamPathForTopoNode(InstanceTopologyDTO nodeTopology) {
+        List<InstanceTopologyDTO> parents = nodeTopology.getParents();
+        if (parents == null) {
+            parents = Collections.emptyList();
+        }
+        List<InstanceTopologyDTO> pathNodeList = new ArrayList<>(parents);
+        pathNodeList.add(nodeTopology);
+        // 权限路径不支持自定义节点，过滤掉
+        pathNodeList = pathNodeList.stream().filter(parent ->
+            CcNodeTypeEnum.BIZ.getType().equals(parent.getObjectId())
+                || CcNodeTypeEnum.SET.getType().equals(parent.getObjectId())
+                || CcNodeTypeEnum.MODULE.getType().equals(parent.getObjectId())
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(pathNodeList)) {
+            return null;
+        }
+        return buildPathInfoDTO(pathNodeList);
+    }
+
+    private PathInfoDTO buildPathInfoDTO(List<InstanceTopologyDTO> pathNodeList) {
+        PathInfoDTO rootPathInfo = null;
+        PathInfoDTO endPathInfo = null;
+        for (InstanceTopologyDTO pathNode : pathNodeList) {
+            if (rootPathInfo == null) {
+                rootPathInfo = new PathInfoDTO();
+                rootPathInfo.setType(pathNode.getObjectId());
+                rootPathInfo.setId(pathNode.getInstanceId().toString());
+                endPathInfo = rootPathInfo;
+            } else {
+                PathInfoDTO childPathInfo = new PathInfoDTO();
+                childPathInfo.setType(pathNode.getObjectId());
+                childPathInfo.setId(pathNode.getInstanceId().toString());
+                endPathInfo.setChild(childPathInfo);
+                endPathInfo = childPathInfo;
+            }
+        }
+        return rootPathInfo;
+    }
+
     private List<InstanceDTO> buildBizStaticHostInstances(AppResourceScope appResourceScope,
                                                           ServersDTO servers) {
         List<InstanceDTO> hostInstanceList = new ArrayList<>();
@@ -343,8 +423,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         }
         // 动态topo节点
         if (!CollectionUtils.isEmpty(servers.getTopoNodes())) {
-            // CMDB未提供权限中心使用的topo视图，暂时使用“业务”这个topo节点进行鉴权，不细化到集群、模块
-            hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope));
+            hostInstanceList.addAll(buildAppTopoNodeHostInstances(appResourceScope, servers.getTopoNodes()));
         }
         // 动态分组
         if (!CollectionUtils.isEmpty(servers.getDynamicServerGroups())) {
@@ -417,6 +496,49 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostResources;
     }
 
+    private List<PermissionResource> convertTopoNodesToPermissionResourceList(
+        AppResourceScope appResourceScope,
+        List<DynamicServerTopoNodeDTO> topoNodes) {
+        // 支持业务拓扑授权依赖高版本CMDB(>=3.14.3),低版本JOB默认使用"业务"这个topo节点进行鉴权,不细化到集群、模块
+        if (!isBizTopoAuthEnabled) {
+            return convertTopoNodesToPermissionResourceList(appResourceScope);
+        }
+        List<InstanceDTO> hostInstanceList = buildAppTopoNodeHostInstances(appResourceScope, topoNodes);
+        List<PermissionResource> finalPermissionResourceList = new ArrayList<>();
+        for (InstanceDTO instanceDTO : hostInstanceList) {
+            List<PermissionResource> permissionResourceList = convert(instanceDTO.getPath());
+            if (CollectionUtils.isEmpty(permissionResourceList)) {
+                continue;
+            }
+            int lastNodeIndex = permissionResourceList.size() - 1;
+            PermissionResource lastNode = permissionResourceList.get(lastNodeIndex);
+            permissionResourceList.remove(lastNodeIndex);
+            lastNode.setParentHierarchicalResources(permissionResourceList);
+            finalPermissionResourceList.add(lastNode);
+        }
+        return finalPermissionResourceList;
+    }
+
+    private List<PermissionResource> convert(PathInfoDTO pathInfoDTO) {
+        List<PermissionResource> permissionResourceList = new ArrayList<>();
+        if (pathInfoDTO == null) {
+            return permissionResourceList;
+        }
+        PathInfoDTO currentNode = pathInfoDTO;
+        while (currentNode != null) {
+            PermissionResource resource = new PermissionResource();
+            resource.setResourceId(currentNode.getId());
+            resource.setResourceType(ResourceTypeEnum.HOST);
+            resource.setSubResourceType("topo");
+            resource.setResourceName(currentNode.getType() + "_" + currentNode.getId());
+            resource.setSystemId(SystemId.CMDB);
+            resource.setType(currentNode.getType());
+            permissionResourceList.add(resource);
+            currentNode = currentNode.getChild();
+        }
+        return permissionResourceList;
+    }
+
     private List<PermissionResource> convertDynamicGroupsToPermissionResourceList(AppResourceScope appResourceScope,
                                                                                   ServersDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
@@ -438,7 +560,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     private List<PermissionResource> convertHostsToPermissionResourceList(AppResourceScope appResourceScope,
                                                                           ServersDTO servers) {
         List<PermissionResource> hostResources = new ArrayList<>();
-
+        // 静态IP
         if (!CollectionUtils.isEmpty(servers.getStaticIpList())) {
             switch (appResourceScope.getType()) {
                 case BIZ:
@@ -454,9 +576,11 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                         ErrorCode.NOT_SUPPORT_FEATURE);
             }
         }
+        // 动态topo节点
         if (!CollectionUtils.isEmpty(servers.getTopoNodes())) {
-            hostResources.addAll(convertTopoNodesToPermissionResourceList(appResourceScope));
+            hostResources.addAll(convertTopoNodesToPermissionResourceList(appResourceScope, servers.getTopoNodes()));
         }
+        // 动态分组
         if (!CollectionUtils.isEmpty(servers.getDynamicServerGroups())) {
             hostResources.addAll(convertDynamicGroupsToPermissionResourceList(appResourceScope, servers));
         }

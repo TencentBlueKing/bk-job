@@ -949,8 +949,14 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
             ipList.contains(new HostDTO(host.getCloudAreaId(), host.getIp()))).collect(Collectors.toList());
     }
 
+    /**
+     * 根据hostId查询主机业务关系信息
+     *
+     * @param hostIdList 主机id列表，数量<=500
+     * @return 主机业务关系列表
+     */
     @Override
-    public List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList) {
+    public List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList) {
         FindHostBizRelationsReq req = makeBaseReq(FindHostBizRelationsReq.class, defaultUin, defaultSupplierAccount);
         req.setHostIdList(hostIdList);
         EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(HttpPost.METHOD_NAME,
@@ -1079,7 +1085,7 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
 
     private void setBizRelationInfo(List<ApplicationHostDTO> hosts) {
         List<Long> hostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
-        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(null, hostIds);
+        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(hostIds);
         Map<Long, List<HostBizRelationDTO>> hostBizRelationMap =
             hostBizRelations.stream().collect(
                 Collectors.groupingBy(HostBizRelationDTO::getHostId));
@@ -1228,10 +1234,10 @@ public class BizCmdbClient extends AbstractEsbSdkClient implements IBizCmdbClien
                 hierarchyTopo.setInstanceId(nodePath.getInstanceId());
                 hierarchyTopo.setInstanceName(nodePath.getObjectName());
                 if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
-                    List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
-                    if (!CollectionUtils.isEmpty(parents)) {
-                        Collections.reverse(parents);
-                        parents.forEach(hierarchyTopo::addParent);
+                    List<InstanceTopologyDTO> parentNodeList = nodePath.getTopoPaths().get(0);
+                    if (!CollectionUtils.isEmpty(parentNodeList)) {
+                        Collections.reverse(parentNodeList);
+                        parentNodeList.forEach(hierarchyTopo::addParent);
                     }
                 }
                 hierarchyTopoList.add(hierarchyTopo);

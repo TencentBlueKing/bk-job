@@ -22,39 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao;
+package com.tencent.bk.job.common.redis;
 
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import io.micrometer.core.instrument.MeterRegistry;
 
-import java.util.Collection;
-import java.util.List;
+/**
+ * Redis 缓存基础实现类，提供通用能力
+ */
+public class BaseRedisCache {
 
-public interface HostTopoDAO {
-    void insertHostTopo(HostTopoDTO hostTopoDTO);
+    private final MeterRegistry meterRegistry;
 
-    int batchInsertHostTopo(List<HostTopoDTO> hostTopoDTOList);
+    private final String cacheName;
 
-    void deleteHostTopoByHostId(Long appId, Long hostId);
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL = "job_redis_cache_hits_total";
 
-    void deleteHostTopo(Long hostId, Long appId, Long setId, Long moduleId);
+    private static final String METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL = "job_redis_cache_misses_total";
 
-    int batchDeleteHostTopo(List<Long> hostIdList);
+    private static final String TAG_CACHE_NAME = "cacheName";
 
-    int batchDeleteHostTopo(Long bizId, List<Long> hostIdList);
-
-    int countHostTopo(Long bizId, Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostId(Long hostId);
-
-    List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds);
-
-    List<HostTopoDTO> listHostTopoByModuleIds(Collection<Long> moduleIds, Long start, Long limit);
+    public BaseRedisCache(MeterRegistry meterRegistry, String cacheName) {
+        this.meterRegistry = meterRegistry;
+        this.cacheName = cacheName;
+    }
 
     /**
-     * 根据CMDB业务IDs查询下属主机ID列表
-     *
-     * @param bizIds 业务ID集合
-     * @return 主机ID列表
+     * 增加缓存命中 key 次数
      */
-    List<Long> listHostIdByBizIds(Collection<Long> bizIds);
+    public void addHits(long hitCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_HITS_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(hitCount);
+    }
+
+    /**
+     * 增加缓存命中 key 次数
+     */
+    public void addMisses(long missCount) {
+        meterRegistry.counter(METRIC_NAME_JOB_REDIS_CACHE_MISSES_TOTAL, TAG_CACHE_NAME, cacheName)
+            .increment(missCount);
+    }
 }
