@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.dao.common;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -127,18 +129,21 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
      *
      * @return DSLContextProvider
      */
-    public DSLContextProvider getCurrent() {
+    public DSLContextProvider getCurrent(MySQLOperation op) {
         checkInit();
-        if (status == MigrationStatus.MIGRATING) {
-            // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
-            try {
-                synchronized (lock) {
-                    log.debug("Datasource is migrating, wait unit migrated");
-                    lock.wait();
-                    log.debug("Continue after datasource migrated");
+        // 迁移时阻塞写请求，读请求不影响
+        if (op.op() == DbOperationEnum.WRITE) {
+            if (status == MigrationStatus.MIGRATING) {
+                // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
+                try {
+                    synchronized (lock) {
+                        log.debug("Datasource is migrating, wait unit migrated");
+                        lock.wait();
+                        log.debug("Continue after datasource migrated");
+                    }
+                } catch (InterruptedException e) {
+                    log.error("Get current DSLContext error", e);
                 }
-            } catch (InterruptedException e) {
-                log.error("Get current DSLContext error", e);
             }
         }
         return currentContextProvider;
