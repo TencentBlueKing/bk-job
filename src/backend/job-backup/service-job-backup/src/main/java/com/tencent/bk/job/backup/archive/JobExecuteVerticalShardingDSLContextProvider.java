@@ -51,6 +51,7 @@ public class JobExecuteVerticalShardingDSLContextProvider extends VerticalShardi
         Map<String, DSLContext> tableNameAndDslContextMap = new HashMap<>();
         tableNameAndDslContextMap.put("task_instance", dslContextA);
         tableNameAndDslContextMap.put("task_instance_host", dslContextA);
+        tableNameAndDslContextMap.put("gse_script_agent_task", dslContextB);
         tableNameAndDslContextMap.put("gse_script_execute_obj_task", dslContextB);
         tableNameAndDslContextMap.put("dangerous_record", dslContextC);
         tableNameAndDslContextMap.put("file_source_task_log", dslContextC);
