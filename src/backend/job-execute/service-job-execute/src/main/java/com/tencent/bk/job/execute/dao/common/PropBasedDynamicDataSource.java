@@ -155,7 +155,7 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    // 设置当前数据源
+                    // 从配置文件读取数据源模式，初始化当前数据源
                     DataSourceMode dataSourceMode = DataSourceMode.valOf(
                         propToggleStore.getPropToggle(PROP_NAME_MIGRATE_TARGET_DATASOURCE_MODE).getDefaultValue());
                     log.info("Init default DSLContextProvider, dataSourceMode: {}", dataSourceMode);
