@@ -55,7 +55,6 @@ import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;

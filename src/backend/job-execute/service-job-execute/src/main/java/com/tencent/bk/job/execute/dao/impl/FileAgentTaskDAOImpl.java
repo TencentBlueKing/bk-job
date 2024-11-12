@@ -27,7 +27,10 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -37,7 +40,6 @@ import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -49,7 +51,6 @@ import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.UpdateSetStep;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ import static org.jooq.impl.DSL.count;
 @Repository
 @Deprecated
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
-public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
+public class FileAgentTaskDAOImpl extends BaseDAO implements FileAgentTaskDAO {
 
     private static final GseFileAgentTask T_GSE_FILE_AGENT_TASK = GseFileAgentTask.GSE_FILE_AGENT_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -82,14 +83,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         T_GSE_FILE_AGENT_TASK.ERROR_CODE
     };
 
-    private final DSLContext CTX;
-
     @Autowired
-    public FileAgentTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
-        this.CTX = CTX;
+    public FileAgentTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, T_GSE_FILE_AGENT_TASK.getName());
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.WRITE)
     public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         String sql = "insert into gse_file_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
             + "mode, host_id, agent_id ,gse_task_id,status, start_time, end_time, total_time, error_code)"
@@ -113,10 +113,11 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             param[12] = agentTask.getErrorCode();
             params[batchCount++] = param;
         }
-        CTX.batch(sql, params).execute();
+        dsl().batch(sql, params).execute();
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.WRITE)
     public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
@@ -141,12 +142,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
             param[10] = agentTask.getHostId();
             params[batchCount++] = param;
         }
-        CTX.batch(sql, params).execute();
+        dsl().batch(sql, params).execute();
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
-        Integer count = CTX.selectCount()
+        Integer count = dsl().selectCount()
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -158,9 +160,10 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(T_GSE_FILE_AGENT_TASK.STATUS, count().as("ip_count"))
+            dsl().select(T_GSE_FILE_AGENT_TASK.STATUS, count().as("ip_count"))
                 .from(T_GSE_FILE_AGENT_TASK)
                 .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
@@ -186,11 +189,12 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                               Integer executeCount,
                                                               Integer batch,
                                                               Integer status) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -209,6 +213,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                               Integer executeCount,
                                                               Integer batch,
@@ -222,7 +227,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
         conditions.add(T_GSE_FILE_AGENT_TASK.STATUS.eq(status));
         conditions.add(T_GSE_FILE_AGENT_TASK.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
 
-        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dsl().select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(conditions);
 
@@ -276,11 +281,12 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
                                                   Integer executeCount,
                                                   Integer batch,
                                                   FileTaskModeEnum fileTaskMode) {
-        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
@@ -324,6 +330,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
@@ -331,7 +338,7 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
 
         List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
 
-        Result<?> result = CTX.select(ALL_FIELDS)
+        Result<?> result = dsl().select(ALL_FIELDS)
             .from(T_GSE_FILE_AGENT_TASK)
             .where(T_GSE_FILE_AGENT_TASK.GSE_TASK_ID.eq(gseTaskId))
             .fetch();
@@ -342,10 +349,11 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.READ)
     public ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
                                                   FileTaskModeEnum mode, long hostId) {
         SelectConditionStep<?> selectConditionStep =
-            CTX.select(ALL_FIELDS)
+            dsl().select(ALL_FIELDS)
                 .from(T_GSE_FILE_AGENT_TASK)
                 .where(T_GSE_FILE_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T_GSE_FILE_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -361,12 +369,13 @@ public class FileAgentTaskDAOImpl implements FileAgentTaskDAO {
     }
 
     @Override
+    @MySQLOperation(table = "gse_file_agent_task", op = DbOperationEnum.WRITE)
     public void updateAgentTaskFields(long stepInstanceId,
                                       int executeCount,
                                       Integer batch,
                                       Integer actualExecuteCount,
                                       Long gseTaskId) {
-        UpdateSetStep<GseFileAgentTaskRecord> updateSetStep = CTX.update(T_GSE_FILE_AGENT_TASK);
+        UpdateSetStep<GseFileAgentTaskRecord> updateSetStep = dsl().update(T_GSE_FILE_AGENT_TASK);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T_GSE_FILE_AGENT_TASK.ACTUAL_EXECUTE_COUNT,

@@ -24,17 +24,13 @@
 
 package com.tencent.bk.job.execute.dao;
 
-import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ScriptStepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 
 import java.util.List;
 
@@ -150,19 +146,6 @@ public interface StepInstanceDAO {
      * @param operator       操作者
      */
     void updateStepOperator(long stepInstanceId, String operator);
-
-    Integer count(Long appId, List<Long> stepIdList, StepExecuteTypeEnum stepExecuteType, ScriptTypeEnum scriptType,
-                  RunStatusEnum runStatus, Long fromTime, Long toTime);
-
-    Integer countFastPushFile(Long appId, DuplicateHandlerEnum fileDupliateHandle, Boolean fileDupliateHandleNull,
-                              NotExistPathHandlerEnum notExistPathHandler, Boolean notExistPathHandlerNull,
-                              RunStatusEnum runStatus, Long fromTime, Long toTime);
-
-    List<List<FileSourceDTO>> listFastPushFileSource(Long appId, DuplicateHandlerEnum fileDupliateHandle,
-                                                     Boolean fileDupliateHandleNull,
-                                                     NotExistPathHandlerEnum notExistPathHandler,
-                                                     Boolean notExistPathHandlerNull, RunStatusEnum runStatus,
-                                                     Long fromTime, Long toTime);
 
     /**
      * 获取前一个可执行步骤实例

@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 配额限制存储
@@ -207,7 +208,7 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
     }
 
     @Override
-    public boolean handleConfigChange() {
+    public boolean handleConfigChange(Set<String> changedKeys) {
         return load(true);
     }
 }

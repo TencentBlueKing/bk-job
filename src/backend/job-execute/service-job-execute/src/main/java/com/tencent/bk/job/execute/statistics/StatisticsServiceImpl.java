@@ -42,9 +42,7 @@ import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -66,7 +64,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final TaskInstanceService taskInstanceService;
     private final ApplicationService applicationService;
     private final StepInstanceDAO stepInstanceDAO;
-    private final DSLContext dslContext;
     private final StatisticsDAO statisticsDAO;
     private final StatisticConfig statisticConfig;
     private final RollingConfigService rollingConfigService;
@@ -79,7 +76,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         TaskInstanceService taskInstanceService,
         ApplicationService applicationService,
         StepInstanceDAO stepInstanceDAO,
-        @Qualifier("job-execute-dsl-context") DSLContext dslContext,
         StatisticsDAO statisticsDAO,
         StatisticConfig statisticConfig,
         RollingConfigService rollingConfigService
@@ -87,7 +83,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         this.taskInstanceService = taskInstanceService;
         this.applicationService = applicationService;
         this.stepInstanceDAO = stepInstanceDAO;
-        this.dslContext = dslContext;
         this.statisticsDAO = statisticsDAO;
         this.statisticConfig = statisticConfig;
         this.rollingConfigService = rollingConfigService;
@@ -95,7 +90,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @PostConstruct
     public void init() {
-        StatisticsFlushThread flushThread = new StatisticsFlushThread(dslContext, flushQueue);
+        StatisticsFlushThread flushThread = new StatisticsFlushThread(statisticsDAO, flushQueue);
         flushThread.setName("flushThread");
         flushThread.start();
     }

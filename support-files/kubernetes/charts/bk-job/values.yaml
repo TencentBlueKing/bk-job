@@ -685,7 +685,13 @@ job:
       #   appQuotaLimit:
       #     global: "20%"
       #     custom: "bk-nodeman=1000,bk-soap=50%"
-
+  # 动态属性配置
+  toggle:
+    props:
+      # prop_a:
+      #   defaultValue: "valueA"
+      # prop_b:
+      #   defaultValue: "valueB"
 ## 依赖宿主机GSE Agent的文件分发相关配置
 fileDistribute:
   # 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）
@@ -993,6 +999,30 @@ executeConfig:
         # 过期时间（s）
         expireSeconds: 10
 
+  mysql:
+    # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
+    dataSourceMode: standalone
+    migration:
+      # 是否启用 db 迁移功能
+      enabled: false
+    standalone:
+      enabled: true
+    # 垂直分片配置
+    verticalSharding:
+      enabled: false
+    #   datasource:
+    #     job-execute-vertical-a:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-b:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+    #       username: "job"
+    #       password: "job"
+    #     job-execute-vertical-c:
+    #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+    #       username: "job"
+    #       password: "job"
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
@@ -1163,11 +1193,27 @@ backupConfig:
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
-      enabled: false
+      enabled: true
       # 被归档 DB 的配置
       mariadb:
         connection:
           properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+        dataSourceMode: standalone
+        # 垂直分片配置, 需要与 executeConfig 中保持一致
+        # verticalSharding:
+        #   datasource:
+        #     job-execute-vertical-a:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-b:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
+        #       username: "job"
+        #       password: "job"
+        #     job-execute-vertical-c:
+        #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
+        #       username: "job"
+        #       password: "job"
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00

@@ -1,8 +1,8 @@
 package com.tencent.bk.job.backup.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceVariableRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -24,8 +24,8 @@ public class StepInstanceVariableRecordDAO extends AbstractExecuteRecordDAO<Step
         ORDER_FIELDS.add(StepInstanceVariable.STEP_INSTANCE_VARIABLE.EXECUTE_COUNT.asc());
     }
 
-    public StepInstanceVariableRecordDAO(DSLContext context) {
-        super(context);
+    public StepInstanceVariableRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override
