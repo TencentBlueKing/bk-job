@@ -26,8 +26,6 @@ package com.tencent.bk.job.common.util.toggle.prop;
 
 import com.tencent.bk.job.common.refreshable.config.RefreshableConfigStore;
 
-import java.util.Set;
-
 public interface PropToggleStore extends RefreshableConfigStore {
 
     /**
@@ -41,10 +39,6 @@ public interface PropToggleStore extends RefreshableConfigStore {
      * @param propName 属性名称
      */
     PropToggle getPropToggle(String propName);
-
-    default boolean handleConfigChange(Set<String> changedKeys) {
-        return loadChange(changedKeys, true);
-    }
 
     void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener);
 

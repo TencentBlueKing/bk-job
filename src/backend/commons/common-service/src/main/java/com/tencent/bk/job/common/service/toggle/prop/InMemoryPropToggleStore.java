@@ -74,14 +74,14 @@ public class InMemoryPropToggleStore implements PropToggleStore {
 
     @Override
     public void init() {
-        loadAll();
+        loadAllPropToggles();
     }
 
     @Override
-    public boolean loadChange(Set<String> changedKeys, boolean ignoreException) {
+    public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadAll();
+            loadAllPropToggles();
         } catch (Throwable e) {
             log.warn("Load prop config error", e);
             loadResult = false;
@@ -122,7 +122,7 @@ public class InMemoryPropToggleStore implements PropToggleStore {
     }
 
 
-    private void loadAll() {
+    private void loadAllPropToggles() {
         synchronized (this) {
             log.info("Load prop toggle start ...");
             PropToggleProperties propToggleProperties =
@@ -191,10 +191,8 @@ public class InMemoryPropToggleStore implements PropToggleStore {
         propEventListeners.compute(propName, (prop, listeners) -> {
             if (listeners == null) {
                 listeners = new ArrayList<>();
-                listeners.add(propChangeEventListener);
-            } else {
-                listeners.add(propChangeEventListener);
             }
+            listeners.add(propChangeEventListener);
             return listeners;
         });
     }
