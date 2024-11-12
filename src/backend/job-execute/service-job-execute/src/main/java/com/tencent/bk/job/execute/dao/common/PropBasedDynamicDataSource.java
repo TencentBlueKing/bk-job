@@ -139,9 +139,9 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
                 // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
                 try {
                     synchronized (lock) {
-                        log.debug("Datasource is migrating, wait unit migrated");
+                        log.info("Datasource is migrating, block until migrated");
                         lock.wait();
-                        log.debug("Continue after datasource migrated");
+                        log.info("Continue after datasource migrated");
                     }
                 } catch (InterruptedException e) {
                     log.error("Get current DSLContext error", e);
