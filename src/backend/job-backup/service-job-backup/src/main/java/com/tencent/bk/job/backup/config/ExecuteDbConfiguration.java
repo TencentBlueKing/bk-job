@@ -104,7 +104,7 @@ public class ExecuteDbConfiguration {
         @Qualifier("job-execute-transaction-aware-data-source")
         @Bean(name = "job-execute-transaction-aware-data-source")
         public TransactionAwareDataSourceProxy
-        transactionAwareDataSourceProxyA(@Qualifier("job-execute-data-source") DataSource dataSource) {
+        transactionAwareDataSourceProxy(@Qualifier("job-execute-data-source") DataSource dataSource) {
             return new TransactionAwareDataSourceProxy(dataSource);
         }
 
