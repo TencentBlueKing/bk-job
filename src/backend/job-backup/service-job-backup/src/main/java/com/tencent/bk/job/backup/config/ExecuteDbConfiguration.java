@@ -101,6 +101,13 @@ public class ExecuteDbConfiguration {
             return new DataSourceConnectionProvider(dataSource);
         }
 
+        @Qualifier("job-execute-transaction-aware-data-source")
+        @Bean(name = "job-execute-transaction-aware-data-source")
+        public TransactionAwareDataSourceProxy
+        transactionAwareDataSourceProxyA(@Qualifier("job-execute-data-source") DataSource dataSource) {
+            return new TransactionAwareDataSourceProxy(dataSource);
+        }
+
         @Qualifier("job-execute-dsl-context-provider")
         @Bean(name = "job-execute-dsl-context-provider")
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
