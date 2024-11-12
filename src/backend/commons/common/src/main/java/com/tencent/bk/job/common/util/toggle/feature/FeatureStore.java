@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.util.toggle.feature;
 import com.tencent.bk.job.common.refreshable.config.RefreshableConfigStore;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * 特性开关配置存储
@@ -47,9 +46,4 @@ public interface FeatureStore extends RefreshableConfigStore {
      * @return 特性开关配置列表
      */
     List<Feature> listFeatures();
-
-    default boolean handleConfigChange(Set<String> changedKeys) {
-        return loadChange(changedKeys, true);
-    }
-
 }

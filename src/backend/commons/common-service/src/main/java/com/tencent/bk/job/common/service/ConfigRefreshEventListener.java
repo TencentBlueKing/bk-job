@@ -97,7 +97,7 @@ public class ConfigRefreshEventListener {
             return;
         }
         if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."))) {
-            boolean handleResult = featureStore.handleConfigChange(changedKeys);
+            boolean handleResult = featureStore.handleConfigChange(changedKeys, true);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -117,7 +117,7 @@ public class ConfigRefreshEventListener {
         }
 
         if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(PROP_KEY_PREFIX))) {
-            boolean handleResult = propToggleStore.handleConfigChange(changedKeys);
+            boolean handleResult = propToggleStore.handleConfigChange(changedKeys, true);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,

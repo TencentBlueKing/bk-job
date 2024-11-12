@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.dao.common;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -36,9 +38,11 @@ import com.tencent.bk.job.common.util.toggle.prop.PropChangeEventListener;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggle;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -127,18 +131,21 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
      *
      * @return DSLContextProvider
      */
-    public DSLContextProvider getCurrent() {
+    public DSLContextProvider getCurrent(MySQLOperation op) {
         checkInit();
-        if (status == MigrationStatus.MIGRATING) {
-            // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
-            try {
-                synchronized (lock) {
-                    log.debug("Datasource is migrating, wait unit migrated");
-                    lock.wait();
-                    log.debug("Continue after datasource migrated");
+        // 迁移时阻塞写请求，读请求不影响
+        if (op.op() == DbOperationEnum.WRITE) {
+            if (status == MigrationStatus.MIGRATING) {
+                // 如果数据源正在迁移中，需要等待迁移完成；当前线程阻塞
+                try {
+                    synchronized (lock) {
+                        log.debug("Datasource is migrating, wait unit migrated");
+                        lock.wait();
+                        log.debug("Continue after datasource migrated");
+                    }
+                } catch (InterruptedException e) {
+                    log.error("Get current DSLContext error", e);
                 }
-            } catch (InterruptedException e) {
-                log.error("Get current DSLContext error", e);
             }
         }
         return currentContextProvider;
@@ -266,29 +273,21 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private void clearAfterMigrated() {
-        boolean locked = false;
         try {
-            locked = lockForUpdate();
-            if (locked) {
-                List<Object> allServiceInstanceMigStatus =
-                    redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
-                List<MigrationStatus> serviceInstancesMigStatusList =
-                    castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
-                if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED || status == FAIL)) {
-                    // 所有服务实例都完成了 db 迁移，开始清理
-                    log.info("All migration done. Delete all migration temporary data");
-                    redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
-                    redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
-                } else {
-                    log.info("Some service instance node not yet complete migration");
-                }
+            List<Object> allServiceInstanceMigStatus =
+                redisTemplate.opsForHash().values(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+            List<MigrationStatus> serviceInstancesMigStatusList =
+                castList(allServiceInstanceMigStatus, k -> MigrationStatus.valOf((Integer) k));
+            if (serviceInstancesMigStatusList.stream().allMatch(status -> status == MIGRATED || status == FAIL)) {
+                // 所有服务实例都完成了 db 迁移，开始清理
+                log.info("All migration done. Delete all migration temporary data");
+                redisTemplate.delete(REDIS_KEY_SERVICE_INSTANCE_MIGRATION_STATUS);
+                redisTemplate.delete(REDIS_KEY_GLOBAL_MIGRATION_STATUS);
+            } else {
+                log.info("Some service instance node not yet complete migration");
             }
         } catch (Throwable e) {
             log.error("Clear migration caught exception", e);
-        } finally {
-            if (locked) {
-                unlock();
-            }
         }
     }
 
@@ -306,6 +305,9 @@ public class PropBasedDynamicDataSource implements PropChangeEventListener {
     }
 
     private <T, V> List<V> castList(List<T> source, Function<T, V> mapping) {
+        if (CollectionUtils.isEmpty(source)) {
+            return Collections.emptyList();
+        }
         List<V> list = new ArrayList<>(source.size());
         list.addAll(source.stream().map(mapping).collect(Collectors.toList()));
         return list;

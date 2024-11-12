@@ -72,14 +72,14 @@ public class InMemoryFeatureStore implements FeatureStore {
 
     @Override
     public void init() {
-        loadAll();
+        loadAllFeatures();
     }
 
     @Override
-    public boolean loadChange(Set<String> changedKeys, boolean ignoreException) {
+    public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadAll();
+            loadAllFeatures();
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
             loadResult = false;
@@ -92,7 +92,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         return loadResult;
     }
 
-    private void loadAll() {
+    private void loadAllFeatures() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
             FeatureToggleProperties featureToggleProperties =

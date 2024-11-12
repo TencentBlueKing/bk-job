@@ -43,5 +43,5 @@ public interface RefreshableConfigStore {
      * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
      * @return true: 重载成功
      */
-    boolean loadChange(Set<String> changedKeys, boolean ignoreException);
+    boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException);
 }

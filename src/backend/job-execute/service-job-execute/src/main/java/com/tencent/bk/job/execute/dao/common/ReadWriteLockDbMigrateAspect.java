@@ -25,13 +25,17 @@
 package com.tencent.bk.job.execute.dao.common;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+
+import java.lang.reflect.Method;
 
 @Aspect
 @Slf4j
@@ -56,7 +60,9 @@ public class ReadWriteLockDbMigrateAspect {
     @Around("mysqlOperation()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         try {
-            migrateDynamicDSLContextProvider.setProvider(propBasedDynamicDataSource.getCurrent());
+            Method method = ((MethodSignature) pjp.getSignature()).getMethod();
+            MySQLOperation operation = method.getAnnotation(MySQLOperation.class);
+            migrateDynamicDSLContextProvider.setProvider(propBasedDynamicDataSource.getCurrent(operation));
             return pjp.proceed();
         } finally {
             migrateDynamicDSLContextProvider.setProvider(null);
