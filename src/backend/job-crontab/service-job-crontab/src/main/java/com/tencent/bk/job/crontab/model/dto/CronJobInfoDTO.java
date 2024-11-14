@@ -202,11 +202,9 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobVO.setCronExpression(null);
         }
         cronJobVO.setExecuteTime(cronJobInfo.getExecuteTime());
-        if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
+        if (cronJobInfo.getVariableValue() != null) {
             cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
-        } else {
-            cronJobVO.setVariableValue(Collections.emptyList());
         }
         cronJobVO.setLastExecuteStatus(cronJobInfo.getLastExecuteStatus());
         cronJobVO.setLastExecuteErrorCode(cronJobInfo.getLastExecuteErrorCode());
