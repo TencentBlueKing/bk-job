@@ -148,9 +148,9 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    public PageData<CronJobInfoDTO> listPageCronJobInfos(CronJobInfoDTO cronJobCondition,
-                                                         BaseSearchCondition baseSearchCondition) {
-        return cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+    public PageData<CronJobInfoDTO> listPageCronJobInfosWithoutVars(CronJobInfoDTO cronJobCondition,
+                                                                    BaseSearchCondition baseSearchCondition) {
+        return cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class CronJobServiceImpl implements CronJobService {
         return updateCron;
     }
 
-    private void authExecuteTask(CronJobInfoDTO cronJobInfo){
+    private void authExecuteTask(CronJobInfoDTO cronJobInfo) {
         try {
             List<ServiceTaskVariable> taskVariables = null;
             if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {

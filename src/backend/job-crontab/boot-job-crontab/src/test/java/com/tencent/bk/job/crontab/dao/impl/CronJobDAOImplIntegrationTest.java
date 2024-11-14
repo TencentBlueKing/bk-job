@@ -415,7 +415,7 @@ public class CronJobDAOImplIntegrationTest {
         baseSearchCondition.setOrderField("last_modify_user");
         baseSearchCondition.setCreator(CRON_JOB_1.getCreator());
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+            cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(0);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);
@@ -423,7 +423,7 @@ public class CronJobDAOImplIntegrationTest {
         assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_1);
 
         baseSearchCondition.setStart(2);
-        cronJobInfoPageData = cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+        cronJobInfoPageData = cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);
@@ -433,7 +433,7 @@ public class CronJobDAOImplIntegrationTest {
         baseSearchCondition.setStart(0);
 
         baseSearchCondition.setOrder(1);
-        cronJobInfoPageData = cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+        cronJobInfoPageData = cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(0);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);

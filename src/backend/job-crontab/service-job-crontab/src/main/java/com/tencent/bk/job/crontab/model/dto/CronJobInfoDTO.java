@@ -585,12 +585,6 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJob.setScriptVersionId(scriptVersionId);
         cronJob.setCronExpression(cronExpression);
         cronJob.setExecuteTime(executeTime);
-        if (CollectionUtils.isNotEmpty(variableValue)) {
-            cronJob.setVariableValue(variableValue.stream().map(CronJobVariableDTO::toServiceCronJobVariableDTO)
-                .collect(Collectors.toList()));
-        } else {
-            cronJob.setVariableValue(Collections.emptyList());
-        }
         cronJob.setLastExecuteStatus(lastExecuteStatus);
         cronJob.setEnable(enable);
         cronJob.setLastModifyUser(lastModifyUser);
