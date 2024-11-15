@@ -28,15 +28,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -68,7 +68,7 @@ import java.util.List;
 
 @Slf4j
 @Repository
-public class StepInstanceDAOImpl implements StepInstanceDAO {
+public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     private static final StepInstance T_STEP_INSTANCE = StepInstance.STEP_INSTANCE;
     private static final StepInstanceScript T_STEP_INSTANCE_SCRIPT = StepInstanceScript.STEP_INSTANCE_SCRIPT;
@@ -141,24 +141,23 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         T_STEP_INSTANCE_CONFIRM.NOTIFY_CHANNELS
     };
 
-    private final DSLContextDynamicProvider dslContextProvider;
     private final SensitiveParamCryptoService sensitiveParamCryptoService;
     private final DbPasswordCryptoService dbPasswordCryptoService;
 
     @Autowired
-    public StepInstanceDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider,
+    public StepInstanceDAOImpl(DSLContextProviderFactory dslContextProviderFactory,
                                SensitiveParamCryptoService sensitiveParamCryptoService,
                                DbPasswordCryptoService dbPasswordCryptoService) {
-        this.dslContextProvider = dslContextDynamicProvider;
+        super(dslContextProviderFactory, T_STEP_INSTANCE.getName());
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
         this.dbPasswordCryptoService = dbPasswordCryptoService;
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public Long addStepInstanceBase(StepInstanceBaseDTO stepInstance) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = dslContextProvider.get().insertInto(
+        Record record = dsl().insertInto(
                 t,
                 t.ID,
                 t.STEP_ID,
@@ -205,7 +204,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.WRITE)
     public void addScriptStepInstance(StepInstanceDTO stepInstance) {
         Integer scriptSource = stepInstance.getScriptSource();
         byte scriptSourceByteValue = 1;
@@ -213,7 +212,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
             scriptSourceByteValue = scriptSource.byteValue();
         }
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        dslContextProvider.get().insertInto(t,
+        dsl().insertInto(t,
             t.STEP_INSTANCE_ID,
             t.TASK_INSTANCE_ID,
             t.SCRIPT_CONTENT,
@@ -258,10 +257,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.WRITE)
     public void addFileStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        dslContextProvider.get().insertInto(t,
+        dsl().insertInto(t,
             t.STEP_INSTANCE_ID,
             t.TASK_INSTANCE_ID,
             t.FILE_SOURCE,
@@ -291,10 +290,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.WRITE)
     public void addConfirmStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        dslContextProvider.get().insertInto(t,
+        dsl().insertInto(t,
                 t.STEP_INSTANCE_ID,
                 t.TASK_INSTANCE_ID,
                 t.CONFIRM_MESSAGE,
@@ -315,9 +314,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.READ)
     public ScriptStepInstanceDTO getScriptStepInstance(Long taskInstanceId, long stepInstanceId) {
-        Record record = dslContextProvider.get().select(T_STEP_INSTANCE_SCRIPT_ALL_FIELDS)
+        Record record = dsl().select(T_STEP_INSTANCE_SCRIPT_ALL_FIELDS)
             .from(T_STEP_INSTANCE_SCRIPT)
             .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
             .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -407,9 +406,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.READ)
     public FileStepInstanceDTO getFileStepInstance(Long taskInstanceId, long stepInstanceId) {
-        Record record = dslContextProvider.get().select(T_STEP_INSTANCE_FILE_ALL_FIELDS)
+        Record record = dsl().select(T_STEP_INSTANCE_FILE_ALL_FIELDS)
             .from(T_STEP_INSTANCE_FILE)
             .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_FILE, taskInstanceId))
             .and(T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -449,9 +448,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.READ)
     public ConfirmStepInstanceDTO getConfirmStepInstance(Long taskInstanceId, long stepInstanceId) {
-        Record record = dslContextProvider.get().select(T_STEP_INSTANCE_CONFIRM_ALL_FIELDS)
+        Record record = dsl().select(T_STEP_INSTANCE_CONFIRM_ALL_FIELDS)
             .from(T_STEP_INSTANCE_CONFIRM)
             .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_CONFIRM, taskInstanceId))
             .and(T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -479,9 +478,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public StepInstanceBaseDTO getStepInstanceBase(Long taskInstanceId, long stepInstanceId) {
-        Record record = dslContextProvider.get()
+        Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
@@ -523,9 +522,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
-        Record record = dslContextProvider.get()
+        Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
@@ -534,9 +533,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public StepInstanceBaseDTO getFirstStepInstanceBase(Long taskInstanceId) {
-        Record record = dslContextProvider.get()
+        Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -547,9 +546,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public StepInstanceBaseDTO getNextStepInstance(Long taskInstanceId, int currentStepOrder) {
-        Record record = dslContextProvider.get()
+        Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -561,9 +560,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(Long taskInstanceId) {
-        Result<Record> result = dslContextProvider.get()
+        Result<Record> result = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -575,10 +574,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void resetStepStatus(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .setNull(t.START_TIME)
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
@@ -588,10 +587,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void resetStepExecuteInfoForRetry(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
@@ -601,10 +600,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void addStepExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -612,10 +611,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepStatus(Long taskInstanceId, long stepInstanceId, int status) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.STATUS, JooqDataTypeUtil.toByte(status))
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -623,10 +622,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepStartTime(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.START_TIME, startTime)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -634,10 +633,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepStartTimeIfNull(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.START_TIME, startTime)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -646,10 +645,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepEndTime(Long taskInstanceId, long stepInstanceId, Long endTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.END_TIME, endTime)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -657,10 +656,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void addStepInstanceExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -668,10 +667,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepTotalTime(Long taskInstanceId, long stepInstanceId, long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.TOTAL_TIME, totalTime)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
@@ -679,7 +678,7 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepExecutionInfo(Long taskInstanceId,
                                         long stepInstanceId,
                                         RunStatusEnum status,
@@ -705,26 +704,26 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = dslContextProvider.get().update(t).set(t.STATUS,
+            updateSetMoreStep = dsl().update(t).set(t.STATUS,
                 JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(t).set(t.START_TIME, startTime);
+                updateSetMoreStep = dsl().update(t).set(t.START_TIME, startTime);
             } else {
                 updateSetMoreStep.set(t.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(t).set(t.END_TIME, endTime);
+                updateSetMoreStep = dsl().update(t).set(t.END_TIME, endTime);
             } else {
                 updateSetMoreStep.set(t.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(t).set(t.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dsl().update(t).set(t.TOTAL_TIME, totalTime);
             } else {
                 updateSetMoreStep.set(t.TOTAL_TIME, totalTime);
             }
@@ -733,13 +732,13 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.WRITE)
     public void updateResolvedScriptParam(Long taskInstanceId,
                                           long stepInstanceId,
                                           boolean isSecureParam,
                                           String resolvedScriptParam) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.RESOLVED_SCRIPT_PARAM, sensitiveParamCryptoService.encryptParamIfNeeded(
                 isSecureParam, resolvedScriptParam
             ))
@@ -749,12 +748,12 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.WRITE)
     public void updateResolvedSourceFile(Long taskInstanceId,
                                          long stepInstanceId,
                                          List<FileSourceDTO> resolvedFileSources) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.FILE_SOURCE, JsonUtils.toJson(resolvedFileSources))
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -762,10 +761,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.WRITE)
     public void updateResolvedTargetPath(Long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        dslContextProvider.get().update(t)
+        dsl().update(t)
             .set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -773,29 +772,29 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.WRITE)
     public void updateConfirmReason(Long taskInstanceId, long stepInstanceId, String confirmReason) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        dslContextProvider.get().update(t).set(t.CONFIRM_REASON, confirmReason)
+        dsl().update(t).set(t.CONFIRM_REASON, confirmReason)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepOperator(Long taskInstanceId, long stepInstanceId, String operator) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dslContextProvider.get().update(t).set(t.OPERATOR, operator)
+        dsl().update(t).set(t.OPERATOR, operator)
             .where(t.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(t.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId) {
-        Record record = dslContextProvider.get()
+        Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -808,9 +807,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public Long getStepInstanceId(Long taskInstanceId) {
-        Result<Record1<Long>> records = dslContextProvider.get().select(T_STEP_INSTANCE.ID)
+        Result<Record1<Long>> records = dsl().select(T_STEP_INSTANCE.ID)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .limit(1)
@@ -823,9 +822,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public Long getTaskInstanceId(long appId, long stepInstanceId) {
-        Result<Record1<Long>> records = dslContextProvider.get().select(T_STEP_INSTANCE.TASK_INSTANCE_ID)
+        Result<Record1<Long>> records = dsl().select(T_STEP_INSTANCE.TASK_INSTANCE_ID)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .and(T_STEP_INSTANCE.APP_ID.eq(appId))
@@ -839,9 +838,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.READ)
     public Byte getScriptTypeByStepInstanceId(Long taskInstanceId, long stepInstanceId) {
-        Result<Record1<Byte>> records = dslContextProvider.get().select(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
+        Result<Record1<Byte>> records = dsl().select(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
             .from(T_STEP_INSTANCE_SCRIPT)
             .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
             .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -855,9 +854,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepCurrentBatch(Long taskInstanceId, long stepInstanceId, int batch) {
-        dslContextProvider.get().update(T_STEP_INSTANCE)
+        dsl().update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
@@ -865,9 +864,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepCurrentExecuteCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        dslContextProvider.get().update(T_STEP_INSTANCE)
+        dsl().update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
@@ -875,9 +874,9 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public void updateStepRollingConfigId(Long taskInstanceId, long stepInstanceId, long rollingConfigId) {
-        dslContextProvider.get().update(T_STEP_INSTANCE)
+        dsl().update(T_STEP_INSTANCE)
             .set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
@@ -885,10 +884,10 @@ public class StepInstanceDAOImpl implements StepInstanceDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public List<Long> getTaskStepInstanceIdList(Long taskInstanceId) {
         Result result =
-            dslContextProvider.get().select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
+            dsl().select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
                 .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
                 .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
                 .fetch();

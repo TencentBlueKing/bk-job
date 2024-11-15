@@ -54,7 +54,7 @@ public class HttpHelperFactory {
     }
 
     private static WatchableHttpHelper getWatchableHttpHelper(HttpHelper httpHelper) {
-        return new WatchableHttpHelper(httpHelper, meterRegistry);
+        return new WatchableHttpHelper(httpHelper, () -> meterRegistry);
     }
 
     private static WatchableHttpHelper getWatchableExtHelper(HttpHelper httpHelper) {

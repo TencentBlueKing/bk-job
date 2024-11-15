@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,9 +51,21 @@ public class TopoServiceImpl implements TopoService {
     }
 
     @Override
-    public List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long appId, List<DynamicServerTopoNodeDTO> topoNodes) {
+    public List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes) {
+        // CMDB接口限制每次最多查询1000个拓扑节点
+        int batchSize = 1000;
+        List<List<DynamicServerTopoNodeDTO>> topoNodeSubList = Lists.partition(topoNodes, batchSize);
+        List<InstanceTopologyDTO> hierarchyNodes = new ArrayList<>();
+        for (List<DynamicServerTopoNodeDTO> subList : topoNodeSubList) {
+            hierarchyNodes.addAll(batchGetTopoNodePathWithoutLimit(bizId, subList));
+        }
+        return hierarchyNodes;
+    }
+
+    private List<InstanceTopologyDTO> batchGetTopoNodePathWithoutLimit(long bizId,
+                                                                       List<DynamicServerTopoNodeDTO> topoNodes) {
         GetTopoNodePathReq req = new GetTopoNodePathReq();
-        req.setBizId(appId);
+        req.setBizId(bizId);
         topoNodes.forEach(topoNode -> req.add(topoNode.getNodeType(), topoNode.getTopoNodeId()));
         List<InstanceTopologyDTO> hierarchyNodes = bizCmdbClient.getTopoInstancePath(req);
         log.debug("Get topo node hierarchy, req:{}, result:{}", req, hierarchyNodes);

@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
+import com.tencent.bk.job.execute.model.inner.ServiceExecuteObject;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectVO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -268,5 +269,15 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     public boolean isSupportExecuteObjectFeature() {
         return id != null;
+    }
+
+    public ServiceExecuteObject toServiceExecuteObject() {
+        ServiceExecuteObject serviceExecuteObject = new ServiceExecuteObject();
+        serviceExecuteObject.setId(id);
+        serviceExecuteObject.setType(type.getValue());
+        serviceExecuteObject.setResourceId(resourceId);
+        serviceExecuteObject.setHost(host);
+        serviceExecuteObject.setContainer(container);
+        return serviceExecuteObject;
     }
 }

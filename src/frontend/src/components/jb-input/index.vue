@@ -40,7 +40,9 @@
       v-if="maxlength > 0"
       ref="number"
       class="values-number">
-      {{ inputLength }}/{{ maxlength }}
+      <slot name="number">
+        {{ inputLength }}/{{ maxlength }}
+      </slot>
     </span>
   </div>
 </template>

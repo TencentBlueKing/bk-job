@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 特性开关配置存储实现
@@ -62,7 +63,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(true);
+                    init();
                 }
             }
         }
@@ -70,10 +71,15 @@ public class InMemoryFeatureStore implements FeatureStore {
     }
 
     @Override
-    public boolean load(boolean ignoreException) {
+    public void init() {
+        loadAllFeatures();
+    }
+
+    @Override
+    public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadInternal();
+            loadAllFeatures();
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
             loadResult = false;
@@ -86,7 +92,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         return loadResult;
     }
 
-    private void loadInternal() {
+    private void loadAllFeatures() {
         synchronized (this) {
             log.info("Load feature toggle start ...");
             FeatureToggleProperties featureToggleProperties =
@@ -151,7 +157,7 @@ public class InMemoryFeatureStore implements FeatureStore {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(true);
+                    init();
                 }
             }
         }

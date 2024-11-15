@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
 import org.apache.commons.lang3.StringUtils;
@@ -44,9 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
+public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstanceVariableDAO {
     private static final StepInstanceVariable TABLE = StepInstanceVariable.STEP_INSTANCE_VARIABLE;
-    private final DSLContextDynamicProvider dslContextProvider;
 
     private final TableField<?, ?>[] FIELDS = {
         TABLE.ID,
@@ -59,14 +58,14 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
 
 
     @Autowired
-    public StepInstanceVariableDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public StepInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.WRITE)
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
-        dslContextProvider.get().insertInto(
+        dsl().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
@@ -85,12 +84,12 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
     public StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
                                                                long stepInstanceId,
                                                                int executeCount,
                                                                VariableValueTypeEnum variableValueType) {
-        Record record = dslContextProvider.get().select(FIELDS)
+        Record record = dsl().select(FIELDS)
             .from(TABLE)
             .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
                 TABLE.TASK_INSTANCE_ID::eq))
@@ -124,9 +123,9 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
     public List<StepInstanceVariableValuesDTO> listStepOutputVariableValuesByTaskInstanceId(long taskInstanceId) {
-        Result result = dslContextProvider.get().select(FIELDS)
+        Result result = dsl().select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
@@ -141,10 +140,10 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
     public List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId,
                                                                                      long stepInstanceId) {
-        Result result = dslContextProvider.get().select(FIELDS)
+        Result result = dsl().select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .and(TABLE.STEP_INSTANCE_ID.lt(stepInstanceId))

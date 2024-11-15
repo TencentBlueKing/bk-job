@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -48,8 +48,8 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
         ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.ID.asc());
     }
 
-    public GseScriptAgentTaskRecordDAO(DSLContext context) {
-        super(context);
+    public GseScriptAgentTaskRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

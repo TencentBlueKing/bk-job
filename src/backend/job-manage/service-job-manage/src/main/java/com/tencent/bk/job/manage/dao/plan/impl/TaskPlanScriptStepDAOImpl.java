@@ -246,7 +246,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getContent(),
                 UByte.valueOf(scriptStep.getLanguage().getValue()),
                 sensitiveParamCryptoService.encryptParamIfNeeded(scriptStep.getSecureParam(),
-                        scriptStep.getScriptParam()),
+                    scriptStep.getScriptParam()),
                 ULong.valueOf(scriptStep.getTimeout()),
                 ULong.valueOf(scriptStep.getAccount()),
                 scriptStep.getExecuteTarget().toJsonString(),

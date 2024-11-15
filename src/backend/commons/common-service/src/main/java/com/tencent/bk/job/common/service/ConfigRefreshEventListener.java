@@ -37,6 +37,8 @@ import org.springframework.context.event.EventListener;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import static com.tencent.bk.job.common.util.toggle.prop.PropToggleStore.PROP_KEY_PREFIX;
+
 /**
  * 配置刷新监听
  */
@@ -95,7 +97,7 @@ public class ConfigRefreshEventListener {
             return;
         }
         if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."))) {
-            boolean handleResult = featureStore.handleConfigChange();
+            boolean handleResult = featureStore.handleConfigChange(changedKeys, true);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -105,7 +107,7 @@ public class ConfigRefreshEventListener {
         }
 
         if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.resourceQuotaLimit."))) {
-            boolean handleResult = resourceQuotaStore.handleConfigChange();
+            boolean handleResult = resourceQuotaStore.handleConfigChange(changedKeys);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -114,8 +116,8 @@ public class ConfigRefreshEventListener {
             }
         }
 
-        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.toggle.props."))) {
-            boolean handleResult = propToggleStore.handleConfigChange();
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(PROP_KEY_PREFIX))) {
+            boolean handleResult = propToggleStore.handleConfigChange(changedKeys, true);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,

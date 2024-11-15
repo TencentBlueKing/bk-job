@@ -24,6 +24,11 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -102,6 +107,8 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private final MeterRegistry meterRegistry;
 
+    private final BizCmdbClient bizCmdbClient;
+
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
                                               ApplicationService applicationService,
                                               ContainerService containerService,
@@ -109,7 +116,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                               WhiteHostCache whiteHostCache,
                                               @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
                                               AgentStateClient preferV2AgentStateClient,
-                                              MeterRegistry meterRegistry) {
+                                              MeterRegistry meterRegistry, BizCmdbClient bizCmdbClient) {
         this.hostService = hostService;
         this.applicationService = applicationService;
         this.containerService = containerService;
@@ -117,6 +124,7 @@ public class TaskInstanceExecuteObjectProcessor {
         this.whiteHostCache = whiteHostCache;
         this.preferV2AgentStateClient = preferV2AgentStateClient;
         this.meterRegistry = meterRegistry;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     /**
@@ -627,7 +635,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                          TaskInstanceDTO taskInstance,
                                          List<StepInstanceDTO> stepInstances) {
 
-        // // 根据静态容器列表方式获取并设置容器执行对象
+        // 根据静态容器列表方式获取并设置容器执行对象
         acquireAndSetContainersByStaticContainerList(taskInstanceExecuteObjects,
             taskInstance, stepInstances);
 
@@ -637,6 +645,62 @@ public class TaskInstanceExecuteObjectProcessor {
 
         taskInstanceExecuteObjects.setContainsAnyContainer(
             CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
+
+        // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
+        fillContainerTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
+    }
+
+    private void fillContainerTopoInfo(long appId,
+                                       Collection<Container> containers,
+                                       List<StepInstanceDTO> stepInstances) {
+        if (CollectionUtils.isEmpty(containers)) {
+            return;
+        }
+        long bizId = Long.parseLong(appScopeMappingService.getScopeByAppId(appId).getId());
+        // 从 cmdb 获取集群信息
+        List<Long> ccKubeClusterIds =
+            containers.stream().map(Container::getClusterId).distinct().collect(Collectors.toList());
+        List<KubeClusterDTO> clusters =
+            bizCmdbClient.listKubeClusters(KubeClusterQuery.Builder.builder(bizId).ids(ccKubeClusterIds).build());
+        Map<Long, KubeClusterDTO> clusterMap = clusters.stream().collect(
+            Collectors.toMap(KubeClusterDTO::getId, cluster -> cluster));
+
+        // 从 cmdb 获取命名空间信息
+        List<Long> ccKubeNamespaceIds =
+            containers.stream().map(Container::getNamespaceId).distinct().collect(Collectors.toList());
+        List<KubeNamespaceDTO> namespaces =
+            bizCmdbClient.listKubeNamespaces(NamespaceQuery.Builder.builder(bizId).ids(ccKubeNamespaceIds).build());
+        Map<Long, KubeNamespaceDTO> namespaceMap = namespaces.stream().collect(
+            Collectors.toMap(KubeNamespaceDTO::getId, namespace -> namespace));
+
+        // 填充 cluster、 namespace 信息
+        for (StepInstanceDTO stepInstance : stepInstances) {
+            stepInstance.forEachExecuteObjects(executeObjects -> {
+                if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
+                    executeObjects.getContainerFilters().forEach(containerFilter -> {
+                        if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                            containerFilter.getContainers().forEach(
+                                container -> addTopoDetail(container, clusterMap, namespaceMap));
+                        }
+                    });
+                }
+                if (CollectionUtils.isNotEmpty(executeObjects.getStaticContainerList())) {
+                    executeObjects.getStaticContainerList().forEach(
+                        container -> addTopoDetail(container, clusterMap, namespaceMap));
+                }
+            });
+        }
+    }
+
+    private void addTopoDetail(Container container,
+                               Map<Long, KubeClusterDTO> clusterMap,
+                               Map<Long, KubeNamespaceDTO> namespaceMap) {
+        KubeClusterDTO cluster = clusterMap.get(container.getClusterId());
+        container.setClusterName(cluster.getName());
+        container.setClusterUID(cluster.getUid());
+
+        KubeNamespaceDTO namespace = namespaceMap.get(container.getNamespaceId());
+        container.setNamespace(namespace.getName());
     }
 
     private void acquireAndSetContainersByStaticContainerList(TaskInstanceExecuteObjects taskInstanceExecuteObjects,

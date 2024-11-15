@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.service.toggle.strategy.config.ToggleStrategyCo
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
+import com.tencent.bk.job.common.util.toggle.prop.PropChangeEventListener;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggle;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +38,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 属性开关配置存储实现
@@ -55,12 +58,14 @@ public class InMemoryPropToggleStore implements PropToggleStore {
      */
     private volatile boolean isInitial = false;
 
+    private final Map<String, List<PropChangeEventListener>> propEventListeners = new HashMap<>();
+
     @Override
     public PropToggle getPropToggle(String propName) {
         if (!isInitial) {
             synchronized (this) {
                 if (!isInitial) {
-                    load(true);
+                    init();
                 }
             }
         }
@@ -68,10 +73,15 @@ public class InMemoryPropToggleStore implements PropToggleStore {
     }
 
     @Override
-    public boolean load(boolean ignoreException) {
+    public void init() {
+        loadAllPropToggles();
+    }
+
+    @Override
+    public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadInternal();
+            loadAllPropToggles();
         } catch (Throwable e) {
             log.warn("Load prop config error", e);
             loadResult = false;
@@ -81,10 +91,38 @@ public class InMemoryPropToggleStore implements PropToggleStore {
                 throw e;
             }
         }
+        Set<String> uniquePropNames = getUniqueChangedPropNames(changedKeys);
+        log.info("Changed prop names : {}", uniquePropNames);
+        uniquePropNames.forEach(propName -> {
+            List<PropChangeEventListener> listeners = propEventListeners.get(propName);
+            if (CollectionUtils.isNotEmpty(listeners)) {
+                listeners.forEach(listener -> {
+                    log.info("Invoke listener {}", listener.getClass().getSimpleName());
+                    listener.handlePropChangeEvent(propName, getPropToggle(propName));
+                });
+            }
+        });
         return loadResult;
     }
 
-    private void loadInternal() {
+    private Set<String> getUniqueChangedPropNames(Set<String> changedKeys) {
+        Set<String> uniquePropNames = new HashSet<>();
+
+        for (String changeKey : changedKeys) {
+            String[] parts = changeKey.split("\\.");
+            // 格式 job.toggle.props.{propName}.others
+            if (parts.length >= 4) {
+                uniquePropNames.add(parts[3]);
+            } else {
+                log.error("Invalid key : {}", changeKey);
+            }
+        }
+
+        return uniquePropNames;
+    }
+
+
+    private void loadAllPropToggles() {
         synchronized (this) {
             log.info("Load prop toggle start ...");
             PropToggleProperties propToggleProperties =
@@ -106,6 +144,7 @@ public class InMemoryPropToggleStore implements PropToggleStore {
             // 使用新的配置完全替换老的配置
             propToggles = tmpPropToggles;
             log.info("Load prop toggle config done! props: {}", propToggles);
+
             isInitial = true;
         }
     }
@@ -146,16 +185,16 @@ public class InMemoryPropToggleStore implements PropToggleStore {
         return propToggle;
     }
 
+
     @Override
-    public List<PropToggle> listPropToggles() {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    load(true);
-                }
+    public void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener) {
+        propEventListeners.compute(propName, (prop, listeners) -> {
+            if (listeners == null) {
+                listeners = new ArrayList<>();
             }
-        }
-        return new ArrayList<>(propToggles.values());
+            listeners.add(propChangeEventListener);
+            return listeners;
+        });
     }
 
 }

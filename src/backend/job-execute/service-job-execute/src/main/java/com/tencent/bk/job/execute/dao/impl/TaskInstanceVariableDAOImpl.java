@@ -26,11 +26,11 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
@@ -48,23 +48,22 @@ import java.util.List;
  * 作业实例全局变量DAO
  */
 @Repository
-public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
+public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstanceVariableDAO {
     private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
 
-    private final DSLContextDynamicProvider dslContextProvider;
     private final CipherVariableCryptoService cipherVariableCryptoService;
 
     @Autowired
-    public TaskInstanceVariableDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider,
+    public TaskInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory,
                                        CipherVariableCryptoService cipherVariableCryptoService) {
-        this.dslContextProvider = dslContextDynamicProvider;
+        super(dslContextProviderFactory, TABLE.getName());
         this.cipherVariableCryptoService = cipherVariableCryptoService;
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.READ)
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
-        Result<Record6<Long, Long, String, Byte, Byte, String>> result = dslContextProvider.get().select(
+        Result<Record6<Long, Long, String, Byte, Byte, String>> result = dsl().select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.NAME,
@@ -96,20 +95,22 @@ public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void batchDeleteByTaskInstanceIds(List<Long> taskInstanceIdList) {
 
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void deleteByTaskInstanceId(long taskInstanceId) {
 
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
         InsertValuesStep6<TaskInstanceVariableRecord, Long, Long, String, Byte, String, Byte> insertStep =
-            dslContextProvider.get().insertInto(TABLE)
+            dsl().insertInto(TABLE)
                 .columns(
                     TABLE.ID,
                     TABLE.TASK_INSTANCE_ID,

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive.dao.impl;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -40,10 +41,13 @@ import java.util.List;
 
 public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implements JobInstanceHotRecordDAO<T> {
 
-    protected final DSLContext context;
+    protected final DSLContextProvider dslContextProvider;
 
-    public AbstractJobInstanceHotRecordDAO(DSLContext context) {
-        this.context = context;
+    protected final String tableName;
+
+    public AbstractJobInstanceHotRecordDAO(DSLContextProvider dslContextProvider, String tableName) {
+        this.dslContextProvider = dslContextProvider;
+        this.tableName = tableName;
     }
 
     @Override
@@ -51,12 +55,11 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
         return query(getTable(), buildConditions(jobInstanceIds), readRowLimit);
     }
 
-    @Override
-    public List<T> listRecords(List<Condition> conditions, Long readRowLimit) {
+    public List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
         return query(getTable(), conditions, readRowLimit);
     }
 
-    protected abstract RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long limit);
+//    protected abstract RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long limit);
 
     @Override
     public int deleteRecords(Collection<Long> jobInstanceIds, long maxLimitedDeleteRows) {
@@ -72,7 +75,7 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     private int deleteWithLimit(Table<? extends Record> table, List<Condition> conditions, long maxLimitedDeleteRows) {
         int totalDeleteRows = 0;
         while (true) {
-            int deletedRows = context
+            int deletedRows = dsl()
                 .delete(table)
                 .where(conditions)
                 .limit(maxLimitedDeleteRows)
@@ -88,7 +91,8 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     protected List<T> query(Table<?> table,
                             List<Condition> conditions,
                             Long readRowLimit) {
-        SelectConditionStep<Record> selectConditionStep = context.select()
+        SelectConditionStep<Record> selectConditionStep = dsl()
+            .select()
             .from(table)
             .where(conditions);
 
@@ -105,4 +109,8 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     public abstract Table<T> getTable();
 
     protected abstract Collection<? extends OrderField<?>> getListRecordsOrderFields();
+
+    protected DSLContext dsl() {
+        return this.dslContextProvider.get(tableName);
+    }
 }

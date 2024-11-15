@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseTask;
 import com.tencent.bk.job.execute.model.tables.records.GseTaskRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -45,8 +45,8 @@ public class GseTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<GseTaskRec
         ORDER_FIELDS.add(GseTask.GSE_TASK.ID.asc());
     }
 
-    public GseTaskRecordDAO(DSLContext context) {
-        super(context);
+    public GseTaskRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

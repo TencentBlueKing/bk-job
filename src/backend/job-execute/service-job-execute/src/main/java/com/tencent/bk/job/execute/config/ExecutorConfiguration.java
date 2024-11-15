@@ -69,6 +69,27 @@ public class ExecutorConfiguration {
         );
     }
 
+    @Bean("getHostTopoPathExecutor")
+    public ThreadPoolExecutor getHostTopoPathExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "getHostTopoPathExecutor",
+            5,
+            50,
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(5),
+            (r, executor) -> {
+                //使用请求的线程直接拉取数据
+                log.error(
+                    "getHostTopoPath runnable rejected," +
+                        " use current thread({}), plz add more threads",
+                    Thread.currentThread().getName());
+                r.run();
+            }
+        );
+    }
+
     @Bean("localFileDownloadExecutor")
     public ThreadPoolExecutor localFileDownloadExecutor(LocalFileConfigForExecute localFileConfigForExecute,
                                                         MeterRegistry meterRegistry) {

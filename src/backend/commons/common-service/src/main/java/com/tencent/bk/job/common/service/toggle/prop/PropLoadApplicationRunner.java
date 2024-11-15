@@ -41,7 +41,7 @@ public class PropLoadApplicationRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         // 初始化配置；如果初始化错误，那么抛出异常终止程序启动
         log.info("PropLoadApplicationRunner start");
-        propToggleStore.load(false);
+        propToggleStore.init();
         log.info("PropLoadApplicationRunner run success");
     }
 }

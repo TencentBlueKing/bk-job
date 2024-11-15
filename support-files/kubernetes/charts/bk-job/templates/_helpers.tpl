@@ -651,6 +651,20 @@ Return the Job Deploy Env Content
   value: {{ .Release.Name }}
 {{- end -}}
 
+
+{{/*
+Return environment variables for a given micro service
+*/}}
+{{- define "job.service.extra.env" -}}
+{{- $extraEnv := . -}}
+{{- if $extraEnv -}}
+{{- range $extraEnv -}}
+- name: {{ .name }}
+  value: {{ .value | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Return the Job Common Env Content
 */}}

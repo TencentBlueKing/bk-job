@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.common.util.toggle.prop;
 
-import com.tencent.bk.job.common.refreshable.config.ConfigRefreshHandler;
+import com.tencent.bk.job.common.refreshable.config.RefreshableConfigStore;
 
-import java.util.List;
+public interface PropToggleStore extends RefreshableConfigStore {
 
-public interface PropToggleStore extends ConfigRefreshHandler {
+    /**
+     * 属性名称前缀
+     */
+    String PROP_KEY_PREFIX = "job.toggle.props";
+
     /**
      * 返回属性开关配置
      *
@@ -36,24 +40,6 @@ public interface PropToggleStore extends ConfigRefreshHandler {
      */
     PropToggle getPropToggle(String propName);
 
-    /**
-     * 加载配置
-     *
-     * @param ignoreException 是否忽略加载配置异常；true - 忽略异常；false: 抛出异常
-     * @return true: 重载成功
-     */
-    boolean load(boolean ignoreException);
-
-
-    /**
-     * 查询所有属性开关配置
-     *
-     * @return 属性开关配置列表
-     */
-    List<PropToggle> listPropToggles();
-
-    default boolean handleConfigChange() {
-        return load(true);
-    }
+    void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener);
 
 }

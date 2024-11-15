@@ -44,7 +44,7 @@ public class FeatureLoadApplicationRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         // 初始化特性开关配置；如果初始化错误，那么抛出异常终止程序启动
         log.info("FeatureLoadApplicationRunner start");
-        featureStore.load(false);
+        featureStore.init();
         log.info("FeatureLoadApplicationRunner run success");
     }
 }

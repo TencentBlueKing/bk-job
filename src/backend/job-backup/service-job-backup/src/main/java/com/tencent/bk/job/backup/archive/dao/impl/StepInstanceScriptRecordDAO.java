@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceScript;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceScriptRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -49,8 +49,8 @@ public class StepInstanceScriptRecordDAO extends AbstractJobInstanceHotRecordDAO
         ORDER_FIELDS.add(StepInstanceScript.STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.asc());
     }
 
-    public StepInstanceScriptRecordDAO(DSLContext context) {
-        super(context);
+    public StepInstanceScriptRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

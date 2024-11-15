@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.consts;
 
 /**
- * 执行对象任务状态
+ * 单个执行对象的任务状态，体现在任务详情页左侧状态栏
  */
 public enum ExecuteObjectTaskStatusEnum {
     /**

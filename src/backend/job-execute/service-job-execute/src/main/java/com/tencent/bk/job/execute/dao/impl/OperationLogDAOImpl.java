@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import org.apache.commons.lang3.StringUtils;
@@ -43,19 +43,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class OperationLogDAOImpl implements OperationLogDAO {
+public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
-    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public OperationLogDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public OperationLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.WRITE)
     public long saveOperationLog(OperationLogDTO operationLog) {
-        Record record = dslContextProvider.get().insertInto(
+        Record record = dsl().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
@@ -77,9 +76,9 @@ public class OperationLogDAOImpl implements OperationLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.READ)
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
-        Result result = dslContextProvider.get()
+        Result result = dsl()
             .select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,

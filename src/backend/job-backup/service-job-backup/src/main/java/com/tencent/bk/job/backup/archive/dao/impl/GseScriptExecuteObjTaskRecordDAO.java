@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
-import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.TableField;
 
@@ -51,8 +50,8 @@ public class GseScriptExecuteObjTaskRecordDAO extends AbstractJobInstanceHotReco
         ORDER_FIELDS.add(GseScriptExecuteObjTask.GSE_SCRIPT_EXECUTE_OBJ_TASK.ID.asc());
     }
 
-    public GseScriptExecuteObjTaskRecordDAO(DSLContext context) {
-        super(context);
+    public GseScriptExecuteObjTaskRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override
@@ -68,19 +67,6 @@ public class GseScriptExecuteObjTaskRecordDAO extends AbstractJobInstanceHotReco
     @Override
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
         return ORDER_FIELDS;
-    }
-
-    @Override
-    protected RecordResultSet<GseScriptExecuteObjTaskRecord> executeQuery(Collection<Long> jobInstanceIds,
-                                                                          long limit) {
-        List<GseScriptExecuteObjTaskRecord> record = listRecords(jobInstanceIds, 0L, limit);
-
-        boolean hasNext = false;
-        if (CollectionUtils.isEmpty(record) || record.size() < limit) {
-            hasNext = true;
-        }
-        TableRecordResultSet recordResultSet = new TableRecordResultSet();
-        return recordResultSet;
     }
 
     private class TableRecordResultSet implements RecordResultSet<GseScriptExecuteObjTaskRecord> {

@@ -36,7 +36,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.file_gateway",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @EnableCaching
 @EnableFeignClients(
     basePackages = {

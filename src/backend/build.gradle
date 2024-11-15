@@ -132,7 +132,7 @@ ext {
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
-    set('okHttpVersion', "4.9.1")
+    set('okHttpVersion', "4.12.0")
     set('jcommanderVersion', "1.72")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
@@ -151,6 +151,7 @@ ext {
     set('bkAuditJavaSdkVersion', "1.0.8")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
+    set('openai4jVersion', "0.18.0")
     set('shardingJdbcVersion', "5.4.1")
     set('snakeyamlVersion', "1.33")
     set('bkDevOpsLeafVersion', "1.0.2-RELEASE")
@@ -324,6 +325,7 @@ subprojects {
             dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependency "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
+            dependency "com.squareup.okhttp3:okhttp-sse:$okHttpVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"
@@ -348,6 +350,7 @@ subprojects {
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
+            dependency "dev.ai4j:openai4j:$openai4jVersion"
             dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
             dependency "org.yaml:snakeyaml:$snakeyamlVersion"
             dependency "com.tencent.devops.leaf:leaf-boot-starter:$bkDevOpsLeafVersion"

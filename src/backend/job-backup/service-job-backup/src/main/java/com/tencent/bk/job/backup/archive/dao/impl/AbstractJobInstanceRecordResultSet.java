@@ -54,8 +54,8 @@ abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements R
             return false;
         }
 
-        records = jobInstanceHotRecordDAO.listRecords(jobInstanceIds,
-            buildQueryConditions(), readRowLimit);
+//        records = jobInstanceHotRecordDAO.listRecords(jobInstanceIds,
+//            buildQueryConditions(), readRowLimit);
 
         if (CollectionUtils.isEmpty(records)) {
             hasNext = false;

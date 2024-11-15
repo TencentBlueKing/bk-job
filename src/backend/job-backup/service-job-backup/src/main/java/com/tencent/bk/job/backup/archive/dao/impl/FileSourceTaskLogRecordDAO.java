@@ -25,9 +25,9 @@
 package com.tencent.bk.job.backup.archive.dao.impl;
 
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -49,8 +49,8 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
         ORDER_FIELDS.add(FileSourceTaskLog.FILE_SOURCE_TASK_LOG.ID.asc());
     }
 
-    public FileSourceTaskLogRecordDAO(DSLContext context) {
-        super(context);
+    public FileSourceTaskLogRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override
@@ -67,4 +67,5 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
         return ORDER_FIELDS;
     }
+
 }

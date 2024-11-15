@@ -603,6 +603,27 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
+    public String getDocJobRootUrl() {
+        String docCenterBaseUrl = getDocCenterBaseUrl();
+        StringBuilder sb = new StringBuilder(docCenterBaseUrl);
+        sb.append("/markdown/");
+        if (JobContextUtil.isEnglishLocale()) {
+            sb.append("EN");
+        } else {
+            sb.append("ZH");
+        }
+        sb.append("/JOB/");
+        sb.append(getTwoDigitVersion());
+        return sb.toString();
+    }
+
+    private String getTwoDigitVersion() {
+        String completeVersion = buildProperties.getVersion();
+        String[] versionParts = completeVersion.split("\\.");
+        return versionParts[0] + "." + versionParts[1];
+    }
+
+    @Override
     public String getDocCenterBaseUrl() {
         String url;
         if (org.apache.commons.lang3.StringUtils.isNotBlank(jobManageConfig.getBkDocRoot())) {
@@ -656,7 +677,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             removeSuffixBackSlash(jobManageConfig.getCmdbServerUrl()) + jobManageConfig.getCmdbAppIndexPath());
         urlMap.put(RelatedUrlKeys.KEY_BK_NODEMAN_ROOT_URL, getNodemanRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_CENTER_ROOT_URL, getDocCenterBaseUrl());
-        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocCenterBaseUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocJobRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
         return urlMap;

@@ -27,10 +27,10 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -60,7 +60,7 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
 @Repository
-public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDAO {
+public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExecuteObjectTaskDAO {
 
     private static final GseScriptExecuteObjTask T = GseScriptExecuteObjTask.GSE_SCRIPT_EXECUTE_OBJ_TASK;
 
@@ -83,8 +83,6 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         T.LOG_OFFSET
     };
 
-    private final DSLContextDynamicProvider dslContextProvider;
-
     private static final String BATCH_INSERT_SQL =
         "insert into gse_script_execute_obj_task (id,task_instance_id,step_instance_id,execute_count,"
             + "actual_execute_count,batch,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,"
@@ -96,12 +94,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             + " where task_instance_id = ? and step_instance_id = ? and execute_count = ? and batch = ?"
             + " and execute_obj_id = ?";
 
-    public ScriptExecuteObjectTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public ScriptExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, T.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
         Object[][] params = new Object[tasks.size()][17];
         int batchCount = 0;
@@ -126,11 +124,11 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[16] = task.getScriptLogOffset();
             params[batchCount++] = param;
         }
-        dslContextProvider.get().batch(BATCH_INSERT_SQL, params).execute();
+        dsl().batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
@@ -155,13 +153,13 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
             param[13] = task.getExecuteObjectId();
             params[batchCount++] = param;
         }
-        dslContextProvider.get().batch(BATCH_UPDATE_SQL, params).execute();
+        dsl().batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        Integer count = dslContextProvider.get().selectCount()
+        Integer count = dsl().selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -180,13 +178,13 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
                                                      long stepInstanceId,
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            dslContextProvider.get().select(T.STATUS, T.TAG, count().as("task_count"))
+            dsl().select(T.STATUS, T.TAG, count().as("task_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T.EXECUTE_COUNT.eq((short) executeCount))
@@ -212,14 +210,14 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByResultGroup(Long taskInstanceId,
                                                           Long stepInstanceId,
                                                           Integer executeCount,
                                                           Integer batch,
                                                           Integer status,
                                                           String tag) {
-        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -264,7 +262,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByResultGroup(Long taskInstanceId,
                                                           Long stepInstanceId,
                                                           Integer executeCount,
@@ -281,7 +279,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
         conditions.add(T.TAG.eq(tag == null ? "" : tag));
         conditions.add(buildTaskInstanceIdQueryCondition(taskInstanceId));
 
-        SelectConditionStep<Record> select = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dsl().select(ALL_FIELDS)
             .from(T)
             .where(conditions);
 
@@ -341,12 +339,12 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasks(Long taskInstanceId,
                                              Long stepInstanceId,
                                              Integer executeCount,
                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
@@ -366,7 +364,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByGseTaskId(Long taskInstanceId, Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
@@ -374,7 +372,7 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
 
         List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
 
-        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
+        Result<?> result = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -386,14 +384,14 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public ExecuteObjectTask getTaskByExecuteObjectId(Long taskInstanceId,
                                                       Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
                                                       String executeObjectId) {
         SelectConditionStep<?> selectConditionStep =
-            dslContextProvider.get().select(ALL_FIELDS)
+            dsl().select(ALL_FIELDS)
                 .from(T)
                 .where(buildTaskInstanceIdQueryCondition(taskInstanceId))
                 .and(T.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -409,23 +407,23 @@ public class ScriptExecuteObjectTaskDAOImpl implements ScriptExecuteObjectTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
-        return dslContextProvider.get().fetchExists(
+        return dsl().fetchExists(
             T,
             T.STEP_INSTANCE_ID.eq(stepInstanceId),
             buildTaskInstanceIdQueryCondition(taskInstanceId));
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void updateTaskFields(Long taskInstanceId,
                                  long stepInstanceId,
                                  int executeCount,
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = dslContextProvider.get().update(T);
+        UpdateSetStep<GseScriptExecuteObjTaskRecord> updateSetStep = dsl().update(T);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,

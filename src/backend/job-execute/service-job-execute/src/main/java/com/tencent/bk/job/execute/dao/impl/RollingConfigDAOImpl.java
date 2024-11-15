@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
@@ -40,20 +40,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class RollingConfigDAOImpl implements RollingConfigDAO {
+public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
-    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public RollingConfigDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public RollingConfigDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.WRITE)
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
-        Record record = dslContextProvider.get().insertInto(
+        Record record = dsl().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
@@ -72,9 +71,9 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
     public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
-        Record record = dslContextProvider.get().select(
+        Record record = dsl().select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
@@ -86,9 +85,9 @@ public class RollingConfigDAOImpl implements RollingConfigDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
     public boolean existsRollingConfig(long taskInstanceId) {
-        Result<Record1<Integer>> records = dslContextProvider.get().selectOne()
+        Result<Record1<Integer>> records = dsl().selectOne()
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .limit(1)

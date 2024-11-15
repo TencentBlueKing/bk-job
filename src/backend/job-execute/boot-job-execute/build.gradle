@@ -41,10 +41,22 @@ task renameArtifacts(type: Copy) {
     from('build/libs')
     include "boot-job-execute-${version}.jar"
     destinationDir file('build/libs/')
+    println("renameArtifacts, version=" + version)
     rename "boot-job-execute-${version}.jar", "job-execute-${version}.jar"
+    doLast{
+        println("After rename:")
+        def libsDir = file("build/libs")
+        if (libsDir.exists() && libsDir.isDirectory()) {
+            println "Files in $libsDir:"
+            libsDir.eachFile { file ->
+                println file.name
+            }
+        } else {
+            println "$libsDir does not exist or is not a directory."
+        }
+    }
 }
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+renameArtifacts.dependsOn assemble
 
 task copyToLatestJar(type: Copy) {
     group = "local"
@@ -56,3 +68,4 @@ task copyToLatestJar(type: Copy) {
 copyToLatestJar.dependsOn assemble
 
 apply from: "$rootDir/task_job_package.gradle"
+copyToRelease.dependsOn renameArtifacts

@@ -24,72 +24,61 @@
 
 package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
-import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
 
 @Slf4j
-@Configuration(value = "jobExecuteDSLContextConfiguration")
+//@Configuration(value = "jobExecuteDSLContextConfiguration")
 public class DSLContextConfiguration {
-
-    @Bean("defaultDSLContextDynamicProvider")
-    @ConditionalOnProperty(value = "sharding.migration.enabled", havingValue = "false", matchIfMissing = true)
-    public DefaultDSLContextDynamicProvider defaultDSLContextProvider(
-        ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider,
-        @Autowired(required = false)
-        @Qualifier("job-execute-dsl-context")
-        DSLContext noShardingDSLContext,
-        @Autowired(required = false)
-        @Qualifier("job-sharding-dsl-context")
-        DSLContext shardingDSLContext) {
-        return new DefaultDSLContextDynamicProvider(shardingPropertiesObjectProvider.getIfAvailable(),
-            noShardingDSLContext, shardingDSLContext);
-    }
-
-    @Bean("shardingMigrateDSLContextDynamicProvider")
-    @Conditional(ShardingMigrateCondition.class)
-    public ShardingMigrateDSLContextDynamicProvider shardingMigrateDSLContextDynamicProvider() {
-        return new ShardingMigrateDSLContextDynamicProvider();
-    }
-
-
-    @Bean("shardingDbMigrateAspect")
-    @Conditional(ShardingMigrateCondition.class)
-    public ShardingDbMigrateAspect shardingDbMigrateAspect(
-        ShardingMigrateDSLContextDynamicProvider shardingMigrateDSLContextDynamicProvider,
-        @Qualifier("job-execute-dsl-context")
-        DSLContext noShardingDSLContext,
-        @Qualifier("job-sharding-dsl-context")
-        DSLContext shardingDSLContext,
-        PropToggleStore propToggleStore) {
-        log.info("Init ShardingDbMigrateAspect");
-        return new ShardingDbMigrateAspect(shardingMigrateDSLContextDynamicProvider, noShardingDSLContext,
-            shardingDSLContext, propToggleStore);
-    }
-
-    static class ShardingMigrateCondition extends AllNestedConditions {
-        public ShardingMigrateCondition() {
-            super(ConfigurationPhase.REGISTER_BEAN);
-        }
-
-        @ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")
-        static class ShardingEnableCondition {
-
-        }
-
-        @ConditionalOnProperty(value = "sharding.migration.enabled", havingValue = "true")
-        static class ShardingMigrationCondition {
-
-        }
-    }
+//
+//    @Bean("defaultDSLContextDynamicProvider")
+//    @ConditionalOnProperty(value = "sharding.migration.enabled", havingValue = "false", matchIfMissing = true)
+//    public DefaultDSLContextDynamicProvider defaultDSLContextProvider(
+//        ObjectProvider<ShardingProperties> shardingPropertiesObjectProvider,
+//        @Autowired(required = false)
+//        @Qualifier("job-execute-dsl-context")
+//        DSLContext noShardingDSLContext,
+//        @Autowired(required = false)
+//        @Qualifier("job-sharding-dsl-context")
+//        DSLContext shardingDSLContext) {
+//        return new DefaultDSLContextDynamicProvider(shardingPropertiesObjectProvider.getIfAvailable(),
+//            noShardingDSLContext, shardingDSLContext);
+//    }
+//
+//    @Bean("shardingMigrateDSLContextDynamicProvider")
+//    @Conditional(ShardingMigrateCondition.class)
+//    public ShardingMigrateDSLContextDynamicProvider shardingMigrateDSLContextDynamicProvider() {
+//        return new ShardingMigrateDSLContextDynamicProvider();
+//    }
+//
+//
+//    @Bean("shardingDbMigrateAspect")
+//    @Conditional(ShardingMigrateCondition.class)
+//    public ShardingDbMigrateAspect shardingDbMigrateAspect(
+//        ShardingMigrateDSLContextDynamicProvider shardingMigrateDSLContextDynamicProvider,
+//        @Qualifier("job-execute-dsl-context")
+//        DSLContext noShardingDSLContext,
+//        @Qualifier("job-sharding-dsl-context")
+//        DSLContext shardingDSLContext,
+//        PropToggleStore propToggleStore) {
+//        log.info("Init ShardingDbMigrateAspect");
+//        return new ShardingDbMigrateAspect(shardingMigrateDSLContextDynamicProvider, noShardingDSLContext,
+//            shardingDSLContext, propToggleStore);
+//    }
+//
+//    static class ShardingMigrateCondition extends AllNestedConditions {
+//        public ShardingMigrateCondition() {
+//            super(ConfigurationPhase.REGISTER_BEAN);
+//        }
+//
+//        @ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")
+//        static class ShardingEnableCondition {
+//
+//        }
+//
+//        @ConditionalOnProperty(value = "sharding.migration.enabled", havingValue = "true")
+//        static class ShardingMigrationCondition {
+//
+//        }
+//    }
 
 }

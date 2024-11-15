@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -55,8 +55,8 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
         ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
     }
 
-    public TaskInstanceRecordDAO(DSLContext context) {
-        super(context);
+    public TaskInstanceRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override
@@ -76,7 +76,7 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
 
     public Long getMinJobCreateTime() {
         Record1<Long> record =
-            context.select(min(TABLE.CREATE_TIME))
+            dsl().select(min(TABLE.CREATE_TIME))
                 .from(TABLE)
                 .fetchOne();
         if (record != null) {
@@ -93,7 +93,7 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
                                                                    Long fromJobInstanceId,
                                                                    int limit) {
         SelectConditionStep<Record> selectConditionStep =
-            context.select()
+            dsl().select()
                 .from(TABLE)
                 .where(TABLE.CREATE_TIME.greaterOrEqual(fromTimestamp))
                 .and(TABLE.CREATE_TIME.lessThan(endTimestamp));

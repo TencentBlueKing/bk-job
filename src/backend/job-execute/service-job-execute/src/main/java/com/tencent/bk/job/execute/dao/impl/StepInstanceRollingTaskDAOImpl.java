@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
@@ -48,7 +48,7 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDAO {
+public class StepInstanceRollingTaskDAOImpl extends BaseDAO implements StepInstanceRollingTaskDAO {
 
     private static final StepInstanceRollingTask TABLE = StepInstanceRollingTask.STEP_INSTANCE_ROLLING_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -62,20 +62,19 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
         TABLE.END_TIME,
         TABLE.TOTAL_TIME
     };
-    private final DSLContextDynamicProvider dslContextProvider;
 
     @Autowired
-    public StepInstanceRollingTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public StepInstanceRollingTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.READ)
     public StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
                                                        long stepInstanceId,
                                                        int executeCount,
                                                        int batch) {
-        Record record = dslContextProvider.get().select(ALL_FIELDS)
+        Record record = dsl().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -110,12 +109,12 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.READ)
     public List<StepInstanceRollingTaskDTO> listRollingTasks(Long taskInstanceId,
                                                              long stepInstanceId,
                                                              Integer executeCount,
                                                              Integer batch) {
-        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(TABLE)
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
@@ -136,9 +135,9 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.WRITE)
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
-        Record record = dslContextProvider.get().insertInto(
+        Record record = dsl().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
@@ -166,7 +165,7 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "step_instance_rolling_task", op = DbOperationEnum.WRITE)
     public void updateRollingTask(Long taskInstanceId,
                                   long stepInstanceId,
                                   int executeCount,
@@ -177,26 +176,25 @@ public class StepInstanceRollingTaskDAOImpl implements StepInstanceRollingTaskDA
                                   Long totalTime) {
         UpdateSetMoreStep<StepInstanceRollingTaskRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.STATUS,
-                JooqDataTypeUtil.toByte(status.getValue()));
+            updateSetMoreStep = dsl().update(TABLE).set(TABLE.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.START_TIME, startTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.START_TIME, startTime);
             } else {
                 updateSetMoreStep.set(TABLE.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.END_TIME, endTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.END_TIME, endTime);
             } else {
                 updateSetMoreStep.set(TABLE.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = dslContextProvider.get().update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dsl().update(TABLE).set(TABLE.TOTAL_TIME, totalTime);
             } else {
                 updateSetMoreStep.set(TABLE.TOTAL_TIME, totalTime);
             }

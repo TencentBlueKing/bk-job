@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -50,9 +50,8 @@ public class StepInstanceConfirmRecordDAO extends AbstractJobInstanceHotRecordDA
         ORDER_FIELDS.add(StepInstanceConfirm.STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.asc());
     }
 
-
-    public StepInstanceConfirmRecordDAO(DSLContext context) {
-        super(context);
+    public StepInstanceConfirmRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE.getName());
     }
 
     @Override

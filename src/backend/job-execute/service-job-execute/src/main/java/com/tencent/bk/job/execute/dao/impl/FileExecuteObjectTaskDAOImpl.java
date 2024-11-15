@@ -26,10 +26,10 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -61,7 +61,7 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 import static org.jooq.impl.DSL.count;
 
 @Repository
-public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
+public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecuteObjectTaskDAO {
 
     private static final GseFileExecuteObjTask T = GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -81,8 +81,6 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         T.ERROR_CODE
     };
 
-    private final DSLContextDynamicProvider dslContextProvider;
-
     public static final String BATCH_INSERT_SQL =
         "insert into gse_file_execute_obj_task (id,task_instance_id,step_instance_id,execute_count," +
             "actual_execute_count, "
@@ -93,12 +91,12 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and execute_obj_id = ?";
 
     @Autowired
-    public FileExecuteObjectTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public FileExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, T.getName());
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
         Object[][] params = new Object[tasks.size()][15];
         int batchCount = 0;
@@ -121,11 +119,11 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             param[14] = task.getErrorCode();
             params[batchCount++] = param;
         }
-        dslContextProvider.get().batch(BATCH_INSERT_SQL, params).execute();
+        dsl().batch(BATCH_INSERT_SQL, params).execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchUpdateTasks(Collection<ExecuteObjectTask> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
@@ -147,13 +145,13 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
             param[10] = task.getExecuteObjectId();
             params[batchCount++] = param;
         }
-        dslContextProvider.get().batch(BATCH_UPDATE_SQL, params).execute();
+        dsl().batch(BATCH_UPDATE_SQL, params).execute();
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        Integer count = dslContextProvider.get().selectCount()
+        Integer count = dsl().selectCount()
             .from(T)
             .where(T.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
@@ -173,13 +171,13 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
                                                      long stepInstanceId,
                                                      int executeCount,
                                                      Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            dslContextProvider.get().select(T.STATUS, count().as("ip_count"))
+            dsl().select(T.STATUS, count().as("ip_count"))
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -206,13 +204,13 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
                                                          Long stepInstanceId,
                                                          Integer executeCount,
                                                          Integer batch,
                                                          Integer status) {
-        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -232,7 +230,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTaskByResultGroup(Long taskInstanceId,
                                                          Long stepInstanceId,
                                                          Integer executeCount,
@@ -248,7 +246,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
         conditions.add(T.STATUS.eq(status));
         conditions.add(T.MODE.eq(FileTaskModeEnum.DOWNLOAD.getValue().byteValue()));
 
-        SelectConditionStep<Record> select = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<Record> select = dsl().select(ALL_FIELDS)
             .from(T)
             .where(conditions);
 
@@ -302,13 +300,14 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op =
+        DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasks(Long taskInstanceId,
                                              Long stepInstanceId,
                                              Integer executeCount,
                                              Integer batch,
                                              FileTaskModeEnum fileTaskMode) {
-        SelectConditionStep<?> selectConditionStep = dslContextProvider.get().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -354,7 +353,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public List<ExecuteObjectTask> listTasksByGseTaskId(Long taskInstanceId, Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
@@ -362,7 +361,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
 
         List<ExecuteObjectTask> executeObjectList = new ArrayList<>();
 
-        Result<?> result = dslContextProvider.get().select(ALL_FIELDS)
+        Result<?> result = dsl().select(ALL_FIELDS)
             .from(T)
             .where(T.GSE_TASK_ID.eq(gseTaskId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -374,7 +373,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public ExecuteObjectTask getTaskByExecuteObjectId(Long taskInstanceId,
                                                       Long stepInstanceId,
                                                       Integer executeCount,
@@ -382,7 +381,7 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
                                                       FileTaskModeEnum mode,
                                                       String executeObjectId) {
         SelectConditionStep<?> selectConditionStep =
-            dslContextProvider.get().select(ALL_FIELDS)
+            dsl().select(ALL_FIELDS)
                 .from(T)
                 .where(T.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -399,9 +398,9 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
-        return dslContextProvider.get().fetchExists(
+        return dsl().fetchExists(
             T,
             T.STEP_INSTANCE_ID.eq(stepInstanceId),
             buildTaskInstanceIdQueryCondition(taskInstanceId)
@@ -409,14 +408,14 @@ public class FileExecuteObjectTaskDAOImpl implements FileExecuteObjectTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.WRITE)
     public void updateTaskFields(Long taskInstanceId,
                                  long stepInstanceId,
                                  int executeCount,
                                  Integer batch,
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
-        UpdateSetStep<GseFileExecuteObjTaskRecord> updateSetStep = dslContextProvider.get().update(T);
+        UpdateSetStep<GseFileExecuteObjTaskRecord> updateSetStep = dsl().update(T);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T.ACTUAL_EXECUTE_COUNT,

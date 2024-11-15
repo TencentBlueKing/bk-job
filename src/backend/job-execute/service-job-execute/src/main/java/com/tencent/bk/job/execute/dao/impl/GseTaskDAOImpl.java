@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.tables.GseTask;
@@ -44,8 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class GseTaskDAOImpl implements GseTaskDAO {
-    private final DSLContextDynamicProvider dslContextProvider;
+public class GseTaskDAOImpl extends BaseDAO implements GseTaskDAO {
 
     private static final GseTask TABLE = GseTask.GSE_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
@@ -70,8 +69,8 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     };
 
     @Autowired
-    public GseTaskDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public GseTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     private GseTaskDTO extractInfo(Record record) {
@@ -107,9 +106,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.WRITE)
     public long saveGseTask(GseTaskDTO gseTask) {
-        Record record = dslContextProvider.get().insertInto(
+        Record record = dsl().insertInto(
                 TABLE,
                 TABLE.ID,
                 TABLE.STEP_INSTANCE_ID,
@@ -139,9 +138,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.WRITE)
     public boolean updateGseTask(GseTaskDTO gseTask) {
-        int affectRows = dslContextProvider.get().update(TABLE)
+        int affectRows = dsl().update(TABLE)
             .set(TABLE.START_TIME, gseTask.getStartTime())
             .set(TABLE.END_TIME, gseTask.getEndTime())
             .set(TABLE.TOTAL_TIME, gseTask.getTotalTime())
@@ -154,10 +153,10 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            dslContextProvider.get().select(ALL_FIELDS).from(TABLE)
+            dsl().select(ALL_FIELDS).from(TABLE)
                 .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(TABLE.EXECUTE_COUNT.eq((short) executeCount))
                 .and(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq));
@@ -171,9 +170,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId) {
-        Record record = dslContextProvider.get().select(ALL_FIELDS).from(TABLE)
+        Record record = dsl().select(ALL_FIELDS).from(TABLE)
             .where(TABLE.ID.eq(gseTaskId))
             .and(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq))
             .fetchOne();
@@ -181,9 +180,9 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId) {
-        Result<Record> records = dslContextProvider.get().select(SIMPLE_FIELDS).from(TABLE)
+        Result<Record> records = dsl().select(SIMPLE_FIELDS).from(TABLE)
             .where(TABLE.GSE_TASK_ID.eq(gseTaskId))
             .limit(1)
             .fetch();
@@ -194,7 +193,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "gse_task", op = DbOperationEnum.READ)
     public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId, Integer executeCount, Integer batch) {
         List<Condition> conditions = new ArrayList<>();
         if (stepInstanceId != null) {
@@ -206,7 +205,7 @@ public class GseTaskDAOImpl implements GseTaskDAO {
         if (batch != null) {
             conditions.add(TABLE.BATCH.eq(batch.shortValue()));
         }
-        Result<Record> records = dslContextProvider.get().select(SIMPLE_FIELDS).from(TABLE)
+        Result<Record> records = dsl().select(SIMPLE_FIELDS).from(TABLE)
             .where(conditions)
             .fetch();
         List<GseTaskSimpleDTO> results = new ArrayList<>();

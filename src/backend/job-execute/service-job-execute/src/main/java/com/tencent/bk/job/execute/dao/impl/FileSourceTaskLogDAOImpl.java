@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextDynamicProvider;
-import com.tencent.bk.job.execute.dao.common.DbOperationEnum;
-import com.tencent.bk.job.execute.dao.common.ShardingDbMigrate;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
@@ -44,9 +44,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
+public class FileSourceTaskLogDAOImpl extends BaseDAO implements FileSourceTaskLogDAO {
+
     private static final FileSourceTaskLog defaultTable = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-    private final DSLContextDynamicProvider dslContextProvider;
 
     private static final TableField<?, ?>[] ALL_FIELDS = {
         defaultTable.ID,
@@ -62,8 +62,8 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
 
 
     @Autowired
-    public FileSourceTaskLogDAOImpl(DSLContextDynamicProvider dslContextDynamicProvider) {
-        this.dslContextProvider = dslContextDynamicProvider;
+    public FileSourceTaskLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, defaultTable.getName());
     }
 
     private FileSourceTaskLogDTO extractInfo(Record record) {
@@ -86,10 +86,10 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.WRITE)
     public int insertFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        return dslContextProvider.get().insertInto(
+        return dsl().insertInto(
             t,
             t.ID,
             t.TASK_INSTANCE_ID,
@@ -114,12 +114,12 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.WRITE)
     public int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog) {
         List<Condition> conditionList = new ArrayList<>();
         conditionList.add(defaultTable.STEP_INSTANCE_ID.eq(fileSourceTaskLog.getStepInstanceId()));
         conditionList.add(defaultTable.EXECUTE_COUNT.eq(fileSourceTaskLog.getExecuteCount()));
-        return dslContextProvider.get().update(defaultTable)
+        return dsl().update(defaultTable)
             .set(defaultTable.START_TIME, fileSourceTaskLog.getStartTime())
             .set(defaultTable.END_TIME, fileSourceTaskLog.getEndTime())
             .set(defaultTable.TOTAL_TIME, fileSourceTaskLog.getTotalTime())
@@ -131,10 +131,10 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.READ)
     public FileSourceTaskLogDTO getFileSourceTaskLog(Long taskInstanceId, long stepInstanceId, int executeCount) {
         FileSourceTaskLog t = FileSourceTaskLog.FILE_SOURCE_TASK_LOG;
-        Record record = dslContextProvider.get().select(
+        Record record = dsl().select(
                 ALL_FIELDS
             ).from(t)
             .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
@@ -152,9 +152,9 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.READ)
+    @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.READ)
     public FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(Long taskInstanceId, String fileSourceBatchTaskId) {
-        Record record = dslContextProvider.get().select(ALL_FIELDS)
+        Record record = dsl().select(ALL_FIELDS)
             .from(defaultTable)
             .where(defaultTable.FILE_SOURCE_BATCH_TASK_ID.eq(fileSourceBatchTaskId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
@@ -163,13 +163,13 @@ public class FileSourceTaskLogDAOImpl implements FileSourceTaskLogDAO {
     }
 
     @Override
-    @ShardingDbMigrate(op = DbOperationEnum.WRITE)
+    @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.WRITE)
     public int updateTimeConsumingByBatchTaskId(Long taskInstanceId,
                                                 String fileSourceBatchTaskId,
                                                 Long startTime,
                                                 Long endTime,
                                                 Long totalTime) {
-        UpdateSetFirstStep<FileSourceTaskLogRecord> firstStep = dslContextProvider.get().update(defaultTable);
+        UpdateSetFirstStep<FileSourceTaskLogRecord> firstStep = dsl().update(defaultTable);
         UpdateSetMoreStep<?> moreStep = null;
         if (startTime != null) {
             moreStep = firstStep.set(defaultTable.START_TIME, startTime);

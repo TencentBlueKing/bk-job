@@ -188,5 +188,9 @@
   "容器 ID": "Container ID",
   "所属 Pod 名称": "Pod name",
   "没有可复制的容器名称": "Container name not found",
-  "文件源": "File source"
+  "文件源": "File source",
+  "日志文本过长，超出 AI 解析范围，请框选部分日志，再次出发点小鲸分析。": "The length of log text exceeds the scope of AI analysis, please manually select some key logs and resubmit.",
+  "报错日志看不懂？来提问小鲸吧～": "Find out with AI",
+  "管控区域_ID_IPv4": "BK-Net ID:IPv4",
+  "管控区域_ID_IPv6": "BK-Net ID:IPv6"
 }

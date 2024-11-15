@@ -39,4 +39,5 @@ public interface JobInstanceArchiveTask {
      * 归档任务被终止时候调用
      */
     void stop();
+
 }
