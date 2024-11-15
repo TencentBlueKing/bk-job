@@ -98,7 +98,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         } while (affectedRows == 10000);
         return totalAffectedRows;
     }
-    
+
 
     @Override
     @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
