@@ -1023,6 +1023,15 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+  # 分布式ID组件 leaf 配置
+  leaf:
+    enabled: false
+  idGen:
+    migration:
+      enabled: false
+    # id生成器配置。auto_increment: 自增长，segment: leaf segment id
+    type: auto_increment
+
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署

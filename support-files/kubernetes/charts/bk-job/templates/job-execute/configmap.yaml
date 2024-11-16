@@ -229,4 +229,25 @@ data:
         enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
       migration:
         enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
+    idGen:
+      type: {{ .Values.executeConfig.idGen.type }}
+      migration:
+        enabled: {{ .Values.executeConfig.idGen.migration.enabled }}
+    {{ if .Values.executeConfig.leaf.enabled }}
+    # 分布式 ID （leaf 组件配置)
+    leaf:
+      segment:
+        allocStrategyDaoBeanName: jooqLeafIdAllocator
+        enable: true
+        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+        username: {{ include "job.mariadb.username" . }}
+        {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${mariadb-password}
+        {{- end }}
+      snowflake:
+        enable: false
+      name: job-leaf
+    {{- end }}
 {{- end }}

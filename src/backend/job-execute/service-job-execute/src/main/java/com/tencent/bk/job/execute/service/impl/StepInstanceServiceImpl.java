@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
@@ -65,10 +66,12 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 public class StepInstanceServiceImpl implements StepInstanceService {
 
     private final StepInstanceDAO stepInstanceDAO;
+    private final IdGen idGen;
 
     @Autowired
-    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO) {
+    public StepInstanceServiceImpl(StepInstanceDAO stepInstanceDAO, IdGen idGen) {
         this.stepInstanceDAO = stepInstanceDAO;
+        this.idGen = idGen;
     }
 
     @Override
@@ -89,6 +92,7 @@ public class StepInstanceServiceImpl implements StepInstanceService {
 
     @Override
     public long addStepInstance(StepInstanceDTO stepInstance) {
+        stepInstance.setId(idGen.genStepInstanceId());
         long stepInstanceId = stepInstanceDAO.addStepInstanceBase(stepInstance);
         if (stepInstanceId > 0) {
             stepInstance.setId(stepInstanceId);

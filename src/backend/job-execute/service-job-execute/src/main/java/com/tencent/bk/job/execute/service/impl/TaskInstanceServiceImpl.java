@@ -40,6 +40,7 @@ import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -62,21 +63,26 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final ExecuteAuthService executeAuthService;
     private final StepInstanceService stepInstanceService;
 
+    private final IdGen idGen;
+
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    ExecuteAuthService executeAuthService,
-                                   StepInstanceService stepInstanceService) {
+                                   StepInstanceService stepInstanceService,
+                                   IdGen idGen) {
         this.applicationService = applicationService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.executeAuthService = executeAuthService;
+        this.idGen = idGen;
     }
 
     @Override
     public long addTaskInstance(TaskInstanceDTO taskInstance) {
+        taskInstance.setId(idGen.genTaskInstanceId());
         return taskInstanceDAO.addTaskInstance(taskInstance);
     }
 

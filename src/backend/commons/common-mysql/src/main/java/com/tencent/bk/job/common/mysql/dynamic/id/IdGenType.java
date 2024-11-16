@@ -22,44 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.mysql.dynamic.id;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+public enum IdGenType {
+    AUTO_INCREMENT(IdGenType.Constants.AUTO_INCREMENT),
+    SEGMENT(IdGenType.Constants.SEGMENT);
 
-/**
- * 滚动配置服务
- */
-public interface RollingConfigService {
-    /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
-     */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+    public static class Constants {
+        public final static String AUTO_INCREMENT = "auto_increment";
+        public final static String SEGMENT = "segment";
+    }
 
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
+    private final String type;
 
-    RollingConfigDTO getRollingConfig(long rollingConfigId);
+    IdGenType(String type) {
+        this.type = type;
+    }
 
-    /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
-     */
-    boolean isTaskRollingEnabled(long taskInstanceId);
+    public static IdGenType valOf(String type) {
+        if (type == null) {
+            return null;
+        }
+        for (IdGenType value : values()) {
+            if (value.getType().equals(type)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("No IdGenType constant: " + type);
+    }
 
-    long addRollingConfig(RollingConfigDTO rollingConfig);
+    public static boolean checkValid(String type) {
+        if (type == null) {
+            return false;
+        }
+        for (IdGenType value : values()) {
+            if (value.getType().equals(type)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

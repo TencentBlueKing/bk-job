@@ -22,44 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.sharding.mysql.config;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.List;
-
-/**
- * 滚动配置服务
- */
-public interface RollingConfigService {
+@ConfigurationProperties(prefix = "leaf")
+@Getter
+@Setter
+@ToString
+public class LeafProperties {
     /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
+     * 是否启用leaf
      */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
-
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
-
-    RollingConfigDTO getRollingConfig(long rollingConfigId);
-
-    /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
-     */
-    boolean isTaskRollingEnabled(long taskInstanceId);
-
-    long addRollingConfig(RollingConfigDTO rollingConfig);
+    private boolean enabled;
 }

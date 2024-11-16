@@ -22,44 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.dao.common;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+public class AutoIncrementIdGen implements IdGen {
+    @Override
+    public Long genTaskInstanceId() {
+        return null;
+    }
 
-import java.util.List;
+    @Override
+    public Long genStepInstanceId() {
+        return null;
+    }
 
-/**
- * 滚动配置服务
- */
-public interface RollingConfigService {
-    /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
-     */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+    @Override
+    public Long genGseTaskId() {
+        return null;
+    }
 
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
+    @Override
+    public Long genOperationLogId() {
+        return null;
+    }
 
-    RollingConfigDTO getRollingConfig(long rollingConfigId);
+    @Override
+    public Long genFileSourceTaskLogId() {
+        return null;
+    }
 
-    /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
-     */
-    boolean isTaskRollingEnabled(long taskInstanceId);
+    @Override
+    public Long genGseFileExecuteObjTaskId() {
+        return null;
+    }
 
-    long addRollingConfig(RollingConfigDTO rollingConfig);
+    @Override
+    public Long genGseScriptExecuteObjTaskId() {
+        return null;
+    }
+
+    @Override
+    public Long genRollingConfigId() {
+        return null;
+    }
+
+    @Override
+    public Long genStepInstanceRollingTaskId() {
+        return null;
+    }
+
+    @Override
+    public Long genStepInstanceVariableId() {
+        return null;
+    }
+
+    @Override
+    public Long genTaskInstanceVariableId() {
+        return null;
+    }
 }

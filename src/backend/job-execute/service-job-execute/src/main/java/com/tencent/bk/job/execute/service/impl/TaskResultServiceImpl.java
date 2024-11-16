@@ -38,7 +38,6 @@ import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
-import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -64,6 +63,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.inner.CronTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
+import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
@@ -102,7 +102,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final TaskInstanceDAO taskInstanceDAO;
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceService taskInstanceService;
-    private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
+    private final FileSourceTaskLogService fileSourceTaskLogService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final LogService logService;
@@ -116,7 +116,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
                                  StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
-                                 FileSourceTaskLogDAO fileSourceTaskLogDAO,
+                                 FileSourceTaskLogService fileSourceTaskLogService,
                                  ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                  FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                  LogService logService,
@@ -128,7 +128,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.taskInstanceDAO = taskInstanceDAO;
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
-        this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
+        this.fileSourceTaskLogService = fileSourceTaskLogService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.logService = logService;
@@ -460,7 +460,7 @@ public class TaskResultServiceImpl implements TaskResultService {
             if (stepInstance.isFileStep()) {
                 watch.start("involveFileSourceTaskLog");
                 FileSourceTaskLogDTO fileSourceTaskLog =
-                    fileSourceTaskLogDAO.getFileSourceTaskLog(
+                    fileSourceTaskLogService.getFileSourceTaskLog(
                         stepInstance.getTaskInstanceId(),
                         stepInstance.getId(),
                         queryExecuteCount

@@ -35,6 +35,7 @@ dependencies {
     api project(":commons:common")
     api project(":commons:common-crypto")
     api project(":commons:common-mysql")
+    api project(":commons:common-mysql-sharding")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")

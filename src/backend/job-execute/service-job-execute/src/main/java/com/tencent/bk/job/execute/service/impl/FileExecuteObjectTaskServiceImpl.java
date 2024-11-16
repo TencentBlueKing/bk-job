@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -30,14 +31,17 @@ public class FileExecuteObjectTaskServiceImpl
 
     private final FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO;
     private final FileAgentTaskDAO fileAgentTaskDAO;
+    private final IdGen idGen;
 
     @Autowired
     public FileExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
                                             FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO,
-                                            FileAgentTaskDAO fileAgentTaskDAO) {
+                                            FileAgentTaskDAO fileAgentTaskDAO,
+                                            IdGen idGen) {
         super(stepInstanceService);
         this.fileAgentTaskDAO = fileAgentTaskDAO;
         this.fileExecuteObjectTaskDAO = fileExecuteObjectTaskDAO;
+        this.idGen = idGen;
     }
 
     @Override
@@ -45,6 +49,7 @@ public class FileExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
+        tasks.forEach(task -> task.setId(idGen.genGseFileExecuteObjTaskId()));
 
         if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             fileExecuteObjectTaskDAO.batchSaveTasks(tasks);
