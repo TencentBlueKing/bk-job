@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.service.impl;
 
-import com.tencent.bk.job.backup.dao.ArchiveProgressDAO;
+import com.tencent.bk.job.backup.archive.dao.ArchiveProgressDAO;
 import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import lombok.extern.slf4j.Slf4j;

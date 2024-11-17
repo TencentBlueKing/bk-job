@@ -22,47 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.dao;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.backup.model.dto.ArchiveProgressDTO;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+public interface ArchiveProgressDAO {
+    ArchiveProgressDTO queryArchiveProgress(String table);
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+    void saveArchiveProgress(ArchiveProgressDTO archiveProgress);
 
-    private ArchiveSummaryHolder() {
-    }
-
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
-
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
-    }
+    void saveDeleteProgress(ArchiveProgressDTO archiveProgress);
 }

@@ -22,47 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+@Data
+public class ArchiveTableProps {
+    /**
+     * 从 热 DB 表中读取归档数据，每次读取的记录数量限制
+     */
+    private Integer readRowLimit;
+    /**
+     * 写入归档数据到冷 DB，单批次最小行数
+     */
+    private Integer batchInsertRowSize;
+    /**
+     * 从热 DB 删除数据，每次删除的最大行数
+     */
+    private Integer deleteLimitRowCount;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
-
-    private ArchiveSummaryHolder() {
-    }
-
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
-
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+    public ArchiveTableProps(Integer readRowLimit, Integer batchInsertRowSize, Integer deleteLimitRowCount) {
+        this.readRowLimit = readRowLimit;
+        this.batchInsertRowSize = batchInsertRowSize;
+        this.deleteLimitRowCount = deleteLimitRowCount;
     }
 }

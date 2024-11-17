@@ -22,47 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.constant;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+/**
+ * DB 数据节点类型
+ */
+@Getter
+public enum DbDataNodeTypeEnum {
+    /**
+     * 单节点
+     */
+    STANDALONE(0),
+    /**
+     * 分库分表节点
+     */
+    SHARDING(1);
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+    private final int value;
 
-    private ArchiveSummaryHolder() {
+    DbDataNodeTypeEnum(int value) {
+        this.value = value;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
-
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
+    public static DbDataNodeTypeEnum valOf(int type) {
+        for (DbDataNodeTypeEnum dataNodeType : values()) {
+            if (dataNodeType.getValue() == type) {
+                return dataNodeType;
+            }
         }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+        throw new IllegalArgumentException("No DbDataNodeTypeEnum constant: " + type);
     }
 }

@@ -22,47 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+public class ArchiveTaskSummary {
+    /**
+     * 归档任务
+     */
+    private JobInstanceArchiveTaskInfo archiveTask;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+    /**
+     * 归档模式
+     */
+    private String archiveMode;
 
-    private ArchiveSummaryHolder() {
-    }
+    /**
+     * 归档总耗时（单位毫秒)
+     */
+    private Long archiveCost;
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
+    /**
+     * 归档的记录数量
+     */
+    private Long archivedRecordSize;
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
+    /**
+     * 归档详细说明信息
+     */
+    private String message;
 
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
+    /**
+     * 任务是否被跳过
+     */
+    private boolean skip;
 
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+    public ArchiveTaskSummary(JobInstanceArchiveTaskInfo archiveTask, String archiveMode) {
+        this.archiveTask = archiveTask;
+        this.archiveMode = archiveMode;
     }
 }

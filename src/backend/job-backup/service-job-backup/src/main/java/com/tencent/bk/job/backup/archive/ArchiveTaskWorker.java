@@ -24,45 +24,27 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 @Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+public class ArchiveTaskWorker extends Thread {
 
-    private ArchiveSummaryHolder() {
+    private JobInstanceArchiveTask archiveTask;
+
+    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
+        this.setName("ArchiveWorker");
+        this.archiveTask = archiveTask;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
-
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
+    @Override
+    public void run() {
+        try {
+            log.info("Archive task begin");
+            archiveTask.execute();
+            log.info("Archive task finished");
+        } catch (Throwable e) {
+            log.warn("Thread interrupted!");
         }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
     }
 
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
-    }
 }

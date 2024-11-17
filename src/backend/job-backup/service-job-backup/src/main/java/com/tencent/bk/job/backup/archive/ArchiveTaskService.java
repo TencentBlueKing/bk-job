@@ -24,45 +24,44 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
+import org.springframework.stereotype.Service;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+@Service
+public class ArchiveTaskService {
 
-    private ArchiveSummaryHolder() {
+    private final ArchiveTaskDAO archiveTaskDAO;
+
+    public ArchiveTaskService(ArchiveTaskDAO archiveTaskDAO) {
+        this.archiveTaskDAO = archiveTaskDAO;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
+    /**
+     * 获取最新的归档任务
+     *
+     * @param taskType 归档任务类型
+     */
+    public JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
+        return archiveTaskDAO.getLatestArchiveTask(taskType);
     }
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
+    public void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo) {
+        archiveTaskDAO.saveArchiveTask(jobInstanceArchiveTaskInfo);
     }
 
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
+    public List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {
+        return archiveTaskDAO.listRunningTasks(taskType);
     }
 
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
+    public List<JobInstanceArchiveTaskInfo> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
+        return archiveTaskDAO.listScheduleTasks(taskType, limit);
     }
 
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+    public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
+        archiveTaskDAO.updateTask(archiveTask);
     }
 }

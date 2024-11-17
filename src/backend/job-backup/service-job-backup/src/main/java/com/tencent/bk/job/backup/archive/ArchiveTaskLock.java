@@ -35,9 +35,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 归档任务执行分布式锁
+ */
 @Slf4j
 public class ArchiveTaskLock {
-    private final String ARCHIVE_LOCK_KEY_PREFIX = "JOB_EXECUTE_LOG_ARCHIVE_LOCK";
+    private final String ARCHIVE_LOCK_KEY_PREFIX = "archive:task:execute";
     /**
      * 归档任务锁时间 1h
      */
@@ -49,12 +52,12 @@ public class ArchiveTaskLock {
 
     private volatile long lastAcquireLockTimeMS = 0L;
     /**
-     * Key: tableName ; Value: 分布式锁请求 requestId
+     * Key: taskId ; Value: 分布式锁请求 requestId
      */
     private final Map<String, String> locks = new ConcurrentHashMap<>();
     /**
      * 分布式锁保持，避免超时失效的心跳线程
-     * Key: tableName ; Value: 心跳线程
+     * Key: taskId ; Value: 心跳线程
      */
     private final Map<String, RedisKeyHeartBeatThread> lockKeepThreads = new ConcurrentHashMap<>();
 
@@ -64,25 +67,25 @@ public class ArchiveTaskLock {
         this.redisTemplate = redisTemplate;
     }
 
-    public synchronized boolean lock(String tableName) {
+    public synchronized boolean lock(String taskId) {
         while (System.currentTimeMillis() - lastAcquireLockTimeMS < MIN_ACQUIRE_LOCK_INTERVAL_MS) {
             ThreadUtils.sleep(10L);
         }
         String lockRequestId = UUID.randomUUID().toString();
-        String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + tableName;
+        String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + taskId;
         if (!LockUtils.tryGetDistributedLock(archiveLockKey, lockRequestId, LOCK_TIME)) {
-            log.info("Acquire archive task lock failed! tableName: {}", tableName);
+            log.info("Acquire archive task lock failed! taskId: {}", taskId);
             return false;
         } else {
-            log.info("Acquire archive task lock successfully! tableName: {}", tableName);
+            log.info("Acquire archive task lock successfully! taskId: {}", taskId);
             this.lastAcquireLockTimeMS = System.currentTimeMillis();
-            this.locks.put(tableName, lockRequestId);
-            startRedisKeyHeartBeatThread(tableName, archiveLockKey, lockRequestId);
+            this.locks.put(taskId, lockRequestId);
+            startRedisKeyHeartBeatThread(taskId, archiveLockKey, lockRequestId);
             return true;
         }
     }
 
-    private void startRedisKeyHeartBeatThread(String tableName,
+    private void startRedisKeyHeartBeatThread(String taskId,
                                               String archiveLockKey,
                                               String lockRequestId) {
         // 开一个心跳子线程，维持锁状态不会因为超时失效
@@ -94,37 +97,37 @@ public class ArchiveTaskLock {
             LOCK_TIME,
             30 * 60 * 1000L
         );
-        redisKeyHeartBeatThread.setName("[ArchiveTask-" + tableName + "]-redisKeyHeartBeatThread");
-        lockKeepThreads.put(tableName, redisKeyHeartBeatThread);
+        redisKeyHeartBeatThread.setName("[ArchiveTask-" + taskId + "]-redisKeyHeartBeatThread");
+        lockKeepThreads.put(taskId, redisKeyHeartBeatThread);
 
-        log.info("Start redis key heart beat thread for ArchiveTask:{}", tableName);
+        log.info("Start redis key heart beat thread for ArchiveTask:{}", taskId);
         redisKeyHeartBeatThread.start();
     }
 
-    private void stopRedisKeyHeartBeatThread(String tableName) {
-        RedisKeyHeartBeatThread heartBeatThread = lockKeepThreads.get(tableName);
+    private void stopRedisKeyHeartBeatThread(String taskId) {
+        RedisKeyHeartBeatThread heartBeatThread = lockKeepThreads.get(taskId);
         if (heartBeatThread == null) {
-            log.error("RedisKeyHeartBeatThread for table {} not exist", tableName);
+            log.error("RedisKeyHeartBeatThread for table {} not exist", taskId);
             return;
         }
-        log.info("Stop redis key heart beat thread for ArchiveTask:{}", tableName);
+        log.info("Stop redis key heart beat thread for ArchiveTask:{}", taskId);
         heartBeatThread.stopAtOnce();
-        lockKeepThreads.remove(tableName);
+        lockKeepThreads.remove(taskId);
     }
 
-    public synchronized void unlock(String tableName, String lockRequestId) {
+    public synchronized void unlock(String taskId, String lockRequestId) {
         // 先停止分布式锁维持线程
-        stopRedisKeyHeartBeatThread(tableName);
+        stopRedisKeyHeartBeatThread(taskId);
 
-        String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + tableName;
+        String archiveLockKey = ARCHIVE_LOCK_KEY_PREFIX + "_" + taskId;
         LockUtils.releaseDistributedLock(archiveLockKey, lockRequestId);
-        this.locks.remove(tableName);
+        this.locks.remove(taskId);
     }
 
-    public synchronized void unlock(String tableName) {
-        String lockRequestId = this.locks.get(tableName);
+    public synchronized void unlock(String taskId) {
+        String lockRequestId = this.locks.get(taskId);
         if (StringUtils.isNotEmpty(lockRequestId)) {
-            unlock(tableName, lockRequestId);
+            unlock(taskId, lockRequestId);
         }
     }
 

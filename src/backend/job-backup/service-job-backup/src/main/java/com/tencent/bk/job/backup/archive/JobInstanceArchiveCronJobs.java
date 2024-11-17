@@ -24,45 +24,46 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * 归档定时任务
+ */
+@Component
+@EnableScheduling
 @Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+public class JobInstanceArchiveCronJobs {
 
-    private ArchiveSummaryHolder() {
+    private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
+
+    private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
+
+    public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+                                      JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler) {
+        this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
+        this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
+    /**
+     * 定时创建归档任务
+     */
+    @Scheduled(cron = "${job.backup.archive.execute.cron:0,6,12,18 0 0 * * *}")
+    public void generateArchiveTask() {
+        log.info("Generate archive task start...");
+        jobInstanceArchiveTaskGenerator.generate();
+        log.info("Generate archive task done");
     }
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+    /**
+     * 定时调度并执行归档任务
+     */
+    @Scheduled(cron = "${job.backup.archive.execute.cron:1,7,13,19 0 0 * * *}")
+    public void scheduleAndExecuteArchiveTask() {
+        log.info("Schedule and execute archive task start...");
+        jobInstanceArchiveTaskScheduler.schedule();
+        log.info("Schedule and execute archive task done");
     }
 }

@@ -22,47 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.dao;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+/**
+ * 归档任务 DAO
+ */
+public interface ArchiveTaskDAO {
 
-    private ArchiveSummaryHolder() {
-    }
+    /**
+     * 获取最新的归档任务
+     *
+     * @param taskType 归档任务类型
+     */
+    JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType);
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
+    void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo);
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
+    List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType);
 
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
+    List<JobInstanceArchiveTaskInfo> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit);
 
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
-    }
+    /**
+     * 更新归档任务
+     *
+     * @param archiveTask 归档任务
+     */
+    void updateTask(JobInstanceArchiveTaskInfo archiveTask);
 }

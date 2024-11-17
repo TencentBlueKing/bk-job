@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration(value = "executeBackupDbConfiguration")
-@Conditional(ExecuteBackupDbConfiguration.JobExecuteBackupDbInitCondition.class)
+@Conditional(ExecuteBackupDbConfiguration.JobExecuteColdDbInitCondition.class)
 public class ExecuteBackupDbConfiguration {
 
     @Qualifier("job-execute-archive-source")
@@ -75,8 +75,8 @@ public class ExecuteBackupDbConfiguration {
         return new DataSourceConnectionProvider(dataSource);
     }
 
-    static class JobExecuteBackupDbInitCondition extends AllNestedConditions {
-        public JobExecuteBackupDbInitCondition() {
+    static class JobExecuteColdDbInitCondition extends AllNestedConditions {
+        public JobExecuteColdDbInitCondition() {
             super(ConfigurationPhase.PARSE_CONFIGURATION);
         }
 

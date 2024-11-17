@@ -22,47 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+/**
+ * 基于数据创建时间（primary)+id(secondary) 的归档进度
+ */
+@Data
+@NoArgsConstructor
+public class TimeAndIdBasedArchiveProcess {
+    private Long timestamp;
+    private Long id;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
-
-    private ArchiveSummaryHolder() {
+    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
+        this.timestamp = timestamp;
+        this.id = id;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
+    @Override
+    public TimeAndIdBasedArchiveProcess clone() {
+        return new TimeAndIdBasedArchiveProcess(timestamp, id);
     }
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
+    public String toPersistentProcess() {
+        return timestamp + ":" + id;
     }
 
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
+    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
+        if (StringUtils.isEmpty(process)) {
+            return null;
         }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+        String[] processParts = process.split(":");
+        return new TimeAndIdBasedArchiveProcess(
+            Long.parseLong(processParts[0]),
+            Long.parseLong(processParts[1])
+        );
     }
 }

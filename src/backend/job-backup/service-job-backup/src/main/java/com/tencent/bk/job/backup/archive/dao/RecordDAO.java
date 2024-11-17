@@ -22,47 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.dao;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.Table;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.List;
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+/**
+ * DB 表操作 DAO
+ *
+ * @param <T> 表记录
+ */
+public interface RecordDAO<T extends Record> {
 
-    private ArchiveSummaryHolder() {
-    }
+    /**
+     * 获取表
+     *
+     * @return 表
+     */
+    Table<T> getTable();
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
 
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
+    /**
+     * 根据条件查询表记录
+     *
+     * @param conditions 查询条件
+     * @param limit          获取的记录数量
+     * @return 表记录
+     */
+    List<T> listRecords(List<Condition> conditions, Long readRowLimit);
 
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
-        }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
-    }
+    /**
+     * 根据起始/结束ID删除表记录
+     *
+     * @param jobInstanceIds       作业实例 ID 列表
+     * @param deleteRowLimit 批量删除每批次limit
+     * @return 删除的记录数量
+     */
+    int deleteRecords(Collection<Long> jobInstanceIds, long deleteRowLimit);
 }

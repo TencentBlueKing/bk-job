@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.api.inner.impl;
 
 import com.tencent.bk.job.backup.api.inner.ServiceArchiveResource;
 import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
-import com.tencent.bk.job.backup.config.ArchiveDBProperties;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
 import com.tencent.bk.job.common.model.InternalResponse;
@@ -53,24 +53,24 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
     @Override
     public InternalResponse<?> archive(ServiceArchiveDBRequest request) {
         log.info("Begin archive db, request: {}", request);
-        ArchiveDBProperties archiveDBProperties = new ArchiveDBProperties();
+        ArchiveProperties archiveProperties = new ArchiveProperties();
         if (StringUtils.isNotEmpty(request.getMode())) {
-            archiveDBProperties.setMode(request.getMode());
+            archiveProperties.setMode(request.getMode());
         } else {
-            archiveDBProperties.setMode(ArchiveModeEnum.BACKUP_THEN_DELETE.getMode());
+            archiveProperties.setMode(ArchiveModeEnum.BACKUP_THEN_DELETE.getMode());
         }
-        archiveDBProperties.setEnabled(true);
-        archiveDBProperties.setKeepDays(request.getKeepDays());
-        archiveDBProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
-        archiveDBProperties.setDeleteRowLimit(request.getDeleteRowLimit());
-        archiveDBProperties.setReadIdStepSize(request.getReadIdStepSize());
-        archiveDBProperties.setReadRowLimit(request.getReadRowLimit());
+        archiveProperties.setEnabled(true);
+        archiveProperties.setKeepDays(request.getKeepDays());
+        archiveProperties.setBatchInsertRowSize(request.getBatchInsertRowSize());
+        archiveProperties.setDeleteRowLimit(request.getDeleteRowLimit());
+        archiveProperties.setReadIdStepSize(request.getReadIdStepSize());
+        archiveProperties.setReadRowLimit(request.getReadRowLimit());
 
         if (request.getTableConfigs() != null) {
-            Map<String, ArchiveDBProperties.TableConfig> tableConfigMap = new HashMap<>();
+            Map<String, ArchiveProperties.TableConfig> tableConfigMap = new HashMap<>();
 
             request.getTableConfigs().forEach((table, config) -> {
-                ArchiveDBProperties.TableConfig tableConfig = new ArchiveDBProperties.TableConfig();
+                ArchiveProperties.TableConfig tableConfig = new ArchiveProperties.TableConfig();
                 tableConfig.setBatchInsertRowSize(config.getBatchInsertRowSize());
                 tableConfig.setDeleteRowLimit(config.getDeleteRowLimit());
                 tableConfig.setReadIdStepSize(config.getReadIdStepSize());
@@ -78,10 +78,10 @@ public class ServiceArchiveResourceImpl implements ServiceArchiveResource {
                 tableConfigMap.put(table, tableConfig);
             });
 
-            archiveDBProperties.setTableConfigs(tableConfigMap);
+            archiveProperties.setTableConfigs(tableConfigMap);
         }
 
-        jobExecuteArchiveManage.archive(archiveDBProperties);
-        return InternalResponse.buildSuccessResp(archiveDBProperties);
+        jobExecuteArchiveManage.archive(archiveProperties);
+        return InternalResponse.buildSuccessResp(archiveProperties);
     }
 }

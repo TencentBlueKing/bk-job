@@ -1235,6 +1235,9 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      tasks:
+        job_instance:
+          
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

@@ -22,47 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.constant;
 
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+@Getter
+public enum ArchiveTaskTypeEnum {
+    /**
+     * 作业实例数据归档
+     */
+    JOB_INSTANCE(1),
+    /**
+     * 作业实例按业务冗余数据归档
+     */
+    JOB_INSTANCE_APP(2);
 
-@Slf4j
-public class ArchiveSummaryHolder {
-    private Map<String, ArchiveTaskSummary> summaryMap = new ConcurrentHashMap<>();
-    private Long endTimeInMills;
+    private final int type;
 
-    private ArchiveSummaryHolder() {
+    ArchiveTaskTypeEnum(int type) {
+        this.type = type;
     }
 
-    public static ArchiveSummaryHolder getInstance() {
-        return Inner.instance;
-    }
-
-    public void init(Long endTimeInMills) {
-        this.summaryMap.clear();
-        this.endTimeInMills = endTimeInMills;
-    }
-
-    public void addArchiveSummary(ArchiveTaskSummary summary) {
-        if (summary == null) {
-            return;
+    public static ArchiveTaskTypeEnum valOf(int type) {
+        for (ArchiveTaskTypeEnum taskType : values()) {
+            if (taskType.getType() == type) {
+                return taskType;
+            }
         }
-        summary.setArchiveEndDate(DateUtils.formatUnixTimestamp(endTimeInMills, ChronoUnit.MILLIS));
-        summaryMap.put(summary.getTaskId(), summary);
-    }
-
-    public void print() {
-        log.info("Archive summary : {}", JsonUtils.toJson(summaryMap.values()));
-    }
-
-    private static class Inner {
-        private static final ArchiveSummaryHolder instance = new ArchiveSummaryHolder();
+        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
     }
 }
