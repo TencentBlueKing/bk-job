@@ -27,10 +27,9 @@ package com.tencent.bk.job.backup.config;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.ArchiveTaskService;
-import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
-import com.tencent.bk.job.backup.archive.dao.ExecuteArchiveDAO;
+import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.FileSourceTaskLogRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseFileAgentTaskRecordDAO;
@@ -67,8 +66,6 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
-import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -83,8 +80,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * job-execute 模块数据归档配置
  */
@@ -92,7 +87,7 @@ import java.util.concurrent.ExecutorService;
 @EnableScheduling
 @Slf4j
 @EnableConfigurationProperties(ArchiveProperties.class)
-@Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class})
+@Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class})
 public class ArchiveConfiguration {
 
     /**
@@ -425,13 +420,50 @@ public class ArchiveConfiguration {
                 archiveTablePropsStorage);
         }
 
+        @Bean
+        public JobInstanceSubTableArchivers jobInstanceSubTableArchivers(
+            FileSourceTaskLogArchiver fileSourceTaskLogArchiver,
+            GseFileAgentTaskArchiver gseFileAgentTaskArchiver,
+            GseFileExecuteObjTaskArchiver gseFileExecuteObjTaskArchiver,
+            GseScriptAgentTaskArchiver gseScriptAgentTaskArchiver,
+            GseScriptExecuteObjTaskArchiver gseScriptExecuteObjTaskArchiver,
+            GseTaskArchiver gseTaskArchiver,
+            OperationLogArchiver operationLogArchiver,
+            RollingConfigArchiver rollingConfigArchiver,
+            StepInstanceArchiver stepInstanceArchiver,
+            StepInstanceConfirmArchiver stepInstanceConfirmArchiver,
+            StepInstanceFileArchiver stepInstanceFileArchiver,
+            StepInstanceScriptArchiver stepInstanceScriptArchiver,
+            StepInstanceRollingTaskArchiver stepInstanceRollingTaskArchiver,
+            StepInstanceVariableArchiver stepInstanceVariableArchiver,
+            TaskInstanceHostArchiver taskInstanceHostArchiver,
+            TaskInstanceVariableArchiver taskInstanceVariableArchiver) {
+            return new JobInstanceSubTableArchivers(
+                fileSourceTaskLogArchiver,
+                gseFileAgentTaskArchiver,
+                gseFileExecuteObjTaskArchiver,
+                gseScriptAgentTaskArchiver,
+                gseScriptExecuteObjTaskArchiver,
+                gseTaskArchiver,
+                operationLogArchiver,
+                rollingConfigArchiver,
+                stepInstanceArchiver,
+                stepInstanceConfirmArchiver,
+                stepInstanceFileArchiver,
+                stepInstanceScriptArchiver,
+                stepInstanceRollingTaskArchiver,
+                stepInstanceVariableArchiver,
+                taskInstanceHostArchiver,
+                taskInstanceVariableArchiver);
+        }
+
     }
 
     /**
      * job-execute 归档冷 DB 配置
      */
     @Configuration
-    @Conditional(ExecuteBackupDbConfiguration.JobExecuteColdDbInitCondition.class)
+    @Conditional(ExecuteColdDbConfiguration.JobExecuteColdDbInitCondition.class)
     public static class ExecuteBackupDAOConfig {
         @Bean(name = "execute-archive-dao")
         public JobInstanceColdDAOImpl jobInstanceColdDAO(
@@ -471,60 +503,6 @@ public class ArchiveConfiguration {
             taskInstanceRecordDAO,
             archiveProperties,
 
-        );
-    }
-
-    @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobExecuteArchiveManage jobExecuteArchiveManage(
-        ObjectProvider<TaskInstanceRecordDAO> taskInstanceRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceRecordDAO> stepInstanceRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceScriptRecordDAO> stepInstanceScriptRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceFileRecordDAO> stepInstanceFileRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceConfirmRecordDAO> stepInstanceConfirmRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceVariableRecordDAO> stepInstanceVariableRecordDAOObjectProvider,
-        ObjectProvider<TaskInstanceVariableRecordDAO> taskInstanceVariableRecordDAOObjectProvider,
-        ObjectProvider<OperationLogRecordDAO> operationLogRecordDAOObjectProvider,
-        ObjectProvider<FileSourceTaskLogRecordDAO> fileSourceTaskLogRecordDAOObjectProvider,
-        ObjectProvider<GseTaskRecordDAO> gseTaskRecordDAOObjectProvider,
-        ObjectProvider<GseScriptAgentTaskRecordDAO> gseScriptAgentTaskRecordDAOObjectProvider,
-        ObjectProvider<GseFileAgentTaskRecordDAO> gseFileAgentTaskRecordDAOObjectProvider,
-        ObjectProvider<GseScriptExecuteObjTaskRecordDAO> gseScriptExecuteObjTaskRecordDAOObjectProvider,
-        ObjectProvider<GseFileExecuteObjTaskRecordDAO> gseFileExecuteObjTaskRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceRollingTaskRecordDAO> stepInstanceRollingTaskRecordDAOObjectProvider,
-        ObjectProvider<RollingConfigRecordDAO> rollingConfigRecordDAOObjectProvider,
-        ObjectProvider<TaskInstanceHostRecordDAO> taskInstanceHostRecordDAOObjectProvider,
-        ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
-        ArchiveProgressService archiveProgressService,
-        @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
-        ArchiveProperties archiveProperties,
-        ArchiveTaskLock archiveTaskLock,
-        ArchiveErrorTaskCounter archiveErrorTaskCounter) {
-
-        log.info("Init JobExecuteArchiveManage");
-        return new JobExecuteArchiveManage(
-            taskInstanceRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceScriptRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceFileRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceConfirmRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
-            taskInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
-            operationLogRecordDAOObjectProvider.getIfAvailable(),
-            fileSourceTaskLogRecordDAOObjectProvider.getIfAvailable(),
-            gseTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseScriptAgentTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseFileAgentTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseScriptExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseFileExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceRollingTaskRecordDAOObjectProvider.getIfAvailable(),
-            rollingConfigRecordDAOObjectProvider.getIfAvailable(),
-            taskInstanceHostRecordDAOObjectProvider.getIfAvailable(),
-            executeArchiveDAOObjectProvider.getIfAvailable(),
-            archiveProgressService,
-            archiveProperties,
-            archiveExecutor,
-            archiveTaskLock,
-            archiveErrorTaskCounter);
+            );
     }
 }

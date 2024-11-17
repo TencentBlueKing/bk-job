@@ -25,9 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
-import com.tencent.bk.job.backup.archive.impl.GseScriptExecuteObjTaskArchiver;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
@@ -35,7 +33,6 @@ import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,11 +44,10 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
 
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
 
-    private final List<JobInstanceSubTableArchiver> subTableArchivers = new ArrayList<>();
+    private final JobInstanceSubTableArchivers jobInstanceSubTableArchivers;
 
     public JobInstanceMainDataArchiveTask(TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                          GseScriptExecuteObjTaskArchiver gseScriptExecuteObjTaskArchiver,
-                                          JobInstanceHotRecordDAO<TaskInstanceRecord> jobInstanceHotRecordDAO,
+                                          JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
                                           JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
                                           ArchiveTaskLock archiveTaskLock,
@@ -60,7 +56,6 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(
-            jobInstanceHotRecordDAO,
             jobInstanceColdDAO,
             archiveProperties,
             archiveTaskLock,
@@ -70,8 +65,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             archiveTablePropsStorage
         );
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
-
-        this.subTableArchivers.add(gseScriptExecuteObjTaskArchiver);
+        this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
     }
 
 
@@ -82,7 +76,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         // 备份主表数据
         jobInstanceColdDAO.batchInsert(jobInstanceRecords, 1000);
         // 备份子表数据
-        subTableArchivers.forEach(tableArchiver -> {
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             tableArchiver.backupRecords(jobInstanceIds);
         });
     }
@@ -90,11 +84,11 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
     @Override
     protected void deleteJobInstanceHotData(List<Long> jobInstanceIds) {
         // 先删除子表数据
-        subTableArchivers.forEach(tableArchiver -> {
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             tableArchiver.deleteRecords(jobInstanceIds);
         });
         // 删除主表数据
-        jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
+        taskInstanceRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(TaskInstance.TASK_INSTANCE.getName()));
     }
 

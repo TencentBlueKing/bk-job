@@ -51,10 +51,13 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import javax.sql.DataSource;
 
-@Configuration("executeDbConfiguration")
-@Conditional(ExecuteDbConfiguration.ExecuteDbInitCondition.class)
+/**
+ * 归档-job-execute 热 DB 配置
+ */
+@Configuration("executeHotDbConfiguration")
+@Conditional(ExecuteHotDbConfiguration.ExecuteDbInitCondition.class)
 @Slf4j
-public class ExecuteDbConfiguration {
+public class ExecuteHotDbConfiguration {
 
     @ConditionalOnProperty(value = "job.backup.archive.execute.mariadb.dataSourceMode",
         havingValue = DataSourceMode.Constants.STANDALONE, matchIfMissing = false)

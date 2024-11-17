@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ArchiveTaskWorker extends Thread {
 
-    private JobInstanceArchiveTask archiveTask;
+    private final JobInstanceArchiveTask archiveTask;
 
     public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
         this.setName("ArchiveWorker");

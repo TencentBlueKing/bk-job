@@ -39,7 +39,7 @@ public class DbDataNode {
      */
     private DbDataNodeTypeEnum type;
     /**
-     * 分库分表数据源前缀
+     * 分库分表数据源
      */
     private String dataSource;
     /**
@@ -90,6 +90,6 @@ public class DbDataNode {
 
     @Override
     public DbDataNode clone() {
-        return new DbDataNode(type, dbIndex, tableIndex);
+        return new DbDataNode(type, dataSource, dbIndex, tableIndex);
     }
 }

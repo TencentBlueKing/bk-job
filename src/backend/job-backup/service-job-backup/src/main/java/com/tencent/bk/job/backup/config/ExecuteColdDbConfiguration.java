@@ -43,9 +43,12 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 
-@Configuration(value = "executeBackupDbConfiguration")
-@Conditional(ExecuteBackupDbConfiguration.JobExecuteColdDbInitCondition.class)
-public class ExecuteBackupDbConfiguration {
+/**
+ * 归档-冷 DB 配置
+ */
+@Configuration(value = "executeColdDbConfiguration")
+@Conditional(ExecuteColdDbConfiguration.JobExecuteColdDbInitCondition.class)
+public class ExecuteColdDbConfiguration {
 
     @Qualifier("job-execute-archive-source")
     @Bean(name = "job-execute-archive-source")
@@ -108,8 +111,6 @@ public class ExecuteBackupDbConfiguration {
             }
         }
     }
-
-
 
 
 }

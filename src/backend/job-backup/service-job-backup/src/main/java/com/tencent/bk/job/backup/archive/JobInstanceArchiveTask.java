@@ -40,4 +40,6 @@ public interface JobInstanceArchiveTask {
      */
     void stop();
 
+    String getTaskId();
+
 }

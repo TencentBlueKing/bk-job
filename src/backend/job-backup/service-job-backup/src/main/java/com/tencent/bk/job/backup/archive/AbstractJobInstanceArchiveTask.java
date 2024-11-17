@@ -25,9 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
-import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
@@ -50,7 +48,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> implements JobInstanceArchiveTask {
-    protected JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
     protected JobInstanceColdDAO jobInstanceColdDAO;
     protected final ArchiveProperties archiveProperties;
     private final ArchiveTaskLock archiveTaskLock;
@@ -59,8 +56,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     protected final ArchiveTablePropsStorage archiveTablePropsStorage;
 
     protected String taskId;
-    protected DbDataNode dbDataNode;
-    protected JobInstanceArchiveTaskInfo archiveTask;
+    protected JobInstanceArchiveTaskInfo archiveTaskInfo;
 
     /**
      * 归档进度
@@ -72,25 +68,23 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private boolean isAcquireLock;
 
 
-    public AbstractJobInstanceArchiveTask(JobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
-                                          JobInstanceColdDAO jobInstanceColdDAO,
+    public AbstractJobInstanceArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
                                           ArchiveTaskLock archiveTaskLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                          JobInstanceArchiveTaskInfo archiveTask,
+                                          JobInstanceArchiveTaskInfo archiveTaskInfo,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
-        this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveProperties = archiveProperties;
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
-        this.archiveTask = archiveTask;
+        this.archiveTaskInfo = archiveTaskInfo;
         this.archiveTaskService = archiveTaskService;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
-        this.progress = archiveTask.getProcess();
-        this.taskId = buildTaskId(archiveTask);
-        this.archiveTaskSummary = new ArchiveTaskSummary(archiveTask, archiveProperties.getMode());
+        this.progress = archiveTaskInfo.getProcess();
+        this.taskId = archiveTaskInfo.buildTaskUniqueId();
+        this.archiveTaskSummary = new ArchiveTaskSummary(archiveTaskInfo, archiveProperties.getMode());
     }
 
     private String buildTaskId(JobInstanceArchiveTaskInfo archiveTask) {
@@ -158,10 +152,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             do {
                 if (progress != null) {
                     jobInstanceRecords = readSortedJobInstanceFromHotDB(progress.getTimestamp(),
-                        archiveTask.getToTimestamp(), progress.getId(), readLimit);
+                        archiveTaskInfo.getToTimestamp(), progress.getId(), readLimit);
                 } else {
-                    jobInstanceRecords = readSortedJobInstanceFromHotDB(archiveTask.getFromTimestamp(),
-                        archiveTask.getToTimestamp(), null, readLimit);
+                    jobInstanceRecords = readSortedJobInstanceFromHotDB(archiveTaskInfo.getFromTimestamp(),
+                        archiveTaskInfo.getToTimestamp(), null, readLimit);
                 }
 
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
@@ -233,9 +227,14 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private void updateArchiveProgress(ArchiveTaskStatusEnum taskStatus, TimeAndIdBasedArchiveProcess progress) {
-        archiveTask.setStatus(taskStatus);
-        archiveTask.setProcess(progress);
-        archiveTaskService.updateTask(archiveTask);
+        archiveTaskInfo.setStatus(taskStatus);
+        archiveTaskInfo.setProcess(progress);
+        archiveTaskService.updateTask(archiveTaskInfo);
+    }
+
+    @Override
+    public String getTaskId() {
+        return this.taskId;
     }
 
     /**
