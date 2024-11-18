@@ -123,7 +123,7 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
                 username,
                 appId,
                 aiPromptDTO,
-                aiMessageI18nService.getEmptyLogTaskAIAnswerMessage()
+                getRenderedEmptyLogTaskAIAnswerMessage()
             );
         }
         AIAnalyzeErrorContextDTO analyzeErrorContext = AIAnalyzeErrorContextDTO.fromAIAnalyzeErrorReq(req);
