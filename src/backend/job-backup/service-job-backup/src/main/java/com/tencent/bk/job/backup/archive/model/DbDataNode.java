@@ -52,6 +52,8 @@ public class DbDataNode {
      */
     private Integer tableIndex;
 
+    public static final String STANDALONE_DS_NAME = "ds_standalone";
+
     public DbDataNode(DbDataNodeTypeEnum type, String dataSource, Integer dbIndex, Integer tableIndex) {
         this.type = type;
         this.dataSource = dataSource;
@@ -62,9 +64,20 @@ public class DbDataNode {
     public String toDataNodeId() {
         switch (type) {
             case STANDALONE:
-                return type + ":" + "ds_standalone";
+                return type + ":" + STANDALONE_DS_NAME;
             case SHARDING:
                 return type + ":" + dataSource + ":" + dbIndex + ":" + tableIndex;
+            default:
+                throw new IllegalArgumentException("Invalid DbDataNodeTypeEnum");
+        }
+    }
+
+    public String toDbNodeId() {
+        switch (type) {
+            case STANDALONE:
+                return STANDALONE_DS_NAME;
+            case SHARDING:
+                return dataSource + ":" + dbIndex;
             default:
                 throw new IllegalArgumentException("Invalid DbDataNodeTypeEnum");
         }
@@ -75,7 +88,7 @@ public class DbDataNode {
         DbDataNodeTypeEnum dbDataNodeType = DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0]));
         switch (dbDataNodeType) {
             case STANDALONE:
-                return new DbDataNode(dbDataNodeType, null, null, null);
+                return new DbDataNode(dbDataNodeType, STANDALONE_DS_NAME, null, null);
             case SHARDING:
                 return new DbDataNode(
                     dbDataNodeType,
@@ -86,6 +99,14 @@ public class DbDataNode {
             default:
                 throw new IllegalArgumentException("Invalid DbDataNodeId");
         }
+    }
+
+    public static DbDataNode standaloneDbDatNode() {
+        return new DbDataNode(DbDataNodeTypeEnum.STANDALONE, STANDALONE_DS_NAME, null, null);
+    }
+
+    public static DbDataNode shardingDbDatNode(String dataSource, Integer dbIndex, Integer tableIndex) {
+        return new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource, dbIndex, tableIndex);
     }
 
     @Override

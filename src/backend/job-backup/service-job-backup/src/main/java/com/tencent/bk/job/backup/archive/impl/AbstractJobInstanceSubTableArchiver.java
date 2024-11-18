@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.RecordResultSet;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
 

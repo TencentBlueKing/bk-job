@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
@@ -59,8 +61,8 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
     }
 
     @Override
-    public TableField<GseScriptAgentTaskRecord, Long> getArchiveIdField() {
-        return TABLE.STEP_INSTANCE_ID;
+    public TableField<GseScriptAgentTaskRecord, Long> getJobInstanceIdField() {
+        return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override
@@ -69,13 +71,8 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
     }
 
     @Override
-    public TableField<GseScriptAgentTaskRecord, Long> getJobInstanceIdField() {
-        return TABLE.TASK_INSTANCE_ID;
-    }
-
-    @Override
     public RecordResultSet<GseScriptAgentTaskRecord> executeQuery(Collection<Long> jobInstanceIds,
-                                                                     long readRowLimit) {
+                                                                  long readRowLimit) {
         return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
             this,
             jobInstanceIds,

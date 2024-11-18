@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
-import com.tencent.bk.job.backup.archive.JobExecuteVerticalShardingDSLContextProvider;
+import com.tencent.bk.job.backup.archive.dao.ds.JobExecuteVerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;

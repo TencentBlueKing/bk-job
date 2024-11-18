@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+/**
+ * 分库分表配置
+ */
 @ConfigurationProperties(prefix = "sharding")
 @Getter
 @Setter

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `archive_task` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
   `task_type` TINYINT(2),
   `data_node` VARCHAR(128) NOT NULL,
+  `db_node` VARCHAR(64) NOT NULL,
   `day` INT(8),
   `hour` TINYINT(2),
   `from_timestamp` BIGINT(20) NOT NULL,
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `archive_task` (
   `create_time` BIGINT(20) NOT NULL,
   `last_update_time` BIGINT(20) NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_type_node_day_hour` (`task_type`,`data_node`,`day`,`hour`)
+  UNIQUE KEY `uk_type_node_day_hour` (`task_type`,`data_node`,`day`,`hour`),
+  KEY `idx_type_status_db` (`task_type`,`status`,`db_node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

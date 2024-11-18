@@ -55,7 +55,7 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
         return query(getTable(), buildBasicConditions(jobInstanceIds), readRowLimit);
     }
 
-    protected List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
+    public List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
         return query(getTable(), conditions, readRowLimit);
     }
 

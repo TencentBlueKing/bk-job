@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.dao;
 
-import com.tencent.bk.job.backup.archive.dao.impl.RecordResultSet;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.TableField;

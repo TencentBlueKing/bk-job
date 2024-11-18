@@ -22,22 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.api.inner;
+package com.tencent.bk.job.backup.archive.dao.resultset;
 
-import com.tencent.bk.job.backup.model.inner.ServiceArchiveDBRequest;
-import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.InternalResponse;
-import io.swagger.annotations.Api;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.jooq.Record;
 
-@Api(tags = {"DB_Archive"})
-@RequestMapping("/service/archiveDB")
-@RestController
-@InternalAPI
-public interface ServiceArchiveResource {
-    @PostMapping
-    InternalResponse<?> archive(@RequestBody ServiceArchiveDBRequest request);
+import java.util.List;
+
+/**
+ * 表查询结果
+ *
+ * @param <T>
+ */
+public interface RecordResultSet<T extends Record> {
+    /**
+     * 是否还需要继续查询
+     */
+    boolean hasNext();
+
+    /**
+     * 获取本次查询的表记录
+     */
+    List<T> getRecords();
 }

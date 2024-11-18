@@ -22,8 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.dao.impl;
+package com.tencent.bk.job.backup.archive.dao.resultset;
 
+import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.Record;

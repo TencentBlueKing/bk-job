@@ -28,6 +28,7 @@ import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 归档任务 DAO
@@ -45,7 +46,13 @@ public interface ArchiveTaskDAO {
 
     List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType);
 
-    List<JobInstanceArchiveTaskInfo> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit);
+    /**
+     * 返回根据 db 分组的归档任务数量
+     *
+     * @param taskType 归档任务类型
+     * @return key: db 名称; value: 任务数量
+     */
+    Map<String, Integer> countScheduleTasksGroupByDb(ArchiveTaskTypeEnum taskType);
 
     /**
      * 更新归档任务
@@ -53,4 +60,6 @@ public interface ArchiveTaskDAO {
      * @param archiveTask 归档任务
      */
     void updateTask(JobInstanceArchiveTaskInfo archiveTask);
+
+    JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId);
 }

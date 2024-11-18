@@ -27,6 +27,7 @@ package com.tencent.bk.job.backup.archive;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
@@ -75,6 +76,7 @@ public class JobInstanceArchiveTaskGenerator {
         LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
             getEndTime(archiveProperties.getKeepDays()));
         while (startDateTime.isBefore(endDateTime)) {
+            // 水平分库分表
             if (isHorizontalShardingEnabled()) {
                 // 作业实例数据归档任务
                 archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
@@ -83,6 +85,7 @@ public class JobInstanceArchiveTaskGenerator {
                 archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE_APP,
                     startDateTime, archiveProperties.getTasks().getTaskInstance().getShardingDataNodes()));
             } else {
+                // 单db
                 DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.STANDALONE, null, null, null);
                 archiveTaskList.add(buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, startDateTime, dbDataNode));
             }
@@ -102,6 +105,7 @@ public class JobInstanceArchiveTaskGenerator {
         List<ArchiveProperties.ShardingDataNode> shardingDataNodes) {
         List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>();
 
+        // 任务：dataNode + day + hour
         shardingDataNodes.forEach(dataNode -> {
             int dbNodeCount = dataNode.getDbCount();
             int tableNodeCount = dataNode.getTableCount();

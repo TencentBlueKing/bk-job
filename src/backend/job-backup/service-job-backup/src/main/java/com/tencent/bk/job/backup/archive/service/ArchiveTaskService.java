@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.service;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
@@ -30,6 +30,7 @@ import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ArchiveTaskService {
@@ -57,11 +58,21 @@ public class ArchiveTaskService {
         return archiveTaskDAO.listRunningTasks(taskType);
     }
 
-    public List<JobInstanceArchiveTaskInfo> listScheduleTasks(ArchiveTaskTypeEnum taskType, int limit) {
-        return archiveTaskDAO.listScheduleTasks(taskType, limit);
+    /**
+     * 返回根据 db 分组的归档任务数量
+     *
+     * @param taskType 归档任务类型
+     * @return key: db 名称; value: 任务数量
+     */
+    public Map<String, Integer> countScheduleTasksGroupByDb(ArchiveTaskTypeEnum taskType) {
+        return archiveTaskDAO.countScheduleTasksGroupByDb(taskType);
     }
 
     public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
         archiveTaskDAO.updateTask(archiveTask);
+    }
+
+    public JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {
+        return archiveTaskDAO.getFirstScheduleArchiveTaskByDb(taskType, dbNodeId);
     }
 }

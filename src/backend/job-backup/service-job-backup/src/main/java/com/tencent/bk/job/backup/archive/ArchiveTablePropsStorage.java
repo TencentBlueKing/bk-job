@@ -32,6 +32,9 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 归档配置存储
+ */
 @Component
 public class ArchiveTablePropsStorage {
     private final ArchiveProperties archiveProperties;
@@ -53,9 +56,9 @@ public class ArchiveTablePropsStorage {
     }
 
     /**
+     * 从 热 DB 表中读取归档数据，每次读取的记录数量限制
+     *
      * @param tableName 表名
-     *                  <p>
-     *                  从 热 DB 表中读取归档数据，每次读取的记录数量限制
      */
     public int getReadRowLimit(String tableName) {
         ArchiveTableProps props = tablePropsMap.get(tableName);
@@ -66,9 +69,9 @@ public class ArchiveTablePropsStorage {
     }
 
     /**
+     * 写入归档数据到冷 DB，单批次最小行数
+     *
      * @param tableName 表名
-     *                  <p>
-     *                  写入归档数据到冷 DB，单批次最小行数
      */
     public int getBatchInsertRowSize(String tableName) {
         ArchiveTableProps props = tablePropsMap.get(tableName);
@@ -79,9 +82,9 @@ public class ArchiveTablePropsStorage {
     }
 
     /**
+     * 从热 DB 删除数据，每次删除的最大行数
+     *
      * @param tableName 表名
-     *                  <p>
-     *                  从热 DB 删除数据，每次删除的最大行数
      */
     public int getDeleteLimitRowCount(String tableName) {
         ArchiveTableProps props = tablePropsMap.get(tableName);

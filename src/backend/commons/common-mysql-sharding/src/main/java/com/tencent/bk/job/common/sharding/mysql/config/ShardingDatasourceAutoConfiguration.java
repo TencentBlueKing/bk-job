@@ -67,6 +67,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * 分库分表组件 ShardingSphere 配置
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ShardingProperties.class})
 @ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")

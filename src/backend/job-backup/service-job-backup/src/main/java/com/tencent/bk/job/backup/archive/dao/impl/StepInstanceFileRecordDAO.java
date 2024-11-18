@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFile;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceFileRecord;
@@ -71,7 +73,7 @@ public class StepInstanceFileRecordDAO extends AbstractJobInstanceHotRecordDAO<S
 
     @Override
     public RecordResultSet<StepInstanceFileRecord> executeQuery(Collection<Long> jobInstanceIds,
-                                                                   long readRowLimit) {
+                                                                long readRowLimit) {
         return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
             this,
             jobInstanceIds,

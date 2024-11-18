@@ -26,8 +26,8 @@ package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
-import com.tencent.bk.job.backup.archive.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
@@ -66,6 +66,8 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -495,14 +497,27 @@ public class ArchiveConfiguration {
 
     @Bean
     @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
-                                                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                                                           ArchiveProperties archiveProperties) {
+    public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
+        ArchiveTaskService archiveTaskService,
+        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        ArchiveProperties archiveProperties,
+        JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
+        JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
+        JobInstanceColdDAO jobInstanceColdDAO,
+        ArchiveTaskLock archiveTaskLock,
+        ArchiveErrorTaskCounter archiveErrorTaskCounter,
+        ArchiveTablePropsStorage archiveTablePropsStorage) {
+
         return new JobInstanceArchiveTaskScheduler(
             archiveTaskService,
             taskInstanceRecordDAO,
             archiveProperties,
-
-            );
+            jobInstanceArchiveTaskScheduleLock,
+            jobInstanceSubTableArchivers,
+            jobInstanceColdDAO,
+            archiveTaskLock,
+            archiveErrorTaskCounter,
+            archiveTablePropsStorage
+        );
     }
 }

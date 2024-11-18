@@ -28,6 +28,7 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
@@ -66,6 +67,18 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private final ArchiveTaskSummary archiveTaskSummary;
 
     private boolean isAcquireLock;
+    /**
+     * 任务是否已停止
+     */
+    protected volatile boolean isStopped = false;
+    /**
+     * 任务终止标识
+     */
+    protected volatile boolean stopFlag = false;
+    /**
+     * 同步锁
+     */
+    private final Object stopMonitor = new Object();
 
 
     public AbstractJobInstanceArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
@@ -87,12 +100,6 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         this.archiveTaskSummary = new ArchiveTaskSummary(archiveTaskInfo, archiveProperties.getMode());
     }
 
-    private String buildTaskId(JobInstanceArchiveTaskInfo archiveTask) {
-        return archiveTask.getTaskType() + ":" + archiveTask.getDbDataNode().toDataNodeId()
-            + ":" + archiveTask.getDay() + ":" + archiveTask.getHour();
-    }
-
-
     @Override
     public void execute() {
         archive();
@@ -100,8 +107,29 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
     @Override
     public void stop() {
-
+        synchronized (stopMonitor) {
+            this.stopFlag = true;
+        }
     }
+
+    private boolean checkStopFlag() {
+        synchronized (stopMonitor) {
+            return stopFlag;
+        }
+    }
+
+    private void stopTask() {
+        synchronized (stopMonitor) {
+            if (!isStopped) {
+                isStopped = true;
+                StopTaskCounter.getInstance().decrement(taskId);
+                log.info("Stop archive task successfully, taskId: {}", taskId);
+            } else {
+                log.info("Archive task is stopped, taskId: {}", taskId);
+            }
+        }
+    }
+
 
     private void archive() {
         try {
@@ -111,6 +139,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             }
 
             log.info("[{}] Start archive task", taskId);
+            archiveTaskInfo.setStatus(ArchiveTaskStatusEnum.RUNNING);
+            archiveTaskService.updateTask(archiveTaskInfo);
             // 归档
             backupAndDelete();
         } catch (Throwable e) {
@@ -134,6 +164,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 taskId,
                 JsonUtils.toJson(archiveTaskSummary)
             );
+            if (checkStopFlag()) {
+                stopTask();
+            }
         }
     }
 
@@ -150,6 +183,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         try {
             List<T> jobInstanceRecords;
             do {
+                // 检查任务终止标识
+                if (checkStopFlag()) {
+                    stopTask();
+                }
                 if (progress != null) {
                     jobInstanceRecords = readSortedJobInstanceFromHotDB(progress.getTimestamp(),
                         archiveTaskInfo.getToTimestamp(), progress.getId(), readLimit);

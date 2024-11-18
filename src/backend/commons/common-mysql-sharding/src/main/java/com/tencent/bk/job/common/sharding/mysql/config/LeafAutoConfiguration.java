@@ -45,6 +45,9 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
 import javax.sql.DataSource;
 
+/**
+ * 美团 leaf 分布式 ID 组件自动装配
+ */
 @Configuration(value = "leafDbConfig")
 @ConditionalOnProperty(value = "leaf.enabled", havingValue = "true")
 @EnableConfigurationProperties({LeafProperties.class})
