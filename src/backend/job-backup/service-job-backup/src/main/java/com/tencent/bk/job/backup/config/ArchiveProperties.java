@@ -115,7 +115,7 @@ public class ArchiveProperties {
         /**
          * 作业实例数据归档任务配置
          */
-        private ArchiveTaskConfig taskInstance;
+        private ArchiveTaskConfig jobInstance;
     }
 
     @Data

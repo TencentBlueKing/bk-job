@@ -144,7 +144,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 // 对待调度的任务进行优先级排序，保证同一个 db 上的归档任务数量尽可能均衡，避免出现db 热点
                 ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo highestPriorityDbNodeTasksInfo =
                     ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTasksGroupByDb);
-                int taskConcurrent = archiveProperties.getTasks().getTaskInstance().getConcurrent();
+                int taskConcurrent = archiveProperties.getTasks().getJobInstance().getConcurrent();
                 if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
                     // 休眠5分钟，等待并行任务减少
                     log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);

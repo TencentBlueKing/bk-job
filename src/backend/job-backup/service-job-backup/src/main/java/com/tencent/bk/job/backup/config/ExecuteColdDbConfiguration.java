@@ -57,6 +57,7 @@ public class ExecuteColdDbConfiguration {
     @Bean(name = "job-execute-archive-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive")
     public DataSource executeArchiveDataSource() {
+        log.info("Init job-execute-archive cold datasource");
         return DataSourceBuilder.create().build();
     }
 
@@ -79,6 +80,13 @@ public class ExecuteColdDbConfiguration {
     public ConnectionProvider executeArchiveConnectionProvider(
         @Qualifier("job-execute-archive-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
+    }
+
+    @Bean(name = "execute-archive-dao")
+    public JobInstanceColdDAOImpl jobInstanceColdDAO(
+        @Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+        log.info("Init JobInstanceColdDAO");
+        return new JobInstanceColdDAOImpl(context);
     }
 
     static class JobExecuteColdDbInitCondition extends AllNestedConditions {
@@ -114,19 +122,5 @@ public class ExecuteColdDbConfiguration {
             }
         }
     }
-
-    /**
-     * job-execute 归档冷 DB 配置
-     */
-    @Configuration
-    public static class ExecuteBackupDAOConfig {
-        @Bean(name = "execute-archive-dao")
-        public JobInstanceColdDAOImpl jobInstanceColdDAO(
-            @Qualifier("job-execute-archive-dsl-context") DSLContext context) {
-            log.info("Init ExecuteArchiveDAO");
-            return new JobInstanceColdDAOImpl(context);
-        }
-    }
-
 
 }
