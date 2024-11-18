@@ -1237,7 +1237,12 @@ backupConfig:
       deleteRowLimit: 1000
       tasks:
         job_instance:
-          
+          dataSourceMode: standalone
+          concurrent: 6
+          # shardingDsDataNodes:
+          #   - dataSourceName: ds
+          #     dbCount: 2
+          #     tableCount: 31
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

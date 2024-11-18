@@ -55,12 +55,6 @@ public class ArchiveProperties {
      * 触发时间 CRON 表达式
      */
     private String cron;
-
-    /**
-     * 归档任务并行执行数量
-     */
-    private Integer concurrent = 10;
-
     /**
      * DB数据保留天数
      */
@@ -137,7 +131,10 @@ public class ArchiveProperties {
          * 要归档的分库分表数据节点配置
          */
         private List<ShardingDataNode> shardingDataNodes;
-
+        /**
+         * 归档任务并行执行数量
+         */
+        private Integer concurrent = 6;
     }
 
 

@@ -26,6 +26,7 @@ package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.backup.archive.dao.impl.GseFileExecuteObjTaskRecordDAO
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceColdDAOImpl;
 import com.tencent.bk.job.backup.archive.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.RollingConfigRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceConfirmRecordDAO;
@@ -70,13 +70,11 @@ import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -90,13 +88,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @EnableConfigurationProperties(ArchiveProperties.class)
 @Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class})
+@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
 public class ArchiveConfiguration {
 
     /**
      * job-execute DB 配置
      */
     @Configuration
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
@@ -461,33 +459,18 @@ public class ArchiveConfiguration {
 
     }
 
-    /**
-     * job-execute 归档冷 DB 配置
-     */
-    @Configuration
-    @Conditional(ExecuteColdDbConfiguration.JobExecuteColdDbInitCondition.class)
-    public static class ExecuteBackupDAOConfig {
-        @Bean(name = "execute-archive-dao")
-        public JobInstanceColdDAOImpl jobInstanceColdDAO(
-            @Qualifier("job-execute-archive-dsl-context") DSLContext context) {
-            log.info("Init ExecuteArchiveDAO");
-            return new JobInstanceColdDAOImpl(context);
-        }
-    }
 
     @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveTaskLock");
         return new ArchiveTaskLock(redisTemplate);
     }
 
-
     @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
                                                                            TaskInstanceRecordDAO taskInstanceRecordDAO,
                                                                            ArchiveProperties archiveProperties) {
+        log.info("Init JobInstanceArchiveTaskGenerator");
         return new JobInstanceArchiveTaskGenerator(
             archiveTaskService,
             taskInstanceRecordDAO,
@@ -496,7 +479,6 @@ public class ArchiveConfiguration {
     }
 
     @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
     public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
         TaskInstanceRecordDAO taskInstanceRecordDAO,
@@ -508,6 +490,7 @@ public class ArchiveConfiguration {
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
         ArchiveTablePropsStorage archiveTablePropsStorage) {
 
+        log.info("Init JobInstanceArchiveTaskScheduler");
         return new JobInstanceArchiveTaskScheduler(
             archiveTaskService,
             taskInstanceRecordDAO,
@@ -519,5 +502,24 @@ public class ArchiveConfiguration {
             archiveErrorTaskCounter,
             archiveTablePropsStorage
         );
+    }
+
+    @Bean
+    public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
+        JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+        JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+        ArchiveProperties archiveProperties) {
+        log.info("Init JobInstanceArchiveCronJobs");
+        return new JobInstanceArchiveCronJobs(
+            jobInstanceArchiveTaskGenerator,
+            jobInstanceArchiveTaskScheduler,
+            archiveProperties
+        );
+    }
+
+    @Bean
+    public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
+        log.info("Init JobInstanceArchiveTaskScheduleLock");
+        return new JobInstanceArchiveTaskScheduleLock();
     }
 }

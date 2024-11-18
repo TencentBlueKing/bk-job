@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceColdDAOImpl;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -48,6 +50,7 @@ import javax.sql.DataSource;
  */
 @Configuration(value = "executeColdDbConfiguration")
 @Conditional(ExecuteColdDbConfiguration.JobExecuteColdDbInitCondition.class)
+@Slf4j
 public class ExecuteColdDbConfiguration {
 
     @Qualifier("job-execute-archive-source")
@@ -109,6 +112,19 @@ public class ExecuteColdDbConfiguration {
             static class ArchiveModeBackupOnlyCondition {
 
             }
+        }
+    }
+
+    /**
+     * job-execute 归档冷 DB 配置
+     */
+    @Configuration
+    public static class ExecuteBackupDAOConfig {
+        @Bean(name = "execute-archive-dao")
+        public JobInstanceColdDAOImpl jobInstanceColdDAO(
+            @Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+            log.info("Init ExecuteArchiveDAO");
+            return new JobInstanceColdDAOImpl(context);
         }
     }
 
