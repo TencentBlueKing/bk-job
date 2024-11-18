@@ -48,9 +48,9 @@ public class JobInstanceArchiveCronJobs {
     }
 
     /**
-     * 定时创建归档任务
+     * 定时创建归档任务,每天0 点触发一次
      */
-    @Scheduled(cron = "${job.backup.archive.execute.cron:0,6,12,18 0 0 * * *}")
+    @Scheduled(cron = "0 0 0 * * *")
     public void generateArchiveTask() {
         log.info("Generate archive task start...");
         jobInstanceArchiveTaskGenerator.generate();
@@ -58,9 +58,9 @@ public class JobInstanceArchiveCronJobs {
     }
 
     /**
-     * 定时调度并执行归档任务
+     * 定时调度并执行归档任务，默认每小时第 1 分钟触发一次
      */
-    @Scheduled(cron = "${job.backup.archive.execute.cron:1,7,13,19 0 0 * * *}")
+    @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
     public void scheduleAndExecuteArchiveTask() {
         log.info("Schedule and execute archive task start...");
         jobInstanceArchiveTaskScheduler.schedule();

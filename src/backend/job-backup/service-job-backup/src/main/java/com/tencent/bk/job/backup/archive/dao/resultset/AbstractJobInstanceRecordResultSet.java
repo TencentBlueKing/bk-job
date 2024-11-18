@@ -61,7 +61,7 @@ abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements R
     }
 
     @Override
-    public boolean hasNext() {
+    public boolean next() {
         if (!hasNext) {
             return false;
         }

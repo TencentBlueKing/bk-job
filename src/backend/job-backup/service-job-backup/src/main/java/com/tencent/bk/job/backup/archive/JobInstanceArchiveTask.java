@@ -34,12 +34,18 @@ public interface JobInstanceArchiveTask {
      */
     void execute();
 
-
     /**
      * 归档任务被终止时候调用
+     *
+     * @param stopCallback 回调
      */
-    void stop();
+    void stop(ArchiveTaskStopCallback stopCallback);
 
+    void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
+
+    /**
+     * 获取任务 ID
+     */
     String getTaskId();
 
 }

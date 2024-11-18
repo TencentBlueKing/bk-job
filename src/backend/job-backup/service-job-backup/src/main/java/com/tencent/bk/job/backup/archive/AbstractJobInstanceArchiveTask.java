@@ -79,6 +79,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
      * 同步锁
      */
     private final Object stopMonitor = new Object();
+    private volatile ArchiveTaskStopCallback stopCallback = null;
+    private volatile ArchiveTaskDoneCallback archiveTaskDoneCallback;
 
 
     public AbstractJobInstanceArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
@@ -106,9 +108,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     @Override
-    public void stop() {
+    public void stop(ArchiveTaskStopCallback stopCallback) {
         synchronized (stopMonitor) {
             this.stopFlag = true;
+            this.stopCallback = stopCallback;
         }
     }
 
@@ -122,7 +125,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         synchronized (stopMonitor) {
             if (!isStopped) {
                 isStopped = true;
-                StopTaskCounter.getInstance().decrement(taskId);
+                if (stopCallback != null) {
+                    stopCallback.callback();
+                }
                 log.info("Stop archive task successfully, taskId: {}", taskId);
             } else {
                 log.info("Archive task is stopped, taskId: {}", taskId);
@@ -130,6 +135,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         }
     }
 
+    @Override
+    public void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback) {
+        this.archiveTaskDoneCallback = archiveTaskDoneCallback;
+    }
 
     private void archive() {
         try {
@@ -164,6 +173,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 taskId,
                 JsonUtils.toJson(archiveTaskSummary)
             );
+            if (archiveTaskDoneCallback != null) {
+                archiveTaskDoneCallback.callback();
+            }
             if (checkStopFlag()) {
                 stopTask();
             }

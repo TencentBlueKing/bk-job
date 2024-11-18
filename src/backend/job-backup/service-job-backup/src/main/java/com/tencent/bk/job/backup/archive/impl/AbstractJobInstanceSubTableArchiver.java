@@ -29,11 +29,13 @@ import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
 
 import java.util.List;
 
+@Slf4j
 public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableArchiver {
 
     private final JobInstanceColdDAO jobInstanceColdDAO;
@@ -60,8 +62,12 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         RecordResultSet<? extends TableRecord<?>> recordResultSet =
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
-        while (recordResultSet.hasNext()) {
+        long startTime = System.currentTimeMillis();
+        while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
+            long readEndTime = System.currentTimeMillis();
+            log.info("Read {}, recordSize: {}, cost: {}ms", tableName,
+                CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - startTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
@@ -71,7 +77,10 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
 
     @Override
     public void deleteRecords(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
         jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
+        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", tableName,
+            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
     }
 }

@@ -89,8 +89,11 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             tableArchiver.deleteRecords(jobInstanceIds);
         });
         // 删除主表数据
+        long startTime = System.currentTimeMillis();
         taskInstanceRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(TaskInstance.TASK_INSTANCE.getName()));
+        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
+            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
     }
 
     @Override

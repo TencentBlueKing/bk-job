@@ -42,7 +42,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 作业执行历史归档任务调度
@@ -64,8 +63,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     private final ArchiveTaskLock archiveTaskLock;
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     private final ArchiveTablePropsStorage archiveTablePropsStorage;
-
-    private final AtomicInteger runningTasksCount = new AtomicInteger(0);
 
     private final Object lifecycleMonitor = new Object();
 
@@ -114,7 +111,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     public void schedule() {
         try {
             if (isScheduling()) {
-                log.info("Scheduler is already working");
+                log.info("Scheduler is working");
                 return;
             }
             if (!isActive()) {
@@ -131,12 +128,12 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     continue;
                 }
 
-                // 获取待调度的任务列表
+                // 获取待调度的任务信息(按照 DB 节点计数)
                 Map<String, Integer> scheduleTasksGroupByDb =
                     archiveTaskService.countScheduleTasksGroupByDb(ArchiveTaskTypeEnum.JOB_INSTANCE);
                 if (scheduleTasksGroupByDb.isEmpty()) {
                     // 所有任务都已经被调度完成，退出本次任务调度
-                    log.info("All archive task is done!");
+                    log.info("All archive task is done! Exit schedule");
                     return;
                 }
 
@@ -146,10 +143,10 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
 
                 // 对待调度的任务进行优先级排序，保证同一个 db 上的归档任务数量尽可能均衡，避免出现db 热点
                 ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo highestPriorityDbNodeTasksInfo =
-                    ArchiveDbNodePriorityEvaluator.evaluatePriorityDbNode(runningTasks, scheduleTasksGroupByDb);
+                    ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTasksGroupByDb);
                 if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= archiveProperties.getConcurrent()) {
-                    // 休眠一分钟，等待并行任务减少
-                    log.info("Running archive task count exceed concurrent limit : {}, wait 60s",
+                    // 休眠5分钟，等待并行任务减少
+                    log.info("Running archive task count exceed concurrent limit : {}, wait 300s",
                         archiveProperties.getConcurrent());
                     ThreadUtils.sleep(1000 * 60L);
                     continue;
@@ -171,7 +168,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     }
 
     private void startArchiveTask(JobInstanceArchiveTaskInfo archiveTaskInfo) {
-        log.info("Start JobInstanceArchiveTask : {}", archiveTaskInfo);
+        log.info("Start JobInstanceArchiveTask, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
         JobInstanceMainDataArchiveTask archiveTask = new JobInstanceMainDataArchiveTask(
             taskInstanceRecordDAO,
             jobInstanceSubTableArchivers,
@@ -183,6 +180,12 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
             archiveTaskService,
             archiveTablePropsStorage
         );
+        // 注册任务完成回调函数
+        archiveTask.registerDoneCallback(() -> {
+            synchronized (lifecycleMonitor) {
+                scheduledTasks.remove(archiveTask.getTaskId());
+            }
+        });
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.info("JobInstanceArchiveTaskScheduler is not active, skip");
@@ -190,9 +193,9 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
             }
             scheduledTasks.put(archiveTask.getTaskId(), archiveTask);
         }
-        runningTasksCount.incrementAndGet();
         ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask);
         worker.start();
+        log.info("Start JobInstanceArchiveTask success, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
     }
 
     /**
@@ -230,39 +233,40 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     private void stopTasksGraceful() {
         log.info("Stop archive tasks graceful - start");
         long start = System.currentTimeMillis();
-        StopTaskCounter stopTaskCounter = null;
+        TaskCountDownLatch taskCountDownLatch = null;
         synchronized (lifecycleMonitor) {
             if (!this.scheduledTasks.isEmpty()) {
                 log.info("Stop archive tasks, size: {}, tasks: {}", scheduledTasks.size(), scheduledTasks);
-                stopTaskCounter = StopTaskCounter.getInstance();
-                stopTaskCounter.initCounter(scheduledTasks.keySet());
+                taskCountDownLatch = new TaskCountDownLatch(scheduledTasks.keySet());
             }
             for (JobInstanceArchiveTask task : scheduledTasks.values()) {
-                shutdownExecutor.execute(new StopTask(task));
+                shutdownExecutor.execute(new StopTask(task, taskCountDownLatch));
             }
         }
         try {
-            if (stopTaskCounter != null) {
-                stopTaskCounter.waitingForAllTasksDone();
+            if (taskCountDownLatch != null) {
+                taskCountDownLatch.waitingForAllTasksDone();
             }
         } catch (Throwable e) {
-            log.error("Stop tasks caught exception", e);
+            log.error("Stop archive tasks caught exception", e);
         }
         long end = System.currentTimeMillis();
-        log.info("Stop tasks graceful - end, cost: {}", end - start);
+        log.info("Stop archive tasks graceful - end, cost: {}", end - start);
     }
 
     private static final class StopTask implements Runnable {
         private final JobInstanceArchiveTask task;
+        private final TaskCountDownLatch taskCountDownLatch;
 
-        StopTask(JobInstanceArchiveTask task) {
+        StopTask(JobInstanceArchiveTask task, TaskCountDownLatch taskCountDownLatch) {
             this.task = task;
+            this.taskCountDownLatch = taskCountDownLatch;
         }
 
         @Override
         public void run() {
             try {
-                task.stop();
+                task.stop(() -> taskCountDownLatch.decrement(task.getTaskId()));
             } catch (Throwable e) {
                 String errorMsg = "Stop archive task caught exception, task: " + task;
                 log.warn(errorMsg, e);
@@ -277,12 +281,18 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         }
     }
 
+    /**
+     * 判断是否处于激活状态
+     */
     private boolean isActive() {
         synchronized (this.lifecycleMonitor) {
             return this.active;
         }
     }
 
+    /**
+     * 判断是否正在进行任务调度中
+     */
     private boolean isScheduling() {
         synchronized (this.lifecycleMonitor) {
             return this.scheduling;

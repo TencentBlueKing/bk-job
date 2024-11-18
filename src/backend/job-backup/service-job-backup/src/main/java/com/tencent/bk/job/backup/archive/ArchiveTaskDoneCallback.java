@@ -22,25 +22,11 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.dao.resultset;
-
-import org.jooq.Record;
-
-import java.util.List;
+package com.tencent.bk.job.backup.archive;
 
 /**
- * 表查询结果
- *
- * @param <T>
+ * 归档任务执行完成回调
  */
-public interface RecordResultSet<T extends Record> {
-    /**
-     * 将查询游标指向下一次查询
-     */
-    boolean next();
-
-    /**
-     * 获取下一次查询的表记录
-     */
-    List<T> getRecords();
+public interface ArchiveTaskDoneCallback {
+    void callback();
 }

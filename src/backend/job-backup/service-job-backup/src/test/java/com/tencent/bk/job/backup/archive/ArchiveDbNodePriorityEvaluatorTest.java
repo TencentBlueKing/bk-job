@@ -50,7 +50,7 @@ class ArchiveDbNodePriorityEvaluatorTest {
         scheduleTaskCountGroupByDb.put(DbDataNode.STANDALONE_DS_NAME, 2);
 
         ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo dbNodeTasksInfo =
-            ArchiveDbNodePriorityEvaluator.evaluatePriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
+            ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
         assertThat(dbNodeTasksInfo).isNotNull();
         assertThat(dbNodeTasksInfo.getDbNodeId()).isEqualTo(DbDataNode.STANDALONE_DS_NAME);
         assertThat(dbNodeTasksInfo.getRunningTaskCount()).isEqualTo(3);
@@ -70,7 +70,7 @@ class ArchiveDbNodePriorityEvaluatorTest {
         scheduleTaskCountGroupByDb.put("ds:1", 1);
 
         ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo dbNodeTasksInfo =
-            ArchiveDbNodePriorityEvaluator.evaluatePriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
+            ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
         assertThat(dbNodeTasksInfo).isNotNull();
         assertThat(dbNodeTasksInfo.getDbNodeId()).isEqualTo("ds:0");
 
@@ -82,7 +82,7 @@ class ArchiveDbNodePriorityEvaluatorTest {
         scheduleTaskCountGroupByDb.put("ds:0", 2);
         scheduleTaskCountGroupByDb.put("ds:1", 1);
 
-        dbNodeTasksInfo = ArchiveDbNodePriorityEvaluator.evaluatePriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
+        dbNodeTasksInfo = ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
         assertThat(dbNodeTasksInfo).isNotNull();
         assertThat(dbNodeTasksInfo.getDbNodeId()).isEqualTo("ds:0");
 

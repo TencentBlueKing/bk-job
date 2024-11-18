@@ -73,16 +73,13 @@ public class JobInstanceArchiveTaskGenerator {
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
         LocalDateTime startDateTime = computeArchiveStartDateTime();
-        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
-            getEndTime(archiveProperties.getKeepDays()));
+        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(getEndTime(archiveProperties.getKeepDays()));
+        // 创建归档任务
         while (startDateTime.isBefore(endDateTime)) {
             // 水平分库分表
             if (isHorizontalShardingEnabled()) {
-                // 作业实例数据归档任务
+                // 作业实例数据归档任务,现版本暂不支持
                 archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
-                    startDateTime, archiveProperties.getTasks().getTaskInstance().getShardingDataNodes()));
-                // 作业实例按业务冗余数据归档
-                archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE_APP,
                     startDateTime, archiveProperties.getTasks().getTaskInstance().getShardingDataNodes()));
             } else {
                 // 单db

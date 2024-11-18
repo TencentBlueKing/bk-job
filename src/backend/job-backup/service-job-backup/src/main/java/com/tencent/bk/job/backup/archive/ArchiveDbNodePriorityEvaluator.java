@@ -45,8 +45,8 @@ public class ArchiveDbNodePriorityEvaluator {
      * @param scheduleTaskCountGroupByDb 待调度归档任务计数（根据 db)
      * @return DbNodeTasksInfo
      */
-    public static DbNodeTasksInfo evaluatePriorityDbNode(List<JobInstanceArchiveTaskInfo> runningTasks,
-                                                         Map<String, Integer> scheduleTaskCountGroupByDb) {
+    public static DbNodeTasksInfo evaluateHighestPriorityDbNode(List<JobInstanceArchiveTaskInfo> runningTasks,
+                                                                Map<String, Integer> scheduleTaskCountGroupByDb) {
         Map<String, Integer> runningTaskCountGroupByDb = groupRunningTaskCountByDb(runningTasks);
 
         List<DbNodeTasksInfo> dbNodeTasksInfos = new ArrayList<>();

@@ -33,24 +33,17 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * 停止任务计数
+ * 任务 CountDownLatch 组件，用于等待所有任务完成后再退出
  */
 @Slf4j
-public class StopTaskCounter {
+public class TaskCountDownLatch {
     private final Object taskMonitor = new Object();
-    private CountDownLatch latch;
+    private final CountDownLatch latch;
     private final Set<String> taskIds = new HashSet<>();
     private volatile boolean monitorInitial = false;
     private volatile boolean isAllTaskDone = false;
 
-    private StopTaskCounter() {
-    }
-
-    public static StopTaskCounter getInstance() {
-        return Inner.instance;
-    }
-
-    void initCounter(Set<String> taskIds) {
+    public TaskCountDownLatch(Set<String> taskIds) {
         this.taskIds.addAll(taskIds);
         this.latch = new CountDownLatch(taskIds.size());
         startMonitor();
@@ -69,7 +62,7 @@ public class StopTaskCounter {
         }
     }
 
-    void waitingForAllTasksDone() {
+    public void waitingForAllTasksDone() {
         try {
             log.info("Waiting for all tasks done! total: {}", latch.getCount());
             this.latch.await();
@@ -106,9 +99,4 @@ public class StopTaskCounter {
                 taskIds);
         }
     }
-
-    private static class Inner {
-        private static final StopTaskCounter instance = new StopTaskCounter();
-    }
-
 }
