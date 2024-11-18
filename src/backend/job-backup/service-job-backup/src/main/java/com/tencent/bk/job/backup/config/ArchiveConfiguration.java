@@ -238,7 +238,7 @@ public class ArchiveConfiguration {
         }
 
         @Bean
-        public OperationLogArchiver taskInstanceVariableArchiver(
+        public OperationLogArchiver operationLogArchiver(
             ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
             OperationLogRecordDAO operationLogRecordDAO,
             ArchiveTablePropsStorage archiveTablePropsStorage
@@ -257,7 +257,7 @@ public class ArchiveConfiguration {
         }
 
         @Bean
-        public FileSourceTaskLogArchiver taskInstanceVariableArchiver(
+        public FileSourceTaskLogArchiver fileSourceTaskLogArchiver(
             ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
             FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
             ArchiveTablePropsStorage archiveTablePropsStorage
@@ -352,7 +352,7 @@ public class ArchiveConfiguration {
         }
 
         @Bean
-        public GseFileExecuteObjTaskArchiver gseScriptExecuteObjTaskArchiver(
+        public GseFileExecuteObjTaskArchiver gseFileExecuteObjTaskArchiver(
             ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
             GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
             ArchiveTablePropsStorage archiveTablePropsStorage
