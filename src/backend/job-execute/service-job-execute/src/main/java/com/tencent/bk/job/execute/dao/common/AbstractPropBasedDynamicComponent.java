@@ -111,6 +111,7 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
 
         // 注册监听属性变化
         this.propToggleStore.addPropChangeEventListener(migrateTargetPropName, this);
+        checkInit();
     }
 
     protected void initCandidateComponents(Map<String, C> candidateComponents) {
@@ -122,7 +123,7 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
      * 如果组件处于迁移状态中，会阻塞当前线程直到切换完成
      */
     public C getCurrent(boolean blockWhenMigration) {
-        checkInit();
+//        checkInit();
         if (status == MigrationStatus.MIGRATING && blockWhenMigration) {
             // 如果组件正在迁移中，并且 blockWhenMigration = true, 需要等待迁移完成；当前线程阻塞
             try {
@@ -176,10 +177,10 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
     }
 
     private void migrateComponent(C targetComponent) {
-        long startTime = System.currentTimeMillis();
-        log.info("Migrate component from {} to {} start...", current.getClass(), targetComponent.getClass());
         boolean success = false;
         try {
+            long startTime = System.currentTimeMillis();
+            log.info("Migrate component from {} to {} start...", current.getClass(), targetComponent.getClass());
             PropToggle migrateServiceInstanceCountProp =
                 propToggleStore.getPropToggle(PROP_NAME_SERVICE_INSTANCE_COUNT);
             if (migrateServiceInstanceCountProp == null) {
