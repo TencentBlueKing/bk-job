@@ -37,17 +37,12 @@ import org.springframework.context.annotation.Configuration;
 public class FeatureToggleAutoConfiguration {
 
     @Bean
-    public FeatureStore featureStore() {
-        return new InMemoryFeatureStore();
+    public FeatureStore featureStore(FeatureToggleProperties featureToggleProperties) {
+        return new InMemoryFeatureStore(featureToggleProperties);
     }
 
     @Bean
     public FeatureManager featureManager(FeatureStore featureStore, MeterRegistry meterRegistry) {
         return new DefaultFeatureManager(featureStore, meterRegistry);
-    }
-
-    @Bean
-    public FeatureLoadApplicationRunner featureLoadApplicationRunner(FeatureStore featureStore) {
-        return new FeatureLoadApplicationRunner(featureStore);
     }
 }

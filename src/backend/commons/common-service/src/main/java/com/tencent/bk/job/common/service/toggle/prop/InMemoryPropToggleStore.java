@@ -57,18 +57,13 @@ public class InMemoryPropToggleStore implements PropToggleStore {
     private final Map<String, List<PropChangeEventListener>> propEventListeners = new HashMap<>();
 
     public InMemoryPropToggleStore(PropToggleProperties propToggleProperties) {
-        log.info("Init PropToggleProperties : {}", JsonUtils.toJson(propToggleProperties));
+        log.info("Init InMemoryPropToggleStore, properties : {}", JsonUtils.toJson(propToggleProperties));
         loadAllPropToggles(propToggleProperties);
-        log.info("Init PropToggleProperties successfully");
+        log.info("Init InMemoryPropToggleStore successfully");
     }
 
     public PropToggle getPropToggle(String propName) {
         return propToggles.get(propName);
-    }
-
-    @Override
-    public void init() {
-
     }
 
     @Override

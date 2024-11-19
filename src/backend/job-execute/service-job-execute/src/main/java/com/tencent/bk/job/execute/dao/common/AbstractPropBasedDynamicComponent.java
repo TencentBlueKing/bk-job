@@ -31,8 +31,9 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.toggle.prop.PropChangeEventListener;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggle;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.ArrayList;
@@ -51,8 +52,9 @@ import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.PREPARI
 /**
  * 基于属性动态控制的组件
  */
-@Slf4j
+
 public abstract class AbstractPropBasedDynamicComponent<C> implements PropChangeEventListener {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private Map<String, C> candidateComponents;
 
@@ -65,8 +67,6 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
     private volatile C current;
 
     private final PropToggleStore propToggleStore;
-
-    private volatile boolean isInitial = false;
 
     /**
      * 动态属性名称 - 迁移目标
@@ -111,11 +111,23 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
 
         // 注册监听属性变化
         this.propToggleStore.addPropChangeEventListener(migrateTargetPropName, this);
-        checkInit();
     }
 
     protected void initCandidateComponents(Map<String, C> candidateComponents) {
         this.candidateComponents = candidateComponents;
+        initCurrentComponent();
+    }
+
+    private void initCurrentComponent() {
+        // 从配置文件读取组件名称，并初始化
+        String propValue = propToggleStore.getPropToggle(migrateTargetPropName).getDefaultValue();
+        log.info("Init default component by prop: {}:{}", migrateTargetPropName, propValue);
+        this.current = getComponentByProp(this.candidateComponents, propValue);
+        if (this.current == null) {
+            log.error("No match component for {}", propValue);
+            throw new IllegalStateException("Unsupported component define by prop: " + propValue);
+        }
+        log.info("Use {} as default component", current.getClass());
     }
 
     /**
@@ -123,7 +135,6 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
      * 如果组件处于迁移状态中，会阻塞当前线程直到切换完成
      */
     public C getCurrent(boolean blockWhenMigration) {
-//        checkInit();
         if (status == MigrationStatus.MIGRATING && blockWhenMigration) {
             // 如果组件正在迁移中，并且 blockWhenMigration = true, 需要等待迁移完成；当前线程阻塞
             try {
@@ -137,25 +148,6 @@ public abstract class AbstractPropBasedDynamicComponent<C> implements PropChange
             }
         }
         return current;
-    }
-
-    private void checkInit() {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    // 从配置文件读取组件名称，并初始化
-                    String propValue = propToggleStore.getPropToggle(migrateTargetPropName).getDefaultValue();
-                    log.info("Init default component by prop: {}:{}", migrateTargetPropName, propValue);
-                    this.current = getComponentByProp(this.candidateComponents, propValue);
-                    if (this.current == null) {
-                        log.error("No match component for {}", propValue);
-                        throw new IllegalArgumentException("Unsupported component define by prop: " + propValue);
-                    }
-                    log.info("Use {} as default component", current.getClass());
-                    this.isInitial = true;
-                }
-            }
-        }
     }
 
 

@@ -34,7 +34,9 @@ public interface RefreshableConfigStore {
     /**
      * 初始化配置仓库，用于加载初始配置
      */
-    void init();
+    default void init() {
+
+    }
 
     /**
      * 重载变更的配置
