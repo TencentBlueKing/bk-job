@@ -53,7 +53,7 @@ public class JobInstanceArchiveCronJobs {
     /**
      * 定时创建归档任务,每天 0 点触发一次
      */
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void generateArchiveTask() {
         if (!archiveProperties.isEnabled()) {
             return;
