@@ -70,11 +70,24 @@ public class JobInstanceArchiveTaskGenerator {
 
     @JobTransactional(transactionManager = "jobBackupTransactionManager")
     public void generate() {
+        if (taskInstanceRecordDAO.isTableEmpty()) {
+            log.info("Job instance table is empty and does not require processing");
+            return;
+        }
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
+        // 归档起始时间
         LocalDateTime startDateTime = computeArchiveStartDateTime();
-        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(getEndTime(archiveProperties.getKeepDays()));
-        // 创建归档任务
+        // 归档结束时间
+        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
+            computeArchiveEndTime(archiveProperties.getKeepDays()));
+        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+            log.info("Archive endTime is before startTime, does not require processing");
+            return;
+        }
+
+        log.info("Generate job instance archive task, startDateTime: {}, endDateTime: {}", startDateTime, endDateTime);
+        // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
         while (startDateTime.isBefore(endDateTime)) {
             // 水平分库分表
             if (isHorizontalShardingEnabled()) {
@@ -83,7 +96,7 @@ public class JobInstanceArchiveTaskGenerator {
                     startDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
             } else {
                 // 单db
-                DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.STANDALONE, null, null, null);
+                DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
                 archiveTaskList.add(buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, startDateTime, dbDataNode));
             }
 
@@ -93,6 +106,8 @@ public class JobInstanceArchiveTaskGenerator {
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
             archiveTaskList.forEach(archiveTaskService::saveArchiveTask);
             log.info("Add archive tasks : {}", JsonUtils.toJson(archiveTaskList));
+        } else {
+            log.info("No new archive tasks are generated");
         }
     }
 
@@ -142,7 +157,7 @@ public class JobInstanceArchiveTaskGenerator {
         JobInstanceArchiveTaskInfo latestArchiveTask =
             archiveTaskService.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (latestArchiveTask == null) {
-            log.info("Latest archive task is empty, try compute from task_instance table record");
+            log.info("Latest archive task is empty, try compute from table min job create time");
             Long minJobCreateTime = taskInstanceRecordDAO.getMinJobCreateTime();
             startDateTime = toHourlyRoundDown(unixTimestampToUtcLocalDateTime(minJobCreateTime));
         } else {
@@ -165,7 +180,7 @@ public class JobInstanceArchiveTaskGenerator {
         return dateTime.getHour();
     }
 
-    private Long getEndTime(int archiveDays) {
+    private Long computeArchiveEndTime(int archiveDays) {
         DateTime now = DateTime.now();
         // 置为前一天天 24:00:00
         long todayMaxMills = now.minusMillis(now.getMillisOfDay()).getMillis();

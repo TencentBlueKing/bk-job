@@ -39,6 +39,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * 作业实例热数据查询 DAO 基础抽象实现
+ *
+ * @param <T> 表记录
+ */
 public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implements JobInstanceHotRecordDAO<T> {
 
     protected final DSLContextProvider dslContextProvider;

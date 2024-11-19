@@ -66,6 +66,9 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
         return TABLE;
     }
 
+    /**
+     * 获取表中作业的最早创建时间
+     */
     public Long getMinJobCreateTime() {
         Record1<Long> record =
             dsl().select(min(TABLE.CREATE_TIME))
@@ -80,6 +83,22 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
         return Long.MAX_VALUE;
     }
 
+    /**
+     * 是否为空表
+     */
+    public boolean isTableEmpty() {
+        return !dsl().fetchExists(TABLE);
+    }
+
+    /**
+     * 按时间范围+作业实例 ID，顺序读取表记录
+     *
+     * @param fromTimestamp     开始时间(include)
+     * @param endTimestamp      开始时间(exclude)
+     * @param fromJobInstanceId 起始作业实例 ID
+     * @param limit             读取最大行数
+     * @return 记录
+     */
     public List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
                                                                    Long endTimestamp,
                                                                    Long fromJobInstanceId,
