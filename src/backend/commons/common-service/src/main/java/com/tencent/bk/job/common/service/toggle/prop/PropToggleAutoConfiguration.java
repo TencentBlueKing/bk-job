@@ -34,12 +34,7 @@ import org.springframework.context.annotation.Configuration;
 public class PropToggleAutoConfiguration {
 
     @Bean
-    public PropToggleStore propToggleStore() {
-        return new InMemoryPropToggleStore();
-    }
-
-    @Bean
-    public PropLoadApplicationRunner propLoadApplicationRunner(PropToggleStore propToggleStore) {
-        return new PropLoadApplicationRunner(propToggleStore);
+    public PropToggleStore propToggleStore(PropToggleProperties propToggleProperties) {
+        return new InMemoryPropToggleStore(propToggleProperties);
     }
 }
