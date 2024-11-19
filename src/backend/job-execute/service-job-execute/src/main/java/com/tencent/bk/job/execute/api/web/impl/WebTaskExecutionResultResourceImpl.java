@@ -991,8 +991,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                           String scopeId,
                                                                           Long stepInstanceId,
                                                                           Integer batch) {
-
-        return listStepExecutionHistoryV2(username, appResourceScope, scopeType, scopeId, null, stepInstanceId, batch);
+        // 兼容代码，部署完成后删除
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
+        return listStepExecutionHistoryV2(username, appResourceScope, scopeType, scopeId,
+            stepInstance.getTaskInstanceId(), stepInstanceId, batch);
     }
 
     @Override

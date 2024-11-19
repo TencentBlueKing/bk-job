@@ -55,7 +55,9 @@ import static com.tencent.bk.job.common.mysql.dynamic.ds.MigrationStatus.PREPARI
 
 public abstract class AbstractPropBasedDynamicComponent<C> implements PropChangeEventListener {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-
+    /**
+     * 候选的组件。key: 属性名称；value: 组件实例
+     */
     private Map<String, C> candidateComponents;
 
     private volatile MigrationStatus status = NOT_START;
