@@ -49,7 +49,7 @@ public class PropBasedDynamicIdGen extends AbstractPropBasedDynamicComponent<IdG
             candidateIdGens.put(IdGenType.Constants.AUTO_INCREMENT, autoIncrementIdGenerator);
         }
         if (segmentIdGenerator != null) {
-            candidateIdGens.put(IdGenType.Constants.SEGMENT, segmentIdGenerator);
+            candidateIdGens.put(IdGenType.Constants.LEAF_SEGMENT, segmentIdGenerator);
         }
         super.initCandidateComponents(candidateIdGens);
     }

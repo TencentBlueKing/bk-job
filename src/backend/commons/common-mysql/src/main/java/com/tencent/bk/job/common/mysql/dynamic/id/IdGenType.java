@@ -29,11 +29,11 @@ import lombok.Getter;
 @Getter
 public enum IdGenType {
     AUTO_INCREMENT(IdGenType.Constants.AUTO_INCREMENT),
-    SEGMENT(IdGenType.Constants.SEGMENT);
+    SEGMENT(IdGenType.Constants.LEAF_SEGMENT);
 
     public static class Constants {
         public final static String AUTO_INCREMENT = "auto_increment";
-        public final static String SEGMENT = "segment";
+        public final static String LEAF_SEGMENT = "leaf_segment";
     }
 
     private final String type;

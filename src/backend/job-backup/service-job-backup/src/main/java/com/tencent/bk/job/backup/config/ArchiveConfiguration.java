@@ -485,7 +485,7 @@ public class ArchiveConfiguration {
         ArchiveProperties archiveProperties,
         JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
         JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
-        JobInstanceColdDAO jobInstanceColdDAO,
+        ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
         ArchiveTaskLock archiveTaskLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
         ArchiveTablePropsStorage archiveTablePropsStorage) {
@@ -497,7 +497,7 @@ public class ArchiveConfiguration {
             archiveProperties,
             jobInstanceArchiveTaskScheduleLock,
             jobInstanceSubTableArchivers,
-            jobInstanceColdDAO,
+            jobInstanceColdDAOObjectProvider.getIfAvailable(),
             archiveTaskLock,
             archiveErrorTaskCounter,
             archiveTablePropsStorage

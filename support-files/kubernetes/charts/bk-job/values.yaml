@@ -1026,10 +1026,11 @@ executeConfig:
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
+  # id生成器配置
   idGen:
     migration:
       enabled: false
-    # id生成器配置。auto_increment: 自增长，segment: leaf segment id
+    # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
 
 ## job-crontab定时任务配置

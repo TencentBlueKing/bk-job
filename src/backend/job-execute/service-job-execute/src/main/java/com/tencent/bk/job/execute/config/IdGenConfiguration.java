@@ -78,7 +78,7 @@ public class IdGenConfiguration {
             super(ConfigurationPhase.REGISTER_BEAN);
         }
 
-        @ConditionalOnProperty(value = "idGen.type", havingValue = IdGenType.Constants.SEGMENT)
+        @ConditionalOnProperty(value = "idGen.type", havingValue = IdGenType.Constants.LEAF_SEGMENT)
         static class IdGenTypeCondition {
 
         }

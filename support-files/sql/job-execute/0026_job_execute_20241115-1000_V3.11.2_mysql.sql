@@ -286,8 +286,8 @@ DROP PROCEDURE IF EXISTS job_add_task_instance_id;
 
 DELIMITER <JOB_UBF>
 
-CREATE PROCEDURE job_add_task_instance_id()
-BEGIN
+CREATE PROCEDURE job_add_task_instance_id(IN fromStepInstanceId BIGINT, IN endStepInstanceId BIGINT)
+label:BEGIN
 
   DECLARE minId BIGINT;
   DECLARE maxId BIGINT;
@@ -295,13 +295,31 @@ BEGIN
   DECLARE endId BIGINT;
 
   SET AUTOCOMMIT = 0;
+  -- 如果 step_instance 表为空，无需变更
+  IF NOT EXISTS (SELECT 1 FROM step_instance LIMIT 1) THEN
+    LEAVE label;
+  END IF;
+
+  -- 如果 gse_task 表中不存在task_instance_id = 0，说明已经执行过该变更
+  IF NOT EXISTS (SELECT 1 FROM gse_task WHERE task_instance_id = 0 LIMIT 1) THEN
+    LEAVE label;
+  END IF;
+
 
   SELECT MIN(id), MAX(id) INTO minId, maxId FROM step_instance;
 
-  SET fromId = minId;
+  IF fromStepInstanceId > 0 THEN
+    SET minId = fromStepInstanceId;
+  END IF;
+
+  IF endStepInstanceId > 0 THEN
+    SET maxId = endStepInstanceId;
+  END IF;
+
+  SET fromId = minId - 1;
 
   WHILE fromId <= maxId DO
-    SET endId = fromId + 999;
+    SELECT MIN(t.id),MAX(t.id) INTO fromId,endId FROM (SELECT id FROM step_instance WHERE id > fromId ORDER BY id asc LIMIT 1000) t;
 
     UPDATE file_source_task_log t1
     INNER JOIN (
@@ -386,14 +404,14 @@ BEGIN
 
     COMMIT;
 
-    SET fromId = endId + 1;
+    SET fromId = endId;
   END WHILE;
   
 END <JOB_UBF>
 DELIMITER ;
 COMMIT;
 
-CALL job_add_task_instance_id();
+CALL job_add_task_instance_id(-1,-1);
 DROP PROCEDURE IF EXISTS job_add_task_instance_id;
 
 
@@ -402,22 +420,37 @@ DROP PROCEDURE IF EXISTS job_update_task_instance_host_data;
 
 DELIMITER <JOB_UBF>
 
-CREATE PROCEDURE job_update_task_instance_host_data()
-BEGIN
+CREATE PROCEDURE job_update_task_instance_host_data(IN fromTaskInstanceId BIGINT, IN endTaskInstanceId BIGINT)
+label:BEGIN
 
   DECLARE minId BIGINT;
   DECLARE maxId BIGINT;
   DECLARE fromId BIGINT;
   DECLARE endId BIGINT;
 
+  IF NOT EXISTS (SELECT 1 FROM task_instance LIMIT 1) THEN
+    LEAVE label;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM task_instance_host WHERE app_id = 0 LIMIT 1) THEN
+    LEAVE label;
+  END IF;
+
   SET AUTOCOMMIT = 0;
 
   SELECT MIN(id), MAX(id) INTO minId, maxId FROM task_instance;
+  IF fromTaskInstanceId > 0 THEN
+    SET minId = fromTaskInstanceId;
+  END IF;
 
-  SET fromId = minId;
+  IF endTaskInstanceId > 0 THEN
+    SET maxId = endTaskInstanceId;
+  END IF;
+
+  SET fromId = minId - 1;
 
   WHILE fromId <= maxId DO
-    SET endId = fromId + 999;
+    SELECT MIN(t.id),MAX(t.id) INTO fromId,endId FROM (SELECT id FROM task_instance where id > fromId ORDER BY id asc LIMIT 1000) t;
 
     UPDATE task_instance_host t1
     INNER JOIN (
@@ -430,13 +463,13 @@ BEGIN
 
     COMMIT;
 
-    SET fromId = endId + 1;
+    SET fromId = endId;
   END WHILE;
   
 END <JOB_UBF>
 DELIMITER ;
 COMMIT;
 
-CALL job_update_task_instance_host_data();
+CALL job_update_task_instance_host_data(-1,-1);
 DROP PROCEDURE IF EXISTS job_update_task_instance_host_data;
 
