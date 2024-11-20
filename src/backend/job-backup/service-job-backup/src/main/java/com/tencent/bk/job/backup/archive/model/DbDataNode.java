@@ -64,9 +64,9 @@ public class DbDataNode {
     public String toDataNodeId() {
         switch (type) {
             case STANDALONE:
-                return type + ":" + STANDALONE_DS_NAME;
+                return type.getValue() + ":" + STANDALONE_DS_NAME;
             case SHARDING:
-                return type + ":" + dataSource + ":" + dbIndex + ":" + tableIndex;
+                return type.getValue() + ":" + dataSource + ":" + dbIndex + ":" + tableIndex;
             default:
                 throw new IllegalArgumentException("Invalid DbDataNodeTypeEnum");
         }
