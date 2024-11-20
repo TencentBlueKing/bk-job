@@ -148,8 +148,9 @@ public class JobInstanceArchiveTaskGenerator {
         int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
-        archiveTask.setFromTimestamp(1000 * startDateTime.toEpochSecond(ZoneOffset.UTC));
-        archiveTask.setToTimestamp(1000L * startDateTime.plusHours(1L).toEpochSecond(ZoneOffset.UTC));
+        long fromTimestamp = 1000 * startDateTime.toEpochSecond(ZoneOffset.UTC);
+        archiveTask.setFromTimestamp(fromTimestamp);
+        archiveTask.setToTimestamp(fromTimestamp + 1000 * 3600L);
         archiveTask.setTaskType(archiveTaskType);
         archiveTask.setDbDataNode(dbDataNode);
         archiveTask.setStatus(ArchiveTaskStatusEnum.PENDING);
