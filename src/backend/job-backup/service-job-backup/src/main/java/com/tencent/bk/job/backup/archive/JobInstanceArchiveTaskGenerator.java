@@ -77,33 +77,34 @@ public class JobInstanceArchiveTaskGenerator {
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
         // 归档起始时间
-        LocalDateTime startDateTime = computeArchiveStartDateTime();
+        LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
         // 归档结束时间
-        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
-            computeArchiveEndTime(archiveProperties.getKeepDays()));
-        if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
-            log.info("Archive endTime is before startTime, does not require processing");
+        LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+        if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
+            log.info("Archive endTime is before startTime, does not require processing. startTime: {}, endTime: {}",
+                archiveStartDateTime, archiveEndDateTime);
             return;
         }
 
-        log.info("Generate job instance archive task, startDateTime: {}, endDateTime: {}", startDateTime, endDateTime);
+        log.info("Generate job instance archive task, archiveStartDateTime: {}, archiveEndDateTime: {}",
+            archiveStartDateTime, archiveEndDateTime);
         // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
-        while (startDateTime.isBefore(endDateTime)) {
+        while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
             // 水平分库分表
             if (isHorizontalShardingEnabled()) {
                 // 作业实例数据归档任务,现版本暂不支持
                 archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
-                    startDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
+                    archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
             } else {
                 // 单db
                 DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
                 JobInstanceArchiveTaskInfo archiveTaskInfo =
-                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, startDateTime, dbDataNode);
+                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
                 archiveTaskList.add(archiveTaskInfo);
                 log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
             }
 
-            startDateTime = startDateTime.plusHours(1L);
+            archiveStartDateTime = archiveStartDateTime.plusHours(1L);
         }
 
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
@@ -186,14 +187,14 @@ public class JobInstanceArchiveTaskGenerator {
         return dateTime.getHour();
     }
 
-    private Long computeArchiveEndTime(int archiveDays) {
+    private LocalDateTime computeArchiveEndTime(int archiveDays) {
         DateTime now = DateTime.now();
         // 置为前一天天 24:00:00
         long todayMaxMills = now.minusMillis(now.getMillisOfDay()).getMillis();
 
         //减掉当前xx天后
         long archiveMills = archiveDays * 24 * 3600 * 1000L;
-        return todayMaxMills - archiveMills;
+        return unixTimestampToUtcLocalDateTime(todayMaxMills - archiveMills);
     }
 
     private LocalDateTime unixTimestampToUtcLocalDateTime(long unixTimestamp) {
