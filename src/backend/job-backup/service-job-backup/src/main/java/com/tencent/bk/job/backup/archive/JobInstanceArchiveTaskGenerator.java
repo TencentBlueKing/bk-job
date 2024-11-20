@@ -97,7 +97,10 @@ public class JobInstanceArchiveTaskGenerator {
             } else {
                 // 单db
                 DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
-                archiveTaskList.add(buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, startDateTime, dbDataNode));
+                JobInstanceArchiveTaskInfo archiveTaskInfo =
+                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, startDateTime, dbDataNode);
+                archiveTaskList.add(archiveTaskInfo);
+                log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
             }
 
             startDateTime = startDateTime.plusHours(1L);
@@ -127,7 +130,10 @@ public class JobInstanceArchiveTaskGenerator {
                     DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource,
                         dbNodeIndex, tableNodeIndex);
                     // 作业实例数据归档任务
-                    tasks.add(buildArchiveTask(archiveTaskType, startDateTime, dbDataNode));
+                    JobInstanceArchiveTaskInfo archiveTaskInfo =
+                        buildArchiveTask(archiveTaskType, startDateTime, dbDataNode);
+                    tasks.add(archiveTaskInfo);
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
                 }
             }
         });
