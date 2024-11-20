@@ -82,7 +82,8 @@ class ArchiveDbNodePriorityEvaluatorTest {
         scheduleTaskCountGroupByDb.put("ds:0", 2);
         scheduleTaskCountGroupByDb.put("ds:1", 1);
 
-        dbNodeTasksInfo = ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTaskCountGroupByDb);
+        dbNodeTasksInfo = ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(
+            runningTasks, scheduleTaskCountGroupByDb);
         assertThat(dbNodeTasksInfo).isNotNull();
         assertThat(dbNodeTasksInfo.getDbNodeId()).isEqualTo("ds:0");
 

@@ -42,7 +42,7 @@ public class ArchiveTaskService {
     }
 
     /**
-     * 获取最新的归档任务
+     * 获取最新创建的归档任务
      *
      * @param taskType 归档任务类型
      */

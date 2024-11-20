@@ -28,19 +28,17 @@ import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.joda.time.DateTime;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -146,8 +144,8 @@ public class JobInstanceArchiveTaskGenerator {
                                                         LocalDateTime startDateTime,
                                                         DbDataNode dbDataNode) {
         JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
-        int day = computeDay(startDateTime);
-        int hour = computeHour(startDateTime);
+        int day = ArchiveDateTimeUtil.computeDay(startDateTime);
+        int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
         archiveTask.setFromTimestamp(1000 * startDateTime.toEpochSecond(ZoneOffset.UTC));
@@ -164,11 +162,14 @@ public class JobInstanceArchiveTaskGenerator {
         JobInstanceArchiveTaskInfo latestArchiveTask =
             archiveTaskService.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (latestArchiveTask == null) {
+            // 从表数据中的 job_create_time 计算归档任务开始时间
             log.info("Latest archive task is empty, try compute from table min job create time");
-            Long minJobCreateTime = taskInstanceRecordDAO.getMinJobCreateTime();
-            startDateTime = toHourlyRoundDown(unixTimestampToUtcLocalDateTime(minJobCreateTime));
+            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobCreateTime();
+            startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
+                ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
         } else {
-            startDateTime = unixTimestampToUtcLocalDateTime(latestArchiveTask.getToTimestamp());
+            // 根据最新的归档任务计算开始
+            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(latestArchiveTask.getToTimestamp());
         }
 
         return startDateTime;
@@ -179,32 +180,8 @@ public class JobInstanceArchiveTaskGenerator {
             .equals(DataSourceMode.Constants.HORIZONTAL_SHARDING);
     }
 
-    private int computeDay(LocalDateTime dateTime) {
-        return Integer.parseInt(DateUtils.formatLocalDateTime(dateTime, "%Y%m%d"));
-    }
-
-    private int computeHour(LocalDateTime dateTime) {
-        return dateTime.getHour();
-    }
-
     private LocalDateTime computeArchiveEndTime(int archiveDays) {
-        DateTime now = DateTime.now();
-        // 置为前一天天 24:00:00
-        long todayMaxMills = now.minusMillis(now.getMillisOfDay()).getMillis();
-
-        //减掉当前xx天后
-        long archiveMills = archiveDays * 24 * 3600 * 1000L;
-        return unixTimestampToUtcLocalDateTime(todayMaxMills - archiveMills);
-    }
-
-    private LocalDateTime unixTimestampToUtcLocalDateTime(long unixTimestamp) {
-        // 创建一个 Instant 对象，表示从 1970-01-01T00:00:00Z 开始的指定秒数
-        Instant instant = Instant.ofEpochSecond(unixTimestamp);
-        // 将 Instant 对象转换为 UTC 时区的 LocalDateTime 对象
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private LocalDateTime toHourlyRoundDown(LocalDateTime localDateTime) {
-        return localDateTime.withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime now = LocalDateTime.now();
+        return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }
