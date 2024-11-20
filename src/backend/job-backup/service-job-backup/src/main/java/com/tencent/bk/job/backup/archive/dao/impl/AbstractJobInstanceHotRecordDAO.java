@@ -39,6 +39,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * 作业实例热数据查询 DAO 基础抽象实现
+ *
+ * @param <T> 表记录
+ */
 public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implements JobInstanceHotRecordDAO<T> {
 
     protected final DSLContextProvider dslContextProvider;
@@ -52,21 +57,19 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
 
     @Override
     public List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit) {
-        return query(getTable(), buildConditions(jobInstanceIds), readRowLimit);
+        return query(getTable(), buildBasicConditions(jobInstanceIds), readRowLimit);
     }
 
     public List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
         return query(getTable(), conditions, readRowLimit);
     }
 
-//    protected abstract RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long limit);
-
     @Override
     public int deleteRecords(Collection<Long> jobInstanceIds, long maxLimitedDeleteRows) {
-        return deleteWithLimit(getTable(), buildConditions(jobInstanceIds), maxLimitedDeleteRows);
+        return deleteWithLimit(getTable(), buildBasicConditions(jobInstanceIds), maxLimitedDeleteRows);
     }
 
-    private List<Condition> buildConditions(Collection<Long> jobInstanceIds) {
+    public List<Condition> buildBasicConditions(Collection<Long> jobInstanceIds) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(getJobInstanceIdField().in(jobInstanceIds));
         return conditions;

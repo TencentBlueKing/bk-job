@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
+import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -46,6 +49,7 @@ public class OperationLogRecordDAO extends AbstractJobInstanceHotRecordDAO<Opera
 
     static {
         ORDER_FIELDS.add(OperationLog.OPERATION_LOG.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(OperationLog.OPERATION_LOG.ID.asc());
     }
 
     public OperationLogRecordDAO(DSLContextProvider dslContextProvider) {
@@ -58,12 +62,28 @@ public class OperationLogRecordDAO extends AbstractJobInstanceHotRecordDAO<Opera
     }
 
     @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
+    }
+
+    @Override
     public TableField<OperationLogRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
     }
 
     @Override
-    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        return ORDER_FIELDS;
+    public RecordResultSet<OperationLogRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                            long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.ID.gt(lastRecord.getId()));
+                return conditions;
+            }
+        );
     }
 }

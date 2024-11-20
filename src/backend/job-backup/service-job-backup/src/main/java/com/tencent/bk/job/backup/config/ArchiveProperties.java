@@ -31,6 +31,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -54,7 +55,6 @@ public class ArchiveProperties {
      * 触发时间 CRON 表达式
      */
     private String cron;
-
     /**
      * 归档任务并行执行数量
      */
@@ -87,6 +87,11 @@ public class ArchiveProperties {
 
     private Map<String, TableConfig> tableConfigs;
 
+    /**
+     * 归档任务配置
+     */
+    private ArchiveTasksConfig tasks;
+
     @Data
     public static class TableConfig {
         /**
@@ -108,6 +113,50 @@ public class ArchiveProperties {
          * 每批次从 db 表中读取的记录数量
          */
         private Integer readRowLimit;
+    }
+
+    @Data
+    public static class ArchiveTasksConfig {
+        /**
+         * 作业实例数据归档任务配置
+         */
+        private ArchiveTaskConfig jobInstance;
+    }
+
+    @Data
+    public static class ArchiveTaskConfig {
+        /**
+         * 数据源模式
+         *
+         * @see com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode
+         */
+        private String dataSourceMode;
+
+        /**
+         * 要归档的分库分表数据节点配置
+         */
+        private List<ShardingDataNode> shardingDataNodes;
+        /**
+         * 归档任务并行执行数量
+         */
+        private Integer concurrent = 6;
+    }
+
+
+    @Data
+    public static class ShardingDataNode {
+        /**
+         * 数据源名称
+         */
+        private String dataSourceName;
+        /**
+         * 分库数量
+         */
+        private Integer dbCount;
+        /**
+         * 分表数量
+         */
+        private Integer tableCount;
     }
 
 

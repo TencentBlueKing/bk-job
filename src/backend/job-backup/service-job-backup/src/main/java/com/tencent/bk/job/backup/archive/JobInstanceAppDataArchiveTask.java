@@ -25,8 +25,8 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
@@ -38,24 +38,27 @@ import java.util.List;
  */
 public class JobInstanceAppDataArchiveTask extends AbstractJobInstanceArchiveTask<TaskInstanceRecord> {
 
-    public JobInstanceAppDataArchiveTask(JobInstanceHotRecordDAO<TaskInstanceRecord> jobInstanceHotRecordDAO,
-                                         JobInstanceColdDAO jobInstanceColdDAO,
-                                         ArchiveProperties archiveDbProperties,
+
+    public JobInstanceAppDataArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
+                                         ArchiveProperties archiveProperties,
                                          ArchiveTaskLock archiveTaskLock,
                                          ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                          JobInstanceArchiveTaskInfo archiveTask,
-                                         ArchiveTaskService archiveTaskService) {
-        super(jobInstanceHotRecordDAO,
+                                         ArchiveTaskService archiveTaskService,
+                                         ArchiveTablePropsStorage archiveTablePropsStorage) {
+        super(
             jobInstanceColdDAO,
-            archiveDbProperties,
+            archiveProperties,
             archiveTaskLock,
             archiveErrorTaskCounter,
             archiveTask,
-            archiveTaskService);
+            archiveTaskService,
+            archiveTablePropsStorage
+        );
     }
 
     @Override
-    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstances, List<Long> jobInstanceIds) {
+    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstances) {
 
     }
 

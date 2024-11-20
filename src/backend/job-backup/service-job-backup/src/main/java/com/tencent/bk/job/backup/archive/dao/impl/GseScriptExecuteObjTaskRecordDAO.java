@@ -24,10 +24,11 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
@@ -69,64 +70,19 @@ public class GseScriptExecuteObjTaskRecordDAO extends AbstractJobInstanceHotReco
         return ORDER_FIELDS;
     }
 
-    private class TableRecordResultSet implements RecordResultSet<GseScriptExecuteObjTaskRecord> {
-
-        private final Collection<Long> jobInstanceIds;
-        private final Long readRowLimit;
-        private List<GseScriptExecuteObjTaskRecord> records;
-        private boolean hasNext;
-        private Long currentTaskInstanceId;
-        private Long currentId;
-
-        public TableRecordResultSet(Collection<Long> jobInstanceIds, Long readRowLimit) {
-            this.jobInstanceIds = jobInstanceIds;
-            this.readRowLimit = readRowLimit;
-        }
-
-        @Override
-        public boolean next() {
-            if (!hasNext) {
-                return false;
+    @Override
+    public RecordResultSet<GseScriptExecuteObjTaskRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                                       long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.ID.gt(lastRecord.getId()));
+                return conditions;
             }
-
-            records = query(TABLE,
-                buildConditions(jobInstanceIds, currentTaskInstanceId, currentId), readRowLimit);
-            if (CollectionUtils.isEmpty(records)) {
-                hasNext = false;
-                return false;
-            } else {
-                // readRowLimit == null 表示全量查询
-                if (readRowLimit == null || records.size() < readRowLimit) {
-                    hasNext = false;
-                } else {
-                    hasNext = true;
-                    GseScriptExecuteObjTaskRecord last = records.get(records.size() - 1);
-                    currentTaskInstanceId = last.get(TABLE.TASK_INSTANCE_ID);
-                    currentId = last.get(TABLE.ID);
-                }
-                return true;
-            }
-        }
-
-        private List<Condition> buildConditions(Collection<Long> jobInstanceIds,
-                                                Long fromTaskInstanceId,
-                                                Long fromId) {
-            List<Condition> conditions = new ArrayList<>();
-            conditions.add(TABLE.TASK_INSTANCE_ID.in(jobInstanceIds));
-            if (fromTaskInstanceId != null) {
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(fromTaskInstanceId));
-            }
-            if (fromId != null) {
-                conditions.add(TABLE.ID.gt(fromId));
-            }
-            return conditions;
-        }
-
-        @Override
-        public List<GseScriptExecuteObjTaskRecord> get() {
-            return records;
-        }
+        );
     }
-
-
 }

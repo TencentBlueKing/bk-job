@@ -24,27 +24,55 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.config.ArchiveProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+/**
+ * 归档定时任务
+ */
+@EnableScheduling
+@Slf4j
 public class JobInstanceArchiveCronJobs {
 
     private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
 
     private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
 
+    private final ArchiveProperties archiveProperties;
+
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
-                                      JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler) {
+                                      JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+                                      ArchiveProperties archiveProperties) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
+        this.archiveProperties = archiveProperties;
     }
 
-    @Scheduled(cron = "${job.backup.archive.execute.cron:0,6,12,18 0 0 * * *}")
+    /**
+     * 定时创建归档任务,每天 0 点触发一次
+     */
+    @Scheduled(cron = "0 * * * * *")
     public void generateArchiveTask() {
+        if (!archiveProperties.isEnabled()) {
+            return;
+        }
+        log.info("Generate archive task start...");
         jobInstanceArchiveTaskGenerator.generate();
+        log.info("Generate archive task done");
     }
 
-    @Scheduled(cron = "${job.backup.archive.execute.cron:1,7,13,19 0 0 * * *}")
+    /**
+     * 定时调度并执行归档任务，默认每小时第 1 分钟触发一次
+     */
+    @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
     public void scheduleAndExecuteArchiveTask() {
+        if (!archiveProperties.isEnabled()) {
+            return;
+        }
+        log.info("Schedule and execute archive task start...");
         jobInstanceArchiveTaskScheduler.schedule();
+        log.info("Schedule and execute archive task done");
     }
 }

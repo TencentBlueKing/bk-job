@@ -34,11 +34,11 @@ public enum DbDataNodeTypeEnum {
     /**
      * 单节点
      */
-    SINGLE(0),
+    STANDALONE(0),
     /**
      * 分库分表节点
      */
-    SHARD(1);
+    SHARDING(1);
 
     private final int value;
 

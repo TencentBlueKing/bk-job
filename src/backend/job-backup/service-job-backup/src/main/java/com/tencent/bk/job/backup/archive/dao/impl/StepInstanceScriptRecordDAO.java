@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceScript;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceScriptRecord;
+import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -49,6 +52,7 @@ public class StepInstanceScriptRecordDAO extends AbstractJobInstanceHotRecordDAO
         ORDER_FIELDS.add(StepInstanceScript.STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.asc());
     }
 
+
     public StepInstanceScriptRecordDAO(DSLContextProvider dslContextProvider) {
         super(dslContextProvider, TABLE.getName());
     }
@@ -63,8 +67,23 @@ public class StepInstanceScriptRecordDAO extends AbstractJobInstanceHotRecordDAO
         return TABLE.TASK_INSTANCE_ID;
     }
 
-    @Override
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
         return ORDER_FIELDS;
+    }
+
+    @Override
+    public RecordResultSet<StepInstanceScriptRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                                  long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.STEP_INSTANCE_ID.gt(lastRecord.getStepInstanceId()));
+                return conditions;
+            }
+        );
     }
 }

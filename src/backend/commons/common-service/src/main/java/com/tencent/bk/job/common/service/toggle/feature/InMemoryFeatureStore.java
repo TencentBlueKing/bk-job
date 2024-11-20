@@ -53,33 +53,23 @@ public class InMemoryFeatureStore implements FeatureStore {
      * key: featureId; value: Feature
      */
     private volatile Map<String, Feature> features = new HashMap<>();
-    /**
-     * 是否初始化
-     */
-    private volatile boolean isInitial = false;
 
-    @Override
-    public Feature getFeature(String featureId) {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    init();
-                }
-            }
-        }
-        return features.get(featureId);
+    public InMemoryFeatureStore(FeatureToggleProperties featureToggleProperties) {
+        log.info("Init InMemoryFeatureStore, properties : {}", JsonUtils.toJson(featureToggleProperties));
+        loadAllFeatures(featureToggleProperties);
+        log.info("Init InMemoryFeatureStore successfully");
     }
 
     @Override
-    public void init() {
-        loadAllFeatures();
+    public Feature getFeature(String featureId) {
+        return features.get(featureId);
     }
 
     @Override
     public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadAllFeatures();
+            loadAllFeatures(getRealTimeFeatureToggleProperties());
         } catch (Throwable e) {
             log.warn("Load feature config error", e);
             loadResult = false;
@@ -92,11 +82,16 @@ public class InMemoryFeatureStore implements FeatureStore {
         return loadResult;
     }
 
-    private void loadAllFeatures() {
+    /**
+     * 获取 FeatureToggleProperties 实时配置
+     */
+    private FeatureToggleProperties getRealTimeFeatureToggleProperties() {
+        return ApplicationContextRegister.getBean(FeatureToggleProperties.class);
+    }
+
+    private void loadAllFeatures(FeatureToggleProperties featureToggleProperties) {
         synchronized (this) {
             log.info("Load feature toggle start ...");
-            FeatureToggleProperties featureToggleProperties =
-                ApplicationContextRegister.getBean(FeatureToggleProperties.class);
 
             if (featureToggleProperties.getFeatures() == null || featureToggleProperties.getFeatures().isEmpty()) {
                 log.info("Feature toggle config empty!");
@@ -114,7 +109,6 @@ public class InMemoryFeatureStore implements FeatureStore {
             // 使用新的配置完全替换老的配置
             features = tmpFeatures;
             log.info("Load feature toggle config done! features: {}", features);
-            isInitial = true;
         }
     }
 
@@ -154,13 +148,6 @@ public class InMemoryFeatureStore implements FeatureStore {
 
     @Override
     public List<Feature> listFeatures() {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    init();
-                }
-            }
-        }
         return new ArrayList<>(features.values());
     }
 

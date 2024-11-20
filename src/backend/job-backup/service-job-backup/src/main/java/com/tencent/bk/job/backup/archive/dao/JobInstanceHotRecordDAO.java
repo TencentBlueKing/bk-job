@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.dao;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -56,10 +57,19 @@ public interface JobInstanceHotRecordDAO<T extends Record> {
      * 根据作业实例 ID 列表获取表记录
      *
      * @param jobInstanceIds 作业实例 ID 列表
-     * @param limit          获取的记录数量
+     * @param readRowLimit   获取的记录数量
      * @return 表记录
      */
-    List<T> listRecords(Collection<Long> jobInstanceIds, Long limit);
+    List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit);
+
+    /**
+     * ResultSet 方式查询
+     *
+     * @param jobInstanceIds 作业实例 ID 列表
+     * @param readRowLimit   每次查询获取的记录数量上限
+     * @return ResultSet
+     */
+    RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds, long readRowLimit);
 
     /**
      * 根据起始/结束ID删除表记录

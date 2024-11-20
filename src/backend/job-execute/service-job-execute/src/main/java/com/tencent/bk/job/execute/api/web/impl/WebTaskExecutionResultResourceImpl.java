@@ -128,8 +128,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
-
 @SuppressWarnings("Duplicates")
 @RestController
 @Slf4j
@@ -987,8 +985,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                           String scopeId,
                                                                           Long stepInstanceId,
                                                                           Integer batch) {
-
-        return listStepExecutionHistoryV2(username, appResourceScope, scopeType, scopeId, null, stepInstanceId, batch);
+        // 兼容代码，部署完成后删除
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
+        return listStepExecutionHistoryV2(username, appResourceScope, scopeType, scopeId,
+            stepInstance.getTaskInstanceId(), stepInstanceId, batch);
     }
 
     @Override

@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.StepInstanceRollingTask;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRollingTaskRecord;
+import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -62,8 +65,24 @@ public class StepInstanceRollingTaskRecordDAO extends AbstractJobInstanceHotReco
         return TABLE.TASK_INSTANCE_ID;
     }
 
-    @Override
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
         return ORDER_FIELDS;
     }
+
+    @Override
+    public RecordResultSet<StepInstanceRollingTaskRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                                       long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.ID.gt(lastRecord.getId()));
+                return conditions;
+            }
+        );
+    }
+
 }

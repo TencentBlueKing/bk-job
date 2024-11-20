@@ -25,24 +25,9 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.FileSourceTaskLogRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.GseFileAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.GseFileExecuteObjTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.GseScriptAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.GseScriptExecuteObjTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.OperationLogRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.RollingConfigRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceConfirmRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceFileRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRollingTaskRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceScriptRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
@@ -50,6 +35,7 @@ import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作业实例数据归档
@@ -58,82 +44,56 @@ import java.util.List;
 public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTask<TaskInstanceRecord> {
 
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
-    private final StepInstanceRecordDAO stepInstanceRecordDAO;
-    private final StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO;
-    private final StepInstanceFileRecordDAO stepInstanceFileRecordDAO;
-    private final StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO;
-    private final StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO;
-    private final TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO;
-    private final OperationLogRecordDAO operationLogRecordDAO;
-    private final FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO;
-    private final GseTaskRecordDAO gseTaskRecordDAO;
-    private final GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO;
-    private final GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO;
-    private final GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO;
-    private final GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO;
-    private final StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO;
-    private final RollingConfigRecordDAO rollingConfigRecordDAO;
+
+    private final JobInstanceSubTableArchivers jobInstanceSubTableArchivers;
 
     public JobInstanceMainDataArchiveTask(TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                          StepInstanceRecordDAO stepInstanceRecordDAO,
-                                          StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
-                                          StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
-                                          StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
-                                          StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
-                                          TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
-                                          OperationLogRecordDAO operationLogRecordDAO,
-                                          FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
-                                          GseTaskRecordDAO gseTaskRecordDAO,
-                                          GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
-                                          GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
-                                          GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
-                                          GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
-                                          StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
-                                          RollingConfigRecordDAO rollingConfigRecordDAO,
-                                          JobInstanceHotRecordDAO<TaskInstanceRecord> jobInstanceHotRecordDAO,
+                                          JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
                                           JobInstanceColdDAO jobInstanceColdDAO,
-                                          ArchiveProperties archiveTaskProperties,
+                                          ArchiveProperties archiveProperties,
                                           ArchiveTaskLock archiveTaskLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                           JobInstanceArchiveTaskInfo archiveTask,
-                                          ArchiveTaskService archiveTaskService) {
+                                          ArchiveTaskService archiveTaskService,
+                                          ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(
-            jobInstanceHotRecordDAO,
             jobInstanceColdDAO,
-            archiveTaskProperties,
+            archiveProperties,
             archiveTaskLock,
             archiveErrorTaskCounter,
             archiveTask,
-            archiveTaskService
+            archiveTaskService,
+            archiveTablePropsStorage
         );
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
-        this.stepInstanceRecordDAO = stepInstanceRecordDAO;
-        this.stepInstanceScriptRecordDAO = stepInstanceScriptRecordDAO;
-        this.stepInstanceFileRecordDAO = stepInstanceFileRecordDAO;
-        this.stepInstanceConfirmRecordDAO = stepInstanceConfirmRecordDAO;
-        this.stepInstanceVariableRecordDAO = stepInstanceVariableRecordDAO;
-        this.taskInstanceVariableRecordDAO = taskInstanceVariableRecordDAO;
-        this.operationLogRecordDAO = operationLogRecordDAO;
-        this.fileSourceTaskLogRecordDAO = fileSourceTaskLogRecordDAO;
-        this.gseTaskRecordDAO = gseTaskRecordDAO;
-        this.gseScriptAgentTaskRecordDAO = gseScriptAgentTaskRecordDAO;
-        this.gseFileAgentTaskRecordDAO = gseFileAgentTaskRecordDAO;
-        this.gseScriptExecuteObjTaskRecordDAO = gseScriptExecuteObjTaskRecordDAO;
-        this.gseFileExecuteObjTaskRecordDAO = gseFileExecuteObjTaskRecordDAO;
-        this.stepInstanceRollingTaskRecordDAO = stepInstanceRollingTaskRecordDAO;
-        this.rollingConfigRecordDAO = rollingConfigRecordDAO;
+        this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
     }
 
 
     @Override
-    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstances,
-                                             List<Long> jobInstanceIds) {
-        jobInstanceColdDAO.batchInsert(jobInstances, 1000);
+    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstanceRecords) {
+        List<Long> jobInstanceIds =
+            jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
+        // 备份主表数据
+        jobInstanceColdDAO.batchInsert(jobInstanceRecords, 1000);
+        // 备份子表数据
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
+            tableArchiver.backupRecords(jobInstanceIds);
+        });
     }
 
     @Override
     protected void deleteJobInstanceHotData(List<Long> jobInstanceIds) {
-
+        // 先删除子表数据
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
+            tableArchiver.deleteRecords(jobInstanceIds);
+        });
+        // 删除主表数据
+        long startTime = System.currentTimeMillis();
+        taskInstanceRecordDAO.deleteRecords(jobInstanceIds,
+            archiveTablePropsStorage.getDeleteLimitRowCount(TaskInstance.TASK_INSTANCE.getName()));
+        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
+            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
     }
 
     @Override

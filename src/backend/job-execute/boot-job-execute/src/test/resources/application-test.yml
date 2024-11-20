@@ -52,3 +52,9 @@ esb:
 mysql:
   standalone:
     enabled : true
+leaf:
+  enabled: false
+idGen:
+  type: auto_increment
+  migration:
+    enabled: false

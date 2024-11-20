@@ -44,7 +44,7 @@ import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRep
 import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.dao.common.IdGenerator;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -70,7 +70,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final TaskInstanceAppDAO taskInstanceAppDAO;
 
-    private final IdGenerator idGenerator;
+    private final IdGen idGen;
 
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
@@ -79,19 +79,19 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
                                    TaskInstanceAppDAO taskInstanceAppDAO,
-                                   IdGenerator idGenerator) {
+                                   IdGen idGen) {
         this.applicationService = applicationService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.executeAuthService = executeAuthService;
         this.taskInstanceAppDAO = taskInstanceAppDAO;
-        this.idGenerator = idGenerator;
+        this.idGen = idGen;
     }
 
     @Override
     public long addTaskInstance(TaskInstanceDTO taskInstance) {
-        taskInstance.setId(idGenerator.genTaskInstanceId());
+        taskInstance.setId(idGen.genTaskInstanceId());
         long id = taskInstanceDAO.addTaskInstance(taskInstance);
         taskInstance.setId(id);
         if (ShardingFlag.isShardingEnabled()) {

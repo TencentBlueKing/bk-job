@@ -193,6 +193,7 @@ data:
         {{- end }}
         {{- end }}
         {{- end }}
+        {{ if .Values.executeConfig.leaf.enabled }}
         {{ if .Values.executeConfig.sharding.mariadb.enabled }}
         leaf:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -246,8 +247,28 @@ data:
         enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
       migration:
         enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
-        jobInstance:
-        {{- toYaml .Values.executeConfig.jobInstance | nindent 4 }}
+    idGen:
+      type: {{ .Values.executeConfig.idGen.type }}
+      migration:
+        enabled: {{ .Values.executeConfig.idGen.migration.enabled }}
+    {{ if .Values.executeConfig.leaf.enabled }}
+    # 分布式 ID （leaf 组件配置)
+    leaf:
+      enabled: true
+      segment:
+        allocStrategyDaoBeanName: jooqLeafIdAllocator
+        enable: true
+        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+        username: {{ include "job.mariadb.username" . }}
+        {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${mariadb-password}
+        {{- end }}
+      snowflake:
+        enable: false
+      name: job-leaf
+    {{- end }}
     {{ if .Values.executeConfig.sharding.mariadb.enabled }}
     sharding:
       enabled: true
@@ -459,23 +480,7 @@ data:
             step_instance_rolling_task_table_inline:
               type: INLINE
               props:
-                algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_rolling_task" "columnName" "task_instance_id" "context" $) }}
-    # 分布式 ID （leaf 组件配置)
-    leaf:
-      segment:
-        allocStrategyDaoBeanName: jooqLeafIdAllocator
-        enable: true
-        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
-        username: {{ include "job.mariadb.username" . }}
-        {{ if .Values.externalMariaDB.existingPasswordSecret }}
-        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
-        {{- else -}}
-        password: ${mariadb-password}
-        {{- end }}
-      snowflake:
-        enable: false
-      name: job-leaf
-      
+                algorithm-expression: {{ include "job.execute.sharding.table.algorithm.expression" ( dict "tableName" "step_instance_rolling_task" "columnName" "task_instance_id" "context" $) }}      
     {{- end }}
 
 {{- end }}

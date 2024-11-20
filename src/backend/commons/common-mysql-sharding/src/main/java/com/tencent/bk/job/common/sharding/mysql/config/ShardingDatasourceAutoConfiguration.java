@@ -53,7 +53,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
@@ -68,10 +67,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+ * 分库分表组件 ShardingSphere 配置
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ShardingProperties.class})
 @ConditionalOnProperty(value = "sharding.enabled", havingValue = "true")
-@Import(LeafDbConfig.class)
 @Slf4j
 public class ShardingDatasourceAutoConfiguration {
 

@@ -24,50 +24,45 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
+import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 作业执行历史归档任务调度
  */
 @Slf4j
-public class JobInstanceArchiveTaskScheduler extends SmartLifecycle {
+public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
 
-    private final ArchiveTaskTypeEnum archiveTaskType = ArchiveTaskTypeEnum.JOB_INSTANCE;
-
-    private final ArchiveTaskDAO archiveTaskDAO;
+    private final ArchiveTaskService archiveTaskService;
 
     private final TaskInstanceRecordDAO taskInstanceRecordDAO;
 
     private final ArchiveProperties archiveProperties;
 
-    private final ShardingProperties shardingProperties;
-
     private final JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock;
 
-    private final Set<ArchiveTaskWorker> workers = new HashSet<>();
+    private final JobInstanceSubTableArchivers jobInstanceSubTableArchivers;
 
-    /**
-     * 异步归档任务执行器
-     */
-    private final Executor taskExecutor = new SimpleAsyncTaskExecutor("JobInstanceArchiveTaskExecutor");
-
-    private final AtomicInteger runningTasksCount = new AtomicInteger(0);
+    private final JobInstanceColdDAO jobInstanceColdDAO;
+    private final ArchiveTaskLock archiveTaskLock;
+    private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
+    private final ArchiveTablePropsStorage archiveTablePropsStorage;
 
     private final Object lifecycleMonitor = new Object();
 
@@ -75,64 +70,132 @@ public class JobInstanceArchiveTaskScheduler extends SmartLifecycle {
      * 作业执行历史归档任务调度组件是否处于活动状态
      */
     private volatile boolean active;
+    /**
+     * 组件是否正在运行(用于 Spring Lifecycle isRunning 判断)
+     */
+    private volatile boolean running = false;
+    /**
+     * 是否正在进行任务调度中
+     */
+    private volatile boolean scheduling = false;
+
+    private final ExecutorService shutdownExecutor = new ThreadPoolExecutor(1, 20, 120L,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
+    /**
+     * 调度的所有的任务
+     */
+    private final Map<String, JobInstanceMainDataArchiveTask> scheduledTasks = new ConcurrentHashMap<>();
 
 
-    public JobInstanceArchiveTaskScheduler(ArchiveTaskDAO archiveTaskDAO,
+    public JobInstanceArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
                                            TaskInstanceRecordDAO taskInstanceRecordDAO,
                                            ArchiveProperties archiveProperties,
-                                           ShardingProperties shardingProperties,
-                                           JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock) {
-        this.archiveTaskDAO = archiveTaskDAO;
+                                           JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
+                                           JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
+                                           JobInstanceColdDAO jobInstanceColdDAO,
+                                           ArchiveTaskLock archiveTaskLock,
+                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
+        this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
-        this.shardingProperties = shardingProperties;
         this.jobInstanceArchiveTaskScheduleLock = jobInstanceArchiveTaskScheduleLock;
+        this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
+        this.jobInstanceColdDAO = jobInstanceColdDAO;
+        this.archiveTaskLock = archiveTaskLock;
+        this.archiveErrorTaskCounter = archiveErrorTaskCounter;
+        this.archiveTablePropsStorage = archiveTablePropsStorage;
     }
 
     public void schedule() {
         try {
-            if (isRunning) {
-                log.info("JobInstanceArchiveTaskScheduler is running, skip");
+            if (isScheduling()) {
+                log.info("Scheduler is working");
                 return;
-            } else {
-                this.isRunning = true;
+            }
+            if (!isActive()) {
+                log.info("JobInstanceArchiveTaskScheduler is not active, skip");
+                return;
             }
 
             while (true) {
                 // 获取归档任务调度锁
                 boolean locked = jobInstanceArchiveTaskScheduleLock.lock();
                 if (!locked) {
-                    return;
+                    log.info("Get lock fail, wait 1s");
+                    ThreadUtils.sleep(1000L);
+                    continue;
                 }
-                if (runningTasksCount.get() >= archiveProperties.getConcurrent()) {
-                    // 休眠一分钟，等待并行任务减少
-                    ThreadUtils.sleep(1000 * 60L);
+
+                // 获取待调度的任务信息(按照 DB 节点计数)
+                Map<String, Integer> scheduleTasksGroupByDb =
+                    archiveTaskService.countScheduleTasksGroupByDb(ArchiveTaskTypeEnum.JOB_INSTANCE);
+                if (scheduleTasksGroupByDb.isEmpty()) {
+                    // 所有任务都已经被调度完成，退出本次任务调度
+                    log.info("All archive task is done! Exit schedule");
                     return;
                 }
 
-                List<JobInstanceArchiveTaskInfo> runningTasks = archiveTaskDAO.listRunningTasks();
-                List<JobInstanceArchiveTaskInfo> needScheduleTasks = archiveTaskDAO.listScheduleTasks(100);
-                if (CollectionUtils.isEmpty(needScheduleTasks)) {
-                    // 所有任务都已经被调度完成，退出本次任务调度
-                    return;
+                // 获取正在执行中的任务列表
+                List<JobInstanceArchiveTaskInfo> runningTasks =
+                    archiveTaskService.listRunningTasks(ArchiveTaskTypeEnum.JOB_INSTANCE);
+
+                // 对待调度的任务进行优先级排序，保证同一个 db 上的归档任务数量尽可能均衡，避免出现db 热点
+                ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo highestPriorityDbNodeTasksInfo =
+                    ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks, scheduleTasksGroupByDb);
+                int taskConcurrent = archiveProperties.getTasks().getJobInstance().getConcurrent();
+                if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
+                    // 休眠5分钟，等待并行任务减少
+                    log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);
+                    ThreadUtils.sleep(1000 * 60L);
+                    continue;
                 }
-                ArchiveTaskPrioritySorter.sort(runningTasks, shardingProperties.getDbNodeCount(), needScheduleTasks);
-                startArchiveTask(needScheduleTasks.get(0));
+
+                // 获取优先级最高的归档任务
+                String dbNodeId = highestPriorityDbNodeTasksInfo.getDbNodeId();
+                JobInstanceArchiveTaskInfo archiveTaskInfo =
+                    archiveTaskService.getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum.JOB_INSTANCE, dbNodeId);
+
+                // 启动任务
+                startArchiveTask(archiveTaskInfo);
             }
         } finally {
-            this.isRunning = false;
+            this.scheduling = false;
             jobInstanceArchiveTaskScheduleLock.unlock();
         }
 
     }
 
     private void startArchiveTask(JobInstanceArchiveTaskInfo archiveTaskInfo) {
-        log.info("Start JobInstanceArchiveTask : {}", archiveTaskInfo);
-        runningTasksCount.incrementAndGet();
-        JobInstanceMainDataArchiveTask archiveTask = new JobInstanceMainDataArchiveTask();
+        log.info("Start JobInstanceArchiveTask, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
+        JobInstanceMainDataArchiveTask archiveTask = new JobInstanceMainDataArchiveTask(
+            taskInstanceRecordDAO,
+            jobInstanceSubTableArchivers,
+            jobInstanceColdDAO,
+            archiveProperties,
+            archiveTaskLock,
+            archiveErrorTaskCounter,
+            archiveTaskInfo,
+            archiveTaskService,
+            archiveTablePropsStorage
+        );
+        // 注册任务完成回调函数
+        archiveTask.registerDoneCallback(() -> {
+            synchronized (lifecycleMonitor) {
+                scheduledTasks.remove(archiveTask.getTaskId());
+            }
+        });
+        synchronized (lifecycleMonitor) {
+            if (!isActive()) {
+                log.info("JobInstanceArchiveTaskScheduler is not active, skip");
+                return;
+            }
+            scheduledTasks.put(archiveTask.getTaskId(), archiveTask);
+        }
         ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask);
-        workers.add(worker);
         worker.start();
+        log.info("Start JobInstanceArchiveTask success, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
     }
 
     /**
@@ -140,8 +203,12 @@ public class JobInstanceArchiveTaskScheduler extends SmartLifecycle {
      */
     @Override
     public void start() {
+        if (isRunning()) {
+            return;
+        }
         synchronized (lifecycleMonitor) {
             this.active = true;
+            this.running = true;
         }
     }
 
@@ -157,6 +224,7 @@ public class JobInstanceArchiveTaskScheduler extends SmartLifecycle {
                 return;
             }
             this.active = false;
+            this.running = false;
         }
         stopTasksGraceful();
         log.info("JobInstanceArchiveTaskScheduler stop successfully!");
@@ -165,54 +233,70 @@ public class JobInstanceArchiveTaskScheduler extends SmartLifecycle {
     private void stopTasksGraceful() {
         log.info("Stop archive tasks graceful - start");
         long start = System.currentTimeMillis();
-        StopTaskCounter stopTaskCounter = null;
+        TaskCountDownLatch taskCountDownLatch = null;
         synchronized (lifecycleMonitor) {
             if (!this.scheduledTasks.isEmpty()) {
                 log.info("Stop archive tasks, size: {}, tasks: {}", scheduledTasks.size(), scheduledTasks);
-                stopTaskCounter = StopTaskCounter.getInstance();
-                stopTaskCounter.initCounter(scheduledTasks.keySet());
+                taskCountDownLatch = new TaskCountDownLatch(scheduledTasks.keySet());
             }
-            for (ScheduledContinuousResultHandleTask task : scheduledTasks.values()) {
-                shutdownExecutor.execute(new StopTask(task, tracer));
+            for (JobInstanceArchiveTask task : scheduledTasks.values()) {
+                shutdownExecutor.execute(new StopTask(task, taskCountDownLatch));
             }
         }
         try {
-            if (stopTaskCounter != null) {
-                stopTaskCounter.waitingForAllTasksDone();
+            if (taskCountDownLatch != null) {
+                taskCountDownLatch.waitingForAllTasksDone();
             }
         } catch (Throwable e) {
-            log.error("Stop tasks caught exception", e);
+            log.error("Stop archive tasks caught exception", e);
         }
         long end = System.currentTimeMillis();
-        log.info("Stop tasks graceful - end, cost: {}", end - start);
+        log.info("Stop archive tasks graceful - end, cost: {}", end - start);
+    }
+
+    private static final class StopTask implements Runnable {
+        private final JobInstanceArchiveTask task;
+        private final TaskCountDownLatch taskCountDownLatch;
+
+        StopTask(JobInstanceArchiveTask task, TaskCountDownLatch taskCountDownLatch) {
+            this.task = task;
+            this.taskCountDownLatch = taskCountDownLatch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                task.stop(() -> taskCountDownLatch.decrement(task.getTaskId()));
+            } catch (Throwable e) {
+                String errorMsg = "Stop archive task caught exception, task: " + task;
+                log.warn(errorMsg, e);
+            }
+        }
     }
 
     @Override
     public boolean isRunning() {
         synchronized (this.lifecycleMonitor) {
-            return (this.active);
+            return (this.running);
         }
     }
 
-    boolean isActive() {
+    /**
+     * 判断是否处于激活状态
+     */
+    private boolean isActive() {
         synchronized (this.lifecycleMonitor) {
             return this.active;
         }
     }
 
     /**
-     * 消费者是否处于运行状态
-     *
-     * @param worker 消费者
-     * @return 是否运行
+     * 判断是否正在进行任务调度中
      */
-    private boolean isWorkerActive(TaskWorker worker) {
-        boolean workerActive;
-        synchronized (this.workersMonitor) {
-            workerActive = this.workers.contains(worker);
+    private boolean isScheduling() {
+        synchronized (this.lifecycleMonitor) {
+            return this.scheduling;
         }
-        return workerActive && this.isActive();
     }
-
 
 }

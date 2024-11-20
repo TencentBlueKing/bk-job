@@ -35,15 +35,19 @@ import com.tencent.bk.job.backup.model.tables.records.ArchiveTaskRecord;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
@@ -54,6 +58,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     private static final TableField<?, ?>[] ALL_FIELDS = {
         T.TASK_TYPE,
         T.DATA_NODE,
+        T.DB_NODE,
         T.DAY,
         T.HOUR,
         T.FROM_TIMESTAMP,
@@ -105,6 +110,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                 T,
                 T.TASK_TYPE,
                 T.DATA_NODE,
+                T.DB_NODE,
                 T.DAY,
                 T.HOUR,
                 T.FROM_TIMESTAMP,
@@ -116,6 +122,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .values(
                 JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getTaskType().getType()),
                 jobInstanceArchiveTaskInfo.getDbDataNode().toDataNodeId(),
+                jobInstanceArchiveTaskInfo.getDbDataNode().toDbNodeId(),
                 jobInstanceArchiveTaskInfo.getDay(),
                 JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getHour()),
                 jobInstanceArchiveTaskInfo.getFromTimestamp(),
@@ -130,10 +137,11 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public List<JobInstanceArchiveTaskInfo> listRunningTasks() {
+    public List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {
         Result<Record> result = ctx.select(ALL_FIELDS)
             .from(T)
             .where(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
+            .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .fetch();
 
         List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>(result.size());
@@ -142,20 +150,20 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public List<JobInstanceArchiveTaskInfo> listScheduleTasks(int limit) {
-        Result<Record> result = ctx.select(ALL_FIELDS)
+    public Map<String, Integer> countScheduleTasksGroupByDb(ArchiveTaskTypeEnum taskType) {
+        Result<Record2<String, Integer>> result = ctx.select(T.DB_NODE, DSL.count().as("task_count"))
             .from(T)
             .where(T.STATUS.in(
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.PENDING.getStatus()),
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()),
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
-            .orderBy(T.DAY.desc(), T.HOUR.desc())
-            .limit(limit)
+            .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .groupBy(T.DB_NODE)
             .fetch();
 
-        List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>(result.size());
-        result.forEach(record -> tasks.add(extract(record)));
-        return tasks;
+        Map<String, Integer> dbAndTaskCount = new HashMap<>();
+        result.forEach(record -> dbAndTaskCount.put(record.get(T.DB_NODE), (Integer) record.get("task_count")));
+        return dbAndTaskCount;
     }
 
     @Override
@@ -182,5 +190,21 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .and(T.DAY.eq(archiveTask.getDay()))
             .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
             .execute();
+    }
+
+    @Override
+    public JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {
+        Record record = ctx.select(ALL_FIELDS)
+            .from(T)
+            .where(T.STATUS.in(
+                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.PENDING.getStatus()),
+                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()),
+                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
+            .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DB_NODE.eq(dbNodeId))
+            .orderBy(T.DAY.desc(), T.HOUR.desc(), T.DATA_NODE)
+            .fetchOne();
+
+        return extract(record);
     }
 }

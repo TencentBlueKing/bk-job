@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+/**
+ * 分库分表配置
+ */
 @ConfigurationProperties(prefix = "sharding")
 @Getter
 @Setter
@@ -52,7 +55,7 @@ public class ShardingProperties {
     private Integer tableNodeCount;
 
     /**
-     * 分库分表迁移配置
+     * 单 db -> 分库分表迁移配置
      */
     private MigrationProperties migration;
 

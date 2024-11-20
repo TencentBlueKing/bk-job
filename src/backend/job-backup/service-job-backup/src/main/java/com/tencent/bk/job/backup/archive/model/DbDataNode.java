@@ -39,36 +39,78 @@ public class DbDataNode {
      */
     private DbDataNodeTypeEnum type;
     /**
-     * db 实例位置索引，从 0 开始。单库单表架构始终为 0。
+     * 分库分表数据源
+     */
+    private String dataSource;
+    /**
+     * 分库分表 db 实例位置索引，从 0 开始
      */
     private Integer dbIndex;
 
     /**
-     * 表位置索引，从 0 开始。单库单表架构始终为 0。
+     * 分库分表表位置索引，从 0 开始
      */
     private Integer tableIndex;
 
-    public DbDataNode(DbDataNodeTypeEnum type, Integer dbIndex, Integer tableIndex) {
+    public static final String STANDALONE_DS_NAME = "ds_standalone";
+
+    public DbDataNode(DbDataNodeTypeEnum type, String dataSource, Integer dbIndex, Integer tableIndex) {
         this.type = type;
+        this.dataSource = dataSource;
         this.dbIndex = dbIndex;
         this.tableIndex = tableIndex;
     }
 
     public String toDataNodeId() {
-        return type + ":" + dbIndex + ":" + tableIndex;
+        switch (type) {
+            case STANDALONE:
+                return type + ":" + STANDALONE_DS_NAME;
+            case SHARDING:
+                return type + ":" + dataSource + ":" + dbIndex + ":" + tableIndex;
+            default:
+                throw new IllegalArgumentException("Invalid DbDataNodeTypeEnum");
+        }
+    }
+
+    public String toDbNodeId() {
+        switch (type) {
+            case STANDALONE:
+                return STANDALONE_DS_NAME;
+            case SHARDING:
+                return dataSource + ":" + dbIndex;
+            default:
+                throw new IllegalArgumentException("Invalid DbDataNodeTypeEnum");
+        }
     }
 
     public static DbDataNode fromDataNodeId(String dataNodeId) {
         String[] dataNodeParts = dataNodeId.split(":");
-        return new DbDataNode(
-            DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0])),
-            Integer.parseInt(dataNodeParts[1]),
-            Integer.parseInt(dataNodeParts[2])
-        );
+        DbDataNodeTypeEnum dbDataNodeType = DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0]));
+        switch (dbDataNodeType) {
+            case STANDALONE:
+                return new DbDataNode(dbDataNodeType, STANDALONE_DS_NAME, null, null);
+            case SHARDING:
+                return new DbDataNode(
+                    dbDataNodeType,
+                    dataNodeParts[1],
+                    Integer.parseInt(dataNodeParts[2]),
+                    Integer.parseInt(dataNodeParts[3])
+                );
+            default:
+                throw new IllegalArgumentException("Invalid DbDataNodeId");
+        }
+    }
+
+    public static DbDataNode standaloneDbDatNode() {
+        return new DbDataNode(DbDataNodeTypeEnum.STANDALONE, STANDALONE_DS_NAME, null, null);
+    }
+
+    public static DbDataNode shardingDbDatNode(String dataSource, Integer dbIndex, Integer tableIndex) {
+        return new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource, dbIndex, tableIndex);
     }
 
     @Override
     public DbDataNode clone() {
-        return new DbDataNode(type, dbIndex, tableIndex);
+        return new DbDataNode(type, dataSource, dbIndex, tableIndex);
     }
 }

@@ -144,7 +144,7 @@ public interface WebExecuteTaskResource {
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
     @PostMapping(value = {"/do-step-operation/stepInstanceId/{stepInstanceId}"})
     @Deprecated
-    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.10.x",
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
         type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     Response<StepOperationVO> doStepOperation(
         @ApiParam("用户名，网关自动传入")

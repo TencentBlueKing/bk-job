@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao;
 
+import com.tencent.bk.job.backup.archive.ArchiveException;
 import org.jooq.TableRecord;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -40,6 +40,5 @@ public interface JobInstanceColdDAO {
      * @param bulkSize   db 批量插入的最大记录数量
      * @return 写入的数据行数
      */
-    Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize)
-        throws IOException;
+    Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws ArchiveException;
 }

@@ -26,6 +26,9 @@ package com.tencent.bk.job.common.mysql.dynamic.ds;
 
 import org.jooq.DSLContext;
 
+/**
+ * Jooq DSLContext 提供者
+ */
 public interface DSLContextProvider {
     DSLContext get(String tableName);
 }

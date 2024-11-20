@@ -27,19 +27,18 @@ package com.tencent.bk.job.backup.archive;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.sharding.mysql.config.ShardingProperties;
-import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.joda.time.DateTime;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -57,78 +56,104 @@ public class JobInstanceArchiveTaskGenerator {
 
     private final ArchiveProperties archiveProperties;
 
-    private final ShardingProperties shardingProperties;
-
 
     public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
                                            TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                           ArchiveProperties archiveProperties,
-                                           ShardingProperties shardingProperties) {
+                                           ArchiveProperties archiveProperties) {
 
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
-        this.shardingProperties = shardingProperties;
     }
 
     @JobTransactional(transactionManager = "jobBackupTransactionManager")
     public void generate() {
+        if (taskInstanceRecordDAO.isTableEmpty()) {
+            log.info("Job instance table is empty and does not require processing");
+            return;
+        }
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
-        LocalDateTime startDateTime = computeArchiveStartDateTime();
-        LocalDateTime endDateTime = unixTimestampToUtcLocalDateTime(
-            getEndTime(archiveProperties.getKeepDays()));
-        while (startDateTime.isBefore(endDateTime)) {
-            int day = computeDay(startDateTime);
-            int hour = computeHour(startDateTime);
+        // 归档起始时间
+        LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
+        // 归档结束时间
+        LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+        if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
+            log.info("Archive endTime is before startTime, does not require processing. startTime: {}, endTime: {}",
+                archiveStartDateTime, archiveEndDateTime);
+            return;
+        }
 
-            JobInstanceArchiveTaskInfo archiveTask = buildBasicArchiveTask(day, hour, startDateTime);
-            if (isShardingTable()) {
-                int dbNodeCount = shardingProperties.getDbNodeCount();
-                int tableNodeCount = shardingProperties.getTableNodeCount();
-                for (int dbNodeIndex = 0; dbNodeIndex < dbNodeCount; dbNodeIndex++) {
-                    for (int tableNodeIndex = 0; tableNodeIndex < tableNodeCount; tableNodeIndex++) {
-                        DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SHARD, dbNodeIndex, tableNodeIndex);
-                        // 作业实例数据归档任务
-                        archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE,
-                            dbDataNode));
-                        // 作业实例按业务冗余数据归档
-                        archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE_APP,
-                            dbDataNode));
-                    }
-                }
+        log.info("Generate job instance archive task, archiveStartDateTime: {}, archiveEndDateTime: {}",
+            archiveStartDateTime, archiveEndDateTime);
+        // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
+        while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
+            // 水平分库分表
+            if (isHorizontalShardingEnabled()) {
+                // 作业实例数据归档任务,现版本暂不支持
+                archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
+                    archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
             } else {
-                DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SINGLE, 0, 0);
-                archiveTask.setDbDataNode(dbDataNode);
-                archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE, dbDataNode));
-                archiveTaskList.add(buildNewArchiveTask(archiveTask, ArchiveTaskTypeEnum.JOB_INSTANCE_APP, dbDataNode));
+                // 单db
+                DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
+                JobInstanceArchiveTaskInfo archiveTaskInfo =
+                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
+                archiveTaskList.add(archiveTaskInfo);
+                log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
             }
 
-            startDateTime = startDateTime.plusHours(1L);
+            archiveStartDateTime = archiveStartDateTime.plusHours(1L);
         }
 
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
             archiveTaskList.forEach(archiveTaskService::saveArchiveTask);
             log.info("Add archive tasks : {}", JsonUtils.toJson(archiveTaskList));
+        } else {
+            log.info("No new archive tasks are generated");
         }
     }
 
-    private JobInstanceArchiveTaskInfo buildNewArchiveTask(JobInstanceArchiveTaskInfo basicArchiveTask,
-                                                           ArchiveTaskTypeEnum archiveTaskType,
-                                                           DbDataNode dbDataNode) {
-        JobInstanceArchiveTaskInfo newArchiveTask = basicArchiveTask.clone();
-        newArchiveTask.setTaskType(archiveTaskType);
-        newArchiveTask.setDbDataNode(dbDataNode);
-        return newArchiveTask;
+    private List<JobInstanceArchiveTaskInfo> buildArchiveTasksForShardingDataNodes(
+        ArchiveTaskTypeEnum archiveTaskType,
+        LocalDateTime startDateTime,
+        List<ArchiveProperties.ShardingDataNode> shardingDataNodes) {
+        List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>();
+
+        // 任务：dataNode + day + hour
+        shardingDataNodes.forEach(dataNode -> {
+            int dbNodeCount = dataNode.getDbCount();
+            int tableNodeCount = dataNode.getTableCount();
+            String dataSource = dataNode.getDataSourceName();
+            for (int dbNodeIndex = 0; dbNodeIndex < dbNodeCount; dbNodeIndex++) {
+                for (int tableNodeIndex = 0; tableNodeIndex < tableNodeCount; tableNodeIndex++) {
+                    DbDataNode dbDataNode = new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource,
+                        dbNodeIndex, tableNodeIndex);
+                    // 作业实例数据归档任务
+                    JobInstanceArchiveTaskInfo archiveTaskInfo =
+                        buildArchiveTask(archiveTaskType, startDateTime, dbDataNode);
+                    tasks.add(archiveTaskInfo);
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
+                }
+            }
+        });
+
+        return tasks;
     }
 
-    private JobInstanceArchiveTaskInfo buildBasicArchiveTask(Integer day, Integer hour, LocalDateTime startDateTime) {
+    private JobInstanceArchiveTaskInfo buildArchiveTask(ArchiveTaskTypeEnum archiveTaskType,
+                                                        LocalDateTime startDateTime,
+                                                        DbDataNode dbDataNode) {
         JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
+        int day = ArchiveDateTimeUtil.computeDay(startDateTime);
+        int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
+        long fromTimestamp = 1000 * startDateTime.toEpochSecond(ZoneOffset.UTC);
+        archiveTask.setFromTimestamp(fromTimestamp);
+        archiveTask.setToTimestamp(fromTimestamp + 1000 * 3600L);
+        archiveTask.setTaskType(archiveTaskType);
+        archiveTask.setDbDataNode(dbDataNode);
         archiveTask.setStatus(ArchiveTaskStatusEnum.PENDING);
-        archiveTask.setFromTimestamp(1000 * startDateTime.toEpochSecond(ZoneOffset.UTC));
-        archiveTask.setToTimestamp(1000L * startDateTime.plusHours(1L).toEpochSecond(ZoneOffset.UTC));
         return archiveTask;
     }
 
@@ -138,46 +163,27 @@ public class JobInstanceArchiveTaskGenerator {
         JobInstanceArchiveTaskInfo latestArchiveTask =
             archiveTaskService.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (latestArchiveTask == null) {
-            log.info("Latest archive task is empty, try compute from task_instance table record");
-            Long minJobCreateTime = taskInstanceRecordDAO.getMinJobCreateTime();
-            startDateTime = toHourlyRoundDown(unixTimestampToUtcLocalDateTime(minJobCreateTime));
+            // 从表数据中的 job_create_time 计算归档任务开始时间
+            log.info("Latest archive task is empty, try compute from table min job create time");
+            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobCreateTime();
+            log.info("Min job create time in db is : {}", minJobCreateTimeMills);
+            startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
+                ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
         } else {
-            startDateTime = unixTimestampToUtcLocalDateTime(latestArchiveTask.getToTimestamp());
+            // 根据最新的归档任务计算开始
+            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(latestArchiveTask.getToTimestamp());
         }
 
         return startDateTime;
     }
 
-    private boolean isShardingTable() {
-        return shardingProperties != null && shardingProperties.isEnabled();
+    private boolean isHorizontalShardingEnabled() {
+        return archiveProperties.getTasks().getJobInstance().getDataSourceMode()
+            .equals(DataSourceMode.Constants.HORIZONTAL_SHARDING);
     }
 
-    private int computeDay(LocalDateTime dateTime) {
-        return Integer.parseInt(DateUtils.formatLocalDateTime(dateTime, "%Y%m%d"));
-    }
-
-    private int computeHour(LocalDateTime dateTime) {
-        return dateTime.getHour();
-    }
-
-    private Long getEndTime(int archiveDays) {
-        DateTime now = DateTime.now();
-        // 置为前一天天 24:00:00
-        long todayMaxMills = now.minusMillis(now.getMillisOfDay()).getMillis();
-
-        //减掉当前xx天后
-        long archiveMills = archiveDays * 24 * 3600 * 1000L;
-        return todayMaxMills - archiveMills;
-    }
-
-    private LocalDateTime unixTimestampToUtcLocalDateTime(long unixTimestamp) {
-        // 创建一个 Instant 对象，表示从 1970-01-01T00:00:00Z 开始的指定秒数
-        Instant instant = Instant.ofEpochSecond(unixTimestamp);
-        // 将 Instant 对象转换为 UTC 时区的 LocalDateTime 对象
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private LocalDateTime toHourlyRoundDown(LocalDateTime localDateTime) {
-        return localDateTime.withMinute(0).withSecond(0).withNano(0);
+    private LocalDateTime computeArchiveEndTime(int archiveDays) {
+        LocalDateTime now = LocalDateTime.now();
+        return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

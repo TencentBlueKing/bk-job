@@ -27,10 +27,9 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
-import com.tencent.bk.job.execute.dao.common.IdGenerator;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,15 +38,14 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class TaskInstanceVariableServiceImpl implements TaskInstanceVariableService {
+public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execute.service.TaskInstanceVariableService {
     private final TaskInstanceVariableDAO taskInstanceVariableDAO;
-
-    private final IdGenerator idGenerator;
+    private final IdGen idGen;
 
     @Autowired
-    public TaskInstanceVariableServiceImpl(TaskInstanceVariableDAO taskInstanceVariableDAO, IdGenerator idGenerator) {
+    public TaskInstanceVariableServiceImpl(TaskInstanceVariableDAO taskInstanceVariableDAO, IdGen idGen) {
         this.taskInstanceVariableDAO = taskInstanceVariableDAO;
-        this.idGenerator = idGenerator;
+        this.idGen = idGen;
     }
 
     @Override
@@ -85,7 +83,7 @@ public class TaskInstanceVariableServiceImpl implements TaskInstanceVariableServ
                 && taskVariable.getExecuteTarget() != null) {
                 taskVariable.setValue(JsonUtils.toJson(taskVariable.getExecuteTarget()));
             }
-            taskVariable.setId(idGenerator.genTaskInstanceVariableId());
+            taskVariable.setId(idGen.genTaskInstanceVariableId());
         }
         taskInstanceVariableDAO.saveTaskInstanceVariables(taskVarList);
     }

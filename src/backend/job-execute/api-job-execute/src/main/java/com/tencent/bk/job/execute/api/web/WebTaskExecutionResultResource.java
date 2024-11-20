@@ -521,8 +521,8 @@ public interface WebTaskExecutionResultResource {
     @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
     @GetMapping(value = {"/step-execution-history/{stepInstanceId}"})
     @Deprecated
-    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.10.x", type = CompatibleType.DEPLOY,
-        explain = "发布完成后可以删除")
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     Response<List<StepExecutionRecordVO>> listStepExecutionHistory(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")

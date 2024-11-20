@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseFileExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
+import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -44,8 +47,11 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractJobInstanceHotRecord
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.TASK_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.ID.asc());
+        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.STEP_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.EXECUTE_COUNT.asc());
+        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.BATCH.asc());
+        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.MODE.asc());
+        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.EXECUTE_OBJ_ID.asc());
     }
 
     public GseFileExecuteObjTaskRecordDAO(DSLContextProvider dslContextProvider) {
@@ -58,12 +64,27 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractJobInstanceHotRecord
     }
 
     @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
+    }
+
+    @Override
     public TableField<GseFileExecuteObjTaskRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
     }
 
-    @Override
-    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        return ORDER_FIELDS;
+    public RecordResultSet<GseFileExecuteObjTaskRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                                     long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.ID.gt(lastRecord.getId()));
+                return conditions;
+            }
+        );
     }
 }

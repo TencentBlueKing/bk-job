@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.ArchiveException;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,7 +52,7 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
     }
 
     @Override
-    public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws IOException {
+    public Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize) throws ArchiveException {
         long start = System.currentTimeMillis();
         int successInsertedRecords = 0;
         String table = recordList.get(0).getTable().getName();
@@ -94,7 +95,7 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
             String errorMsg = String.format("Error while loading %s data!", table);
             log.error(errorMsg, e);
             success = false;
-            throw e;
+            throw new ArchiveException(errorMsg, e);
         } finally {
             log.info("Load data to {} done! success: {}, total: {}, inserted: {}, cost: {}ms", table, success,
                 recordList.size(), successInsertedRecords, System.currentTimeMillis() - start);

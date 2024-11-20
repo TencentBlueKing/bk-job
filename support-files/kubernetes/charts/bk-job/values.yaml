@@ -1004,6 +1004,8 @@ executeConfig:
         expireSeconds: 10
   jvm:
     debug:
+      enabled: false
+      port: 5005
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
     dataSourceMode: standalone
@@ -1028,8 +1030,15 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+  # 分布式ID组件 leaf 配置
+  leaf:
+    enabled: false
+  # id生成器配置
+  idGen:
+    migration:
       enabled: false
-      port: 5005
+    # auto_increment: 自增长;leaf_segment: leaf segment id
+    type: auto_increment
   sharding:
     # 分库分表，默认关闭
     mariadb:
@@ -1267,6 +1276,14 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      tasks:
+        jobInstance:
+          dataSourceMode: standalone
+          concurrent: 6
+          # shardingDsDataNodes:
+          #   - dataSourceName: ds
+          #     dbCount: 2
+          #     tableCount: 31
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

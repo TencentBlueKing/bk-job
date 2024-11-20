@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
@@ -51,9 +53,9 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.CREATE_TIME.asc());
         ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
     }
+
 
     public TaskInstanceRecordDAO(DSLContextProvider dslContextProvider) {
         super(dslContextProvider, TABLE.getName());
@@ -64,16 +66,9 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
         return TABLE;
     }
 
-    @Override
-    public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
-        return TABLE.ID;
-    }
-
-    @Override
-    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        return ORDER_FIELDS;
-    }
-
+    /**
+     * 获取表中作业的最早创建时间
+     */
     public Long getMinJobCreateTime() {
         Record1<Long> record =
             dsl().select(min(TABLE.CREATE_TIME))
@@ -85,9 +80,25 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
                 return minJobCreateTime;
             }
         }
-        return null;
+        return Long.MAX_VALUE;
     }
 
+    /**
+     * 是否为空表
+     */
+    public boolean isTableEmpty() {
+        return !dsl().fetchExists(TABLE);
+    }
+
+    /**
+     * 按时间范围+作业实例 ID，顺序读取表记录
+     *
+     * @param fromTimestamp     开始时间(include)
+     * @param endTimestamp      开始时间(exclude)
+     * @param fromJobInstanceId 起始作业实例 ID
+     * @param limit             读取最大行数
+     * @return 记录
+     */
     public List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
                                                                    Long endTimestamp,
                                                                    Long fromJobInstanceId,
@@ -104,6 +115,25 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
             .limit(limit)
             .fetch();
         return result.into(TABLE);
+    }
+
+    @Override
+    public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
+        return TABLE.ID;
+    }
+
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
+    }
+
+    @Override
+    public RecordResultSet<TaskInstanceRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                            long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createOneQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit
+        );
     }
 
 

@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
@@ -58,12 +60,21 @@ public class RollingConfigRecordDAO extends AbstractJobInstanceHotRecordDAO<Roll
     }
 
     @Override
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
+    }
+
+    @Override
     public TableField<RollingConfigRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
     }
 
-    @Override
-    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        return ORDER_FIELDS;
+    public RecordResultSet<RollingConfigRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                             long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createOneQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit
+        );
     }
 }

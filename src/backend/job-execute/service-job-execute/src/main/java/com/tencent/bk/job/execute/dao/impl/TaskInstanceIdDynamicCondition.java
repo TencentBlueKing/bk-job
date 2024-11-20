@@ -62,7 +62,7 @@ public class TaskInstanceIdDynamicCondition {
         if (resourceScope == null) {
             log.info("TaskInstanceIdDynamicCondition : Empty resource scope!");
             // 无法根据业务决定是否使用 task_instance_id 作为查询条件。为了不影响请求正常处理,直接返回 TRUE Condition
-            // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
+            // (不会影响 DAO 查询，task_instance_id 仅作为分片功能，实际业务数据关系并不强依赖 task_instance_id)
             return DSL.trueCondition();
         }
         if (FeatureToggle.checkFeature(

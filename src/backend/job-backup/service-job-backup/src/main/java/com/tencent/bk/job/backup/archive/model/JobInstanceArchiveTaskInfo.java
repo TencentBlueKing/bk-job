@@ -91,4 +91,8 @@ public class JobInstanceArchiveTaskInfo {
         archiveTask.setLastUpdateTime(lastUpdateTime);
         return archiveTask;
     }
+
+    public String buildTaskUniqueId() {
+        return taskType.getType() + ":" + day + ":" + hour + ":" + dbDataNode.toDataNodeId();
+    }
 }

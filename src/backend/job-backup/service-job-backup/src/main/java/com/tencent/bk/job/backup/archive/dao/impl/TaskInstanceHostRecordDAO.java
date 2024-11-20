@@ -24,18 +24,30 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
+import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
+import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceHostRecord;
+import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.Table;
 import org.jooq.TableField;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceHostRecord> {
 
     private static final TaskInstanceHost TABLE = TaskInstanceHost.TASK_INSTANCE_HOST;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(TaskInstanceHost.TASK_INSTANCE_HOST.TASK_INSTANCE_ID.asc());
+        ORDER_FIELDS.add(TaskInstanceHost.TASK_INSTANCE_HOST.HOST_ID.asc());
+    }
 
     public TaskInstanceHostRecordDAO(DSLContextProvider dslContextProvider) {
         super(dslContextProvider, TABLE.getName());
@@ -51,8 +63,23 @@ public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<T
         return TABLE.TASK_INSTANCE_ID;
     }
 
-    @Override
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        throw new UnsupportedOperationException("List records not support");
+        return ORDER_FIELDS;
+    }
+
+    @Override
+    public RecordResultSet<TaskInstanceHostRecord> executeQuery(Collection<Long> jobInstanceIds,
+                                                                long readRowLimit) {
+        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
+            this,
+            jobInstanceIds,
+            readRowLimit,
+            lastRecord -> {
+                List<Condition> conditions = new ArrayList<>();
+                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
+                conditions.add(TABLE.HOST_ID.gt(lastRecord.getHostId()));
+                return conditions;
+            }
+        );
     }
 }

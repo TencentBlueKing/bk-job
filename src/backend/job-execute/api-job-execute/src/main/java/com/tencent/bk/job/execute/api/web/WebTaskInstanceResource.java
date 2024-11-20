@@ -56,7 +56,7 @@ import java.util.List;
 @WebAPI
 public interface WebTaskInstanceResource {
     @Deprecated
-    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.10.x",
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
         type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/step_instance/{stepInstanceId}"})

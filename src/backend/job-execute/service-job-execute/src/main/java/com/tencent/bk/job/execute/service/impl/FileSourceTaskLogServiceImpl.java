@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
-import com.tencent.bk.job.execute.dao.common.IdGenerator;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,16 +37,16 @@ public class FileSourceTaskLogServiceImpl implements FileSourceTaskLogService {
 
     private final FileSourceTaskLogDAO fileSourceTaskLogDAO;
 
-    private final IdGenerator idGenerator;
+    private final IdGen idGen;
 
-    public FileSourceTaskLogServiceImpl(FileSourceTaskLogDAO fileSourceTaskLogDAO, IdGenerator idGenerator) {
+    public FileSourceTaskLogServiceImpl(FileSourceTaskLogDAO fileSourceTaskLogDAO, IdGen idGen) {
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
-        this.idGenerator = idGenerator;
+        this.idGen = idGen;
     }
 
     @Override
     public int addFileSourceTaskLog(FileSourceTaskLogDTO fileSourceTaskLog) {
-        fileSourceTaskLog.setId(idGenerator.genFileSourceTaskLogId());
+        fileSourceTaskLog.setId(idGen.genFileSourceTaskLogId());
         return fileSourceTaskLogDAO.insertFileSourceTaskLog(fileSourceTaskLog);
     }
 
