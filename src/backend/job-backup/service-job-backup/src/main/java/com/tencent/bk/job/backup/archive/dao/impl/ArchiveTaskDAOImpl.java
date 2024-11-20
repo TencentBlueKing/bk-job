@@ -204,6 +204,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .and(T.DB_NODE.eq(dbNodeId))
             .orderBy(T.DAY.desc(), T.HOUR.desc(), T.DATA_NODE)
+            .limit(1)
             .fetchOne();
 
         return extract(record);
