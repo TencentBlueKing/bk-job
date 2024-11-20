@@ -80,6 +80,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .orderBy(T.DAY.desc(), T.HOUR.desc())
+            .limit(1)
             .fetchOne();
 
         return extract(record);
