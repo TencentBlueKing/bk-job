@@ -30,11 +30,26 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * 归档日期计算工具类
+ */
 public class ArchiveDateTimeUtil {
+    /**
+     * 计算天（日期），返回 yyyyMMdd 格式的数字
+     *
+     * @param dateTime 日期
+     * @return 天（日期）
+     */
     public static int computeDay(LocalDateTime dateTime) {
         return Integer.parseInt(DateUtils.formatLocalDateTime(dateTime, "yyyyMMdd"));
     }
 
+    /**
+     * 计算小时
+     *
+     * @param dateTime 日期
+     * @return 小时
+     */
     public static int computeHour(LocalDateTime dateTime) {
         return dateTime.getHour();
     }

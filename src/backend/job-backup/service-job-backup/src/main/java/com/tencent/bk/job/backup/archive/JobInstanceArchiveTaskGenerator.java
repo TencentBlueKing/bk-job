@@ -166,6 +166,7 @@ public class JobInstanceArchiveTaskGenerator {
             // 从表数据中的 job_create_time 计算归档任务开始时间
             log.info("Latest archive task is empty, try compute from table min job create time");
             Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobCreateTime();
+            log.info("Min job create time in db is : {}", minJobCreateTimeMills);
             startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
                 ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
         } else {
