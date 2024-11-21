@@ -128,9 +128,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 if (stopCallback != null) {
                     stopCallback.callback();
                 }
-                log.info("Stop archive task successfully, taskId: {}", taskId);
+                log.info("[{}] Stop archive task successfully", taskId);
             } else {
-                log.info("Archive task is stopped, taskId: {}", taskId);
+                log.info("[{}] Archive task is stopped", taskId);
             }
         }
     }
@@ -154,7 +154,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             backupAndDelete();
         } catch (Throwable e) {
             String msg = MessageFormatter.format(
-                "Error while execute archive task : {}",
+                "[{}] Error while execute archive task",
                 taskId
             ).getMessage();
             log.error(msg, e);
@@ -199,30 +199,30 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 if (checkStopFlag()) {
                     stopTask();
                 }
-                if (progress != null) {
-                    jobInstanceRecords = readSortedJobInstanceFromHotDB(progress.getTimestamp(),
-                        archiveTaskInfo.getToTimestamp(), progress.getId(), readLimit);
-                } else {
-                    jobInstanceRecords = readSortedJobInstanceFromHotDB(archiveTaskInfo.getFromTimestamp(),
-                        archiveTaskInfo.getToTimestamp(), null, readLimit);
-                }
 
+                jobInstanceRecords = readJobInstanceRecords(readLimit);
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
-                    updateArchiveProgress(ArchiveTaskStatusEnum.SUCCESS, null);
+                    updateArchiveProgress(ArchiveTaskStatusEnum.SUCCESS, progress);
                     return;
                 }
-                archivedJobInstanceCount++;
+                archivedJobInstanceCount += jobInstanceRecords.size();
 
                 List<Long> jobInstanceIds =
                     jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
 
                 // 写入数据到冷 db
                 if (backupEnabled) {
+                    long backupStartTime = System.currentTimeMillis();
                     backupJobInstanceToColdDb(jobInstanceRecords);
+                    log.info("[{}] Backup to cold db, jobInstanceRecordSize: {}, cost: {}",
+                        taskId, jobInstanceRecords.size(), System.currentTimeMillis() - backupStartTime);
                 }
                 // 从热 db 删除数据
                 if (deleteEnabled) {
+                    long deleteStartTime = System.currentTimeMillis();
                     deleteJobInstanceHotData(jobInstanceIds);
+                    log.info("[{}] Delete hot db, jobInstanceRecordSize: {}, cost: {}",
+                        taskId, jobInstanceRecords.size(), System.currentTimeMillis() - deleteStartTime);
                 }
 
                 // 更新归档进度
@@ -239,6 +239,20 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             archiveTaskSummary.setArchivedRecordSize(archivedJobInstanceCount);
             archiveTaskSummary.setArchiveCost(archiveCost);
         }
+    }
+
+    private List<T> readJobInstanceRecords(int readLimit) {
+        List<T> jobInstanceRecords;
+        long readStartTime = System.currentTimeMillis();
+        Long fromTime = progress == null ? archiveTaskInfo.getFromTimestamp() : progress.getTimestamp();
+        Long fromTaskInstanceId = progress != null ? progress.getId() : null;
+        jobInstanceRecords = readSortedJobInstanceFromHotDB(fromTime,
+            archiveTaskInfo.getToTimestamp(), fromTaskInstanceId, readLimit);
+        log.info("[{}] Read sorted job instance from hot db, fromJobCreateTime: {}, toJobCreatTime: {}, " +
+                "fromJobInstanceId: {}, resultSize: {}, cost: {} ms",
+            taskId, progress.getTimestamp(), archiveTaskInfo.getToTimestamp(), progress.getId(),
+            jobInstanceRecords.size(), System.currentTimeMillis() - readStartTime);
+        return jobInstanceRecords;
     }
 
     /**

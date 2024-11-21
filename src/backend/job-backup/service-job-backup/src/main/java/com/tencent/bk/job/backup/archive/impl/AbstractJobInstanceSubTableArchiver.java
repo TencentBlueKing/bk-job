@@ -78,9 +78,9 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
     @Override
     public void deleteRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
-        jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
+        int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", tableName,
-            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
+        log.info("Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms", tableName,
+            jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
     }
 }

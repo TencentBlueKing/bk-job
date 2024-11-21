@@ -33,7 +33,6 @@ import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +65,7 @@ public class JobInstanceArchiveTaskGenerator {
         this.archiveProperties = archiveProperties;
     }
 
-    @JobTransactional(transactionManager = "jobBackupTransactionManager")
+
     public void generate() {
         if (taskInstanceRecordDAO.isTableEmpty()) {
             log.info("Job instance table is empty and does not require processing");
@@ -74,7 +73,7 @@ public class JobInstanceArchiveTaskGenerator {
         }
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
-        log.info("Compute archive task generate startDateTime and endDateTime begin...");
+        log.info("Compute archive task generate startDateTime and endDateTime");
         // 归档任务创建范围-起始时间
         LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
         // 归档任务创建范围-结束时间
@@ -86,8 +85,7 @@ public class JobInstanceArchiveTaskGenerator {
             return;
         }
 
-        log.info("Generate job instance archive task, archiveStartDateTime: {}, archiveEndDateTime: {}",
-            archiveStartDateTime, archiveEndDateTime);
+        log.info("Generate job instance archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
         // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
         while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
             log.info("Generate archive task for datetime : {}", archiveStartDateTime);
@@ -109,8 +107,8 @@ public class JobInstanceArchiveTaskGenerator {
         }
 
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
-            archiveTaskList.forEach(archiveTaskService::saveArchiveTask);
-            log.info("Add archive tasks : {}", JsonUtils.toJson(archiveTaskList));
+            archiveTaskService.saveArchiveTasks(archiveTaskList);
+            log.info("Generate archive tasks : {}", JsonUtils.toJson(archiveTaskList));
         } else {
             log.info("No new archive tasks are generated");
         }

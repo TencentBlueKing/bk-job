@@ -32,6 +32,7 @@ import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.SmartLifecycle;
 
@@ -133,9 +134,10 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     archiveTaskService.countScheduleTasksGroupByDb(ArchiveTaskTypeEnum.JOB_INSTANCE);
                 if (scheduleTasksGroupByDb.isEmpty()) {
                     // 所有任务都已经被调度完成，退出本次任务调度
-                    log.info("All archive task is done! Exit schedule");
+                    log.info("No archive task need scheduling! Exit");
                     return;
                 }
+                log.info("Count archive task group by db, result: {}", scheduleTasksGroupByDb);
 
                 // 获取正在执行中的任务列表
                 List<JobInstanceArchiveTaskInfo> runningTasks =
@@ -168,7 +170,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     }
 
     private void startArchiveTask(JobInstanceArchiveTaskInfo archiveTaskInfo) {
-        log.info("Start JobInstanceArchiveTask, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
+        log.info("Start JobInstanceArchiveTask, taskId: {}, taskInfo: {}",
+            archiveTaskInfo.buildTaskUniqueId(), JsonUtils.toJson(archiveTaskInfo));
         JobInstanceMainDataArchiveTask archiveTask = new JobInstanceMainDataArchiveTask(
             taskInstanceRecordDAO,
             jobInstanceSubTableArchivers,

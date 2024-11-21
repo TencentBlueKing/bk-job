@@ -203,7 +203,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
             .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .and(T.DB_NODE.eq(dbNodeId))
-            .orderBy(T.DAY.desc(), T.HOUR.desc(), T.DATA_NODE)
+            .orderBy(T.DAY.asc(), T.HOUR.asc(), T.DATA_NODE)
             .limit(1)
             .fetchOne();
 

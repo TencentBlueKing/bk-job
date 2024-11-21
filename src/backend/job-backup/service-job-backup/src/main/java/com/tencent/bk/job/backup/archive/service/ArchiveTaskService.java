@@ -27,8 +27,11 @@ package com.tencent.bk.job.backup.archive.service;
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
+import com.tencent.bk.job.common.mysql.JobTransactional;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +55,13 @@ public class ArchiveTaskService {
 
     public void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo) {
         archiveTaskDAO.saveArchiveTask(jobInstanceArchiveTaskInfo);
+    }
+
+    @JobTransactional(transactionManager = "jobBackupTransactionManager")
+    public void saveArchiveTasks(Collection<JobInstanceArchiveTaskInfo> archiveTaskList) {
+        if (CollectionUtils.isNotEmpty(archiveTaskList)) {
+            archiveTaskList.forEach(archiveTaskDAO::saveArchiveTask);
+        }
     }
 
     public List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {

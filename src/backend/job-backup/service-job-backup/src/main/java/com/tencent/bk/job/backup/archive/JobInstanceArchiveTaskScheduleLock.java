@@ -71,8 +71,13 @@ public class JobInstanceArchiveTaskScheduleLock {
 
 
     public synchronized void unlock() {
-        LockUtils.releaseDistributedLock(LOCK_KEY, lockRequestId);
-        this.lockRequestId = null;
+        boolean success = LockUtils.releaseDistributedLock(LOCK_KEY, lockRequestId);
+        if (success) {
+            log.info("Release job instance archive schedule lock successfully");
+            this.lockRequestId = null;
+        } else {
+            log.warn("Release job instance archive schedule lock fail");
+        }
     }
 
 }
