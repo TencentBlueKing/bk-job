@@ -34,6 +34,7 @@ import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.SmartLifecycle;
 
 import java.util.List;
@@ -64,6 +65,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     private final ArchiveTaskLock archiveTaskLock;
     private final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     private final ArchiveTablePropsStorage archiveTablePropsStorage;
+
+    private final Tracer tracer;
 
     private final Object lifecycleMonitor = new Object();
 
@@ -97,7 +100,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                                            JobInstanceColdDAO jobInstanceColdDAO,
                                            ArchiveTaskLock archiveTaskLock,
                                            ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
+                                           ArchiveTablePropsStorage archiveTablePropsStorage,
+                                           Tracer tracer) {
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
@@ -107,6 +111,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         this.archiveTaskLock = archiveTaskLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
+        this.tracer = tracer;
     }
 
     public void schedule() {
@@ -196,7 +201,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
             }
             scheduledTasks.put(archiveTask.getTaskId(), archiveTask);
         }
-        ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask);
+        ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask, tracer);
         worker.start();
         log.info("Start JobInstanceArchiveTask success, taskId: {}", archiveTaskInfo.buildTaskUniqueId());
     }

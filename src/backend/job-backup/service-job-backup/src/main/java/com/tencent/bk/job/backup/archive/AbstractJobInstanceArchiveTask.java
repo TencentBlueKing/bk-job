@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
@@ -142,6 +143,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
     private void archive() {
         try {
+            // 设置归档任务上下文
+            ArchiveTaskContextHolder.set(new ArchiveTaskContext(archiveTaskInfo));
+
+            // 获取分布式锁
             if (!acquireLock()) {
                 archiveTaskSummary.setSkip(!isAcquireLock);
                 return;
@@ -179,6 +184,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             if (checkStopFlag()) {
                 stopTask();
             }
+            ArchiveTaskContextHolder.unset();
         }
     }
 
@@ -250,7 +256,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             archiveTaskInfo.getToTimestamp(), fromTaskInstanceId, readLimit);
         log.info("[{}] Read sorted job instance from hot db, fromJobCreateTime: {}, toJobCreatTime: {}, " +
                 "fromJobInstanceId: {}, resultSize: {}, cost: {} ms",
-            taskId, progress.getTimestamp(), archiveTaskInfo.getToTimestamp(), progress.getId(),
+            taskId, fromTime, archiveTaskInfo.getToTimestamp(), fromTaskInstanceId,
             jobInstanceRecords.size(), System.currentTimeMillis() - readStartTime);
         return jobInstanceRecords;
     }
@@ -284,7 +290,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private boolean acquireLock() {
         this.isAcquireLock = archiveTaskLock.lock(taskId);
         if (!isAcquireLock) {
-            log.info("[{}] Acquire lock fail", taskId);
+            log.info("[{}] Acquire archive task lock fail", taskId);
         }
         return isAcquireLock;
     }
@@ -292,6 +298,10 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private void updateArchiveProgress(ArchiveTaskStatusEnum taskStatus, TimeAndIdBasedArchiveProcess progress) {
         archiveTaskInfo.setStatus(taskStatus);
         archiveTaskInfo.setProcess(progress);
+        if (taskStatus != ArchiveTaskStatusEnum.RUNNING) {
+            log.info("[{}] Update archive task process, taskStatus: {}, process: {}",
+                taskId, taskStatus, progress);
+        }
         archiveTaskService.updateTask(archiveTaskInfo);
     }
 

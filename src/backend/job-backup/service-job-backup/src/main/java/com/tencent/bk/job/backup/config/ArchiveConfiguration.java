@@ -74,6 +74,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -488,7 +489,8 @@ public class ArchiveConfiguration {
         ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
         ArchiveTaskLock archiveTaskLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
-        ArchiveTablePropsStorage archiveTablePropsStorage) {
+        ArchiveTablePropsStorage archiveTablePropsStorage,
+        Tracer tracer) {
 
         log.info("Init JobInstanceArchiveTaskScheduler");
         return new JobInstanceArchiveTaskScheduler(
@@ -500,7 +502,8 @@ public class ArchiveConfiguration {
             jobInstanceColdDAOObjectProvider.getIfAvailable(),
             archiveTaskLock,
             archiveErrorTaskCounter,
-            archiveTablePropsStorage
+            archiveTablePropsStorage,
+            tracer
         );
     }
 

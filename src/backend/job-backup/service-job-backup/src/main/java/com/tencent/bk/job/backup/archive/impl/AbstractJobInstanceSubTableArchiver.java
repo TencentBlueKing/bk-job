@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.ArchiveTaskContextHolder;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
@@ -66,8 +67,8 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
-            log.info("Read {}, recordSize: {}, cost: {}ms", tableName,
-                CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - startTime);
+            log.info("[{}] Read {}, recordSize: {}, cost: {}ms", ArchiveTaskContextHolder.getArchiveTaskId(),
+                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - startTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
@@ -80,7 +81,8 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         long startTime = System.currentTimeMillis();
         int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        log.info("Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms", tableName,
+        log.info("[{}] Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms",
+            ArchiveTaskContextHolder.getArchiveTaskId(), tableName,
             jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
     }
 }

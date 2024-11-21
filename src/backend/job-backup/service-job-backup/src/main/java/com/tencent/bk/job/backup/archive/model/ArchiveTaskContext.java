@@ -22,24 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.archive.model;
 
 import lombok.Data;
-import lombok.ToString;
 
 @Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
-    /**
-     * 最后备份ID
-     */
-    private Long lastBackupId;
+public class ArchiveTaskContext {
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
+    private JobInstanceArchiveTaskInfo archiveTaskInfo;
+
+
+    public ArchiveTaskContext(JobInstanceArchiveTaskInfo archiveTaskInfo) {
+        this.archiveTaskInfo = archiveTaskInfo;
+    }
 }

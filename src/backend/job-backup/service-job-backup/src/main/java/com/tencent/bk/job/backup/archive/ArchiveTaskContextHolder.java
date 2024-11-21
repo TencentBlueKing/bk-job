@@ -22,57 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.dto;
+package com.tencent.bk.job.backup.archive;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveSummary {
-    private boolean enabled;
-    private String tableName;
-    private String archiveEndDate;
-    private boolean skip;
-    private boolean success;
+public class ArchiveTaskContextHolder {
 
-    private String archiveMode;
+    private static final ThreadLocal<ArchiveTaskContext> HOLDER = new ThreadLocal<>();
 
-    /**
-     * 备份数据-查询原数据耗时（单位毫秒)
-     */
-    private Long backupReadCost;
-    /**
-     * 备份数据-写入数据到归档 db 耗时（单位毫秒)
-     */
-    private Long backupWriteCost;
-    /**
-     * 删除热数据耗时（单位毫秒)
-     */
-    private Long deleteCost;
-    /**
-     * 归档总耗时（单位毫秒)
-     */
-    private Long archiveCost;
+    public static void set(ArchiveTaskContext archiveTaskContext) {
+        HOLDER.set(archiveTaskContext);
+    }
 
-    private Long archiveIdStart;
-    private Long archiveIdEnd;
-    private Long needArchiveRecordSize;
+    public static void unset() {
+        HOLDER.remove();
+    }
 
-    private Long lastBackupId;
-    private Long backupRecordSize;
+    public static ArchiveTaskContext get() {
+        return HOLDER.get();
+    }
 
-    private Long lastDeletedId;
-    private Long deleteRecordSize;
-
-    /**
-     * 归档详细说明信息
-     */
-    private String message;
-
-    public ArchiveSummary(String tableName) {
-        this.tableName = tableName;
+    public static String getArchiveTaskId() {
+        ArchiveTaskContext context = HOLDER.get();
+        return context != null ? context.getArchiveTaskInfo().buildTaskUniqueId() : null;
     }
 }

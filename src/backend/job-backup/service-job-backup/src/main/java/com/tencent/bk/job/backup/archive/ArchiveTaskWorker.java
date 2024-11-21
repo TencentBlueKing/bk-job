@@ -25,6 +25,8 @@
 package com.tencent.bk.job.backup.archive;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 
 /**
  * 归档任务执行线程
@@ -33,18 +35,25 @@ import lombok.extern.slf4j.Slf4j;
 public class ArchiveTaskWorker extends Thread {
 
     private final JobInstanceArchiveTask archiveTask;
+    private final Tracer tracer;
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask) {
-        this.setName("ArchiveWorker-" + archiveTask.getTaskId());
+    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask, Tracer tracer) {
+        this.tracer = tracer;
         this.archiveTask = archiveTask;
+        this.setName("ArchiveWorker-" + archiveTask.getTaskId());
     }
 
     @Override
     public void run() {
-        try {
+        Span span = tracer.nextSpan().name("archive-task");
+
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
             archiveTask.execute();
         } catch (Throwable e) {
+            span.error(e);
             log.warn("Thread interrupted!");
+        } finally {
+            span.end();
         }
     }
 
