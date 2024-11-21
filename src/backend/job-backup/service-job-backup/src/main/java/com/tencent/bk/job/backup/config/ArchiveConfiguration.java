@@ -25,10 +25,8 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
-import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
@@ -67,6 +65,9 @@ import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -463,19 +464,28 @@ public class ArchiveConfiguration {
 
     @Bean
     public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
-        log.info("Init ArchiveTaskLock");
+        log.info("Init ArchiveTaskExecuteLock");
         return new ArchiveTaskExecuteLock(redisTemplate);
     }
 
     @Bean
-    public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                                                           ArchiveProperties archiveProperties) {
+    public JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        return new JobInstanceArchiveTaskGenerateLock(redisTemplate);
+    }
+
+    @Bean
+    public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
+        ArchiveTaskService archiveTaskService,
+        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        ArchiveProperties archiveProperties,
+        JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock) {
+
         log.info("Init JobInstanceArchiveTaskGenerator");
         return new JobInstanceArchiveTaskGenerator(
             archiveTaskService,
             taskInstanceRecordDAO,
-            archiveProperties
+            archiveProperties,
+            jobInstanceArchiveTaskGenerateLock
         );
     }
 

@@ -22,43 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.redis.util;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.common.util.JobUUID;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 支持心跳的Redis锁配置
+ * 归档任务调度分布式锁
  */
-@Setter
-@Getter
-@NoArgsConstructor
-public class HeartBeatRedisLockConfig {
+@Slf4j
+public class JobInstanceArchiveTaskScheduleLock extends FairDistributeLock {
 
-    /**
-     * 锁过期时间，单位：毫秒
-     */
-    private long expireTimeMillis = 5_000L;
-    /**
-     * 锁心跳间隔时间，单位：毫秒
-     */
-    private long periodMillis = 2_000L;
-    /**
-     * 心跳线程名称
-     */
-    private String heartBeatThreadName = "redisKeyHeartBeatThread-" + JobUUID.getUUID().substring(0, 8);
-
-    public static final HeartBeatRedisLockConfig INSTANCE = new HeartBeatRedisLockConfig();
-
-    public static HeartBeatRedisLockConfig getDefault() {
-        return INSTANCE;
-    }
-
-    public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {
-        this.heartBeatThreadName = heartBeatThreadName;
-        this.expireTimeMillis = expireTimeMillis;
-        this.periodMillis = periodMillis;
+    public JobInstanceArchiveTaskScheduleLock() {
+        super(
+            "job:instance:archive:task:schedule:lock",
+            "job:instance:archive:task:schedule",
+            60 * 1000L
+        );
     }
 }

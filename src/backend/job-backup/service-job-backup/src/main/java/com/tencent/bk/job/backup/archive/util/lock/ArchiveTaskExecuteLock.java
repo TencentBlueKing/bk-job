@@ -22,43 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.redis.util;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.common.util.JobUUID;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 支持心跳的Redis锁配置
+ * 归档任务执行分布式锁
  */
-@Setter
-@Getter
-@NoArgsConstructor
-public class HeartBeatRedisLockConfig {
+@Slf4j
+public class ArchiveTaskExecuteLock {
 
-    /**
-     * 锁过期时间，单位：毫秒
-     */
-    private long expireTimeMillis = 5_000L;
-    /**
-     * 锁心跳间隔时间，单位：毫秒
-     */
-    private long periodMillis = 2_000L;
-    /**
-     * 心跳线程名称
-     */
-    private String heartBeatThreadName = "redisKeyHeartBeatThread-" + JobUUID.getUUID().substring(0, 8);
+    private final HeartBeatRedisLocks locks;
 
-    public static final HeartBeatRedisLockConfig INSTANCE = new HeartBeatRedisLockConfig();
-
-    public static HeartBeatRedisLockConfig getDefault() {
-        return INSTANCE;
+    public ArchiveTaskExecuteLock(StringRedisTemplate redisTemplate) {
+        locks = new HeartBeatRedisLocks(
+            "archive:task:execute",
+            redisTemplate,
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-archive:task:execute",
+                3600 * 1000L, // 1h 超时时间
+                600 * 1000L // 10min 续期一次
+            )
+        );
     }
 
-    public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {
-        this.heartBeatThreadName = heartBeatThreadName;
-        this.expireTimeMillis = expireTimeMillis;
-        this.periodMillis = periodMillis;
+    public boolean lock(String taskId) {
+        return locks.lock(taskId);
+    }
+
+    public void unlock(String taskId) {
+        locks.unlock(taskId);
     }
 }

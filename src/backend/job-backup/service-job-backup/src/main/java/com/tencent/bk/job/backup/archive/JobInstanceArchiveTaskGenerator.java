@@ -29,11 +29,13 @@ import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,63 +57,84 @@ public class JobInstanceArchiveTaskGenerator {
 
     private final ArchiveProperties archiveProperties;
 
+    private final JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock;
+
 
     public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
                                            TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                           ArchiveProperties archiveProperties) {
+                                           ArchiveProperties archiveProperties,
+                                           JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock) {
 
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
+        this.archiveTaskGenerateLock = archiveTaskGenerateLock;
     }
 
 
     public void generate() {
-        if (taskInstanceRecordDAO.isTableEmpty()) {
-            log.info("Job instance table is empty and does not require processing");
-            return;
-        }
-        List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
-
-        log.info("Compute archive task generate startDateTime and endDateTime");
-        // 归档任务创建范围-起始时间
-        LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
-        // 归档任务创建范围-结束时间
-        LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
-        if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
-            log.info("Archive endTime is before startTime, does not require generating archive task." +
-                    " startTime: {}, endTime: {}",
-                archiveStartDateTime, archiveEndDateTime);
-            return;
-        }
-
-        log.info("Generate job instance archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
-        // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
-        while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
-            log.info("Generate archive task for datetime : {}", archiveStartDateTime);
-            // 水平分库分表
-            if (isHorizontalShardingEnabled()) {
-                // 作业实例数据归档任务,现版本暂不支持
-                archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
-                    archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
-            } else {
-                // 单db
-                DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
-                JobInstanceArchiveTaskInfo archiveTaskInfo =
-                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
-                archiveTaskList.add(archiveTaskInfo);
-                log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
+        LockResult lockResult = null;
+        try {
+            lockResult = archiveTaskGenerateLock.lock();
+            if (!lockResult.isLockGotten()) {
+                log.info(
+                    "Archive task generate lock gotten by another process: {}, return",
+                    lockResult.getLockValue()
+                );
+                return;
             }
 
-            archiveStartDateTime = archiveStartDateTime.plusHours(1L);
+            if (taskInstanceRecordDAO.isTableEmpty()) {
+                log.info("Job instance table is empty and does not require processing");
+                return;
+            }
+            List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
+
+            log.info("Compute archive task generate startDateTime and endDateTime");
+            // 归档任务创建范围-起始时间
+            LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
+            // 归档任务创建范围-结束时间
+            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+            if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
+                log.info("Archive endTime is before startTime, does not require generating archive task." +
+                        " startTime: {}, endTime: {}",
+                    archiveStartDateTime, archiveEndDateTime);
+                return;
+            }
+
+            log.info("Generate job instance archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
+            // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
+            while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
+                log.info("Generate archive task for datetime : {}", archiveStartDateTime);
+                // 水平分库分表
+                if (isHorizontalShardingEnabled()) {
+                    // 作业实例数据归档任务,现版本暂不支持
+                    archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
+                        archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
+                } else {
+                    // 单db
+                    DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
+                    JobInstanceArchiveTaskInfo archiveTaskInfo =
+                        buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
+                    archiveTaskList.add(archiveTaskInfo);
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
+                }
+
+                archiveStartDateTime = archiveStartDateTime.plusHours(1L);
+            }
+
+            if (CollectionUtils.isNotEmpty(archiveTaskList)) {
+                archiveTaskService.saveArchiveTasks(archiveTaskList);
+                log.info("Generate archive tasks : {}", JsonUtils.toJson(archiveTaskList));
+            } else {
+                log.info("No new archive tasks are generated");
+            }
+        } finally {
+            if (lockResult != null) {
+                lockResult.tryToRelease();
+            }
         }
 
-        if (CollectionUtils.isNotEmpty(archiveTaskList)) {
-            archiveTaskService.saveArchiveTasks(archiveTaskList);
-            log.info("Generate archive tasks : {}", JsonUtils.toJson(archiveTaskList));
-        } else {
-            log.info("No new archive tasks are generated");
-        }
     }
 
     private List<JobInstanceArchiveTaskInfo> buildArchiveTasksForShardingDataNodes(
