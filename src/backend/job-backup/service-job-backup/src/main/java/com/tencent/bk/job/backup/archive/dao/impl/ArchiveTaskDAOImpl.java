@@ -209,4 +209,16 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
 
         return extract(record);
     }
+
+    @Override
+    public void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask) {
+        ctx.update(T)
+            .set(T.STATUS, JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()))
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(archiveTask.getTaskType().getType())))
+            .and(T.DATA_NODE.eq(archiveTask.getDbDataNode().toDataNodeId()))
+            .and(T.DAY.eq(archiveTask.getDay()))
+            .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
+            .and(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
+            .execute();
+    }
 }

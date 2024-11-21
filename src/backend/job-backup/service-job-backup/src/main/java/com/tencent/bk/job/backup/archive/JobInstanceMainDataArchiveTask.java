@@ -51,7 +51,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
                                           JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
                                           JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
-                                          ArchiveTaskLock archiveTaskLock,
+                                          ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                           JobInstanceArchiveTaskInfo archiveTask,
                                           ArchiveTaskService archiveTaskService,
@@ -59,7 +59,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         super(
             jobInstanceColdDAO,
             archiveProperties,
-            archiveTaskLock,
+            archiveTaskExecuteLock,
             archiveErrorTaskCounter,
             archiveTask,
             archiveTaskService,

@@ -62,4 +62,11 @@ public interface ArchiveTaskDAO {
     void updateTask(JobInstanceArchiveTaskInfo archiveTask);
 
     JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId);
+
+    /**
+     * 设置归档任务状态为暂停
+     *
+     * @param archiveTask 归档任务
+     */
+    void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask);
 }

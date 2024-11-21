@@ -85,4 +85,13 @@ public class ArchiveTaskService {
     public JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {
         return archiveTaskDAO.getFirstScheduleArchiveTaskByDb(taskType, dbNodeId);
     }
+
+    /**
+     * 设置归档任务状态为暂停
+     *
+     * @param archiveTask 归档任务
+     */
+    public void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask) {
+        archiveTaskDAO.updateArchiveTaskSuspendedStatus(archiveTask);
+    }
 }

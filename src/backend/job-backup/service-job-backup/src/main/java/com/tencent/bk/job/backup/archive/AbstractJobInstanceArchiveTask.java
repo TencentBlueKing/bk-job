@@ -52,9 +52,10 @@ import java.util.stream.Collectors;
 public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> implements JobInstanceArchiveTask {
     protected JobInstanceColdDAO jobInstanceColdDAO;
     protected final ArchiveProperties archiveProperties;
-    private final ArchiveTaskLock archiveTaskLock;
+    private final ArchiveTaskExecuteLock archiveTaskExecuteLock;
     protected final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     protected final ArchiveTaskService archiveTaskService;
+
     protected final ArchiveTablePropsStorage archiveTablePropsStorage;
 
     protected String taskId;
@@ -86,14 +87,14 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
     public AbstractJobInstanceArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
-                                          ArchiveTaskLock archiveTaskLock,
+                                          ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                           JobInstanceArchiveTaskInfo archiveTaskInfo,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
         this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveProperties = archiveProperties;
-        this.archiveTaskLock = archiveTaskLock;
+        this.archiveTaskExecuteLock = archiveTaskExecuteLock;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTaskInfo = archiveTaskInfo;
         this.archiveTaskService = archiveTaskService;
@@ -126,6 +127,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         synchronized (stopMonitor) {
             if (!isStopped) {
                 isStopped = true;
+                // 更新归档任务状态为暂停，用于后续调度
+                archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
                 if (stopCallback != null) {
                     stopCallback.callback();
                 }
@@ -171,7 +174,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             updateArchiveProgress(ArchiveTaskStatusEnum.FAIL, null);
         } finally {
             if (this.isAcquireLock) {
-                archiveTaskLock.unlock(taskId);
+                archiveTaskExecuteLock.unlock(taskId);
             }
             log.info(
                 "[{}] Archive finished, result: {}",
@@ -288,7 +291,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private boolean acquireLock() {
-        this.isAcquireLock = archiveTaskLock.lock(taskId);
+        this.isAcquireLock = archiveTaskExecuteLock.lock(taskId);
         if (!isAcquireLock) {
             log.info("[{}] Acquire archive task lock fail", taskId);
         }

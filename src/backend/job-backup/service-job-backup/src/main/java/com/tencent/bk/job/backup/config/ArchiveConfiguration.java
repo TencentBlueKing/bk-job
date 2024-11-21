@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
+import com.tencent.bk.job.backup.archive.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
@@ -462,9 +462,9 @@ public class ArchiveConfiguration {
 
 
     @Bean
-    public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
+    public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveTaskLock");
-        return new ArchiveTaskLock(redisTemplate);
+        return new ArchiveTaskExecuteLock(redisTemplate);
     }
 
     @Bean
@@ -487,7 +487,7 @@ public class ArchiveConfiguration {
         JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
         JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
         ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-        ArchiveTaskLock archiveTaskLock,
+        ArchiveTaskExecuteLock archiveTaskExecuteLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
         ArchiveTablePropsStorage archiveTablePropsStorage,
         Tracer tracer) {
@@ -500,7 +500,7 @@ public class ArchiveConfiguration {
             jobInstanceArchiveTaskScheduleLock,
             jobInstanceSubTableArchivers,
             jobInstanceColdDAOObjectProvider.getIfAvailable(),
-            archiveTaskLock,
+            archiveTaskExecuteLock,
             archiveErrorTaskCounter,
             archiveTablePropsStorage,
             tracer

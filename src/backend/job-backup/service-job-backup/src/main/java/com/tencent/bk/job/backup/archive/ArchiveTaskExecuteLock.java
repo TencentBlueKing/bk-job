@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 归档任务执行分布式锁
  */
 @Slf4j
-public class ArchiveTaskLock {
+public class ArchiveTaskExecuteLock {
     private final String ARCHIVE_LOCK_KEY_PREFIX = "archive:task:execute";
     /**
      * 归档任务锁时间 1h
@@ -63,7 +63,7 @@ public class ArchiveTaskLock {
 
     private final StringRedisTemplate redisTemplate;
 
-    public ArchiveTaskLock(StringRedisTemplate redisTemplate) {
+    public ArchiveTaskExecuteLock(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
