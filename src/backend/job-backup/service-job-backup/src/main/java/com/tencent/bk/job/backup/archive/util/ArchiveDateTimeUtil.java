@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
 /**
@@ -69,5 +70,11 @@ public class ArchiveDateTimeUtil {
 
     public static LocalDateTime toHourlyRoundDown(LocalDateTime localDateTime) {
         return localDateTime.withMinute(0).withSecond(0).withNano(0);
+    }
+
+    public static long toTimestampMillsAtZone(LocalDateTime localDateTime, ZoneId zoneId) {
+        OffsetDateTime offsetDateTime =
+            localDateTime.atOffset(zoneId.getRules().getOffset(localDateTime));
+        return 1000 * offsetDateTime.toEpochSecond();
     }
 }

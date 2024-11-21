@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,12 +74,14 @@ public class JobInstanceArchiveTaskGenerator {
         }
         List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
-        // 归档起始时间
+        log.info("Compute archive task generate startDateTime and endDateTime begin...");
+        // 归档任务创建范围-起始时间
         LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
-        // 归档结束时间
+        // 归档任务创建范围-结束时间
         LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
         if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
-            log.info("Archive endTime is before startTime, does not require processing. startTime: {}, endTime: {}",
+            log.info("Archive endTime is before startTime, does not require generating archive task." +
+                    " startTime: {}, endTime: {}",
                 archiveStartDateTime, archiveEndDateTime);
             return;
         }
@@ -88,6 +90,7 @@ public class JobInstanceArchiveTaskGenerator {
             archiveStartDateTime, archiveEndDateTime);
         // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
         while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
+            log.info("Generate archive task for datetime : {}", archiveStartDateTime);
             // 水平分库分表
             if (isHorizontalShardingEnabled()) {
                 // 作业实例数据归档任务,现版本暂不支持
@@ -99,7 +102,7 @@ public class JobInstanceArchiveTaskGenerator {
                 JobInstanceArchiveTaskInfo archiveTaskInfo =
                     buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
                 archiveTaskList.add(archiveTaskInfo);
-                log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
+                log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
             }
 
             archiveStartDateTime = archiveStartDateTime.plusHours(1L);
@@ -132,7 +135,7 @@ public class JobInstanceArchiveTaskGenerator {
                     JobInstanceArchiveTaskInfo archiveTaskInfo =
                         buildArchiveTask(archiveTaskType, startDateTime, dbDataNode);
                     tasks.add(archiveTaskInfo);
-                    log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
                 }
             }
         });
@@ -148,7 +151,7 @@ public class JobInstanceArchiveTaskGenerator {
         int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
-        long fromTimestamp = 1000 * startDateTime.toEpochSecond(ZoneOffset.UTC);
+        long fromTimestamp = ArchiveDateTimeUtil.toTimestampMillsAtZone(startDateTime, ZoneId.systemDefault());
         archiveTask.setFromTimestamp(fromTimestamp);
         archiveTask.setToTimestamp(fromTimestamp + 1000 * 3600L);
         archiveTask.setTaskType(archiveTaskType);
@@ -171,6 +174,7 @@ public class JobInstanceArchiveTaskGenerator {
                 ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
         } else {
             // 根据最新的归档任务计算开始
+            log.info("Compute archive from latest generated archive task: {}", JsonUtils.toJson(latestArchiveTask));
             startDateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(latestArchiveTask.getToTimestamp());
         }
 
@@ -183,6 +187,7 @@ public class JobInstanceArchiveTaskGenerator {
     }
 
     private LocalDateTime computeArchiveEndTime(int archiveDays) {
+        log.info("Compute archive task generate end time before {} days", archiveDays);
         LocalDateTime now = LocalDateTime.now();
         return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
