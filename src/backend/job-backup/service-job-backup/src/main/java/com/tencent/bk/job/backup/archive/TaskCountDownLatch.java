@@ -75,8 +75,8 @@ public class TaskCountDownLatch {
 
     private synchronized void startMonitor() {
         if (!monitorInitial) {
-            log.info("Start StopTaskCounter monitor ...");
-            Thread monitorThread = new Thread("StopTaskCounterMonitor") {
+            log.info("Start TaskCountDownLatch monitor ...");
+            Thread monitorThread = new Thread("TaskCountDownLatchMonitor") {
                 @Override
                 public void run() {
                     while (!isAllTaskDone) {
