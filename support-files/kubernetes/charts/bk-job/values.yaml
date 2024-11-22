@@ -635,6 +635,9 @@ job:
     # 是否支持容器执行
     containerExecution:
       enabled: false
+    # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
+    daoAddTaskInstanceId:
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
