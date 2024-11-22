@@ -131,9 +131,10 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
 
             StopWatch watch = new StopWatch("archive-task-schedule");
             while (true) {
+                boolean locked = false;
                 try {
                     // 获取归档任务调度锁
-                    boolean locked = jobInstanceArchiveTaskScheduleLock.lock();
+                    locked = jobInstanceArchiveTaskScheduleLock.lock();
                     if (!locked) {
                         log.info("Get lock fail, wait 1s");
                         ThreadUtils.sleep(1000L);
@@ -185,7 +186,9 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     startArchiveTask(archiveTaskInfo);
                     watch.stop();
                 } finally {
-                    jobInstanceArchiveTaskScheduleLock.unlock();
+                    if (locked) {
+                        jobInstanceArchiveTaskScheduleLock.unlock();
+                    }
                     if (watch.isRunning()) {
                         watch.stop();
                     }

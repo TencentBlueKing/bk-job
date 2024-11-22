@@ -30,8 +30,6 @@ import com.tencent.bk.job.common.redis.util.LockResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-import java.util.UUID;
-
 /**
  * 归档任务创建分布式锁
  */
@@ -44,9 +42,7 @@ public class JobInstanceArchiveTaskGenerateLock {
 
     private final HeartBeatRedisLockConfig heartBeatRedisLockConfig;
 
-    private volatile HeartBeatRedisLock redisLock = null;
-
-    private volatile String lockRequestId = null;
+    private volatile LockResult lockResult = null;
 
     public JobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -57,13 +53,34 @@ public class JobInstanceArchiveTaskGenerateLock {
         );
     }
 
-    public LockResult lock() {
-        if (lockRequestId != null) {
-            log.warn("Lock is held by another process");
-            return LockResult.fail(lockRequestId);
+    public synchronized boolean lock() {
+        if (this.lockResult != null) {
+            log.warn("JobInstanceArchiveTaskGenerateLock is held by another process: {}",
+                lockResult.getLockValue());
+            return false;
         }
-        this.lockRequestId = UUID.randomUUID().toString();
-        redisLock = new HeartBeatRedisLock(redisTemplate, REDIS_LOCK_KEY, lockRequestId, heartBeatRedisLockConfig);
-        return redisLock.lock();
+
+        String lockRequestId = LockUtil.generateLockRequestId();
+        HeartBeatRedisLock redisLock = new HeartBeatRedisLock(
+            redisTemplate, REDIS_LOCK_KEY, lockRequestId, heartBeatRedisLockConfig);
+        LockResult lockResult = redisLock.lock();
+        if (!lockResult.isLockGotten()) {
+            return false;
+        }
+
+        this.lockResult = lockResult;
+        return true;
+    }
+
+    public synchronized void unlock() {
+        if (this.lockResult == null) {
+            log.warn("JobInstanceArchiveTaskGenerateLock is not found");
+            return;
+        }
+        try {
+            lockResult.tryToRelease();
+        } finally {
+            this.lockResult = null;
+        }
     }
 }

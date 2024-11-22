@@ -35,7 +35,6 @@ import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
-import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,14 +72,10 @@ public class JobInstanceArchiveTaskGenerator {
 
 
     public void generate() {
-        LockResult lockResult = null;
+        boolean locked = false;
         try {
-            lockResult = archiveTaskGenerateLock.lock();
-            if (!lockResult.isLockGotten()) {
-                log.info(
-                    "Archive task generate lock gotten by another process: {}, return",
-                    lockResult.getLockValue()
-                );
+            locked = archiveTaskGenerateLock.lock();
+            if (!locked) {
                 return;
             }
 
@@ -130,8 +125,8 @@ public class JobInstanceArchiveTaskGenerator {
                 log.info("No new archive tasks are generated");
             }
         } finally {
-            if (lockResult != null) {
-                lockResult.tryToRelease();
+            if (locked) {
+                archiveTaskGenerateLock.unlock();
             }
         }
 

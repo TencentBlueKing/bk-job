@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -66,13 +65,14 @@ public class HeartBeatRedisLocks {
     }
 
     public synchronized boolean lock(String lockKey) {
-        String lockRequestId = UUID.randomUUID().toString();
+        String lockRequestId = LockUtil.generateLockRequestId();
         String actualLockKey = buildActualLockKey(lockKey);
         HeartBeatRedisLock redisLock =
             new HeartBeatRedisLock(redisTemplate, actualLockKey, lockRequestId, heartBeatRedisLockConfig);
 
         LockResult lockResult = redisLock.lock();
         if (!lockResult.isLockGotten()) {
+            log.warn("Lock is held by another process: {}", lockResult.getLockValue());
             return false;
         }
 

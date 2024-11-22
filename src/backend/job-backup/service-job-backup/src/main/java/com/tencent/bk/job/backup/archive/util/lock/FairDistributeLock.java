@@ -28,8 +28,6 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.UUID;
-
 /**
  * 分布式锁（公平锁，非饥饿抢占方式)
  */
@@ -65,7 +63,7 @@ public class FairDistributeLock {
             // 为了保证在分布式系统中多个节点都能均匀获取到任务，需要最小获取锁间隔时间，让其他服务节点优先获取任务锁
             ThreadUtils.sleep(100L);
         }
-        String lockRequestId = UUID.randomUUID().toString();
+        String lockRequestId = LockUtil.generateLockRequestId();
         if (!LockUtils.tryGetDistributedLock(lockKey, lockRequestId, lockMills)) {
             log.info("[{}] Acquire lock failed!", lockName);
             return false;
