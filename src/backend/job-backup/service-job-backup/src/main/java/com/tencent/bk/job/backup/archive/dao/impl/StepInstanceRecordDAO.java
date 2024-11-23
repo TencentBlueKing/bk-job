@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.StepInstance;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -53,12 +52,7 @@ public class StepInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<StepI
     }
 
     public StepInstanceRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<StepInstanceRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
 

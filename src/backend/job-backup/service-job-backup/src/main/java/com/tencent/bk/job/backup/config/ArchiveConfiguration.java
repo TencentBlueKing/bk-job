@@ -36,6 +36,7 @@ import com.tencent.bk.job.backup.archive.dao.impl.GseFileExecuteObjTaskRecordDAO
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.RollingConfigRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceConfirmRecordDAO;
@@ -45,7 +46,6 @@ import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRollingTaskRecordD
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceHostRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchiver;
 import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchiver;
@@ -100,16 +100,16 @@ public class ArchiveConfiguration {
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
-        public TaskInstanceRecordDAO taskInstanceRecordDAO(
+        public JobInstanceHotRecordDAO taskInstanceRecordDAO(
             @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceRecordDAO");
-            return new TaskInstanceRecordDAO(dslContextProvider);
+            return new JobInstanceHotRecordDAO(dslContextProvider);
         }
 
         @Bean
         public TaskInstanceArchiver taskInstanceArchiver(
             ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-            TaskInstanceRecordDAO taskInstanceRecordDAO,
+            JobInstanceHotRecordDAO taskInstanceRecordDAO,
             ArchiveTablePropsStorage archiveTablePropsStorage
         ) {
             return new TaskInstanceArchiver(
@@ -476,7 +476,7 @@ public class ArchiveConfiguration {
     @Bean
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
-        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
         ArchiveProperties archiveProperties,
         JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock) {
 
@@ -492,7 +492,7 @@ public class ArchiveConfiguration {
     @Bean
     public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
-        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
         ArchiveProperties archiveProperties,
         JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
         JobInstanceSubTableArchivers jobInstanceSubTableArchivers,

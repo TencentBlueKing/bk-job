@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
@@ -56,7 +56,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final TaskInstanceRecordDAO taskInstanceRecordDAO;
+    private final JobInstanceHotRecordDAO taskInstanceRecordDAO;
 
     private final ArchiveProperties archiveProperties;
 
@@ -78,10 +78,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private volatile boolean active;
     /**
-     * 组件是否正在运行(用于 Spring Lifecycle isRunning 判断)
-     */
-    private volatile boolean running = false;
-    /**
      * 是否正在进行任务调度中
      */
     private volatile boolean scheduling = false;
@@ -96,7 +92,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
 
 
     public JobInstanceArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
-                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                           JobInstanceHotRecordDAO taskInstanceRecordDAO,
                                            ArchiveProperties archiveProperties,
                                            JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
                                            JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
@@ -164,13 +160,13 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     watch.start("evaluateTaskPriority");
                     ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo highestPriorityDbNodeTasksInfo =
                         ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks,
-                                scheduleTasksGroupByDb);
+                            scheduleTasksGroupByDb);
                     watch.stop();
                     int taskConcurrent = archiveProperties.getTasks().getJobInstance().getConcurrent();
                     if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
                         // 休眠5分钟，等待并行任务减少
                         log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);
-                        ThreadUtils.sleep(1000 * 60L);
+                        ThreadUtils.sleep(1000 * 300L);
                         continue;
                     }
 
@@ -197,6 +193,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     }
                 }
             }
+        } catch (Throwable e) {
+            log.error("Schedule archive task caught exception", e);
         } finally {
             this.scheduling = false;
         }
@@ -245,7 +243,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         }
         synchronized (lifecycleMonitor) {
             this.active = true;
-            this.running = true;
         }
     }
 
@@ -261,7 +258,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 return;
             }
             this.active = false;
-            this.running = false;
         }
         stopTasksGraceful();
         log.info("JobInstanceArchiveTaskScheduler stop successfully!");
@@ -282,7 +278,15 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         }
         try {
             if (taskCountDownLatch != null) {
-                taskCountDownLatch.waitingForAllTasksDone();
+                // 等待任务结束，最多等待 2min
+                boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(120);
+                if (!isAllTaskStopped) {
+                    log.info("Force update archive task status to suspended");
+                    for (JobInstanceArchiveTask task : scheduledTasks.values()) {
+                        archiveTaskService.updateArchiveTaskSuspendedStatus(task.getJobInstanceArchiveTaskInfo());
+                        log.info("Force update archive task status to suspended, taskId: {}", task.getTaskId());
+                    }
+                }
             }
         } catch (Throwable e) {
             log.error("Stop archive tasks caught exception", e);
@@ -314,7 +318,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
     @Override
     public boolean isRunning() {
         synchronized (this.lifecycleMonitor) {
-            return (this.running);
+            return (this.active);
         }
     }
 

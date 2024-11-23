@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
@@ -44,11 +44,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTask<TaskInstanceRecord> {
 
-    private final TaskInstanceRecordDAO taskInstanceRecordDAO;
-
     private final JobInstanceSubTableArchivers jobInstanceSubTableArchivers;
 
-    public JobInstanceMainDataArchiveTask(TaskInstanceRecordDAO taskInstanceRecordDAO,
+    public JobInstanceMainDataArchiveTask(JobInstanceHotRecordDAO jobInstanceHotRecordDAO,
                                           JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
                                           JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
@@ -58,6 +56,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(
+            jobInstanceHotRecordDAO,
             jobInstanceColdDAO,
             archiveProperties,
             archiveTaskExecuteLock,
@@ -66,7 +65,6 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             archiveTaskService,
             archiveTablePropsStorage
         );
-        this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
     }
 
@@ -76,7 +74,8 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         List<Long> jobInstanceIds =
             jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
         // 备份主表数据
-        jobInstanceColdDAO.batchInsert(jobInstanceRecords, 1000);
+        jobInstanceColdDAO.batchInsert(jobInstanceRecords,
+            archiveTablePropsStorage.getBatchInsertRowSize(jobInstanceMainRecordDAO.getTable().getName()));
         // 备份子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             tableArchiver.backupRecords(jobInstanceIds);
@@ -91,32 +90,9 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         });
         // 删除主表数据
         long startTime = System.currentTimeMillis();
-        taskInstanceRecordDAO.deleteRecords(jobInstanceIds,
+        jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(TaskInstance.TASK_INSTANCE.getName()));
         log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
             jobInstanceIds.size(), System.currentTimeMillis() - startTime);
-    }
-
-    @Override
-    protected List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
-                                                                      Long endTimestamp,
-                                                                      Long fromJobInstanceId,
-                                                                      int limit) {
-        return taskInstanceRecordDAO.readSortedJobInstanceFromHotDB(
-            fromTimestamp,
-            endTimestamp,
-            fromJobInstanceId,
-            limit
-        );
-    }
-
-    @Override
-    protected Long extractJobInstanceId(TaskInstanceRecord record) {
-        return record.get(TaskInstance.TASK_INSTANCE.ID);
-    }
-
-    @Override
-    protected Long extractJobInstanceCreateTime(TaskInstanceRecord record) {
-        return record.get(TaskInstance.TASK_INSTANCE.CREATE_TIME);
     }
 }

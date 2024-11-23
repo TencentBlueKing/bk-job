@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceMainHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
@@ -42,6 +43,7 @@ import org.jooq.TableRecord;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +53,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> implements JobInstanceArchiveTask {
+
+    /**
+     * 作业实例主表 DAO
+     */
+    protected AbstractJobInstanceMainHotRecordDAO<T> jobInstanceMainRecordDAO;
+    /**
+     * 冷 DB DAO
+     */
     protected JobInstanceColdDAO jobInstanceColdDAO;
     protected final ArchiveProperties archiveProperties;
     private final ArchiveTaskExecuteLock archiveTaskExecuteLock;
@@ -84,15 +94,21 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private final Object stopMonitor = new Object();
     private volatile ArchiveTaskStopCallback stopCallback = null;
     private volatile ArchiveTaskDoneCallback archiveTaskDoneCallback;
+    /**
+     * 任务标识-是否已被任务调度强制终止
+     */
+    private AtomicBoolean forceStoppedByScheduler = new AtomicBoolean(false);
 
 
-    public AbstractJobInstanceArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
+    public AbstractJobInstanceArchiveTask(AbstractJobInstanceMainHotRecordDAO<T> jobInstanceMainRecordDAO,
+                                          JobInstanceColdDAO jobInstanceColdDAO,
                                           ArchiveProperties archiveProperties,
                                           ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                           JobInstanceArchiveTaskInfo archiveTaskInfo,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
+        this.jobInstanceMainRecordDAO = jobInstanceMainRecordDAO;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveProperties = archiveProperties;
         this.archiveTaskExecuteLock = archiveTaskExecuteLock;
@@ -157,8 +173,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             }
 
             log.info("[{}] Start archive task", taskId);
-            archiveTaskInfo.setStatus(ArchiveTaskStatusEnum.RUNNING);
-            archiveTaskService.updateTask(archiveTaskInfo);
+            updateArchiveTask(ArchiveTaskStatusEnum.RUNNING, null);
             // 归档
             backupAndDelete();
         } catch (Throwable e) {
@@ -172,7 +187,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             archiveErrorTaskCounter.increment();
 
             // 更新归档任务状态
-            updateArchiveProgress(ArchiveTaskStatusEnum.FAIL, null);
+            updateArchiveTask(ArchiveTaskStatusEnum.FAIL, null);
         } finally {
             if (this.isAcquireLock) {
                 archiveTaskExecuteLock.unlock(taskId);
@@ -195,8 +210,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private void backupAndDelete() {
         boolean backupEnabled = isBackupEnable();
         boolean deleteEnabled = isDeleteEnable();
-
-        int readLimit = 1000;
+        // 获取主表对应的 readRowLimit
+        int readLimit = archiveTablePropsStorage.getReadRowLimit(jobInstanceMainRecordDAO.getTable().getName());
         long archivedJobInstanceCount = 0;
 
         long startTime = System.currentTimeMillis();
@@ -212,7 +227,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
                 jobInstanceRecords = readJobInstanceRecords(readLimit);
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
-                    updateArchiveProgress(ArchiveTaskStatusEnum.SUCCESS, progress);
+                    updateArchiveTask(ArchiveTaskStatusEnum.SUCCESS, null);
                     return;
                 }
                 archivedJobInstanceCount += jobInstanceRecords.size();
@@ -241,8 +256,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 Long lastJobInstanceId = extractJobInstanceId(lastRecord);
                 progress = new TimeAndIdBasedArchiveProcess(lastTimestamp, lastJobInstanceId);
                 boolean isFinished = jobInstanceRecords.size() < readLimit;
-                updateArchiveProgress(isFinished ? ArchiveTaskStatusEnum.SUCCESS : ArchiveTaskStatusEnum.RUNNING,
-                    progress);
+                updateArchiveTask(isFinished ? ArchiveTaskStatusEnum.SUCCESS : ArchiveTaskStatusEnum.RUNNING, progress);
             } while (jobInstanceRecords.size() == readLimit);
         } finally {
             long archiveCost = System.currentTimeMillis() - startTime;
@@ -256,7 +270,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         long readStartTime = System.currentTimeMillis();
         Long fromTime = progress == null ? archiveTaskInfo.getFromTimestamp() : progress.getTimestamp();
         Long fromTaskInstanceId = progress != null ? progress.getId() : null;
-        jobInstanceRecords = readSortedJobInstanceFromHotDB(fromTime,
+        jobInstanceRecords = jobInstanceMainRecordDAO.readSortedJobInstanceFromHotDB(fromTime,
             archiveTaskInfo.getToTimestamp(), fromTaskInstanceId, readLimit);
         log.info("[{}] Read sorted job instance from hot db, fromJobCreateTime: {}, toJobCreatTime: {}, " +
                 "fromJobInstanceId: {}, resultSize: {}, cost: {} ms",
@@ -299,12 +313,23 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         return isAcquireLock;
     }
 
-    private void updateArchiveProgress(ArchiveTaskStatusEnum taskStatus, TimeAndIdBasedArchiveProcess progress) {
-        archiveTaskInfo.setStatus(taskStatus);
-        archiveTaskInfo.setProcess(progress);
-        if (taskStatus != ArchiveTaskStatusEnum.RUNNING) {
-            log.info("[{}] Update archive task process, taskStatus: {}, process: {}",
-                taskId, taskStatus, progress);
+    private void updateArchiveTask(ArchiveTaskStatusEnum status,
+                                   TimeAndIdBasedArchiveProcess progress) {
+        if (status != null) {
+            archiveTaskInfo.setStatus(status);
+        }
+        if (progress != null) {
+            archiveTaskInfo.setProcess(progress);
+        }
+        if (forceStoppedByScheduler.get()) {
+            // 如果已经被归档任务调度强制终止了，就不能再去更新 db，引起数据不一致
+            log.info("[{}] Archive task is force stopped by scheduler, do not update archive task again", taskId);
+            return;
+        }
+
+        if (archiveTaskInfo.getStatus() != ArchiveTaskStatusEnum.RUNNING) {
+            log.info("[{}] Update archive task, taskStatus: {}, process: {}",
+                taskId, archiveTaskInfo.getStatus(), progress);
         }
         archiveTaskService.updateTask(archiveTaskInfo);
     }
@@ -315,30 +340,25 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     /**
-     * 从热 db 读取作业实例熟悉，按照时间+ID 的顺序排序
-     *
-     * @param fromTimestamp     时间范围-起始-作业实例创建时间（include)
-     * @param endTimestamp      时间范围-起始-作业实例创建时间（exclude)
-     * @param fromJobInstanceId 作业实例 ID-起始 (exclude)
-     * @param limit             读取记录最大数量
-     * @return 作业实例记录
-     */
-    protected abstract List<T> readSortedJobInstanceFromHotDB(Long fromTimestamp,
-                                                              Long endTimestamp,
-                                                              Long fromJobInstanceId,
-                                                              int limit);
-
-    /**
      * 从作业实例记录中提取作业实例 ID
      *
      * @param record 作业实例记录
      */
-    protected abstract Long extractJobInstanceId(T record);
+    protected Long extractJobInstanceId(T record) {
+        return record.get(jobInstanceMainRecordDAO.getJobInstanceIdField());
+    }
 
     /**
      * 从作业实例记录中提取作业实例创建时间
      *
      * @param record 作业实例记录
      */
-    protected abstract Long extractJobInstanceCreateTime(T record);
+    protected Long extractJobInstanceCreateTime(T record) {
+        return record.get(jobInstanceMainRecordDAO.getJobInstanceCreateTimeField());
+    }
+
+    @Override
+    public JobInstanceArchiveTaskInfo getJobInstanceArchiveTaskInfo() {
+        return archiveTaskInfo;
+    }
 }

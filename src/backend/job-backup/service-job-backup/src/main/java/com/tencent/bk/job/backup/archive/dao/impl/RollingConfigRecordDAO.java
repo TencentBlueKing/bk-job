@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -51,12 +50,7 @@ public class RollingConfigRecordDAO extends AbstractJobInstanceHotRecordDAO<Roll
     }
 
     public RollingConfigRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<RollingConfigRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
     @Override

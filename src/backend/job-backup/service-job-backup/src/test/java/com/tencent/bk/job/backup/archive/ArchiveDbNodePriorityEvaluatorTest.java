@@ -42,9 +42,9 @@ class ArchiveDbNodePriorityEvaluatorTest {
     void testStandaloneDb() {
 
         List<JobInstanceArchiveTaskInfo> runningTasks = new ArrayList<>();
-        runningTasks.add(genTask(DbDataNode.standaloneDbDatNode(), 20240808, 2));
-        runningTasks.add(genTask(DbDataNode.standaloneDbDatNode(), 20240808, 2));
-        runningTasks.add(genTask(DbDataNode.standaloneDbDatNode(), 20240808, 3));
+        runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 2));
+        runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 2));
+        runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 3));
 
         Map<String, Integer> scheduleTaskCountGroupByDb = new HashMap<>();
         scheduleTaskCountGroupByDb.put(DbDataNode.STANDALONE_DS_NAME, 2);
@@ -63,9 +63,9 @@ class ArchiveDbNodePriorityEvaluatorTest {
         List<JobInstanceArchiveTaskInfo> runningTasks = new ArrayList<>();
         Map<String, Integer> scheduleTaskCountGroupByDb = new HashMap<>();
 
-        runningTasks.add(genTask(DbDataNode.shardingDbDatNode("ds", 0, 1), 20240808, 1));
-        runningTasks.add(genTask(DbDataNode.shardingDbDatNode("ds", 1, 0), 20240808, 1));
-        runningTasks.add(genTask(DbDataNode.shardingDbDatNode("ds", 1, 1), 20240808, 1));
+        runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 0, 1), 20240808, 1));
+        runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 1, 0), 20240808, 1));
+        runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 1, 1), 20240808, 1));
         scheduleTaskCountGroupByDb.put("ds:0", 2);
         scheduleTaskCountGroupByDb.put("ds:1", 1);
 
@@ -77,8 +77,8 @@ class ArchiveDbNodePriorityEvaluatorTest {
         runningTasks.clear();
         scheduleTaskCountGroupByDb.clear();
 
-        runningTasks.add(genTask(DbDataNode.shardingDbDatNode("ds", 0, 1), 20240808, 1));
-        runningTasks.add(genTask(DbDataNode.shardingDbDatNode("ds", 1, 1), 20240808, 1));
+        runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 0, 1), 20240808, 1));
+        runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 1, 1), 20240808, 1));
         scheduleTaskCountGroupByDb.put("ds:0", 2);
         scheduleTaskCountGroupByDb.put("ds:1", 1);
 

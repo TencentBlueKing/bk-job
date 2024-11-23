@@ -101,11 +101,11 @@ public class DbDataNode {
         }
     }
 
-    public static DbDataNode standaloneDbDatNode() {
+    public static DbDataNode standaloneDbDataNode() {
         return new DbDataNode(DbDataNodeTypeEnum.STANDALONE, STANDALONE_DS_NAME, null, null);
     }
 
-    public static DbDataNode shardingDbDatNode(String dataSource, Integer dbIndex, Integer tableIndex) {
+    public static DbDataNode shardingDbDataNode(String dataSource, Integer dbIndex, Integer tableIndex) {
         return new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource, dbIndex, tableIndex);
     }
 

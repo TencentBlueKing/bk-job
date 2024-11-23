@@ -54,6 +54,15 @@ public interface JobInstanceHotRecordDAO<T extends Record> {
     TableField<T, Long> getJobInstanceIdField();
 
     /**
+     * 获取表中作业实例创建时间对应的字段（仅主表存在）
+     *
+     * @return ID字段
+     */
+    default TableField<T, Long> getJobInstanceCreateTimeField() {
+        return null;
+    }
+
+    /**
      * 根据作业实例 ID 列表获取表记录
      *
      * @param jobInstanceIds 作业实例 ID 列表

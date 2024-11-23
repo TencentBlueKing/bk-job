@@ -24,12 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.dao.impl;
 
-import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
-import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
-import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
-import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
-import org.jooq.Condition;
+import com.tencent.bk.job.execute.model.tables.TaskInstance;
+import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
@@ -38,45 +35,34 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * task_instance_variable DAO
+ * task_instance DAO
  */
-public class TaskInstanceVariableRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceVariableRecord> {
+public class JobInstanceHotRecordDAO extends AbstractJobInstanceMainHotRecordDAO<TaskInstanceRecord> {
 
-    private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
+    private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
 
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(TaskInstanceVariable.TASK_INSTANCE_VARIABLE.TASK_INSTANCE_ID.asc());
-        ORDER_FIELDS.add(TaskInstanceVariable.TASK_INSTANCE_VARIABLE.ID.asc());
+        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
     }
 
-    public TaskInstanceVariableRecordDAO(DSLContextProvider dslContextProvider) {
+    public JobInstanceHotRecordDAO(DSLContextProvider dslContextProvider) {
         super(dslContextProvider, TABLE);
     }
 
     @Override
-    public TableField<TaskInstanceVariableRecord, Long> getJobInstanceIdField() {
-        return TABLE.TASK_INSTANCE_ID;
+    public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
+        return TABLE.ID;
+    }
+
+    @Override
+    public TableField<TaskInstanceRecord, Long> getJobInstanceCreateTimeField() {
+        return TABLE.CREATE_TIME;
     }
 
     protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
         return ORDER_FIELDS;
     }
 
-    @Override
-    public RecordResultSet<TaskInstanceVariableRecord> executeQuery(Collection<Long> jobInstanceIds,
-                                                                    long readRowLimit) {
-        return JobInstanceRecordResultSetFactory.createMultiQueryResultSet(
-            this,
-            jobInstanceIds,
-            readRowLimit,
-            lastRecord -> {
-                List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
-                conditions.add(TABLE.ID.gt(lastRecord.getId()));
-                return conditions;
-            }
-        );
-    }
 }

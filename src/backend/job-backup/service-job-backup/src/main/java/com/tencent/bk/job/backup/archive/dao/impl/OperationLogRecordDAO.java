@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.OperationLog;
 import com.tencent.bk.job.execute.model.tables.records.OperationLogRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -53,12 +52,7 @@ public class OperationLogRecordDAO extends AbstractJobInstanceHotRecordDAO<Opera
     }
 
     public OperationLogRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<OperationLogRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
     @Override

@@ -61,11 +61,6 @@ public class ArchiveProperties {
     private int keepDays = 30;
 
     /**
-     * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-     */
-    private int readIdStepSize = 1000;
-
-    /**
      * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
      */
     private int batchInsertRowSize = 1000;
@@ -78,7 +73,7 @@ public class ArchiveProperties {
     /**
      * 每批次从 db 表中读取的记录数量
      */
-    private int readRowLimit = 10000;
+    private int readRowLimit = 1000;
 
     private Map<String, TableConfig> tableConfigs;
 
@@ -89,11 +84,6 @@ public class ArchiveProperties {
 
     @Data
     public static class TableConfig {
-        /**
-         * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-         */
-        private Integer readIdStepSize;
-
         /**
          * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
          */

@@ -27,52 +27,35 @@ package com.tencent.bk.job.backup.archive.dao.impl;
 import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSetFactory;
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
-import com.tencent.bk.job.execute.model.tables.TaskInstance;
-import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
-import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
-import org.jooq.TableField;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static org.jooq.impl.DSL.min;
 
 /**
- * task_instance DAO
+ * 作业实例 - 主表 - 热数据查询 DAO 基础抽象实现
+ *
+ * @param <T>
  */
-public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskInstanceRecord> {
+public abstract class AbstractJobInstanceMainHotRecordDAO<T extends Record> extends AbstractJobInstanceHotRecordDAO<T> {
 
-    private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
-
-    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
-
-    static {
-        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
-    }
-
-
-    public TaskInstanceRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<TaskInstanceRecord> getTable() {
-        return TABLE;
+    public AbstractJobInstanceMainHotRecordDAO(DSLContextProvider dslContextProvider, Table<T> table) {
+        super(dslContextProvider, table);
     }
 
     /**
-     * 获取表中作业的最早创建时间
+     * 获取表中作业实例的最早创建时间
      */
-    public Long getMinJobCreateTime() {
+    public Long getMinJobInstanceCreateTime() {
         Record1<Long> record =
-            dsl().select(min(TABLE.CREATE_TIME))
-                .from(TABLE)
+            dsl().select(min(getJobInstanceCreateTimeField()))
+                .from(getTable())
                 .fetchOne();
         if (record != null) {
             Long minJobCreateTime = (Long) record.get(0);
@@ -87,7 +70,7 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
      * 是否为空表
      */
     public boolean isTableEmpty() {
-        return !dsl().fetchExists(TABLE);
+        return !dsl().fetchExists(getTable());
     }
 
     /**
@@ -99,42 +82,35 @@ public class TaskInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<TaskI
      * @param limit             读取最大行数
      * @return 记录
      */
-    public List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
-                                                                   Long endTimestamp,
-                                                                   Long fromJobInstanceId,
-                                                                   int limit) {
+    public List<T> readSortedJobInstanceFromHotDB(Long fromTimestamp,
+                                                  Long endTimestamp,
+                                                  Long fromJobInstanceId,
+                                                  int limit) {
         SelectConditionStep<Record> selectConditionStep =
             dsl().select()
-                .from(TABLE)
-                .where(TABLE.CREATE_TIME.greaterOrEqual(fromTimestamp))
-                .and(TABLE.CREATE_TIME.lessThan(endTimestamp));
+                .from(getTable())
+                .where(getJobInstanceCreateTimeField().greaterOrEqual(fromTimestamp))
+                .and(getJobInstanceCreateTimeField().lessThan(endTimestamp));
         if (fromJobInstanceId != null) {
-            selectConditionStep.and(TABLE.ID.greaterThan(fromJobInstanceId));
+            selectConditionStep.and(getJobInstanceIdField().greaterThan(fromJobInstanceId));
         }
-        Result<Record> result = selectConditionStep.orderBy(TABLE.CREATE_TIME.asc(), TABLE.ID.asc())
+        Result<Record> result = selectConditionStep.orderBy(
+                getJobInstanceCreateTimeField().asc(),
+                getJobInstanceIdField().asc()
+            )
             .limit(limit)
             .fetch();
-        return result.into(TABLE);
+        return result.into(getTable());
     }
+
 
     @Override
-    public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
-        return TABLE.ID;
-    }
-
-    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
-        return ORDER_FIELDS;
-    }
-
-    @Override
-    public RecordResultSet<TaskInstanceRecord> executeQuery(Collection<Long> jobInstanceIds,
-                                                            long readRowLimit) {
+    public RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds,
+                                           long readRowLimit) {
         return JobInstanceRecordResultSetFactory.createOneQueryResultSet(
             this,
             jobInstanceIds,
             readRowLimit
         );
     }
-
-
 }

@@ -169,10 +169,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
 
     @Override
     public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
-        if (archiveTask.getStatus() == null && archiveTask.getProcess() == null) {
-            // 无需更新
-            return;
-        }
+        boolean update = false;  // 按需更新
         UpdateSetMoreStep<ArchiveTaskRecord> updateSetMoreStep;
         updateSetMoreStep = ctx
             .update(T)
@@ -180,17 +177,21 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         if (archiveTask.getStatus() != null) {
             updateSetMoreStep
                 .set(T.STATUS, JooqDataTypeUtil.toByte(archiveTask.getStatus().getStatus()));
+            update = true;
         }
         if (archiveTask.getProcess() != null) {
             updateSetMoreStep
                 .set(T.PROCESS, archiveTask.getProcess().toPersistentProcess());
+            update = true;
         }
-        updateSetMoreStep
-            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(archiveTask.getTaskType().getType())))
-            .and(T.DATA_NODE.eq(archiveTask.getDbDataNode().toDataNodeId()))
-            .and(T.DAY.eq(archiveTask.getDay()))
-            .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
-            .execute();
+        if (update) {
+            updateSetMoreStep
+                .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(archiveTask.getTaskType().getType())))
+                .and(T.DATA_NODE.eq(archiveTask.getDbDataNode().toDataNodeId()))
+                .and(T.DAY.eq(archiveTask.getDay()))
+                .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
+                .execute();
+        }
     }
 
     @Override

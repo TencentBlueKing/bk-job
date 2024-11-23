@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+
 /**
  * 作业执行实例归档任务
  */
@@ -47,5 +49,10 @@ public interface JobInstanceArchiveTask {
      * 获取任务 ID
      */
     String getTaskId();
+
+    /**
+     * 获取归档任务信息
+     */
+    JobInstanceArchiveTaskInfo getJobInstanceArchiveTaskInfo();
 
 }

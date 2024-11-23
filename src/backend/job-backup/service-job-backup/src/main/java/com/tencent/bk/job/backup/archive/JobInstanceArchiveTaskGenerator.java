@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -52,7 +52,7 @@ public class JobInstanceArchiveTaskGenerator {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final TaskInstanceRecordDAO taskInstanceRecordDAO;
+    private final JobInstanceHotRecordDAO taskInstanceRecordDAO;
 
     private final ArchiveProperties archiveProperties;
 
@@ -60,7 +60,7 @@ public class JobInstanceArchiveTaskGenerator {
 
 
     public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
+                                           JobInstanceHotRecordDAO taskInstanceRecordDAO,
                                            ArchiveProperties archiveProperties,
                                            JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock) {
 
@@ -108,7 +108,7 @@ public class JobInstanceArchiveTaskGenerator {
                         archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
                 } else {
                     // 单db
-                    DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
+                    DbDataNode dbDataNode = DbDataNode.standaloneDbDataNode();
                     JobInstanceArchiveTaskInfo archiveTaskInfo =
                         buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
                     archiveTaskList.add(archiveTaskInfo);
@@ -124,6 +124,8 @@ public class JobInstanceArchiveTaskGenerator {
             } else {
                 log.info("No new archive tasks are generated");
             }
+        } catch (Throwable e) {
+            log.error("Generate archive task caught exception", e);
         } finally {
             if (locked) {
                 archiveTaskGenerateLock.unlock();
@@ -184,7 +186,7 @@ public class JobInstanceArchiveTaskGenerator {
         if (latestArchiveTask == null) {
             // 从表数据中的 job_create_time 计算归档任务开始时间
             log.info("Latest archive task is empty, try compute from table min job create time");
-            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobCreateTime();
+            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobInstanceCreateTime();
             log.info("Min job create time in db is : {}", minJobCreateTimeMills);
             startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
                 ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));

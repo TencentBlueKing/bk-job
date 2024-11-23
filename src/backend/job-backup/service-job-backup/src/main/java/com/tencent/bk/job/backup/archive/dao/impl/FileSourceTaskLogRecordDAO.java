@@ -32,7 +32,6 @@ import com.tencent.bk.job.execute.model.tables.FileSourceTaskLog;
 import com.tencent.bk.job.execute.model.tables.records.FileSourceTaskLogRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -53,12 +52,7 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
     }
 
     public FileSourceTaskLogRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<FileSourceTaskLogRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
     @Override

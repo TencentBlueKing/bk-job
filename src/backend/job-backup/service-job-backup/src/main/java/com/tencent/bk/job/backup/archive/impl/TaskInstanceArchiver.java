@@ -26,14 +26,14 @@ package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 
 
 public class TaskInstanceArchiver extends AbstractJobInstanceSubTableArchiver {
 
     public TaskInstanceArchiver(
         JobInstanceColdDAO jobInstanceColdDAO,
-        TaskInstanceRecordDAO jobInstanceHotRecordDAO,
+        JobInstanceHotRecordDAO jobInstanceHotRecordDAO,
         ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(
             jobInstanceColdDAO,

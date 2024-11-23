@@ -45,19 +45,19 @@ public class JobInstanceArchiveTaskInfo {
     private DbDataNode dbDataNode;
 
     /**
-     * 归档任务所在天.比如 20240806
+     * 归档数据所在天.比如 20240806
      */
     private Integer day;
     /**
-     * 归档任务所在小时。 1-24
+     * 归档数据所在小时。 0-23
      */
     private Integer hour;
     /**
-     * 归档任务时间范围-from timestamp
+     * 归档数据时间范围-from timestamp
      */
     private Long fromTimestamp;
     /**
-     * 归档任务时间范围-to timestamp
+     * 归档数据时间范围-to timestamp
      */
     private Long toTimestamp;
     /**
