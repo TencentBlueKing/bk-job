@@ -61,11 +61,11 @@ public class ArchiveDateTimeUtil {
         return startOfDay.minusDays(beforeDays);
     }
 
-    public static LocalDateTime unixTimestampMillToLocalDateTime(long unixTimestampMill) {
-        // 创建一个 Instant 对象，表示从 1970-01-01T00:00:00Z 开始的指定秒数
+    public static LocalDateTime unixTimestampMillToZoneDateTime(long unixTimestampMill, ZoneId zoneId) {
+        // 创建一个 Instant 对象，表示从 1970-01-01T00:00:00Z 开始的指定毫秒数
         Instant instant = Instant.ofEpochMilli(unixTimestampMill);
-        // 将 Instant 对象转换为 当前时区的 LocalDateTime 对象
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        // 将 Instant 对象转换为 对应时区的 LocalDateTime 对象
+        return LocalDateTime.ofInstant(instant, zoneId);
     }
 
     public static LocalDateTime toHourlyRoundDown(LocalDateTime localDateTime) {

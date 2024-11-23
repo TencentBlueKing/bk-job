@@ -66,7 +66,8 @@ class ArchiveDateTimeUtilTest {
 
     @Test
     void unixTimestampMillToLocalDateTime() {
-        LocalDateTime dateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(1732072271000L);
+        LocalDateTime dateTime = ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(
+            1732072271000L, ZoneId.of("GMT+8"));
         assertThat(dateTime).isEqualTo(LocalDateTime.of(2024, 11, 20, 11, 11, 11));
     }
 

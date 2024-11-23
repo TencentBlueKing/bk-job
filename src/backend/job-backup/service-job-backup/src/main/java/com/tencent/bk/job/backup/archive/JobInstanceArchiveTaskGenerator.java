@@ -38,7 +38,9 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -58,16 +60,21 @@ public class JobInstanceArchiveTaskGenerator {
 
     private final JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock;
 
+    /**
+     * 归档数据时间范围计算所依据的时区
+     */
+    private final ZoneId archiveZoneId;
+
 
     public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
                                            JobInstanceHotRecordDAO taskInstanceRecordDAO,
                                            ArchiveProperties archiveProperties,
                                            JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock) {
-
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
         this.archiveTaskGenerateLock = archiveTaskGenerateLock;
+        archiveZoneId = getArchiveBasedTimeZone(archiveProperties);
     }
 
 
@@ -169,7 +176,7 @@ public class JobInstanceArchiveTaskGenerator {
         int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
-        long fromTimestamp = ArchiveDateTimeUtil.toTimestampMillsAtZone(startDateTime, ZoneId.systemDefault());
+        long fromTimestamp = ArchiveDateTimeUtil.toTimestampMillsAtZone(startDateTime, archiveZoneId);
         archiveTask.setFromTimestamp(fromTimestamp);
         archiveTask.setToTimestamp(fromTimestamp + 1000 * 3600L);
         archiveTask.setTaskType(archiveTaskType);
@@ -189,14 +196,33 @@ public class JobInstanceArchiveTaskGenerator {
             Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobInstanceCreateTime();
             log.info("Min job create time in db is : {}", minJobCreateTimeMills);
             startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
-                ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
+                ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(minJobCreateTimeMills, archiveZoneId));
         } else {
             // 根据最新的归档任务计算开始
             log.info("Compute archive from latest generated archive task: {}", JsonUtils.toJson(latestArchiveTask));
-            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(latestArchiveTask.getToTimestamp());
+            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(
+                latestArchiveTask.getToTimestamp(), archiveZoneId);
         }
 
         return startDateTime;
+    }
+
+    /**
+     * 获取归档数据时间范围计算所依据的时区
+     *
+     * @param archiveProperties 归档配置
+     * @return 时区
+     */
+    private ZoneId getArchiveBasedTimeZone(ArchiveProperties archiveProperties) throws DateTimeException {
+        ZoneId zoneId;
+        if (StringUtils.isBlank(archiveProperties.getTimeZone())) {
+            zoneId = ZoneId.systemDefault();
+            log.info("Use system zone as archive base time zone, zoneId: {}", zoneId);
+            return zoneId;
+        }
+        zoneId = ZoneId.of(archiveProperties.getTimeZone());
+        log.info("Use configured zone as archive base time zone, zoneId: {}", zoneId);
+        return zoneId;
     }
 
     private boolean isHorizontalShardingEnabled() {
@@ -206,7 +232,7 @@ public class JobInstanceArchiveTaskGenerator {
 
     private LocalDateTime computeArchiveEndTime(int archiveDays) {
         log.info("Compute archive task generate end time before {} days", archiveDays);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(archiveZoneId);
         return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

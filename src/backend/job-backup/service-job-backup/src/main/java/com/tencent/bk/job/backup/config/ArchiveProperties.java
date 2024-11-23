@@ -55,10 +55,16 @@ public class ArchiveProperties {
      * 触发时间 CRON 表达式
      */
     private String cron;
+
     /**
      * DB数据保留天数
      */
     private int keepDays = 30;
+
+    /**
+     * 归档数据时间范围计算所依据的时区，如果不指定默认为系统时区
+     */
+    private String timeZone;
 
     /**
      * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
