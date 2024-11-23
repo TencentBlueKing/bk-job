@@ -40,6 +40,7 @@ public class ArchiveTaskWorker extends Thread {
     public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask, Tracer tracer) {
         this.tracer = tracer;
         this.archiveTask = archiveTask;
+        this.archiveTask.initArchiveTaskWorker(this);
         this.setName("ArchiveWorker-" + archiveTask.getTaskId());
     }
 

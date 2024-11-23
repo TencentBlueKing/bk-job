@@ -281,10 +281,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 // 等待任务结束，最多等待 2min
                 boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(120);
                 if (!isAllTaskStopped) {
-                    log.info("Force update archive task status to suspended");
                     for (JobInstanceArchiveTask task : scheduledTasks.values()) {
-                        archiveTaskService.updateArchiveTaskSuspendedStatus(task.getJobInstanceArchiveTaskInfo());
-                        log.info("Force update archive task status to suspended, taskId: {}", task.getTaskId());
+                        task.forceStopAtOnce();
                     }
                 }
             }

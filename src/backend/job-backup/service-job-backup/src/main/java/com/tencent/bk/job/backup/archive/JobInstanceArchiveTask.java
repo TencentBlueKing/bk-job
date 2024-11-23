@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-
 /**
  * 作业执行实例归档任务
  */
@@ -37,12 +35,22 @@ public interface JobInstanceArchiveTask {
     void execute();
 
     /**
-     * 归档任务被终止时候调用
+     * 优雅终止任务
      *
      * @param stopCallback 回调
      */
     void stop(ArchiveTaskStopCallback stopCallback);
 
+    /**
+     * 强制终止
+     */
+    void forceStopAtOnce();
+
+    /**
+     * 注册任务完成回调函数
+     *
+     * @param archiveTaskDoneCallback 回调函数
+     */
     void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
 
     /**
@@ -51,8 +59,10 @@ public interface JobInstanceArchiveTask {
     String getTaskId();
 
     /**
-     * 获取归档任务信息
+     * 设置归档任务的 worker 信息
+     *
+     * @param archiveTaskWorker 归档任务执行线程
      */
-    JobInstanceArchiveTaskInfo getJobInstanceArchiveTaskInfo();
+    void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker);
 
 }

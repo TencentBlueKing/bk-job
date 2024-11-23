@@ -97,7 +97,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     /**
      * 任务标识-是否已被任务调度强制终止
      */
-    private AtomicBoolean forceStoppedByScheduler = new AtomicBoolean(false);
+    private final AtomicBoolean forceStoppedByScheduler = new AtomicBoolean(false);
+    /**
+     * 当前归档线程
+     */
+    private ArchiveTaskWorker archiveTaskWorker;
 
 
     public AbstractJobInstanceArchiveTask(AbstractJobInstanceMainHotRecordDAO<T> jobInstanceMainRecordDAO,
@@ -154,6 +158,16 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 log.info("[{}] Archive task is stopped", taskId);
             }
         }
+    }
+
+    @Override
+    public void forceStopAtOnce() {
+        log.info("Force stop archive task at once. taskId: {}", taskId);
+        forceStoppedByScheduler.set(true);
+        // 更新归档任务状态为“暂停”
+        archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
+        // 打断当前线程，退出执行
+        archiveTaskWorker.interrupt();
     }
 
     @Override
@@ -358,7 +372,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     @Override
-    public JobInstanceArchiveTaskInfo getJobInstanceArchiveTaskInfo() {
-        return archiveTaskInfo;
+    public void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker) {
+        this.archiveTaskWorker = archiveTaskWorker;
     }
 }
