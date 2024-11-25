@@ -110,7 +110,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         archiveTask.setTaskEndTime(record.get(T.TASK_END_TIME));
         archiveTask.setTaskCost(record.get(T.TASK_COST));
         String detail = record.get(T.DETAIL);
-        if (StringUtils.isNotEmpty(detail)) {
+        if (StringUtils.isNotBlank(detail)) {
             archiveTask.setDetail(JsonUtils.fromJson(detail, ArchiveTaskExecutionDetail.class));
         }
         return archiveTask;

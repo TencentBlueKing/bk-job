@@ -91,9 +91,16 @@ public class JobInstanceArchiveTaskInfo {
     /**
      * 归档任务运行详情
      */
-    private ArchiveTaskExecutionDetail detail = new ArchiveTaskExecutionDetail();
+    private ArchiveTaskExecutionDetail detail;
 
     public String buildTaskUniqueId() {
         return taskType.getType() + ":" + day + ":" + hour + ":" + dbDataNode.toDataNodeId();
+    }
+
+    public ArchiveTaskExecutionDetail getOrInitExecutionDetail() {
+        if (detail == null) {
+            detail = new ArchiveTaskExecutionDetail();
+        }
+        return detail;
     }
 }

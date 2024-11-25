@@ -77,7 +77,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     /**
      * 归档进度
      */
-    private TimeAndIdBasedArchiveProcess progress;
+    private final TimeAndIdBasedArchiveProcess progress;
 
     private boolean isAcquireLock;
     /**
@@ -195,11 +195,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 taskId
             ).getMessage();
             log.error(msg, e);
-            updateArchiveTaskExecutionDetail(null, null, e.getMessage());
             archiveErrorTaskCounter.increment();
 
             // 更新归档任务状态
-            updateCompletedExecuteInfo(ArchiveTaskStatusEnum.FAIL, null, null);
+            setArchiveTaskExecutionDetail(null, null, e.getMessage());
+            updateCompletedExecuteInfo(ArchiveTaskStatusEnum.FAIL, null);
         } finally {
             if (this.isAcquireLock) {
                 archiveTaskExecuteLock.unlock(taskId);
@@ -239,7 +239,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
                 jobInstanceRecords = readJobInstanceRecords(readLimit);
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
-                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, null, null);
+                    long archiveCost = System.currentTimeMillis() - startTime;
+                    setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, null);
                     return;
                 }
                 archivedJobInstanceCount += jobInstanceRecords.size();
@@ -271,7 +273,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 boolean isFinished = jobInstanceRecords.size() < readLimit;
                 if (isFinished) {
                     // 更新任务结束信息
-                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, progress, null);
+                    long archiveCost = System.currentTimeMillis() - startTime;
+                    setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, progress);
                 } else {
                     // 更新任务运行信息
                     updateRunningExecuteInfo(progress);
@@ -279,21 +283,22 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             } while (jobInstanceRecords.size() == readLimit);
         } finally {
             long archiveCost = System.currentTimeMillis() - startTime;
-            updateArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+            setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
         }
     }
 
-    private void updateArchiveTaskExecutionDetail(Long archiveRecordSize,
-                                                  Long costTime,
-                                                  String errorMsg) {
+    private void setArchiveTaskExecutionDetail(Long archiveRecordSize,
+                                               Long costTime,
+                                               String errorMsg) {
+        ArchiveTaskExecutionDetail executionDetail = archiveTaskInfo.getOrInitExecutionDetail();
         if (archiveRecordSize != null) {
-            archiveTaskInfo.getDetail().setArchivedRecordSize(archiveRecordSize);
+            executionDetail.setArchivedRecordSize(archiveRecordSize);
         }
         if (costTime != null) {
-            archiveTaskInfo.getDetail().setCostTime(costTime);
+            executionDetail.setCostTime(costTime);
         }
         if (StringUtils.isNotEmpty(errorMsg)) {
-            archiveTaskInfo.getDetail().setErrorMsg(StringUtil.substring(errorMsg, 10240));
+            executionDetail.setErrorMsg(StringUtil.substring(errorMsg, 10240));
         }
     }
 
@@ -372,7 +377,6 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private void updateRunningExecuteInfo(TimeAndIdBasedArchiveProcess process) {
-        this.progress = progress;
         archiveTaskInfo.setProcess(process);
 
         if (!checkUpdateEnabled()) {
@@ -389,13 +393,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private void updateCompletedExecuteInfo(ArchiveTaskStatusEnum status,
-                                            TimeAndIdBasedArchiveProcess process,
-                                            ArchiveTaskExecutionDetail detail) {
+                                            TimeAndIdBasedArchiveProcess process) {
         archiveTaskInfo.setStatus(status);
         if (process != null) {
             archiveTaskInfo.setProcess(process);
         }
-        archiveTaskInfo.setDetail(detail);
         archiveTaskInfo.setTaskEndTime(System.currentTimeMillis());
         archiveTaskInfo.setTaskCost(archiveTaskInfo.getTaskEndTime() - archiveTaskInfo.getTaskStartTime());
 

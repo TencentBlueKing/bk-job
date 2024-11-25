@@ -37,10 +37,12 @@ public class ArchiveTaskContext {
     }
 
     public void accumulateTableBackup(String tableName, long backupRows, long costTime) {
-        archiveTaskInfo.getDetail().accumulateTableBackup(tableName, backupRows, costTime);
+        archiveTaskInfo.getOrInitExecutionDetail()
+            .accumulateTableBackup(tableName, backupRows, costTime);
     }
 
     public void accumulateTableDelete(String tableName, long deleteRows, long costTime) {
-        archiveTaskInfo.getDetail().accumulateTableDelete(tableName, deleteRows, costTime);
+        archiveTaskInfo.getOrInitExecutionDetail()
+            .accumulateTableDelete(tableName, deleteRows, costTime);
     }
 }
