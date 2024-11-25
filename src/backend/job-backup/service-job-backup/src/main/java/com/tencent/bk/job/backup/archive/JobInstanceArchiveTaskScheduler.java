@@ -125,8 +125,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 return;
             }
 
-            StopWatch watch = new StopWatch("archive-task-schedule");
             while (true) {
+                StopWatch watch = new StopWatch("archive-task-schedule");
                 boolean locked = false;
                 try {
                     // 获取归档任务调度锁
