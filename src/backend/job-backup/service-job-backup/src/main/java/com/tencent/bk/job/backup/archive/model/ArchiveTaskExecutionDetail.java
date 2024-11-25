@@ -24,46 +24,54 @@
 
 package com.tencent.bk.job.backup.archive.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.ToString;
+import net.minidev.json.annotate.JsonIgnore;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 作业实例归档任务执行详情;通过 json 反序列化存储到 MySQL 中
+ */
 @Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveTaskSummary {
+@ToString
+@PersistenceObject
+public class ArchiveTaskExecutionDetail {
     /**
-     * 归档任务
+     * 归档任务耗时（毫秒）
      */
-    private JobInstanceArchiveTaskInfo archiveTask;
-
+    private long costTime;
     /**
-     * 归档模式
+     * 已归档的记录数量（主表）
      */
-    private String archiveMode;
-
+    private long archivedRecordSize;
     /**
-     * 归档总耗时（单位毫秒)
+     * 执行错误信息
      */
-    private Long archiveCost;
+    private String errorMsg;
 
-    /**
-     * 归档的记录数量
-     */
-    private Long archivedRecordSize;
+    private Map<String, ArchiveTableDetail> tables = new HashMap<>();
 
-    /**
-     * 归档详细说明信息
-     */
-    private String message;
-
-    /**
-     * 任务是否被跳过
-     */
-    private boolean skip;
-
-    public ArchiveTaskSummary(JobInstanceArchiveTaskInfo archiveTask, String archiveMode) {
-        this.archiveTask = archiveTask;
-        this.archiveMode = archiveMode;
+    public void accumulateTableBackup(String tableName, long backupRows, long costTime) {
+        ArchiveTableDetail archiveTableDetail = getOrInitArchiveTableDetail(tableName);
+        archiveTableDetail.accumulateBackup(backupRows, costTime);
     }
+
+    public void accumulateTableDelete(String tableName, long deleteRows, long costTime) {
+        ArchiveTableDetail archiveTableDetail = getOrInitArchiveTableDetail(tableName);
+        archiveTableDetail.accumulateDelete(deleteRows, costTime);
+    }
+
+    @JsonIgnore
+    private ArchiveTableDetail getOrInitArchiveTableDetail(String tableName) {
+        ArchiveTableDetail archiveTableDetail = tables.get(tableName);
+        if (archiveTableDetail == null) {
+            archiveTableDetail = new ArchiveTableDetail();
+            tables.put(tableName, archiveTableDetail);
+        }
+        return archiveTableDetail;
+    }
+
 }

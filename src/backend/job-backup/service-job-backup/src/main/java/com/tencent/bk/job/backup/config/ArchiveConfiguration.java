@@ -61,7 +61,6 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
-import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -104,18 +103,6 @@ public class ArchiveConfiguration {
             @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceRecordDAO");
             return new JobInstanceHotRecordDAO(dslContextProvider);
-        }
-
-        @Bean
-        public TaskInstanceArchiver taskInstanceArchiver(
-            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-            JobInstanceHotRecordDAO taskInstanceRecordDAO,
-            ArchiveTablePropsStorage archiveTablePropsStorage
-        ) {
-            return new TaskInstanceArchiver(
-                jobInstanceColdDAOObjectProvider.getIfAvailable(),
-                taskInstanceRecordDAO,
-                archiveTablePropsStorage);
         }
 
         @Bean(name = "stepInstanceRecordDAO")

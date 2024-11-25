@@ -35,4 +35,12 @@ public class ArchiveTaskContext {
     public ArchiveTaskContext(JobInstanceArchiveTaskInfo archiveTaskInfo) {
         this.archiveTaskInfo = archiveTaskInfo;
     }
+
+    public void accumulateTableBackup(String tableName, long backupRows, long costTime) {
+        archiveTaskInfo.getDetail().accumulateTableBackup(tableName, backupRows, costTime);
+    }
+
+    public void accumulateTableDelete(String tableName, long deleteRows, long costTime) {
+        archiveTaskInfo.getDetail().accumulateTableDelete(tableName, deleteRows, costTime);
+    }
 }

@@ -60,20 +60,27 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
 
     @Override
     public void backupRecords(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
+        long backupRows = 0;
+
         RecordResultSet<? extends TableRecord<?>> recordResultSet =
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
-        long startTime = System.currentTimeMillis();
+        long readStartTime = System.currentTimeMillis();
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
             log.info("[{}] Read {}, recordSize: {}, cost: {}ms", ArchiveTaskContextHolder.getArchiveTaskId(),
-                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - startTime);
+                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - readStartTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
+                backupRows += records.size();
             }
         }
+
+        long costTime = System.currentTimeMillis() - startTime;
+        ArchiveTaskContextHolder.get().accumulateTableBackup(tableName, backupRows, costTime);
     }
 
     @Override
@@ -84,5 +91,8 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         log.info("[{}] Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms",
             ArchiveTaskContextHolder.getArchiveTaskId(), tableName,
             jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
+
+        long costTime = System.currentTimeMillis() - startTime;
+        ArchiveTaskContextHolder.get().accumulateTableDelete(tableName, deleteRows, costTime);
     }
 }

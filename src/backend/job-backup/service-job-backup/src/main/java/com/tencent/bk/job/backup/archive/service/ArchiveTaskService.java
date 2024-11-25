@@ -25,7 +25,11 @@
 package com.tencent.bk.job.backup.archive.service;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
+import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
+import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,8 +82,88 @@ public class ArchiveTaskService {
         return archiveTaskDAO.countScheduleTasksGroupByDb(taskType);
     }
 
-    public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
-        archiveTaskDAO.updateTask(archiveTask);
+
+    /**
+     * 更新归档任务执行信息 - 启动后
+     *
+     * @param taskType  任务类型
+     * @param dataNode  数据节点
+     * @param day       归档数据所在天
+     * @param hour      归档数据所在小时
+     * @param startTime 任务开始时间
+     */
+    public void updateStartedExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                         DbDataNode dataNode,
+                                         Integer day,
+                                         Integer hour,
+                                         Long startTime) {
+        archiveTaskDAO.updateStartedExecuteInfo(
+            taskType,
+            dataNode,
+            day,
+            hour,
+            startTime
+        );
+
+    }
+
+    /**
+     * 更新归档任务执行信息 - 运行中
+     *
+     * @param taskType 任务类型
+     * @param dataNode 数据节点
+     * @param day      归档数据所在天
+     * @param hour     归档数据所在小时
+     * @param process  进度
+     */
+    public void updateRunningExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                         DbDataNode dataNode,
+                                         Integer day,
+                                         Integer hour,
+                                         TimeAndIdBasedArchiveProcess process) {
+        archiveTaskDAO.updateRunningExecuteInfo(
+            taskType,
+            dataNode,
+            day,
+            hour,
+            process
+        );
+
+    }
+
+    /**
+     * 更新归档任务执行信息 - 结束
+     *
+     * @param taskType 任务类型
+     * @param dataNode 数据节点
+     * @param day      归档数据所在天
+     * @param hour     归档数据所在小时
+     * @param status   任务状态
+     * @param process  进度
+     * @param endTime  结束时间
+     * @param cost     任务耗时
+     * @param detail   执行详情
+     */
+    public void updateCompletedExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                           DbDataNode dataNode,
+                                           Integer day,
+                                           Integer hour,
+                                           ArchiveTaskStatusEnum status,
+                                           TimeAndIdBasedArchiveProcess process,
+                                           Long endTime,
+                                           Long cost,
+                                           ArchiveTaskExecutionDetail detail) {
+        archiveTaskDAO.updateCompletedExecuteInfo(
+            taskType,
+            dataNode,
+            day,
+            hour,
+            status,
+            process,
+            endTime,
+            cost,
+            detail
+        );
     }
 
     public JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {

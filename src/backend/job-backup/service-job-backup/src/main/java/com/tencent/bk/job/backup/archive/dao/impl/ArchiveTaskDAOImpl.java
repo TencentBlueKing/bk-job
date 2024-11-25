@@ -25,20 +25,21 @@
 package com.tencent.bk.job.backup.archive.dao.impl;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.model.tables.ArchiveTask;
-import com.tencent.bk.job.backup.model.tables.records.ArchiveTaskRecord;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.TableField;
-import org.jooq.UpdateSetMoreStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,7 +67,11 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         T.PROCESS,
         T.STATUS,
         T.CREATE_TIME,
-        T.LAST_UPDATE_TIME
+        T.LAST_UPDATE_TIME,
+        T.TASK_START_TIME,
+        T.TASK_END_TIME,
+        T.TASK_COST,
+        T.DETAIL
     };
 
     @Autowired
@@ -101,6 +106,13 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         archiveTask.setStatus(ArchiveTaskStatusEnum.valOf(record.get(T.STATUS)));
         archiveTask.setCreateTime(record.get(T.CREATE_TIME));
         archiveTask.setLastUpdateTime(record.get(T.LAST_UPDATE_TIME));
+        archiveTask.setTaskStartTime(record.get(T.TASK_START_TIME));
+        archiveTask.setTaskEndTime(record.get(T.TASK_END_TIME));
+        archiveTask.setTaskCost(record.get(T.TASK_COST));
+        String detail = record.get(T.DETAIL);
+        if (StringUtils.isNotEmpty(detail)) {
+            archiveTask.setDetail(JsonUtils.fromJson(detail, ArchiveTaskExecutionDetail.class));
+        }
         return archiveTask;
     }
 
@@ -119,7 +131,11 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                 T.PROCESS,
                 T.STATUS,
                 T.CREATE_TIME,
-                T.LAST_UPDATE_TIME)
+                T.LAST_UPDATE_TIME,
+                T.TASK_START_TIME,
+                T.TASK_END_TIME,
+                T.TASK_COST,
+                T.DETAIL)
             .values(
                 JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getTaskType().getType()),
                 jobInstanceArchiveTaskInfo.getDbDataNode().toDataNodeId(),
@@ -132,7 +148,11 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                     jobInstanceArchiveTaskInfo.getProcess().toPersistentProcess() : null,
                 JooqDataTypeUtil.toByte(jobInstanceArchiveTaskInfo.getStatus().getStatus()),
                 createTime,
-                createTime
+                createTime,
+                null,
+                null,
+                null,
+                null
             )
             .execute();
     }
@@ -167,31 +187,62 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         return dbAndTaskCount;
     }
 
+
     @Override
-    public void updateTask(JobInstanceArchiveTaskInfo archiveTask) {
-        boolean update = false;  // 按需更新
-        UpdateSetMoreStep<ArchiveTaskRecord> updateSetMoreStep;
-        updateSetMoreStep = ctx
-            .update(T)
-            .set(T.LAST_UPDATE_TIME, System.currentTimeMillis());
-        if (archiveTask.getStatus() != null) {
-            updateSetMoreStep
-                .set(T.STATUS, JooqDataTypeUtil.toByte(archiveTask.getStatus().getStatus()));
-            update = true;
-        }
-        if (archiveTask.getProcess() != null) {
-            updateSetMoreStep
-                .set(T.PROCESS, archiveTask.getProcess().toPersistentProcess());
-            update = true;
-        }
-        if (update) {
-            updateSetMoreStep
-                .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(archiveTask.getTaskType().getType())))
-                .and(T.DATA_NODE.eq(archiveTask.getDbDataNode().toDataNodeId()))
-                .and(T.DAY.eq(archiveTask.getDay()))
-                .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
-                .execute();
-        }
+    public void updateStartedExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                         DbDataNode dataNode,
+                                         Integer day,
+                                         Integer hour,
+                                         Long startTime) {
+        ctx.update(T)
+            .set(T.LAST_UPDATE_TIME, System.currentTimeMillis())
+            .set(T.STATUS, JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus()))
+            .set(T.TASK_START_TIME, startTime)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DATA_NODE.eq(dataNode.toDataNodeId()))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
+            .execute();
+    }
+
+    @Override
+    public void updateRunningExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                         DbDataNode dataNode,
+                                         Integer day,
+                                         Integer hour,
+                                         TimeAndIdBasedArchiveProcess process) {
+        ctx.update(T)
+            .set(T.LAST_UPDATE_TIME, System.currentTimeMillis())
+            .set(T.PROCESS, process.toPersistentProcess())
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DATA_NODE.eq(dataNode.toDataNodeId()))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
+            .execute();
+    }
+
+    @Override
+    public void updateCompletedExecuteInfo(ArchiveTaskTypeEnum taskType,
+                                           DbDataNode dataNode,
+                                           Integer day,
+                                           Integer hour,
+                                           ArchiveTaskStatusEnum status,
+                                           TimeAndIdBasedArchiveProcess process,
+                                           Long endTime,
+                                           Long cost,
+                                           ArchiveTaskExecutionDetail detail) {
+        ctx.update(T)
+            .set(T.LAST_UPDATE_TIME, System.currentTimeMillis())
+            .set(T.STATUS, JooqDataTypeUtil.toByte(status.getStatus()))
+            .set(T.PROCESS, process.toPersistentProcess())
+            .set(T.TASK_END_TIME, endTime)
+            .set(T.TASK_COST, cost)
+            .set(T.DETAIL, detail != null ? JsonUtils.toJson(detail) : null)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DATA_NODE.eq(dataNode.toDataNodeId()))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
+            .execute();
     }
 
     @Override
