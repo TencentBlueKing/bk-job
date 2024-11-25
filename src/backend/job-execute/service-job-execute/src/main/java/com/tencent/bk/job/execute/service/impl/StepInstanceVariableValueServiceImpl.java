@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
@@ -57,18 +58,22 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
     private final StepInstanceVariableDAO stepInstanceVariableDAO;
     private final StepInstanceService stepInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
+    private final IdGen idGen;
 
     @Autowired
     public StepInstanceVariableValueServiceImpl(StepInstanceVariableDAO stepInstanceVariableDAO,
                                                 StepInstanceService stepInstanceService,
-                                                TaskInstanceVariableService taskInstanceVariableService) {
+                                                TaskInstanceVariableService taskInstanceVariableService,
+                                                IdGen idGen) {
         this.stepInstanceVariableDAO = stepInstanceVariableDAO;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
+        this.idGen = idGen;
     }
 
     @Override
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
+        variableValues.setId(idGen.genStepInstanceVariableId());
         stepInstanceVariableDAO.saveVariableValues(variableValues);
     }
 

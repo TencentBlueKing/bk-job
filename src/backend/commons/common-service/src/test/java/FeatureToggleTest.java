@@ -62,7 +62,7 @@ class FeatureToggleTest {
         MockedStatic<ApplicationContextRegister> mockedStatic = Mockito.mockStatic(ApplicationContextRegister.class);
         mockedStatic.when(() -> ApplicationContextRegister.getBean(FeatureToggleProperties.class))
             .thenReturn(featureToggleProperties);
-        FeatureStore mockFeatureStore = new InMemoryFeatureStore();
+        FeatureStore mockFeatureStore = new InMemoryFeatureStore(featureToggleProperties);
         mockFeatureStore.init();
         mockedStatic.close();
 

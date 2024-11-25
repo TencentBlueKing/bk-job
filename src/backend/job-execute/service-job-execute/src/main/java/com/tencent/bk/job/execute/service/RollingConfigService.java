@@ -60,4 +60,6 @@ public interface RollingConfigService {
      * @return boolean true启用，false未启用
      */
     boolean isTaskRollingEnabled(long taskInstanceId);
+
+    long addRollingConfig(RollingConfigDTO rollingConfig);
 }

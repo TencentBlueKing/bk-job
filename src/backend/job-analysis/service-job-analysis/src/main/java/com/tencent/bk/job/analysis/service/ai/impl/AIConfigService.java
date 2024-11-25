@@ -25,7 +25,6 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.config.AIProperties;
-import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

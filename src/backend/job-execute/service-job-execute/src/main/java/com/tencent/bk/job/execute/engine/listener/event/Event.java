@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Event {
+public class Event implements JobMessage {
     /**
      * 事件源
      */

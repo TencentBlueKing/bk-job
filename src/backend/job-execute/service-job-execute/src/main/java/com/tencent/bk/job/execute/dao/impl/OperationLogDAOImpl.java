@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
@@ -45,7 +45,7 @@ import java.util.List;
 @Repository
 public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
-    
+
     @Autowired
     public OperationLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
         super(dslContextProviderFactory, TABLE.getName());
@@ -54,22 +54,38 @@ public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     @Override
     @MySQLOperation(table = "operation_log", op = DbOperationEnum.WRITE)
     public long saveOperationLog(OperationLogDTO operationLog) {
-        Record record = dsl().insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
-            TABLE.CREATE_TIME, TABLE.DETAIL)
-            .values(operationLog.getTaskInstanceId(),
+        Record record = dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.OP_CODE,
+                TABLE.OPERATOR,
+                TABLE.CREATE_TIME,
+                TABLE.DETAIL)
+            .values(
+                operationLog.getId(),
+                operationLog.getTaskInstanceId(),
                 JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
                 operationLog.getOperator(),
                 operationLog.getCreateTime(),
                 JsonUtils.toJson(operationLog.getDetail()))
-            .returning(TABLE.ID).fetchOne();
-        return record.getValue(TABLE.ID);
+            .returning(TABLE.ID)
+            .fetchOne();
+
+        return operationLog.getId() != null ? operationLog.getId() : record.getValue(TABLE.ID);
     }
 
     @Override
     @MySQLOperation(table = "operation_log", op = DbOperationEnum.READ)
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
-        Result result = dsl().select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
-            , TABLE.DETAIL)
+        Result result = dsl()
+            .select(
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.OP_CODE,
+                TABLE.OPERATOR,
+                TABLE.CREATE_TIME,
+                TABLE.DETAIL)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(TABLE.CREATE_TIME.desc())

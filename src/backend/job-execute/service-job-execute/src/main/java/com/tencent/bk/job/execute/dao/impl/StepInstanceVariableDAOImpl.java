@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
@@ -46,8 +46,15 @@ import java.util.List;
 @Repository
 public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstanceVariableDAO {
     private static final StepInstanceVariable TABLE = StepInstanceVariable.STEP_INSTANCE_VARIABLE;
-    private TableField[] FIELDS = {TABLE.TASK_INSTANCE_ID, TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT, TABLE.TYPE, TABLE.PARAM_VALUES};
+
+    private final TableField<?, ?>[] FIELDS = {
+        TABLE.ID,
+        TABLE.TASK_INSTANCE_ID,
+        TABLE.STEP_INSTANCE_ID,
+        TABLE.EXECUTE_COUNT,
+        TABLE.TYPE,
+        TABLE.PARAM_VALUES
+    };
 
 
     @Autowired
@@ -58,24 +65,39 @@ public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstance
     @Override
     @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.WRITE)
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
-        dsl().insertInto(TABLE, FIELDS)
-                .values(variableValues.getTaskInstanceId(), variableValues.getStepInstanceId(),
-                        variableValues.getExecuteCount(), JooqDataTypeUtil.toByte(variableValues.getType()),
-                        JsonUtils.toJson(variableValues))
-                .execute();
+        dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.TYPE,
+                TABLE.PARAM_VALUES)
+            .values(
+                variableValues.getId(),
+                variableValues.getTaskInstanceId(),
+                variableValues.getStepInstanceId(),
+                variableValues.getExecuteCount(),
+                JooqDataTypeUtil.toByte(variableValues.getType()),
+                JsonUtils.toJson(variableValues))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
-    public StepInstanceVariableValuesDTO getStepVariableValues(long stepInstanceId, int executeCount,
+    public StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
+                                                               long stepInstanceId,
+                                                               int executeCount,
                                                                VariableValueTypeEnum variableValueType) {
         Record record = dsl().select(FIELDS)
-                .from(TABLE)
-                .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(TABLE.EXECUTE_COUNT.eq(executeCount))
-                .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
-                .limit(1)
-                .fetchOne();
+            .from(TABLE)
+            .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
+                TABLE.TASK_INSTANCE_ID::eq))
+            .and(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(TABLE.EXECUTE_COUNT.eq(executeCount))
+            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
+            .limit(1)
+            .fetchOne();
         return extract(record);
     }
 
@@ -85,6 +107,7 @@ public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstance
         }
 
         StepInstanceVariableValuesDTO stepInstanceVariableValues = new StepInstanceVariableValuesDTO();
+        stepInstanceVariableValues.setId(record.get(TABLE.ID));
         stepInstanceVariableValues.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         stepInstanceVariableValues.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
         stepInstanceVariableValues.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));

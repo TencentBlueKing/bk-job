@@ -31,6 +31,7 @@ import com.tencent.bk.job.execute.engine.consts.GseTaskActionEnum;
 import com.tencent.bk.job.execute.engine.executor.GseTaskManager;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.GseTaskEvent;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
 import com.tencent.bk.job.execute.service.GseTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class GseTaskListener {
+public class GseTaskListener extends BaseJobMqListener {
     private final GseTaskManager gseTaskManager;
     private final GseTaskService gseTaskService;
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
@@ -65,13 +67,15 @@ public class GseTaskListener {
     /**
      * 处理GSE任务相关的事件
      *
-     * @param gseTaskEvent GSE任务事件
+     * @param message 消息
      */
-    public void handleEvent(GseTaskEvent gseTaskEvent) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        GseTaskEvent gseTaskEvent = (GseTaskEvent) message.getPayload();
         GseTaskDTO gseTask = null;
         try {
             log.info("Handle gse task event: {}, duration: {}ms", gseTaskEvent, gseTaskEvent.duration());
-            gseTask = gseTaskService.getGseTask(gseTaskEvent.getGseTaskId());
+            gseTask = gseTaskService.getGseTask(gseTaskEvent.getJobInstanceId(), gseTaskEvent.getGseTaskId());
             String requestId = gseTaskEvent.getRequestId();
             int action = gseTaskEvent.getAction();
             if (GseTaskActionEnum.START.getValue() == action) {
@@ -100,8 +104,10 @@ public class GseTaskListener {
 
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.refreshStep(
+                gseTask.getTaskInstanceId(),
                 gseTask.getStepInstanceId(),
                 EventSource.buildGseTaskEventSource(
+                    gseTask.getTaskInstanceId(),
                     gseTask.getStepInstanceId(),
                     gseTask.getExecuteCount(),
                     gseTask.getBatch(),

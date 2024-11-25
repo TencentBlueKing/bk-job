@@ -3,6 +3,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -29,14 +30,17 @@ public class ScriptExecuteObjectTaskServiceImpl
 
     private final ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO;
     private final ScriptAgentTaskDAO scriptAgentTaskDAO;
+    private final IdGen idGen;
 
     @Autowired
     public ScriptExecuteObjectTaskServiceImpl(StepInstanceService stepInstanceService,
                                               ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO,
-                                              ScriptAgentTaskDAO scriptAgentTaskDAO) {
+                                              ScriptAgentTaskDAO scriptAgentTaskDAO,
+                                              IdGen idGen) {
         super(stepInstanceService);
         this.scriptExecuteObjectTaskDAO = scriptExecuteObjectTaskDAO;
         this.scriptAgentTaskDAO = scriptAgentTaskDAO;
+        this.idGen = idGen;
     }
 
     @Override
@@ -45,6 +49,7 @@ public class ScriptExecuteObjectTaskServiceImpl
             return;
         }
 
+        tasks.forEach(task -> task.setId(idGen.genGseScriptExecuteObjTaskId()));
         if (isSaveTasksUsingExecuteObjectMode(tasks)) {
             scriptExecuteObjectTaskDAO.batchSaveTasks(tasks);
         } else {
@@ -65,11 +70,11 @@ public class ScriptExecuteObjectTaskServiceImpl
     }
 
     @Override
-    public int getSuccessTaskCount(long stepInstanceId, int executeCount) {
-        if (isStepInstanceRecordExist(stepInstanceId)) {
-            return scriptExecuteObjectTaskDAO.getSuccessTaskCount(stepInstanceId, executeCount);
+    public int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
+        if (isStepInstanceRecordExist(taskInstanceId, stepInstanceId)) {
+            return scriptExecuteObjectTaskDAO.getSuccessTaskCount(taskInstanceId, stepInstanceId, executeCount);
         } else {
-            return scriptAgentTaskDAO.getSuccessAgentTaskCount(stepInstanceId, executeCount);
+            return scriptAgentTaskDAO.getSuccessAgentTaskCount(taskInstanceId, stepInstanceId, executeCount);
         }
     }
 
@@ -78,10 +83,12 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ExecuteObjectTask> executeObjectTasks;
         long stepInstanceId = stepInstance.getId();
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasks(stepInstanceId, executeCount, batch);
+            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasks(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch);
         } else {
             // 兼容老版本数据
-            executeObjectTasks = scriptAgentTaskDAO.listAgentTasks(stepInstanceId, executeCount, batch);
+            executeObjectTasks = scriptAgentTaskDAO.listAgentTasks(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch);
         }
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
         return executeObjectTasks;
@@ -92,10 +99,12 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByGseTaskId(gseTaskId);
+            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByGseTaskId(
+                stepInstance.getTaskInstanceId(), gseTaskId);
         } else {
             // 兼容老版本数据
-            executeObjectTasks = scriptAgentTaskDAO.listAgentTasksByGseTaskId(gseTaskId);
+            executeObjectTasks = scriptAgentTaskDAO.listAgentTasksByGseTaskId(
+                stepInstance.getTaskInstanceId(), gseTaskId);
         }
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
         return executeObjectTasks;
@@ -115,13 +124,22 @@ public class ScriptExecuteObjectTaskServiceImpl
         long stepInstanceId = stepInstance.getId();
         ExecuteObjectTask executeObjectTask;
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId, executeCount,
-                batch, executeObject.getId());
+            executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(
+                stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount,
+                batch,
+                executeObject.getId()
+            );
         } else {
             // 兼容老版本不使用执行对象的场景(仅支持主机）
             Long hostId = executeObject.getHost().getHostId();
-            executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount,
-                batch, hostId);
+            executeObjectTask = scriptAgentTaskDAO.getAgentTaskByHostId(
+                stepInstance.getTaskInstanceId(),
+                stepInstanceId,
+                executeCount,
+                batch,
+                hostId
+            );
         }
         fillExecuteObjectForExecuteObjectTask(stepInstance, executeObjectTask);
         return executeObjectTask;
@@ -151,10 +169,16 @@ public class ScriptExecuteObjectTaskServiceImpl
         long stepInstanceId = stepInstance.getId();
 
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+            resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(
+                stepInstance.getTaskInstanceId(),
+                stepInstanceId,
+                executeCount,
+                batch
+            );
         } else {
             // 兼容历史数据
-            resultGroups = scriptAgentTaskDAO.listResultGroups(stepInstanceId, executeCount, batch);
+            resultGroups = scriptAgentTaskDAO.listResultGroups(stepInstance.getTaskInstanceId(),
+                stepInstanceId, executeCount, batch);
         }
         return resultGroups;
     }
@@ -168,12 +192,24 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
-                executeCount, batch, status, tag);
+            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                status,
+                tag
+            );
         } else {
             // 兼容历史数据
             executeObjectTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(
-                stepInstance.getId(), executeCount, batch, status, tag);
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                status,
+                tag
+            );
         }
 
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
@@ -192,20 +228,38 @@ public class ScriptExecuteObjectTaskServiceImpl
         List<ExecuteObjectTask> executeObjectTasks;
 
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(stepInstance.getId(),
-                executeCount, batch, status, tag, limit, orderField, order);
+            executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                status,
+                tag,
+                limit,
+                orderField,
+                order
+            );
         } else {
             // 兼容历史数据
-            executeObjectTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(stepInstance.getId(), executeCount,
-                batch, status, tag, limit, orderField, order);
+            executeObjectTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                executeCount,
+                batch,
+                status,
+                tag,
+                limit,
+                orderField,
+                order
+            );
         }
 
         fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTasks);
         return executeObjectTasks;
     }
 
-    private boolean isStepInstanceRecordExist(long stepInstanceId) {
-        return scriptExecuteObjectTaskDAO.isStepInstanceRecordExist(stepInstanceId);
+    private boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
+        return scriptExecuteObjectTaskDAO.isStepInstanceRecordExist(taskInstanceId, stepInstanceId);
     }
 
     @Override
@@ -215,12 +269,12 @@ public class ScriptExecuteObjectTaskServiceImpl
                                  Integer actualExecuteCount,
                                  Long gseTaskId) {
         if (stepInstance.isSupportExecuteObjectFeature()) {
-            scriptExecuteObjectTaskDAO.updateTaskFields(stepInstance.getId(), executeCount, batch,
-                actualExecuteCount, gseTaskId);
+            scriptExecuteObjectTaskDAO.updateTaskFields(stepInstance.getTaskInstanceId(), stepInstance.getId(),
+                executeCount, batch, actualExecuteCount, gseTaskId);
         } else {
             // 兼容老版本方式
-            scriptAgentTaskDAO.updateAgentTaskFields(stepInstance.getId(), executeCount, batch,
-                actualExecuteCount, gseTaskId);
+            scriptAgentTaskDAO.updateAgentTaskFields(stepInstance.getTaskInstanceId(), stepInstance.getId(),
+                executeCount, batch, actualExecuteCount, gseTaskId);
         }
     }
 }

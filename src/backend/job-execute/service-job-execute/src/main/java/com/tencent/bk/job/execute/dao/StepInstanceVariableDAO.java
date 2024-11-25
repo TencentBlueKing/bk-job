@@ -43,12 +43,15 @@ public interface StepInstanceVariableDAO {
     /**
      * 获取步骤变量值
      *
+     * @param taskInstanceId    作业实例 ID
      * @param stepInstanceId    步骤实例ID
      * @param executeCount      执行次数
      * @param variableValueType 参数值类型
      * @return 步骤变量值
      */
-    StepInstanceVariableValuesDTO getStepVariableValues(long stepInstanceId, int executeCount,
+    StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
+                                                        long stepInstanceId,
+                                                        int executeCount,
                                                         VariableValueTypeEnum variableValueType);
 
     /**

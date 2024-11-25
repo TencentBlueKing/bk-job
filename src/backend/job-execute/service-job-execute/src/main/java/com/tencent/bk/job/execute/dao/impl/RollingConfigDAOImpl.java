@@ -43,7 +43,7 @@ import org.springframework.stereotype.Repository;
 public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
-    
+
     @Autowired
     public RollingConfigDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
         super(dslContextProviderFactory, TABLE.getName());
@@ -53,28 +53,31 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
     @MySQLOperation(table = "rolling_config", op = DbOperationEnum.WRITE)
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
         Record record = dsl().insertInto(
-            TABLE,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.CONFIG_NAME,
-            TABLE.CONFIG)
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.CONFIG_NAME,
+                TABLE.CONFIG)
             .values(
+                rollingConfig.getId(),
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
                 JsonUtils.toJson(rollingConfig.getConfigDetail()))
             .returning(TABLE.ID)
             .fetchOne();
-        assert record != null;
-        return record.get(TABLE.ID);
+
+        return rollingConfig.getId() != null ? rollingConfig.getId() : record.getValue(TABLE.ID);
+
     }
 
     @Override
     @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
     public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
         Record record = dsl().select(
-            TABLE.ID,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.CONFIG_NAME,
-            TABLE.CONFIG)
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.CONFIG_NAME,
+                TABLE.CONFIG)
             .from(TABLE)
             .where(TABLE.ID.eq(rollingConfigId))
             .fetchOne();

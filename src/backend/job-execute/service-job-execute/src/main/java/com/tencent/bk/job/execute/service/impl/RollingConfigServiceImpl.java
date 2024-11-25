@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchExecuteObjectsResolver;
 import com.tencent.bk.job.execute.engine.rolling.RollingExecuteObjectBatch;
@@ -55,10 +56,13 @@ import java.util.stream.Collectors;
 public class RollingConfigServiceImpl implements RollingConfigService {
 
     private final RollingConfigDAO rollingConfigDAO;
+    private final IdGen idGen;
+
 
     @Autowired
-    public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO) {
+    public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO, IdGen idGen) {
         this.rollingConfigDAO = rollingConfigDAO;
+        this.idGen = idGen;
     }
 
     @Override
@@ -124,7 +128,7 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         stepRollingConfigs.put(stepInstance.getId(), new StepRollingConfigDO(true));
         rollingConfigDetailDO.setStepRollingConfigs(stepRollingConfigs);
 
-        Long rollingConfigId = rollingConfigDAO.saveRollingConfig(taskInstanceRollingConfig);
+        Long rollingConfigId = addRollingConfig(taskInstanceRollingConfig);
         taskInstanceRollingConfig.setId(rollingConfigId);
         return taskInstanceRollingConfig;
     }
@@ -137,5 +141,11 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     @Override
     public boolean isTaskRollingEnabled(long taskInstanceId) {
         return rollingConfigDAO.existsRollingConfig(taskInstanceId);
+    }
+
+    @Override
+    public long addRollingConfig(RollingConfigDTO rollingConfig) {
+        rollingConfig.setId(idGen.genRollingConfigId());
+        return rollingConfigDAO.saveRollingConfig(rollingConfig);
     }
 }

@@ -60,13 +60,15 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
     @DisplayName("根据执行对象ID获取任务")
     public void testGetTaskByExecuteObjectId() {
         String executeObjectId = "1:101";
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
         int executeCount = 0;
         int batch = 1;
         FileTaskModeEnum mode = FileTaskModeEnum.UPLOAD;
-        ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId,
-            executeCount, batch, mode, executeObjectId);
+        ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(
+            taskInstanceId, stepInstanceId, executeCount, batch, mode, executeObjectId);
 
+        assertThat(executeObjectTask.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(executeObjectTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(executeObjectTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(executeObjectTask.getBatch()).isEqualTo(batch);
@@ -86,6 +88,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
     public void testBatchSaveTasks() {
         List<ExecuteObjectTask> executeObjectTaskList = new ArrayList<>();
         ExecuteObjectTask executeObjectTask1 = new ExecuteObjectTask();
+        executeObjectTask1.setTaskInstanceId(100L);
         executeObjectTask1.setStepInstanceId(100L);
         executeObjectTask1.setExecuteCount(1);
         executeObjectTask1.setActualExecuteCount(1);
@@ -102,6 +105,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         executeObjectTaskList.add(executeObjectTask1);
 
         ExecuteObjectTask executeObjectTask2 = new ExecuteObjectTask();
+        executeObjectTask2.setTaskInstanceId(100L);
         executeObjectTask2.setStepInstanceId(100L);
         executeObjectTask2.setExecuteCount(1);
         executeObjectTask2.setActualExecuteCount(1);
@@ -120,8 +124,9 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
 
         fileExecuteObjectTaskDAO.batchSaveTasks(executeObjectTaskList);
 
-        ExecuteObjectTask executeObjectTask1Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(100L, 1, 1,
+        ExecuteObjectTask executeObjectTask1Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(100L, 100L, 1, 1,
             FileTaskModeEnum.UPLOAD, "1:101");
+        assertThat(executeObjectTask1Return.getTaskInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask1Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask1Return.getExecuteCount()).isEqualTo(1L);
         assertThat(executeObjectTask1Return.getActualExecuteCount()).isEqualTo(1L);
@@ -137,8 +142,9 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask1Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.AGENT_ERROR);
 
 
-        ExecuteObjectTask executeObjectTask2Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(100L, 1, 1,
+        ExecuteObjectTask executeObjectTask2Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(100L, 100L, 1, 1,
             FileTaskModeEnum.DOWNLOAD, "1:102");
+        assertThat(executeObjectTask2Return.getTaskInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask2Return.getExecuteCount()).isEqualTo(1L);
         assertThat(executeObjectTask2Return.getActualExecuteCount()).isEqualTo(1L);
@@ -193,7 +199,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
 
         fileExecuteObjectTaskDAO.batchUpdateTasks(executeObjectTaskList);
 
-        ExecuteObjectTask executeObjectTask1Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 0, 2,
+        ExecuteObjectTask executeObjectTask1Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 1L, 0, 2,
             FileTaskModeEnum.UPLOAD, "1:101");
         assertThat(executeObjectTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(executeObjectTask1Return.getExecuteCount()).isEqualTo(0L);
@@ -208,7 +214,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask1Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.AGENT_ERROR);
 
 
-        ExecuteObjectTask executeObjectTask2Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 0, 2,
+        ExecuteObjectTask executeObjectTask2Return = fileExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 1L, 0, 2,
             FileTaskModeEnum.DOWNLOAD, "1:103");
         assertThat(executeObjectTask2Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(executeObjectTask2Return.getExecuteCount()).isEqualTo(0L);
@@ -226,7 +232,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
     @Test
     @DisplayName("任务结果分组")
     public void listResultGroups() {
-        List<ResultGroupBaseDTO> resultGroups = fileExecuteObjectTaskDAO.listResultGroups(1L, 0, null);
+        List<ResultGroupBaseDTO> resultGroups = fileExecuteObjectTaskDAO.listResultGroups(1L, 1L, 0, null);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -239,7 +245,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         }
 
         // 根据滚动执行批次查询
-        resultGroups = fileExecuteObjectTaskDAO.listResultGroups(1L, 0, 2);
+        resultGroups = fileExecuteObjectTaskDAO.listResultGroups(1L, 1L, 0, 2);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -254,7 +260,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
 
     @Test
     public void testListAgentTaskByResultGroup() {
-        List<ExecuteObjectTask> executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(1L, 0, 2, 9);
+        List<ExecuteObjectTask> executeObjectTasks = fileExecuteObjectTaskDAO.listTaskByResultGroup(1L, 1L, 0, 2, 9);
         assertThat(executeObjectTasks.size()).isEqualTo(1);
         assertThat(executeObjectTasks.get(0).getStepInstanceId()).isEqualTo(1L);
         assertThat(executeObjectTasks.get(0).getExecuteCount()).isEqualTo(0);

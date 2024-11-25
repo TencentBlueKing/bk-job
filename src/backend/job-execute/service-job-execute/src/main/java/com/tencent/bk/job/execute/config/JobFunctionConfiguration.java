@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
@@ -52,40 +53,41 @@ import java.util.function.Consumer;
 @Slf4j
 public class JobFunctionConfiguration {
     @Bean
-    public Consumer<JobEvent> handleJobEvent(@Autowired JobListener jobListener) {
+    public Consumer<Message<JobEvent>> handleJobEvent(@Autowired JobListener jobListener) {
         log.info("Init handleJobEvent consumer");
-        return jobListener::handleEvent;
+
+        return jobListener::onEvent;
     }
 
     @Bean
-    public Consumer<StepEvent> handleStepEvent(@Autowired StepListener stepListener) {
+    public Consumer<Message<StepEvent>> handleStepEvent(@Autowired StepListener stepListener) {
         log.info("Init handleStepEvent consumer");
-        return stepListener::handleEvent;
+        return stepListener::onEvent;
     }
 
     @Bean
-    public Consumer<GseTaskEvent> handleGseTaskEvent(@Autowired GseTaskListener gseTaskListener) {
+    public Consumer<Message<GseTaskEvent>> handleGseTaskEvent(@Autowired GseTaskListener gseTaskListener) {
         log.info("Init handleGseTaskEvent consumer");
-        return gseTaskListener::handleEvent;
+        return gseTaskListener::onEvent;
     }
 
     @Bean
-    public Consumer<ResultHandleTaskResumeEvent> handleResultHandleResumeEvent(
+    public Consumer<Message<ResultHandleTaskResumeEvent>> handleResultHandleResumeEvent(
         @Autowired ResultHandleResumeListener resultHandleResumeListener) {
         log.info("Init handleResultHandleResumeEvent consumer");
-        return resultHandleResumeListener::handleEvent;
+        return resultHandleResumeListener::onEvent;
     }
 
     @Bean
-    public Consumer<TaskNotifyDTO> handleNotifyMsg(@Autowired NotifyMsgListener notifyMsgListener) {
+    public Consumer<Message<TaskNotifyDTO>> handleNotifyMsg(@Autowired NotifyMsgListener notifyMsgListener) {
         log.info("Init handleNotifyMsg consumer");
-        return notifyMsgListener::handleMessage;
+        return notifyMsgListener::onEvent;
     }
 
     @Bean
-    public Consumer<JobCallbackDTO> handleCallbackMsg(@Autowired CallbackListener callbackListener) {
+    public Consumer<Message<JobCallbackDTO>> handleCallbackMsg(@Autowired CallbackListener callbackListener) {
         log.info("Init handleCallbackMsg consumer");
-        return callbackListener::handleMessage;
+        return callbackListener::onEvent;
     }
 
 }

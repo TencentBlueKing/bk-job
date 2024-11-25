@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.dao.FileSourceTaskLogDAO;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
@@ -48,6 +47,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
+import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
@@ -95,7 +95,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private FileWorkerHostService fileWorkerHostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
-    private FileSourceTaskLogDAO fileSourceTaskLogDAO;
+    private FileSourceTaskLogService fileSourceTaskLogService;
     private final ThirdFilePrepareTaskResultHandler resultHandler;
     private StepInstanceService stepInstanceService;
     private int pullTimes = 0;
@@ -129,14 +129,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         FileWorkerHostService fileWorkerHostService,
         LogService logService,
         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-        FileSourceTaskLogDAO fileSourceTaskLogDAO
+        FileSourceTaskLogService fileSourceTaskLogService
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.accountService = accountService;
         this.fileWorkerHostService = fileWorkerHostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
+        this.fileSourceTaskLogService = fileSourceTaskLogService;
         this.stepInstanceService = stepInstanceService;
     }
 
@@ -289,12 +289,14 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     }
 
     private void updateBatchTaskTimeStatistics() {
-        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogDAO.getFileSourceTaskLogByBatchTaskId(batchTaskId);
+        FileSourceTaskLogDTO fileSourceTaskLogDTO = fileSourceTaskLogService.getFileSourceTaskLogByBatchTaskId(
+            stepInstance.getTaskInstanceId(), batchTaskId);
         if (fileSourceTaskLogDTO == null) {
             return;
         }
         Long endTime = System.currentTimeMillis();
-        fileSourceTaskLogDAO.updateTimeConsumingByBatchTaskId(
+        fileSourceTaskLogService.updateTimeConsumingByBatchTaskId(
+            stepInstance.getTaskInstanceId(),
             batchTaskId,
             null,
             endTime,
@@ -350,7 +352,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             log.warn("[{}]: no serverInfo updated", stepInstance.getUniqueKey());
         }
         //更新StepInstance
-        stepInstanceService.updateResolvedSourceFile(stepInstance.getId(), fileSourceList);
+        stepInstanceService.updateResolvedSourceFile(
+            stepInstance.getTaskInstanceId(), stepInstance.getId(), fileSourceList);
         resultHandler.onSuccess(this);
     }
 
@@ -368,10 +371,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 stepInstance.getUniqueKey(),
                 stepInstance.getAppId()
             );
-            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+            stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(), stepInstance.getId(),
+                RunStatusEnum.FAIL.getValue());
             taskExecuteMQEventDispatcher.dispatchJobEvent(
                 JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                    EventSource.buildStepEventSource(stepInstance.getId())));
+                    EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
             return;
         }
         fileSourceDTO.setAccountId(accountDTO.getId());

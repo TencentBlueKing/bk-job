@@ -635,6 +635,9 @@ job:
     # 是否支持容器执行
     containerExecution:
       enabled: false
+    # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
+    daoAddTaskInstanceId:
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -1023,6 +1026,16 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+  # 分布式ID组件 leaf 配置
+  leaf:
+    enabled: false
+  # id生成器配置
+  idGen:
+    migration:
+      enabled: false
+    # auto_increment: 自增长;leaf_segment: leaf segment id
+    type: auto_increment
+
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
@@ -1220,12 +1233,20 @@ backupConfig:
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
       keeyDays: 30
-      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-      readIdStepSize: 1000
+      # 每批次从 db 表中读取的记录数量
+      readRowLimit: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      tasks:
+        jobInstance:
+          dataSourceMode: standalone
+          concurrent: 6
+          # shardingDsDataNodes:
+          #   - dataSourceName: ds
+          #     dbCount: 2
+          #     tableCount: 31
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup

@@ -224,7 +224,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                 return;
             }
             // 查StepInstanceScript
-            Byte scriptType = stepInstanceDAO.getScriptTypeByStepInstanceId(stepInstanceId);
+            Byte scriptType = stepInstanceDAO.getScriptTypeByStepInstanceId(taskInstanceDTO.getId(), stepInstanceId);
             // 更新统计数据
             // 快速执行脚本：按脚本类型统计
             String scriptTypeName = ScriptTypeEnum.getName(scriptType.intValue());
@@ -249,7 +249,8 @@ public class StatisticsServiceImpl implements StatisticsService {
                 return;
             }
             // 查StepInstanceFile
-            FileStepInstanceDTO fileStepInstanceDTO = stepInstanceDAO.getFileStepInstance(stepInstanceId);
+            FileStepInstanceDTO fileStepInstanceDTO = stepInstanceDAO.getFileStepInstance(
+                taskInstanceDTO.getId(), stepInstanceId);
             // 更新统计数据
             // 快速分发文件：按传输模式统计
             Integer notExistPathHandler = fileStepInstanceDTO.getNotExistPathHandler();
