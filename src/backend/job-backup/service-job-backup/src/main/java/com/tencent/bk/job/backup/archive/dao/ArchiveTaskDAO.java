@@ -51,6 +51,18 @@ public interface ArchiveTaskDAO {
     List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType);
 
     /**
+     * 获取归档任务
+     *
+     * @param taskType 查询条件 - 任务类型
+     * @param status   查询条件 - 任务状态
+     * @param limit    查询条件 - 查询最大数量
+     * @return 归档任务列表
+     */
+    List<JobInstanceArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                               ArchiveTaskStatusEnum status,
+                                               int limit);
+
+    /**
      * 返回根据 db 分组的归档任务数量
      *
      * @param taskType 归档任务类型
@@ -114,10 +126,11 @@ public interface ArchiveTaskDAO {
 
     JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId);
 
-    /**
-     * 设置归档任务状态为暂停
-     *
-     * @param archiveTask 归档任务
-     */
-    void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask);
+    void updateArchiveTaskStatus(ArchiveTaskTypeEnum taskType,
+                                 DbDataNode dataNode,
+                                 Integer day,
+                                 Integer hour,
+                                 ArchiveTaskStatusEnum status);
+
+    Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType);
 }

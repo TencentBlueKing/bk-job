@@ -24,24 +24,61 @@
 
 package com.tencent.bk.job.backup.archive.util.lock;
 
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import com.tencent.bk.job.common.redis.util.LockResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 归档任务创建分布式锁
+ * 抢占锁
  */
 @Slf4j
-public class JobInstanceArchiveTaskGenerateLock extends PreemptiveDistributeLock {
+public class PreemptiveDistributeLock {
 
+    private final StringRedisTemplate redisTemplate;
 
-    public JobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
-        super(redisTemplate,
-            "job:instance:archive:task:generate",
-            new HeartBeatRedisLockConfig(
-                "RedisKeyHeartBeatThread-job:instance:archive:task:generate",
-                60 * 1000L, // 60s 超时时间
-                10 * 1000L // 10s 续期一次
-            ));
+    private final String redisLockKey;
+
+    private final HeartBeatRedisLockConfig heartBeatRedisLockConfig;
+
+    private volatile LockResult lockResult = null;
+
+    public PreemptiveDistributeLock(StringRedisTemplate redisTemplate,
+                                    String redisLockKey,
+                                    HeartBeatRedisLockConfig heartBeatRedisLockConfig) {
+        this.redisTemplate = redisTemplate;
+        this.redisLockKey = redisLockKey;
+        this.heartBeatRedisLockConfig = heartBeatRedisLockConfig;
+    }
+
+    public synchronized boolean lock() {
+        if (this.lockResult != null) {
+            log.warn("[{}] Lock is held by another process: {}", redisLockKey, lockResult.getLockValue());
+            return false;
+        }
+
+        String lockRequestId = LockUtil.generateLockRequestId();
+        HeartBeatRedisLock redisLock = new HeartBeatRedisLock(
+            redisTemplate, redisLockKey, lockRequestId, heartBeatRedisLockConfig);
+        LockResult lockResult = redisLock.lock();
+        if (!lockResult.isLockGotten()) {
+            return false;
+        }
+
+        this.lockResult = lockResult;
+        return true;
+    }
+
+    public synchronized void unlock() {
+        if (this.lockResult == null) {
+            log.warn("[{}] Lock is not found", redisLockKey);
+            return;
+        }
+        try {
+            lockResult.tryToRelease();
+        } finally {
+            this.lockResult = null;
+        }
     }
 }

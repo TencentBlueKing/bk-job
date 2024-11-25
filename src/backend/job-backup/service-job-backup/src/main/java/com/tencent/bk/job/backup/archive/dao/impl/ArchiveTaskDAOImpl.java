@@ -171,13 +171,28 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
+    public List<JobInstanceArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                                      ArchiveTaskStatusEnum status,
+                                                      int limit) {
+        Result<Record> result = ctx.select(ALL_FIELDS)
+            .from(T)
+            .where(T.STATUS.eq(JooqDataTypeUtil.toByte(status.getStatus())))
+            .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .limit(limit)
+            .fetch();
+
+        List<JobInstanceArchiveTaskInfo> tasks = new ArrayList<>(result.size());
+        result.forEach(record -> tasks.add(extract(record)));
+        return tasks;
+    }
+
+    @Override
     public Map<String, Integer> countScheduleTasksGroupByDb(ArchiveTaskTypeEnum taskType) {
         Result<Record2<String, Integer>> result = ctx.select(T.DB_NODE, DSL.count().as("task_count"))
             .from(T)
             .where(T.STATUS.in(
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.PENDING.getStatus()),
-                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()),
-                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
+                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus())))
             .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .groupBy(T.DB_NODE)
             .fetch();
@@ -251,8 +266,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
             .from(T)
             .where(T.STATUS.in(
                 JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.PENDING.getStatus()),
-                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()),
-                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.FAIL.getStatus())))
+                JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus())))
             .and(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
             .and(T.DB_NODE.eq(dbNodeId))
             .orderBy(T.DAY.asc(), T.HOUR.asc(), T.DATA_NODE)
@@ -263,14 +277,32 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask) {
+    public void updateArchiveTaskStatus(ArchiveTaskTypeEnum taskType,
+                                        DbDataNode dataNode,
+                                        Integer day,
+                                        Integer hour,
+                                        ArchiveTaskStatusEnum status) {
         ctx.update(T)
-            .set(T.STATUS, JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.SUSPENDED.getStatus()))
-            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(archiveTask.getTaskType().getType())))
-            .and(T.DATA_NODE.eq(archiveTask.getDbDataNode().toDataNodeId()))
-            .and(T.DAY.eq(archiveTask.getDay()))
-            .and(T.HOUR.eq(archiveTask.getHour().byteValue()))
-            .and(T.STATUS.eq(JooqDataTypeUtil.toByte(ArchiveTaskStatusEnum.RUNNING.getStatus())))
+            .set(T.STATUS, JooqDataTypeUtil.toByte(status.getStatus()))
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DATA_NODE.eq(dataNode.toDataNodeId()))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
             .execute();
+    }
+
+    @Override
+    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType) {
+        Result<Record2<Byte, Integer>> result = ctx.select(T.STATUS, DSL.count().as("task_count"))
+            .from(T)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .groupBy(T.STATUS)
+            .fetch();
+        Map<ArchiveTaskStatusEnum, Integer> taskCountGroupByStatus = new HashMap<>();
+        result.forEach(record -> taskCountGroupByStatus.put(
+            ArchiveTaskStatusEnum.valOf(record.get(T.STATUS).intValue()),
+            (Integer) record.get("task_count"))
+        );
+        return taskCountGroupByStatus;
     }
 }

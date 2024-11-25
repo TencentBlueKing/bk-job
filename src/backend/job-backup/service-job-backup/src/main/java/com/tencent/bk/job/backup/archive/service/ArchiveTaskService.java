@@ -73,6 +73,20 @@ public class ArchiveTaskService {
     }
 
     /**
+     * 获取归档任务
+     *
+     * @param taskType 查询条件 - 任务类型
+     * @param status   查询条件 - 任务状态
+     * @param limit    查询条件 - 查询最大数量
+     * @return 归档任务列表
+     */
+    public List<JobInstanceArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                                      ArchiveTaskStatusEnum status,
+                                                      int limit) {
+        return archiveTaskDAO.listTasks(taskType, status, limit);
+    }
+
+    /**
      * 返回根据 db 分组的归档任务数量
      *
      * @param taskType 归档任务类型
@@ -171,11 +185,29 @@ public class ArchiveTaskService {
     }
 
     /**
-     * 设置归档任务状态为暂停
+     * 更新归档任务执行状态
      *
-     * @param archiveTask 归档任务
+     * @param taskType 任务类型
+     * @param dataNode 数据节点
+     * @param day      归档数据所在天
+     * @param hour     归档数据所在小时
+     * @param status   任务状态
      */
-    public void updateArchiveTaskSuspendedStatus(JobInstanceArchiveTaskInfo archiveTask) {
-        archiveTaskDAO.updateArchiveTaskSuspendedStatus(archiveTask);
+    public void updateArchiveTaskStatus(ArchiveTaskTypeEnum taskType,
+                                        DbDataNode dataNode,
+                                        Integer day,
+                                        Integer hour,
+                                        ArchiveTaskStatusEnum status) {
+        archiveTaskDAO.updateArchiveTaskStatus(taskType, dataNode, day, hour, status);
+    }
+
+    /**
+     * 按照任务类型和状态，统计归档任务数量
+     *
+     * @param taskType 任务类型
+     * @return 数量
+     */
+    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType) {
+        return archiveTaskDAO.countTaskByStatus(taskType);
     }
 }

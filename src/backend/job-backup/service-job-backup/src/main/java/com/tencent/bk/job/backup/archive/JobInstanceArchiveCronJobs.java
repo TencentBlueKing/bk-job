@@ -42,12 +42,16 @@ public class JobInstanceArchiveCronJobs {
 
     private final ArchiveProperties archiveProperties;
 
+    private final FailArchiveTaskReScheduler failArchiveTaskReScheduler;
+
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
                                       JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-                                      ArchiveProperties archiveProperties) {
+                                      ArchiveProperties archiveProperties,
+                                      FailArchiveTaskReScheduler failArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
+        this.failArchiveTaskReScheduler = failArchiveTaskReScheduler;
     }
 
     /**
@@ -74,5 +78,18 @@ public class JobInstanceArchiveCronJobs {
         log.info("Schedule and execute archive task start...");
         jobInstanceArchiveTaskScheduler.schedule();
         log.info("Schedule and execute archive task done");
+    }
+
+    /**
+     * 失败归档任务重调度，每小时触发一次
+     */
+    @Scheduled(cron = "0 59 * * * *")
+    public void scheduleFailedTasks() {
+        if (!archiveProperties.isEnabled()) {
+            return;
+        }
+        log.info("ReSchedule fail/timout archive task start...");
+        failArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
+        log.info("ReSchedule fail/timeout archive task done");
     }
 }

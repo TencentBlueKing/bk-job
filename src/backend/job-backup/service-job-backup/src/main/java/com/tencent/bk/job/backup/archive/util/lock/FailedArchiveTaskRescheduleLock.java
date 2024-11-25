@@ -29,19 +29,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 归档任务创建分布式锁
+ * 失败/超时归档任务重调度分布式锁
  */
 @Slf4j
-public class JobInstanceArchiveTaskGenerateLock extends PreemptiveDistributeLock {
+public class FailedArchiveTaskRescheduleLock extends PreemptiveDistributeLock {
 
-
-    public JobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+    public FailedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
         super(redisTemplate,
-            "job:instance:archive:task:generate",
+            "fail:archive:task:reschedule",
             new HeartBeatRedisLockConfig(
-                "RedisKeyHeartBeatThread-job:instance:archive:task:generate",
-                60 * 1000L, // 60s 超时时间
-                10 * 1000L // 10s 续期一次
+                "RedisKeyHeartBeatThread-fail:archive:task:reschedule",
+                300 * 1000L, // 5min 超时时间
+                60 * 1000L // 1min 续期一次
             ));
     }
+
 }

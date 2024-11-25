@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.FailArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
@@ -65,6 +66,7 @@ import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
+import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
@@ -461,6 +463,11 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        return new FailedArchiveTaskRescheduleLock(redisTemplate);
+    }
+
+    @Bean
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
         JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -508,12 +515,14 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-        ArchiveProperties archiveProperties) {
+        ArchiveProperties archiveProperties,
+        FailArchiveTaskReScheduler failArchiveTaskReScheduler) {
         log.info("Init JobInstanceArchiveCronJobs");
         return new JobInstanceArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
-            archiveProperties
+            archiveProperties,
+            failArchiveTaskReScheduler
         );
     }
 
@@ -521,5 +530,13 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
         log.info("Init JobInstanceArchiveTaskScheduleLock");
         return new JobInstanceArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    public FailArchiveTaskReScheduler failArchiveTaskReScheduler(
+        ArchiveTaskService archiveTaskService,
+        FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
+        log.info("Init FailArchiveTaskReScheduler");
+        return new FailArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
     }
 }

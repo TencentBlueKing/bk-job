@@ -148,7 +148,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             if (!isStopped) {
                 isStopped = true;
                 // 更新归档任务状态为暂停，用于后续调度
-                archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
+                updateArchiveTaskSuspended();
                 if (stopCallback != null) {
                     stopCallback.callback();
                 }
@@ -159,12 +159,23 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         }
     }
 
+    private void updateArchiveTaskSuspended() {
+        archiveTaskInfo.setStatus(ArchiveTaskStatusEnum.SUSPENDED);
+        archiveTaskService.updateArchiveTaskStatus(
+            archiveTaskInfo.getTaskType(),
+            archiveTaskInfo.getDbDataNode(),
+            archiveTaskInfo.getDay(),
+            archiveTaskInfo.getHour(),
+            ArchiveTaskStatusEnum.SUSPENDED
+        );
+    }
+
     @Override
     public void forceStopAtOnce() {
         log.info("Force stop archive task at once. taskId: {}", taskId);
         forceStoppedByScheduler.set(true);
         // 更新归档任务状态为“暂停”
-        archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
+        updateArchiveTaskSuspended();
         // 打断当前线程，退出执行
         archiveTaskWorker.interrupt();
     }
