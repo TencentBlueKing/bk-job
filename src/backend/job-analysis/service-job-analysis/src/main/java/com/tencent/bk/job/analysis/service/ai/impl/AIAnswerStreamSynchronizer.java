@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -79,6 +80,9 @@ public class AIAnswerStreamSynchronizer {
                     if (event.isEnd()) {
                         Throwable throwable = event.getThrowable();
                         if (throwable != null) {
+                            if (throwable instanceof CancellationException) {
+                                break;
+                            }
                             log.warn("Receive end event with throwable", throwable);
                             Response<AIAnswer> respBody =
                                 Response.buildCommonFailResp(ErrorCode.BK_OPEN_AI_API_DATA_ERROR);
