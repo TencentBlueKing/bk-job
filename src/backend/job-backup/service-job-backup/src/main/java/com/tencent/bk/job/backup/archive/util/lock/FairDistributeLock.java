@@ -82,7 +82,7 @@ public class FairDistributeLock {
             log.info("[{}] Release lock successfully", lockName);
             this.lockRequestId = null;
         } else {
-            log.warn("[{}] Release job instance archive schedule lock fail", lockName);
+            log.warn("[{}] Release lock fail", lockName);
         }
         return success;
     }

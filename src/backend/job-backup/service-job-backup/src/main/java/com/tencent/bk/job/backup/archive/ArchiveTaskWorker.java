@@ -52,7 +52,7 @@ public class ArchiveTaskWorker extends Thread {
             archiveTask.execute();
         } catch (Throwable e) {
             span.error(e);
-            log.warn("Thread interrupted!");
+            log.error("Caught archive task run exception", e);
         } finally {
             span.end();
         }
