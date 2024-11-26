@@ -132,5 +132,6 @@ public interface ArchiveTaskDAO {
                                  Integer hour,
                                  ArchiveTaskStatusEnum status);
 
-    Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType);
+    Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType,
+                                                          List<ArchiveTaskStatusEnum> statusList);
 }

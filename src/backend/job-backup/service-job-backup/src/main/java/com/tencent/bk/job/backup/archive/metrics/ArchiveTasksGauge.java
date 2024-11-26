@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -53,6 +55,16 @@ public class ArchiveTasksGauge {
      */
     private static final String TAG_STATUS = "status";
 
+    /**
+     * 需要监控的状态
+     */
+    private static final List<ArchiveTaskStatusEnum> MONITOR_STATUS_LIST = Arrays.asList(
+        ArchiveTaskStatusEnum.PENDING,
+        ArchiveTaskStatusEnum.SUSPENDED,
+        ArchiveTaskStatusEnum.RUNNING,
+        ArchiveTaskStatusEnum.FAIL
+    );
+
     private volatile Map<ArchiveTaskStatusEnum, Integer> archiveTaskCountByStatus;
 
     private final ArchiveTaskService archiveTaskService;
@@ -61,8 +73,9 @@ public class ArchiveTasksGauge {
     public ArchiveTasksGauge(MeterRegistry meterRegistry,
                              ArchiveTaskService archiveTaskService) {
         this.archiveTaskService = archiveTaskService;
-        this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(ArchiveTaskTypeEnum.JOB_INSTANCE);
-        for (ArchiveTaskStatusEnum status : ArchiveTaskStatusEnum.values()) {
+        this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(
+            ArchiveTaskTypeEnum.JOB_INSTANCE, MONITOR_STATUS_LIST);
+        for (ArchiveTaskStatusEnum status : MONITOR_STATUS_LIST) {
             meterRegistry.gauge(
                 METRIC_NAME_FAILED_ARCHIVE_TASK,
                 Tags.of(TAG_TASK_TYPE, ArchiveTaskTypeEnum.JOB_INSTANCE.name(),
@@ -83,7 +96,8 @@ public class ArchiveTasksGauge {
      */
     @Scheduled(cron = "0 0 0/2 * * *")
     public void loadMetrics() {
-        this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(ArchiveTaskTypeEnum.JOB_INSTANCE);
+        this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(
+            ArchiveTaskTypeEnum.JOB_INSTANCE, MONITOR_STATUS_LIST);
     }
 
 }

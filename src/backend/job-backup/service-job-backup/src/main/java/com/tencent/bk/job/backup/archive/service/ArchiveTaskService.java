@@ -204,10 +204,12 @@ public class ArchiveTaskService {
     /**
      * 按照任务类型和状态，统计归档任务数量
      *
-     * @param taskType 任务类型
+     * @param taskType   任务类型
+     * @param statusList 状态列表
      * @return 数量
      */
-    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType) {
-        return archiveTaskDAO.countTaskByStatus(taskType);
+    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType,
+                                                                 List<ArchiveTaskStatusEnum> statusList) {
+        return archiveTaskDAO.countTaskByStatus(taskType, statusList);
     }
 }

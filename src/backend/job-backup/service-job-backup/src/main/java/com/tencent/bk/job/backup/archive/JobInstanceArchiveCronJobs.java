@@ -42,16 +42,16 @@ public class JobInstanceArchiveCronJobs {
 
     private final ArchiveProperties archiveProperties;
 
-    private final FailArchiveTaskReScheduler failArchiveTaskReScheduler;
+    private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
 
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
                                       JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
                                       ArchiveProperties archiveProperties,
-                                      FailArchiveTaskReScheduler failArchiveTaskReScheduler) {
+                                      AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
-        this.failArchiveTaskReScheduler = failArchiveTaskReScheduler;
+        this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
     }
 
     /**
@@ -89,7 +89,7 @@ public class JobInstanceArchiveCronJobs {
             return;
         }
         log.info("ReSchedule fail/timout archive task start...");
-        failArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
+        abnormalArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
         log.info("ReSchedule fail/timeout archive task done");
     }
 }

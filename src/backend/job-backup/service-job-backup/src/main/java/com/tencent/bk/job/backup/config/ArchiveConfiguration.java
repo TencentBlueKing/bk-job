@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.FailArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
@@ -516,13 +516,13 @@ public class ArchiveConfiguration {
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
         ArchiveProperties archiveProperties,
-        FailArchiveTaskReScheduler failArchiveTaskReScheduler) {
+        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         log.info("Init JobInstanceArchiveCronJobs");
         return new JobInstanceArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
             archiveProperties,
-            failArchiveTaskReScheduler
+            abnormalArchiveTaskReScheduler
         );
     }
 
@@ -533,10 +533,10 @@ public class ArchiveConfiguration {
     }
 
     @Bean
-    public FailArchiveTaskReScheduler failArchiveTaskReScheduler(
+    public AbnormalArchiveTaskReScheduler failArchiveTaskReScheduler(
         ArchiveTaskService archiveTaskService,
         FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
         log.info("Init FailArchiveTaskReScheduler");
-        return new FailArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
+        return new AbnormalArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
     }
 }

@@ -35,39 +35,48 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.List;
 
 /**
- * 失败归档任务重调度
+ * 异常归档任务重调度
  */
 @Slf4j
-public class FailArchiveTaskReScheduler {
+public class AbnormalArchiveTaskReScheduler {
+
+    /**
+     * 归档任务超时时间，用于判定归档任务是否调度异常
+     */
+    private static final long TIMEOUT_MILLS = 86400000L;
 
     private final ArchiveTaskService archiveTaskService;
 
     private final FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock;
 
 
-    public FailArchiveTaskReScheduler(ArchiveTaskService archiveTaskService,
-                                      FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
+    public AbnormalArchiveTaskReScheduler(ArchiveTaskService archiveTaskService,
+                                          FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
         this.archiveTaskService = archiveTaskService;
         this.failedArchiveTaskRescheduleLock = failedArchiveTaskRescheduleLock;
     }
 
     /**
-     * 重新调度失败任务
+     * 重新调度异常任务（执行失败、超时未结束）
      */
     public void rescheduleFailedArchiveTasks() {
         boolean locked = false;
         try {
+            log.info("Abnormal archive task reSchedule start ...");
             locked = failedArchiveTaskRescheduleLock.lock();
-            if (locked) {
-                // 处理失败的任务
-                reScheduleFailedTasks();
-                // 处理超时未结束的任务
-                reScheduleTimeoutTasks();
+            if (!locked) {
+                log.info("Get failed archive reSchedule lock fail");
+                return;
             }
+            // 处理失败的任务
+            reScheduleFailedTasks();
+            // 处理超时未结束的任务
+            reScheduleTimeoutTasks();
         } finally {
             if (locked) {
                 failedArchiveTaskRescheduleLock.unlock();
             }
+            log.info("Abnormal archive task reSchedule end");
         }
     }
 
@@ -83,7 +92,8 @@ public class FailArchiveTaskReScheduler {
             }
             // 设置为 pending 状态，会被重新调度
             failedTasks.forEach(failTask -> {
-                log.info("Set archive task status to pending, taskId : {}", failTask.buildTaskUniqueId());
+                log.info("Found fail archive task, and set archive task status to pending, taskId : {}",
+                    failTask.buildTaskUniqueId());
                 archiveTaskService.updateArchiveTaskStatus(
                     failTask.getTaskType(),
                     failTask.getDbDataNode(),
@@ -101,10 +111,12 @@ public class FailArchiveTaskReScheduler {
         if (CollectionUtils.isEmpty(runningTasks)) {
             return;
         }
+        long currentTime = System.currentTimeMillis();
         runningTasks.forEach(runningTask -> {
-            // 如果归档任务没有正常结束，通过当前时间减去任务创建时间计算执行时长，判断是否超过合理的执行时长
-            if (System.currentTimeMillis() - runningTask.getCreateTime() > 3 * 86400 * 1000L) {
-                log.info("Found timeout archive task, try to reschedule. taskId: {}",
+            // 如果归档任务没有正常结束，通过当前时间减去任务创建(修改）时间计算执行时长，判断是否超过合理的执行时长
+            if (currentTime - runningTask.getCreateTime() > TIMEOUT_MILLS ||
+                currentTime - runningTask.getLastUpdateTime() > TIMEOUT_MILLS) {
+                log.info("Found timeout archive task, and set archive task status to pending. taskId: {}",
                     runningTask.buildTaskUniqueId());
                 // 设置为 pending 状态，会被重新调度
                 archiveTaskService.updateArchiveTaskStatus(

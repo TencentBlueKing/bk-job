@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
@@ -292,10 +293,16 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
     }
 
     @Override
-    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType) {
+    public Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType,
+                                                                 List<ArchiveTaskStatusEnum> statusList) {
         Result<Record2<Byte, Integer>> result = ctx.select(T.STATUS, DSL.count().as("task_count"))
             .from(T)
             .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.STATUS.in(
+                statusList.stream()
+                    .map(statusEnum -> JooqDataTypeUtil.toByte(statusEnum.getStatus()))
+                    .collect(Collectors.toList()))
+            )
             .groupBy(T.STATUS)
             .fetch();
         Map<ArchiveTaskStatusEnum, Integer> taskCountGroupByStatus = new HashMap<>();
