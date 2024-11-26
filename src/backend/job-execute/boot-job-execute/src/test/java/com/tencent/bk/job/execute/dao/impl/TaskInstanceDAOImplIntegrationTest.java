@@ -254,6 +254,7 @@ class TaskInstanceDAOImplIntegrationTest {
     @Test
     void testSaveTaskInstanceHosts() {
         long taskInstanceId = 10L;
+        long appId = 2L;
         HostDTO host1 = new HostDTO();
         host1.setHostId(1L);
         host1.setIp("127.0.0.1");
@@ -269,6 +270,6 @@ class TaskInstanceDAOImplIntegrationTest {
         hosts.add(host2);
         hosts.add(host3);
 
-        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
+        taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
     }
 }

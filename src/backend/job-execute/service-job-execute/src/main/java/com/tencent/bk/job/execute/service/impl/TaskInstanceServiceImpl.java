@@ -218,8 +218,9 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void saveTaskInstanceHosts(long taskInstanceId,
+    public void saveTaskInstanceHosts(long appId,
+                                      long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
+        taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
     }
 }
