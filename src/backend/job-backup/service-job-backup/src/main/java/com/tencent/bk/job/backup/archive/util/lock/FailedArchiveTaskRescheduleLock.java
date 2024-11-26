@@ -22,48 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.model;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveTaskSummary {
-    /**
-     * 归档任务
-     */
-    private JobInstanceArchiveTaskInfo archiveTask;
+/**
+ * 失败/超时归档任务重调度分布式锁
+ */
+@Slf4j
+public class FailedArchiveTaskRescheduleLock extends PreemptiveDistributeLock {
 
-    /**
-     * 归档模式
-     */
-    private String archiveMode;
-
-    /**
-     * 归档总耗时（单位毫秒)
-     */
-    private Long archiveCost;
-
-    /**
-     * 归档的记录数量
-     */
-    private Long archivedRecordSize;
-
-    /**
-     * 归档详细说明信息
-     */
-    private String message;
-
-    /**
-     * 任务是否被跳过
-     */
-    private boolean skip;
-
-    public ArchiveTaskSummary(JobInstanceArchiveTaskInfo archiveTask, String archiveMode) {
-        this.archiveTask = archiveTask;
-        this.archiveMode = archiveMode;
+    public FailedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        super(redisTemplate,
+            "fail:archive:task:reschedule",
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-fail:archive:task:reschedule",
+                300 * 1000L, // 5min 超时时间
+                60 * 1000L // 1min 续期一次
+            ));
     }
+
 }

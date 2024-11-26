@@ -42,18 +42,22 @@ public class JobInstanceArchiveCronJobs {
 
     private final ArchiveProperties archiveProperties;
 
+    private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
+
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
                                       JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-                                      ArchiveProperties archiveProperties) {
+                                      ArchiveProperties archiveProperties,
+                                      AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
+        this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
     }
 
     /**
-     * 定时创建归档任务,每天 0 点触发一次
+     * 定时创建归档任务,每小时 0 分钟 触发一次（正常情况一天触发一次即可；为了保障异常情况下任务有一定频率的重试机会）
      */
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void generateArchiveTask() {
         if (!archiveProperties.isEnabled()) {
             return;
@@ -74,5 +78,18 @@ public class JobInstanceArchiveCronJobs {
         log.info("Schedule and execute archive task start...");
         jobInstanceArchiveTaskScheduler.schedule();
         log.info("Schedule and execute archive task done");
+    }
+
+    /**
+     * 失败归档任务重调度，每小时触发一次
+     */
+    @Scheduled(cron = "0 59 * * * *")
+    public void scheduleFailedTasks() {
+        if (!archiveProperties.isEnabled()) {
+            return;
+        }
+        log.info("ReSchedule fail/timout archive task start...");
+        abnormalArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
+        log.info("ReSchedule fail/timeout archive task done");
     }
 }

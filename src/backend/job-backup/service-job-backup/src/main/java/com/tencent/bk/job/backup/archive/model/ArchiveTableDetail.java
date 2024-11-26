@@ -22,23 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
+import lombok.Data;
 
+/**
+ * 归档表执行性情
+ */
+@Data
+public class ArchiveTableDetail {
+    /**
+     * 写入归档冷 DB 的记录行数
+     */
+    private long backupRows;
+    /**
+     * 从热 DB 删除的记录行数
+     */
+    private long deleteRows;
+    /**
+     * 备份到冷 DB 耗时(毫秒)
+     */
+    private long backupCostTime;
+    /**
+     * 删除热数据耗时(毫秒)
+     */
+    private long deleteCostTime;
+    /**
+     * 总耗时(毫秒)
+     */
+    private long costTime;
 
-public class TaskInstanceArchiver extends AbstractJobInstanceSubTableArchiver {
-
-    public TaskInstanceArchiver(
-        JobInstanceColdDAO jobInstanceColdDAO,
-        JobInstanceHotRecordDAO jobInstanceHotRecordDAO,
-        ArchiveTablePropsStorage archiveTablePropsStorage) {
-        super(
-            jobInstanceColdDAO,
-            jobInstanceHotRecordDAO,
-            archiveTablePropsStorage
-        );
+    /**
+     * 累加统计数据 - 备份
+     *
+     * @param backupRows 已备份行数
+     * @param costTime   耗时
+     */
+    public void accumulateBackup(long backupRows, long costTime) {
+        this.backupRows += backupRows;
+        this.backupCostTime = costTime;
+        this.costTime += costTime;
     }
+
+    /**
+     * 累加统计数据 - 删除
+     *
+     * @param deleteRows 已删除行数
+     * @param costTime   耗时
+     */
+    public void accumulateDelete(long deleteRows, long costTime) {
+        this.backupRows += backupRows;
+        this.deleteCostTime += costTime;
+        this.costTime += costTime;
+    }
+
 }

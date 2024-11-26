@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceMainHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
-import com.tencent.bk.job.backup.archive.model.ArchiveTaskSummary;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -36,9 +36,11 @@ import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.TableRecord;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -75,9 +77,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     /**
      * 归档进度
      */
-    private TimeAndIdBasedArchiveProcess progress;
-
-    private final ArchiveTaskSummary archiveTaskSummary;
+    private final TimeAndIdBasedArchiveProcess progress;
 
     private boolean isAcquireLock;
     /**
@@ -122,7 +122,6 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         this.archiveTablePropsStorage = archiveTablePropsStorage;
         this.progress = archiveTaskInfo.getProcess();
         this.taskId = archiveTaskInfo.buildTaskUniqueId();
-        this.archiveTaskSummary = new ArchiveTaskSummary(archiveTaskInfo, archiveProperties.getMode());
     }
 
     @Override
@@ -149,7 +148,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             if (!isStopped) {
                 isStopped = true;
                 // 更新归档任务状态为暂停，用于后续调度
-                archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
+                updateArchiveTaskSuspended();
                 if (stopCallback != null) {
                     stopCallback.callback();
                 }
@@ -160,12 +159,23 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         }
     }
 
+    private void updateArchiveTaskSuspended() {
+        archiveTaskInfo.setStatus(ArchiveTaskStatusEnum.SUSPENDED);
+        archiveTaskService.updateArchiveTaskStatus(
+            archiveTaskInfo.getTaskType(),
+            archiveTaskInfo.getDbDataNode(),
+            archiveTaskInfo.getDay(),
+            archiveTaskInfo.getHour(),
+            ArchiveTaskStatusEnum.SUSPENDED
+        );
+    }
+
     @Override
     public void forceStopAtOnce() {
         log.info("Force stop archive task at once. taskId: {}", taskId);
         forceStoppedByScheduler.set(true);
         // 更新归档任务状态为“暂停”
-        archiveTaskService.updateArchiveTaskSuspendedStatus(archiveTaskInfo);
+        updateArchiveTaskSuspended();
         // 打断当前线程，退出执行
         archiveTaskWorker.interrupt();
     }
@@ -182,12 +192,12 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
             // 获取分布式锁
             if (!acquireLock()) {
-                archiveTaskSummary.setSkip(!isAcquireLock);
                 return;
             }
 
             log.info("[{}] Start archive task", taskId);
-            updateArchiveTask(ArchiveTaskStatusEnum.RUNNING, null);
+            // 更新任务信息 - 启动完成
+            updateStartedExecuteInfo();
             // 归档
             backupAndDelete();
         } catch (Throwable e) {
@@ -196,12 +206,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 taskId
             ).getMessage();
             log.error(msg, e);
-            archiveTaskSummary.setMessage(e.getMessage());
-
             archiveErrorTaskCounter.increment();
 
             // 更新归档任务状态
-            updateArchiveTask(ArchiveTaskStatusEnum.FAIL, null);
+            setArchiveTaskExecutionDetail(null, null, e.getMessage());
+            updateCompletedExecuteInfo(ArchiveTaskStatusEnum.FAIL, null);
         } finally {
             if (this.isAcquireLock) {
                 archiveTaskExecuteLock.unlock(taskId);
@@ -209,7 +218,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             log.info(
                 "[{}] Archive finished, result: {}",
                 taskId,
-                JsonUtils.toJson(archiveTaskSummary)
+                JsonUtils.toJson(archiveTaskInfo)
             );
             if (archiveTaskDoneCallback != null) {
                 archiveTaskDoneCallback.callback();
@@ -241,7 +250,9 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
                 jobInstanceRecords = readJobInstanceRecords(readLimit);
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
-                    updateArchiveTask(ArchiveTaskStatusEnum.SUCCESS, null);
+                    long archiveCost = System.currentTimeMillis() - startTime;
+                    setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, null);
                     return;
                 }
                 archivedJobInstanceCount += jobInstanceRecords.size();
@@ -268,14 +279,37 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 T lastRecord = jobInstanceRecords.get(jobInstanceRecords.size() - 1);
                 Long lastTimestamp = extractJobInstanceCreateTime(lastRecord);
                 Long lastJobInstanceId = extractJobInstanceId(lastRecord);
-                progress = new TimeAndIdBasedArchiveProcess(lastTimestamp, lastJobInstanceId);
+                TimeAndIdBasedArchiveProcess progress =
+                    new TimeAndIdBasedArchiveProcess(lastTimestamp, lastJobInstanceId);
                 boolean isFinished = jobInstanceRecords.size() < readLimit;
-                updateArchiveTask(isFinished ? ArchiveTaskStatusEnum.SUCCESS : ArchiveTaskStatusEnum.RUNNING, progress);
+                if (isFinished) {
+                    // 更新任务结束信息
+                    long archiveCost = System.currentTimeMillis() - startTime;
+                    setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+                    updateCompletedExecuteInfo(ArchiveTaskStatusEnum.SUCCESS, progress);
+                } else {
+                    // 更新任务运行信息
+                    updateRunningExecuteInfo(progress);
+                }
             } while (jobInstanceRecords.size() == readLimit);
         } finally {
             long archiveCost = System.currentTimeMillis() - startTime;
-            archiveTaskSummary.setArchivedRecordSize(archivedJobInstanceCount);
-            archiveTaskSummary.setArchiveCost(archiveCost);
+            setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
+        }
+    }
+
+    private void setArchiveTaskExecutionDetail(Long archiveRecordSize,
+                                               Long costTime,
+                                               String errorMsg) {
+        ArchiveTaskExecutionDetail executionDetail = archiveTaskInfo.getOrInitExecutionDetail();
+        if (archiveRecordSize != null) {
+            executionDetail.setArchivedRecordSize(archiveRecordSize);
+        }
+        if (costTime != null) {
+            executionDetail.setCostTime(costTime);
+        }
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            executionDetail.setErrorMsg(StringUtil.substring(errorMsg, 10240));
         }
     }
 
@@ -327,25 +361,74 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         return isAcquireLock;
     }
 
-    private void updateArchiveTask(ArchiveTaskStatusEnum status,
-                                   TimeAndIdBasedArchiveProcess progress) {
-        if (status != null) {
-            archiveTaskInfo.setStatus(status);
+
+    private void updateStartedExecuteInfo() {
+        if (!checkUpdateEnabled()) {
+            return;
         }
-        if (progress != null) {
-            archiveTaskInfo.setProcess(progress);
-        }
+        Long startTime = System.currentTimeMillis();
+        archiveTaskInfo.setTaskStartTime(startTime);
+        archiveTaskService.updateStartedExecuteInfo(
+            archiveTaskInfo.getTaskType(),
+            archiveTaskInfo.getDbDataNode(),
+            archiveTaskInfo.getDay(),
+            archiveTaskInfo.getHour(),
+            startTime
+        );
+    }
+
+    private boolean checkUpdateEnabled() {
         if (forceStoppedByScheduler.get()) {
             // 如果已经被归档任务调度强制终止了，就不能再去更新 db，引起数据不一致
             log.info("[{}] Archive task is force stopped by scheduler, do not update archive task again", taskId);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private void updateRunningExecuteInfo(TimeAndIdBasedArchiveProcess process) {
+        archiveTaskInfo.setProcess(process);
+
+        if (!checkUpdateEnabled()) {
             return;
         }
 
-        if (archiveTaskInfo.getStatus() != ArchiveTaskStatusEnum.RUNNING) {
-            log.info("[{}] Update archive task, taskStatus: {}, process: {}",
-                taskId, archiveTaskInfo.getStatus(), progress);
+        archiveTaskService.updateRunningExecuteInfo(
+            archiveTaskInfo.getTaskType(),
+            archiveTaskInfo.getDbDataNode(),
+            archiveTaskInfo.getDay(),
+            archiveTaskInfo.getHour(),
+            process
+        );
+    }
+
+    private void updateCompletedExecuteInfo(ArchiveTaskStatusEnum status,
+                                            TimeAndIdBasedArchiveProcess process) {
+        archiveTaskInfo.setStatus(status);
+        if (process != null) {
+            archiveTaskInfo.setProcess(process);
         }
-        archiveTaskService.updateTask(archiveTaskInfo);
+        archiveTaskInfo.setTaskEndTime(System.currentTimeMillis());
+        archiveTaskInfo.setTaskCost(archiveTaskInfo.getTaskEndTime() - archiveTaskInfo.getTaskStartTime());
+
+        if (!checkUpdateEnabled()) {
+            return;
+        }
+
+        archiveTaskService.updateCompletedExecuteInfo(
+            archiveTaskInfo.getTaskType(),
+            archiveTaskInfo.getDbDataNode(),
+            archiveTaskInfo.getDay(),
+            archiveTaskInfo.getHour(),
+            archiveTaskInfo.getStatus(),
+            archiveTaskInfo.getProcess(),
+            archiveTaskInfo.getTaskEndTime(),
+            archiveTaskInfo.getTaskCost(),
+            archiveTaskInfo.getDetail()
+        );
+
+
     }
 
     @Override

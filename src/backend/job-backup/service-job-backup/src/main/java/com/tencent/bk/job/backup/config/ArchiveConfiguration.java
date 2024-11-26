@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
@@ -61,15 +62,17 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
-import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
+import com.tencent.bk.job.backup.archive.metrics.ArchiveTasksGauge;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
+import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -104,18 +107,6 @@ public class ArchiveConfiguration {
             @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceRecordDAO");
             return new JobInstanceHotRecordDAO(dslContextProvider);
-        }
-
-        @Bean
-        public TaskInstanceArchiver taskInstanceArchiver(
-            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-            JobInstanceHotRecordDAO taskInstanceRecordDAO,
-            ArchiveTablePropsStorage archiveTablePropsStorage
-        ) {
-            return new TaskInstanceArchiver(
-                jobInstanceColdDAOObjectProvider.getIfAvailable(),
-                taskInstanceRecordDAO,
-                archiveTablePropsStorage);
         }
 
         @Bean(name = "stepInstanceRecordDAO")
@@ -474,6 +465,11 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        return new FailedArchiveTaskRescheduleLock(redisTemplate);
+    }
+
+    @Bean
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
         JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -521,12 +517,14 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-        ArchiveProperties archiveProperties) {
+        ArchiveProperties archiveProperties,
+        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         log.info("Init JobInstanceArchiveCronJobs");
         return new JobInstanceArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
-            archiveProperties
+            archiveProperties,
+            abnormalArchiveTaskReScheduler
         );
     }
 
@@ -534,5 +532,19 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
         log.info("Init JobInstanceArchiveTaskScheduleLock");
         return new JobInstanceArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    public AbnormalArchiveTaskReScheduler failArchiveTaskReScheduler(
+        ArchiveTaskService archiveTaskService,
+        FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
+        log.info("Init FailArchiveTaskReScheduler");
+        return new AbnormalArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
+    }
+
+    @Bean
+    public ArchiveTasksGauge archiveTasksGauge(MeterRegistry meterRegistry,
+                                               ArchiveTaskService archiveTaskService) {
+        return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
     }
 }

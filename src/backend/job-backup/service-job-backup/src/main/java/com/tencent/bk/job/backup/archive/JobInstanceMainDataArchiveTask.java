@@ -31,7 +31,6 @@ import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.execute.model.tables.TaskInstance;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,25 +73,47 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         List<Long> jobInstanceIds =
             jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
         // 备份主表数据
-        jobInstanceColdDAO.batchInsert(jobInstanceRecords,
-            archiveTablePropsStorage.getBatchInsertRowSize(jobInstanceMainRecordDAO.getTable().getName()));
+        backupPrimaryTableRecord(jobInstanceRecords);
         // 备份子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             tableArchiver.backupRecords(jobInstanceIds);
         });
     }
 
+    private void backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords) {
+        // 备份主表数据
+        long startTime = System.currentTimeMillis();
+        long backupRows = jobInstanceColdDAO.batchInsert(jobInstanceRecords,
+            archiveTablePropsStorage.getBatchInsertRowSize(jobInstanceMainRecordDAO.getTable().getName()));
+        ArchiveTaskContextHolder.get().accumulateTableBackup(
+            jobInstanceMainRecordDAO.getTable().getName(),
+            backupRows,
+            System.currentTimeMillis() - startTime
+        );
+    }
+
     @Override
     protected void deleteJobInstanceHotData(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
         // 先删除子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             tableArchiver.deleteRecords(jobInstanceIds);
         });
         // 删除主表数据
-        long startTime = System.currentTimeMillis();
-        jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
-            archiveTablePropsStorage.getDeleteLimitRowCount(TaskInstance.TASK_INSTANCE.getName()));
+        deletePrimaryTableRecord(jobInstanceIds);
         log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
             jobInstanceIds.size(), System.currentTimeMillis() - startTime);
+    }
+
+    private void deletePrimaryTableRecord(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
+        String tableName = jobInstanceMainRecordDAO.getTable().getName();
+        int deleteRows = jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
+            archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
+        ArchiveTaskContextHolder.get().accumulateTableDelete(
+            tableName,
+            deleteRows,
+            System.currentTimeMillis() - startTime
+        );
     }
 }
