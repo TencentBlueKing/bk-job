@@ -166,6 +166,9 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
                         // 休眠5分钟，等待并行任务减少
                         log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);
+                        // 释放锁
+                        jobInstanceArchiveTaskScheduleLock.unlock();
+                        locked = false;
                         ThreadUtils.sleep(1000 * 300L);
                         continue;
                     }

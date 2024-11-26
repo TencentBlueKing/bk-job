@@ -250,7 +250,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         ctx.update(T)
             .set(T.LAST_UPDATE_TIME, System.currentTimeMillis())
             .set(T.STATUS, JooqDataTypeUtil.toByte(status.getStatus()))
-            .set(T.PROCESS, process.toPersistentProcess())
+            .set(T.PROCESS, process != null ? process.toPersistentProcess() : null)
             .set(T.TASK_END_TIME, endTime)
             .set(T.TASK_COST, cost)
             .set(T.DETAIL, detail != null ? JsonUtils.toJson(detail) : null)

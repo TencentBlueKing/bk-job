@@ -416,6 +416,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             return;
         }
 
+        log.info("[{}] Update archive task completed execute info, status: {}, process: {}",
+            taskId, status, process);
         archiveTaskService.updateCompletedExecuteInfo(
             archiveTaskInfo.getTaskType(),
             archiveTaskInfo.getDbDataNode(),
