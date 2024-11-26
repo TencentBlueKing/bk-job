@@ -91,7 +91,7 @@ public class ArchiveTasksGauge {
     /**
      * 触发指标查询
      */
-    @Scheduled(cron = "0 0 0/2 * * *")
+    @Scheduled(cron = "0 0/2 * * * *")
     public void loadMetrics() {
         this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(
             ArchiveTaskTypeEnum.JOB_INSTANCE, MONITOR_STATUS_LIST);
