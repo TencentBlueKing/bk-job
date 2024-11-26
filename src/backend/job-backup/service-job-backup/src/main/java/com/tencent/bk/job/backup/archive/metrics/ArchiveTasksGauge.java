@@ -29,15 +29,13 @@ import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-@Component
+
 public class ArchiveTasksGauge {
 
     /**
@@ -69,7 +67,6 @@ public class ArchiveTasksGauge {
 
     private final ArchiveTaskService archiveTaskService;
 
-    @Autowired
     public ArchiveTasksGauge(MeterRegistry meterRegistry,
                              ArchiveTaskService archiveTaskService) {
         this.archiveTaskService = archiveTaskService;

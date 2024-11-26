@@ -64,6 +64,7 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
+import com.tencent.bk.job.backup.archive.metrics.ArchiveTasksGauge;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
@@ -71,6 +72,7 @@ import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerat
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -538,5 +540,11 @@ public class ArchiveConfiguration {
         FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
         log.info("Init FailArchiveTaskReScheduler");
         return new AbnormalArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
+    }
+
+    @Bean
+    public ArchiveTasksGauge archiveTasksGauge(MeterRegistry meterRegistry,
+                                               ArchiveTaskService archiveTaskService) {
+        return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
     }
 }
