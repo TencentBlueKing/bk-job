@@ -110,7 +110,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         String tableName = jobInstanceMainRecordDAO.getTable().getName();
         int deleteRows = jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        ArchiveTaskContextHolder.get().accumulateTableBackup(
+        ArchiveTaskContextHolder.get().accumulateTableDelete(
             tableName,
             deleteRows,
             System.currentTimeMillis() - startTime
