@@ -384,7 +384,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
         watch.start("saveTaskInstanceHosts");
-        saveTaskInstanceHosts(taskInstanceId, Collections.singletonList(stepInstance));
+        saveTaskInstanceHosts(taskInstance.getAppId(), taskInstanceId, Collections.singletonList(stepInstance));
         watch.stop();
 
         // 保存滚动配置
@@ -467,17 +467,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .addExtendData(JobAuditExtendDataKeys.JOB_INSTANCE_ID, taskInstance.getId());
     }
 
-    private void saveTaskInstanceHosts(long taskInstanceId,
+    private void saveTaskInstanceHosts(long appId,
+                                       long taskInstanceId,
                                        List<StepInstanceDTO> stepInstanceList) {
         Set<HostDTO> stepHosts = taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null);
-        saveTaskInstanceHosts(taskInstanceId, stepHosts);
+        saveTaskInstanceHosts(appId, taskInstanceId, stepHosts);
     }
 
-    private void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts) {
+    private void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        taskInstanceService.saveTaskInstanceHosts(taskInstanceId, hosts);
+        taskInstanceService.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
     }
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
@@ -994,7 +995,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
             watch.start("saveTaskInstanceHosts");
-            saveTaskInstanceHosts(taskInstance.getId(), allHosts);
+            saveTaskInstanceHosts(taskInstance.getAppId(), taskInstance.getId(), allHosts);
             watch.stop();
 
             watch.start("saveOperationLog");
@@ -1361,7 +1362,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
-        saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
+        saveTaskInstanceHosts(taskInstance.getAppId(), taskInstance.getId(), taskInstance.getStepInstances());
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));

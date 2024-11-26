@@ -524,7 +524,8 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
 
     @Override
     @MySQLOperation(table = "task_instance_host", op = DbOperationEnum.WRITE)
-    public void saveTaskInstanceHosts(long taskInstanceId,
+    public void saveTaskInstanceHosts(long appId,
+                                      long taskInstanceId,
                                       Collection<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
@@ -537,9 +538,10 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
                         TASK_INSTANCE_HOST.TASK_INSTANCE_ID,
                         TASK_INSTANCE_HOST.HOST_ID,
                         TASK_INSTANCE_HOST.IP,
-                        TASK_INSTANCE_HOST.IPV6
+                        TASK_INSTANCE_HOST.IPV6,
+                        TASK_INSTANCE_HOST.APP_ID
                     )
-                    .values((Long) null, null, null, null)
+                    .values((Long) null, null, null, null, null)
             );
 
             for (HostDTO host : batchHosts) {
@@ -547,7 +549,8 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
                     taskInstanceId,
                     host.getHostId(),
                     host.getIp(),
-                    host.getIpv6()
+                    host.getIpv6(),
+                    appId
                 );
             }
             batchInsert.execute();

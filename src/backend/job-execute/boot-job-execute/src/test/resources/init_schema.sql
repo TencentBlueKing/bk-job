@@ -372,6 +372,7 @@ CREATE TABLE IF NOT EXISTS `task_instance_host`
     `host_id`          bigint(20) NOT NULL DEFAULT '0',
     `ip`               varchar(15)         DEFAULT NULL,
     `ipv6`             varchar(46)         DEFAULT NULL,
+    `app_id`           bigint(20) NOT NULL DEFAULT '0',
     `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`task_instance_id`, `host_id`),
