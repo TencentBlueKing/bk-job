@@ -103,6 +103,13 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         log.info("BkOpenAIClient inited using model {}", this.model);
     }
 
+    /**
+     * 获取有效的模型类型
+     *
+     * @param model 待校验的模型类型
+     * @return 有效的模型类型
+     * @throws IllegalArgumentException 传入的模型不被支持时抛出
+     */
     private String getValidModel(String model) {
         if (StringUtils.isBlank(model)) {
             throw new IllegalArgumentException("model cannot be blank");
@@ -131,6 +138,12 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         throw new IllegalArgumentException(message);
     }
 
+    /**
+     * 获取AI平台接口根地址
+     *
+     * @param bkApiGatewayProperties 蓝鲸API网关配置
+     * @return AI平台接口根地址
+     */
     private static String getBkAIDevUrlSafely(BkApiGatewayProperties bkApiGatewayProperties) {
         if (bkApiGatewayProperties == null || bkApiGatewayProperties.getBkAIDev() == null) {
             return null;
@@ -143,6 +156,12 @@ public class BkOpenAIClient implements IBkOpenAIClient {
     }
 
 
+    /**
+     * 构造蓝鲸网关认证信息
+     *
+     * @param token 用户身份token
+     * @return 认证信息
+     */
     private BkApiAuthorization buildAuthorization(String token) {
         if (customPaasLoginProperties.isEnabled()) {
             return BkApiAuthorization.bkTicketUserAuthorization(
@@ -175,6 +194,15 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         return appProperties.getSecret();
     }
 
+    /**
+     * 流式获取AI回复数据
+     *
+     * @param token               用户身份凭据
+     * @param messageHistoryList  历史消息列表
+     * @param userInput           用户输入
+     * @param partialRespConsumer 分块消息处理器
+     * @return 包含AI完整回复内容的Future
+     */
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<String> getAIAnswerStream(String token,
@@ -249,6 +277,13 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         return future;
     }
 
+    /**
+     * 对原始Consumer进行包装，传递Trace数据
+     *
+     * @param originConsumer 原始Consumer
+     * @param <T>            Consumer消费的数据类型
+     * @return 包装后的Consumer
+     */
     private <T> Consumer<T> getTracedConsumer(Consumer<T> originConsumer) {
         Span parentSpan = tracer.currentSpan();
         return response -> {
@@ -261,6 +296,14 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         };
     }
 
+    /**
+     * 根据传入的上层消费者生成底层框架需要的部分响应处理器
+     *
+     * @param username            用户名
+     * @param partialRespConsumer 上层部分响应消费者
+     * @param responseBuilder     请求构造器
+     * @return 底层框架需要的部分响应处理器
+     */
     @NotNull
     private Consumer<ChatCompletionResponse> getPartialResponseHandler(String username,
                                                                        Consumer<String> partialRespConsumer,
@@ -304,6 +347,13 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         };
     }
 
+    /**
+     * 构建AI对话请求
+     *
+     * @param messageHistoryList 历史对话记录
+     * @param userInput          用户输入
+     * @return AI对话请求
+     */
     private ChatCompletionRequest buildRequest(List<AIDevMessage> messageHistoryList,
                                                String userInput) {
         ChatCompletionRequest.Builder builder = ChatCompletionRequest.builder()
@@ -323,10 +373,21 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         return builder.build();
     }
 
+    /**
+     * 对日志进行超长截断
+     *
+     * @param rawLog 原始日志
+     * @return 截断后的日志
+     */
     private String getLimitedLog(String rawLog) {
         return StringUtil.substring(rawLog, MAX_LOG_LENGTH);
     }
 
+    /**
+     * 记录AI首次响应延迟指标
+     *
+     * @param delayMillis 延迟的毫秒数
+     */
     private void recordAIRespFirstBlockDelay(long delayMillis) {
         Timer.builder(MetricsConstants.NAME_AI_RESPONSE_DELAY_FIRST_BLOCK)
             .description("AI Response First Block Delay")
@@ -337,6 +398,12 @@ public class BkOpenAIClient implements IBkOpenAIClient {
             .record(delayMillis, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * 记录AI完成响应延迟指标
+     *
+     * @param delayMillis 延迟的毫秒数
+     * @param tags        指标数据标签
+     */
     private void recordAIRespAllBlockDelay(long delayMillis, Iterable<Tag> tags) {
         Timer.builder(MetricsConstants.NAME_AI_RESPONSE_DELAY_ALL_BLOCK)
             .description("AI Response All Block Delay")
