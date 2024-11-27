@@ -71,7 +71,7 @@ public class ArchiveTableDetail {
      * @param costTime   耗时
      */
     public void accumulateDelete(long deleteRows, long costTime) {
-        this.backupRows += backupRows;
+        this.deleteRows += deleteRows;
         this.deleteCostTime += costTime;
         this.costTime += costTime;
     }

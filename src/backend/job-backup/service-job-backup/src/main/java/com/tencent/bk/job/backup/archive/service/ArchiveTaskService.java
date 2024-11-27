@@ -212,4 +212,21 @@ public class ArchiveTaskService {
                                                                  List<ArchiveTaskStatusEnum> statusList) {
         return archiveTaskDAO.countTaskByStatus(taskType, statusList);
     }
+
+    /**
+     * 更新归档任务执行详情
+     *
+     * @param taskType 任务类型
+     * @param dataNode 数据节点
+     * @param day      归档数据所在天
+     * @param hour     归档数据所在小时
+     * @param detail   执行详情
+     */
+    public void updateExecutionDetail(ArchiveTaskTypeEnum taskType,
+                                      DbDataNode dataNode,
+                                      Integer day,
+                                      Integer hour,
+                                      ArchiveTaskExecutionDetail detail) {
+        archiveTaskDAO.updateExecutionDetail(taskType, dataNode, day, hour, detail);
+    }
 }

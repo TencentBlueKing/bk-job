@@ -134,4 +134,10 @@ public interface ArchiveTaskDAO {
 
     Map<ArchiveTaskStatusEnum, Integer> countTaskByStatus(ArchiveTaskTypeEnum taskType,
                                                           List<ArchiveTaskStatusEnum> statusList);
+
+    void updateExecutionDetail(ArchiveTaskTypeEnum taskType,
+                               DbDataNode dataNode,
+                               Integer day,
+                               Integer hour,
+                               ArchiveTaskExecutionDetail detail);
 }
