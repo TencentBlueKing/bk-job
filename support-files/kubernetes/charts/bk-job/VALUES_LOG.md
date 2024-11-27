@@ -1,4 +1,14 @@
 # chart values 更新日志
+## 0.8.2
+1. AI小鲸支持配置使用的大模型
+```yaml
+analysisConfig:
+  # AI相关配置
+  ai:
+    # 使用的大模型类型，默认腾讯混元，支持的取值：hunyuan、hunyuan-turbo、gpt-4、gpt-4o、gpt-4o-mini、gpt-3.5-turbo等，
+    # 平台会将任务相关的脚本、参数、日志等数据发送给大模型，使用大模型时请注意数据安全风险
+    model: hunyuan
+```
 
 ## 0.8.0
 1. 增加按主机拓扑路径鉴权相关配置

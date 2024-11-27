@@ -25,10 +25,8 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
-import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import com.tencent.bk.job.analysis.service.ai.AIService;
 import com.tencent.bk.job.analysis.service.login.LoginTokenService;
-import com.tencent.bk.job.common.aidev.IBkAIDevClient;
 import com.tencent.bk.job.common.aidev.IBkOpenAIClient;
 import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -46,17 +44,14 @@ import java.util.function.Consumer;
 public class AIServiceImpl implements AIService {
 
     private final LoginTokenService loginTokenService;
-    private final IBkAIDevClient bkAIDevClient;
     private final IBkOpenAIClient bkOpenAIClient;
     private final AIMessageI18nService aiMessageI18nService;
 
     @Autowired
     public AIServiceImpl(LoginTokenService loginTokenService,
-                         IBkAIDevClient bkAIDevClient,
                          IBkOpenAIClient bkOpenAIClient,
                          AIMessageI18nService aiMessageI18nService) {
         this.loginTokenService = loginTokenService;
-        this.bkAIDevClient = bkAIDevClient;
         this.bkOpenAIClient = bkOpenAIClient;
         this.aiMessageI18nService = aiMessageI18nService;
     }
@@ -66,29 +61,12 @@ public class AIServiceImpl implements AIService {
                                                        String userInput,
                                                        Consumer<String> partialRespConsumer) {
         String token = loginTokenService.getToken();
-        return bkOpenAIClient.getHunYuanAnswerStream(
+        return bkOpenAIClient.getAIAnswerStream(
             token,
             buildMessageHistoryList(chatHistoryDTOList),
             userInput,
             partialRespConsumer
         );
-    }
-
-    @Override
-    public AIAnswer getAIAnswer(List<AIChatHistoryDTO> chatHistoryDTOList, String userInput) {
-        String token = loginTokenService.getToken();
-        return AIAnswer.successAnswer(
-            bkAIDevClient.getHunYuanAnswer(
-                token,
-                buildMessageHistoryList(chatHistoryDTOList),
-                userInput
-            )
-        );
-    }
-
-    @Override
-    public AIAnswer getAIAnswer(String userInput) {
-        return getAIAnswer(null, userInput);
     }
 
     private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {
