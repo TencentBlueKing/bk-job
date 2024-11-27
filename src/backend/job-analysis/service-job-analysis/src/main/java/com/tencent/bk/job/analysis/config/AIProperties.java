@@ -42,6 +42,11 @@ public class AIProperties {
     private Boolean enabled = false;
 
     /**
+     * 使用的大模型类别，默认腾讯混元
+     */
+    private String model = "hunyuan";
+
+    /**
      * 错误日志分析相关配置
      */
     private AnalyzeErrorLogConfig analyzeErrorLog = new AnalyzeErrorLogConfig();

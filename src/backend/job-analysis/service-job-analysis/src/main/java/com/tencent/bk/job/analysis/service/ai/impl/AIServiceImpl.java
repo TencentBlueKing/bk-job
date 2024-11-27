@@ -66,7 +66,7 @@ public class AIServiceImpl implements AIService {
                                                        String userInput,
                                                        Consumer<String> partialRespConsumer) {
         String token = loginTokenService.getToken();
-        return bkOpenAIClient.getHunYuanAnswerStream(
+        return bkOpenAIClient.getAIAnswerStream(
             token,
             buildMessageHistoryList(chatHistoryDTOList),
             userInput,

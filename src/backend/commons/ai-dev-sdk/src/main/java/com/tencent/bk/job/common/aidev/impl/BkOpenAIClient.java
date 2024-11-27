@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import dev.ai4j.openai4j.OpenAiClient;
 import dev.ai4j.openai4j.chat.ChatCompletionChoice;
+import dev.ai4j.openai4j.chat.ChatCompletionModel;
 import dev.ai4j.openai4j.chat.ChatCompletionRequest;
 import dev.ai4j.openai4j.chat.ChatCompletionResponse;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -54,7 +55,9 @@ import org.springframework.cloud.sleuth.instrument.async.TraceRunnable;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,13 +83,15 @@ public class BkOpenAIClient implements IBkOpenAIClient {
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
     private final CustomPaasLoginProperties customPaasLoginProperties;
     private final String bkAIDevUrl;
+    private final String model;
 
     public BkOpenAIClient(Tracer tracer,
                           SpanNamer spanNamer,
                           MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           CustomPaasLoginProperties customPaasLoginProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          String model) {
         this.tracer = tracer;
         this.spanNamer = spanNamer;
         this.meterRegistry = meterRegistry;
@@ -94,6 +99,36 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         this.bkAIDevUrl = getBkAIDevUrlSafely(bkApiGatewayProperties);
         this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
         this.customPaasLoginProperties = customPaasLoginProperties;
+        this.model = getValidModel(model);
+        log.info("BkOpenAIClient inited using model {}", this.model);
+    }
+
+    private String getValidModel(String model) {
+        if (StringUtils.isBlank(model)) {
+            throw new IllegalArgumentException("model cannot be blank");
+        }
+        model = model.trim();
+        Set<String> availableModels = new HashSet<>();
+        for (BkChatCompletionModel bkChatCompletionModel : BkChatCompletionModel.values()) {
+            String availableModel = bkChatCompletionModel.toString();
+            if (availableModel.equals(model)) {
+                return model;
+            }
+            availableModels.add(availableModel);
+        }
+        for (ChatCompletionModel chatCompletionModel : ChatCompletionModel.values()) {
+            String availableModel = chatCompletionModel.toString();
+            if (availableModel.equals(model)) {
+                return model;
+            }
+            availableModels.add(availableModel);
+        }
+        String message = MessageFormatter.format(
+            "invalid model: {}, available models: {}",
+            model,
+            StringUtil.concatCollection(availableModels)
+        ).getMessage();
+        throw new IllegalArgumentException(message);
     }
 
     private static String getBkAIDevUrlSafely(BkApiGatewayProperties bkApiGatewayProperties) {
@@ -142,10 +177,10 @@ public class BkOpenAIClient implements IBkOpenAIClient {
 
     @Override
     @SuppressWarnings("unchecked")
-    public CompletableFuture<String> getHunYuanAnswerStream(String token,
-                                                            List<AIDevMessage> messageHistoryList,
-                                                            String userInput,
-                                                            Consumer<String> partialRespConsumer) {
+    public CompletableFuture<String> getAIAnswerStream(String token,
+                                                       List<AIDevMessage> messageHistoryList,
+                                                       String userInput,
+                                                       Consumer<String> partialRespConsumer) {
         final OpenAiClient client = OpenAiClient.builder()
             .baseUrl(getLLMV1Url())
             .openAiApiKey("empty")
@@ -269,9 +304,10 @@ public class BkOpenAIClient implements IBkOpenAIClient {
         };
     }
 
-    private ChatCompletionRequest buildRequest(List<AIDevMessage> messageHistoryList, String userInput) {
+    private ChatCompletionRequest buildRequest(List<AIDevMessage> messageHistoryList,
+                                               String userInput) {
         ChatCompletionRequest.Builder builder = ChatCompletionRequest.builder()
-            .model(BkChatCompletionModel.HUNYUAN.toString());
+            .model(model);
         if (CollectionUtils.isNotEmpty(messageHistoryList)) {
             for (AIDevMessage message : messageHistoryList) {
                 if (message.isUserMessage()) {
