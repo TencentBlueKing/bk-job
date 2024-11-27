@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.aidev.config;
 
-import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
 import com.tencent.bk.job.common.aidev.impl.BkChatCompletionModel;
 import com.tencent.bk.job.common.aidev.impl.BkOpenAIClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
@@ -42,14 +41,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({BkAIDevProperties.class, CustomPaasLoginProperties.class})
 public class AIDevAutoConfiguration {
-
-    @Bean
-    public BkAIDevClient bkAIDevClient(MeterRegistry meterRegistry,
-                                       AppProperties appProperties,
-                                       CustomPaasLoginProperties customPaasLoginProperties,
-                                       BkApiGatewayProperties bkApiGatewayProperties) {
-        return new BkAIDevClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
-    }
 
     @Bean
     @ConditionalOnMissingBean
