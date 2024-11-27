@@ -375,6 +375,21 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             archiveTaskInfo.getHour(),
             startTime
         );
+        // 如果该任务是失败任务重新调度的，需要重置执行详情错误信息
+        resetIfIsReScheduleAbnormalTask();
+    }
+
+    private void resetIfIsReScheduleAbnormalTask() {
+        if (archiveTaskInfo.getDetail() != null && StringUtils.isNotEmpty(archiveTaskInfo.getDetail().getErrorMsg())) {
+            archiveTaskInfo.getDetail().setErrorMsg(null);
+            archiveTaskService.updateExecutionDetail(
+                archiveTaskInfo.getTaskType(),
+                archiveTaskInfo.getDbDataNode(),
+                archiveTaskInfo.getDay(),
+                archiveTaskInfo.getHour(),
+                archiveTaskInfo.getDetail()
+            );
+        }
     }
 
     private boolean checkUpdateEnabled() {

@@ -312,4 +312,19 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         );
         return taskCountGroupByStatus;
     }
+
+    @Override
+    public void updateExecutionDetail(ArchiveTaskTypeEnum taskType,
+                                      DbDataNode dataNode,
+                                      Integer day,
+                                      Integer hour,
+                                      ArchiveTaskExecutionDetail detail) {
+        ctx.update(T)
+            .set(T.DETAIL, detail != null ? JsonUtils.toJson(detail) : null)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DATA_NODE.eq(dataNode.toDataNodeId()))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
+            .execute();
+    }
 }
