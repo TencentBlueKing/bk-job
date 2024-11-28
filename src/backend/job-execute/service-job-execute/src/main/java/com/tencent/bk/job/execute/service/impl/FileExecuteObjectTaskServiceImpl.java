@@ -1,7 +1,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.util.CollectionUtil;
+import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
@@ -52,17 +52,23 @@ public class FileExecuteObjectTaskServiceImpl
         }
         tasks.forEach(task -> task.setId(idGen.genGseFileExecuteObjTaskId()));
 
-        boolean executeObjectMode = isSaveTasksUsingExecuteObjectMode(tasks);
+        boolean executeObjectSupported = isExecuteObjectSupported(tasks);
 
         // 任务分批，避免大事务造成 db 主从延迟
-        List<List<ExecuteObjectTask>> partitionedTasks = CollectionUtil.partitionCollection(tasks, 2000);
-        partitionedTasks.forEach(partitionedTask -> {
-            if (executeObjectMode) {
-                fileExecuteObjectTaskDAO.batchSaveTasks(partitionedTask);
-            } else {
-                fileAgentTaskDAO.batchSaveAgentTasks(partitionedTask);
-            }
-        });
+        BatchUtil.executeBatch(
+            tasks,
+            2000,
+            batchTasks -> executeSaveTasks(executeObjectSupported, batchTasks)
+        );
+    }
+
+    private void executeSaveTasks(boolean executeObjectSupported,
+                                Collection<ExecuteObjectTask> tasks) {
+        if (executeObjectSupported) {
+            fileExecuteObjectTaskDAO.batchSaveTasks(tasks);
+        } else {
+            fileAgentTaskDAO.batchSaveAgentTasks(tasks);
+        }
     }
 
     @Override
@@ -71,17 +77,22 @@ public class FileExecuteObjectTaskServiceImpl
             return;
         }
 
-        boolean executeObjectMode = isSaveTasksUsingExecuteObjectMode(tasks);
-
+        boolean executeObjectSupported = isExecuteObjectSupported(tasks);
         // 任务分批，避免大事务造成 db 主从延迟
-        List<List<ExecuteObjectTask>> partitionedTasks = CollectionUtil.partitionCollection(tasks, 2000);
-        partitionedTasks.forEach(partitionedTask -> {
-            if (executeObjectMode) {
-                fileExecuteObjectTaskDAO.batchUpdateTasks(partitionedTask);
-            } else {
-                fileAgentTaskDAO.batchUpdateAgentTasks(partitionedTask);
-            }
-        });
+        BatchUtil.executeBatch(
+            tasks,
+            2000,
+            batchTasks -> executeUpdateTasks(executeObjectSupported, batchTasks)
+        );
+    }
+
+    private void executeUpdateTasks(boolean executeObjectSupported,
+                                    Collection<ExecuteObjectTask> tasks) {
+        if (executeObjectSupported) {
+            fileExecuteObjectTaskDAO.batchUpdateTasks(tasks);
+        } else {
+            fileAgentTaskDAO.batchUpdateAgentTasks(tasks);
+        }
     }
 
     @Override
