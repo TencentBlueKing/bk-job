@@ -1,6 +1,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.Order;
+import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
@@ -50,7 +51,20 @@ public class ScriptExecuteObjectTaskServiceImpl
         }
 
         tasks.forEach(task -> task.setId(idGen.genGseScriptExecuteObjTaskId()));
-        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
+
+        boolean executeObjectSupported = isExecuteObjectSupported(tasks);
+
+        // 任务分批，避免大事务造成 db 主从延迟
+        BatchUtil.executeBatch(
+            tasks,
+            2000,
+            batchTasks -> executeSaveTasks(executeObjectSupported, batchTasks)
+        );
+    }
+
+    private void executeSaveTasks(boolean executeObjectSupported,
+                                  Collection<ExecuteObjectTask> tasks) {
+        if (executeObjectSupported) {
             scriptExecuteObjectTaskDAO.batchSaveTasks(tasks);
         } else {
             scriptAgentTaskDAO.batchSaveAgentTasks(tasks);
@@ -62,7 +76,20 @@ public class ScriptExecuteObjectTaskServiceImpl
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        if (isSaveTasksUsingExecuteObjectMode(tasks)) {
+
+        boolean executeObjectSupported = isExecuteObjectSupported(tasks);
+
+        // 任务分批，避免大事务造成 db 主从延迟
+        BatchUtil.executeBatch(
+            tasks,
+            2000,
+            batchTasks -> executeUpdateTasks(executeObjectSupported, batchTasks)
+        );
+    }
+
+    private void executeUpdateTasks(boolean executeObjectSupported,
+                                    Collection<ExecuteObjectTask> tasks) {
+        if (executeObjectSupported) {
             scriptExecuteObjectTaskDAO.batchUpdateTasks(tasks);
         } else {
             scriptAgentTaskDAO.batchUpdateAgentTasks(tasks);

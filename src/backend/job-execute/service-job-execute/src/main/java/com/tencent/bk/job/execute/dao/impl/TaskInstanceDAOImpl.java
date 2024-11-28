@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
-import com.tencent.bk.job.common.util.CollectionUtil;
+import com.tencent.bk.job.common.util.BatchUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
@@ -527,11 +527,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
     public void saveTaskInstanceHosts(long appId,
                                       long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return;
-        }
-        List<List<HostDTO>> hostBatches = CollectionUtil.partitionCollection(hosts, 2000);
-        hostBatches.forEach(batchHosts -> {
+        BatchUtil.executeBatch(hosts, 2000, batchHosts -> {
             BatchBindStep batchInsert = dsl().batch(
                 dsl().insertInto(
                         TASK_INSTANCE_HOST,

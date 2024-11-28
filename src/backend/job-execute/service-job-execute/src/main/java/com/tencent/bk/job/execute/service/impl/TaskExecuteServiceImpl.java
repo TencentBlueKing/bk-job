@@ -865,16 +865,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
-                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
-                if (targetServerSize > 10000) {
+                int targetExecuteObjectSize = stepInstance.getTargetExecuteObjectCount();
+                if (targetExecuteObjectSize > 10000) {
                     TASK_MONITOR_LOGGER.info("LargeTask|type:script|taskName:{}|appCode:{}|appId:{}|operator:{}"
-                            + "|targetServerSize:{}",
-                        taskName, appCode, appId, operator, targetServerSize);
+                            + "|targetExecuteObjectSize:{}",
+                        taskName, appCode, appId, operator, targetExecuteObjectSize);
                 }
-                if (targetServerSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
+                if (targetExecuteObjectSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
                     log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
-                            ":{}|targetServerSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
-                        targetServerSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
+                            ":{}|targetExecuteObjectSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
+                        targetExecuteObjectSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
                     throw new ResourceExhaustedException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
                         new Integer[]{jobExecuteConfig.getScriptTaskMaxTargetServer()});
                 }
