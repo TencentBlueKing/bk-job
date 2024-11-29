@@ -121,7 +121,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         agentTask2.setTag("bb");
         agentTask2.setExitCode(2);
         agentTaskList.add(agentTask2);
@@ -159,7 +159,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         assertThat(agentTask2Return.getTag()).isEqualTo("bb");
         assertThat(agentTask2Return.getExitCode()).isEqualTo(2);
     }
@@ -199,7 +199,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         agentTask2.setTag("bb");
         agentTask2.setExitCode(2);
         agentTaskList.add(agentTask2);
@@ -235,7 +235,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         assertThat(agentTask2Return.getTag()).isEqualTo("bb");
         assertThat(agentTask2Return.getExitCode()).isEqualTo(2);
     }

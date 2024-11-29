@@ -226,24 +226,28 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void initExecuteObjectTasks() {
         this.executeObjectTasks = executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
-        updateUninstalledExecuteObjectTasks(this.executeObjectTasks);
+        updateNotExecutableExecuteObjectTasks(this.executeObjectTasks);
 
         executeObjectTasks.stream()
             .filter(ExecuteObjectTask::isTarget)
-            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+            .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isExecutable())
             .forEach(executeObjectTask ->
                 this.targetExecuteObjectTaskMap.put(
                     executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
     }
 
-    private void updateUninstalledExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
-        List<ExecuteObjectTask> invalidExecuteObjectTasks = executeObjectTasks.stream()
-            .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty())
+    private void updateNotExecutableExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
+        List<ExecuteObjectTask> notExecutableTasks = executeObjectTasks.stream()
+            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable())
             .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(invalidExecuteObjectTasks)) {
-            log.warn("{} contains invalid execute object tasks: {}", gseTaskInfo, invalidExecuteObjectTasks);
-            invalidExecuteObjectTasks.forEach(executeObjectTask -> {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
+        if (CollectionUtils.isNotEmpty(notExecutableTasks)) {
+            log.warn("{} Contains noExecutable execute object tasks: {}", gseTaskInfo, notExecutableTasks);
+            notExecutableTasks.forEach(executeObjectTask -> {
+                executeObjectTask.setStatus(
+                    executeObjectTask.getExecuteObject().isAgentIdEmpty() ?
+                        ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED :
+                        ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT
+                );
                 executeObjectTask.setStartTime(System.currentTimeMillis());
                 executeObjectTask.setEndTime(System.currentTimeMillis());
                 executeObjectTask.calculateTotalTime();

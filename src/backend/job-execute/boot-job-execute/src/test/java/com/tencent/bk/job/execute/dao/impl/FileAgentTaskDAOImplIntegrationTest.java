@@ -118,7 +118,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         agentTaskList.add(agentTask2);
 
         fileAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
@@ -156,7 +156,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         agentTask2.setEndTime(1572858331000L);
         agentTask2.setTotalTime(1000L);
         agentTask2.setErrorCode(88);
-        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        agentTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         agentTaskList.add(agentTask2);
 
         fileAgentTaskDAO.batchUpdateAgentTasks(agentTaskList);
@@ -227,7 +227,7 @@ public class FileAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(agentTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(agentTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(agentTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
     }
 
     @Test

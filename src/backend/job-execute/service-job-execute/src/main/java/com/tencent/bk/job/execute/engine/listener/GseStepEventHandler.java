@@ -281,9 +281,15 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         } else {
             // 普通步骤，启动的时候需要初始化所有ExecuteObjectTask
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>(
-                buildInitialExecuteObjectTasks(stepInstance.getTaskInstanceId(), stepInstanceId, executeCount,
-                    executeCount, batch, gseTaskId,
-                    stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()));
+                buildInitialExecuteObjectTasks(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstanceId,
+                    executeCount,
+                    executeCount,
+                    batch,
+                    gseTaskId,
+                    stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly())
+            );
             saveExecuteObjectTasks(stepInstance, executeObjectTasks);
         }
     }
@@ -569,6 +575,10 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
                 continue;
             }
+            if (retryExecuteObjectTask.getExecuteObject().isInvalid()) {
+                // 不合法执行对象，不能重试
+                continue;
+            }
             // 只有失败的目标主机才需要参与重试
             if (!ExecuteObjectTaskStatusEnum.isSuccess(retryExecuteObjectTask.getStatus())) {
                 retryExecuteObjectTask.setActualExecuteCount(executeCount);
@@ -581,13 +591,19 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     }
 
 
-    private void saveExecuteObjectTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
+    private void saveExecuteObjectTasksForRetryAll(StepInstanceBaseDTO stepInstance,
+                                                   int executeCount,
+                                                   Integer batch,
                                                    Long gseTaskId) {
         List<ExecuteObjectTask> retryExecuteObjectTasks = listTargetExecuteObjectTasks(stepInstance, executeCount - 1);
 
         for (ExecuteObjectTask retryExecuteObjectTask : retryExecuteObjectTasks) {
             retryExecuteObjectTask.setExecuteCount(executeCount);
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
+                continue;
+            }
+            if (retryExecuteObjectTask.getExecuteObject().isInvalid()) {
+                // 不合法执行对象，不能重试
                 continue;
             }
             retryExecuteObjectTask.setActualExecuteCount(executeCount);

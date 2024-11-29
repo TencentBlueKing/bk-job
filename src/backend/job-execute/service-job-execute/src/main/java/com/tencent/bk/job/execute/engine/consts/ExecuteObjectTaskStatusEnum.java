@@ -37,9 +37,9 @@ public enum ExecuteObjectTaskStatusEnum {
      */
     AGENT_ERROR(1),
     /**
-     * 无效主机
+     * 无效执行对象
      */
-    HOST_NOT_EXIST(2),
+    INVALID_EXECUTE_OBJECT(2),
     /**
      * 上次已成功
      */

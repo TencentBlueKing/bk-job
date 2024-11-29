@@ -144,7 +144,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         allSrcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(allSrcFiles, targetDir,
             stepInstance.getFileTargetName());
         allSrcDestFileMap.forEach((sreFile, destFile) -> {
-            if (isAgentInstalled(sreFile.getExecuteObject())) {
+            if (sreFile.getExecuteObject().isExecutable()) {
                 srcDestFileMap.put(sreFile, destFile);
             }
         });
@@ -170,7 +170,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void parseSrcFiles() {
         allSrcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
         srcFiles = allSrcFiles.stream()
-            .filter(file -> isAgentInstalled(file.getExecuteObject()))
+            .filter(file -> file.getExecuteObject().isExecutable())
             .collect(Collectors.toSet());
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
@@ -251,7 +251,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setGseTaskId(gseTask.getId());
 
             if (sourceExecuteObject.isAgentIdEmpty()) {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
+            } else if (sourceExecuteObject.isInvalid()) {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
             } else {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                 sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
@@ -348,21 +350,37 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void addInitialFileUploadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个要分发的源文件一条上传日志
         for (JobFile file : allSrcFiles) {
-            boolean isAgentInstalled = isAgentInstalled(file.getExecuteObject());
-            FileDistStatusEnum status = isAgentInstalled ?
+            boolean isSourceValid = !file.getExecuteObject().isInvalid();
+            boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+            FileDistStatusEnum status = isSourceValid && isSourceAgentInstalled ?
                 FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
             logService.addFileTaskLog(
                 stepInstance,
                 logs,
                 file.getExecuteObject(),
                 logService.buildUploadServiceFileTaskLogDTO(
-                    stepInstance, file, status, "--", "--", "--",
-                    isAgentInstalled ? null : "Agent is not installed"));
+                    stepInstance,
+                    file,
+                    status,
+                    "--",
+                    "--",
+                    "--",
+                    buildInitialFileTaskUploadLogContent(isSourceValid, isSourceAgentInstalled)
+                )
+            );
         }
     }
 
-    private boolean isAgentInstalled(ExecuteObject executeObject) {
-        return !executeObject.isAgentIdEmpty();
+    private String buildInitialFileTaskUploadLogContent(boolean isSourceValid,
+                                                        boolean isSourceAgentInstalled) {
+        if (!isSourceValid) {
+            return "Execute object is invalid";
+        } else if (!isSourceAgentInstalled) {
+            return "Agent is not installed";
+        } else {
+            // 源、目标正常，无法写入错误日志
+            return null;
+        }
     }
 
     private void addInitialFileDownloadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
@@ -370,11 +388,13 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         executeObjectTasks.stream()
             .filter(ExecuteObjectTask::isTarget)
             .forEach(targetExecuteObjectTask -> {
-                boolean isTargetAgentInstalled = isAgentInstalled(targetExecuteObjectTask.getExecuteObject());
+                boolean isTargetValid = !targetExecuteObjectTask.getExecuteObject().isInvalid();
+                boolean isTargetAgentInstalled = !targetExecuteObjectTask.getExecuteObject().isAgentIdEmpty();
                 for (JobFile file : allSrcFiles) {
-                    boolean isSourceAgentInstalled = isAgentInstalled(file.getExecuteObject());
-                    FileDistStatusEnum status = isTargetAgentInstalled && isSourceAgentInstalled ?
-                        FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
+                    boolean isSourceValid = !file.getExecuteObject().isInvalid();
+                    boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+                    FileDistStatusEnum status = isTargetValid && isTargetAgentInstalled && isSourceValid
+                        && isSourceAgentInstalled ? FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
                     logService.addFileTaskLog(
                         stepInstance,
                         logs,
@@ -388,12 +408,34 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             "--",
                             "--",
                             "--",
-                            isTargetAgentInstalled ? (isSourceAgentInstalled ? null : "Source agent is not installed")
-                                : "Agent is not installed"
+                            buildInitialFileTaskDownloadLogContent(
+                                isTargetValid,
+                                isTargetAgentInstalled,
+                                isSourceValid,
+                                isSourceAgentInstalled
+                            )
                         )
                     );
                 }
             });
+    }
+
+    private String buildInitialFileTaskDownloadLogContent(boolean isTargetValid,
+                                                          boolean isTargetAgentInstalled,
+                                                          boolean isSourceValid,
+                                                          boolean isSourceAgentInstalled) {
+        if (!isTargetValid) {
+            return "Execute object is invalid";
+        } else if (!isTargetAgentInstalled) {
+            return "Agent is not installed";
+        } else if (!isSourceValid) {
+            return "Source execute object is invalid";
+        } else if (!isSourceAgentInstalled) {
+            return "Source agent is not installed";
+        } else {
+            // 源、目标正常，无法写入错误日志
+            return null;
+        }
     }
 
     private void writeLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
