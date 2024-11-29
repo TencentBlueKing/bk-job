@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -99,6 +100,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 源文件与目标文件路径映射关系, 包含非法主机
      */
     private Map<JobFile, FileDest> allSrcDestFileMap;
+    /**
+     * 源执行对象任务列表(全量，包含非法的任务)
+     */
+    protected List<ExecuteObjectTask> sourceExecuteObjectTasks;
 
 
     public FileGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
@@ -237,7 +242,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 }
             }
         }
-        List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
+        sourceExecuteObjectTasks = new ArrayList<>();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
             ExecuteObjectTask executeObjectTask = new ExecuteObjectTask(
                 taskInstanceId,
@@ -259,9 +264,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
             }
 
-            executeObjectTasks.add(executeObjectTask);
+            sourceExecuteObjectTasks.add(executeObjectTask);
         }
-        fileExecuteObjectTaskService.batchSaveTasks(executeObjectTasks);
+        fileExecuteObjectTaskService.batchSaveTasks(sourceExecuteObjectTasks);
     }
 
     @Override
@@ -385,8 +390,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private void addInitialFileDownloadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个目标IP从每个要分发的源文件下载的一条下载日志
-        executeObjectTasks.stream()
-            .filter(ExecuteObjectTask::isTarget)
+        targetExecuteObjectTasks
             .forEach(targetExecuteObjectTask -> {
                 boolean isTargetValid = !targetExecuteObjectTask.getExecuteObject().isInvalid();
                 boolean isTargetAgentInstalled = !targetExecuteObjectTask.getExecuteObject().isAgentIdEmpty();
@@ -469,9 +473,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 gseTask,
                 srcDestFileMap,
                 requestId,
-                executeObjectTasks);
+                CollectionUtil.mergeToArrayList(targetExecuteObjectTasks, sourceExecuteObjectTasks));
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
+
 
     @Override
     protected boolean checkGseTaskExecutable() {

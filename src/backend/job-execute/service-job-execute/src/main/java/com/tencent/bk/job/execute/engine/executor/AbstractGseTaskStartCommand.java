@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
-import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -59,7 +58,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,9 +100,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
     /**
-     * 执行对象任务列表
+     * 目标执行对象任务列表(全量，包含非法的任务)
      */
-    protected List<ExecuteObjectTask> executeObjectTasks;
+    protected List<ExecuteObjectTask> targetExecuteObjectTasks;
 
 
     AbstractGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
@@ -225,35 +223,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initExecuteObjectTasks() {
-        this.executeObjectTasks = executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
-        updateNoExecutableExecuteObjectTasks(this.executeObjectTasks);
+        targetExecuteObjectTasks =
+            executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId())
+                .stream()
+                .filter(ExecuteObjectTask::isTarget)
+                .collect(Collectors.toList());
 
-        executeObjectTasks.stream()
-            .filter(ExecuteObjectTask::isTarget)
+        targetExecuteObjectTasks.stream()
             .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isExecutable())
             .forEach(executeObjectTask ->
                 this.targetExecuteObjectTaskMap.put(
                     executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
-    }
-
-    private void updateNoExecutableExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
-        List<ExecuteObjectTask> notExecutableTasks = executeObjectTasks.stream()
-            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable())
-            .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(notExecutableTasks)) {
-            log.warn("{} Contains noExecutable execute object tasks: {}", gseTaskInfo, notExecutableTasks);
-            notExecutableTasks.forEach(executeObjectTask -> {
-                executeObjectTask.setStatus(
-                    executeObjectTask.getExecuteObject().isAgentIdEmpty() ?
-                        ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED :
-                        ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT
-                );
-                executeObjectTask.setStartTime(System.currentTimeMillis());
-                executeObjectTask.setEndTime(System.currentTimeMillis());
-                executeObjectTask.calculateTotalTime();
-            });
-            executeObjectTaskService.batchUpdateTasks(executeObjectTasks);
-        }
     }
 
     private void initVariables() {

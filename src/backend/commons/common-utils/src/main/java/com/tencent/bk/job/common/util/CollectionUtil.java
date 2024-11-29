@@ -116,4 +116,11 @@ public class CollectionUtil {
         }
         return map;
     }
+
+    public static <T> ArrayList<T> mergeToArrayList(List<T> list1, List<T> list2) {
+        ArrayList<T> mergeList = new ArrayList<>(list1.size() + list2.size());
+        mergeList.addAll(list1);
+        mergeList.addAll(list2);
+        return mergeList;
+    }
 }
