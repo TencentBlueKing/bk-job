@@ -188,9 +188,10 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                     !executeObjectTask.getExecuteObject().isExecutable());
 
         log.info("InitFileResultHandleTask|stepInstanceId: {}|sourceExecuteObjectGseKeys: {}"
-                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}"
+                + "|hasNoExecutableSourceExecuteObject: {}",
             stepInstance.getId(), sourceExecuteObjectGseKeys, targetExecuteObjectGseKeys, fileUploadTaskNumMap,
-            fileDownloadTaskNumMap);
+            fileDownloadTaskNumMap, hasNoExecutableSourceExecuteObject);
     }
 
     private void initSrcFilesMap(Collection<JobFile> srcFiles) {
@@ -539,7 +540,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     @Override
     protected boolean containsNoExecutableExecuteObject() {
-        return this.hasNoExecutableExecuteObject || this.hasNoExecutableSourceExecuteObject;
+        return this.hasNoExecutableTargetExecuteObject || this.hasNoExecutableSourceExecuteObject;
     }
 
     private boolean isAllSourceExecuteObjectTasksDone() {

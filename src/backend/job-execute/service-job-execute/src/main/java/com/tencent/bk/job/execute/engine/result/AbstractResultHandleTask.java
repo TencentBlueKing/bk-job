@@ -204,9 +204,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected boolean gseV2Task;
     /**
-     * 是否包含不可执行的执行对象
+     * 是否包含不可执行的目标执行对象
      */
-    protected boolean hasNoExecutableExecuteObject;
+    protected boolean hasNoExecutableTargetExecuteObject;
     /**
      * GSE 任务信息，用于日志输出
      */
@@ -265,9 +265,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
 
-        this.hasNoExecutableExecuteObject =
-            executeObjectTasks.stream().anyMatch(
-                executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable());
+        this.hasNoExecutableTargetExecuteObject =
+            executeObjectTasks.stream().
+                filter(ExecuteObjectTask::isTarget)
+                .anyMatch(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable());
+        log.info("hasNoExecutableTargetExecuteObject: {}", hasNoExecutableTargetExecuteObject);
     }
 
     private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
@@ -706,7 +708,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * 任务是否包含不可执行的执行对象
      */
     protected boolean containsNoExecutableExecuteObject() {
-        return this.hasNoExecutableExecuteObject;
+        return this.hasNoExecutableTargetExecuteObject;
     }
 
     /**
