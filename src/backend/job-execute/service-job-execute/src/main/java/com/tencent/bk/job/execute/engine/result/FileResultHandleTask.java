@@ -182,6 +182,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         initFileTaskNumMap();
         initSourceExecuteObjectGseKeys();
 
+        log.info("FileexecuteObjectTask: {}", JsonUtils.toJson(executeObjectTasks));
         this.hasNoExecutableSourceExecuteObject =
             executeObjectTasks.stream().anyMatch(
                 executeObjectTask -> !executeObjectTask.isTarget() &&
