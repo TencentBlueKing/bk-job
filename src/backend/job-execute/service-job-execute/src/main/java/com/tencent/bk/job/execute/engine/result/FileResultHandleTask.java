@@ -537,6 +537,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return rst;
     }
 
+    @Override
+    protected boolean containsNoExecutableExecuteObject() {
+        return this.hasNoExecutableExecuteObject || this.hasNoExecutableSourceExecuteObject;
+    }
+
     private boolean isAllSourceExecuteObjectTasksDone() {
         return this.notFinishedSourceExecuteObjectGseKeys.isEmpty()
             && this.notFinishedTargetExecuteObjectGseKeys.isEmpty();

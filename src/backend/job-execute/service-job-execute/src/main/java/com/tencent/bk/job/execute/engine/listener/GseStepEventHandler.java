@@ -602,13 +602,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
                 continue;
             }
-            if (retryExecuteObjectTask.getExecuteObject().isInvalid()) {
-                // 不合法执行对象，不能重试
-                continue;
-            }
-            retryExecuteObjectTask.setActualExecuteCount(executeCount);
-            retryExecuteObjectTask.resetTaskInitialStatus();
             retryExecuteObjectTask.setGseTaskId(gseTaskId);
+            if (retryExecuteObjectTask.getExecuteObject().isExecutable()) {
+                retryExecuteObjectTask.setActualExecuteCount(executeCount);
+                retryExecuteObjectTask.resetTaskInitialStatus();
+            }
         }
 
         saveExecuteObjectTasks(stepInstance, retryExecuteObjectTasks);

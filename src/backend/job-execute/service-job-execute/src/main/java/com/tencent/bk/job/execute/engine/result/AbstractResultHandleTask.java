@@ -686,7 +686,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         GseTaskExecuteResult rst;
         if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
-            if (hasNoExecutableExecuteObject) {
+            if (containsNoExecutableExecuteObject()) {
                 log.info("Gse task contains invalid execute object, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
@@ -700,6 +700,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
         return rst;
+    }
+
+    /**
+     * 任务是否包含不可执行的执行对象
+     */
+    protected boolean containsNoExecutableExecuteObject() {
+        return this.hasNoExecutableExecuteObject;
     }
 
     /**

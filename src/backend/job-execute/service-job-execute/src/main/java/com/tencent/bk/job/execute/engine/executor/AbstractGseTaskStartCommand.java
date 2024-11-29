@@ -226,7 +226,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void initExecuteObjectTasks() {
         this.executeObjectTasks = executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
-        updateNotExecutableExecuteObjectTasks(this.executeObjectTasks);
+        updateNoExecutableExecuteObjectTasks(this.executeObjectTasks);
 
         executeObjectTasks.stream()
             .filter(ExecuteObjectTask::isTarget)
@@ -236,7 +236,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                     executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
     }
 
-    private void updateNotExecutableExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
+    private void updateNoExecutableExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
         List<ExecuteObjectTask> notExecutableTasks = executeObjectTasks.stream()
             .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable())
             .collect(Collectors.toList());
