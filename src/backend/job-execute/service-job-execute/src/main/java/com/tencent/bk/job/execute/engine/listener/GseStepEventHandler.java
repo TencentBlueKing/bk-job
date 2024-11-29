@@ -575,14 +575,12 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
                 continue;
             }
-            if (retryExecuteObjectTask.getExecuteObject().isInvalid()) {
-                // 不合法执行对象，不能重试
-                continue;
-            }
             // 只有失败的目标主机才需要参与重试
             if (!ExecuteObjectTaskStatusEnum.isSuccess(retryExecuteObjectTask.getStatus())) {
-                retryExecuteObjectTask.setActualExecuteCount(executeCount);
-                retryExecuteObjectTask.resetTaskInitialStatus();
+                if (retryExecuteObjectTask.getExecuteObject().isExecutable()) {
+                    retryExecuteObjectTask.setActualExecuteCount(executeCount);
+                    retryExecuteObjectTask.resetTaskInitialStatus();
+                }
                 retryExecuteObjectTask.setGseTaskId(gseTaskId);
             }
         }
@@ -602,11 +600,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
                 continue;
             }
-            retryExecuteObjectTask.setGseTaskId(gseTaskId);
             if (retryExecuteObjectTask.getExecuteObject().isExecutable()) {
                 retryExecuteObjectTask.setActualExecuteCount(executeCount);
                 retryExecuteObjectTask.resetTaskInitialStatus();
             }
+            retryExecuteObjectTask.setGseTaskId(gseTaskId);
         }
 
         saveExecuteObjectTasks(stepInstance, retryExecuteObjectTasks);
