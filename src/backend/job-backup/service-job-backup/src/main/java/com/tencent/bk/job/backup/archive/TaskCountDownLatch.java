@@ -31,6 +31,7 @@ import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 任务 CountDownLatch 组件，用于等待所有任务完成后再退出
@@ -62,21 +63,27 @@ public class TaskCountDownLatch {
         }
     }
 
-    public void waitingForAllTasksDone() {
+    public boolean waitingForAllTasksDone(long timeoutSeconds) {
         try {
             log.info("Waiting for all tasks done! total: {}", latch.getCount());
-            this.latch.await();
-            this.isAllTaskDone = true;
-            log.info("All tasks are stopped!");
+            isAllTaskDone = latch.await(timeoutSeconds, TimeUnit.SECONDS);
+            if (isAllTaskDone) {
+                log.info("All tasks have been completed");
+            } else {
+                log.info("Some tasks did not end within the timeout period, timeout: {}, notCompletedTaskIds: {}",
+                    timeoutSeconds, taskIds);
+            }
+            return isAllTaskDone;
         } catch (InterruptedException e) {
-            log.warn("Stop task counter wait interrupted", e);
+            log.warn("Task count down latch wait interrupted", e);
+            return false;
         }
     }
 
     private synchronized void startMonitor() {
         if (!monitorInitial) {
-            log.info("Start StopTaskCounter monitor ...");
-            Thread monitorThread = new Thread("StopTaskCounterMonitor") {
+            log.info("Start TaskCountDownLatch monitor ...");
+            Thread monitorThread = new Thread("TaskCountDownLatchMonitor") {
                 @Override
                 public void run() {
                     while (!isAllTaskDone) {

@@ -24,11 +24,10 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
-import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
@@ -38,6 +37,7 @@ import com.tencent.bk.job.backup.archive.dao.impl.GseFileExecuteObjTaskRecordDAO
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptAgentTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseScriptExecuteObjTaskRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.OperationLogRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.RollingConfigRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceConfirmRecordDAO;
@@ -47,7 +47,6 @@ import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRollingTaskRecordD
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceScriptRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceHostRecordDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceVariableRecordDAO;
 import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchiver;
 import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchiver;
@@ -63,17 +62,23 @@ import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchiver;
 import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
-import com.tencent.bk.job.backup.archive.impl.TaskInstanceArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
 import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
+import com.tencent.bk.job.backup.archive.metrics.ArchiveTasksGauge;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
+import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -98,22 +103,10 @@ public class ArchiveConfiguration {
     public static class ExecuteDaoAutoConfig {
 
         @Bean(name = "taskInstanceRecordDAO")
-        public TaskInstanceRecordDAO taskInstanceRecordDAO(
+        public JobInstanceHotRecordDAO taskInstanceRecordDAO(
             @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceRecordDAO");
-            return new TaskInstanceRecordDAO(dslContextProvider);
-        }
-
-        @Bean
-        public TaskInstanceArchiver taskInstanceArchiver(
-            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-            TaskInstanceRecordDAO taskInstanceRecordDAO,
-            ArchiveTablePropsStorage archiveTablePropsStorage
-        ) {
-            return new TaskInstanceArchiver(
-                jobInstanceColdDAOObjectProvider.getIfAvailable(),
-                taskInstanceRecordDAO,
-                archiveTablePropsStorage);
+            return new JobInstanceHotRecordDAO(dslContextProvider);
         }
 
         @Bean(name = "stepInstanceRecordDAO")
@@ -461,34 +454,49 @@ public class ArchiveConfiguration {
 
 
     @Bean
-    public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
-        log.info("Init ArchiveTaskLock");
-        return new ArchiveTaskLock(redisTemplate);
+    public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
+        log.info("Init ArchiveTaskExecuteLock");
+        return new ArchiveTaskExecuteLock(redisTemplate);
     }
 
     @Bean
-    public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                                                           ArchiveProperties archiveProperties) {
+    public JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        return new JobInstanceArchiveTaskGenerateLock(redisTemplate);
+    }
+
+    @Bean
+    public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        return new FailedArchiveTaskRescheduleLock(redisTemplate);
+    }
+
+    @Bean
+    public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
+        ArchiveTaskService archiveTaskService,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
+        ArchiveProperties archiveProperties,
+        JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock) {
+
         log.info("Init JobInstanceArchiveTaskGenerator");
         return new JobInstanceArchiveTaskGenerator(
             archiveTaskService,
             taskInstanceRecordDAO,
-            archiveProperties
+            archiveProperties,
+            jobInstanceArchiveTaskGenerateLock
         );
     }
 
     @Bean
     public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
-        TaskInstanceRecordDAO taskInstanceRecordDAO,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
         ArchiveProperties archiveProperties,
         JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
         JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
         ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
-        ArchiveTaskLock archiveTaskLock,
+        ArchiveTaskExecuteLock archiveTaskExecuteLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
-        ArchiveTablePropsStorage archiveTablePropsStorage) {
+        ArchiveTablePropsStorage archiveTablePropsStorage,
+        Tracer tracer) {
 
         log.info("Init JobInstanceArchiveTaskScheduler");
         return new JobInstanceArchiveTaskScheduler(
@@ -498,9 +506,10 @@ public class ArchiveConfiguration {
             jobInstanceArchiveTaskScheduleLock,
             jobInstanceSubTableArchivers,
             jobInstanceColdDAOObjectProvider.getIfAvailable(),
-            archiveTaskLock,
+            archiveTaskExecuteLock,
             archiveErrorTaskCounter,
-            archiveTablePropsStorage
+            archiveTablePropsStorage,
+            tracer
         );
     }
 
@@ -508,12 +517,14 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-        ArchiveProperties archiveProperties) {
+        ArchiveProperties archiveProperties,
+        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         log.info("Init JobInstanceArchiveCronJobs");
         return new JobInstanceArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
-            archiveProperties
+            archiveProperties,
+            abnormalArchiveTaskReScheduler
         );
     }
 
@@ -521,5 +532,19 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
         log.info("Init JobInstanceArchiveTaskScheduleLock");
         return new JobInstanceArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    public AbnormalArchiveTaskReScheduler failArchiveTaskReScheduler(
+        ArchiveTaskService archiveTaskService,
+        FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
+        log.info("Init FailArchiveTaskReScheduler");
+        return new AbnormalArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
+    }
+
+    @Bean
+    public ArchiveTasksGauge archiveTasksGauge(MeterRegistry meterRegistry,
+                                               ArchiveTaskService archiveTaskService) {
+        return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
     }
 }

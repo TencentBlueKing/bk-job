@@ -22,14 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.aidev;
+package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.aidev.model.common.AIDevMessage;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
-public interface IBkAIDevClient {
+/**
+ * 分批处理工具类
+ */
+public class BatchUtil {
 
-    String getHunYuanAnswer(String token, List<AIDevMessage> messageHistoryList, String userInput);
-
+    /**
+     * 分批执行工具
+     *
+     * @param targets   执行目标列表
+     * @param batchSize 每批次大小
+     * @param execution 执行函数
+     * @param <E>       执行目标
+     */
+    public static <E> void executeBatch(Collection<E> targets,
+                                        int batchSize,
+                                        Consumer<Collection<E>> execution) {
+        if (CollectionUtils.isEmpty(targets)) {
+            return;
+        }
+        if (targets.size() <= batchSize) {
+            execution.accept(targets);
+        } else {
+            List<List<E>> targetBatches = CollectionUtil.partitionCollection(targets, batchSize);
+            targetBatches.forEach(execution);
+        }
+    }
 }

@@ -22,26 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.backup.archive.dao.impl;
 
-public enum DbOperationEnum {
-    /**
-     * 读操作
-     */
-    READ(1),
-    /**
-     * 写操作
-     */
-    WRITE(2);
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import com.tencent.bk.job.execute.model.tables.TaskInstance;
+import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
+import org.jooq.OrderField;
+import org.jooq.TableField;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-    DbOperationEnum(int op) {
-        this.op = op;
+/**
+ * task_instance DAO
+ */
+public class JobInstanceHotRecordDAO extends AbstractJobInstanceMainHotRecordDAO<TaskInstanceRecord> {
+
+    private static final TaskInstance TABLE = TaskInstance.TASK_INSTANCE;
+
+    private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
+
+    static {
+        ORDER_FIELDS.add(TaskInstance.TASK_INSTANCE.ID.asc());
     }
 
-    private final int op;
-
-    public int getValue() {
-        return op;
+    public JobInstanceHotRecordDAO(DSLContextProvider dslContextProvider) {
+        super(dslContextProvider, TABLE);
     }
+
+    @Override
+    public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
+        return TABLE.ID;
+    }
+
+    @Override
+    public TableField<TaskInstanceRecord, Long> getJobInstanceCreateTimeField() {
+        return TABLE.CREATE_TIME;
+    }
+
+    protected Collection<? extends OrderField<?>> getListRecordsOrderFields() {
+        return ORDER_FIELDS;
+    }
+
 }

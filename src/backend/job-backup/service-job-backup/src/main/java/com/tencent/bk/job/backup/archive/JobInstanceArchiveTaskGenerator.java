@@ -24,23 +24,25 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.DbDataNodeTypeEnum;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,65 +54,91 @@ public class JobInstanceArchiveTaskGenerator {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final TaskInstanceRecordDAO taskInstanceRecordDAO;
+    private final JobInstanceHotRecordDAO taskInstanceRecordDAO;
 
     private final ArchiveProperties archiveProperties;
 
+    private final JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock;
+
+    /**
+     * 归档数据时间范围计算所依据的时区
+     */
+    private final ZoneId archiveZoneId;
+
 
     public JobInstanceArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                           TaskInstanceRecordDAO taskInstanceRecordDAO,
-                                           ArchiveProperties archiveProperties) {
-
+                                           JobInstanceHotRecordDAO taskInstanceRecordDAO,
+                                           ArchiveProperties archiveProperties,
+                                           JobInstanceArchiveTaskGenerateLock archiveTaskGenerateLock) {
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
+        this.archiveTaskGenerateLock = archiveTaskGenerateLock;
+        archiveZoneId = getArchiveBasedTimeZone(archiveProperties);
     }
 
-    @JobTransactional(transactionManager = "jobBackupTransactionManager")
+
     public void generate() {
-        if (taskInstanceRecordDAO.isTableEmpty()) {
-            log.info("Job instance table is empty and does not require processing");
-            return;
-        }
-        List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
-
-        // 归档起始时间
-        LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
-        // 归档结束时间
-        LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
-        if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
-            log.info("Archive endTime is before startTime, does not require processing. startTime: {}, endTime: {}",
-                archiveStartDateTime, archiveEndDateTime);
-            return;
-        }
-
-        log.info("Generate job instance archive task, archiveStartDateTime: {}, archiveEndDateTime: {}",
-            archiveStartDateTime, archiveEndDateTime);
-        // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
-        while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
-            // 水平分库分表
-            if (isHorizontalShardingEnabled()) {
-                // 作业实例数据归档任务,现版本暂不支持
-                archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
-                    archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
-            } else {
-                // 单db
-                DbDataNode dbDataNode = DbDataNode.standaloneDbDatNode();
-                JobInstanceArchiveTaskInfo archiveTaskInfo =
-                    buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
-                archiveTaskList.add(archiveTaskInfo);
-                log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
+        boolean locked = false;
+        try {
+            locked = archiveTaskGenerateLock.lock();
+            if (!locked) {
+                return;
             }
 
-            archiveStartDateTime = archiveStartDateTime.plusHours(1L);
+            if (taskInstanceRecordDAO.isTableEmpty()) {
+                log.info("Job instance table is empty and does not require processing");
+                return;
+            }
+            List<JobInstanceArchiveTaskInfo> archiveTaskList = new ArrayList<>();
+
+            log.info("Compute archive task generate startDateTime and endDateTime");
+            // 归档任务创建范围-起始时间
+            LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
+            // 归档任务创建范围-结束时间
+            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+            if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
+                log.info("Archive endTime is before startTime, does not require generating archive task." +
+                        " startTime: {}, endTime: {}",
+                    archiveStartDateTime, archiveEndDateTime);
+                return;
+            }
+
+            log.info("Generate job instance archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
+            // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
+            while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
+                log.info("Generate archive task for datetime : {}", archiveStartDateTime);
+                // 水平分库分表
+                if (isHorizontalShardingEnabled()) {
+                    // 作业实例数据归档任务,现版本暂不支持
+                    archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
+                        archiveStartDateTime, archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
+                } else {
+                    // 单db
+                    DbDataNode dbDataNode = DbDataNode.standaloneDbDataNode();
+                    JobInstanceArchiveTaskInfo archiveTaskInfo =
+                        buildArchiveTask(ArchiveTaskTypeEnum.JOB_INSTANCE, archiveStartDateTime, dbDataNode);
+                    archiveTaskList.add(archiveTaskInfo);
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
+                }
+
+                archiveStartDateTime = archiveStartDateTime.plusHours(1L);
+            }
+
+            if (CollectionUtils.isNotEmpty(archiveTaskList)) {
+                archiveTaskService.saveArchiveTasks(archiveTaskList);
+                log.info("Generate archive tasks : {}", JsonUtils.toJson(archiveTaskList));
+            } else {
+                log.info("No new archive tasks are generated");
+            }
+        } catch (Throwable e) {
+            log.error("Generate archive task caught exception", e);
+        } finally {
+            if (locked) {
+                archiveTaskGenerateLock.unlock();
+            }
         }
 
-        if (CollectionUtils.isNotEmpty(archiveTaskList)) {
-            archiveTaskList.forEach(archiveTaskService::saveArchiveTask);
-            log.info("Add archive tasks : {}", JsonUtils.toJson(archiveTaskList));
-        } else {
-            log.info("No new archive tasks are generated");
-        }
     }
 
     private List<JobInstanceArchiveTaskInfo> buildArchiveTasksForShardingDataNodes(
@@ -132,7 +160,7 @@ public class JobInstanceArchiveTaskGenerator {
                     JobInstanceArchiveTaskInfo archiveTaskInfo =
                         buildArchiveTask(archiveTaskType, startDateTime, dbDataNode);
                     tasks.add(archiveTaskInfo);
-                    log.info("Add JobInstanceArchiveTaskInfo: {}", archiveTaskInfo.buildTaskUniqueId());
+                    log.info("Add JobInstanceArchiveTaskInfo: {}", JsonUtils.toJson(archiveTaskInfo));
                 }
             }
         });
@@ -148,7 +176,7 @@ public class JobInstanceArchiveTaskGenerator {
         int hour = ArchiveDateTimeUtil.computeHour(startDateTime);
         archiveTask.setDay(day);
         archiveTask.setHour(hour);
-        long fromTimestamp = 1000 * startDateTime.toEpochSecond(ZoneOffset.UTC);
+        long fromTimestamp = ArchiveDateTimeUtil.toTimestampMillsAtZone(startDateTime, archiveZoneId);
         archiveTask.setFromTimestamp(fromTimestamp);
         archiveTask.setToTimestamp(fromTimestamp + 1000 * 3600L);
         archiveTask.setTaskType(archiveTaskType);
@@ -165,16 +193,36 @@ public class JobInstanceArchiveTaskGenerator {
         if (latestArchiveTask == null) {
             // 从表数据中的 job_create_time 计算归档任务开始时间
             log.info("Latest archive task is empty, try compute from table min job create time");
-            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobCreateTime();
+            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobInstanceCreateTime();
             log.info("Min job create time in db is : {}", minJobCreateTimeMills);
             startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
-                ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(minJobCreateTimeMills));
+                ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(minJobCreateTimeMills, archiveZoneId));
         } else {
             // 根据最新的归档任务计算开始
-            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(latestArchiveTask.getToTimestamp());
+            log.info("Compute archive from latest generated archive task: {}", JsonUtils.toJson(latestArchiveTask));
+            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(
+                latestArchiveTask.getToTimestamp(), archiveZoneId);
         }
 
         return startDateTime;
+    }
+
+    /**
+     * 获取归档数据时间范围计算所依据的时区
+     *
+     * @param archiveProperties 归档配置
+     * @return 时区
+     */
+    private ZoneId getArchiveBasedTimeZone(ArchiveProperties archiveProperties) throws DateTimeException {
+        ZoneId zoneId;
+        if (StringUtils.isBlank(archiveProperties.getTimeZone())) {
+            zoneId = ZoneId.systemDefault();
+            log.info("Use system zone as archive base time zone, zoneId: {}", zoneId);
+            return zoneId;
+        }
+        zoneId = ZoneId.of(archiveProperties.getTimeZone());
+        log.info("Use configured zone as archive base time zone, zoneId: {}", zoneId);
+        return zoneId;
     }
 
     private boolean isHorizontalShardingEnabled() {
@@ -183,7 +231,8 @@ public class JobInstanceArchiveTaskGenerator {
     }
 
     private LocalDateTime computeArchiveEndTime(int archiveDays) {
-        LocalDateTime now = LocalDateTime.now();
+        log.info("Compute archive task generate end time before {} days", archiveDays);
+        LocalDateTime now = LocalDateTime.now(archiveZoneId);
         return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

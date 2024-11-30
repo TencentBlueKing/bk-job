@@ -55,6 +55,7 @@ public class ArchiveProperties {
      * 触发时间 CRON 表达式
      */
     private String cron;
+
     /**
      * 归档任务并行执行数量
      */
@@ -66,9 +67,9 @@ public class ArchiveProperties {
     private int keepDays = 30;
 
     /**
-     * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+     * 归档数据时间范围计算所依据的时区，如果不指定默认为系统时区
      */
-    private int readIdStepSize = 1000;
+    private String timeZone;
 
     /**
      * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
@@ -83,7 +84,7 @@ public class ArchiveProperties {
     /**
      * 每批次从 db 表中读取的记录数量
      */
-    private int readRowLimit = 10000;
+    private int readRowLimit = 1000;
 
     private Map<String, TableConfig> tableConfigs;
 
@@ -94,11 +95,6 @@ public class ArchiveProperties {
 
     @Data
     public static class TableConfig {
-        /**
-         * 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-         */
-        private Integer readIdStepSize;
-
         /**
          * 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
          */

@@ -22,28 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.aidev.exception;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.common.exception.InternalException;
-import lombok.Getter;
-import lombok.ToString;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 调用AIDev接口异常
+ * 归档任务执行分布式锁
  */
-@Getter
-@ToString
-public class BkAIDevException extends InternalException {
+@Slf4j
+public class ArchiveTaskExecuteLock {
 
-    public BkAIDevException(Throwable cause, Integer errorCode, Object[] errorParams) {
-        super(cause, errorCode, errorParams);
+    private final HeartBeatRedisLocks locks;
+
+    public ArchiveTaskExecuteLock(StringRedisTemplate redisTemplate) {
+        locks = new HeartBeatRedisLocks(
+            "archive:task:execute",
+            redisTemplate,
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-archive:task:execute",
+                3600 * 1000L, // 1h 超时时间
+                600 * 1000L // 10min 续期一次
+            )
+        );
     }
 
-    public BkAIDevException(String message, Integer errorCode) {
-        super(message, errorCode);
+    public boolean lock(String taskId) {
+        return locks.lock(taskId);
     }
 
-    public BkAIDevException(String message, Throwable cause, Integer errorCode) {
-        super(message, cause, errorCode);
+    public void unlock(String taskId) {
+        locks.unlock(taskId);
     }
 }

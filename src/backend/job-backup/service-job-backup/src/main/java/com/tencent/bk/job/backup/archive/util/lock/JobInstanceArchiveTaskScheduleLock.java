@@ -22,25 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+/**
+ * 归档任务调度分布式锁
+ */
+@Slf4j
+public class JobInstanceArchiveTaskScheduleLock extends FairDistributeLock {
 
-public interface AIService {
-
-    /**
-     * 获取AI回答流（流式接口）
-     *
-     * @param chatHistoryDTOList  历史聊天记录
-     * @param userInput           用户输入
-     * @param partialRespConsumer AI回答流回调
-     * @return AI回答结果Future
-     */
-    CompletableFuture<String> getAIAnswerStream(List<AIChatHistoryDTO> chatHistoryDTOList,
-                                                String userInput,
-                                                Consumer<String> partialRespConsumer);
+    public JobInstanceArchiveTaskScheduleLock() {
+        super(
+            "job:instance:archive:task:schedule:lock",
+            "job:instance:archive:task:schedule",
+            60 * 1000L
+        );
+    }
 }

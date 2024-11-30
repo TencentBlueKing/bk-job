@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceHostRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -50,13 +49,9 @@ public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<T
     }
 
     public TaskInstanceHostRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
+        super(dslContextProvider, TABLE);
     }
 
-    @Override
-    public Table<TaskInstanceHostRecord> getTable() {
-        return TABLE;
-    }
 
     @Override
     public TableField<TaskInstanceHostRecord, Long> getJobInstanceIdField() {

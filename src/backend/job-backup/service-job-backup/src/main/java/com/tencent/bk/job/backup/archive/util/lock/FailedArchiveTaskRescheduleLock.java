@@ -22,23 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.impl;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
-import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
-import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceRecordDAO;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
+/**
+ * 失败/超时归档任务重调度分布式锁
+ */
+@Slf4j
+public class FailedArchiveTaskRescheduleLock extends PreemptiveDistributeLock {
 
-public class TaskInstanceArchiver extends AbstractJobInstanceSubTableArchiver {
-
-    public TaskInstanceArchiver(
-        JobInstanceColdDAO jobInstanceColdDAO,
-        TaskInstanceRecordDAO jobInstanceHotRecordDAO,
-        ArchiveTablePropsStorage archiveTablePropsStorage) {
-        super(
-            jobInstanceColdDAO,
-            jobInstanceHotRecordDAO,
-            archiveTablePropsStorage
-        );
+    public FailedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        super(redisTemplate,
+            "fail:archive:task:reschedule",
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-fail:archive:task:reschedule",
+                300 * 1000L, // 5min 超时时间
+                60 * 1000L // 1min 续期一次
+            ));
     }
+
 }

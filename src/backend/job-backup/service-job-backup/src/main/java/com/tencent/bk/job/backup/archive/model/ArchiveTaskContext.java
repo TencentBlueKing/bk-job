@@ -24,46 +24,25 @@
 
 package com.tencent.bk.job.backup.archive.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@NoArgsConstructor
-public class ArchiveTaskSummary {
-    /**
-     * 归档任务
-     */
-    private JobInstanceArchiveTaskInfo archiveTask;
+public class ArchiveTaskContext {
 
-    /**
-     * 归档模式
-     */
-    private String archiveMode;
+    private JobInstanceArchiveTaskInfo archiveTaskInfo;
 
-    /**
-     * 归档总耗时（单位毫秒)
-     */
-    private Long archiveCost;
 
-    /**
-     * 归档的记录数量
-     */
-    private Long archivedRecordSize;
+    public ArchiveTaskContext(JobInstanceArchiveTaskInfo archiveTaskInfo) {
+        this.archiveTaskInfo = archiveTaskInfo;
+    }
 
-    /**
-     * 归档详细说明信息
-     */
-    private String message;
+    public void accumulateTableBackup(String tableName, long backupRows, long costTime) {
+        archiveTaskInfo.getOrInitExecutionDetail()
+            .accumulateTableBackup(tableName, backupRows, costTime);
+    }
 
-    /**
-     * 任务是否被跳过
-     */
-    private boolean skip;
-
-    public ArchiveTaskSummary(JobInstanceArchiveTaskInfo archiveTask, String archiveMode) {
-        this.archiveTask = archiveTask;
-        this.archiveMode = archiveMode;
+    public void accumulateTableDelete(String tableName, long deleteRows, long costTime) {
+        archiveTaskInfo.getOrInitExecutionDetail()
+            .accumulateTableDelete(tableName, deleteRows, costTime);
     }
 }

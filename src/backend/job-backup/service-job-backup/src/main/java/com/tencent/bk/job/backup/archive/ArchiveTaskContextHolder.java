@@ -22,30 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.dao.execute;
+package com.tencent.bk.job.backup.archive;
 
-import org.junit.jupiter.api.Test;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 
-//@ExtendWith(SpringExtension.class)
-//@SpringBootTest
-//@ActiveProfiles("test")
-//@TestPropertySource(locations = "classpath:test.properties")
-//@SqlConfig(encoding = "utf-8")
-//@Sql({"/init_archive_progress_data.sql"})
-class ArchiveProgressDAOImplIntegrationTest {
+public class ArchiveTaskContextHolder {
 
-//    @Autowired
-//    private ArchiveProgressDAO archiveProgressDAO;
+    private static final ThreadLocal<ArchiveTaskContext> HOLDER = new ThreadLocal<>();
 
-    @Test
-    void queryArchiveProgress() {
-//        ArchiveProgressDTO archiveProgress = archiveProgressDAO.queryArchiveProgress("task_instance");
-//        assertThat(archiveProgress.getTableName()).isEqualTo("task_instance");
-//        assertThat(archiveProgress.getProgress().getLastArchivedId()).isEqualTo(1000L);
-//        assertThat(archiveProgress.getLastModifyTime()).isEqualTo(1621166442000L);
+    public static void set(ArchiveTaskContext archiveTaskContext) {
+        HOLDER.set(archiveTaskContext);
     }
 
-    @Test
-    void saveArchiveProgress() {
+    public static void unset() {
+        HOLDER.remove();
+    }
+
+    public static ArchiveTaskContext get() {
+        return HOLDER.get();
+    }
+
+    public static String getArchiveTaskId() {
+        ArchiveTaskContext context = HOLDER.get();
+        return context != null ? context.getArchiveTaskInfo().buildTaskUniqueId() : null;
     }
 }

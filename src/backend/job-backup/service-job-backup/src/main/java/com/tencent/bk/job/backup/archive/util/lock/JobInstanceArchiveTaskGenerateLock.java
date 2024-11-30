@@ -22,20 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 分库分表迁移单库/分库读写控制切面注解
+ * 归档任务创建分布式锁
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Inherited
-public @interface ShardingDbMigrate {
-    DbOperationEnum op();
+@Slf4j
+public class JobInstanceArchiveTaskGenerateLock extends PreemptiveDistributeLock {
+
+
+    public JobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        super(redisTemplate,
+            "job:instance:archive:task:generate",
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-job:instance:archive:task:generate",
+                60 * 1000L, // 60s 超时时间
+                10 * 1000L // 10s 续期一次
+            ));
+    }
 }

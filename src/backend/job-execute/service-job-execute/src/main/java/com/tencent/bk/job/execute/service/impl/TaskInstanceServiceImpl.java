@@ -267,7 +267,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         if (ShardingFlag.isShardingEnabled()) {
             taskInstanceAppDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
         } else {
-            taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
+            taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
         }
     }
 

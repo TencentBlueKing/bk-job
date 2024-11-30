@@ -27,6 +27,7 @@ package com.tencent.bk.job.backup.archive.util;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -54,7 +55,7 @@ class ArchiveDateTimeUtilTest {
     }
 
     @Test
-    void computeMaxLocalDatTimeBeforeDays() {
+    void computeStartOfDayBeforeDays() {
         LocalDateTime dateTime = LocalDateTime.of(2024, 11, 11, 1, 11, 11);
         LocalDateTime result = ArchiveDateTimeUtil.computeStartOfDayBeforeDays(dateTime, 1);
         assertThat(result).isEqualTo(LocalDateTime.of(2024, 11, 10, 0, 0, 0));
@@ -65,7 +66,8 @@ class ArchiveDateTimeUtilTest {
 
     @Test
     void unixTimestampMillToLocalDateTime() {
-        LocalDateTime dateTime = ArchiveDateTimeUtil.unixTimestampMillToLocalDateTime(1732072271000L);
+        LocalDateTime dateTime = ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(
+            1732072271000L, ZoneId.of("GMT+8"));
         assertThat(dateTime).isEqualTo(LocalDateTime.of(2024, 11, 20, 11, 11, 11));
     }
 
@@ -74,5 +76,12 @@ class ArchiveDateTimeUtilTest {
         LocalDateTime dateTime =
             ArchiveDateTimeUtil.toHourlyRoundDown(LocalDateTime.of(2024, 11, 20, 11, 1, 1));
         assertThat(dateTime).isEqualTo(LocalDateTime.of(2024, 11, 20, 11, 0, 0));
+    }
+
+    @Test
+    void toTimestampMillsAtZone() {
+        LocalDateTime dateTime = LocalDateTime.of(2024, 11, 11, 1, 11, 11);
+        assertThat(ArchiveDateTimeUtil.toTimestampMillsAtZone(dateTime, ZoneId.of("GMT+8")))
+            .isEqualTo(1731258671000L);
     }
 }

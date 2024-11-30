@@ -45,19 +45,19 @@ public class JobInstanceArchiveTaskInfo {
     private DbDataNode dbDataNode;
 
     /**
-     * 归档任务所在天.比如 20240806
+     * 归档数据所在天.比如 20240806
      */
     private Integer day;
     /**
-     * 归档任务所在小时。 1-24
+     * 归档数据所在小时。 0-23
      */
     private Integer hour;
     /**
-     * 归档任务时间范围-from timestamp
+     * 归档数据时间范围-from timestamp
      */
     private Long fromTimestamp;
     /**
-     * 归档任务时间范围-to timestamp
+     * 归档数据时间范围-to timestamp
      */
     private Long toTimestamp;
     /**
@@ -76,23 +76,31 @@ public class JobInstanceArchiveTaskInfo {
      * 归档任务最后更新时间
      */
     private Long lastUpdateTime;
-
-    public JobInstanceArchiveTaskInfo clone() {
-        JobInstanceArchiveTaskInfo archiveTask = new JobInstanceArchiveTaskInfo();
-        archiveTask.setTaskType(taskType);
-        archiveTask.setDbDataNode(dbDataNode.clone());
-        archiveTask.setDay(day);
-        archiveTask.setHour(hour);
-        archiveTask.setFromTimestamp(fromTimestamp);
-        archiveTask.setToTimestamp(toTimestamp);
-        archiveTask.setProcess(process.clone());
-        archiveTask.setStatus(status);
-        archiveTask.setCreateTime(createTime);
-        archiveTask.setLastUpdateTime(lastUpdateTime);
-        return archiveTask;
-    }
+    /**
+     * 归档任务启动时间
+     */
+    private Long taskStartTime;
+    /**
+     * 归档任务结束时间
+     */
+    private Long taskEndTime;
+    /**
+     * 归档任务耗时，单位毫秒
+     */
+    private Long taskCost;
+    /**
+     * 归档任务运行详情
+     */
+    private ArchiveTaskExecutionDetail detail;
 
     public String buildTaskUniqueId() {
         return taskType.getType() + ":" + day + ":" + hour + ":" + dbDataNode.toDataNodeId();
+    }
+
+    public ArchiveTaskExecutionDetail getOrInitExecutionDetail() {
+        if (detail == null) {
+            detail = new ArchiveTaskExecutionDetail();
+        }
+        return detail;
     }
 }

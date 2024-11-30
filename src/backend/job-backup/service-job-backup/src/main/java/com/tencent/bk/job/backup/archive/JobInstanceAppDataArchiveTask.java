@@ -25,63 +25,95 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作业实例数据归档-分库分表场景下，冗余的基于业务 ID 进行分库分表的数据
  */
+@Slf4j
 public class JobInstanceAppDataArchiveTask extends AbstractJobInstanceArchiveTask<TaskInstanceRecord> {
 
 
-    public JobInstanceAppDataArchiveTask(JobInstanceColdDAO jobInstanceColdDAO,
+    private final JobInstanceSubTableArchivers jobInstanceSubTableArchivers;
+
+    public JobInstanceAppDataArchiveTask(JobInstanceHotRecordDAO jobInstanceHotRecordDAO,
+                                         JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
+                                         JobInstanceColdDAO jobInstanceColdDAO,
                                          ArchiveProperties archiveProperties,
-                                         ArchiveTaskLock archiveTaskLock,
+                                         ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                          ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                          JobInstanceArchiveTaskInfo archiveTask,
                                          ArchiveTaskService archiveTaskService,
                                          ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(
+            jobInstanceHotRecordDAO,
             jobInstanceColdDAO,
             archiveProperties,
-            archiveTaskLock,
+            archiveTaskExecuteLock,
             archiveErrorTaskCounter,
             archiveTask,
             archiveTaskService,
             archiveTablePropsStorage
         );
+        this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
     }
 
     @Override
-    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstances) {
+    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstanceRecords) {
+        List<Long> jobInstanceIds =
+            jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
+        // 备份主表数据
+        backupPrimaryTableRecord(jobInstanceRecords);
+        // 备份子表数据
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
+            tableArchiver.backupRecords(jobInstanceIds);
+        });
+    }
 
+    private void backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords) {
+        // 备份主表数据
+        long startTime = System.currentTimeMillis();
+        long backupRows = jobInstanceColdDAO.batchInsert(jobInstanceRecords,
+            archiveTablePropsStorage.getBatchInsertRowSize(jobInstanceMainRecordDAO.getTable().getName()));
+        ArchiveTaskContextHolder.get().accumulateTableBackup(
+            jobInstanceMainRecordDAO.getTable().getName(),
+            backupRows,
+            System.currentTimeMillis() - startTime
+        );
     }
 
     @Override
     protected void deleteJobInstanceHotData(List<Long> jobInstanceIds) {
-
+        long startTime = System.currentTimeMillis();
+        // 先删除子表数据
+        jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
+            tableArchiver.deleteRecords(jobInstanceIds);
+        });
+        // 删除主表数据
+        deletePrimaryTableRecord(jobInstanceIds);
+        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
+            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
     }
 
-    @Override
-    protected List<TaskInstanceRecord> readSortedJobInstanceFromHotDB(Long fromTimestamp,
-                                                                      Long endTimestamp,
-                                                                      Long fromJobInstanceId,
-                                                                      int limit) {
-        return null;
-    }
-
-    @Override
-    protected Long extractJobInstanceId(TaskInstanceRecord record) {
-        return null;
-    }
-
-    @Override
-    protected Long extractJobInstanceCreateTime(TaskInstanceRecord record) {
-        return null;
+    private void deletePrimaryTableRecord(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
+        String tableName = jobInstanceMainRecordDAO.getTable().getName();
+        int deleteRows = jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
+            archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
+        ArchiveTaskContextHolder.get().accumulateTableDelete(
+            tableName,
+            deleteRows,
+            System.currentTimeMillis() - startTime
+        );
     }
 }

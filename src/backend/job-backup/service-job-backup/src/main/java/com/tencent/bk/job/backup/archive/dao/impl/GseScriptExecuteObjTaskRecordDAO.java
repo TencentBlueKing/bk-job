@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -52,12 +51,7 @@ public class GseScriptExecuteObjTaskRecordDAO extends AbstractJobInstanceHotReco
     }
 
     public GseScriptExecuteObjTaskRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<GseScriptExecuteObjTaskRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
     @Override

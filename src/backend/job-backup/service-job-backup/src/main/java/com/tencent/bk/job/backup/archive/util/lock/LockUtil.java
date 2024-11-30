@@ -22,24 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.model;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import lombok.Data;
-import lombok.ToString;
+import com.tencent.bk.job.backup.archive.util.ServiceNodeInfo;
 
-@Data
-@ToString
-public class ArchiveProgressDTO {
-    private String tableName;
+import java.util.UUID;
+
+/**
+ * 分布式锁工具类
+ */
+public class LockUtil {
     /**
-     * 最后备份ID
+     * 生成随机的分布式锁 requestId
+     *
      */
-    private Long lastBackupId;
+    public static String generateLockRequestId() {
+        return ServiceNodeInfo.NODE_IP + "_" + UUID.randomUUID();
+    }
 
-    /**
-     * 最后删除ID
-     */
-    private Long lastDeletedId;
-    private Long lastBackupTime;
-    private Long lastDeleteTime;
 }

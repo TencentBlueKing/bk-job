@@ -635,6 +635,9 @@ job:
     # 是否支持容器执行
     containerExecution:
       enabled: false
+    # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
+    daoAddTaskInstanceId:
+      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -1270,8 +1273,8 @@ backupConfig:
       cron: 0 0 4 * * *
       # 归档任务并发线程总数
       concurrent: 10
-      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
-      readIdStepSize: 1000
+      # 每批次从 db 表中读取的记录数量
+      readRowLimit: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
@@ -1396,6 +1399,9 @@ analysisConfig:
   ai:
     # 是否开启AI功能，默认不开启
     enabled: false
+    # 使用的大模型类型，默认腾讯混元，支持的取值：hunyuan、hunyuan-turbo、gpt-4、gpt-4o、gpt-4o-mini、gpt-3.5-turbo等，
+    # 平台会将任务相关的脚本、参数、日志等数据发送给大模型，使用大模型时请注意数据安全风险
+    model: hunyuan
     # AI分析错误日志功能相关配置
     analyzeErrorLog:
       # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB

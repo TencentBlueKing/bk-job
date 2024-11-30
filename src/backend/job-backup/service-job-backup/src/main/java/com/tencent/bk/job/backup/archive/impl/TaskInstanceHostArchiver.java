@@ -28,6 +28,8 @@ import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceHostRecordDAO;
 
+import java.util.List;
+
 
 public class TaskInstanceHostArchiver extends AbstractJobInstanceSubTableArchiver {
 
@@ -40,5 +42,10 @@ public class TaskInstanceHostArchiver extends AbstractJobInstanceSubTableArchive
             jobInstanceHotRecordDAO,
             archiveTablePropsStorage
         );
+    }
+
+    @Override
+    public void backupRecords(List<Long> jobInstanceIds) {
+        // task_instance_host 表的数据暂时无需备份到冷存储
     }
 }

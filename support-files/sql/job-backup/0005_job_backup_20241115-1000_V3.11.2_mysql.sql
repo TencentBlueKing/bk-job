@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS `archive_task` (
   `status` TINYINT(2) NOT NULL DEFAULT '0',
   `create_time` BIGINT(20) NOT NULL,
   `last_update_time` BIGINT(20) NOT NULL,
+  `task_start_time` BIGINT(20),
+  `task_end_time` BIGINT(20),
+  `task_cost` BIGINT(20),
+  `detail` TEXT,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `uk_type_node_day_hour` (`task_type`,`data_node`,`day`,`hour`),
   KEY `idx_type_status_db` (`task_type`,`status`,`db_node`)

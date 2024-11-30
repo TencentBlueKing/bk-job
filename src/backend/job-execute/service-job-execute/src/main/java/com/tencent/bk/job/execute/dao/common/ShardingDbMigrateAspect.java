@@ -25,6 +25,8 @@
 package com.tencent.bk.job.execute.dao.common;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.sharding.ReadModeEnum;
 import com.tencent.bk.job.common.sharding.WriteModeEnum;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
@@ -69,14 +71,14 @@ public class ShardingDbMigrateAspect {
         this.propToggleStore = propToggleStore;
     }
 
-    @Pointcut("@annotation(com.tencent.bk.job.execute.dao.common.ShardingDbMigrate)")
+    @Pointcut("@annotation(com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation)")
     public void shardingDbMigrate() {
     }
 
     @Around("shardingDbMigrate()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-        ShardingDbMigrate shardingDbMigrate = method.getAnnotation(ShardingDbMigrate.class);
+        MySQLOperation shardingDbMigrate = method.getAnnotation(MySQLOperation.class);
 
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         ResourceScope resourceScope = jobExecuteContext == null ? null : jobExecuteContext.getResourceScope();

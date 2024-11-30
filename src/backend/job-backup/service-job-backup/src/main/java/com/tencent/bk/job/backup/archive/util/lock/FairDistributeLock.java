@@ -22,24 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.util.lock;
 
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.UUID;
-
 /**
- * 归档任务调度分布式锁
+ * 分布式锁（公平锁，非饥饿抢占方式)
  */
 @Slf4j
-public class JobInstanceArchiveTaskScheduleLock {
-    private final String LOCK_KEY = "job:instance:archive:task:schedule";
+public class FairDistributeLock {
     /**
-     * 锁时间（60s)
+     * 锁名称
      */
-    private final Long LOCK_TIME = 60 * 1000L;
+    private final String lockName;
+
+    private final String lockKey;
+    /**
+     * 锁时间（毫秒)
+     */
+    private final Long lockMills;
     /**
      * 最小获取锁间隔时间
      */
@@ -49,7 +52,10 @@ public class JobInstanceArchiveTaskScheduleLock {
 
     private volatile String lockRequestId = null;
 
-    public JobInstanceArchiveTaskScheduleLock() {
+    public FairDistributeLock(String lockName, String lockKey, long lockMills) {
+        this.lockName = lockName;
+        this.lockKey = lockKey;
+        this.lockMills = lockMills;
     }
 
     public synchronized boolean lock() {
@@ -57,12 +63,12 @@ public class JobInstanceArchiveTaskScheduleLock {
             // 为了保证在分布式系统中多个节点都能均匀获取到任务，需要最小获取锁间隔时间，让其他服务节点优先获取任务锁
             ThreadUtils.sleep(100L);
         }
-        String lockRequestId = UUID.randomUUID().toString();
-        if (!LockUtils.tryGetDistributedLock(LOCK_KEY, lockRequestId, LOCK_TIME)) {
-            log.info("Acquire job instance archive task schedule lock failed!");
+        String lockRequestId = LockUtil.generateLockRequestId();
+        if (!LockUtils.tryGetDistributedLock(lockKey, lockRequestId, lockMills)) {
+            log.info("[{}] Acquire lock failed!", lockName);
             return false;
         } else {
-            log.info("Acquire job instance archive task schedule lock successfully!");
+            log.info("[{}] Acquire lock successfully!", lockName);
             this.lastAcquireLockTimeMS = System.currentTimeMillis();
             this.lockRequestId = lockRequestId;
             return true;
@@ -70,9 +76,14 @@ public class JobInstanceArchiveTaskScheduleLock {
     }
 
 
-    public synchronized void unlock() {
-        LockUtils.releaseDistributedLock(LOCK_KEY, lockRequestId);
-        this.lockRequestId = null;
+    public synchronized boolean unlock() {
+        boolean success = LockUtils.releaseDistributedLock(lockKey, lockRequestId);
+        if (success) {
+            log.info("[{}] Release lock successfully", lockName);
+            this.lockRequestId = null;
+        } else {
+            log.warn("[{}] Release lock fail", lockName);
+        }
+        return success;
     }
-
 }

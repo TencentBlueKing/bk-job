@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.archive.impl;
 
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.ArchiveTaskContextHolder;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
@@ -59,28 +60,39 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
 
     @Override
     public void backupRecords(List<Long> jobInstanceIds) {
+        long startTime = System.currentTimeMillis();
+        long backupRows = 0;
+
         RecordResultSet<? extends TableRecord<?>> recordResultSet =
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
-        long startTime = System.currentTimeMillis();
+        long readStartTime = System.currentTimeMillis();
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
-            log.info("Read {}, recordSize: {}, cost: {}ms", tableName,
-                CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - startTime);
+            log.info("[{}] Read {}, recordSize: {}, cost: {}ms", ArchiveTaskContextHolder.getArchiveTaskId(),
+                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - readStartTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
+                backupRows += records.size();
             }
         }
+
+        long costTime = System.currentTimeMillis() - startTime;
+        ArchiveTaskContextHolder.get().accumulateTableBackup(tableName, backupRows, costTime);
     }
 
     @Override
     public void deleteRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
-        jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
+        int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", tableName,
-            jobInstanceIds.size(), System.currentTimeMillis() - startTime);
+        log.info("[{}] Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms",
+            ArchiveTaskContextHolder.getArchiveTaskId(), tableName,
+            jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
+
+        long costTime = System.currentTimeMillis() - startTime;
+        ArchiveTaskContextHolder.get().accumulateTableDelete(tableName, deleteRows, costTime);
     }
 }

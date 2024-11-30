@@ -48,25 +48,25 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
 
     protected final DSLContextProvider dslContextProvider;
 
-    protected final String tableName;
+    protected final Table<T> table;
 
-    public AbstractJobInstanceHotRecordDAO(DSLContextProvider dslContextProvider, String tableName) {
+    public AbstractJobInstanceHotRecordDAO(DSLContextProvider dslContextProvider, Table<T> table) {
         this.dslContextProvider = dslContextProvider;
-        this.tableName = tableName;
+        this.table = table;
     }
 
     @Override
     public List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit) {
-        return query(getTable(), buildBasicConditions(jobInstanceIds), readRowLimit);
+        return query(table, buildBasicConditions(jobInstanceIds), readRowLimit);
     }
 
     public List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
-        return query(getTable(), conditions, readRowLimit);
+        return query(table, conditions, readRowLimit);
     }
 
     @Override
     public int deleteRecords(Collection<Long> jobInstanceIds, long maxLimitedDeleteRows) {
-        return deleteWithLimit(getTable(), buildBasicConditions(jobInstanceIds), maxLimitedDeleteRows);
+        return deleteWithLimit(table, buildBasicConditions(jobInstanceIds), maxLimitedDeleteRows);
     }
 
     public List<Condition> buildBasicConditions(Collection<Long> jobInstanceIds) {
@@ -109,11 +109,13 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
 
     }
 
-    public abstract Table<T> getTable();
+    public Table<T> getTable() {
+        return this.table;
+    }
 
     protected abstract Collection<? extends OrderField<?>> getListRecordsOrderFields();
 
     protected DSLContext dsl() {
-        return this.dslContextProvider.get(tableName);
+        return this.dslContextProvider.get(table.getName());
     }
 }

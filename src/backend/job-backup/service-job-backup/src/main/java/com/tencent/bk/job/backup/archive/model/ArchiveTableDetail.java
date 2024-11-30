@@ -22,25 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import lombok.Data;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-
-public interface AIService {
+/**
+ * 归档表执行性情
+ */
+@Data
+public class ArchiveTableDetail {
+    /**
+     * 写入归档冷 DB 的记录行数
+     */
+    private long backupRows;
+    /**
+     * 从热 DB 删除的记录行数
+     */
+    private long deleteRows;
+    /**
+     * 备份到冷 DB 耗时(毫秒)
+     */
+    private long backupCostTime;
+    /**
+     * 删除热数据耗时(毫秒)
+     */
+    private long deleteCostTime;
+    /**
+     * 总耗时(毫秒)
+     */
+    private long costTime;
 
     /**
-     * 获取AI回答流（流式接口）
+     * 累加统计数据 - 备份
      *
-     * @param chatHistoryDTOList  历史聊天记录
-     * @param userInput           用户输入
-     * @param partialRespConsumer AI回答流回调
-     * @return AI回答结果Future
+     * @param backupRows 已备份行数
+     * @param costTime   耗时
      */
-    CompletableFuture<String> getAIAnswerStream(List<AIChatHistoryDTO> chatHistoryDTOList,
-                                                String userInput,
-                                                Consumer<String> partialRespConsumer);
+    public void accumulateBackup(long backupRows, long costTime) {
+        this.backupRows += backupRows;
+        this.backupCostTime = costTime;
+        this.costTime += costTime;
+    }
+
+    /**
+     * 累加统计数据 - 删除
+     *
+     * @param deleteRows 已删除行数
+     * @param costTime   耗时
+     */
+    public void accumulateDelete(long deleteRows, long costTime) {
+        this.deleteRows += deleteRows;
+        this.deleteCostTime += costTime;
+        this.costTime += costTime;
+    }
+
 }

@@ -31,7 +31,6 @@ import com.tencent.bk.job.execute.model.tables.StepInstanceConfirm;
 import com.tencent.bk.job.execute.model.tables.records.StepInstanceConfirmRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
-import org.jooq.Table;
 import org.jooq.TableField;
 
 import java.util.ArrayList;
@@ -55,12 +54,7 @@ public class StepInstanceConfirmRecordDAO extends AbstractJobInstanceHotRecordDA
 
 
     public StepInstanceConfirmRecordDAO(DSLContextProvider dslContextProvider) {
-        super(dslContextProvider, TABLE.getName());
-    }
-
-    @Override
-    public Table<StepInstanceConfirmRecord> getTable() {
-        return TABLE;
+        super(dslContextProvider, TABLE);
     }
 
     @Override
