@@ -766,7 +766,7 @@ public class TaskInstanceExecuteObjectProcessor {
     private void checkExecuteObjectExist(TaskInstanceDTO taskInstance,
                                          List<StepInstanceDTO> stepInstanceList,
                                          TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
-        List<String> notExecutableExecuteObjectList = new ArrayList<>();
+        List<String> invalidExecuteObjects = new ArrayList<>();
 
         // 处理主机执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistHosts())) {
@@ -774,25 +774,25 @@ public class TaskInstanceExecuteObjectProcessor {
                 // 忽略主机不存在错误，并标识执行对象的 invalid 属性为 true
                 markExecuteObjectInvalid(stepInstanceList, taskInstanceExecuteObjects.getNotExistHosts());
             } else {
-                notExecutableExecuteObjectList.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
+                invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
                     .map(this::printHostIdOrIp).collect(Collectors.toList()));
             }
         }
 
         // 处理容器执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistContainerIds())) {
-            notExecutableExecuteObjectList.addAll(
+            invalidExecuteObjects.addAll(
                 taskInstanceExecuteObjects.getNotExistContainerIds().stream()
                     .map(containerId -> "(container_id:" + containerId + ")")
                     .collect(Collectors.toList()));
         }
 
-        if (CollectionUtils.isNotEmpty(notExecutableExecuteObjectList)) {
-            String executeObjectStr = StringUtils.join(notExecutableExecuteObjectList, ",");
-            log.warn("The following execute object are not exist, notExecutableExecuteObjectList={}",
-                notExecutableExecuteObjectList);
+        if (CollectionUtils.isNotEmpty(invalidExecuteObjects)) {
+            String executeObjectStr = StringUtils.join(invalidExecuteObjects, ",");
+            log.warn("The following execute object are not exist, invalidExecuteObjects={}",
+                invalidExecuteObjects);
             throw new FailedPreconditionException(ErrorCode.EXECUTE_OBJECT_NOT_EXIST,
-                new Object[]{notExecutableExecuteObjectList.size(), executeObjectStr});
+                new Object[]{invalidExecuteObjects.size(), executeObjectStr});
         }
     }
 

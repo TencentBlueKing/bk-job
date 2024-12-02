@@ -437,7 +437,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         } else if (!isSourceAgentInstalled) {
             return "Source agent is not installed";
         } else {
-            // 源、目标正常，无法写入错误日志
+            // 源、目标正常，无需错误日志
             return null;
         }
     }

@@ -53,11 +53,13 @@ public class HostCompositeKey {
 
     public static HostCompositeKey ofHost(HostDTO host) {
         if (host.getHostId() != null) {
+            // 优先使用 hostId
             return new HostCompositeKey(HostCompositeKeyType.HOST_ID, String.valueOf(host.getHostId()));
         } else if (host.toCloudIp() != null) {
+            // 没有 hostId, 使用管控区域 ID + ipv4
             return new HostCompositeKey(HostCompositeKeyType.CLOUD_IP, host.toCloudIp());
         } else {
-            throw new IllegalArgumentException("Invalid HostCompositeKeyType");
+            throw new IllegalArgumentException("Invalid host, both hostId or cloudIp are empty");
         }
     }
 
@@ -90,7 +92,7 @@ public class HostCompositeKey {
             return false;
         }
 
-        return getKey().equals(that.getKey());
+        return keyType == ((HostCompositeKey) o).getKeyType() && key.equals(that.getKey());
     }
 
     @Override
