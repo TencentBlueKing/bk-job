@@ -11,7 +11,7 @@ CREATE PROCEDURE job_schema_update()
 BEGIN
 
   DECLARE db VARCHAR(100);
-  SET AUTOCOMMIT = 0;
+  SET AUTOCOMMIT = 1;
   SELECT DATABASE() INTO db;
 
   -- task_instance_host
