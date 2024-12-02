@@ -1033,6 +1033,22 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+    sharding:
+      enabled: true
+      hot:
+        databaseName: job_execute
+        dataSources:
+          # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
+          - index: 0
+            jdbcUrl: jdbc:otel:mysql://localhost:3306/job_execute
+            username: job
+            password: job
+          - index: 1
+            jdbcUrl: jdbc:otel:mysql://localhost:3307/job_execute
+            username: job
+            password: job
+          # shardingAlgorithm:
+          # manualResourceScope:
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
@@ -1046,13 +1062,9 @@ executeConfig:
     # 分库分表，默认关闭
     mariadb:
       enabled: true
-      database:
-        # 数据库实例数量
-        nodeCount: 2
-      table:
-        # 每个数据库实例上的表分片数量
-        nodeCount: 16
-      datasources:
+      hot:
+      databaseName: job_execute
+      dataSources:
         # 数据库实例配置，数量必须与 executeConfig.sharding.mariadb.database.nodeCount 配置一致，并且 index 从 0 开始依次递增
         - index: 0
           jdbcUrl: jdbc:otel:mysql://localhost:3306/job_execute

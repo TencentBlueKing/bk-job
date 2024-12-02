@@ -46,15 +46,6 @@ public class ShardingProperties {
      */
     private boolean enabled;
     /**
-     * 数据库实例数量
-     */
-    private Integer dbNodeCount;
-    /**
-     * 每个数据库实例上的表分片数量
-     */
-    private Integer tableNodeCount;
-
-    /**
      * 单 db -> 分库分表迁移配置
      */
     private MigrationProperties migration;

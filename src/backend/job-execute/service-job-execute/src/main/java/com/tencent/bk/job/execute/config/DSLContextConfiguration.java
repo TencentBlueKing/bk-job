@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
@@ -94,7 +95,13 @@ public class DSLContextConfiguration {
         @Bean(name = "job-execute-jooq-conf")
         public org.jooq.Configuration jooqConf(
             @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            return new DefaultConfiguration()
+                .derive(connectionProvider)
+                .derive(SQLDialect.MYSQL)
+                .set(new Settings()
+                    .withRenderCatalog(false)
+                    .withRenderSchema(false)
+                );
         }
 
         @Qualifier("job-execute-conn-provider")

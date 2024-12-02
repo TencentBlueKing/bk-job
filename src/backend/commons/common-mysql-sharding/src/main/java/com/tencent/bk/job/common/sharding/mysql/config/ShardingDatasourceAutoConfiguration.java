@@ -253,6 +253,7 @@ public class ShardingDatasourceAutoConfiguration {
                 return new HintShardingStrategyConfiguration(
                     shardingStrategyProps.getShardingAlgorithmName()
                 );
+            case "complex":
             default:
                 throw new ShardingConfigParseException("Not support sharding algorithm");
         }
