@@ -118,9 +118,24 @@ public class CollectionUtil {
     }
 
     public static <T> ArrayList<T> mergeToArrayList(List<T> list1, List<T> list2) {
-        ArrayList<T> mergeList = new ArrayList<>(list1.size() + list2.size());
-        mergeList.addAll(list1);
-        mergeList.addAll(list2);
-        return mergeList;
+        ArrayList<T> mergeList;
+
+        boolean isList1NotEmpty = CollectionUtils.isNotEmpty(list1);
+        boolean isList2NotEmpty = CollectionUtils.isNotEmpty(list2);
+
+        if (isList1NotEmpty && isList2NotEmpty) {
+            mergeList = new ArrayList<>(list1.size() + list2.size());
+            mergeList.addAll(list1);
+            mergeList.addAll(list2);
+            return mergeList;
+        } else if (isList1NotEmpty) {
+            mergeList = new ArrayList<>(list1);
+            return mergeList;
+        } else if (isList2NotEmpty) {
+            mergeList = new ArrayList<>(list2);
+            return mergeList;
+        } else {
+            return new ArrayList<>(0);
+        }
     }
 }
