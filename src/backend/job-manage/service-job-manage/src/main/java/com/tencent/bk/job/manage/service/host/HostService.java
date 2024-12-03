@@ -84,6 +84,8 @@ public interface HostService {
      */
     int deleteHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
+    void updateDbHostToCache(Long hostId);
+
     long countHostsByOsType(String osType);
 
     Map<String, Integer> groupHostByOsType();

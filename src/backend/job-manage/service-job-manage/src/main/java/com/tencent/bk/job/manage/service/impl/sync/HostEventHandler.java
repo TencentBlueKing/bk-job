@@ -128,6 +128,10 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                         hostInfoDTO.setGseAgentStatus(agentStatus);
                         affectedNum = hostService.updateHostAttrsByHostId(hostInfoDTO);
                         log.info("update host attrs:{}, affectedNum={}", hostInfoDTO, affectedNum);
+                        // 更新缓存
+                        if (affectedNum > 0) {
+                            hostService.updateDbHostToCache(hostInfoDTO.getHostId());
+                        }
                     } else {
                         // 机器在CMDB中已不存在，忽略
                         log.info("host not exist in cmdb:{}, ignore", hostInfoDTO);
