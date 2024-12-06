@@ -100,7 +100,7 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
 
         cronJobQuery.setName(callbackRequest.getFilter().getKeyword());
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
+            cronJobService.listPageCronJobInfosWithoutVars(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
@@ -114,7 +114,7 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
+            cronJobService.listPageCronJobInfosWithoutVars(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getListInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }

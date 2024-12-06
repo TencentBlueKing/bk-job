@@ -130,7 +130,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         }
         baseSearchCondition.setOrder(order);
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(cronJobCondition, baseSearchCondition);
+            cronJobService.listPageCronJobInfosWithoutVars(cronJobCondition, baseSearchCondition);
         List<CronJobVO> resultCronJobs = new ArrayList<>();
         cronJobInfoPageData.getData().forEach(cronJobInfo -> resultCronJobs.add(CronJobInfoDTO.toVO(cronJobInfo)));
 

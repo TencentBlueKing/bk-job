@@ -191,7 +191,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                     baseSearchCondition.setLastModifyTimeStart(request.getLastModifyTimeStart());
                     baseSearchCondition.setLastModifyTimeEnd(request.getLastModifyTimeEnd());
                 }
-                PageData<CronJobInfoDTO> cronJobInfoPageData = cronJobService.listPageCronJobInfos(cronJobCondition,
+                PageData<CronJobInfoDTO> cronJobInfoPageData = cronJobService.listPageCronJobInfosWithoutVars(cronJobCondition,
                     baseSearchCondition);
                 List<EsbCronInfoV3DTO> cronInfoV3ResponseData = cronJobInfoPageData.getData().stream()
                     .peek(cronJobInfoDTO -> cronJobInfoDTO.setVariableValue(null))

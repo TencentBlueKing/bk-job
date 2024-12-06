@@ -76,7 +76,7 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(0);
         baseSearchCondition.setLength(Integer.MAX_VALUE);
-        List<CronJobInfoDTO> cronJobDTOList = cronJobService.listPageCronJobInfos(cronJobInfoDTO,
+        List<CronJobInfoDTO> cronJobDTOList = cronJobService.listPageCronJobInfosWithoutVars(cronJobInfoDTO,
             baseSearchCondition).getData();
         List<ServiceCronJobDTO> resultData = cronJobDTOList.stream()
             .map(CronJobInfoDTO::toServiceCronJobDTO).collect(Collectors.toList());

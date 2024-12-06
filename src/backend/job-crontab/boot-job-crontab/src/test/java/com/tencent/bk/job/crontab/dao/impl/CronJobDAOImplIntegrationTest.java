@@ -53,7 +53,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -415,30 +417,33 @@ public class CronJobDAOImplIntegrationTest {
         baseSearchCondition.setOrderField("last_modify_user");
         baseSearchCondition.setCreator(CRON_JOB_1.getCreator());
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+            cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(0);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_5);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_1);
+        Set<Long> ids = cronJobInfoPageData.getData().stream().map(CronJobInfoDTO::getId).collect(Collectors.toSet());
+        assertThat(ids).contains(CRON_JOB_5.getId());
+        assertThat(ids).contains(CRON_JOB_1.getId());
 
         baseSearchCondition.setStart(2);
-        cronJobInfoPageData = cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+        cronJobInfoPageData = cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_9);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_3);
+        ids = cronJobInfoPageData.getData().stream().map(CronJobInfoDTO::getId).collect(Collectors.toSet());
+        assertThat(ids).contains(CRON_JOB_9.getId());
+        assertThat(ids).contains(CRON_JOB_3.getId());
         System.out.println(cronJobInfoPageData.getData());
         baseSearchCondition.setStart(0);
 
         baseSearchCondition.setOrder(1);
-        cronJobInfoPageData = cronJobDAO.listPageCronJobsByCondition(cronJobCondition, baseSearchCondition);
+        cronJobInfoPageData = cronJobDAO.listPageCronJobsWithoutVarsByCondition(cronJobCondition, baseSearchCondition);
         assertThat(cronJobInfoPageData.getStart()).isEqualTo(0);
         assertThat(cronJobInfoPageData.getPageSize()).isEqualTo(2);
         assertThat(cronJobInfoPageData.getTotal()).isEqualTo(4);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_9);
-        assertThat(cronJobInfoPageData.getData()).contains(CRON_JOB_3);
+        ids = cronJobInfoPageData.getData().stream().map(CronJobInfoDTO::getId).collect(Collectors.toSet());
+        assertThat(ids).contains(CRON_JOB_9.getId());
+        assertThat(ids).contains(CRON_JOB_3.getId());
         System.out.println(cronJobInfoPageData.getData());
         baseSearchCondition.setOrder(0);
     }

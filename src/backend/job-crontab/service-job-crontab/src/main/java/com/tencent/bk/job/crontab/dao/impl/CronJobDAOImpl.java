@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
+import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record21;
 import org.jooq.Record3;
@@ -117,8 +118,8 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
-    public PageData<CronJobInfoDTO> listPageCronJobsByCondition(CronJobInfoDTO cronJobCondition,
-                                                                BaseSearchCondition baseSearchCondition) {
+    public PageData<CronJobInfoDTO> listPageCronJobsWithoutVarsByCondition(CronJobInfoDTO cronJobCondition,
+                                                                           BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildConditionList(cronJobCondition, baseSearchCondition);
         long templateCount = getPageCronJobCount(conditions);
         List<OrderField<?>> orderFields = new ArrayList<>();
@@ -143,17 +144,35 @@ public class CronJobDAOImpl implements CronJobDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result<Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte,
-            UByte, ULong, String, ULong, ULong, ULong, String, String>> records =
-            context
-                .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID,
-                    TABLE.TASK_PLAN_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION,
-                    TABLE.EXECUTE_TIME, TABLE.VARIABLE_VALUE, TABLE.LAST_EXECUTE_STATUS, TABLE.IS_ENABLE,
-                    TABLE.IS_DELETED, TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
-                    TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
-                .from(TABLE).where(conditions).orderBy(orderFields).limit(start, length).fetch();
+        Result<?> records =
+            context.select(
+                    TABLE.ID,
+                    TABLE.APP_ID,
+                    TABLE.NAME,
+                    TABLE.CREATOR,
+                    TABLE.TASK_TEMPLATE_ID,
+                    TABLE.TASK_PLAN_ID,
+                    TABLE.SCRIPT_ID,
+                    TABLE.SCRIPT_VERSION_ID,
+                    TABLE.CRON_EXPRESSION,
+                    TABLE.EXECUTE_TIME,
+                    TABLE.LAST_EXECUTE_STATUS,
+                    TABLE.IS_ENABLE,
+                    TABLE.IS_DELETED,
+                    TABLE.CREATE_TIME,
+                    TABLE.LAST_MODIFY_USER,
+                    TABLE.LAST_MODIFY_TIME,
+                    TABLE.END_TIME,
+                    TABLE.NOTIFY_OFFSET,
+                    TABLE.NOTIFY_USER,
+                    TABLE.NOTIFY_CHANNEL
+                ).from(TABLE)
+                .where(conditions)
+                .orderBy(orderFields)
+                .limit(start, length)
+                .fetch();
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
-        if (records.size() >= 1) {
+        if (!records.isEmpty()) {
             records.map(record -> cronJobInfoList.add(convertToCronJobDTO(record)));
         }
         PageData<CronJobInfoDTO> cronJobInfoPageData = new PageData<>();
@@ -568,8 +587,7 @@ public class CronJobDAOImpl implements CronJobDAO {
         return cronJobIds.stream().map(ULong::longValue).collect(Collectors.toList());
     }
 
-    private CronJobInfoDTO convertToCronJobDTO(Record21<ULong, ULong, String, String, ULong, ULong, String, ULong,
-        String, ULong, String, UByte, UByte, UByte, ULong, String, ULong, ULong, ULong, String, String> record) {
+    private CronJobInfoDTO convertToCronJobDTO(Record record) {
         if (record == null) {
             return null;
         }
@@ -590,7 +608,9 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
         cronJobInfoDTO.setCronExpression(record.get(TABLE.CRON_EXPRESSION));
         cronJobInfoDTO.setExecuteTime(DbUtils.convertJooqLongValue(record.get(TABLE.EXECUTE_TIME)));
-        cronJobInfoDTO.decryptAndSetVariableValue(record.get(TABLE.VARIABLE_VALUE));
+        if (record.indexOf(TABLE.VARIABLE_VALUE) != -1) {
+            cronJobInfoDTO.decryptAndSetVariableValue(record.get(TABLE.VARIABLE_VALUE));
+        }
         standardizeDynamicGroupId(cronJobInfoDTO.getVariableValue());
         cronJobInfoDTO.setLastExecuteStatus(record.get(TABLE.LAST_EXECUTE_STATUS).intValue());
         cronJobInfoDTO.setEnable(record.get(TABLE.IS_ENABLE).intValue() == 1);
