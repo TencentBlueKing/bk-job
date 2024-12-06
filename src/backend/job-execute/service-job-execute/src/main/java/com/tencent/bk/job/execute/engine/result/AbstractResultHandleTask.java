@@ -133,7 +133,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected GseTaskDTO gseTask;
     /**
-     * 执行对象任务列表
+     * 执行对象任务列表(全量)
      */
     protected List<ExecuteObjectTask> executeObjectTasks;
     /**
@@ -204,9 +204,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected boolean gseV2Task;
     /**
-     * 是否包含非法执行对象
+     * 是否存在不可执行的目标执行对象
      */
-    protected boolean hasInvalidExecuteObject;
+    protected boolean existNoExecutableTargetExecuteObject;
     /**
      * GSE 任务信息，用于日志输出
      */
@@ -214,7 +214,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
 
-    private TaskContext taskContext;
+    private final TaskContext taskContext;
 
     protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
@@ -265,9 +265,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
 
-        this.hasInvalidExecuteObject =
-            executeObjectTasks.stream().anyMatch(
-                executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty());
+        this.existNoExecutableTargetExecuteObject =
+            executeObjectTasks.stream().
+                filter(ExecuteObjectTask::isTarget)
+                .anyMatch(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable());
     }
 
     private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
@@ -686,7 +687,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         GseTaskExecuteResult rst;
         if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
-            if (hasInvalidExecuteObject) {
+            if (existNoExecutableExecuteObject()) {
                 log.info("Gse task contains invalid execute object, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
@@ -700,6 +701,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
         return rst;
+    }
+
+    /**
+     * 任务是否包含不可执行的执行对象
+     */
+    protected boolean existNoExecutableExecuteObject() {
+        return this.existNoExecutableTargetExecuteObject;
     }
 
     /**

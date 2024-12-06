@@ -611,7 +611,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 targetExecuteObjectTaskMap,
                 gseTask,
                 requestId,
-                executeObjectTasks);
+                targetExecuteObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
