@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -37,6 +39,11 @@ import org.apache.http.protocol.HttpContext;
 public class LogBkApiRequestIdInterceptor implements HttpResponseInterceptor {
     @Override
     public void process(HttpResponse response, HttpContext context) {
+        StatusLine statusLine = response.getStatusLine();
+        // 状态码为200的请求会在上层逻辑打印响应头X-Bkapi-Request-Id，此处不打印减少日志量
+        if (statusLine != null && statusLine.getStatusCode() == HttpStatus.SC_OK) {
+            return;
+        }
         // 获取并打印响应头X-Bkapi-Request-Id
         String headerName = JobCommonHeaders.BK_GATEWAY_REQUEST_ID;
         try {
