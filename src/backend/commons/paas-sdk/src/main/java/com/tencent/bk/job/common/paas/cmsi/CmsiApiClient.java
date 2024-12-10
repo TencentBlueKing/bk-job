@@ -67,8 +67,14 @@ public class CmsiApiClient extends BkApiClient {
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry) {
-        super(meterRegistry, ESB_CMSI_API, esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper());
+        super(
+            meterRegistry,
+            ESB_CMSI_API,
+            esbProperties.getService().getUrl(),
+            HttpHelperFactory.getDefaultHttpHelper(
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+            )
+        );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
