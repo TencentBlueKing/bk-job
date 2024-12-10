@@ -46,6 +46,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.io.IOException;
 
@@ -185,10 +186,12 @@ public class BaseHttpHelper implements HttpHelper {
                                  boolean throwExceptionWhenClientOrServerError) {
         int httpStatusCode = -1;
         String respStr = null;
+        Long contentLength = null;
         try (CloseableHttpResponse httpResponse = httpClient.execute(httpClientRequest, context)) {
             httpStatusCode = httpResponse.getStatusLine().getStatusCode();
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null && entity.getContent() != null) {
+                contentLength = entity.getContentLength();
                 respStr = new String(EntityUtils.toByteArray(entity), CHARSET);
             }
             // 状态码>=400判定为失败
@@ -211,7 +214,12 @@ public class BaseHttpHelper implements HttpHelper {
                 return new HttpResponse(httpStatusCode, respStr, httpResponse.getAllHeaders());
             }
         } catch (IOException e) {
-            log.error("Request fail", e);
+            String message = MessageFormatter.format(
+                "Request fail, httpStatusCode={}, contentLength={}",
+                httpStatusCode,
+                contentLength
+            ).getMessage();
+            log.error(message, e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             httpClientRequest.releaseConnection();
