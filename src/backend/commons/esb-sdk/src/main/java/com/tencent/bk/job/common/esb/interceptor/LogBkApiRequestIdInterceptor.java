@@ -40,8 +40,8 @@ public class LogBkApiRequestIdInterceptor implements HttpResponseInterceptor {
     @Override
     public void process(HttpResponse response, HttpContext context) {
         StatusLine statusLine = response.getStatusLine();
-        // 状态码为200的请求会在上层逻辑打印响应头X-Bkapi-Request-Id，此处不打印减少日志量
-        if (statusLine != null && statusLine.getStatusCode() == HttpStatus.SC_OK) {
+        // 状态码为2xx的请求会在上层逻辑打印响应头X-Bkapi-Request-Id，此处不打印减少日志量
+        if (isStatusCodeSuccess(statusLine)) {
             return;
         }
         // 获取并打印响应头X-Bkapi-Request-Id
@@ -55,5 +55,17 @@ public class LogBkApiRequestIdInterceptor implements HttpResponseInterceptor {
         } catch (Throwable t) {
             log.warn("Failed to log header " + headerName, t);
         }
+    }
+
+    /**
+     * 判断Http状态码是否为成功（2xx）系列状态码
+     *
+     * @param statusLine 状态行
+     * @return 是则返回true，否则返回false
+     */
+    private boolean isStatusCodeSuccess(StatusLine statusLine) {
+        return statusLine != null
+            && statusLine.getStatusCode() >= HttpStatus.SC_OK
+            && statusLine.getStatusCode() < HttpStatus.SC_MULTIPLE_CHOICES;
     }
 }
