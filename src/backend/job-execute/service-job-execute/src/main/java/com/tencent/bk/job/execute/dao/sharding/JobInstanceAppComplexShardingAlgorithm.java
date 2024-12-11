@@ -24,118 +24,158 @@
 
 package com.tencent.bk.job.execute.dao.sharding;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.sharding.mysql.DataSourceGroupShardingNode;
+import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingAlgorithmBase;
+import com.tencent.bk.job.common.sharding.mysql.algorithm.IllegalShardKeyException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.sharding.api.sharding.complex.ComplexKeysShardingAlgorithm;
 import org.apache.shardingsphere.sharding.api.sharding.complex.ComplexKeysShardingValue;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * 按业务分片算法
  */
 @Slf4j
-public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>>
-    implements ComplexKeysShardingAlgorithm<T> {
+public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> extends ShardingAlgorithmBase
+    implements ComplexKeysShardingAlgorithm<T>, ApplicationContextAware {
 
-    private String SHARDING_COLUMN_NAME_APP_ID = "app_id";
-    private String SHARDING_COLUMN_NAME_TASK_INSTANCE_ID = "task_instance_id";
+    private String shardingKeyAppId = "app_id";
 
-    private int tbCount = 2;
+    private String shardingKeyTaskInstanceId = "task_instance_id";
 
-    private int dbCount = 2;
+    /**
+     * 属性名称 - 默认数据源分组
+     */
+    private static final String PROP_DEFAULT_DS_GROUP = "defaultDsGroup";
 
-    private int dbNodeTotalSlot;
+    /**
+     * 属性名称 - 包含大量数据的资源管理空间，特别指定的数据源分组
+     */
+    private static final String PROP_LARGE_DATA_DS_GROUP = "largeDataDsGroup";
 
-    private final Map<Long, String> taskInstanceIdShardingDsCluster = new HashMap<>();
+    /**
+     * 属性名称 - 分片键与列名称的映射关系
+     */
+    private static final String PROP_SHARDING_COLUMN_NAME_MAPPING = "shardingColumnNameMapping";
 
-    private static final String DEFAULT_DB_PREFIX = "ds_job_instance_app_default";
+    private DataSourceGroupShardingNode defaultDsGroup;
 
-    public JobInstanceAppComplexShardingAlgorithm() {
-        taskInstanceIdShardingDsCluster.put(9999431L, "ds_job_instance_app_gcs");
-    }
+    private final Map<String, DataSourceGroupShardingNode> largeDataResourceScopeDsGroups = new HashMap<>();
+
+    private AppScopeMappingService appScopeMappingService;
 
 
     @Override
     public Collection<String> doSharding(Collection<String> availableTargetNames,
                                          ComplexKeysShardingValue<T> shardingValue) {
         Long appId = getAppIdShardingValue(shardingValue);
+        String resourceScope = getResourceScope(appId);
         Long taskInstanceId = getTaskInstanceIdShardingValue(shardingValue);
+
         String logicTableName = shardingValue.getLogicTableName();
+        // 判断是否使用分表算法（如果不是，那么使用分库算法)
+        boolean isShardingTable = availableTargetNames.stream()
+            .anyMatch(targetName -> targetName.startsWith(shardingValue.getLogicTableName()));
+        // 是否海量数据业务；针对海量数据类型的业务，为了避免数据热点打到单个 db 实例的物理上限（比如存储、 mem 等），会使用 task_instance_id 进行二次分片
+        boolean isLargeResourceScopeDsGroup =
+            largeDataResourceScopeDsGroups.containsKey(resourceScope);
 
-        boolean isShardTable = availableTargetNames.stream()
-                .anyMatch(targetName -> targetName.startsWith(shardingValue.getLogicTableName()));
-
-        boolean shardByAppId = !taskInstanceIdShardingDsCluster.containsKey(appId);
-
-        String dbNodePrefix = shardByAppId ? DEFAULT_DB_PREFIX : taskInstanceIdShardingDsCluster.get(appId);
-        log.info("isShardTable: {}, shardByAppId: {}, dbNodePrefix: {}", isShardTable, shardByAppId, dbNodePrefix);
-
-        if (shardByAppId) {
-            if (isShardTable) {
-                return evalTableTargetsByAppId(appId, availableTargetNames, logicTableName);
+        if (!isLargeResourceScopeDsGroup) {
+            // 非海量数据业务，使用默认数据源分组，按照 app_id(业务 ID）进行分片
+            if (isShardingTable) {
+                return evalTableTargets(
+                    appId,
+                    defaultDsGroup,
+                    availableTargetNames,
+                    logicTableName
+                );
             } else {
-                return evalDbTargetsByAppId(appId, availableTargetNames, dbNodePrefix);
+                return evalDbTargets(appId, defaultDsGroup, availableTargetNames);
             }
         } else {
-            if (isShardTable) {
+            // 海量数据业务，使用专用的数据源分组，并使用 task_instance_id 进行二次分片
+            DataSourceGroupShardingNode dsGroup = largeDataResourceScopeDsGroups.get(resourceScope);
+            if (isShardingTable) {
                 if (taskInstanceId == null) {
                     // 全分片路由
-                    return availableTargetNames.stream().filter(
-                            targetName -> targetName.startsWith(logicTableName)).collect(Collectors.toList());
+                    return availableTargetNames;
                 } else {
                     // 精准分片路由
-                    return evalTableTargetsByTaskInstanceId(taskInstanceId, availableTargetNames,
-                            shardingValue.getLogicTableName());
+                    return evalTableTargets(
+                        taskInstanceId,
+                        dsGroup,
+                        availableTargetNames,
+                        shardingValue.getLogicTableName()
+                    );
                 }
             } else {
                 if (taskInstanceId == null) {
-                    // 全分片路由
-                    return availableTargetNames.stream().filter(
-                            targetName -> targetName.startsWith(dbNodePrefix)).collect(Collectors.toList());
+                    // 指定数据源分组范围内，全分片路由
+                    return dsGroup.getAvailableTargetDbs()
+                        .stream()
+                        .filter(db -> {
+                            boolean isMatch = availableTargetNames.contains(db);
+                            if (!isMatch) {
+                                log.warn("Can not find match db target, db: {}", db);
+                            }
+                            return isMatch;
+                        })
+                        .collect(Collectors.toList());
                 } else {
-                    return evalDbTargetsByTaskInstanceId(taskInstanceId, availableTargetNames, dbNodePrefix);
+                    return evalDbTargets(taskInstanceId, dsGroup, availableTargetNames);
                 }
             }
         }
     }
 
-    @Getter
-    private enum ShardKey {
-        APP_ID("app_id"),
-        TASK_INSTANCE_ID("task_instance_id");
-
-        ShardKey(String name) {
-            this.name = name;
+    private String getResourceScope(long appId) throws IllegalShardKeyException {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        if (resourceScope == null) {
+            log.error("Resource scope not found for sharding key {} : {}", shardingKeyAppId, appId);
+            throw new IllegalShardKeyException("Resource scope not found for sharding key : " + shardingKeyAppId);
         }
-
-        private final String name;
+        return resourceScope.toResourceScopeUniqueId();
     }
 
-    private Set<String> evalDbTargetsByAppId(long appId,
-                                             Collection<String> availableTargetNames,
-                                             String targetNamePrefix) {
-        long suffix = evalDbSuffix(appId);
+    private Set<String> evalDbTargets(long shardingValue,
+                                      DataSourceGroupShardingNode dataSourceGroupShardingNode,
+                                      Collection<String> availableTargetNames) {
+        long suffix = evalDbSuffix(shardingValue, dataSourceGroupShardingNode);
+        return evalTargets(availableTargetNames, dataSourceGroupShardingNode.getDataSourceGroupName(), suffix);
+    }
+
+    private Set<String> evalTableTargets(long shardingValue,
+                                         DataSourceGroupShardingNode dataSourceGroupShardingNode,
+                                         Collection<String> availableTargetNames,
+                                         String targetNamePrefix) {
+        long suffix = evalTableSuffix(shardingValue, dataSourceGroupShardingNode);
         return evalTargets(availableTargetNames, targetNamePrefix, suffix);
     }
 
-    private Set<String> evalTableTargetsByAppId(long appId,
-                                                Collection<String> availableTargetNames,
-                                                String targetNamePrefix) {
-        long suffix = evalTableSuffix(appId);
-        return evalTargets(availableTargetNames, targetNamePrefix, suffix);
+    private long evalDbSuffix(long shardingValue, DataSourceGroupShardingNode dataSourceGroupShardingNode) {
+        long slot = shardingValue % dataSourceGroupShardingNode.getSumSlot();
+        return slot / dataSourceGroupShardingNode.getTbNodeCount();
     }
 
-    private long evalDbSuffix(long shardingValue) {
-        long slot = shardingValue % dbNodeTotalSlot;
-        return slot / tbCount;
-    }
-
-    private long evalTableSuffix(long shardingValue) {
-        long slot = shardingValue % dbNodeTotalSlot;
-        return slot % tbCount;
+    private long evalTableSuffix(long shardingValue, DataSourceGroupShardingNode dataSourceGroupShardingNode) {
+        long slot = shardingValue % dataSourceGroupShardingNode.getSumSlot();
+        return slot % dataSourceGroupShardingNode.getTbNodeCount();
     }
 
     private Set<String> evalTargets(Collection<String> availableTargetNames,
@@ -149,45 +189,31 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>>
         return matchTargetNames;
     }
 
-    private Set<String> evalTableTargetsByTaskInstanceId(long taskInstanceId,
-                                                         Collection<String> availableTargetNames,
-                                                         String targetNamePrefix) {
-        long suffix = evalTableSuffix(taskInstanceId);
-        return evalTargets(availableTargetNames, targetNamePrefix, suffix);
-    }
-
-    private Set<String> evalDbTargetsByTaskInstanceId(long taskInstanceId,
-                                                      Collection<String> availableTargetNames,
-                                                      String targetNamePrefix) {
-        long suffix = evalDbSuffix(taskInstanceId);
-        return evalTargets(availableTargetNames, targetNamePrefix, suffix);
-    }
-
     private Long getAppIdShardingValue(ComplexKeysShardingValue<T> shardingValue) {
         List<Long> values = castToLongList(
-                shardingValue.getColumnNameAndShardingValuesMap().get(SHARDING_COLUMN_NAME_APP_ID));
+            shardingValue.getColumnNameAndShardingValuesMap().get(shardingKeyAppId));
         if (CollectionUtils.isEmpty(values)) {
-            log.error("Shard key [" + SHARDING_COLUMN_NAME_APP_ID + "] required");
-            throw new IllegalShardKeyException("Shard key [" + SHARDING_COLUMN_NAME_APP_ID + "] required");
+            log.error("Shard key [" + shardingKeyAppId + "] required");
+            throw new IllegalShardKeyException("Shard key [" + shardingKeyAppId + "] required");
         }
         if (values.size() > 1) {
-            log.error("Shard key [" + SHARDING_COLUMN_NAME_APP_ID + "] does not support multi value");
+            log.error("Shard key [" + shardingKeyAppId + "] does not support multi value");
             throw new IllegalShardKeyException(
-                    "Shard key [" + SHARDING_COLUMN_NAME_APP_ID + "] does not support multi value");
+                "Shard key [" + shardingKeyAppId + "] does not support multi value");
         }
         return values.get(0);
     }
 
     private Long getTaskInstanceIdShardingValue(ComplexKeysShardingValue<T> shardingValue) {
         List<Long> values = castToLongList(
-                shardingValue.getColumnNameAndShardingValuesMap().get(SHARDING_COLUMN_NAME_TASK_INSTANCE_ID));
+            shardingValue.getColumnNameAndShardingValuesMap().get(shardingKeyTaskInstanceId));
         if (CollectionUtils.isEmpty(values)) {
             return null;
         }
         if (values.size() > 1) {
-            log.error("Shard key [" + SHARDING_COLUMN_NAME_TASK_INSTANCE_ID + "] does not support multi value");
+            log.error("Shard key [" + shardingKeyTaskInstanceId + "] does not support multi value");
             throw new IllegalShardKeyException(
-                    "Shard key [" + SHARDING_COLUMN_NAME_TASK_INSTANCE_ID + "] does not support multi value");
+                "Shard key [" + shardingKeyTaskInstanceId + "] does not support multi value");
         }
         return values.get(0);
     }
@@ -211,41 +237,102 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>>
 
     @Override
     public void init(Properties props) {
-        ComplexKeysShardingAlgorithm.super.init(props);
-        if (props.containsKey("shardColumnNameMapping")) {
-            String[] columnNameMappings = props.getProperty("shardColumnNameMapping").split(",");
+        initShardingColumnNameMapping(props);
+
+        List<DataSourceGroupShardingNode> dsGroups = parseDataNodes(props);
+        initDefaultDataSourceGroup(props, dsGroups);
+        initLargeDataDataResourceScopeDsGroups(props, dsGroups);
+    }
+
+    private void initShardingColumnNameMapping(Properties props) {
+        String shardingColumnNameMapping = getForString(props, PROP_SHARDING_COLUMN_NAME_MAPPING, false);
+
+        if (StringUtils.isNotBlank(shardingColumnNameMapping)) {
+            log.info("Init prop {} : {}", PROP_SHARDING_COLUMN_NAME_MAPPING, shardingColumnNameMapping);
+            String[] columnNameMappings = shardingColumnNameMapping.split(",");
             for (String columnNameMapping : columnNameMappings) {
                 String[] shardKeyAndColumnName = columnNameMapping.split("=");
                 String shardKey = shardKeyAndColumnName[0].trim();
                 String columnName = shardKeyAndColumnName[1].trim();
                 if (shardKey.equals("app_id")) {
-                    SHARDING_COLUMN_NAME_APP_ID = columnName;
+                    shardingKeyAppId = columnName;
                 } else if (shardKey.equals("task_instance_id")) {
-                    SHARDING_COLUMN_NAME_TASK_INSTANCE_ID = columnName;
+                    shardingKeyTaskInstanceId = columnName;
                 } else {
-                    log.warn("Invalid shardColumnNameMapping, shardKey: {}", shardKey);
+                    log.warn("Invalid shardingColumnNameMapping, shardKey: {}", shardKey);
                 }
             }
         }
-//        if (props.containsKey("tbCount")) {
-//            tbCount = Integer.parseInt(props.getProperty("tbCount").trim());
-//        } else {
-//            log.error("Prop [tbCount] is required");
-//            throw new IllegalStateException("Init sharding algorithm error");
-//        }
-//
-//        if (props.containsKey("dbCount")) {
-//            dbCount = Integer.parseInt(props.getProperty("dbCount").trim());
-//        } else {
-//            log.error("Prop [dbCount] is required");
-//            throw new IllegalStateException("Init sharding algorithm error");
-//        }
+    }
 
-        dbNodeTotalSlot = dbCount * tbCount;
+    private String getForString(Properties props, String key, boolean required) {
+        String value = props.getProperty(key);
+        if (StringUtils.isBlank(value) && required) {
+            throw new IllegalArgumentException("Prop : " + key + " is Required");
+        }
+        return value;
+    }
+
+    private void initDefaultDataSourceGroup(Properties props,
+                                            List<DataSourceGroupShardingNode> dataSourceGroupShardingNodes) {
+        String defaultDsGroupName = getForString(props, PROP_DEFAULT_DS_GROUP, true);
+        this.defaultDsGroup =
+            dataSourceGroupShardingNodes.stream()
+                .filter(node -> node.getDataSourceGroupName().equals(defaultDsGroupName))
+                .findFirst()
+                .orElse(null);
+        if (defaultDsGroup == null) {
+            throw new IllegalArgumentException("Default DataSourceGroup not found");
+        }
+    }
+
+    private void initLargeDataDataResourceScopeDsGroups(
+        Properties props,
+        List<DataSourceGroupShardingNode> dataSourceGroupShardingNodes) {
+
+        String expr = getForString(props, PROP_LARGE_DATA_DS_GROUP, false);
+        if (StringUtils.isBlank(expr)) {
+            return;
+        }
+
+        Map<String, DataSourceGroupShardingNode> allDataNodes =
+            dataSourceGroupShardingNodes.stream().collect(Collectors.toMap(
+                DataSourceGroupShardingNode::getDataSourceGroupName, node -> node
+            ));
+        String[] resourceScopeAndDsGroupMappings = expr.split(";");
+        for (String resourceScopeAndDsGroupMappingExpr : resourceScopeAndDsGroupMappings) {
+            parseResourceScopeAndDsGroup(allDataNodes, resourceScopeAndDsGroupMappingExpr);
+        }
+        log.info("InitLargeDataDataResourceScopeDsGroups -> largeDataResourceScopeDsGroups : {}",
+            largeDataResourceScopeDsGroups);
+    }
+
+    private void parseResourceScopeAndDsGroup(Map<String, DataSourceGroupShardingNode> allDataNodes,
+                                              String resourceScopeAndDsGroupMappingExpr) {
+        String[] resourceScopeAndDsGroup = resourceScopeAndDsGroupMappingExpr.split("=");
+        String resourceScope = resourceScopeAndDsGroup[0].trim();
+        boolean isResourceScopeValid = ResourceScope.checkValid(resourceScope);
+        if (!isResourceScopeValid) {
+            log.error("InitLargeDataDataResourceScopeDsGroups -> resourceScope is invalid, resourceScope: {}",
+                resourceScope);
+            throw new IllegalArgumentException("Resource scope " + resourceScope + " is invalid");
+        }
+        String dsGroup = resourceScopeAndDsGroup[1].trim();
+        if (!allDataNodes.containsKey(dsGroup)) {
+            log.error("InitLargeDataDataResourceScopeDsGroups -> dsGroup is not exist, dsGroup: {}", dsGroup);
+            throw new IllegalArgumentException("DsGroup " + dsGroup + " is not exist");
+        }
+        largeDataResourceScopeDsGroups.put(resourceScope, allDataNodes.get(dsGroup));
     }
 
     @Override
     public String getType() {
         return "JOB_INSTANCE_APP";
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.appScopeMappingService = applicationContext.getBean(AppScopeMappingService.class);
+        log.info("Init dependency AppScopeMappingService : {}", appScopeMappingService);
     }
 }

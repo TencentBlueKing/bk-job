@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
+import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingStrategyType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,7 +37,7 @@ import java.util.StringJoiner;
 /**
  * 分库分表配置
  */
-@ConfigurationProperties(prefix = "sharding")
+@ConfigurationProperties(prefix = "mysql.sharding")
 @Getter
 @Setter
 @ToString
@@ -51,9 +52,9 @@ public class ShardingProperties {
     private MigrationProperties migration;
 
     /**
-     * ShardingSphere 分片组件配置
+     * 数据库分片配置
      */
-    private ShardingsphereProperties shardingsphere;
+    private Map<String, DatabaseProperties> databases;
 
     @Getter
     @Setter
@@ -64,175 +65,206 @@ public class ShardingProperties {
 
     @Getter
     @Setter
-    @ToString
-    public static class ShardingsphereProperties {
+    public static class DatabaseProperties {
         /**
-         * 分片数据库名
+         * 逻辑数据库名称
          */
-        private String databaseName;
+        private String logicDatabaseName;
         /**
-         * 数据源集群。 key:集群名称；value:集群配置
+         * 数据源 driverClassName
          */
-        private Map<String, DataSource> dataSources;
+        private String dataSourceDriverClassName;
+        /**
+         * 数据库用户名
+         */
+        private String username;
+        /**
+         * 数据库密码
+         */
+        private String password;
+        /**
+         * 数据源分组
+         */
+        private Map<String, DataSourceGroupProperties> dataSourceGroups;
         /**
          * 分片规则
          */
-        private ShardingRule shardingRule;
+        private ShardingRuleProperties shardingRule;
         /**
          * 系统级属性配置
          */
         private Map<String, String> props;
 
-        @Getter
-        @Setter
-        public static class DataSource {
-            /**
-             * 数据库驱动类名，以数据库连接池自身配置为准
-             */
-            private String driverClassName;
-            /**
-             * 数据库 URL 连接，以数据库连接池自身配置为准
-             */
-            private String jdbcUrl;
-            private String username;
-            private String password;
-
-            @Override
-            public String toString() {
-                return new StringJoiner(", ", DataSource.class.getSimpleName() + "[", "]")
-                    .add("driverClassName='" + driverClassName + "'")
-                    .add("jdbcUrl='" + jdbcUrl + "'")
-                    .add("username='" + username + "'")
-                    .add("password='******'")
-                    .toString();
-            }
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DatabaseProperties.class.getSimpleName() + "[", "]")
+                .add("username='" + username + "'")
+                .add("password='******'")
+                .add("dataSourceGroups=" + dataSourceGroups)
+                .add("shardingRule=" + shardingRule)
+                .add("props=" + props)
+                .toString();
         }
+    }
 
+    @Getter
+    @Setter
+    @ToString
+    public static class DataSourceGroupProperties {
+        private List<DataSourceProperties> dataSources;
+    }
 
+    @Getter
+    @Setter
+    public static class DataSourceProperties {
         /**
-         * 数据分片规则配置
+         * 数据源索引位置
          */
-        @Getter
-        @Setter
-        @ToString
-        public static class ShardingRule {
-            /**
-             * 表对应的分片规则。 key: 表名称;value: 分片规则
-             */
-            private Map<String, TableShardingRule> tables;
-            /**
-             * 分片算法定义
-             */
-            private Map<String, ShardingAlgorithm> shardingAlgorithms;
-            /**
-             * 分布式序列算法配置
-             */
-            private Map<String, KeyGenerator> keyGenerators;
-            /**
-             * 默认数据库分片策略
-             */
-            private ShardingStrategy defaultDatabaseStrategy;
-            /**
-             * 默认表分片策略
-             */
-            private ShardingStrategy defaultTableStrategy;
-            /**
-             * 默认分片列名称
-             */
-            private String defaultShardingColumn;
-            /**
-             * 默认的分布式序列策略
-             */
-            private String defaultKeyGenerateStrategy;
-
-            private List<String> bindingTables;
-        }
-
-
-        @Getter
-        @Setter
-        @ToString
-        public static class TableShardingRule {
-            /**
-             * 由数据源名 + 表名组成
-             */
-            private String actualDataNodes;
-            /**
-             * 分库策略
-             */
-            private ShardingStrategy databaseStrategy;
-            /**
-             * 分表策略，同分库策略
-             */
-            private ShardingStrategy tableStrategy;
-            /**
-             * 分布式序列策略
-             */
-            private KeyGenerateStrategy keyGenerateStrategy;
-        }
-
+        private int index;
         /**
-         * 分片计算策略
+         * 数据库 URL 连接，以数据库连接池自身配置为准
          */
-        @Getter
-        @Setter
-        @ToString
-        public static class ShardingStrategy {
-            private String type;
-            private String shardingColumn;
-            private String shardingAlgorithmName;
-        }
+        private String jdbcUrl;
+    }
 
+
+    /**
+     * 数据分片规则配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class ShardingRuleProperties {
+        /**
+         * 表对应的分片规则。 key: 表名称;value: 分片规则
+         */
+        private Map<String, TableShardingRuleProperties> tables;
+        /**
+         * 分片算法定义
+         */
+        private Map<String, ShardingAlgorithmProperties> shardingAlgorithms;
+        /**
+         * 分布式序列算法配置
+         */
+        private Map<String, KeyGeneratorProperties> keyGenerators;
+        /**
+         * 默认数据库分片策略
+         */
+        private ShardingStrategyProperties defaultDatabaseStrategy;
+        /**
+         * 默认表分片策略
+         */
+        private ShardingStrategyProperties defaultTableStrategy;
+        /**
+         * 默认分片列名称
+         */
+        private String defaultShardingColumn;
+        /**
+         * 默认的分布式序列策略
+         */
+        private String defaultKeyGenerateStrategy;
+
+        private List<String> bindingTables;
+    }
+
+
+    @Getter
+    @Setter
+    @ToString
+    public static class TableShardingRuleProperties {
+        /**
+         * 分片数据节点表达式
+         */
+        private String dataNodes;
+        /**
+         * 分库策略
+         */
+        private ShardingStrategyProperties databaseStrategy;
+        /**
+         * 分表策略，同分库策略
+         */
+        private ShardingStrategyProperties tableStrategy;
         /**
          * 分布式序列策略
          */
-        @Getter
-        @Setter
-        @ToString
-        public static class KeyGenerateStrategy {
-            /**
-             * 自增列名称，缺省表示不使用自增主键生成器
-             */
-            private String column;
-            /**
-             * 分布式序列算法名称
-             */
-            private String keyGeneratorName;
-        }
+        private KeyGenerateStrategyProperties keyGenerateStrategy;
+    }
 
+    /**
+     * 分片计算策略
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class ShardingStrategyProperties {
         /**
-         * 分布式序列生成配置
+         * 分片策略类型
+         *
+         * @see ShardingStrategyType
          */
-        @Getter
-        @Setter
-        @ToString
-        public static class KeyGenerator {
-            /**
-             * 分布式序列算法类型
-             */
-            private String type;
-            /**
-             * 分布式序列算法属性配置
-             */
-            private Map<String, String> props;
-        }
-
+        private String type;
         /**
-         * 分片算法配置
+         * 分片键（单列，standard 类型的分片算法使用）
          */
-        @Getter
-        @Setter
-        @ToString
-        public static class ShardingAlgorithm {
-            /**
-             * 分片算法类型
-             */
-            private String type;
-            /**
-             * 分片算法属性配置
-             */
-            private Map<String, String> props;
-        }
+        private String shardingColumn;
+        /**
+         * 分片键（多列，complex 类型的分片算法使用）
+         */
+        private String shardingColumns;
+        /**
+         * 算法名
+         */
+        private String shardingAlgorithmName;
+    }
 
+    /**
+     * 分布式序列策略
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class KeyGenerateStrategyProperties {
+        /**
+         * 自增列名称，缺省表示不使用自增主键生成器
+         */
+        private String column;
+        /**
+         * 分布式序列算法名称
+         */
+        private String keyGeneratorName;
+    }
+
+    /**
+     * 分布式序列生成配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class KeyGeneratorProperties {
+        /**
+         * 分布式序列算法类型
+         */
+        private String type;
+        /**
+         * 分布式序列算法属性配置
+         */
+        private Map<String, String> props;
+    }
+
+    /**
+     * 分片算法配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class ShardingAlgorithmProperties {
+        /**
+         * 分片算法类型
+         */
+        private String type;
+        /**
+         * 分片算法属性配置
+         */
+        private Map<String, String> props;
     }
 }

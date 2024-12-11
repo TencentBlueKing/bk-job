@@ -786,28 +786,17 @@ password: ${mariadb-password}
 {{- end -}}
 
 {{/*
-Return the job execute sharding nodes expression
+Return the job execute job instance data sharding data nodes
 */}}
-{{- define "job.execute.sharding.actualDataNodes" -}}
-{{- $table_name := .tableName -}}
-{{ printf "ds_${0..%d}.%s_${0..%d}" (sub (int .context.Values.executeConfig.sharding.mariadb.database.nodeCount) 1) $table_name (sub (int .context.Values.executeConfig.sharding.mariadb.table.nodeCount) 1) }}
+{{- define "job.execute.sharding.jobInstance.dataNodes" -}}
+dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes | quote }}
 {{- end -}}
 
 {{/*
-Return the job execute sharding table algorithm expression
+Return the job execute job instance search data sharding data nodes
 */}}
-{{- define "job.execute.sharding.table.algorithm.expression" -}}
-{{- $table_name := .tableName -}}
-{{- $column_name := .columnName -}}
-{{ printf "%s_${%s %% %d}" $table_name $column_name (int .context.Values.executeConfig.sharding.mariadb.table.nodeCount) }}
-{{- end -}}
-
-{{/*
-Return the job execute sharding database algorithm expression
-*/}}
-{{- define "job.execute.sharding.database.algorithm.expression" -}}
-{{- $column_name := .columnName -}}
-{{ printf "ds_${%s %% %d}" $column_name (int .context.Values.executeConfig.sharding.mariadb.database.nodeCount) }}
+{{- define "job.execute.sharding.jobInstanceSearch.dataNodes" -}}
+dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
 {{- end -}}
 
 {{/*
