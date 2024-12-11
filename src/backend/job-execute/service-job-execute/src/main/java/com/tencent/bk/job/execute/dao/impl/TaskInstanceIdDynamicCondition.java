@@ -56,7 +56,8 @@ public class TaskInstanceIdDynamicCondition {
             log.info("TaskInstanceIdDynamicCondition : EmptyJobExecuteContext!");
             // JobExecuteContext 正常应该不会为 null 。为了不影响请求正常处理，忽略错误,直接返回 TRUE Condition
             // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
-            toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
+//            toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
+            throw new IllegalStateException("EmptyJobExecuteContext");
         } else {
             ResourceScope resourceScope = jobExecuteContext.getResourceScope();
             if (resourceScope != null) {

@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -52,8 +53,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
     private final String artifactoryRepo;
     private final String jobStorageRootPath;
     private final List<Future<Boolean>> futureList = new ArrayList<>();
-    private final ThreadPoolExecutor localFileDownloadExecutor;
-    private final ThreadPoolExecutor localFileWatchExecutor;
+    private final ExecutorService localFileDownloadExecutor;
+    private final ExecutorService localFileWatchExecutor;
     public static Future<?> localFileWatchFuture = null;
 
     public ArtifactoryLocalFilePrepareTask(
@@ -65,8 +66,8 @@ public class ArtifactoryLocalFilePrepareTask implements JobTaskContext {
         String artifactoryProject,
         String artifactoryRepo,
         String jobStorageRootPath,
-        ThreadPoolExecutor localFileDownloadExecutor,
-        ThreadPoolExecutor localFileWatchExecutor
+        ExecutorService localFileDownloadExecutor,
+        ExecutorService localFileWatchExecutor
     ) {
         this.stepInstance = stepInstance;
         this.isForRetry = isForRetry;
