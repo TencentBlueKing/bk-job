@@ -87,9 +87,7 @@ public abstract class AbstractToggleStrategy implements ToggleStrategy {
     public boolean checkRequiredContextParam(ToggleEvaluateContext context, String paramName) {
         boolean checkResult = true;
         if (context.getParam(paramName) == null) {
-            String msg = MessageFormatter.format(
-                "Context param {} is required for evaluate", paramName).getMessage();
-            log.warn(msg);
+            log.info("Context param {} is required for evaluate", paramName);
             checkResult = false;
         }
         return checkResult;

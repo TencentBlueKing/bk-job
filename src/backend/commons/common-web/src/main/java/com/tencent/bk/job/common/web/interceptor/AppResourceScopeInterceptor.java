@@ -295,14 +295,15 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             Long appId = null;
             Matcher appIdMatcher = APP_PATTERN.matcher(requestURI);
             if (appIdMatcher.find()) {
-                appId = Long.parseLong(appIdMatcher.group());
+                appId = Long.parseLong(appIdMatcher.group(1));
             }
             return appId;
         }
 
         private Long parseAppIdFromQueryParam(HttpServletRequest request) {
-            String value = request.getParameter("appId");
-            log.debug("Parsed from GET: {}={}", "appId", value);
+            String queryParam = "appId";
+            String value = request.getParameter(queryParam);
+            log.debug("Parsed from GET: {}={}", queryParam, value);
             return value != null ? Long.parseLong(value) : null;
         }
 

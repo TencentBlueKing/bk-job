@@ -47,18 +47,15 @@ public abstract class BaseJobMqListener {
     }
 
     private void beforeHandleMessage(Message<? extends JobMessage> message) {
-        log.info("beforeHandleMessage");
         MessageHeaders headers = message.getHeaders();
         String jobExecuteContextJson = (String) headers.get(JobExecuteContext.KEY);
         if (StringUtils.isNotEmpty(jobExecuteContextJson)) {
-            log.info("setJobExecuteContextThreadLocalRepo");
             JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
                 JobExecuteContext.class));
         }
     }
 
     private void afterHandle(Message<? extends JobMessage> message) {
-        log.info("afterHandleMessage");
         JobExecuteContextThreadLocalRepo.unset();
     }
 
