@@ -73,7 +73,9 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
             meterRegistry,
             CommonMetricNames.BK_AI_DEV_API,
             getBkAIDevUrlSafely(bkApiGatewayProperties),
-            HttpHelperFactory.getDefaultHttpHelper()
+            HttpHelperFactory.getDefaultHttpHelper(
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+            )
         );
         this.appProperties = appProperties;
         this.bkAIDevConfig = bkApiGatewayProperties.getBkAIDev();
