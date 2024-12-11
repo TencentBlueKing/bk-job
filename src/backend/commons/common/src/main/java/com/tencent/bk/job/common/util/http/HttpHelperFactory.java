@@ -62,7 +62,21 @@ public class HttpHelperFactory {
     }
 
     public static WatchableHttpHelper getDefaultHttpHelper() {
-        HttpHelper baseHttpHelper = new BaseHttpHelper(DEFAULT_HTTP_CLIENT);
+        return getDefaultHttpHelper(null);
+    }
+
+    public static WatchableHttpHelper getDefaultHttpHelper(JobHttpClientFactory.HttpClientCustomizer customizer) {
+        HttpHelper baseHttpHelper = createHttpHelper(
+            15000,
+            15000,
+            15000,
+            500,
+            1000,
+            60,
+            false,
+            null,
+            customizer
+        );
         return getWatchableExtHelper(baseHttpHelper);
     }
 
@@ -84,7 +98,8 @@ public class HttpHelperFactory {
                                               int maxConnTotal,
                                               int timeToLive,
                                               boolean allowRetry,
-                                              HttpRequestRetryHandler retryHandler) {
+                                              HttpRequestRetryHandler retryHandler,
+                                              JobHttpClientFactory.HttpClientCustomizer customizer) {
         CloseableHttpClient httpClient = JobHttpClientFactory.createHttpClient(
             connRequestTimeout,
             connTimeout,
@@ -93,7 +108,8 @@ public class HttpHelperFactory {
             maxConnTotal,
             timeToLive,
             allowRetry,
-            retryHandler);
+            retryHandler,
+            customizer);
         return new BaseHttpHelper(httpClient);
     }
 }

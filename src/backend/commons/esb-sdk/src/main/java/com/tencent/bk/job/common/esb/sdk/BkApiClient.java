@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.esb.interceptor.LogBkApiRequestIdInterceptor;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -46,6 +47,7 @@ import io.micrometer.core.instrument.Tags;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -389,6 +391,15 @@ public class BkApiClient {
      */
     protected Collection<Tag> getExtraMetricsTags() {
         return null;
+    }
+
+    /**
+     * 获取打印APIGW RequestId的响应拦截器
+     *
+     * @return 响应拦截器
+     */
+    protected static HttpResponseInterceptor getLogBkApiRequestIdInterceptor() {
+        return new LogBkApiRequestIdInterceptor();
     }
 
 }
