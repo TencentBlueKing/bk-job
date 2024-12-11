@@ -50,7 +50,7 @@ public class LogBkApiRequestIdInterceptor implements HttpResponseInterceptor {
             if (response.containsHeader(headerName)) {
                 log.info(headerName + "=" + response.getFirstHeader(headerName).getValue());
             } else {
-                log.debug(headerName + " not found in the response");
+                log.info(headerName + " not found in the response");
             }
         } catch (Throwable t) {
             log.warn("Failed to log header " + headerName, t);
