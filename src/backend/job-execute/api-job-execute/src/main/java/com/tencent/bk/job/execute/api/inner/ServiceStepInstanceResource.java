@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @SmartFeignClient(value = "job-execute", contextId = "stepInstanceResource")
 @InternalAPI
 public interface ServiceStepInstanceResource {
-    @GetMapping("/service/stepInstance/appIds/{appId}/stepInstanceIds/{stepInstanceId}")
+    @GetMapping("/service/stepInstance/app/{appId}/stepInstanceId/{stepInstanceId}")
     InternalResponse<ServiceStepInstanceDTO> getStepInstance(
         @RequestHeader("username")
         String username,
