@@ -53,7 +53,7 @@ public class TaskInstanceIdDynamicCondition {
         ToggleEvaluateContext toggleEvaluateContext;
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
-            log.info("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
+            log.info("TaskInstanceIdDynamicCondition : EmptyJobExecuteContext!");
             // JobExecuteContext 正常应该不会为 null 。为了不影响请求正常处理，忽略错误,直接返回 TRUE Condition
             // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
             toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
@@ -63,22 +63,23 @@ public class TaskInstanceIdDynamicCondition {
                 toggleEvaluateContext = ToggleEvaluateContext.builder()
                     .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
             } else {
-                log.info("TaskInstanceIdDynamicCondition : Empty resource scope!");
+                log.info("TaskInstanceIdDynamicCondition : EmptyResourceScope!");
                 toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
             }
         }
 
         if (FeatureToggle.checkFeature(FeatureIdConstants.DAO_ADD_TASK_INSTANCE_ID, toggleEvaluateContext)) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
-                log.info("TaskInstanceIdDynamicCondition : Invalid taskInstanceId {}", taskInstanceId);
+                log.info("TaskInstanceIdDynamicCondition : InvalidTaskInstanceId : {}", taskInstanceId);
                 // 为了不影响兼容性，忽略错误
-                return DSL.trueCondition();
+//                return DSL.trueCondition();
+                throw new IllegalStateException("TaskInstanceId required");
             } else {
-                log.debug("TaskInstanceIdDynamicCondition: Use task_instance_id condition");
+                log.debug("TaskInstanceIdDynamicCondition: UseTaskInstanceIdCondition");
                 return taskInstanceIdConditionBuilder.apply(taskInstanceId);
             }
         } else {
-            log.debug("TaskInstanceIdDynamicCondition: Ignore task_instance_id condition");
+            log.debug("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
             return DSL.trueCondition();
         }
     }
