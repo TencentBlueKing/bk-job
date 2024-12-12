@@ -72,14 +72,15 @@ public class TaskInstanceIdDynamicCondition {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
                 log.info("TaskInstanceIdDynamicCondition : InvalidTaskInstanceId : {}", taskInstanceId);
                 // 为了不影响兼容性，忽略错误
-//                return DSL.trueCondition();
-                throw new IllegalStateException("TaskInstanceId required");
+                return DSL.trueCondition();
             } else {
-                log.debug("TaskInstanceIdDynamicCondition: UseTaskInstanceIdCondition");
+                // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
+                log.info("TaskInstanceIdDynamicCondition: UseTaskInstanceIdCondition");
                 return taskInstanceIdConditionBuilder.apply(taskInstanceId);
             }
         } else {
-            log.debug("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
+            // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
+            log.info("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
             return DSL.trueCondition();
         }
     }
