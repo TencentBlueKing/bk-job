@@ -30,6 +30,9 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.util.List;
 
+/**
+ * AI聊天服务
+ */
 public interface ChatService {
 
     /**

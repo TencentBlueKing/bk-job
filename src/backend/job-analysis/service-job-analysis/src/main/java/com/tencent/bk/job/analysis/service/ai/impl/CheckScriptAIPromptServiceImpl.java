@@ -37,6 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 检查脚本的AI提示符服务实现类
+ */
 @Slf4j
 @Service
 public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptService {
@@ -54,6 +57,13 @@ public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptServic
         this.aiTemplateVarService = aiTemplateVarService;
     }
 
+    /**
+     * 根据脚本类型与内容获取检查脚本的AI提示符
+     *
+     * @param type          脚本类型
+     * @param scriptContent 脚本内容
+     * @return AI提示符
+     */
     @Override
     public AIPromptDTO getPrompt(Integer type, String scriptContent) {
         String userLang = JobContextUtil.getUserLang();
@@ -82,6 +92,15 @@ public class CheckScriptAIPromptServiceImpl implements CheckScriptAIPromptServic
         return new AIPromptDTO(promptTemplate.getId(), promptTemplate.getRawPrompt(), renderedPrompt);
     }
 
+    /**
+     * 渲染检查脚本的AI提示符
+     *
+     * @param promptTemplateContent 提示符模板内容
+     * @param type                  脚本类型
+     * @param scriptTemplate        脚本模板
+     * @param scriptContent         脚本内容
+     * @return 渲染后的提示符
+     */
     private String renderCheckScriptPrompt(String promptTemplateContent,
                                            Integer type,
                                            String scriptTemplate,

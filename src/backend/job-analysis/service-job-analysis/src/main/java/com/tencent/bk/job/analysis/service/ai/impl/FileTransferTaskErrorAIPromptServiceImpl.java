@@ -58,6 +58,12 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
         this.aiMessageI18nService = aiMessageI18nService;
     }
 
+    /**
+     * 根据文件任务上下文获取文件分发任务报错分析AI提示符
+     *
+     * @param context 文件分发任务上下文
+     * @return AI提示符
+     */
     @Override
     public AIPromptDTO getPrompt(FileTaskContext context) {
         String templateCode = PromptTemplateCodeEnum.ANALYZE_FILE_TRANSFER_TASK_ERROR.name();
@@ -67,6 +73,13 @@ public class FileTransferTaskErrorAIPromptServiceImpl extends AIBasePromptServic
         return new AIPromptDTO(promptTemplate.getId(), renderedRawPrompt, renderedPrompt);
     }
 
+    /**
+     * 渲染AI提示符
+     *
+     * @param promptTemplateContent AI提示符模板内容
+     * @param context               文件任务上下文
+     * @return 渲染后的AI提示符
+     */
     private String renderPrompt(String promptTemplateContent, FileTaskContext context) {
         return promptTemplateContent
             .replace(aiTemplateVarService.getStepInstanceNamePlaceHolder(), context.getName())
