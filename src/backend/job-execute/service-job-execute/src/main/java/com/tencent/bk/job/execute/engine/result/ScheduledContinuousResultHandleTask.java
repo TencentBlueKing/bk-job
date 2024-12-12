@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -77,6 +78,7 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     /**
      * 作业执行上下文信息
      */
+    @Getter
     private final JobExecuteContext jobExecuteContext;
 
     /**

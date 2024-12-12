@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
@@ -51,33 +50,37 @@ public class TaskInstanceIdDynamicCondition {
 
     public static Condition build(Long taskInstanceId,
                                   Function<Long, Condition> taskInstanceIdConditionBuilder) {
+        ToggleEvaluateContext toggleEvaluateContext;
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
-            log.info("TaskInstanceIdDynamicCondition : Empty JobExecuteContext!");
+            log.info("TaskInstanceIdDynamicCondition : EmptyJobExecuteContext!");
             // JobExecuteContext 正常应该不会为 null 。为了不影响请求正常处理，忽略错误,直接返回 TRUE Condition
             // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
-            return DSL.trueCondition();
+            toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
+        } else {
+            ResourceScope resourceScope = jobExecuteContext.getResourceScope();
+            if (resourceScope != null) {
+                toggleEvaluateContext = ToggleEvaluateContext.builder()
+                    .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
+            } else {
+                log.info("TaskInstanceIdDynamicCondition : EmptyResourceScope!");
+                toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
+            }
         }
-        ResourceScope resourceScope = jobExecuteContext.getResourceScope();
-        if (resourceScope == null) {
-            log.info("TaskInstanceIdDynamicCondition : Empty resource scope!");
-            // 无法根据业务决定是否使用 task_instance_id 作为查询条件。为了不影响请求正常处理,直接返回 TRUE Condition
-            // (不会影响 DAO 查询，task_instance_id 仅作为分片功能，实际业务数据关系并不强依赖 task_instance_id)
-            return DSL.trueCondition();
-        }
-        if (FeatureToggle.checkFeature(
-            FeatureIdConstants.DAO_ADD_TASK_INSTANCE_ID,
-            ToggleEvaluateContext.builder()
-                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
-                    JobContextUtil.getAppResourceScope()))) {
+
+        if (FeatureToggle.checkFeature(FeatureIdConstants.DAO_ADD_TASK_INSTANCE_ID, toggleEvaluateContext)) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
-                log.info("TaskInstanceIdDynamicCondition : Invalid taskInstanceId {}", taskInstanceId);
+                log.info("TaskInstanceIdDynamicCondition : InvalidTaskInstanceId : {}", taskInstanceId);
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
             } else {
+                // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
+                log.info("TaskInstanceIdDynamicCondition: UseTaskInstanceIdCondition");
                 return taskInstanceIdConditionBuilder.apply(taskInstanceId);
             }
         } else {
+            // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
+            log.info("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
             return DSL.trueCondition();
         }
     }
