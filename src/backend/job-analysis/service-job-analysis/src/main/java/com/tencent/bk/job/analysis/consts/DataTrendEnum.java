@@ -22,74 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.api.dto;
+package com.tencent.bk.job.analysis.consts;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 /**
- * 通用统计数据模型
+ * 数据趋势
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class StatisticsDTO implements Cloneable {
+@Getter
+public enum DataTrendEnum {
     /**
-     * id
+     * 上升
      */
-    private Long id;
+    UP(1),
     /**
-     * id
+     * 不变
      */
-    private Long appId;
+    NOT_CHANGE(0),
     /**
-     * 资源
+     * 下降
      */
-    private String resource;
-    /**
-     * 维度
-     */
-    private String dimension;
-    /**
-     * 维度取值
-     */
-    private String dimensionValue;
-    /**
-     * 统计单位日期
-     */
-    private String date;
-    /**
-     * 序列化的统计数据
-     */
-    private String value;
-    /**
-     * 创建时间
-     */
-    private Long createTime;
-    /**
-     * 更新时间
-     */
-    private Long lastModifyTime;
+    DOWN(-1);
 
-    public StatisticsDTO(String value) {
+    private final int value;
+
+    DataTrendEnum(int value) {
         this.value = value;
-    }
-
-    @Override
-    public StatisticsDTO clone() {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
-        statisticsDTO.setId(id);
-        statisticsDTO.setAppId(appId);
-        statisticsDTO.setResource(resource);
-        statisticsDTO.setDimension(dimension);
-        statisticsDTO.setDimensionValue(dimensionValue);
-        statisticsDTO.setDate(date);
-        statisticsDTO.setValue(value);
-        statisticsDTO.setCreateTime(createTime);
-        statisticsDTO.setLastModifyTime(lastModifyTime);
-        return statisticsDTO;
     }
 }
