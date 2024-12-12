@@ -410,6 +410,7 @@ public class DSLContextConfiguration {
         ObjectProvider<MigrateDynamicDSLContextProvider> migrateDynamicDSLContextProviderObjectProvider,
         MySQLProperties mySQLProperties
     ) {
+        log.info("Init JobExecuteDslContextProviderFactory");
         return new DSLContextProviderFactory(
             standaloneDSLContextProviderObjectProvider.getIfAvailable(),
             verticalShardingDSLContextProviderObjectProvider.getIfAvailable(),

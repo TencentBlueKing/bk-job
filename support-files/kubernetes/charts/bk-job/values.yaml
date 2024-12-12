@@ -1035,7 +1035,7 @@ executeConfig:
     #       password: "job"
     sharding:
       # 是否启用分库分表
-      enabled: true
+      enabled: false
       databases:
         job_execute:
           username : job
@@ -1068,9 +1068,9 @@ executeConfig:
                   jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
           shardingRule:
             jobInstance:
-              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=31"
+              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
             jobInstanceSearch:
-              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=31;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=31;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=31"
+              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
               shardingAlgorithmProps:
                 defaultDsGroup: "ds_job_instance_search"
                 largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"

@@ -3,6 +3,7 @@ package com.tencent.bk.job.common.sharding.mysql.config;
 import com.tencent.bk.job.common.sharding.mysql.DataNodesParser;
 import com.tencent.bk.job.common.sharding.mysql.DataSourceGroupShardingNode;
 import com.tencent.bk.job.common.sharding.mysql.ShardingConfigParseException;
+import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingStrategyType;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -16,6 +17,7 @@ import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableReferenceRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
+import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ComplexShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.HintShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
@@ -33,12 +35,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ShardingDataSourceFactory {
 
+    /**
+     * 创建分库分表数据源
+     *
+     * @param databaseProperties database 配置
+     */
     public static DataSource createDataSource(
         ShardingProperties.DatabaseProperties databaseProperties) throws SQLException {
 
-        log.info("Init sharding datasource start, logicDatabaseName: {}", databaseProperties.getLogicDatabaseName());
         // 指定逻辑 Database 名称
         String databaseName = databaseProperties.getLogicDatabaseName();
+        log.info("Init sharding datasource start, logicDatabaseName: {}", databaseName);
         // 构建运行模式
         ModeConfiguration modeConfig = createModeConfiguration();
         // 构建真实数据源
@@ -50,7 +57,7 @@ public class ShardingDataSourceFactory {
         Properties globalProps = createShardingGlobalProps(databaseProperties.getProps());
         DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig,
             dataSourceMap, ruleConfigs, globalProps);
-        log.info("Init sharding datasource successfully");
+        log.info("Init sharding datasource successfully, logicDatabaseName: {}", databaseName);
         return dataSource;
     }
 
@@ -234,20 +241,26 @@ public class ShardingDataSourceFactory {
 
     private static ShardingStrategyConfiguration createShardingStrategyConfiguration(
         ShardingProperties.ShardingStrategyProperties shardingStrategyProps) {
-        String shardingStrategyType = shardingStrategyProps.getType().trim().toLowerCase();
+        String strategyTypeValue = shardingStrategyProps.getType().trim().toLowerCase();
+        ShardingStrategyType shardingStrategyType = ShardingStrategyType.valOf(strategyTypeValue);
+
         switch (shardingStrategyType) {
-            case "standard":
+            case STANDARD:
                 return new StandardShardingStrategyConfiguration(
                     shardingStrategyProps.getShardingColumn(),
                     shardingStrategyProps.getShardingAlgorithmName()
                 );
-            case "hint":
+            case HINT:
                 return new HintShardingStrategyConfiguration(
                     shardingStrategyProps.getShardingAlgorithmName()
                 );
-            case "complex":
+            case COMPLEX:
+                return new ComplexShardingStrategyConfiguration(
+                    shardingStrategyProps.getShardingColumns(),
+                    shardingStrategyProps.getShardingAlgorithmName()
+                );
             default:
-                throw new ShardingConfigParseException("Not support sharding algorithm");
+                throw new ShardingConfigParseException("Not support sharding strategy type");
         }
     }
 
