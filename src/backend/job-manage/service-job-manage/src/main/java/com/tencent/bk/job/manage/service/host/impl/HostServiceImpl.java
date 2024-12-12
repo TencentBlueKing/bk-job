@@ -240,6 +240,22 @@ public class HostServiceImpl implements HostService {
             if (applicationHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
                 int affectedNum = applicationHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                if (affectedNum == 0) {
+                    ApplicationHostDTO hostInDB = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
+                    if (hostInDB != null) {
+                        log.info(
+                            "Not update host, hostId={}, dbHostLastTime={}, currentHostLastTime={}",
+                            hostInDB.getHostId(),
+                            hostInDB.getLastTime(),
+                            hostInfoDTO.getLastTime()
+                        );
+                    } else {
+                        log.warn(
+                            "Not update host, hostId={}, hostInDB not exists",
+                            hostInfoDTO.getHostId()
+                        );
+                    }
+                }
                 return Pair.of(needToCreate, affectedNum);
             } else {
                 needToCreate = true;
@@ -256,7 +272,7 @@ public class HostServiceImpl implements HostService {
             int affectedNum = applicationHostDAO.syncHostTopo(hostInfoDTO.getHostId());
             log.info("hostTopo synced: hostId={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
             // 更新缓存
-            updateHostCache(hostInfoDTO);
+            updateDbHostToCache(hostInfoDTO.getHostId());
         }
     }
 
@@ -287,8 +303,8 @@ public class HostServiceImpl implements HostService {
         return affectedRowNum;
     }
 
-    private void updateHostCache(ApplicationHostDTO hostInfoDTO) {
-        hostInfoDTO = applicationHostDAO.getHostById(hostInfoDTO.getHostId());
+    public void updateDbHostToCache(Long hostId) {
+        ApplicationHostDTO hostInfoDTO = applicationHostDAO.getHostById(hostId);
         if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
             // 只更新常规业务的主机到缓存
             if (applicationService.existBiz(hostInfoDTO.getBizId())) {
