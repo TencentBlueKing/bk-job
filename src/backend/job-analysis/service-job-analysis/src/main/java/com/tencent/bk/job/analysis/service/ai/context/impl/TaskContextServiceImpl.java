@@ -62,6 +62,7 @@ public class TaskContextServiceImpl implements TaskContextService {
         InternalResponse<ServiceStepInstanceDTO> resp = serviceStepInstanceResource.getStepInstance(
             username,
             contextQuery.getAppId(),
+            contextQuery.getTaskInstanceId(),
             contextQuery.getStepInstanceId()
         );
         if (resp.isSuccess()) {
