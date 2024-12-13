@@ -223,12 +223,215 @@ data:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
     mysql:
       dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
+      migration:
+        enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
       standalone:
         enabled: {{ .Values.executeConfig.mysql.standalone.enabled }}
       verticalSharding:
         enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
-      migration:
-        enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
+      {{- if .Values.executeConfig.mysql.sharding.enabled }}
+      sharding:
+        enabled: true
+        databases:
+          job_execute:
+            logicDatabaseName: job_execute
+            dataSourceDriverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            username: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.username | quote }}
+            password: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.password | quote }}
+            # 数据源分组配置
+            dataSourceGroups:
+              {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 12 }}
+            shardingRule:
+              # 数据分片规则配置
+              tables:
+                task_instance:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance_script:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance_file:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance_confirm:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                gse_script_execute_obj_task:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                gse_file_execute_obj_task:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                gse_task:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                file_source_task_log:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                operation_log:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                task_instance_variable:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance_variable:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                rolling_config:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                step_instance_rolling_task:
+                  {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                  databaseStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                  tableStrategy:
+                    type: standard
+                    shardingColumn: task_instance_id
+                    shardingAlgorithmName: job_instance_standard
+                task_instance_app:
+                  {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
+                  databaseStrategy:
+                    type: complex
+                    shardingColumns: app_id,id
+                    shardingAlgorithmName: task_instance_app_complex
+                  tableStrategy:
+                    type: complex
+                    shardingColumns: app_id,id
+                    shardingAlgorithmName: task_instance_app_complex
+                task_instance_host:
+                  {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
+                  databaseStrategy:
+                    type: complex
+                    shardingColumns: app_id,task_instance_id
+                    shardingAlgorithmName: task_instance_host_complex
+                  tableStrategy:
+                    type: complex
+                    shardingColumns: app_id,task_instance_id
+                    shardingAlgorithmName: task_instance_host_complex
+              # 绑定表规则
+              bindingTables:
+                - task_instance_app,task_instance_host
+              ## 分库分表算法
+              shardingAlgorithms:
+                # 作业实例基础数据分库分表算法
+                job_instance_standard:
+                  type: JOB_ID_HASH_STANDARD
+                  props:
+                    dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes }}
+                # 作业实例按业务查询数据分库分表算法
+                task_instance_app_complex:
+                  type: JOB_INSTANCE_APP
+                  props:
+                    dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
+                    {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
+                    {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 20 }}
+                    {{- end }}
+                    shardingColumnNameMapping: "app_id=app_id,task_instance_id=id"
+                task_instance_host_complex:
+                  type: JOB_INSTANCE_APP
+                  props:
+                    dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
+                    {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
+                    {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 20 }}
+                    {{- end }}
+                    shardingColumnNameMapping: "app_id=app_id,task_instance_id=task_instance_id"
+      {{- end }}
     idGen:
       type: {{ .Values.executeConfig.idGen.type }}
       migration:
@@ -250,208 +453,5 @@ data:
       snowflake:
         enable: false
       name: job-leaf
-    {{- end }}
-    {{- if .Values.executeConfig.mysql.sharding.enabled }}
-    sharding:
-      enabled: true
-      databases:
-        job_execute:
-          logicDatabaseName: job_execute
-          dataSourceDriverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
-          username: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.username | quote }}
-          password: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.password | quote }}
-          # 数据源分组配置
-          dataSourceGroups:
-            {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 12 }}
-          shardingRule:
-            # 数据分片规则配置
-            tables:
-              task_instance:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance_script:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance_file:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance_confirm:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              gse_script_execute_obj_task:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              gse_file_execute_obj_task:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              gse_task:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              file_source_task_log:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              operation_log:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              task_instance_variable:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance_variable:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              rolling_config:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              step_instance_rolling_task:
-                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
-                databaseStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-                tableStrategy:
-                  type: standard
-                  shardingColumn: task_instance_id
-                  shardingAlgorithmName: job_instance_standard
-              task_instance_app:
-                {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
-                databaseStrategy:
-                  type: complex
-                  shardingColumns: app_id,id
-                  shardingAlgorithmName: task_instance_app_complex
-                tableStrategy:
-                  type: complex
-                  shardingColumns: app_id,id
-                  shardingAlgorithmName: task_instance_app_complex
-              task_instance_host:
-                {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
-                databaseStrategy:
-                  type: complex
-                  shardingColumns: app_id,task_instance_id
-                  shardingAlgorithmName: task_instance_host_complex
-                tableStrategy:
-                  type: complex
-                  shardingColumns: app_id,task_instance_id
-                  shardingAlgorithmName: task_instance_host_complex
-            # 绑定表规则
-            bindingTables:
-              - task_instance_app,task_instance_host
-            ## 分库分表算法
-            shardingAlgorithms:
-              # 作业实例基础数据分库分表算法
-              job_instance_standard:
-                type: JOB_ID_HASH_STANDARD
-                props:
-                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes }}
-              # 作业实例按业务查询数据分库分表算法
-              task_instance_app_complex:
-                type: JOB_INSTANCE_APP
-                props:
-                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
-                  {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
-                  {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 18 }}
-                  {{- end }}
-                  shardingColumnNameMapping: "app_id=app_id,task_instance_id=id"
-              task_instance_host_complex:
-                type: JOB_INSTANCE_APP
-                props:
-                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
-                  {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
-                  {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 18 }}
-                  {{- end }}
-                  shardingColumnNameMapping: "app_id=app_id,task_instance_id=task_instance_id"
     {{- end }}
 {{- end }}
