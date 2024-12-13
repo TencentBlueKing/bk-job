@@ -1,16 +1,17 @@
 {{- if and .Values.executeConfig.enabled (eq .Values.deploy.mode "standard") }}
-apiVersion : v1
-metadata :
-  name : {{ include "common.names.fullname" . }}-execute
-  namespace : {{ .Release.Namespace }}
-  labels :
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-execute
+  namespace: {{ .Release.Namespace }}
+  labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     app.kubernetes.io/component : "job-execute"
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
-data :
-  application.yaml : |-
+data:
+  application.yaml: |-
     spring:
       cloud:
         stream:
