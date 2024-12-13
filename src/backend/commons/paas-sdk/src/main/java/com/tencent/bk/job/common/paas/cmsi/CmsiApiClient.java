@@ -71,7 +71,7 @@ public class CmsiApiClient extends BkApiClient {
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper(
+            HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );

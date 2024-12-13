@@ -65,7 +65,7 @@ public class StandardLoginClient extends BkApiClient implements ILoginClient {
             meterRegistry,
             ESB_BK_LOGIN_API,
             esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper(
+            HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );
