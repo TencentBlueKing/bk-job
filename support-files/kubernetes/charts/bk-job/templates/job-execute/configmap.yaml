@@ -413,7 +413,7 @@ data:
                 job_instance_standard:
                   type: JOB_ID_HASH_STANDARD
                   props:
-                    dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes }}
+                    dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes |quote }}
                 # 作业实例按业务查询数据分库分表算法
                 task_instance_app_complex:
                   type: JOB_INSTANCE_APP
