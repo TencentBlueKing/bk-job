@@ -307,7 +307,7 @@ data:
                   shardingColumn: task_instance_id
                   shardingAlgorithmName: job_instance_standard
               step_instance_confirm:
-                dateNodes: {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
                 databaseStrategy:
                   type: standard
                   shardingColumn: task_instance_id
@@ -440,7 +440,7 @@ data:
               task_instance_app_complex:
                 type: JOB_INSTANCE_APP
                 props:
-                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes }}
+                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
                   {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
                   {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 18 }}
                   {{- end }}
@@ -448,7 +448,7 @@ data:
               task_instance_host_complex:
                 type: JOB_INSTANCE_APP
                 props:
-                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes }}
+                  dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
                   {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps }}
                   {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 18 }}
                   {{- end }}
