@@ -73,7 +73,7 @@ public class BkAIDevClient extends BkApiClient implements IBkAIDevClient {
             meterRegistry,
             CommonMetricNames.BK_AI_DEV_API,
             getBkAIDevUrlSafely(bkApiGatewayProperties),
-            HttpHelperFactory.getDefaultHttpHelper(
+            HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );

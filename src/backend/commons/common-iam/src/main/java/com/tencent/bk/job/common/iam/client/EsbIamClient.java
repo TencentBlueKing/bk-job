@@ -83,7 +83,7 @@ public class EsbIamClient extends BkApiClient implements IIamClient {
             meterRegistry,
             IAM_API,
             esbProperties.getService().getUrl(),
-            HttpHelperFactory.getDefaultHttpHelper(
+            HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );
