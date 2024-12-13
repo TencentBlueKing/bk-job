@@ -26,22 +26,21 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
-import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceApp;
-import com.tencent.bk.job.execute.model.tables.TaskInstanceHostApp;
+import com.tencent.bk.job.execute.model.tables.TaskInstanceHost;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceAppRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.BatchBindStep;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
@@ -50,8 +49,6 @@ import org.jooq.SortField;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.conf.ParamType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -61,9 +58,9 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
+public class TaskInstanceAppDAOImpl extends BaseDAO implements TaskInstanceAppDAO {
     private static final TaskInstanceApp TASK_INSTANCE_APP = TaskInstanceApp.TASK_INSTANCE_APP;
-    private static final TaskInstanceHostApp TASK_INSTANCE_HOST_APP = TaskInstanceHostApp.TASK_INSTANCE_HOST_APP;
+    private static final TaskInstanceHost TASK_INSTANCE_HOST = TaskInstanceHost.TASK_INSTANCE_HOST;
 
     private static final TableField<?, ?>[] ALL_FIELDS = {
         TASK_INSTANCE_APP.ID,
@@ -86,17 +83,14 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         TASK_INSTANCE_APP.APP_CODE
     };
 
-    private final DSLContext ctx;
-
-
-    public TaskInstanceAppDAOImpl(@Autowired(required = false)
-                                  @Qualifier("job-sharding-dsl-context") DSLContext shardingDSLContext) {
-        this.ctx = shardingDSLContext;
+    public TaskInstanceAppDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TASK_INSTANCE_APP.getName());
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public Long addTaskInstance(TaskInstanceDTO taskInstance) {
-        ctx.insertInto(
+        dsl().insertInto(
                 TASK_INSTANCE_APP,
                 TASK_INSTANCE_APP.ID,
                 TASK_INSTANCE_APP.TASK_ID,
@@ -166,8 +160,9 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public void updateTaskStatus(long appId, long taskInstanceId, int status) {
-        ctx.update(TASK_INSTANCE_APP)
+        dsl().update(TASK_INSTANCE_APP)
             .set(TASK_INSTANCE_APP.STATUS, Byte.valueOf(String.valueOf(status)))
             .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
             .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
@@ -176,8 +171,9 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
 
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public void updateTaskCurrentStepId(long appId, Long taskInstanceId, Long stepInstanceId) {
-        ctx.update(TASK_INSTANCE_APP)
+        dsl().update(TASK_INSTANCE_APP)
             .set(TASK_INSTANCE_APP.CURRENT_STEP_ID, stepInstanceId)
             .where(TASK_INSTANCE_APP.ID.eq(taskInstanceId))
             .and(TASK_INSTANCE_APP.APP_ID.eq(appId))
@@ -185,8 +181,9 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public void resetTaskStatus(long appId, Long taskInstanceId) {
-        ctx.update(TASK_INSTANCE_APP)
+        dsl().update(TASK_INSTANCE_APP)
             .setNull(TASK_INSTANCE_APP.START_TIME)
             .setNull(TASK_INSTANCE_APP.END_TIME)
             .setNull(TASK_INSTANCE_APP.TOTAL_TIME)
@@ -198,6 +195,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
         if (StringUtils.isNotEmpty(taskQuery.getIp()) || StringUtils.isNotEmpty(taskQuery.getIpv6())) {
@@ -207,6 +205,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         }
     }
 
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     private PageData<TaskInstanceDTO> listPageTaskInstanceByBasicInfo(TaskInstanceQuery taskQuery,
                                                                       BaseSearchCondition baseSearchCondition) {
         int start = baseSearchCondition.getStartOrDefault(0);
@@ -222,7 +221,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
 
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE_APP.CREATE_TIME.desc());
-        Result<?> result = ctx.select(ALL_FIELDS)
+        Result<?> result = dsl().select(ALL_FIELDS)
             .from(TASK_INSTANCE_APP)
             .where(buildSearchCondition(taskQuery))
             .orderBy(orderFields)
@@ -235,16 +234,16 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
                                                                BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
         if (StringUtils.isNotEmpty(taskQuery.getIp())) {
-            conditions.add(TASK_INSTANCE_HOST_APP.IP.eq(taskQuery.getIp()));
+            conditions.add(TASK_INSTANCE_HOST.IP.eq(taskQuery.getIp()));
         } else {
-            conditions.add(TASK_INSTANCE_HOST_APP.IPV6.eq(taskQuery.getIpv6()));
+            conditions.add(TASK_INSTANCE_HOST.IPV6.eq(taskQuery.getIpv6()));
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = ctx.selectCount().from(TASK_INSTANCE_APP)
-                .leftJoin(TASK_INSTANCE_HOST_APP).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID))
+            count = dsl().selectCount().from(TASK_INSTANCE_APP)
+                .leftJoin(TASK_INSTANCE_HOST).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
                 .where(conditions)
                 .fetchOne(0, Integer.class);
             if (count == null || count == 0) {
@@ -253,9 +252,9 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         }
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE_APP.ID.desc());
-        Result<? extends Record> result = ctx.select(ALL_FIELDS)
+        Result<? extends Record> result = dsl().select(ALL_FIELDS)
             .from(TASK_INSTANCE_APP)
-            .leftJoin(TASK_INSTANCE_HOST_APP).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID))
+            .leftJoin(TASK_INSTANCE_HOST).on(TASK_INSTANCE_APP.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
             .where(conditions)
             .groupBy(TASK_INSTANCE_APP.ID)
             .orderBy(orderFields)
@@ -283,7 +282,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     @SuppressWarnings("all")
     private int getPageTaskInstanceCount(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
-        return ctx.selectCount().from(TASK_INSTANCE_APP).where(conditions).fetchOne(0, Integer.class);
+        return dsl().selectCount().from(TASK_INSTANCE_APP).where(conditions).fetchOne(0, Integer.class);
     }
 
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
@@ -332,6 +331,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     public List<TaskInstanceDTO> listLatestCronTaskInstance(long appId,
                                                             Long cronTaskId,
                                                             Long latestTimeInSeconds,
@@ -348,7 +348,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
             conditions.add(TASK_INSTANCE_APP.STATUS.eq(status.getValue().byteValue()));
         }
 
-        SelectSeekStep1<? extends Record, Long> select = ctx.select(ALL_FIELDS)
+        SelectSeekStep1<? extends Record, Long> select = dsl().select(ALL_FIELDS)
             .from(TASK_INSTANCE_APP)
             .where(conditions)
             .orderBy(TASK_INSTANCE_APP.CREATE_TIME.desc());
@@ -372,6 +372,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public void updateTaskExecutionInfo(long appId,
                                         long taskInstanceId,
                                         RunStatusEnum status,
@@ -381,33 +382,34 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
                                         Long totalTime) {
         UpdateSetMoreStep<TaskInstanceAppRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.STATUS,
+            updateSetMoreStep = dsl().update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.STATUS,
                 JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (currentStepId != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.CURRENT_STEP_ID, currentStepId);
+                updateSetMoreStep = dsl().update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.CURRENT_STEP_ID,
+                    currentStepId);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE_APP.CURRENT_STEP_ID, currentStepId);
             }
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.START_TIME, startTime);
+                updateSetMoreStep = dsl().update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.START_TIME, startTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE_APP.START_TIME, startTime);
             }
         }
         if (endTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.END_TIME, endTime);
+                updateSetMoreStep = dsl().update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.END_TIME, endTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE_APP.END_TIME, endTime);
             }
         }
         if (totalTime != null) {
             if (updateSetMoreStep == null) {
-                updateSetMoreStep = ctx.update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.TOTAL_TIME, totalTime);
+                updateSetMoreStep = dsl().update(TASK_INSTANCE_APP).set(TASK_INSTANCE_APP.TOTAL_TIME, totalTime);
             } else {
                 updateSetMoreStep.set(TASK_INSTANCE_APP.TOTAL_TIME, totalTime);
             }
@@ -422,8 +424,9 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.WRITE)
     public void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId) {
-        ctx.update(TASK_INSTANCE_APP)
+        dsl().update(TASK_INSTANCE_APP)
             .setNull(TASK_INSTANCE_APP.END_TIME)
             .setNull(TASK_INSTANCE_APP.TOTAL_TIME)
             .set(TASK_INSTANCE_APP.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
@@ -433,6 +436,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     public List<Long> listTaskInstanceAppId(List<Long> inAppIdList, Long cronTaskId, Long minCreateTime) {
         List<Condition> conditions = new ArrayList<>();
         if (inAppIdList != null) {
@@ -444,7 +448,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         if (minCreateTime != null) {
             conditions.add(TASK_INSTANCE_APP.CREATE_TIME.greaterOrEqual(minCreateTime));
         }
-        Result<? extends Record> result = ctx.selectDistinct(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
+        Result<? extends Record> result = dsl().selectDistinct(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .fetch();
         List<Long> appIdList = new ArrayList<>();
@@ -458,6 +462,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     public boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
@@ -472,7 +477,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE_APP.CREATE_TIME.lessOrEqual(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
+        Result<Record1<Long>> result = dsl().select(TASK_INSTANCE_APP.APP_ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .limit(1)
             .fetch();
@@ -480,6 +485,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
     }
 
     @Override
+    @MySQLOperation(table = "task_instance_app", op = DbOperationEnum.READ)
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
         List<Condition> conditions = new ArrayList<>();
         if (appId != null) {
@@ -491,7 +497,7 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         if (toTime != null) {
             conditions.add(TASK_INSTANCE_APP.CREATE_TIME.lessThan(toTime));
         }
-        Result<Record1<Long>> result = ctx.select(TASK_INSTANCE_APP.ID).from(TASK_INSTANCE_APP)
+        Result<Record1<Long>> result = dsl().select(TASK_INSTANCE_APP.ID).from(TASK_INSTANCE_APP)
             .where(conditions)
             .limit(offset, limit)
             .fetch();
@@ -501,40 +507,5 @@ public class TaskInstanceAppDAOImpl implements TaskInstanceAppDAO {
         });
         return taskInstanceIdList;
     }
-
-    @Override
-    public void saveTaskInstanceHosts(long appId,
-                                      long taskInstanceId,
-                                      Collection<HostDTO> hosts) {
-        if (CollectionUtils.isEmpty(hosts)) {
-            return;
-        }
-        List<List<HostDTO>> hostBatches = CollectionUtil.partitionCollection(hosts, 2000);
-        hostBatches.forEach(batchHosts -> {
-            BatchBindStep batchInsert = ctx.batch(
-                ctx.insertInto(
-                        TASK_INSTANCE_HOST_APP,
-                        TASK_INSTANCE_HOST_APP.APP_ID,
-                        TASK_INSTANCE_HOST_APP.TASK_INSTANCE_ID,
-                        TASK_INSTANCE_HOST_APP.HOST_ID,
-                        TASK_INSTANCE_HOST_APP.IP,
-                        TASK_INSTANCE_HOST_APP.IPV6
-                    )
-                    .values((Long) null, null, null, null, null)
-            );
-
-            for (HostDTO host : batchHosts) {
-                batchInsert = batchInsert.bind(
-                    appId,
-                    taskInstanceId,
-                    host.getHostId(),
-                    host.getIp(),
-                    host.getIpv6()
-                );
-            }
-            batchInsert.execute();
-        });
-    }
-
 
 }

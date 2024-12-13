@@ -123,13 +123,4 @@ public interface TaskInstanceAppDAO {
     boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime);
 
     List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit);
-
-    /**
-     * 保存作业实例与主机的关系，便于根据ip/ipv6检索作业实例
-     *
-     * @param taskInstanceId 作业实例ID
-     * @param hosts          主机列表
-     */
-    void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts);
-
 }

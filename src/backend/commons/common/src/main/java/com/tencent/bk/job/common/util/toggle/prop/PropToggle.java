@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.common.util.toggle.prop;
 
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -42,4 +44,31 @@ public class PropToggle {
         private String value;
         private ToggleStrategy strategy;
     }
+
+    /**
+     * 根据上下文计算属性值
+     *
+     * @param propName 属性名称
+     * @param ctx      开关评估上下文
+     * @return 属性值
+     */
+    public String evaluateValue(String propName, ToggleEvaluateContext ctx) {
+        if (CollectionUtils.isEmpty(conditions)) {
+            return defaultValue;
+        }
+
+        String propValue = null;
+        for (PropToggle.PropValueCondition condition : conditions) {
+            ToggleStrategy toggleStrategy = condition.getStrategy();
+            if (toggleStrategy != null && toggleStrategy.evaluate(propName, ctx)) {
+                propValue = condition.getValue();
+                break;
+            }
+        }
+        if (propValue == null) {
+            propValue = defaultValue;
+        }
+        return propValue;
+    }
+
 }

@@ -44,4 +44,8 @@ public class MigrateDynamicDSLContextProvider implements DynamicDSLContextProvid
     public void setProvider(DSLContextProvider provider) {
         threadLocalDSLContextProvider.set(provider);
     }
+
+    public void unsetProvider() {
+        threadLocalDSLContextProvider.remove();
+    }
 }

@@ -46,22 +46,11 @@ public class ShardingProperties {
      * 是否启用分库分表
      */
     private boolean enabled;
-    /**
-     * 单 db -> 分库分表迁移配置
-     */
-    private MigrationProperties migration;
 
     /**
      * 数据库分片配置
      */
     private Map<String, DatabaseProperties> databases;
-
-    @Getter
-    @Setter
-    @ToString
-    public static class MigrationProperties {
-        private boolean enabled;
-    }
 
     @Getter
     @Setter

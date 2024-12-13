@@ -25,50 +25,95 @@
 package com.tencent.bk.job.execute.dao.common;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.mysql.MySQLProperties;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.HorizontalShardingDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
+import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
 import com.tencent.bk.job.common.sharding.ReadModeEnum;
 import com.tencent.bk.job.common.sharding.WriteModeEnum;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
-import com.tencent.bk.job.common.util.toggle.ToggleStrategy;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggle;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
+import com.tencent.bk.job.execute.dao.sharding.ShardingMigrationRwModeMgr;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.jooq.DSLContext;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 
+/**
+ * Job 水平分库分表 db 无损迁移处理
+ */
 @Aspect
 @Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE + 20)
 public class ShardingDbMigrateAspect {
 
-    private final ShardingMigrateDSLContextDynamicProvider dslContextDynamicProvider;
+    /**
+     * 需要被迁移的数据源 DSLContextProvider
+     */
+    private DSLContextProvider sourceDSLContextProvider;
 
-    private final DSLContext noShardingDSLContext;
-    private final DSLContext shardingDSLContext;
+    /**
+     * 迁移目标数据源 DSLContextProvider
+     */
+    private final HorizontalShardingDSLContextProvider targetDSLContextProvider;
 
-    private final PropToggleStore propToggleStore;
+    private final MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider;
 
-    private static final String PROP_NAME_READ_MODE = "job_execute_sharding_migrate_read_mode";
-    private static final String PROP_NAME_WRITE_MODE = "job_execute_sharding_migrate_write_mode";
+    private final ShardingMigrationRwModeMgr shardingMigrationRwModeMgr;
 
-    public ShardingDbMigrateAspect(ShardingMigrateDSLContextDynamicProvider dslContextDynamicProvider,
-                                   DSLContext noShardingDSLContext,
-                                   DSLContext shardingDSLContext,
-                                   PropToggleStore propToggleStore) {
-        this.dslContextDynamicProvider = dslContextDynamicProvider;
-        this.noShardingDSLContext = noShardingDSLContext;
-        this.shardingDSLContext = shardingDSLContext;
-        this.propToggleStore = propToggleStore;
+    public ShardingDbMigrateAspect(MigrateDynamicDSLContextProvider migrateDynamicDSLContextProvider,
+                                   StandaloneDSLContextProvider standaloneDSLContextProvider,
+                                   VerticalShardingDSLContextProvider verticalShardingDSLContextProvider,
+                                   HorizontalShardingDSLContextProvider horizontalShardingDSLContextProvider,
+                                   MySQLProperties mySQLProperties,
+                                   ShardingMigrationRwModeMgr shardingMigrationRwModeMgr) {
+        this.migrateDynamicDSLContextProvider = migrateDynamicDSLContextProvider;
+        this.shardingMigrationRwModeMgr = shardingMigrationRwModeMgr;
+        initSourceDSLContextProvider(mySQLProperties,
+            standaloneDSLContextProvider, verticalShardingDSLContextProvider);
+        this.targetDSLContextProvider = horizontalShardingDSLContextProvider;
+    }
+
+    private void initSourceDSLContextProvider(MySQLProperties mySQLProperties,
+                                              StandaloneDSLContextProvider standaloneDSLContextProvider,
+                                              VerticalShardingDSLContextProvider verticalShardingDSLContextProvider) {
+        DataSourceMode dataSourceMode = DataSourceMode.valOf(mySQLProperties.getDataSourceMode());
+        switch (dataSourceMode) {
+            case STANDALONE:
+                if (standaloneDSLContextProvider == null) {
+                    log.error("StandaloneDSLContextProvider not found");
+                    throw new IllegalStateException("StandaloneDSLContextProvider not found");
+                }
+                sourceDSLContextProvider = standaloneDSLContextProvider;
+                log.info("Use StandaloneDSLContextProvider as migration source");
+                break;
+            case VERTICAL_SHARDING:
+                if (verticalShardingDSLContextProvider == null) {
+                    log.error("VerticalShardingDSLContextProvider not found");
+                    throw new IllegalStateException("VerticalShardingDSLContextProvider not found");
+                }
+                sourceDSLContextProvider = verticalShardingDSLContextProvider;
+                log.info("Use VerticalShardingDSLContextProvider as migration source");
+                break;
+            default:
+                log.error("DataSource do not support migration, dataSourceMode: {}", dataSourceMode);
+                throw new IllegalStateException("DataSource do not support migration");
+        }
     }
 
     @Pointcut("@annotation(com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation)")
@@ -78,29 +123,13 @@ public class ShardingDbMigrateAspect {
     @Around("shardingDbMigrate()")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         Method method = ((MethodSignature) pjp.getSignature()).getMethod();
-        MySQLOperation shardingDbMigrate = method.getAnnotation(MySQLOperation.class);
-
-        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
-        ResourceScope resourceScope = jobExecuteContext == null ? null : jobExecuteContext.getResourceScope();
-        if (resourceScope == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("ResourceScope is not provided, will use noShardingDSLContext");
-            }
-            // 只写单库
-            try {
-                dslContextDynamicProvider.set(noShardingDSLContext);
-                return pjp.proceed();
-            } finally {
-                dslContextDynamicProvider.unset();
-            }
-        }
-
-        DbOperationEnum op = shardingDbMigrate.op();
+        MySQLOperation mySQLOperation = method.getAnnotation(MySQLOperation.class);
+        DbOperationEnum op = mySQLOperation.op();
         switch (op) {
             case READ:
-                return readDB(resourceScope, pjp::proceed);
+                return readDB(pjp::proceed);
             case WRITE:
-                return writeDB(resourceScope, pjp::proceed);
+                return writeDB(mySQLOperation, pjp::proceed);
         }
         // 正常不应该跑到这里
         throw new IllegalStateException("Sharding migration aspect handle error");
@@ -111,9 +140,8 @@ public class ShardingDbMigrateAspect {
         Object execute() throws Throwable;
     }
 
-    private Object readDB(ResourceScope resourceScope, Operation operation) throws Throwable {
-        String propValue = evaluatePropValue(PROP_NAME_READ_MODE, resourceScope);
-        ReadModeEnum readMode = ReadModeEnum.valOf(Integer.parseInt(propValue));
+    private Object readDB(Operation operation) throws Throwable {
+        ReadModeEnum readMode = shardingMigrationRwModeMgr.evaluateReadMode();
         switch (readMode) {
             case READ_ORIGIN:
                 // 读单库
@@ -130,10 +158,10 @@ public class ShardingDbMigrateAspect {
             if (log.isDebugEnabled()) {
                 log.debug("ReadOriginDb");
             }
-            dslContextDynamicProvider.set(noShardingDSLContext);
+            migrateDynamicDSLContextProvider.setProvider(sourceDSLContextProvider);
             return operation.execute();
         } finally {
-            dslContextDynamicProvider.unset();
+            migrateDynamicDSLContextProvider.unsetProvider();
         }
     }
 
@@ -142,16 +170,15 @@ public class ShardingDbMigrateAspect {
             if (log.isDebugEnabled()) {
                 log.debug("ReadShardingDb");
             }
-            dslContextDynamicProvider.set(shardingDSLContext);
+            migrateDynamicDSLContextProvider.setProvider(targetDSLContextProvider);
             return operation.execute();
         } finally {
-            dslContextDynamicProvider.unset();
+            migrateDynamicDSLContextProvider.unsetProvider();
         }
     }
 
-    private Object writeDB(ResourceScope resourceScope, Operation operation) throws Throwable {
-        String propValue = evaluatePropValue(PROP_NAME_WRITE_MODE, resourceScope);
-        WriteModeEnum writeMode = WriteModeEnum.valOf(Integer.parseInt(propValue));
+    private Object writeDB(MySQLOperation mySQLOperation, Operation operation) throws Throwable {
+        WriteModeEnum writeMode = shardingMigrationRwModeMgr.evaluateWriteMode();
         switch (writeMode) {
             case WRITE_ORIGIN:
                 // 写单库
@@ -161,7 +188,7 @@ public class ShardingDbMigrateAspect {
                 return writeShardingDB(operation);
             case WRITE_BOTH:
                 // 双写
-                return writeBothDB(operation);
+                return writeBothDB(mySQLOperation.table(), operation);
         }
         throw new IllegalStateException("Sharding migration aspect handle error, unexpected write mode");
     }
@@ -171,10 +198,10 @@ public class ShardingDbMigrateAspect {
             if (log.isDebugEnabled()) {
                 log.debug("WriteOriginDb");
             }
-            dslContextDynamicProvider.set(noShardingDSLContext);
+            migrateDynamicDSLContextProvider.setProvider(sourceDSLContextProvider);
             return operation.execute();
         } finally {
-            dslContextDynamicProvider.unset();
+            migrateDynamicDSLContextProvider.unsetProvider();
         }
     }
 
@@ -183,62 +210,34 @@ public class ShardingDbMigrateAspect {
             if (log.isDebugEnabled()) {
                 log.debug("WriteShardingDb");
             }
-            dslContextDynamicProvider.set(shardingDSLContext);
+            migrateDynamicDSLContextProvider.setProvider(targetDSLContextProvider);
             return operation.execute();
         } finally {
-            dslContextDynamicProvider.unset();
+            migrateDynamicDSLContextProvider.unsetProvider();
         }
     }
 
-    private Object writeBothDB(Operation operation) throws Throwable {
+    private Object writeBothDB(String tableName, Operation operation) throws Throwable {
         try {
             if (log.isDebugEnabled()) {
                 log.debug("WriteBothOriginAndShardingDb");
             }
-            dslContextDynamicProvider.set(noShardingDSLContext);
-            Object result = operation.execute();
+            Object result = null;
+            if (!tableName.equals("task_instance_app")) {
+                // task_instance_app 表为分库分表下独有的（使用 app_id 作为分片键)，是 task_instance 的数据冗余表;所以不需要写入源数据源
+                migrateDynamicDSLContextProvider.setProvider(sourceDSLContextProvider);
+                result = operation.execute();
+            }
             try {
                 // 双写；切换过程中写分库，如果遇到异常需要忽略，并记录异常信息
-                dslContextDynamicProvider.set(shardingDSLContext);
+                migrateDynamicDSLContextProvider.setProvider(targetDSLContextProvider);
                 operation.execute();
             } catch (Throwable e) {
                 log.error("WriteShardingDBError", e);
             }
             return result;
         } finally {
-            dslContextDynamicProvider.unset();
+            migrateDynamicDSLContextProvider.unsetProvider();
         }
     }
-
-    private String evaluatePropValue(String propName, ResourceScope resourceScope) {
-        String propValue = null;
-        PropToggle propToggle = propToggleStore.getPropToggle(propName);
-        if (propToggle == null) {
-            return null;
-        }
-        if (CollectionUtils.isEmpty(propToggle.getConditions())) {
-            return propToggle.getDefaultValue();
-        }
-
-        ToggleEvaluateContext ctx = ToggleEvaluateContext.builder()
-            .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
-        for (PropToggle.PropValueCondition condition : propToggle.getConditions()) {
-            ToggleStrategy toggleStrategy = condition.getStrategy();
-            if (toggleStrategy == null) {
-                propValue = condition.getValue();
-                break;
-            } else {
-                if (toggleStrategy.evaluate(propName, ctx)) {
-                    propValue = condition.getValue();
-                    break;
-                }
-            }
-        }
-        if (propValue == null) {
-            propValue = propToggle.getDefaultValue();
-        }
-        return propValue;
-    }
-
-
 }

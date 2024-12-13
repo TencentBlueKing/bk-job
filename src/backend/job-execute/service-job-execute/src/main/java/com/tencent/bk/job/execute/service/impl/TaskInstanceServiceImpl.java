@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.sharding.mysql.ShardingFlag;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
@@ -45,6 +44,7 @@ import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceAppDAO;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
+import com.tencent.bk.job.execute.dao.sharding.ShardingDbReadWriteOpMgr;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 import com.tencent.bk.job.execute.service.ApplicationService;
@@ -72,6 +72,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     private final IdGen idGen;
 
+    private final ShardingDbReadWriteOpMgr shardingDbReadWriteOpMgr;
+
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    TaskInstanceDAO taskInstanceDAO,
@@ -79,7 +81,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
                                    TaskInstanceAppDAO taskInstanceAppDAO,
-                                   IdGen idGen) {
+                                   IdGen idGen,
+                                   ShardingDbReadWriteOpMgr shardingDbReadWriteOpMgr) {
         this.applicationService = applicationService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
@@ -87,6 +90,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         this.executeAuthService = executeAuthService;
         this.taskInstanceAppDAO = taskInstanceAppDAO;
         this.idGen = idGen;
+        this.shardingDbReadWriteOpMgr = shardingDbReadWriteOpMgr;
     }
 
     @Override
@@ -94,7 +98,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         taskInstance.setId(idGen.genTaskInstanceId());
         long id = taskInstanceDAO.addTaskInstance(taskInstance);
         taskInstance.setId(id);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.addTaskInstance(taskInstance);
         }
         return id;
@@ -188,7 +192,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void updateTaskStatus(long appId, long taskInstanceId, int status) {
         taskInstanceDAO.updateTaskStatus(taskInstanceId, status);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.updateTaskStatus(appId, taskInstanceId, status);
         }
     }
@@ -196,7 +200,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void updateTaskCurrentStepId(long appId, long taskInstanceId, Long stepInstanceId) {
         taskInstanceDAO.updateTaskCurrentStepId(taskInstanceId, stepInstanceId);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.updateTaskCurrentStepId(appId, taskInstanceId, stepInstanceId);
         }
     }
@@ -204,7 +208,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void resetTaskStatus(long appId, long taskInstanceId) {
         taskInstanceDAO.resetTaskStatus(taskInstanceId);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.resetTaskStatus(appId, taskInstanceId);
         }
     }
@@ -212,7 +216,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId) {
         taskInstanceDAO.resetTaskExecuteInfoForRetry(taskInstanceId);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.resetTaskExecuteInfoForRetry(appId, taskInstanceId);
         }
     }
@@ -226,7 +230,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                         Long endTime,
                                         Long totalTime) {
         taskInstanceDAO.updateTaskExecutionInfo(taskInstanceId, status, currentStepId, startTime, endTime, totalTime);
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isWriteEnabled()) {
             taskInstanceAppDAO.updateTaskExecutionInfo(appId, taskInstanceId, status, currentStepId,
                 startTime, endTime, totalTime);
         }
@@ -235,7 +239,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     @Override
     public List<Long> getJoinedAppIdList() {
         // 加全量appId作为in条件查询以便走索引
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isReadEnabled()) {
             return taskInstanceAppDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
         } else {
             return taskInstanceDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
@@ -244,7 +248,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime) {
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isReadEnabled()) {
             return taskInstanceAppDAO.hasExecuteHistory(appId, cronTaskId, fromTime, toTime);
         } else {
             return taskInstanceDAO.hasExecuteHistory(appId, cronTaskId, fromTime, toTime);
@@ -253,7 +257,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
 
     @Override
     public List<Long> listTaskInstanceId(Long appId, Long fromTime, Long toTime, int offset, int limit) {
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isReadEnabled()) {
             return taskInstanceAppDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
         } else {
             return taskInstanceDAO.listTaskInstanceId(appId, fromTime, toTime, offset, limit);
@@ -264,18 +268,14 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public void saveTaskInstanceHosts(long appId,
                                       long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        if (ShardingFlag.isShardingEnabled()) {
-            taskInstanceAppDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
-        } else {
-            taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
-        }
+        taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
     }
 
     @Override
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
         PageData<TaskInstanceDTO> pageData;
-        if (ShardingFlag.isShardingEnabled()) {
+        if (shardingDbReadWriteOpMgr.isReadEnabled()) {
             pageData = taskInstanceAppDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
         } else {
             pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
@@ -290,9 +290,9 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
                                                             RunStatusEnum status,
                                                             Integer limit) {
         List<TaskInstanceDTO> result;
-        if (ShardingFlag.isShardingEnabled()) {
-            result = taskInstanceAppDAO.listLatestCronTaskInstance(appId, cronTaskId, latestTimeInSeconds, status,
-                limit);
+        if (shardingDbReadWriteOpMgr.isReadEnabled()) {
+            result = taskInstanceAppDAO.listLatestCronTaskInstance(
+                appId, cronTaskId, latestTimeInSeconds, status, limit);
         } else {
             result = taskInstanceDAO.listLatestCronTaskInstance(appId, cronTaskId, latestTimeInSeconds, status, limit);
         }
