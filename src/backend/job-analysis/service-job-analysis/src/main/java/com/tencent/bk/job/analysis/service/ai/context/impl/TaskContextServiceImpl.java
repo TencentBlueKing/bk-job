@@ -57,6 +57,13 @@ public class TaskContextServiceImpl implements TaskContextService {
         this.fileTaskContextService = fileTaskContextService;
     }
 
+    /**
+     * 根据用户名与上下文查询条件获取对应的任务上下文
+     *
+     * @param username     用户名
+     * @param contextQuery 上下文查询条件
+     * @return 任务上下文
+     */
     @Override
     public TaskContext getTaskContext(String username, TaskContextQuery contextQuery) {
         InternalResponse<ServiceStepInstanceDTO> resp = serviceStepInstanceResource.getStepInstance(
@@ -81,6 +88,12 @@ public class TaskContextServiceImpl implements TaskContextService {
         throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
     }
 
+    /**
+     * 构建脚本任务上下文
+     *
+     * @param stepInstance 步骤实例
+     * @return 脚本任务上下文
+     */
     private TaskContext buildContextForScriptTask(ServiceStepInstanceDTO stepInstance) {
         ServiceScriptStepInstanceDTO scriptStepInstance = stepInstance.getScriptStepInstance();
         ScriptTaskContext scriptTaskContext = new ScriptTaskContext(

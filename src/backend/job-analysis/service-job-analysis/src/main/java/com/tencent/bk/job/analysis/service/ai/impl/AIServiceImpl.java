@@ -39,6 +39,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * AI服务实现类
+ */
 @Slf4j
 @Service
 public class AIServiceImpl implements AIService {
@@ -56,6 +59,15 @@ public class AIServiceImpl implements AIService {
         this.aiMessageI18nService = aiMessageI18nService;
     }
 
+
+    /**
+     * 通过蓝鲸OpenAI接口获取AI回答流
+     *
+     * @param chatHistoryDTOList  历史聊天记录
+     * @param userInput           用户输入
+     * @param partialRespConsumer AI回答流回调
+     * @return AI回答结果Future
+     */
     @Override
     public CompletableFuture<String> getAIAnswerStream(List<AIChatHistoryDTO> chatHistoryDTOList,
                                                        String userInput,
@@ -69,9 +81,15 @@ public class AIServiceImpl implements AIService {
         );
     }
 
+    /**
+     * 构建传递给蓝鲸OpenAI接口的历史消息记录列表，用作问答上下文
+     *
+     * @param chatHistoryDTOList 历史聊天记录
+     * @return 历史消息列表
+     */
     private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {
         if (CollectionUtils.isEmpty(chatHistoryDTOList)) {
-            return getSystemMessageList();
+            return buildSystemMessageList();
         }
         List<AIDevMessage> messageHistoryList = new ArrayList<>();
         for (AIChatHistoryDTO chatHistoryDTO : chatHistoryDTOList) {
@@ -84,11 +102,16 @@ public class AIServiceImpl implements AIService {
             aiDevMessage.setContent(chatHistoryDTO.getAiAnswer());
             messageHistoryList.add(aiDevMessage);
         }
-        messageHistoryList.addAll(getSystemMessageList());
+        messageHistoryList.addAll(buildSystemMessageList());
         return messageHistoryList;
     }
 
-    private List<AIDevMessage> getSystemMessageList() {
+    /**
+     * 构建系统消息列表，用于指定环境语言等基础信息
+     *
+     * @return 系统消息列表
+     */
+    private List<AIDevMessage> buildSystemMessageList() {
         List<AIDevMessage> systemMessageList = new ArrayList<>();
         AIDevMessage languageSpecifyMessage = new AIDevMessage();
         // ROLE_SYSTEM系统角色不生效，使用ROLE_USER消息代替

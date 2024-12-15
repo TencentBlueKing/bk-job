@@ -22,38 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai.impl;
+package com.tencent.bk.job.analysis.consts;
 
-import com.tencent.bk.job.analysis.config.AIProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
+import lombok.Getter;
 
 /**
- * AI配置服务
+ * 数据趋势
  */
-@Service
-public class AIConfigService {
-    private final AIProperties aiProperties;
-
-    @Autowired
-    public AIConfigService(AIProperties aiProperties) {
-        this.aiProperties = aiProperties;
-    }
-
+@Getter
+public enum DataTrendEnum {
     /**
-     * 获取AI配置
-     *
-     * @return AI配置表，key为配置名称，value为配置取值
+     * 上升
      */
-    public Map<String, Object> getAIConfig() {
-        Map<String, Object> map = new HashMap<>();
-        Long logMaxLengthBytes = aiProperties.getAnalyzeErrorLog().getLogMaxLengthBytes();
-        map.put("enabled", aiProperties.getEnabled());
-        map.put("analyzeErrorLogMaxLength", logMaxLengthBytes);
-        return map;
-    }
+    UP(1),
+    /**
+     * 不变
+     */
+    NOT_CHANGE(0),
+    /**
+     * 下降
+     */
+    DOWN(-1);
 
+    private final int value;
+
+    DataTrendEnum(int value) {
+        this.value = value;
+    }
 }

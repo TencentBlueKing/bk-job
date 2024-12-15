@@ -33,6 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 通过AI大模型检查脚本内容服务实现类
+ */
 @Slf4j
 @Service
 public class AICheckScriptServiceImpl extends AIBaseService implements AICheckScriptService {
@@ -46,6 +49,15 @@ public class AICheckScriptServiceImpl extends AIBaseService implements AICheckSc
         this.checkScriptAIPromptService = checkScriptAIPromptService;
     }
 
+    /**
+     * 通过AI大模型检查脚本内容
+     *
+     * @param username      用户名
+     * @param appId         Job业务ID
+     * @param type          脚本类型
+     * @param scriptContent 脚本内容
+     * @return AI对话记录
+     */
     @Override
     public AIChatRecord check(String username, Long appId, Integer type, String scriptContent) {
         AIPromptDTO aiPromptDTO = checkScriptAIPromptService.getPrompt(type, scriptContent);

@@ -26,6 +26,9 @@ package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 
+/**
+ * AI脚本检查服务
+ */
 public interface AICheckScriptService {
 
     /**
