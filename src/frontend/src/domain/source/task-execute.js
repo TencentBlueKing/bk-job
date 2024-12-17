@@ -176,7 +176,7 @@ class TaskExecute extends ModuleBase {
     const params = { ...payload };
     delete params.id;
     delete params.taskInstanceId;
-    return Request.post(`${this.path}/taskInstance/${payload.taskInstanceId}/stepInstanceId/${payload.id}/operate`, {
+    return Request.post(`${this.path}/taskInstance/${payload.taskInstanceId}/stepInstance/${payload.id}/operate`, {
       params,
     });
   }
