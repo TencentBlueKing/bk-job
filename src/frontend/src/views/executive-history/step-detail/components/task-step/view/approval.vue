@@ -131,6 +131,7 @@
     methods: {
       handleChangeStatus(operationCode) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
+          taskInstanceId: this.$route.params.taskInstanceId,
           id: this.data.stepInstanceId,
           operationCode,
           confirmReason: this.confirmReason,
