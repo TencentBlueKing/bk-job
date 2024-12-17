@@ -52,6 +52,7 @@ import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -303,7 +304,24 @@ public class ArtifactoryClient {
             ).getMessage();
             log.error(msg, e);
             status = "error";
-            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+
+            // 特殊处理文件 NotFound 导致的 HttpStatusException
+            if (e instanceof HttpStatusException) {
+                String httpStatusExceptionRespStr = ((HttpStatusException) e).getRespBodyStr();
+                ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
+                    new TypeReference<ArtifactoryResp<Object>>() {
+                    });
+                if(artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
+                    throw new InternalException(
+                        artifactoryResp.getMessage(),
+                        ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY
+                    );
+                } else {
+                    throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+                }
+            } else {
+                throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            }
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();

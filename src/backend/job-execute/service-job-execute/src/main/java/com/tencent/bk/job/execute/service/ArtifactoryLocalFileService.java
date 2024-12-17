@@ -1,6 +1,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
+import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -38,7 +39,19 @@ public class ArtifactoryLocalFileService {
                 + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             filePath
         );
-        NodeDTO nodeDTO = artifactoryClient.getFileNode(fullPath);
+        NodeDTO nodeDTO = null;
+        try {
+            nodeDTO = artifactoryClient.getFileNode(fullPath);
+        } catch (InternalException e) {
+            if (e.getErrorCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND){
+                throw new InternalException(
+                    ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
+                    new String[]{filePath}
+                );
+            } else {
+                throw e;
+            }
+        }
         log.debug("nodeDTpwO={}", nodeDTO);
         if (nodeDTO == null) {
             throw new InternalException(
