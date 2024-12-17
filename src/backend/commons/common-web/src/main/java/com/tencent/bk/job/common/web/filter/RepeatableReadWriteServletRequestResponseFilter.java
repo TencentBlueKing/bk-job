@@ -63,7 +63,7 @@ public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
         if (StringUtils.isBlank(contentType)) {
             return false;
         }
-        contentType = contentType.trim();
+        contentType = contentType.trim().toLowerCase();
         return contentType.startsWith("application/json");
     }
 
