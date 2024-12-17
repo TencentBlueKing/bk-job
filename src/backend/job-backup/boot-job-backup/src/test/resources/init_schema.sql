@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `archive_task` (
   `task_end_time` bigint(20) DEFAULT NULL,
   `task_cost` bigint(20) DEFAULT NULL,
   `detail` text,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_type_node_day_hour` (`task_type`,`data_node`,`day`,`hour`),
-  KEY `idx_type_status_db` (`task_type`,`status`,`db_node`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`task_type`,`data_node`,`day`,`hour`),
+  KEY (`task_type`,`status`,`db_node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

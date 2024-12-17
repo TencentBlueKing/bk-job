@@ -12,7 +12,7 @@ spring:
         enabled: false
   datasource:
     job-backup:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: org.h2.Driver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: ${job.backup.db.url}
       username: ${job.backup.db.username}
@@ -23,7 +23,7 @@ spring:
       poolName: "job-backup"
       validationTimeout: 5000
     job-execute:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: org.h2.Driver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: ${job.execute.db.dr.url:}
       username: ${job.execute.db.dr.username:}
@@ -34,7 +34,7 @@ spring:
       poolName: "job-execute"
       validationTimeout: 5000
     job-execute-archive:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: org.h2.Driver
       type: com.zaxxer.hikari.HikariDataSource
       jdbc-url: ${job.execute.db.archive.url:}
       username: ${job.execute.db.archive.username:}
@@ -53,6 +53,8 @@ job:
     archive:
       execute:
         enabled: false
+        mariadb:
+          dataSourceMode: standalone
 bk-api-gateway:
   gse:
     url: gse.apigw.com

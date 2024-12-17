@@ -65,7 +65,6 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
-import com.tencent.bk.job.common.service.constants.DeployModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -75,13 +74,11 @@ import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -155,6 +152,7 @@ public class ExecuteHotDbConfiguration {
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
             @Qualifier("job-execute-dsl-context") DSLContext dslContext
         ) {
+            log.info("Init StandaloneDSLContextProvider");
             return new StandaloneDSLContextProvider(dslContext);
         }
     }
@@ -319,6 +317,7 @@ public class ExecuteHotDbConfiguration {
             @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,
             @Qualifier("job-execute-dsl-context-c") DSLContext dslContextC
         ) {
+            log.info("Init VerticalShardingDSLContextProvider");
             return new JobExecuteVerticalShardingDSLContextProvider(
                 dslContextA,
                 dslContextB,
@@ -328,10 +327,9 @@ public class ExecuteHotDbConfiguration {
     }
 
     /**
-     * job-execute DB 配置
+     * job-execute hot DB DAO 配置
      */
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    static class ExecuteDaoAutoConfig {
+    protected static class ExecuteHotDaoConfiguration {
 
         @Bean(name = "taskInstanceRecordDAO")
         public JobInstanceHotRecordDAO taskInstanceRecordDAO(

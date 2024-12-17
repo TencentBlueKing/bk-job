@@ -104,11 +104,13 @@ public class ArchiveConfiguration {
 
     @Bean
     public JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        log.info("Init JobInstanceArchiveTaskGenerateLock");
         return new JobInstanceArchiveTaskGenerateLock(redisTemplate);
     }
 
     @Bean
     public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        log.info("Init FailedArchiveTaskRescheduleLock");
         return new FailedArchiveTaskRescheduleLock(redisTemplate);
     }
 
@@ -193,6 +195,7 @@ public class ArchiveConfiguration {
 
     @Bean
     public ArchiveTablePropsStorage archiveTablePropsStorage(ArchiveProperties archiveProperties) {
+        log.info("Init ArchiveTablePropsStorage");
         return new ArchiveTablePropsStorage(archiveProperties);
     }
 }
