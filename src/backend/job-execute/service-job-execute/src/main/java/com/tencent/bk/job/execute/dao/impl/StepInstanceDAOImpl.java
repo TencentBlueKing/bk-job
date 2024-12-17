@@ -826,21 +826,6 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
     }
 
     @Override
-    public List<StepInstanceBaseDTO> listPreExecutableStepInstances(Long taskInstanceId, int currentStepOrder) {
-        Result<Record> result = dsl()
-            .select(T_STEP_INSTANCE_ALL_FIELDS)
-            .from(T_STEP_INSTANCE)
-            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(T_STEP_INSTANCE.STEP_ORDER.lt(currentStepOrder))
-            .and(T_STEP_INSTANCE.TYPE.notIn(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue().byteValue()))
-            .orderBy(T_STEP_INSTANCE.STEP_ORDER.desc())
-            .fetch();
-        List<StepInstanceBaseDTO> stepInstanceList = new ArrayList<>();
-        result.into(record -> stepInstanceList.add(extractBaseInfo(record)));
-        return stepInstanceList;
-    }
-
-    @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
     public Long getStepInstanceId(Long taskInstanceId) {
         Result<Record1<Long>> records = dsl().select(T_STEP_INSTANCE.ID)

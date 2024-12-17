@@ -191,15 +191,6 @@ public interface StepInstanceDAO {
     Map<Long, Integer> listStepInstanceIdAndStepOrderMapping(Long taskInstanceId);
 
     /**
-     * 获取前面的可执行步骤实例列表
-     *
-     * @param taskInstanceId   任务实例ID
-     * @param currentStepOrder 当前步骤的顺序
-     * @return 可执行步骤实例列表
-     */
-    List<StepInstanceBaseDTO> listPreExecutableStepInstances(Long taskInstanceId, int currentStepOrder);
-
-    /**
      * 根据taskInstanceId获取一个stepInstanceId，用于快速脚本/文件任务
      *
      * @param taskInstanceId 作业实例ID
