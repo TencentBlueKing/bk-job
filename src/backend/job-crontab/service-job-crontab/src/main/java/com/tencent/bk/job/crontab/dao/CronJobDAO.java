@@ -49,14 +49,14 @@ public interface CronJobDAO {
     List<CronJobWithVarsDTO> listBasicCronJobWithHostVars(List<Long> appIdList, int start, int limit);
 
     /**
-     * 根据业务 ID 列表批量查询定时任务信息
+     * 根据业务 ID 列表批量查询定时任务信息（不含变量）
      *
      * @param cronJobCondition    查询参数
      * @param baseSearchCondition 分页信息
      * @return 分页的定时任务信息列表
      */
-    PageData<CronJobInfoDTO> listPageCronJobsByCondition(CronJobInfoDTO cronJobCondition,
-                                                         BaseSearchCondition baseSearchCondition);
+    PageData<CronJobInfoDTO> listPageCronJobsWithoutVarsByCondition(CronJobInfoDTO cronJobCondition,
+                                                                    BaseSearchCondition baseSearchCondition);
 
     /**
      * 根据定时任务 ID 查询定时任务信息
