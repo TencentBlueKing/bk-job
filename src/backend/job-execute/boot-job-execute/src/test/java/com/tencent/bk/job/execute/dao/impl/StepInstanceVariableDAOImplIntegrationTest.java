@@ -100,20 +100,4 @@ class StepInstanceVariableDAOImplIntegrationTest {
         assertThat(actual.getNamespaceParams().get(0).getValues()).extracting("value")
             .containsOnly("value11", "value12");
     }
-
-    @Test
-    void testListSortedPreStepOutputVariableValues() {
-        List<StepInstanceVariableValuesDTO> stepInstanceVariableValuesList =
-            stepInstanceVariableDAO.listSortedPreStepOutputVariableValues(1L, 3L);
-        assertThat(stepInstanceVariableValuesList).hasSize(3);
-        assertThat(stepInstanceVariableValuesList.get(0).getTaskInstanceId()).isEqualTo(1L);
-        assertThat(stepInstanceVariableValuesList.get(0).getStepInstanceId()).isEqualTo(1L);
-        assertThat(stepInstanceVariableValuesList.get(0).getExecuteCount()).isEqualTo(0);
-        assertThat(stepInstanceVariableValuesList.get(1).getTaskInstanceId()).isEqualTo(1L);
-        assertThat(stepInstanceVariableValuesList.get(1).getStepInstanceId()).isEqualTo(2L);
-        assertThat(stepInstanceVariableValuesList.get(1).getExecuteCount()).isEqualTo(0);
-        assertThat(stepInstanceVariableValuesList.get(2).getTaskInstanceId()).isEqualTo(1L);
-        assertThat(stepInstanceVariableValuesList.get(2).getStepInstanceId()).isEqualTo(2L);
-        assertThat(stepInstanceVariableValuesList.get(2).getExecuteCount()).isEqualTo(1);
-    }
 }

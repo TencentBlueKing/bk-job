@@ -153,7 +153,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (stepInstance.isRollingStep()) {
             RollingConfigVO rollingConfigVO = new RollingConfigVO();
             RollingConfigDTO rollingConfigDTO =
-                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+                rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
+                    stepInstance.getRollingConfigId());
             RollingConfigDetailDO rollingConfig = rollingConfigDTO.getConfigDetail();
             rollingConfigVO.setMode(rollingConfig.getMode());
             if (rollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {

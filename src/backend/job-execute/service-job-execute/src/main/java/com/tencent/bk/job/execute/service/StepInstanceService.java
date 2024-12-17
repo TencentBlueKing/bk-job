@@ -267,6 +267,14 @@ public interface StepInstanceService {
     StepInstanceDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId);
 
     /**
+     * 获取步骤实例 ID 和步骤顺序的映射关系
+     *
+     * @param taskInstanceId 任务实例ID
+     * @return 步骤实例 ID 和步骤顺序的映射关系
+     */
+    Map<Long, Integer> listStepInstanceIdAndStepOrderMapping(Long taskInstanceId);
+
+    /**
      * 根据 taskInstanceId 获取快速任务步骤实例详情
      *
      * @param taskInstanceId 任务实例ID

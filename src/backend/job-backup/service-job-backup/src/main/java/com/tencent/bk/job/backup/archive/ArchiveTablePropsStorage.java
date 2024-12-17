@@ -26,8 +26,6 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.model.ArchiveTableProps;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,13 +33,10 @@ import java.util.Map;
 /**
  * 归档配置存储
  */
-@Component
 public class ArchiveTablePropsStorage {
     private final ArchiveProperties archiveProperties;
     private final Map<String, ArchiveTableProps> tablePropsMap = new HashMap<>();
 
-
-    @Autowired
     public ArchiveTablePropsStorage(ArchiveProperties archiveProperties) {
         this.archiveProperties = archiveProperties;
         if (archiveProperties.getTableConfigs() != null && !archiveProperties.getTableConfigs().isEmpty()) {

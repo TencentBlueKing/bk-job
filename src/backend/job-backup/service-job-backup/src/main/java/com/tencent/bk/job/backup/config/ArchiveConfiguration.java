@@ -547,4 +547,9 @@ public class ArchiveConfiguration {
                                                ArchiveTaskService archiveTaskService) {
         return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
     }
+
+    @Bean
+    public ArchiveTablePropsStorage archiveTablePropsStorage(ArchiveProperties archiveProperties) {
+        return new ArchiveTablePropsStorage(archiveProperties);
+    }
 }

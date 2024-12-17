@@ -534,7 +534,7 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testGetPreExecutableStepInstance() {
-        StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(1L, 2L);
+        StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(1L, 2);
         assertThat(preStepInstance).isNotNull();
         assertThat(preStepInstance.getTaskInstanceId()).isEqualTo(1L);
         assertThat(preStepInstance.getId()).isEqualTo(1L);

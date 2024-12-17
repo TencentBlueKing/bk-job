@@ -273,14 +273,23 @@ public class StepInstanceServiceImpl implements StepInstanceService {
 
     @Override
     public StepInstanceDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId) {
+        StepInstanceBaseDTO currentStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
+        if (currentStepInstance == null) {
+            return null;
+        }
         StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(taskInstanceId,
-            stepInstanceId);
+            currentStepInstance.getStepOrder());
         if (preStepInstance == null) {
             return null;
         }
         StepInstanceDTO stepInstance = new StepInstanceDTO(preStepInstance);
         fillStepInstanceDetail(stepInstance);
         return stepInstance;
+    }
+
+    @Override
+    public Map<Long, Integer> listStepInstanceIdAndStepOrderMapping(Long taskInstanceId) {
+        return stepInstanceDAO.listStepInstanceIdAndStepOrderMapping(taskInstanceId);
     }
 
     @Override
