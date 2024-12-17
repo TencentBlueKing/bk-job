@@ -190,7 +190,9 @@ class TaskExecute extends ModuleBase {
   getStepVariables(params) {
     const realParams = { ...params };
     delete realParams.stepInstanceId;
-    return Request.get(`${this.path}/step-execution-result/step/${params.stepInstanceId}/variables`, {
+    delete realParams.executeObjectType;
+    delete realParams.executeObjectResourceId;
+    return Request.get(`${this.path}/taskInstance/${params.taskInstanceId}/stepInstance/${params.stepInstanceId}/executeObject/${params.executeObjectType}/${params.executeObjectResourceId}/variables`, {
       params: realParams,
     });
   }
