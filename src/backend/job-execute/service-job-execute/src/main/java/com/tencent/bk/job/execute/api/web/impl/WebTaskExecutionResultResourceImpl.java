@@ -749,8 +749,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                           List<TaskVariableDTO> changeableVars,
                                           ExecuteObjectTypeEnum executeObjectType,
                                           Long executeObjectResourceId) {
-        long stepInstanceId = stepInstance.getId();
-
         StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
             .computeInputStepInstanceVariableValues(stepInstance, changeableVars);
         if (inputStepInstanceValues == null) {
