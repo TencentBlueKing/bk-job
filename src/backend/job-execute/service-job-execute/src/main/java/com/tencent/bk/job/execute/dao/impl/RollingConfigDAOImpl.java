@@ -72,14 +72,15 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
 
     @Override
     @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
-    public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
+    public RollingConfigDTO queryRollingConfigById(Long taskInstanceId, Long rollingConfigId) {
         Record record = dsl().select(
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
                 TABLE.CONFIG)
             .from(TABLE)
-            .where(TABLE.ID.eq(rollingConfigId))
+            .where(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq))
+            .and(TABLE.ID.eq(rollingConfigId))
             .fetchOne();
         return extract(record);
     }

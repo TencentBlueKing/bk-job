@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.filter;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -48,9 +49,22 @@ public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
         ServletException {
+        if (!isJsonRequest(request)) {
+            chain.doFilter(request, response);
+            return;
+        }
         ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
         ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
         chain.doFilter(requestWrapper, responseWrapper);
+    }
+
+    private boolean isJsonRequest(ServletRequest request) {
+        String contentType = request.getContentType();
+        if (StringUtils.isBlank(contentType)) {
+            return false;
+        }
+        contentType = contentType.trim().toLowerCase();
+        return contentType.startsWith("application/json");
     }
 
     @Override

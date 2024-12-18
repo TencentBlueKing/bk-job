@@ -117,6 +117,7 @@ public class FileSourceTaskLogDAOImpl extends BaseDAO implements FileSourceTaskL
     @MySQLOperation(table = "file_source_task_log", op = DbOperationEnum.WRITE)
     public int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog) {
         List<Condition> conditionList = new ArrayList<>();
+        conditionList.add(defaultTable.TASK_INSTANCE_ID.eq(fileSourceTaskLog.getTaskInstanceId()));
         conditionList.add(defaultTable.STEP_INSTANCE_ID.eq(fileSourceTaskLog.getStepInstanceId()));
         conditionList.add(defaultTable.EXECUTE_COUNT.eq(fileSourceTaskLog.getExecuteCount()));
         return dsl().update(defaultTable)

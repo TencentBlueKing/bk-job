@@ -24,11 +24,47 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.ds.JobExecuteVerticalShardingDSLContextProvider;
+import com.tencent.bk.job.backup.archive.dao.impl.FileSourceTaskLogRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseFileAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseFileExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseScriptAgentTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseScriptExecuteObjTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.GseTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.OperationLogRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.RollingConfigRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceConfirmRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceFileRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceRollingTaskRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceScriptRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.archive.impl.FileSourceTaskLogArchiver;
+import com.tencent.bk.job.backup.archive.impl.GseFileAgentTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.GseFileExecuteObjTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.GseScriptAgentTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.GseScriptExecuteObjTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.GseTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.OperationLogArchiver;
+import com.tencent.bk.job.backup.archive.impl.RollingConfigArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceConfirmArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceFileArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceRollingTaskArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceScriptArchiver;
+import com.tencent.bk.job.backup.archive.impl.StepInstanceVariableArchiver;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceHostArchiver;
+import com.tencent.bk.job.backup.archive.impl.TaskInstanceVariableArchiver;
+import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
-import com.tencent.bk.job.common.service.constants.DeployModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -36,13 +72,13 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,7 +91,7 @@ import javax.sql.DataSource;
  * 归档-job-execute 热 DB 配置
  */
 @Configuration("executeHotDbConfiguration")
-@Conditional(ExecuteHotDbConfiguration.ExecuteDbInitCondition.class)
+@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
 @Slf4j
 public class ExecuteHotDbConfiguration {
 
@@ -116,6 +152,7 @@ public class ExecuteHotDbConfiguration {
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
             @Qualifier("job-execute-dsl-context") DSLContext dslContext
         ) {
+            log.info("Init StandaloneDSLContextProvider");
             return new StandaloneDSLContextProvider(dslContext);
         }
     }
@@ -280,6 +317,7 @@ public class ExecuteHotDbConfiguration {
             @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,
             @Qualifier("job-execute-dsl-context-c") DSLContext dslContextC
         ) {
+            log.info("Init VerticalShardingDSLContextProvider");
             return new JobExecuteVerticalShardingDSLContextProvider(
                 dslContextA,
                 dslContextB,
@@ -288,21 +326,358 @@ public class ExecuteHotDbConfiguration {
         }
     }
 
+    /**
+     * job-execute hot DB DAO 配置
+     */
+    protected static class ExecuteHotDaoConfiguration {
 
-    static class ExecuteDbInitCondition extends AllNestedConditions {
-        public ExecuteDbInitCondition() {
-            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        @Bean(name = "taskInstanceRecordDAO")
+        public JobInstanceHotRecordDAO taskInstanceRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init TaskInstanceRecordDAO");
+            return new JobInstanceHotRecordDAO(dslContextProvider);
         }
 
-        @ConditionalOnProperty(value = "job.backup.archive.execute.enabled", havingValue = "true")
-        class ArchiveEnableCondition {
-
+        @Bean(name = "stepInstanceRecordDAO")
+        public StepInstanceRecordDAO stepInstanceRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceRecordDAO");
+            return new StepInstanceRecordDAO(dslContextProvider);
         }
 
-        @ConditionalOnProperty(value = "deploy.mode", havingValue = DeployModeEnum.Constants.STANDARD,
-            matchIfMissing = true)
-        class StandardDeployModeCondition {
-
+        @Bean
+        public StepInstanceArchiver stepInstanceArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceRecordDAO stepInstanceRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceRecordDAO,
+                archiveTablePropsStorage);
         }
+
+        @Bean(name = "stepInstanceScriptRecordDAO")
+        public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceScriptRecordDAO");
+            return new StepInstanceScriptRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public StepInstanceScriptArchiver stepInstanceScriptArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceScriptArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceScriptRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "stepInstanceFileRecordDAO")
+        public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceFileRecordDAO");
+            return new StepInstanceFileRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public StepInstanceFileArchiver stepInstanceFileArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceFileRecordDAO stepInstanceFileRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceFileArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceFileRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "stepInstanceConfirmRecordDAO")
+        public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceConfirmRecordDAO");
+            return new StepInstanceConfirmRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public StepInstanceConfirmArchiver stepInstanceConfirmArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceConfirmArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceConfirmRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "stepInstanceVariableRecordDAO")
+        public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceVariableRecordDAO");
+            return new StepInstanceVariableRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public StepInstanceVariableArchiver stepInstanceVariableArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceVariableArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceVariableRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "taskInstanceVariableRecordDAO")
+        public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init TaskInstanceVariableRecordDAO");
+            return new TaskInstanceVariableRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public TaskInstanceVariableArchiver taskInstanceVariableArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new TaskInstanceVariableArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                taskInstanceVariableRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "operationLogRecordDAO")
+        public OperationLogRecordDAO operationLogRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init OperationLogRecordDAO");
+            return new OperationLogRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public OperationLogArchiver operationLogArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            OperationLogRecordDAO operationLogRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new OperationLogArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                operationLogRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "fileSourceTaskLogRecordDAO")
+        public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init FileSourceTaskRecordDAO");
+            return new FileSourceTaskLogRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public FileSourceTaskLogArchiver fileSourceTaskLogArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new FileSourceTaskLogArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                fileSourceTaskLogRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "gseTaskRecordDAO")
+        public GseTaskRecordDAO gseTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init GseTaskRecordDAO");
+            return new GseTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public GseTaskArchiver gseTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            GseTaskRecordDAO gseTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new GseTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                gseTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "gseScriptAgentTaskRecordDAO")
+        public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init GseScriptAgentTaskRecordDAO");
+            return new GseScriptAgentTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public GseScriptAgentTaskArchiver gseScriptAgentTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new GseScriptAgentTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                gseScriptAgentTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "gseFileAgentTaskRecordDAO")
+        public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init GseFileAgentTaskRecordDAO");
+            return new GseFileAgentTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public GseFileAgentTaskArchiver gseFileAgentTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new GseFileAgentTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                gseFileAgentTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
+        public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init GseScriptExecuteObjTaskRecordDAO");
+            return new GseScriptExecuteObjTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public GseScriptExecuteObjTaskArchiver gseScriptExecuteObjTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new GseScriptExecuteObjTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                gseScriptExecuteObjTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "gseFileExecuteObjTaskRecordDAO")
+        public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init GseFileExecuteObjTaskRecordDAO");
+            return new GseFileExecuteObjTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public GseFileExecuteObjTaskArchiver gseFileExecuteObjTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new GseFileExecuteObjTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                gseFileExecuteObjTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "stepInstanceRollingTaskRecordDAO")
+        public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init StepInstanceRollingTaskRecordDAO");
+            return new StepInstanceRollingTaskRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public StepInstanceRollingTaskArchiver stepInstanceRollingTaskArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new StepInstanceRollingTaskArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                stepInstanceRollingTaskRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "rollingConfigRecordDAO")
+        public RollingConfigRecordDAO rollingConfigRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init RollingConfigRecordDAO");
+            return new RollingConfigRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public RollingConfigArchiver rollingConfigArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            RollingConfigRecordDAO rollingConfigRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new RollingConfigArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                rollingConfigRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean(name = "taskInstanceHostRecordDAO")
+        public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
+            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            log.info("Init TaskInstanceHostRecordDAO");
+            return new TaskInstanceHostRecordDAO(dslContextProvider);
+        }
+
+        @Bean
+        public TaskInstanceHostArchiver taskInstanceHostArchiver(
+            ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+            TaskInstanceHostRecordDAO taskInstanceHostRecordDAO,
+            ArchiveTablePropsStorage archiveTablePropsStorage
+        ) {
+            return new TaskInstanceHostArchiver(
+                jobInstanceColdDAOObjectProvider.getIfAvailable(),
+                taskInstanceHostRecordDAO,
+                archiveTablePropsStorage);
+        }
+
+        @Bean
+        public JobInstanceSubTableArchivers jobInstanceSubTableArchivers(
+            FileSourceTaskLogArchiver fileSourceTaskLogArchiver,
+            GseFileAgentTaskArchiver gseFileAgentTaskArchiver,
+            GseFileExecuteObjTaskArchiver gseFileExecuteObjTaskArchiver,
+            GseScriptAgentTaskArchiver gseScriptAgentTaskArchiver,
+            GseScriptExecuteObjTaskArchiver gseScriptExecuteObjTaskArchiver,
+            GseTaskArchiver gseTaskArchiver,
+            OperationLogArchiver operationLogArchiver,
+            RollingConfigArchiver rollingConfigArchiver,
+            StepInstanceArchiver stepInstanceArchiver,
+            StepInstanceConfirmArchiver stepInstanceConfirmArchiver,
+            StepInstanceFileArchiver stepInstanceFileArchiver,
+            StepInstanceScriptArchiver stepInstanceScriptArchiver,
+            StepInstanceRollingTaskArchiver stepInstanceRollingTaskArchiver,
+            StepInstanceVariableArchiver stepInstanceVariableArchiver,
+            TaskInstanceHostArchiver taskInstanceHostArchiver,
+            TaskInstanceVariableArchiver taskInstanceVariableArchiver) {
+            return new JobInstanceSubTableArchivers(
+                fileSourceTaskLogArchiver,
+                gseFileAgentTaskArchiver,
+                gseFileExecuteObjTaskArchiver,
+                gseScriptAgentTaskArchiver,
+                gseScriptExecuteObjTaskArchiver,
+                gseTaskArchiver,
+                operationLogArchiver,
+                rollingConfigArchiver,
+                stepInstanceArchiver,
+                stepInstanceConfirmArchiver,
+                stepInstanceFileArchiver,
+                stepInstanceScriptArchiver,
+                stepInstanceRollingTaskArchiver,
+                stepInstanceVariableArchiver,
+                taskInstanceHostArchiver,
+                taskInstanceVariableArchiver);
+        }
+
     }
 }

@@ -22,10 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-truncate table db_archive_progress;
+package com.tencent.bk.job.backup;
 
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('task_instance','{\"lastArchivedId\":1000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('step_instance','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('gse_task_log','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('gse_task_ip_log','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('task_instance_variable','{\"lastArchivedId\":1000}',1621166442000);
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:test.properties")
+@SqlConfig(encoding = "utf-8")
+public class BootIntegrationTest {
+
+
+    @Test
+    @DisplayName("测试 job-backup 启动")
+    public void bootTest() {
+        // do nothing
+    }
+}

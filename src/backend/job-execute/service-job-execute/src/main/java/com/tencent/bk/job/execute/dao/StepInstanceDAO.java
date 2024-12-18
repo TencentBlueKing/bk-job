@@ -33,6 +33,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 任务步骤实例 DAO
@@ -175,11 +176,19 @@ public interface StepInstanceDAO {
     /**
      * 获取前一个可执行步骤实例
      *
-     * @param taskInstanceId 任务实例ID
-     * @param stepInstanceId 当前步骤实例ID
+     * @param taskInstanceId   任务实例ID
+     * @param currentStepOrder 当前步骤的顺序
      * @return 可执行步骤实例
      */
-    StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, long stepInstanceId);
+    StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, int currentStepOrder);
+
+    /**
+     * 获取步骤实例 ID 和步骤顺序的映射关系
+     *
+     * @param taskInstanceId 任务实例ID
+     * @return 步骤实例 ID 和步骤顺序的映射关系
+     */
+    Map<Long, Integer> listStepInstanceIdAndStepOrderMapping(Long taskInstanceId);
 
     /**
      * 根据taskInstanceId获取一个stepInstanceId，用于快速脚本/文件任务
@@ -188,15 +197,6 @@ public interface StepInstanceDAO {
      * @return 步骤实例ID
      */
     Long getStepInstanceId(Long taskInstanceId);
-
-    /**
-     * 根据 appId,stepInstanceId 获取所属任务实例ID
-     *
-     * @param appId          Job业务ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 任务实例ID
-     */
-    Long getTaskInstanceId(long appId, long stepInstanceId);
 
     /**
      * 根据stepInstanceId获取脚本类型
