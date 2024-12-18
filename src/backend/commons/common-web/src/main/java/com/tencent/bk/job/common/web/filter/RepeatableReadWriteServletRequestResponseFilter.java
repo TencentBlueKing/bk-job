@@ -49,14 +49,17 @@ public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
         ServletException {
-        if (isJsonRequest(request) && isJsonResponse(response)) {
-            ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-            ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-            chain.doFilter(requestWrapper, responseWrapper);
-        } else {
-            chain.doFilter(request, response);
+        ServletRequest servletRequest = request;
+        ServletResponse servletResponse = response;
+        if (isJsonRequest(request)) {
+            // 仅处理 ContentType: application/json 请求
+            servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
         }
-
+        if (isJsonResponse(response)) {
+            // 仅处理 ContentType: application/json 响应
+            servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
+        }
+        chain.doFilter(servletRequest, servletResponse);
     }
 
     private boolean isJsonRequest(ServletRequest request) {
