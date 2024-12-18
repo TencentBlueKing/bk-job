@@ -311,13 +311,16 @@ public class ArtifactoryClient {
                 ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
                     new TypeReference<ArtifactoryResp<Object>>() {
                     });
-                if(artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
+                if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
                     throw new InternalException(
                         artifactoryResp.getMessage(),
                         ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY
                     );
                 } else {
-                    throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+                    throw new InternalException(
+                        "Fail to request ARTIFACTORY data",
+                        ErrorCode.ARTIFACTORY_API_DATA_ERROR
+                    );
                 }
             } else {
                 throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
@@ -501,6 +504,7 @@ public class ArtifactoryClient {
     public NodeDTO getFileNode(String filePath) {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
+
         if (null == nodeDTO) {
             throw new InternalException(
                 "can not find node by filePath",

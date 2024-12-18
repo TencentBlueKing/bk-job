@@ -43,8 +43,10 @@ public class ArtifactoryLocalFileService {
         try {
             nodeDTO = artifactoryClient.getFileNode(fullPath);
         } catch (InternalException e) {
-            if (e.getErrorCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND){
+            if (e.getErrorCode() == ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY) {
+                log.error("[TransferLocalFile] transfer fail, local file {} not in artifactory", filePath);
                 throw new InternalException(
+                    "local file not found in artifactory",
                     ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
                     new String[]{filePath}
                 );
@@ -55,6 +57,7 @@ public class ArtifactoryLocalFileService {
         log.debug("nodeDTpwO={}", nodeDTO);
         if (nodeDTO == null) {
             throw new InternalException(
+                "local file not found in artifactory",
                 ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
                 new String[]{filePath}
             );
