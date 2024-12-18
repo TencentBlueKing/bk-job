@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
-import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndProducerPair;
+import com.tencent.bk.job.analysis.service.ai.context.model.AsyncConsumerAndStreamingResponseBodyPair;
 import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
 import com.tencent.bk.job.analysis.util.ai.AIAnswerUtil;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -43,7 +43,7 @@ import java.util.function.Consumer;
 
 /**
  * AI回答流式响应同步器
- * 使用阻塞队列构建异步消费者与生产者组合，消费者读取到数据后立即提供给生产者进行输出
+ * 使用阻塞队列构建互相绑定的异步消费者与流式响应体组合，消费者从流式数据源读取到数据后将其写入到阻塞队列中并提供给流式响应体进行读取输出
  */
 @Slf4j
 public class AIAnswerStreamSynchronizer {
@@ -61,11 +61,11 @@ public class AIAnswerStreamSynchronizer {
     }
 
     /**
-     * 构建异步消费者与生产者组合
+     * 构建异步消费者与流式响应体组合
      *
-     * @return 异步消费者与生产者组合
+     * @return 异步消费者与流式响应体组合
      */
-    public AsyncConsumerAndProducerPair buildAsyncConsumerAndProducerPair() {
+    public AsyncConsumerAndStreamingResponseBodyPair buildAsyncConsumerAndStreamingResponseBodyPair() {
         StreamingResponseBody streamingResponseBody = outputStream -> {
             while (!isFinished.get()) {
                 try {
@@ -111,11 +111,11 @@ public class AIAnswerStreamSynchronizer {
             outputStream.close();
         };
         Consumer<String> partialRespConsumer = new AIMessagePartConsumer(messageQueue);
-        return new AsyncConsumerAndProducerPair(partialRespConsumer, streamingResponseBody);
+        return new AsyncConsumerAndStreamingResponseBodyPair(partialRespConsumer, streamingResponseBody);
     }
 
     /**
-     * 触发结束事件，消费者读取完数据后，触发生产者停止生产并清理
+     * 触发结束事件，消费者读取完数据后，通知流式响应体做出相应的停止输出动作并清理
      *
      * @param throwable 异常
      */

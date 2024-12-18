@@ -120,7 +120,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
                         request.getLastModifyTimeEnd(), "yyyy-MM-dd", ChronoUnit.SECONDS, ZoneId.systemDefault()));
                 }
                 PageData<CronJobInfoDTO> cronJobInfoPageData =
-                    cronJobService.listPageCronJobInfos(cronJobCondition, baseSearchCondition);
+                    cronJobService.listPageCronJobInfosWithoutVars(cronJobCondition, baseSearchCondition);
                 return EsbResp.buildSuccessResp(cronJobInfoPageData.getData().stream()
                     .map(CronJobInfoDTO::toEsbCronInfo).collect(Collectors.toList()));
             }

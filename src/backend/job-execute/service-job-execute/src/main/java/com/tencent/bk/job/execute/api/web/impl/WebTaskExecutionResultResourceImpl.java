@@ -1037,6 +1037,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                     String orderField,
                                                                     Integer order) {
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .taskInstanceId(taskInstanceId)
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
             .batch(batch == null ? null : (batch == 0 ? null : batch))

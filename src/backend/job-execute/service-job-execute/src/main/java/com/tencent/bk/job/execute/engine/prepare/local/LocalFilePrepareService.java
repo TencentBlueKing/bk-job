@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
@@ -60,8 +61,8 @@ public class LocalFilePrepareService {
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
-    private final ThreadPoolExecutor localFileDownloadExecutor;
-    private final ThreadPoolExecutor localFileWatchExecutor;
+    private final ExecutorService localFileDownloadExecutor;
+    private final ExecutorService localFileWatchExecutor;
 
     @Autowired
     public LocalFilePrepareService(FileDistributeConfig fileDistributeConfig,
@@ -70,8 +71,8 @@ public class LocalFilePrepareService {
                                    AgentService agentService,
                                    StepInstanceService stepInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                   @Qualifier("localFileDownloadExecutor") ThreadPoolExecutor localFileDownloadExecutor,
-                                   @Qualifier("localFileWatchExecutor") ThreadPoolExecutor localFileWatchExecutor) {
+                                   @Qualifier("localFileDownloadExecutor") ExecutorService localFileDownloadExecutor,
+                                   @Qualifier("localFileWatchExecutor") ExecutorService localFileWatchExecutor) {
         this.fileDistributeConfig = fileDistributeConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;

@@ -41,11 +41,17 @@ public class AppMomYoyCalculator extends AbstractMomYoyCalculator {
         super(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO);
     }
 
-    Long getCountFromStatisticValue(String value) {
+    /**
+     * 从序列化的存储数据中解析出业务数量
+     *
+     * @param serializedData 序列化的存储数据
+     * @return 业务数量
+     */
+    protected Long getCountFromSerializedData(String serializedData) {
         // 解析统计量
-        List<ServiceApplicationDTO> applicationDTOList = JsonUtils.fromJson(value,
+        List<ServiceApplicationDTO> applicationDTOList = JsonUtils.fromJson(serializedData,
             new TypeReference<List<ServiceApplicationDTO>>() {
-        });
+            });
         return (long) applicationDTOList.size();
     }
 }

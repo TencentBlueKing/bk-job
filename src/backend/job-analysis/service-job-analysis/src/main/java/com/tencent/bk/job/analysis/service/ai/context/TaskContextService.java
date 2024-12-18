@@ -27,6 +27,9 @@ package com.tencent.bk.job.analysis.service.ai.context;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
 
+/**
+ * 任务上下文服务接口
+ */
 public interface TaskContextService {
 
     /**

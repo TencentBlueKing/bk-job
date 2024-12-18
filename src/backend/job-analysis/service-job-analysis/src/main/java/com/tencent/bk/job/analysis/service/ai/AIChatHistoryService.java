@@ -30,6 +30,9 @@ import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
 import java.util.List;
 
+/**
+ * AI聊天记录服务
+ */
 public interface AIChatHistoryService {
     /**
      * 构建AI聊天记录

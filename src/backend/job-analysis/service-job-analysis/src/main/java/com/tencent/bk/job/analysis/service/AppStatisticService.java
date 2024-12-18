@@ -65,7 +65,7 @@ public class AppStatisticService extends CommonStatisticService {
     public CommonStatisticWithRateVO calcAppMomYoyStatistic(StatisticsDTO statisticsDTO,
                                                             StatisticsDTO momStatisticsDTO,
                                                             StatisticsDTO yoyStatisticsDTO) {
-        return new AppMomYoyCalculator(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO).getResult();
+        return new AppMomYoyCalculator(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO).calc();
     }
 
     public CommonStatisticWithRateVO getAppTotalStatistics(String username, List<Long> appIdList, String date) {

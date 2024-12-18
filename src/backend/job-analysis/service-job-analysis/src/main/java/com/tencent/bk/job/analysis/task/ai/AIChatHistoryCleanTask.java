@@ -65,6 +65,9 @@ public class AIChatHistoryCleanTask {
         this.aiChatHistoryDAO = aiChatHistoryDAO;
     }
 
+    /**
+     * 清理任务执行入口，多实例并发仅随机选择一个实例真正执行
+     */
     public void execute() {
         log.info("AIChatHistoryCleanTask start");
         StopWatch watch = new StopWatch();
@@ -93,6 +96,11 @@ public class AIChatHistoryCleanTask {
         }
     }
 
+    /**
+     * 根据配置信息执行清理任务
+     *
+     * @param watch 计时器
+     */
     public void doExecute(StopWatch watch) {
         watch.start("cleanChatHistoryByMaxKeepDays");
         Integer maxKeepDays = aiProperties.getChatHistory().getMaxKeepDays();

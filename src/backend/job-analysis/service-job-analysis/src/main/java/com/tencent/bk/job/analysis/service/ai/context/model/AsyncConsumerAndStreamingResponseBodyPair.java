@@ -30,15 +30,18 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.util.function.Consumer;
 
+/**
+ * 互相绑定的异步任务消费者与流式响应体对
+ */
 @AllArgsConstructor
 @Data
-public class AsyncConsumerAndProducerPair {
+public class AsyncConsumerAndStreamingResponseBodyPair {
     /**
-     * 消费者
+     * 消费者，消费其他数据源产生的数据，将其写入消息队列
      */
     Consumer<String> consumer;
     /**
-     * 生产者
+     * 流式响应体，读取消息队列中的数据并将其写入输出流中
      */
-    StreamingResponseBody producer;
+    StreamingResponseBody streamingResponseBody;
 }

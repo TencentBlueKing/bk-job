@@ -43,6 +43,9 @@ import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 通过AI分析任务报错信息的服务实现类
+ */
 @Slf4j
 @Service
 public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyzeErrorService {
