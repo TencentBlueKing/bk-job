@@ -49,17 +49,25 @@ public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
         ServletException {
-        if (!isJsonRequest(request)) {
+        if (isJsonRequest(request) && isJsonResponse(response)) {
+            ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
+            ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
+            chain.doFilter(requestWrapper, responseWrapper);
+        } else {
             chain.doFilter(request, response);
-            return;
         }
-        ServletRequest requestWrapper = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse responseWrapper = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(requestWrapper, responseWrapper);
+
     }
 
     private boolean isJsonRequest(ServletRequest request) {
-        String contentType = request.getContentType();
+        return isJsonContentType(request.getContentType());
+    }
+
+    private boolean isJsonResponse(ServletResponse response) {
+        return isJsonContentType(response.getContentType());
+    }
+
+    private boolean isJsonContentType(String contentType) {
         if (StringUtils.isBlank(contentType)) {
             return false;
         }
