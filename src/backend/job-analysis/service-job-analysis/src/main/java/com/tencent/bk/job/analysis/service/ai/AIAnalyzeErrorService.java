@@ -27,6 +27,9 @@ package com.tencent.bk.job.analysis.service.ai;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
 
+/**
+ * AI分析报错信息服务
+ */
 public interface AIAnalyzeErrorService {
 
     /**

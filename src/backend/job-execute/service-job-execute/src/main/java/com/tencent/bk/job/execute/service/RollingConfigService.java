@@ -52,7 +52,7 @@ public interface RollingConfigService {
      */
     RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
 
-    RollingConfigDTO getRollingConfig(long rollingConfigId);
+    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
 
     /**
      * 任务是否启用了滚动执行

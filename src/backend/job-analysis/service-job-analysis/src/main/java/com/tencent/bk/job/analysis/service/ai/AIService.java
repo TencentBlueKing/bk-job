@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * AI核心能力服务
+ */
 public interface AIService {
 
     /**

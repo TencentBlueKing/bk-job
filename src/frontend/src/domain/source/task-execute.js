@@ -118,8 +118,8 @@ class TaskExecute extends ModuleBase {
   }
 
   // 获取作业步骤实例详情
-  getOneStepInstance({ id }) {
-    return Request.get(`${this.path}/task-instance/step_instance/${id}`);
+  getOneStepInstance(params) {
+    return Request.get(`${this.path}/taskInstance/${params.taskInstanceId}/stepInstance/${params.id}/detail`);
   }
 
   // 获取作业实例全局参数
@@ -175,7 +175,8 @@ class TaskExecute extends ModuleBase {
   taskExecutionStepOperate(payload) {
     const params = { ...payload };
     delete params.id;
-    return Request.post(`${this.path}/do-step-operation/stepInstanceId/${payload.id}`, {
+    delete params.taskInstanceId;
+    return Request.post(`${this.path}/taskInstance/${payload.taskInstanceId}/stepInstance/${payload.id}/operate`, {
       params,
     });
   }
@@ -189,7 +190,9 @@ class TaskExecute extends ModuleBase {
   getStepVariables(params) {
     const realParams = { ...params };
     delete realParams.stepInstanceId;
-    return Request.get(`${this.path}/step-execution-result/step/${params.stepInstanceId}/variables`, {
+    delete realParams.executeObjectType;
+    delete realParams.executeObjectResourceId;
+    return Request.get(`${this.path}/taskInstance/${params.taskInstanceId}/stepInstance/${params.stepInstanceId}/executeObject/${params.executeObjectType}/${params.executeObjectResourceId}/variables`, {
       params: realParams,
     });
   }
@@ -254,8 +257,9 @@ class TaskExecute extends ModuleBase {
   // 获取步骤执行历史
   getStepExecutionHistory(params = {}) {
     const realParams = { ...params };
+    delete realParams.taskInstanceId;
     delete realParams.stepInstanceId;
-    return Request.get(`${this.path}/step-execution-history/${params.stepInstanceId}`, {
+    return Request.get(`${this.path}/taskInstance/${params.taskInstanceId}/stepInstance/${params.stepInstanceId}/stepExecutionHistory`, {
       params: realParams,
     });
   }

@@ -36,6 +36,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 处理AI回答内容、报错信息的工具类
+ */
 @Slf4j
 public class AIAnswerUtil {
 
@@ -46,18 +49,7 @@ public class AIAnswerUtil {
      * @return 处理后的AI回答报错信息
      */
     public static String getLimitedErrorMessage(String errorMessage) {
-        if (errorMessage == null) {
-            return null;
-        }
-        if (errorMessage.length() > AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE) {
-            log.info(
-                "aiAnswer errorMessage is too long({}), truncated to {}",
-                errorMessage.length(),
-                AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE
-            );
-            return StringUtil.substring(errorMessage, AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE);
-        }
-        return errorMessage;
+        return getLimitedString(errorMessage, AIConsts.MAX_LENGTH_AI_ANSWER_ERROR_MESSAGE, "errorMessage");
     }
 
     /**
@@ -67,18 +59,31 @@ public class AIAnswerUtil {
      * @return 处理后的AI回答
      */
     public static String getLimitedAIAnswer(String aiAnswer) {
-        if (aiAnswer == null) {
+        return getLimitedString(aiAnswer, AIConsts.MAX_LENGTH_AI_ANSWER, "aiAnswer");
+    }
+
+    /**
+     * 获取限长的字符串
+     *
+     * @param rawString  原始字符串
+     * @param maxLength  最大长度
+     * @param stringDesc 原始字符串描述，用于日志打印
+     * @return 处理后的AI回答
+     */
+    private static String getLimitedString(String rawString, int maxLength, String stringDesc) {
+        if (rawString == null) {
             return null;
         }
-        if (aiAnswer.length() > AIConsts.MAX_LENGTH_AI_ANSWER) {
+        if (rawString.length() > maxLength) {
             log.info(
-                "aiAnswer is too long({}), truncated to {}",
-                aiAnswer.length(),
-                AIConsts.MAX_LENGTH_AI_ANSWER
+                "{} is too long({}), truncated to {}",
+                stringDesc,
+                rawString.length(),
+                maxLength
             );
-            return StringUtil.substring(aiAnswer, AIConsts.MAX_LENGTH_AI_ANSWER);
+            return StringUtil.substring(rawString, maxLength);
         }
-        return aiAnswer;
+        return rawString;
     }
 
     /**

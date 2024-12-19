@@ -214,7 +214,8 @@ public class JobListener extends BaseJobMqListener {
     private void nextStep(TaskInstanceDTO taskInstance, StepInstanceBaseDTO currentStepInstance) {
         if (currentStepInstance.isRollingStep()) {
             RollingConfigDTO taskInstanceRollingConfig =
-                rollingConfigService.getRollingConfig(currentStepInstance.getRollingConfigId());
+                rollingConfigService.getRollingConfig(currentStepInstance.getTaskInstanceId(),
+                    currentStepInstance.getRollingConfigId());
             RollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getConfigDetail();
             StepInstanceBaseDTO nextStepInstance = getNextStepInstance(taskInstance, currentStepInstance,
                 rollingConfig);

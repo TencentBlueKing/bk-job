@@ -797,7 +797,7 @@ public class TaskResultServiceImpl implements TaskResultService {
     private void setRollingInfoForStep(StepInstanceBaseDTO stepInstance,
                                        StepExecutionDetailDTO stepExecutionDetail) {
         RollingConfigDTO rollingConfig =
-            rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
+            rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(), stepInstance.getRollingConfigId());
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
             stepInstanceRollingTaskService.listLatestRollingTasks(

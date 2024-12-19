@@ -29,6 +29,9 @@ import com.tencent.bk.job.analysis.service.ai.context.model.MessagePartEvent;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
+/**
+ * AI大模型回复的流式消息块消费者
+ */
 public class AIMessagePartConsumer implements Consumer<String> {
     private final LinkedBlockingQueue<MessagePartEvent> messageQueue;
 
@@ -36,12 +39,22 @@ public class AIMessagePartConsumer implements Consumer<String> {
         this.messageQueue = messageQueue;
     }
 
-
+    /**
+     * 消费一块流式消息，将其放入阻塞队列中
+     *
+     * @param s 一块流式消息
+     */
     @Override
     public void accept(String s) {
         messageQueue.offer(MessagePartEvent.normalEvent(s));
     }
 
+    /**
+     * 将当前消费者和另一个消费者串行执行
+     *
+     * @param after 下一个消费者
+     * @return 串行执行的两个消费者组合
+     */
     @Override
     public Consumer<String> andThen(Consumer<? super String> after) {
         return Consumer.super.andThen(after);

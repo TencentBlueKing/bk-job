@@ -44,6 +44,9 @@ import java.util.List;
 @Service
 public class AIChatHistoryServiceImpl implements AIChatHistoryService {
 
+    /**
+     * AI聊天记录数据库操作对象
+     */
     private final AIChatHistoryDAO aiChatHistoryDAO;
 
     @Autowired
@@ -51,6 +54,17 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         this.aiChatHistoryDAO = aiChatHistoryDAO;
     }
 
+    /**
+     * 构建AI聊天记录数据传输对象
+     *
+     * @param username    用户名
+     * @param appId       Job业务ID
+     * @param startTime   开始时间
+     * @param aiPromptDTO AI提示符信息
+     * @param status      对话状态
+     * @param aiAnswer    AI回答
+     * @return AI聊天记录数据传输对象
+     */
     @Override
     public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
                                                   Long appId,
@@ -87,11 +101,24 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         return aiChatHistoryDAO.existsChatHistory(username);
     }
 
+    /**
+     * 设置AI聊天记录状态为回复中
+     *
+     * @param historyId AI聊天记录ID
+     * @return 受影响行数
+     */
     @Override
     public int setAIAnswerReplying(Long historyId) {
         return aiChatHistoryDAO.updateChatHistoryStatus(historyId, AIChatStatusEnum.REPLYING.getStatus());
     }
 
+    /**
+     * 设置AI聊天记录状态为已完成
+     *
+     * @param historyId AI聊天记录ID
+     * @param aiAnswer  AI回答内容
+     * @return 受影响行数
+     */
     @Override
     public int finishAIAnswer(Long historyId, AIAnswer aiAnswer) {
         return aiChatHistoryDAO.updateChatHistoryStatusAndAIAnswer(
@@ -104,6 +131,12 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
         );
     }
 
+    /**
+     * 设置AI聊天记录状态为已终止
+     *
+     * @param historyId AI聊天记录ID
+     * @return 受影响行数
+     */
     @Override
     public int terminateAIAnswer(Long historyId) {
         return aiChatHistoryDAO.updateChatHistoryStatusAndAIAnswer(

@@ -56,6 +56,13 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
         this.bkConfig = bkConfig;
     }
 
+    /**
+     * 根据脚本任务上下文与报错信息获取AI提示符
+     *
+     * @param context      脚本任务上下文
+     * @param errorContent 报错内容
+     * @return AI提示符
+     */
     @Override
     public AIPromptDTO getPrompt(ScriptTaskContext context, String errorContent) {
         String templateCode = PromptTemplateCodeEnum.ANALYZE_SCRIPT_EXECUTE_TASK_ERROR.name();
@@ -65,6 +72,14 @@ public class ScriptExecuteTaskErrorAIPromptServiceImpl extends AIBasePromptServi
         return new AIPromptDTO(promptTemplate.getId(), renderedRawPrompt, renderedPrompt);
     }
 
+    /**
+     * 渲染AI提示符
+     *
+     * @param promptTemplateContent 提示符模板内容
+     * @param context               脚本任务上下文
+     * @param errorContent          报错信息
+     * @return 渲染后的提示符
+     */
     private String renderPrompt(String promptTemplateContent,
                                 ScriptTaskContext context,
                                 String errorContent) {

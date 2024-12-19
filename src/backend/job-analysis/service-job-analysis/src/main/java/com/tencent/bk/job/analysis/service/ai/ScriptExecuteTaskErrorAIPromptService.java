@@ -27,6 +27,9 @@ package com.tencent.bk.job.analysis.service.ai;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
 
+/**
+ * 脚本执行任务报错信息的AI提示符服务
+ */
 public interface ScriptExecuteTaskErrorAIPromptService {
 
     /**
