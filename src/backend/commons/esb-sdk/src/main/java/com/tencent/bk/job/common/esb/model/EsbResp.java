@@ -86,12 +86,6 @@ public class EsbResp<T> {
         return new EsbResp<>(errorCode, message, null);
     }
 
-    public static <T> EsbResp<T> buildCommonFailResp(Integer errorCode, Object[] errorParams) {
-
-        String message = I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);
-        return new EsbResp<>(errorCode, message, null);
-    }
-
     public static <T> EsbResp<T> buildCommonFailResp(Integer errorCode, Object[] errorParams, T data) {
 
         String message = I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);

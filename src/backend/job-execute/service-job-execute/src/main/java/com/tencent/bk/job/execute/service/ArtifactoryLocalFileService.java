@@ -1,7 +1,6 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -21,25 +20,45 @@ public class ArtifactoryLocalFileService {
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final ArtifactoryClient artifactoryClient;
+    private final LocalFileConfigForExecute localFileConfig;
 
     @Autowired
     public ArtifactoryLocalFileService(
         ArtifactoryConfig artifactoryConfig,
         LocalFileConfigForExecute localFileConfigForExecute,
-        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient
+        @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
+        LocalFileConfigForExecute localFileConfig
     ) {
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.artifactoryClient = artifactoryClient;
+        this.localFileConfig = localFileConfig;
     }
 
     public FileDetailDTO getFileDetailFromArtifactory(String filePath) {
+        NodeDTO nodeDTO = getFileNodeAndHandleException(filePath);
+        log.debug("nodeDTpwO={}", nodeDTO);
+        if (nodeDTO == null) {
+            throw new InternalException(
+                "local file not found in artifactory",
+                ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
+                new String[]{filePath, String.valueOf(localFileConfig.getExpireDays())}
+            );
+        }
+        FileDetailDTO fileDetailDTO = new FileDetailDTO(filePath);
+        fileDetailDTO.setFileName(nodeDTO.getName());
+        fileDetailDTO.setFileHash(nodeDTO.getMd5());
+        fileDetailDTO.setFileSize(nodeDTO.getSize());
+        return fileDetailDTO;
+    }
+
+    private NodeDTO getFileNodeAndHandleException(String filePath) {
         String fullPath = PathUtil.joinFilePath(
             artifactoryConfig.getArtifactoryJobProject()
                 + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             filePath
         );
-        NodeDTO nodeDTO = null;
+        NodeDTO nodeDTO;
         try {
             nodeDTO = artifactoryClient.getFileNode(fullPath);
         } catch (InternalException e) {
@@ -48,25 +67,13 @@ public class ArtifactoryLocalFileService {
                 throw new InternalException(
                     "local file not found in artifactory",
                     ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
-                    new String[]{filePath}
+                    new String[]{filePath, String.valueOf(localFileConfig.getExpireDays())}
                 );
             } else {
                 throw e;
             }
         }
-        log.debug("nodeDTpwO={}", nodeDTO);
-        if (nodeDTO == null) {
-            throw new InternalException(
-                "local file not found in artifactory",
-                ErrorCode.LOCAL_FILE_NOT_EXIST_IN_BACKEND,
-                new String[]{filePath}
-            );
-        }
-        FileDetailDTO fileDetailDTO = new FileDetailDTO(filePath);
-        fileDetailDTO.setFileName(nodeDTO.getName());
-        fileDetailDTO.setFileHash(nodeDTO.getMd5());
-        fileDetailDTO.setFileSize(nodeDTO.getSize());
-        return fileDetailDTO;
+        return nodeDTO;
     }
 
 }

@@ -91,6 +91,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.tencent.bk.job.common.metrics.CommonMetricValues.STATUS_CLIENT_ERROR_NODE_NOT_FOUND;
+
 @Slf4j
 public class ArtifactoryClient {
 
@@ -285,12 +287,7 @@ public class ArtifactoryClient {
                 );
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
-            try {
-                checkResult(result, method, url, reqStr, respStr);
-            } catch (Exception e) {
-                status = "error";
-                throw e;
-            }
+            checkResult(result, method, url, reqStr, respStr);
             status = "ok";
             return result;
         } catch (Exception e) {
@@ -311,7 +308,9 @@ public class ArtifactoryClient {
                 ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
                     new TypeReference<ArtifactoryResp<Object>>() {
                     });
-                if (artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
+                if (artifactoryResp != null
+                    && artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
+                    status = STATUS_CLIENT_ERROR_NODE_NOT_FOUND;
                     throw new InternalException(
                         artifactoryResp.getMessage(),
                         ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY
