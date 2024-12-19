@@ -282,9 +282,15 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         } else {
             // 普通步骤，启动的时候需要初始化所有ExecuteObjectTask
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>(
-                buildInitialExecuteObjectTasks(stepInstance.getTaskInstanceId(), stepInstanceId, executeCount,
-                    executeCount, batch, gseTaskId,
-                    stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()));
+                buildInitialExecuteObjectTasks(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstanceId,
+                    executeCount,
+                    executeCount,
+                    batch,
+                    gseTaskId,
+                    stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly())
+            );
             saveExecuteObjectTasks(stepInstance, executeObjectTasks);
         }
     }
@@ -361,7 +367,16 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 executeObjectTask.setActualExecuteCount(actualExecuteCount);
                 executeObjectTask.setBatch(batch);
                 executeObjectTask.setGseTaskId(gseTaskId);
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
+                executeObjectTask.setStatus(executeObject.isExecutable() ?
+                    ExecuteObjectTaskStatusEnum.WAITING :
+                    executeObject.isAgentIdEmpty() ?
+                        ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED :
+                        ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
+                if (!executeObject.isExecutable()) {
+                    executeObjectTask.setStartTime(System.currentTimeMillis());
+                    executeObjectTask.setEndTime(System.currentTimeMillis());
+                    executeObjectTask.setTotalTime(0L);
+                }
                 executeObjectTask.setFileTaskMode(FileTaskModeEnum.DOWNLOAD);
                 executeObjectTask.setExecuteObject(executeObject);
                 return executeObjectTask;
@@ -561,7 +576,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             || RunStatusEnum.STOP_SUCCESS == stepStatus;
     }
 
-    private void saveExecuteObjectTasksForRetryFail(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
+    private void saveExecuteObjectTasksForRetryFail(StepInstanceBaseDTO stepInstance,
+                                                    int executeCount,
+                                                    Integer batch,
                                                     Long gseTaskId) {
         List<ExecuteObjectTask> retryExecuteObjectTasks = listTargetExecuteObjectTasks(stepInstance, executeCount - 1);
 
@@ -572,8 +589,10 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             }
             // 只有失败的目标主机才需要参与重试
             if (!ExecuteObjectTaskStatusEnum.isSuccess(retryExecuteObjectTask.getStatus())) {
-                retryExecuteObjectTask.setActualExecuteCount(executeCount);
-                retryExecuteObjectTask.resetTaskInitialStatus();
+                if (retryExecuteObjectTask.getExecuteObject().isExecutable()) {
+                    retryExecuteObjectTask.setActualExecuteCount(executeCount);
+                    retryExecuteObjectTask.resetTaskInitialStatus();
+                }
                 retryExecuteObjectTask.setGseTaskId(gseTaskId);
             }
         }
@@ -582,7 +601,9 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     }
 
 
-    private void saveExecuteObjectTasksForRetryAll(StepInstanceBaseDTO stepInstance, int executeCount, Integer batch,
+    private void saveExecuteObjectTasksForRetryAll(StepInstanceBaseDTO stepInstance,
+                                                   int executeCount,
+                                                   Integer batch,
                                                    Long gseTaskId) {
         List<ExecuteObjectTask> retryExecuteObjectTasks = listTargetExecuteObjectTasks(stepInstance, executeCount - 1);
 
@@ -591,8 +612,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             if (batch != null && retryExecuteObjectTask.getBatch() != batch) {
                 continue;
             }
-            retryExecuteObjectTask.setActualExecuteCount(executeCount);
-            retryExecuteObjectTask.resetTaskInitialStatus();
+            if (retryExecuteObjectTask.getExecuteObject().isExecutable()) {
+                // 重置运行数据
+                retryExecuteObjectTask.setActualExecuteCount(executeCount);
+                retryExecuteObjectTask.resetTaskInitialStatus();
+            }
             retryExecuteObjectTask.setGseTaskId(gseTaskId);
         }
 

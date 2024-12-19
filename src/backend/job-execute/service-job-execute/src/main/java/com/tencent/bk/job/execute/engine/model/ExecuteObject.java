@@ -93,6 +93,11 @@ public class ExecuteObject implements Cloneable {
     @JsonIgnore
     private ExecuteObjectGseKey executeObjectGseKey;
 
+    /**
+     * 是否非法执行对象
+     */
+    private boolean invalid;
+
     public ExecuteObject(Container container) {
         this.container = container;
         this.type = ExecuteObjectTypeEnum.CONTAINER;
@@ -138,6 +143,7 @@ public class ExecuteObject implements Cloneable {
         if (container != null) {
             clone.setContainer(container.clone());
         }
+        clone.setInvalid(invalid);
         return clone;
     }
 
@@ -173,6 +179,14 @@ public class ExecuteObject implements Cloneable {
         } else {
             throw new IllegalArgumentException("Invalid execute object type: " + type);
         }
+    }
+
+    /**
+     * 判断是否可作为执行目标
+     */
+    @JsonIgnore
+    public boolean isExecutable() {
+        return !isInvalid() && !isAgentIdEmpty();
     }
 
     public Agent toGseAgent() {

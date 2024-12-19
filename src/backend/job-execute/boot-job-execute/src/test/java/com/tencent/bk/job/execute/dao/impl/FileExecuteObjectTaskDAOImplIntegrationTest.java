@@ -119,7 +119,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         executeObjectTask2.setEndTime(1572858331000L);
         executeObjectTask2.setTotalTime(1000L);
         executeObjectTask2.setErrorCode(88);
-        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         executeObjectTaskList.add(executeObjectTask2);
 
         fileExecuteObjectTaskDAO.batchSaveTasks(executeObjectTaskList);
@@ -157,7 +157,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(executeObjectTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(executeObjectTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
     }
 
     @Test
@@ -194,7 +194,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         executeObjectTask2.setEndTime(1572858331000L);
         executeObjectTask2.setTotalTime(1000L);
         executeObjectTask2.setErrorCode(88);
-        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         executeObjectTaskList.add(executeObjectTask2);
 
         fileExecuteObjectTaskDAO.batchUpdateTasks(executeObjectTaskList);
@@ -226,7 +226,7 @@ public class FileExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(executeObjectTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(executeObjectTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
     }
 
     @Test

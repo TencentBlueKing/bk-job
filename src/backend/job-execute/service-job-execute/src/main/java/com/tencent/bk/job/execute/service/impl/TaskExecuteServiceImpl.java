@@ -814,7 +814,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 // 远程文件分发需要判断文件源主机是否为空
                 if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
                     ExecuteTargetDTO executeTarget = fileSource.getServers();
-                    if (executeTarget != null && CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                    if (executeTarget == null
+                        || CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
                         throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_EXECUTE_OBJECT_EMPTY,
                             new String[]{stepInstance.getName()});

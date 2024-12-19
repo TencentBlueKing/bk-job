@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
@@ -269,12 +270,8 @@ public class HostDTO implements Cloneable {
      * @return 主机KEY
      */
     @JsonIgnore
-    public String getUniqueKey() {
-        if (hostId != null) {
-            return "HOST_ID:" + hostId;
-        } else {
-            return "HOST_IP:" + toCloudIp();
-        }
+    public HostCompositeKey getUniqueKey() {
+        return HostCompositeKey.ofHost(this);
     }
 
     /**
