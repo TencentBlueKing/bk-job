@@ -240,7 +240,7 @@ data:
             password: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.password | quote }}
             # 数据源分组配置
             dataSourceGroups:
-              {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 12 }}
+              {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 14 }}
             shardingRule:
               # 数据分片规则配置
               tables:
