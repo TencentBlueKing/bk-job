@@ -229,9 +229,9 @@ data:
         enabled: {{ .Values.executeConfig.mysql.standalone.enabled }}
       verticalSharding:
         enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
-      {{- if .Values.executeConfig.mysql.sharding.enabled }}
       sharding:
-        enabled: true
+        enabled: {{ .Values.executeConfig.mysql.sharding.enabled }}
+        {{- if .Values.executeConfig.mysql.sharding.enabled }}
         databases:
           job_execute:
             logicDatabaseName: job_execute
