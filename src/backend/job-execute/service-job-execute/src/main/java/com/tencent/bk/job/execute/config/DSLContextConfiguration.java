@@ -342,7 +342,7 @@ public class DSLContextConfiguration {
         @Qualifier("jobExecuteShardingConnProvider")
         @Bean(name = "jobExecuteShardingConnProvider")
         public ConnectionProvider connectionProvider(
-            @Qualifier("jobShardingTransactionAwareDataSource") DataSource dataSource) {
+            @Qualifier("jobExecuteShardingTransactionAwareDataSource") DataSource dataSource) {
             return new DataSourceConnectionProvider(dataSource);
         }
 
