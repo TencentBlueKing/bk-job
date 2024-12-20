@@ -45,7 +45,7 @@ public class JobInstanceConfigurationProperties {
 
     @Data
     public static class Query {
-        private Integer maxDays = Integer.MAX_VALUE;
+        private Integer maxDays;
         private ColdQueryProperties cold;
     }
 
@@ -65,7 +65,7 @@ public class JobInstanceConfigurationProperties {
 
     @Data
     public static class HotStoreProperties {
-        private Integer maxDays = Integer.MAX_VALUE;
+        private Integer maxDays;
     }
 
     @Data

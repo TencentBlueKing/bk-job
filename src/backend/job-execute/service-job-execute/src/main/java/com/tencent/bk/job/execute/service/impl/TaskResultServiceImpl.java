@@ -162,7 +162,9 @@ public class TaskResultServiceImpl implements TaskResultService {
         Integer maxQueryDays = jobInstanceConfigurationProperties.getQuery().getMaxDays();
         long currentDayStartTime = DateUtils.getUTCCurrentDayStartTimestamp();
         if (currentDayStartTime - end > maxQueryDays * 86400000) {
-            log.info("Query task instance history end time must be less than {} days", maxQueryDays);
+            log.info("Query task instance history end time must be less than {} days."
+                    + "currentDayStartTime: {}, endTime: {}",
+                currentDayStartTime, end, maxQueryDays);
             throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_END_TIME_TOO_EARLY,
                 new String[]{String.valueOf(maxQueryDays)});
         }
