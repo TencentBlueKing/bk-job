@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.sharding.mysql.DataSourceGroupShardingNode;
 import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingAlgorithmBase;
 import com.tencent.bk.job.common.sharding.mysql.algorithm.IllegalShardKeyException;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> extends ShardingAlgorithmBase
-    implements ComplexKeysShardingAlgorithm<T>, ApplicationContextAware {
+    implements ComplexKeysShardingAlgorithm<T> {
 
     private String shardingKeyAppId = "app_id";
 
@@ -77,8 +78,6 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
     private DataSourceGroupShardingNode defaultDsGroup;
 
     private final Map<String, DataSourceGroupShardingNode> largeDataResourceScopeDsGroups = new HashMap<>();
-
-    private AppScopeMappingService appScopeMappingService;
 
 
     @Override
@@ -145,7 +144,7 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
     }
 
     private String getResourceScope(long appId) throws IllegalShardKeyException {
-        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
         if (resourceScope == null) {
             log.error("Resource scope not found for sharding key {} : {}", shardingKeyAppId, appId);
             throw new IllegalShardKeyException("Resource scope not found for sharding key : " + shardingKeyAppId);
@@ -328,11 +327,5 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
     @Override
     public String getType() {
         return "JOB_INSTANCE_APP";
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.appScopeMappingService = applicationContext.getBean(AppScopeMappingService.class);
-        log.info("Init dependency AppScopeMappingService : {}", appScopeMappingService);
     }
 }
