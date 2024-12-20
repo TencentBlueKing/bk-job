@@ -8,6 +8,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.driver.api.ShardingSphereDataSourceFactory;
 import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.mode.ModeConfiguration;
@@ -81,8 +82,16 @@ public class ShardingDataSourceFactory {
                 HikariDataSource dataSource = new HikariDataSource();
                 dataSource.setDriverClassName(databaseProperties.getDataSourceDriverClassName());
                 dataSource.setJdbcUrl(dataSourceProperties.getJdbcUrl());
-                dataSource.setUsername(databaseProperties.getUsername());
-                dataSource.setPassword(databaseProperties.getPassword());
+                if (StringUtils.isNotBlank(dataSourceProperties.getUsername())) {
+                    dataSource.setUsername(dataSourceProperties.getUsername());
+                } else {
+                    dataSource.setUsername(databaseProperties.getUsername());
+                }
+                if (StringUtils.isNotBlank(dataSourceProperties.getPassword())) {
+                    dataSource.setPassword(dataSourceProperties.getPassword());
+                } else {
+                    dataSource.setPassword(databaseProperties.getPassword());
+                }
                 if (databaseProperties.getMaximumPoolSize() != null) {
                     dataSource.setMaximumPoolSize(databaseProperties.getMaximumPoolSize());
                 }

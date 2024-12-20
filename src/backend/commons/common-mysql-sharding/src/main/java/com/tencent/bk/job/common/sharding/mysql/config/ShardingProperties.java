@@ -140,6 +140,14 @@ public class ShardingProperties {
          * 数据库 URL 连接，以数据库连接池自身配置为准
          */
         private String jdbcUrl;
+        /**
+         * 用户名
+         */
+        private String username;
+        /**
+         * 密码
+         */
+        private String password;
     }
 
 
