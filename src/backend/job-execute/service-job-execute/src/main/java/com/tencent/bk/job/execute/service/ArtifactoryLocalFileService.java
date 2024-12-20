@@ -37,7 +37,7 @@ public class ArtifactoryLocalFileService {
 
     public FileDetailDTO getFileDetailFromArtifactory(String filePath) {
         NodeDTO nodeDTO = getFileNodeAndHandleException(filePath);
-        log.debug("nodeDTpwO={}", nodeDTO);
+        log.debug("nodeDTO={}", nodeDTO);
         if (nodeDTO == null) {
             throw new InternalException(
                 "local file not found in artifactory",

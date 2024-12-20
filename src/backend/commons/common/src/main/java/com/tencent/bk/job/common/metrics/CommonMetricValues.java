@@ -32,9 +32,4 @@ public class CommonMetricValues {
      * 标识一个不存在的值
      */
     public static final String NONE = "none";
-
-    /**
-     * 用户请求参数错误：请求的节点路径在制品库中不存在
-     */
-    public static final String STATUS_CLIENT_ERROR_NODE_NOT_FOUND = "client.nodeNotFound";
 }
