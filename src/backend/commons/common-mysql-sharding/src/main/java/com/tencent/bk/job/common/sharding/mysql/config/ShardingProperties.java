@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.sharding.mysql.config;
 
 import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingStrategyType;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -52,8 +53,7 @@ public class ShardingProperties {
      */
     private Map<String, DatabaseProperties> databases;
 
-    @Getter
-    @Setter
+    @Data
     public static class DatabaseProperties {
         /**
          * 逻辑数据库名称
@@ -71,14 +71,19 @@ public class ShardingProperties {
          * 数据库密码
          */
         private String password;
+        private Integer maximumPoolSize;
+        private Integer minimumIdle;
+        private Long idleTimeout;
+        private Long validationTimeout;
+        private Long connectionTimeout;
         /**
          * 数据源分组
          */
         private Map<String, DataSourceGroupProperties> dataSourceGroups;
         /**
-         * 分片规则
+         * 规则配置
          */
-        private ShardingRuleProperties shardingRule;
+        private RuleProperties rule;
         /**
          * 系统级属性配置
          */
@@ -87,13 +92,34 @@ public class ShardingProperties {
         @Override
         public String toString() {
             return new StringJoiner(", ", DatabaseProperties.class.getSimpleName() + "[", "]")
+                .add("logicDatabaseName='" + logicDatabaseName + "'")
+                .add("dataSourceDriverClassName='" + dataSourceDriverClassName + "'")
                 .add("username='" + username + "'")
                 .add("password='******'")
+                .add("maximumPoolSize=" + maximumPoolSize)
+                .add("minimumIdle=" + minimumIdle)
+                .add("idleTimeout=" + idleTimeout)
+                .add("validationTimeout=" + validationTimeout)
                 .add("dataSourceGroups=" + dataSourceGroups)
-                .add("shardingRule=" + shardingRule)
+                .add("rule=" + rule)
                 .add("props=" + props)
                 .toString();
         }
+    }
+
+    /**
+     * 规则配置
+     */
+    @Data
+    public static class RuleProperties {
+        /**
+         * 单表配置
+         */
+        private SingleRuleProperties single;
+        /**
+         * 分片规则
+         */
+        private ShardingRuleProperties sharding;
     }
 
     @Getter
@@ -156,6 +182,15 @@ public class ShardingProperties {
         private List<String> bindingTables;
     }
 
+
+    /**
+     * 单表配置
+     */
+    @Data
+    public static class SingleRuleProperties {
+        private List<String> tables;
+        private String defaultDataSource;
+    }
 
     @Getter
     @Setter

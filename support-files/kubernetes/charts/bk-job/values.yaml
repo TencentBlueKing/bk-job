@@ -1016,7 +1016,7 @@ executeConfig:
       # 是否启用 db 迁移功能
       enabled: false
     standalone:
-      enabled: true
+      enabled: false
     # 垂直分片配置
     verticalSharding:
       enabled: false

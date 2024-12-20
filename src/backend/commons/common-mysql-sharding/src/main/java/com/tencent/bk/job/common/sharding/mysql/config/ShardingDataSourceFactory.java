@@ -21,6 +21,7 @@ import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ComplexSh
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.HintShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
+import org.apache.shardingsphere.single.api.config.SingleRuleConfiguration;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -51,8 +52,7 @@ public class ShardingDataSourceFactory {
         // 构建真实数据源
         Map<String, DataSource> dataSourceMap = createDataSources(databaseProperties);
         // 构建具体规则
-        List<RuleConfiguration> ruleConfigs = new ArrayList<>();
-        ruleConfigs.add(createShardingRuleConfiguration(databaseProperties.getShardingRule()));
+        List<RuleConfiguration> ruleConfigs = createRuleConfigurations(databaseProperties);
         // 构建系统级属性配置
         Properties globalProps = createShardingGlobalProps(databaseProperties.getProps());
         DataSource dataSource = ShardingSphereDataSourceFactory.createDataSource(databaseName, modeConfig,
@@ -83,14 +83,51 @@ public class ShardingDataSourceFactory {
                 dataSource.setJdbcUrl(dataSourceProperties.getJdbcUrl());
                 dataSource.setUsername(databaseProperties.getUsername());
                 dataSource.setPassword(databaseProperties.getPassword());
-                dataSourceMap.put(buildDataSourceName(dataSourceGroupName,
-                    dataSourceProperties.getIndex()), dataSource);
+                if (databaseProperties.getMaximumPoolSize() != null) {
+                    dataSource.setMaximumPoolSize(databaseProperties.getMaximumPoolSize());
+                }
+                if (databaseProperties.getMinimumIdle() != null) {
+                    dataSource.setMinimumIdle(databaseProperties.getMinimumIdle());
+                }
+                if (databaseProperties.getIdleTimeout() != null) {
+                    dataSource.setIdleTimeout(databaseProperties.getIdleTimeout());
+                }
+                if (databaseProperties.getValidationTimeout() != null) {
+                    dataSource.setValidationTimeout(databaseProperties.getValidationTimeout());
+                }
+                if (databaseProperties.getConnectionTimeout() != null) {
+                    dataSource.setConnectionTimeout(databaseProperties.getConnectionTimeout());
+                }
+                String dataSourceName = buildDataSourceName(dataSourceGroupName, dataSourceProperties.getIndex());
+                dataSource.setPoolName(dataSourceName);
+                dataSourceMap.put(dataSourceName, dataSource);
             }));
         return dataSourceMap;
     }
 
     private static String buildDataSourceName(String dataSourceGroupName, int index) {
         return dataSourceGroupName + "_" + index;
+    }
+
+    private static List<RuleConfiguration> createRuleConfigurations(
+        ShardingProperties.DatabaseProperties databaseProperties) {
+        List<RuleConfiguration> ruleConfigs = new ArrayList<>();
+        ShardingProperties.RuleProperties ruleProperties = databaseProperties.getRule();
+        if (ruleProperties.getSingle() != null) {
+            ruleConfigs.add(createSingleRuleConfiguration(ruleProperties.getSingle()));
+        }
+        if (ruleProperties.getSharding() != null) {
+            ruleConfigs.add(createShardingRuleConfiguration(ruleProperties.getSharding()));
+        }
+        return ruleConfigs;
+    }
+
+    private static SingleRuleConfiguration createSingleRuleConfiguration(
+        ShardingProperties.SingleRuleProperties singleRuleProperties) {
+        return new SingleRuleConfiguration(
+            singleRuleProperties.getTables(),
+            singleRuleProperties.getDefaultDataSource()
+        );
     }
 
     private static ShardingRuleConfiguration createShardingRuleConfiguration(
