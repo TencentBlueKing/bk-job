@@ -1016,7 +1016,7 @@ executeConfig:
       # 是否启用 db 迁移功能
       enabled: false
     standalone:
-      enabled: false
+      enabled: true
     # 垂直分片配置
     verticalSharding:
       enabled: false
@@ -1035,45 +1035,45 @@ executeConfig:
     #       password: "job"
     sharding:
       # 是否启用分库分表
-      enabled: true
-      databases:
-        job_execute:
-          username : job
-          password : job
-          # 数据源组
-          dataSourceGroups:
-            ds_job_instance:
-              dataSources:
-                - index: 0
-                  jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
-                - index: 1
-                  jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
-            ds_job_instance_search:
-              dataSources:
-                - index: 0
-                  jdbcUrl: jdbc:otel:mysql://db_host_3:3306/job_execute
-                - index: 1
-                  jdbcUrl: jdbc:otel:mysql://db_host_4:3306/job_execute
-            ds_job_instance_search_biz_a:
-              dataSources:
-                - index: 0
-                  jdbcUrl: jdbc:otel:mysql://db_host_5:3306/job_execute
-                - index: 1
-                  jdbcUrl: jdbc:otel:mysql://db_host_6:3306/job_execute
-            ds_job_instance_search_biz_set_b:
-              dataSources:
-                - index: 0
-                  jdbcUrl: jdbc:otel:mysql://db_host_7:3306/job_execute
-                - index: 1
-                  jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
-          shardingRule:
-            jobInstance:
-              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
-            jobInstanceSearch:
-              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
-              shardingAlgorithmProps:
-                defaultDsGroup: "ds_job_instance_search"
-                largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"
+      enabled: false
+#      databases:
+#        job_execute:
+#          username : job
+#          password : job
+#          # 数据源组
+#          dataSourceGroups:
+#            ds_job_instance:
+#              dataSources:
+#                - index: 0
+#                  jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
+#                - index: 1
+#                  jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
+#            ds_job_instance_search:
+#              dataSources:
+#                - index: 0
+#                  jdbcUrl: jdbc:otel:mysql://db_host_3:3306/job_execute
+#                - index: 1
+#                  jdbcUrl: jdbc:otel:mysql://db_host_4:3306/job_execute
+#            ds_job_instance_search_biz_a:
+#              dataSources:
+#                - index: 0
+#                  jdbcUrl: jdbc:otel:mysql://db_host_5:3306/job_execute
+#                - index: 1
+#                  jdbcUrl: jdbc:otel:mysql://db_host_6:3306/job_execute
+#            ds_job_instance_search_biz_set_b:
+#              dataSources:
+#                - index: 0
+#                  jdbcUrl: jdbc:otel:mysql://db_host_7:3306/job_execute
+#                - index: 1
+#                  jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
+#          shardingRule:
+#            jobInstance:
+#              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
+#            jobInstanceSearch:
+#              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
+#              shardingAlgorithmProps:
+#                defaultDsGroup: "ds_job_instance_search"
+#                largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
