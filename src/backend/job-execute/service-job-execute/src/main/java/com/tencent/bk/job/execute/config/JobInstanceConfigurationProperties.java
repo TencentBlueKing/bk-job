@@ -33,7 +33,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * 作业执行历史查询、存储配置
  */
-@ConfigurationProperties(prefix = "job.job-instance")
+@ConfigurationProperties(prefix = "job.execute.job-instance")
 @Getter
 @Setter
 @ToString
