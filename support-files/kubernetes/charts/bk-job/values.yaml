@@ -932,6 +932,20 @@ executeConfig:
     query:
       # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
       contentSizeLimit: 512MB
+  # 作业实例数据存储、查询配置
+  jobInstance:
+    query:
+      # 可以查询多少天之前的热数据
+      maxDays: 30
+      cold:
+        enabled: false
+    store:
+      hot:
+        # 热数据保留天数
+        maxDays: 60
+      cold:
+        # 冷数据
+        enabled: false
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute

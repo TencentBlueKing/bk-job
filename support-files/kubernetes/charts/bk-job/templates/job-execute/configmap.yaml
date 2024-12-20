@@ -238,6 +238,8 @@ data:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
+        jobInstance:
+          {{- toYaml .Values.executeConfig.jobInstance | nindent 10 }}
     mysql:
       dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
       migration:
