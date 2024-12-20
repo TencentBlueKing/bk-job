@@ -267,6 +267,12 @@ data:
                 dataSources:
                   - index: 0
                     jdbcUrl: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.mariadb.connection.properties" . }}
+                    username: {{ include "job.mariadb.username" . }}
+                    {{- if .Values.externalMariaDB.existingPasswordSecret }}
+                    password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+                    {{- else }}
+                    password: ${mariadb-password}
+                    {{- end }}
               # 分片数据源
               {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 14 }}
             # 规则配置
