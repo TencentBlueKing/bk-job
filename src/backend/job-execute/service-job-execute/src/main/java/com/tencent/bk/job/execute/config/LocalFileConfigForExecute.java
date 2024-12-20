@@ -40,4 +40,7 @@ public class LocalFileConfigForExecute {
 
     @Value("${local-file.artifactory.download.concurrency:10}")
     private Integer downloadConcurrency;
+
+    @Value("${local-file.expire-days:7}")
+    private Integer expireDays;
 }
