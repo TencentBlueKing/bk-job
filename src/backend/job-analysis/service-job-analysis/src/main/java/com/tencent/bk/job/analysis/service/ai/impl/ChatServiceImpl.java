@@ -143,7 +143,7 @@ public class ChatServiceImpl implements ChatService {
             log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
         }
         // 4.将AI回答流数据与接口输出流进行同步对接
-        int inMemoryMessageMaxNum = 10000;
+        final int inMemoryMessageMaxNum = 10000;
         AIAnswerStreamSynchronizer aiAnswerStreamSynchronizer = new AIAnswerStreamSynchronizer(inMemoryMessageMaxNum);
         AsyncConsumerAndStreamingResponseBodyPair consumerAndStreamingResponseBodyPair =
             aiAnswerStreamSynchronizer.buildAsyncConsumerAndStreamingResponseBodyPair();
@@ -187,10 +187,11 @@ public class ChatServiceImpl implements ChatService {
      * @return 对话历史记录
      */
     private List<AIChatHistoryDTO> buildChatHistory(String username) {
+        final int maxChatHistoryNum = 5;
         List<AIChatHistoryDTO> chatHistoryDTOList = aiChatHistoryService.getLatestFinishedChatHistoryList(
             username,
             0,
-            5
+            maxChatHistoryNum
         );
         // 过滤出输入输出均不为空的对话记录作为上下文
         chatHistoryDTOList = chatHistoryDTOList.stream().filter(aiChatHistoryDTO -> {

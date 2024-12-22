@@ -97,7 +97,8 @@ public class AIAnswerStreamSynchronizer {
      */
     private boolean pollEventAndHandle(OutputStream outputStream) {
         try {
-            MessagePartEvent event = messageEventQueue.poll(90, TimeUnit.SECONDS);
+            final int maxWaitSeconds = 90;
+            MessagePartEvent event = messageEventQueue.poll(maxWaitSeconds, TimeUnit.SECONDS);
             // 远端流式数据超时，构建对应的错误信息输出至本地输出流
             if (event == null) {
                 Response<AIAnswer> respBody =

@@ -45,19 +45,27 @@ import java.util.concurrent.TimeUnit;
 public class ScriptTemplateService {
 
     private final ServiceScriptTemplateResource scriptTemplateResource;
+    /**
+     * 最大脚本模板数量
+     */
+    private final int maxScriptTemplateNum = 6;
+    /**
+     * 脚本模板缓存过期时间（天）
+     */
+    private final int scriptTemplateCacheExpireDays = 1;
 
     /**
      * 各种语言类型的脚本模板数量有限且很少变动，使用本地缓存提高加载速率，也避免频繁的服务调用
      */
     private final LoadingCache<Integer, String> scriptTemplateCache = CacheBuilder.newBuilder()
-        .maximumSize(6).expireAfterWrite(1, TimeUnit.DAYS).
-        build(new CacheLoader<Integer, String>() {
-                  @SuppressWarnings("all")
-                  @Override
-                  public String load(Integer scriptType) {
-                      return getScriptTemplateIndeed(scriptType);
-                  }
-              }
+        .maximumSize(maxScriptTemplateNum).expireAfterWrite(scriptTemplateCacheExpireDays, TimeUnit.DAYS)
+        .build(new CacheLoader<Integer, String>() {
+                   @SuppressWarnings("all")
+                   @Override
+                   public String load(Integer scriptType) {
+                       return getScriptTemplateIndeed(scriptType);
+                   }
+               }
         );
 
     @Autowired
