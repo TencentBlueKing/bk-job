@@ -38,7 +38,7 @@ public interface AIService {
     /**
      * 获取AI回答流（流式接口）
      *
-     * @param chatHistoryDTOList  历史聊天记录
+     * @param chatHistoryDTOList  历史对话记录
      * @param userInput           用户输入
      * @param partialRespConsumer AI回答流回调
      * @return AI回答结果Future

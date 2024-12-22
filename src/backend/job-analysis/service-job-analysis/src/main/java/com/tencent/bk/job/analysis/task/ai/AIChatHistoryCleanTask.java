@@ -113,7 +113,7 @@ public class AIChatHistoryCleanTask {
     }
 
     /**
-     * 根据最大保留天数清理聊天记录
+     * 根据最大保留天数清理对话记录
      *
      * @param maxKeepDays 最大保留天数
      */
@@ -146,14 +146,14 @@ public class AIChatHistoryCleanTask {
     }
 
     /**
-     * 根据每个用户最大聊天记录数清理聊天记录
+     * 根据每个用户最大对话记录数清理对话记录
      *
-     * @param maxHistoryPerUser 每个用户最大聊天记录数
+     * @param maxHistoryPerUser 每个用户最大对话记录数
      */
     private void cleanChatHistoryByMaxHistoryPerUser(Integer maxHistoryPerUser) {
         // 1.查出所有用户
         List<String> userList = aiChatHistoryDAO.listAllUserOfChatHistory();
-        // 2.清理每个用户的聊天历史记录
+        // 2.清理每个用户的对话历史记录
         for (String username : userList) {
             Long maxId = aiChatHistoryDAO.getFirstIdAfterOffset(username, maxHistoryPerUser);
             if (maxId == null) {
@@ -166,7 +166,7 @@ public class AIChatHistoryCleanTask {
     }
 
     /**
-     * 清理某个用户的聊天记录
+     * 清理某个用户的对话记录
      *
      * @param username 用户名
      * @param maxId    最大记录id（包含）

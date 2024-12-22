@@ -58,6 +58,9 @@ import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Web端使用的AI功能相关接口定义
+ */
 @Validated
 @Api(tags = {"job-analysis:web:AI"})
 @RequestMapping("/web/ai/scope/{scopeType}/{scopeId}")
@@ -110,7 +113,7 @@ public interface WebAIResource {
         Integer length
     );
 
-    @ApiOperation(value = "通用聊天接口", produces = "application/json")
+    @ApiOperation(value = "通用对话接口", produces = "application/json")
     @PostMapping("/general/chat")
     Response<AIChatRecord> generalChat(
         @ApiParam("用户名，网关自动传入")
@@ -125,7 +128,7 @@ public interface WebAIResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "AI通用聊天参数", required = true)
+        @ApiParam(value = "AI通用对话参数", required = true)
         @Validated
         @RequestBody AIGeneralChatReq req
     );
@@ -213,7 +216,7 @@ public interface WebAIResource {
         @RequestBody TerminateChatReq req
     );
 
-    @ApiOperation(value = "清空聊天记录", produces = "application/json")
+    @ApiOperation(value = "清空对话记录", produces = "application/json")
     @DeleteMapping("/clearChatHistory")
     Response<ClearChatHistoryResp> clearChatHistory(
         @ApiParam("用户名，网关自动传入")
