@@ -82,7 +82,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private volatile boolean scheduling = false;
 
-    private final ExecutorService shutdownExecutor = new ThreadPoolExecutor(1, 20, 120L,
+    private final ExecutorService shutdownExecutor = new ThreadPoolExecutor(5, 20, 120L,
         TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
     /**
@@ -276,6 +276,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 taskCountDownLatch = new TaskCountDownLatch(scheduledTasks.keySet());
             }
             for (JobInstanceArchiveTask task : scheduledTasks.values()) {
+                log.info("Submit stop archive task to executor, taskId: {}", task.getTaskId());
                 shutdownExecutor.execute(new StopTask(task, taskCountDownLatch));
             }
         }

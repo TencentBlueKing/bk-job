@@ -132,6 +132,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     @Override
     public void stop(ArchiveTaskStopCallback stopCallback) {
         synchronized (stopMonitor) {
+            log.info("[{}] Set stop flag to true", taskId);
             this.stopFlag = true;
             this.stopCallback = stopCallback;
         }
@@ -144,6 +145,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private void stopTask() {
+        log.info("[{}] Try to stop archive task", taskId);
         synchronized (stopMonitor) {
             if (!isStopped) {
                 isStopped = true;
@@ -154,7 +156,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 }
                 log.info("[{}] Stop archive task successfully", taskId);
             } else {
-                log.info("[{}] Archive task is stopped", taskId);
+                log.info("[{}] Archive task is already stopped", taskId);
             }
         }
     }
@@ -168,6 +170,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             archiveTaskInfo.getHour(),
             ArchiveTaskStatusEnum.SUSPENDED
         );
+        log.info("[{}] Set archive task status suspended", taskId);
     }
 
     @Override

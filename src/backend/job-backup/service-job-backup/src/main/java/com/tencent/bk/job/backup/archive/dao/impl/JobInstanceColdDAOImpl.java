@@ -83,8 +83,13 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
             );
             if (CollectionUtils.isNotEmpty(loader.errors())) {
                 for (LoaderError error : loader.errors()) {
-                    ARCHIVE_FAILED_LOGGER.error("Error while load {} data, exception: {}， error row: {}", table,
-                        error.exception().getMessage(), error.row());
+                    if (isDuplicateError(error)) {
+                        log.info("LoadDataDuplicateError. table: {}, exception: {}, row: {}",
+                            table, error.exception().getMessage(), error.row());
+                    } else {
+                        ARCHIVE_FAILED_LOGGER.error("Error while load {} data, exception: {}， error row: {}", table,
+                            error.exception().getMessage(), error.row());
+                    }
                 }
                 if (hasDuplicateError(loader.errors())) {
                     // 如果存在主键冲突的数据，尝试每一条记录单独插入，就可以使用 onDuplicateKeyIgnore 错误处理方式
@@ -106,9 +111,12 @@ public class JobInstanceColdDAOImpl implements JobInstanceColdDAO {
 
     private boolean hasDuplicateError(List<LoaderError> errors) {
         // 通过 mysql 执行的错误消息判断是否是由于数据唯一性冲突引起的
-        return errors.stream().anyMatch(
-            error -> error.exception().getMessage() != null
-                && error.exception().getMessage().contains("Duplicate entry"));
+        return errors.stream().anyMatch(this::isDuplicateError);
+    }
+
+    private boolean isDuplicateError(LoaderError error) {
+        return error.exception().getMessage() != null
+            && error.exception().getMessage().contains("Duplicate entry");
     }
 
     private int insertSingle(List<? extends TableRecord<?>> recordList) throws IOException {

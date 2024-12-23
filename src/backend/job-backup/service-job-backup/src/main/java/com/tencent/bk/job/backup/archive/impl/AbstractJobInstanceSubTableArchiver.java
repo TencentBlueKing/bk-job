@@ -67,16 +67,22 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
         long readStartTime = System.currentTimeMillis();
+        // 数据偏移量
+        int offset = 1;
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
-            log.info("[{}] Read {}, recordSize: {}, cost: {}ms", ArchiveTaskContextHolder.getArchiveTaskId(),
-                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - readStartTime);
+            int rowSize = CollectionUtils.isEmpty(records) ? 0 : records.size();
+            int offsetEnd = offset + rowSize - 1;
+            log.info("[{}] Read {}, offset[{}-{}], readRows: {}, cost: {}ms",
+                ArchiveTaskContextHolder.getArchiveTaskId(),
+                tableName, offset, offsetEnd, rowSize, readEndTime - readStartTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
                 backupRows += records.size();
             }
+            offset = offsetEnd;
         }
 
         long costTime = System.currentTimeMillis() - startTime;
@@ -88,9 +94,9 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         long startTime = System.currentTimeMillis();
         int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        log.info("[{}] Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms",
-            ArchiveTaskContextHolder.getArchiveTaskId(), tableName,
-            jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
+        log.info("[{}] Delete {}, deletedRows: {}, cost: {}ms",
+            ArchiveTaskContextHolder.getArchiveTaskId(), tableName, deleteRows,
+            System.currentTimeMillis() - startTime);
 
         long costTime = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableDelete(tableName, deleteRows, costTime);
