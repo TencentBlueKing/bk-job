@@ -316,6 +316,8 @@ public class ShardingDataSourceFactory {
         if (globalPropsMap == null || globalPropsMap.isEmpty()) {
             return null;
         }
-        return toProperties(globalPropsMap);
+        Properties properties = toProperties(globalPropsMap);
+        log.info("Create sharding global properties, props: {}", properties);
+        return properties;
     }
 }

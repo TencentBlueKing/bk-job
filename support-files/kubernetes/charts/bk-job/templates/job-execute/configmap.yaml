@@ -475,6 +475,11 @@ data:
                       {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.shardingAlgorithmProps | nindent 22 }}
                       {{- end }}
                       shardingColumnNameMapping: "app_id=app_id,task_instance_id=task_instance_id"
+            # 全局配置
+            props:
+              {{- if .Values.executeConfig.mysql.sharding.databases.job_execute.props }}
+              {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.props | nindent 14 }}
+              {{- end }}
       {{- end }}
     idGen:
       type: {{ .Values.executeConfig.idGen.type }}

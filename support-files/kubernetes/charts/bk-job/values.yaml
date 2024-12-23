@@ -1049,45 +1049,50 @@ executeConfig:
     #       password: "job"
     sharding:
       # 是否启用分库分表
-      enabled: false
-#      databases:
-#        job_execute:
-#          username : job
-#          password : job
-#          # 数据源组
-#          dataSourceGroups:
-#            ds_job_instance:
-#              dataSources:
-#                - index: 0
-#                  jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
-#                - index: 1
-#                  jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
-#            ds_job_instance_search:
-#              dataSources:
-#                - index: 0
-#                  jdbcUrl: jdbc:otel:mysql://db_host_3:3306/job_execute
-#                - index: 1
-#                  jdbcUrl: jdbc:otel:mysql://db_host_4:3306/job_execute
-#            ds_job_instance_search_biz_a:
-#              dataSources:
-#                - index: 0
-#                  jdbcUrl: jdbc:otel:mysql://db_host_5:3306/job_execute
-#                - index: 1
-#                  jdbcUrl: jdbc:otel:mysql://db_host_6:3306/job_execute
-#            ds_job_instance_search_biz_set_b:
-#              dataSources:
-#                - index: 0
-#                  jdbcUrl: jdbc:otel:mysql://db_host_7:3306/job_execute
-#                - index: 1
-#                  jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
-#          shardingRule:
-#            jobInstance:
-#              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
-#            jobInstanceSearch:
-#              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
-#              shardingAlgorithmProps:
-#                defaultDsGroup: "ds_job_instance_search"
-#                largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"
+      enabled: true
+      databases:
+        job_execute:
+          username : job
+          password : job
+          # 数据源组
+          dataSourceGroups:
+            ds_job_instance:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
+            ds_job_instance_search:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_3:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_4:3306/job_execute
+            ds_job_instance_search_biz_a:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_5:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_6:3306/job_execute
+            ds_job_instance_search_biz_set_b:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_7:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
+          shardingRule:
+            jobInstance:
+              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
+            jobInstanceSearch:
+              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
+              shardingAlgorithmProps:
+                defaultDsGroup: "ds_job_instance_search"
+                largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"
+          props:
+            # 一次查询请求在每个数据库实例中所能使用的最大连接数
+            max-connections-size-per-query : 32
+            # 是否在日志中打印实际执行的 SQL
+            sql-show: false
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
@@ -1805,7 +1810,7 @@ k8sConfigWatcherConfig:
       memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi 
+      memory: 256Mi
 
 ## job-assemble 配置
 assembleConfig:
