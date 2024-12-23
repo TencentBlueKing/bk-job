@@ -25,19 +25,15 @@
 package com.tencent.bk.job.execute.dao.sharding;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.sharding.mysql.DataSourceGroupShardingNode;
-import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingAlgorithmBase;
 import com.tencent.bk.job.common.sharding.mysql.algorithm.IllegalShardKeyException;
+import com.tencent.bk.job.common.sharding.mysql.algorithm.ShardingAlgorithmBase;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.sharding.api.sharding.complex.ComplexKeysShardingAlgorithm;
 import org.apache.shardingsphere.sharding.api.sharding.complex.ComplexKeysShardingValue;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,23 +73,77 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
 
     private DataSourceGroupShardingNode defaultDsGroup;
 
+    /**
+     * 是否包含海量数据业务的数据源自定义配置
+     */
+    private volatile boolean isLargeDataResourceScopeDsGroupsConfigured;
+
+    /**
+     * 是否已经初始化海量数据业务的数据源自定义配置
+     */
+    private volatile boolean isLargeDataResourceScopeDsGroupsInitial;
+
     private final Map<String, DataSourceGroupShardingNode> largeDataResourceScopeDsGroups = new HashMap<>();
+
+    private final Map<Long, DataSourceGroupShardingNode> largeDataAppDsGroups = new HashMap<>();
 
 
     @Override
     public Collection<String> doSharding(Collection<String> availableTargetNames,
                                          ComplexKeysShardingValue<T> shardingValue) {
-        Long appId = getAppIdShardingValue(shardingValue);
-        String resourceScope = getResourceScope(appId);
-        Long taskInstanceId = getTaskInstanceIdShardingValue(shardingValue);
+        // 初始化海量数据业务与数据源的映射关系
+        lazyInitLargeDataResourceScopeDsGroupsIfNotAvailable();
+
+        List<Long> appIdShardingValues = getAppIdShardingValues(shardingValue);
+        List<Long> taskInstanceIdShardingValues = getTaskInstanceIdShardingValues(shardingValue);
+        if (appIdShardingValues.size() > 1 ||
+            (taskInstanceIdShardingValues != null && taskInstanceIdShardingValues.size() > 1)) {
+            // 全分片查询
+            return availableTargetNames;
+        } else {
+            // 精准分片查询
+            return standardSharding(availableTargetNames, shardingValue, appIdShardingValues,
+                taskInstanceIdShardingValues);
+        }
+    }
+
+
+    private void lazyInitLargeDataResourceScopeDsGroupsIfNotAvailable() {
+        if (!isLargeDataResourceScopeDsGroupsConfigured) {
+            // 如果未配置，无需处理
+            return;
+        }
+        if (isLargeDataResourceScopeDsGroupsInitial) {
+            // 如果已初始化，无需处理
+            return;
+        }
+
+        largeDataResourceScopeDsGroups.forEach((resourceScope, dataSourceGroupShardingNode) -> {
+            Long appId = GlobalAppScopeMappingService.get().getAppIdByScope(new ResourceScope(resourceScope));
+            if (appId == null) {
+                log.error("AppId not found for resource scope : {}", resourceScope);
+                throw new IllegalStateException("AppId not found for resource scope : " + resourceScope);
+            }
+            largeDataAppDsGroups.put(appId, dataSourceGroupShardingNode);
+        });
+        log.info("Init large data app ds groups, largeDataAppDsGroups: {}", largeDataAppDsGroups);
+        isLargeDataResourceScopeDsGroupsInitial = true;
+    }
+
+    private Collection<String> standardSharding(Collection<String> availableTargetNames,
+                                                ComplexKeysShardingValue<T> shardingValue,
+                                                List<Long> appIdShardingValues,
+                                                List<Long> taskInstanceIdShardingValues) {
+        Long appId = appIdShardingValues.get(0);
+        Long taskInstanceId = CollectionUtils.isEmpty(taskInstanceIdShardingValues) ? null :
+            taskInstanceIdShardingValues.get(0);
 
         String logicTableName = shardingValue.getLogicTableName();
         // 判断是否使用分表算法（如果不是，那么使用分库算法)
         boolean isShardingTable = availableTargetNames.stream()
             .anyMatch(targetName -> targetName.startsWith(shardingValue.getLogicTableName()));
         // 是否海量数据业务；针对海量数据类型的业务，为了避免数据热点打到单个 db 实例的物理上限（比如存储、 mem 等），会使用 task_instance_id 进行二次分片
-        boolean isLargeResourceScopeDsGroup =
-            largeDataResourceScopeDsGroups.containsKey(resourceScope);
+        boolean isLargeResourceScopeDsGroup = largeDataAppDsGroups.containsKey(appId);
 
         if (!isLargeResourceScopeDsGroup) {
             // 非海量数据业务，使用默认数据源分组，按照 app_id(业务 ID）进行分片
@@ -109,7 +159,7 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
             }
         } else {
             // 海量数据业务，使用专用的数据源分组，并使用 task_instance_id 进行二次分片
-            DataSourceGroupShardingNode dsGroup = largeDataResourceScopeDsGroups.get(resourceScope);
+            DataSourceGroupShardingNode dsGroup = largeDataAppDsGroups.get(appId);
             if (isShardingTable) {
                 if (taskInstanceId == null) {
                     // 全分片路由
@@ -141,15 +191,6 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
                 }
             }
         }
-    }
-
-    private String getResourceScope(long appId) throws IllegalShardKeyException {
-        ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
-        if (resourceScope == null) {
-            log.error("Resource scope not found for sharding key {} : {}", shardingKeyAppId, appId);
-            throw new IllegalShardKeyException("Resource scope not found for sharding key : " + shardingKeyAppId);
-        }
-        return resourceScope.toResourceScopeUniqueId();
     }
 
     private Set<String> evalDbTargets(long shardingValue,
@@ -188,33 +229,20 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
         return matchTargetNames;
     }
 
-    private Long getAppIdShardingValue(ComplexKeysShardingValue<T> shardingValue) {
+    private List<Long> getAppIdShardingValues(ComplexKeysShardingValue<T> shardingValue) {
         List<Long> values = castToLongList(
             shardingValue.getColumnNameAndShardingValuesMap().get(shardingKeyAppId));
         if (CollectionUtils.isEmpty(values)) {
             log.error("Shard key [" + shardingKeyAppId + "] required");
             throw new IllegalShardKeyException("Shard key [" + shardingKeyAppId + "] required");
         }
-        if (values.size() > 1) {
-            log.error("Shard key [" + shardingKeyAppId + "] does not support multi value");
-            throw new IllegalShardKeyException(
-                "Shard key [" + shardingKeyAppId + "] does not support multi value");
-        }
-        return values.get(0);
+
+        return values;
     }
 
-    private Long getTaskInstanceIdShardingValue(ComplexKeysShardingValue<T> shardingValue) {
-        List<Long> values = castToLongList(
+    private List<Long> getTaskInstanceIdShardingValues(ComplexKeysShardingValue<T> shardingValue) {
+        return castToLongList(
             shardingValue.getColumnNameAndShardingValuesMap().get(shardingKeyTaskInstanceId));
-        if (CollectionUtils.isEmpty(values)) {
-            return null;
-        }
-        if (values.size() > 1) {
-            log.error("Shard key [" + shardingKeyTaskInstanceId + "] does not support multi value");
-            throw new IllegalShardKeyException(
-                "Shard key [" + shardingKeyTaskInstanceId + "] does not support multi value");
-        }
-        return values.get(0);
     }
 
     private List<Long> castToLongList(Collection<T> list) {
@@ -302,6 +330,7 @@ public class JobInstanceAppComplexShardingAlgorithm<T extends Comparable<T>> ext
         for (String resourceScopeAndDsGroupMappingExpr : resourceScopeAndDsGroupMappings) {
             parseResourceScopeAndDsGroup(allDataNodes, resourceScopeAndDsGroupMappingExpr);
         }
+        isLargeDataResourceScopeDsGroupsConfigured = true;
         log.info("InitLargeDataDataResourceScopeDsGroups -> largeDataResourceScopeDsGroups : {}",
             largeDataResourceScopeDsGroups);
     }

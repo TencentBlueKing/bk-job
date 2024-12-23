@@ -54,6 +54,12 @@ public class ResourceScope {
     @ApiModelProperty(value = "资源范围Id", required = true)
     private String id;
 
+    public ResourceScope(String resourceScope) {
+        String[] typeAndId = resourceScope.split(":");
+        this.type = ResourceScopeTypeEnum.from(typeAndId[0]);
+        this.id = typeAndId[1];
+    }
+
     public ResourceScope(String type, String id) {
         this.type = ResourceScopeTypeEnum.from(type);
         this.id = id;

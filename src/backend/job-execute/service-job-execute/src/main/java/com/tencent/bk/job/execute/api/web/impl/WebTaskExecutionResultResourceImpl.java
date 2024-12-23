@@ -313,6 +313,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
             // 当天结束时间 - 往前的天数
+            end = System.currentTimeMillis();
             start = DateUtils.getUTCCurrentDayEndTimestamp() - timeRange * 24 * 3600 * 1000L;
         } else {
             if (StringUtils.isNotBlank(startTime)) {
