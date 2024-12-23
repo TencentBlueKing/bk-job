@@ -467,7 +467,7 @@ public class ErrorCode {
     public static final int AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP = 1264001;
     // AI分析任务报错信息内容超过最大值：{0}
     public static final int AI_ANALYZE_ERROR_CONTENT_EXCEED_MAX_LENGTH = 1264002;
-    // AI聊天记录不存在：id={0}
+    // AI对话记录不存在：id={0}
     public static final int AI_CHAT_HISTORY_NOT_FOUND_BY_ID = 1264003;
     // 统计分析服务job-analysis错误码 end
 }

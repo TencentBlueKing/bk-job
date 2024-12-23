@@ -36,8 +36,7 @@ import org.springframework.context.event.EventListener;
 
 import java.util.Set;
 import java.util.StringJoiner;
-
-import static com.tencent.bk.job.common.util.toggle.prop.PropToggleStore.PROP_KEY_PREFIX;
+import java.util.stream.Collectors;
 
 /**
  * 配置刷新监听
@@ -96,8 +95,9 @@ public class ConfigRefreshEventListener {
         if (CollectionUtils.isEmpty(changedKeys)) {
             return;
         }
-        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."))) {
-            boolean handleResult = featureStore.handleConfigChange(changedKeys, true);
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(FeatureStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = featureStore.handleConfigChange(
+                filterChangedKeys(changedKeys, FeatureStore.PROP_KEY_PREFIX), true);
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -106,8 +106,9 @@ public class ConfigRefreshEventListener {
             }
         }
 
-        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.resourceQuotaLimit."))) {
-            boolean handleResult = resourceQuotaStore.handleConfigChange(changedKeys);
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(ResourceQuotaStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = resourceQuotaStore.handleConfigChange(
+                filterChangedKeys(changedKeys, ResourceQuotaStore.PROP_KEY_PREFIX));
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -116,8 +117,10 @@ public class ConfigRefreshEventListener {
             }
         }
 
-        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(PROP_KEY_PREFIX))) {
-            boolean handleResult = propToggleStore.handleConfigChange(changedKeys, true);
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(PropToggleStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = propToggleStore.handleConfigChange(
+                filterChangedKeys(changedKeys, PropToggleStore.PROP_KEY_PREFIX), true);
+
             if (!handleResult) {
                 meterRegistry.counter(
                         METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
@@ -126,4 +129,10 @@ public class ConfigRefreshEventListener {
             }
         }
     }
+
+    private Set<String> filterChangedKeys(Set<String> changedKeys, String keyPrefix) {
+        return changedKeys.stream().filter(key -> key.startsWith(keyPrefix))
+            .collect(Collectors.toSet());
+    }
+
 }

@@ -31,7 +31,7 @@ public interface PropToggleStore extends RefreshableConfigStore {
     /**
      * 属性名称前缀
      */
-    String PROP_KEY_PREFIX = "job.toggle.props";
+    String PROP_KEY_PREFIX = "job.toggle.props.";
 
     /**
      * 返回属性开关配置

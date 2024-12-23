@@ -206,7 +206,12 @@ public class BaseHttpHelper implements HttpHelper {
                     respStr
                 );
                 if (throwExceptionWhenClientOrServerError) {
-                    throw new HttpStatusException(httpClientRequest.getURI().toString(), httpStatusCode, reasonPhrase);
+                    throw new HttpStatusException(
+                        httpClientRequest.getURI().toString(),
+                        httpStatusCode,
+                        reasonPhrase,
+                        respStr
+                    );
                 } else {
                     return new HttpResponse(httpStatusCode, respStr, httpResponse.getAllHeaders());
                 }

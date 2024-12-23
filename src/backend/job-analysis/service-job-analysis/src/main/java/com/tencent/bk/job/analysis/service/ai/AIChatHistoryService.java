@@ -31,11 +31,11 @@ import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 import java.util.List;
 
 /**
- * AI聊天记录服务
+ * AI对话记录服务
  */
 public interface AIChatHistoryService {
     /**
-     * 构建AI聊天记录
+     * 构建AI对话记录
      *
      * @param username    用户名
      * @param appId       Job业务ID
@@ -43,7 +43,7 @@ public interface AIChatHistoryService {
      * @param aiPromptDTO AI提示符信息
      * @param status      对话状态
      * @param aiAnswer    AI回答
-     * @return AI聊天记录
+     * @return AI对话记录
      */
     AIChatHistoryDTO buildAIChatHistoryDTO(String username,
                                            Long appId,
@@ -53,81 +53,81 @@ public interface AIChatHistoryService {
                                            AIAnswer aiAnswer);
 
     /**
-     * 插入聊天记录
+     * 插入对话记录
      *
-     * @param aiChatHistoryDTO AI聊天记录
+     * @param aiChatHistoryDTO AI对话记录
      * @return 插入记录的id
      */
     Long insertChatHistory(AIChatHistoryDTO aiChatHistoryDTO);
 
     /**
-     * 判断用户是否存在聊天记录
+     * 判断用户是否存在对话记录
      *
      * @param username 用户名
-     * @return 是否存在聊天记录
+     * @return 是否存在对话记录
      */
     boolean existsChatHistory(String username);
 
     /**
-     * 更新聊天记录状态为正在回答中
+     * 更新对话记录状态为正在回答中
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @return 受影响的行数
      */
     int setAIAnswerReplying(Long historyId);
 
     /**
-     * 更新聊天记录状态
+     * 更新对话记录状态
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @param aiAnswer  AI回答内容
      * @return 受影响的行数
      */
     int finishAIAnswer(Long historyId, AIAnswer aiAnswer);
 
     /**
-     * 终止聊天
+     * 终止对话
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @return 受影响的行数
      */
     int terminateAIAnswer(Long historyId);
 
 
     /**
-     * 获取最近的聊天记录列表
+     * 获取最近的对话记录列表
      *
      * @param username 用户名
      * @param start    起始位置
      * @param length   长度
-     * @return 最近的聊天记录列表
+     * @return 最近的对话记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
 
     /**
-     * 获取最近已完成的聊天记录列表
+     * 获取最近已完成的对话记录列表
      *
      * @param username 用户名
      * @param start    起始位置
      * @param length   长度
-     * @return 最近的聊天记录列表
+     * @return 最近的对话记录列表
      */
     List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length);
 
     /**
-     * 根据用户名与ID获取聊天记录
+     * 根据用户名与ID获取对话记录
      *
      * @param username 用户名
      * @param id       ID
-     * @return 聊天记录
+     * @return 对话记录
      */
     AIChatHistoryDTO getChatHistory(String username, Long id);
 
     /**
-     * 软删除聊天记录
+     * 软删除对话记录
      *
      * @param username 用户名
-     * @return 删除的聊天记录数量
+     * @return 删除的对话记录数量
      */
     int softDeleteChatHistory(String username);
 }

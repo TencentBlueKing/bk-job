@@ -63,7 +63,7 @@ public class AIServiceImpl implements AIService {
     /**
      * 通过蓝鲸OpenAI接口获取AI回答流
      *
-     * @param chatHistoryDTOList  历史聊天记录
+     * @param chatHistoryDTOList  历史对话记录
      * @param userInput           用户输入
      * @param partialRespConsumer AI回答流回调
      * @return AI回答结果Future
@@ -84,7 +84,7 @@ public class AIServiceImpl implements AIService {
     /**
      * 构建传递给蓝鲸OpenAI接口的历史消息记录列表，用作问答上下文
      *
-     * @param chatHistoryDTOList 历史聊天记录
+     * @param chatHistoryDTOList 历史对话记录
      * @return 历史消息列表
      */
     private List<AIDevMessage> buildMessageHistoryList(List<AIChatHistoryDTO> chatHistoryDTOList) {

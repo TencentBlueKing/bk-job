@@ -52,7 +52,7 @@ public class AIProperties {
     private AnalyzeErrorLogConfig analyzeErrorLog = new AnalyzeErrorLogConfig();
 
     /**
-     * 聊天记录相关配置
+     * 对话记录相关配置
      */
     private ChatHistoryConfig chatHistory = new ChatHistoryConfig();
 
@@ -79,7 +79,7 @@ public class AIProperties {
          */
         private Integer maxKeepDays = 31;
         /**
-         * 单个用户最大保留的聊天记录数量
+         * 单个用户最大保留的对话记录数量
          */
         private Integer maxHistoryPerUser = 1000;
     }
