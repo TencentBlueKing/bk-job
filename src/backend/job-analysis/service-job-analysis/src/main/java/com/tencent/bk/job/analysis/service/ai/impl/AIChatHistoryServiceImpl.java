@@ -38,14 +38,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * AI聊天记录管理服务
+ * AI对话记录管理服务
  */
 @Slf4j
 @Service
 public class AIChatHistoryServiceImpl implements AIChatHistoryService {
 
     /**
-     * AI聊天记录数据库操作对象
+     * AI对话记录数据库操作对象
      */
     private final AIChatHistoryDAO aiChatHistoryDAO;
 
@@ -55,7 +55,7 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 构建AI聊天记录数据传输对象
+     * 构建AI对话记录数据传输对象
      *
      * @param username    用户名
      * @param appId       Job业务ID
@@ -63,7 +63,7 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
      * @param aiPromptDTO AI提示符信息
      * @param status      对话状态
      * @param aiAnswer    AI回答
-     * @return AI聊天记录数据传输对象
+     * @return AI对话记录数据传输对象
      */
     @Override
     public AIChatHistoryDTO buildAIChatHistoryDTO(String username,
@@ -102,9 +102,9 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 设置AI聊天记录状态为回复中
+     * 设置AI对话记录状态为回复中
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @return 受影响行数
      */
     @Override
@@ -113,9 +113,9 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 设置AI聊天记录状态为已完成
+     * 设置AI对话记录状态为已完成
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @param aiAnswer  AI回答内容
      * @return 受影响行数
      */
@@ -132,9 +132,9 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 设置AI聊天记录状态为已终止
+     * 设置AI对话记录状态为已终止
      *
-     * @param historyId AI聊天记录ID
+     * @param historyId AI对话记录ID
      * @return 受影响行数
      */
     @Override
@@ -150,12 +150,12 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 从DB获取最近的聊天记录列表，按起始时间升序排列
+     * 从DB获取最近的对话记录列表，按起始时间升序排列
      *
      * @param username 用户名
      * @param start    起始位置
      * @param length   长度
-     * @return 最近的聊天记录列表
+     * @return 最近的对话记录列表
      */
     @Override
     public List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length) {
@@ -165,12 +165,12 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 从DB获取最近已完成的聊天记录列表，按起始时间升序排列
+     * 从DB获取最近已完成的对话记录列表，按起始时间升序排列
      *
      * @param username 用户名
      * @param start    起始位置
      * @param length   长度
-     * @return 最近已完成的聊天记录列表
+     * @return 最近已完成的对话记录列表
      */
     @Override
     public List<AIChatHistoryDTO> getLatestFinishedChatHistoryList(String username, Integer start, Integer length) {
@@ -189,7 +189,7 @@ public class AIChatHistoryServiceImpl implements AIChatHistoryService {
     }
 
     /**
-     * 从DB中分批软删除聊天记录（优先删除创建时间较早的）
+     * 从DB中分批软删除对话记录（优先删除创建时间较早的）
      *
      * @param username 用户名
      * @return 删除的记录条数
