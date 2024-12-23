@@ -214,8 +214,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE gse_file_agent_task t1
     INNER JOIN (
@@ -223,8 +222,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE gse_script_agent_task t1
     INNER JOIN (
@@ -232,8 +230,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE gse_task t1
     INNER JOIN (
@@ -241,8 +238,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE step_instance_confirm t1
     INNER JOIN (
@@ -250,8 +246,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE step_instance_script t1
     INNER JOIN (
@@ -259,8 +254,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE step_instance_file t1
     INNER JOIN (
@@ -268,8 +262,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     UPDATE step_instance_rolling_task t1
     INNER JOIN (
@@ -277,8 +270,7 @@ label:BEGIN
       FROM step_instance 
       WHERE id BETWEEN fromId AND endId)
     AS tmp ON t1.step_instance_id = tmp.id 
-    SET t1.task_instance_id = tmp.task_instance_id
-    WHERE t1.task_instance_id = 0;
+    SET t1.task_instance_id = tmp.task_instance_id;
 
     COMMIT;
 
