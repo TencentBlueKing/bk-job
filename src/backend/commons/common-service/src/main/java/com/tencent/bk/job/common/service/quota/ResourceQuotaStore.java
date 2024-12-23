@@ -47,6 +47,11 @@ import java.util.Set;
 public class ResourceQuotaStore implements ConfigRefreshHandler {
 
     /**
+     * 属性名称前缀
+     */
+    public static final String PROP_KEY_PREFIX = "job.resourceQuotaLimit.";
+
+    /**
      * key: QuotaResourceId; value: ResourceQuotaLimit
      */
     private volatile Map<String, ResourceQuotaLimit> resourceQuotas = new HashMap<>();
