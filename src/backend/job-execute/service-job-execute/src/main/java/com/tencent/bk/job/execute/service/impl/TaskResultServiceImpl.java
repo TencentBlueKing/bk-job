@@ -153,6 +153,10 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     private void checkTaskInstanceQueryTimeRange(TaskInstanceQuery taskQuery) {
+        if (taskQuery.isDisableTimeRangeValidate()) {
+            return;
+        }
+        // 校验查询时间范围
         long start = taskQuery.getStartTime();
         long end = taskQuery.getEndTime();
         if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {

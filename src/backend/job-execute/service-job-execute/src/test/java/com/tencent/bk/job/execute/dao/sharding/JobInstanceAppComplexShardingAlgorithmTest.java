@@ -4,9 +4,12 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.sharding.mysql.algorithm.IllegalShardKeyException;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import org.apache.shardingsphere.sharding.api.sharding.complex.ComplexKeysShardingValue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.mockito.MockedStatic;
 import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
@@ -21,6 +24,7 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class JobInstanceAppComplexShardingAlgorithmTest {
@@ -34,19 +38,13 @@ class JobInstanceAppComplexShardingAlgorithmTest {
     @BeforeAll
     static void init() {
         AppScopeMappingService mockAppScopeMappingService = mock(AppScopeMappingService.class);
-        when(mockAppScopeMappingService.getScopeByAppId(399L))
-            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ, "501"));
-        when(mockAppScopeMappingService.getScopeByAppId(9991031L))
-            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, "9991031"));
-        when(mockAppScopeMappingService.getScopeByAppId(10001L))
-            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ, "10001"));
-        when(mockAppScopeMappingService.getScopeByAppId(10002L))
-            .thenReturn(new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, "10002"));
-        ApplicationContext mockApplicationContext = mock(ApplicationContext.class);
-        when(mockApplicationContext.getBean(AppScopeMappingService.class)).thenReturn(mockAppScopeMappingService);
+        when(mockAppScopeMappingService.getAppIdByScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, "10001")))
+            .thenReturn(10001L);
+        when(mockAppScopeMappingService.getAppIdByScope(new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, "10002")))
+            .thenReturn(10002L);
+        GlobalAppScopeMappingService.register(mockAppScopeMappingService);
 
         shardingAlgorithm = new JobInstanceAppComplexShardingAlgorithm<>();
-        shardingAlgorithm.setApplicationContext(mockApplicationContext);
         Properties props = new Properties();
         props.put("dataNodes", "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=5;" +
             "ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=5;" +
@@ -178,40 +176,57 @@ class JobInstanceAppComplexShardingAlgorithmTest {
         );
         assertThatExceptionOfType(IllegalShardKeyException.class).isThrownBy(() ->
             shardingAlgorithm.doSharding(availableDsList, shardingValue));
+    }
+
+    @Test
+    void testRangeSharding() {
+        Map<String, Collection<Long>> columnNameAndShardingValuesMap = new HashMap<>();
+        ComplexKeysShardingValue<Long> shardingValue = new ComplexKeysShardingValue<>(
+            "task_instance_app",
+            columnNameAndShardingValuesMap,
+            null
+        );
 
         List<Long> appIdList = new ArrayList<>();
         appIdList.add(10001L);
         appIdList.add(10002L);
         columnNameAndShardingValuesMap.put("app_id", appIdList);
-        assertThatExceptionOfType(IllegalShardKeyException.class).isThrownBy(() ->
-            shardingAlgorithm.doSharding(availableDsList, shardingValue));
+        assertThat(shardingAlgorithm.doSharding(availableDsList, shardingValue))
+            .containsExactlyInAnyOrderElementsOf(availableDsList);
+        assertThat(shardingAlgorithm.doSharding(availableTableList, shardingValue))
+            .containsExactlyInAnyOrderElementsOf(availableTableList);
 
         columnNameAndShardingValuesMap.clear();
+        appIdList = new ArrayList<>();
+        appIdList.add(10001L);
         List<Long> taskInstanceIdList = new ArrayList<>();
         taskInstanceIdList.add(1010001L);
         taskInstanceIdList.add(1010002L);
+        columnNameAndShardingValuesMap.put("app_id", appIdList);
         columnNameAndShardingValuesMap.put("id", taskInstanceIdList);
-        assertThatExceptionOfType(IllegalShardKeyException.class).isThrownBy(() ->
-            shardingAlgorithm.doSharding(availableDsList, shardingValue));
+        assertThat(shardingAlgorithm.doSharding(availableDsList, shardingValue))
+            .containsExactlyInAnyOrderElementsOf(availableDsList);
+        assertThat(shardingAlgorithm.doSharding(availableTableList, shardingValue))
+            .containsExactlyInAnyOrderElementsOf(availableTableList);
     }
 
-//    @Test
-//    @Timeout(1L)
-//    void performanceTest() {
-//        Map<String, Collection<Long>> columnNameAndShardingValuesMap = new HashMap<>();
-//        columnNameAndShardingValuesMap.put("app_id", Collections.singletonList(10002L));
-//        ComplexKeysShardingValue<Long> shardingValue;
-//        for (long taskInstanceId = 1; taskInstanceId < 100000L; taskInstanceId++) {
-//            columnNameAndShardingValuesMap.put("id", Collections.singletonList(taskInstanceId));
-//            shardingValue = new ComplexKeysShardingValue<>(
-//                "task_instance_app",
-//                columnNameAndShardingValuesMap,
-//                null
-//            );
-//            shardingAlgorithm.doSharding(availableDsList, shardingValue);
-//            shardingAlgorithm.doSharding(availableTableList, shardingValue);
-//        }
-//    }
+    @Test
+    @Timeout(1L)
+    void performanceTest() {
+        Map<String, Collection<Long>> columnNameAndShardingValuesMap = new HashMap<>();
+        columnNameAndShardingValuesMap.put("app_id", Collections.singletonList(10002L));
+        ComplexKeysShardingValue<Long> shardingValue;
+        for (long taskInstanceId = 1; taskInstanceId < 1000000L; taskInstanceId++) {
+            columnNameAndShardingValuesMap.put("id", Collections.singletonList(taskInstanceId));
+            shardingValue = new ComplexKeysShardingValue<>(
+                "task_instance_app",
+                columnNameAndShardingValuesMap,
+                null
+            );
+            shardingAlgorithm.doSharding(availableDsList, shardingValue);
+            shardingAlgorithm.doSharding(availableTableList, shardingValue);
+        }
+    }
 
 
 }
