@@ -79,7 +79,10 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         List<Long> jobInstanceIds =
             jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
         // 备份主表数据
-        backupPrimaryTableRecord(jobInstanceRecords, tablesBackupResult);
+        BackupResult primaryTableBackupResult =
+            backupPrimaryTableRecord(jobInstanceRecords);
+        tablesBackupResult.add(jobInstanceMainRecordDAO.getTable().getName(), primaryTableBackupResult);
+
         // 备份子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
             BackupResult backupResult = tableArchiver.backupRecords(jobInstanceIds);
@@ -88,8 +91,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
         return tablesBackupResult;
     }
 
-    private void backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords,
-                                          TablesBackupResult tablesBackupResult) {
+    private BackupResult backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords) {
         // 备份主表数据
         long startTime = System.currentTimeMillis();
         long backupRows = jobInstanceColdDAO.batchInsert(jobInstanceRecords,
@@ -100,7 +102,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             backupRows,
             cost
         );
-        tablesBackupResult.add(jobInstanceMainRecordDAO.getTable().getName(), new BackupResult(backupRows, cost));
+        return new BackupResult(backupRows, cost);
     }
 
     @Override
@@ -113,14 +115,16 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             tablesDeleteResult.add(tableArchiver.getTableName(), deleteResult);
         });
         // 删除主表数据
-        deletePrimaryTableRecord(jobInstanceIds, tablesDeleteResult);
+        DeleteResult primaryTableDeleteResult = deletePrimaryTableRecord(jobInstanceIds);
+        tablesDeleteResult.add(jobInstanceMainRecordDAO.getTable().getName(), primaryTableDeleteResult);
+
         log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
             jobInstanceIds.size(), System.currentTimeMillis() - startTime);
 
         return tablesDeleteResult;
     }
 
-    private void deletePrimaryTableRecord(List<Long> jobInstanceIds, TablesDeleteResult tablesDeleteResult) {
+    private DeleteResult deletePrimaryTableRecord(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         String tableName = jobInstanceMainRecordDAO.getTable().getName();
         int deleteRows = jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
@@ -131,6 +135,6 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
             deleteRows,
             cost
         );
-        tablesDeleteResult.add(jobInstanceMainRecordDAO.getTable().getName(), new DeleteResult(deleteRows, cost));
+        return new DeleteResult(deleteRows, cost);
     }
 }
