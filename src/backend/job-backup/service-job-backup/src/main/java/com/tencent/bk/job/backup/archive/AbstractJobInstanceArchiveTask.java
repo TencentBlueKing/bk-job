@@ -49,6 +49,7 @@ import org.jooq.TableRecord;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -323,18 +324,24 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 tablesBackupResult.getTables().keySet(), tablesDeleteResult.getTables().keySet());
             throw new ArchiveException("Backup and delete table count not match");
         }
-        tablesBackupResult.getTables().forEach((tableName, backupResult) -> {
+        boolean isBackupDeleteRowsMatch = true;
+        for (Map.Entry<String, BackupResult> entry : tablesBackupResult.getTables().entrySet()) {
+            String tableName = entry.getKey();
+            BackupResult backupResult = entry.getValue();
             DeleteResult deleteResult = tablesDeleteResult.getTables().get(tableName);
             if (backupResult == BackupResult.NON_OP_BACKUP_RESULT) {
                 // 无需归档的表，无需比较
-                 return;
+                continue;
             }
             if (backupResult.getBackupRows() != deleteResult.getDeletedRows()) {
                 log.error("Backup rows and delete row not match, table: {}, backupRows: {}, deleteRows: {}",
                     tableName, backupResult.getBackupRows(), deleteResult.getDeletedRows());
-                throw new ArchiveException("Backup and delete row count not match");
+                isBackupDeleteRowsMatch = false;
             }
-        });
+        }
+        if (!isBackupDeleteRowsMatch) {
+            throw new ArchiveException("Backup and delete row count not match");
+        }
     }
 
     private void setArchiveTaskExecutionDetail(Long archiveRecordSize,
