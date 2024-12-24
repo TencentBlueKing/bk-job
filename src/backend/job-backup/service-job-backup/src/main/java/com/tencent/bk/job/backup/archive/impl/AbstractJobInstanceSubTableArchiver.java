@@ -68,9 +68,9 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
         RecordResultSet<? extends TableRecord<?>> recordResultSet =
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
-        long readStartTime = System.currentTimeMillis();
         // 数据偏移量
         int offset = 0;
+        long readStartTime = System.currentTimeMillis();
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
@@ -93,6 +93,8 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
                 backupRows += records.size();
             }
+
+            readStartTime = System.currentTimeMillis();
             offset += rowSize;
         }
 
