@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
@@ -71,6 +72,7 @@ import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLo
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +86,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * job-execute 模块数据归档配置
@@ -130,6 +136,20 @@ public class ArchiveConfiguration {
         );
     }
 
+    @Bean("archiveTaskStopExecutor")
+    public ThreadPoolExecutor archiveTaskStopExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "archiveTaskStopExecutor",
+            5,
+            20,
+            120L,
+            TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("archive-task-stop-thread-pool-%d").build()
+        );
+    }
+
     @Bean
     public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
@@ -141,7 +161,8 @@ public class ArchiveConfiguration {
         ArchiveTaskExecuteLock archiveTaskExecuteLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
         ArchiveTablePropsStorage archiveTablePropsStorage,
-        Tracer tracer) {
+        Tracer tracer,
+        @Qualifier("archiveTaskStopExecutor") ThreadPoolExecutor archiveTaskStopExecutor) {
 
         log.info("Init JobInstanceArchiveTaskScheduler");
         return new JobInstanceArchiveTaskScheduler(
@@ -154,7 +175,8 @@ public class ArchiveConfiguration {
             archiveTaskExecuteLock,
             archiveErrorTaskCounter,
             archiveTablePropsStorage,
-            tracer
+            tracer,
+            archiveTaskStopExecutor
         );
     }
 

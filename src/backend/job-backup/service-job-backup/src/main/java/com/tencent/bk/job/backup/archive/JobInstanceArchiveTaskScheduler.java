@@ -33,7 +33,6 @@ import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskSchedul
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.common.service.async.TraceExecutorService;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 作业执行历史归档任务调度
@@ -83,7 +79,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private volatile boolean scheduling = false;
 
-    private final ExecutorService shutdownExecutor;
+    private final ExecutorService archiveTaskStopExecutor;
 
     /**
      * 调度的所有的任务
@@ -100,7 +96,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                                            ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                            ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                            ArchiveTablePropsStorage archiveTablePropsStorage,
-                                           Tracer tracer) {
+                                           Tracer tracer,
+                                           ExecutorService archiveTaskStopExecutor) {
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
@@ -111,15 +108,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
         this.tracer = tracer;
-        this.shutdownExecutor = new TraceExecutorService(
-            tracer,
-            new ThreadPoolExecutor(
-                5,
-                20,
-                120L,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>()
-            ));
+        this.archiveTaskStopExecutor = archiveTaskStopExecutor;
     }
 
     public void schedule() {
@@ -286,7 +275,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
             }
             for (JobInstanceArchiveTask task : scheduledTasks.values()) {
                 log.info("Submit stop archive task to executor, taskId: {}", task.getTaskId());
-                shutdownExecutor.execute(new StopTask(task, taskCountDownLatch));
+                archiveTaskStopExecutor.execute(new StopTask(task, taskCountDownLatch));
             }
         }
         try {

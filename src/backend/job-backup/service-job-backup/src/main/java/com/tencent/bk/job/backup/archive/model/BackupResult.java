@@ -26,29 +26,28 @@ package com.tencent.bk.job.backup.archive.model;
 
 import lombok.Data;
 
+/**
+ * 归档-备份结果
+ */
 @Data
 public class BackupResult {
+
     /**
-     * 读取的记录数量
+     * 未执行备份操作返回的特殊BackupResult
      */
-    private long readRows;
+    public static final BackupResult NON_OP_BACKUP_RESULT = new BackupResult(-1, -1);
+
     /**
      * 备份成功的记录数量
      */
     private long backupRows;
     /**
-     * 读取耗时
+     * 总耗时
      */
-    private long readCost;
-    /**
-     * 备份写入耗时
-     */
-    private long writeCost;
+    private long cost;
 
-    public BackupResult(long readRows, long backupRows, long readCost, long writeCost) {
-        this.readRows = readRows;
+    public BackupResult(long backupRows, long cost) {
         this.backupRows = backupRows;
-        this.readCost = readCost;
-        this.writeCost = writeCost;
+        this.cost = cost;
     }
 }

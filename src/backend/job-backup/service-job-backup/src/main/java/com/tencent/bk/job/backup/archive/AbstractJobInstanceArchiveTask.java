@@ -28,7 +28,11 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceMainHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.TablesBackupResult;
+import com.tencent.bk.job.backup.archive.model.TablesDeleteResult;
 import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
@@ -263,20 +267,24 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                 List<Long> jobInstanceIds =
                     jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
 
+                TablesBackupResult tablesBackupResult = null;
+                TablesDeleteResult tablesDeleteResult = null;
                 // 写入数据到冷 db
                 if (backupEnabled) {
                     long backupStartTime = System.currentTimeMillis();
-                    backupJobInstanceToColdDb(jobInstanceRecords);
+                    tablesBackupResult = backupJobInstanceToColdDb(jobInstanceRecords);
                     log.info("[{}] Backup to cold db, jobInstanceRecordSize: {}, cost: {}",
                         taskId, jobInstanceRecords.size(), System.currentTimeMillis() - backupStartTime);
                 }
                 // 从热 db 删除数据
                 if (deleteEnabled) {
                     long deleteStartTime = System.currentTimeMillis();
-                    deleteJobInstanceHotData(jobInstanceIds);
+                    tablesDeleteResult = deleteJobInstanceHotData(jobInstanceIds);
                     log.info("[{}] Delete hot db, jobInstanceRecordSize: {}, cost: {}",
                         taskId, jobInstanceRecords.size(), System.currentTimeMillis() - deleteStartTime);
                 }
+
+                checkBackupDeleteDataQuantity(tablesBackupResult, tablesDeleteResult);
 
                 // 更新归档进度
                 T lastRecord = jobInstanceRecords.get(jobInstanceRecords.size() - 1);
@@ -299,6 +307,34 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             long archiveCost = System.currentTimeMillis() - startTime;
             setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);
         }
+    }
+
+    /**
+     * 检查备份与删除的数据数量
+     */
+    private void checkBackupDeleteDataQuantity(TablesBackupResult tablesBackupResult,
+                                               TablesDeleteResult tablesDeleteResult) {
+        if (tablesBackupResult == null || tablesDeleteResult == null) {
+            // 无需比较
+            return;
+        }
+        if (!tablesBackupResult.getTables().keySet().equals(tablesDeleteResult.getTables().keySet())) {
+            log.error("Backup tables are not equals delete tables, backupTables: {}, deleteTables: {}",
+                tablesBackupResult.getTables().keySet(), tablesDeleteResult.getTables().keySet());
+            throw new ArchiveException("Backup and delete table count not match");
+        }
+        tablesBackupResult.getTables().forEach((tableName, backupResult) -> {
+            DeleteResult deleteResult = tablesDeleteResult.getTables().get(tableName);
+            if (backupResult == BackupResult.NON_OP_BACKUP_RESULT) {
+                // 无需归档的表，无需比较
+                 return;
+            }
+            if (backupResult.getBackupRows() != deleteResult.getDeletedRows()) {
+                log.error("Backup rows and delete row not match, table: {}, backupRows: {}, deleteRows: {}",
+                    tableName, backupResult.getBackupRows(), deleteResult.getDeletedRows());
+                throw new ArchiveException("Backup and delete row count not match");
+            }
+        });
     }
 
     private void setArchiveTaskExecutionDetail(Long archiveRecordSize,
@@ -335,14 +371,14 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
      *
      * @param jobInstances 作业实例列表
      */
-    protected abstract void backupJobInstanceToColdDb(List<T> jobInstances);
+    protected abstract TablesBackupResult backupJobInstanceToColdDb(List<T> jobInstances);
 
     /**
      * 删除作业实例热数据
      *
      * @param jobInstanceIds 作业实例 ID 列表
      */
-    protected abstract void deleteJobInstanceHotData(List<Long> jobInstanceIds);
+    protected abstract TablesDeleteResult deleteJobInstanceHotData(List<Long> jobInstanceIds);
 
     protected boolean isBackupEnable() {
         ArchiveModeEnum archiveMode = ArchiveModeEnum.valOf(archiveProperties.getMode());

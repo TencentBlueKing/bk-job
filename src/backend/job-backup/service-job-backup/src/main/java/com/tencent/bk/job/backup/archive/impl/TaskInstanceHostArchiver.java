@@ -27,8 +27,11 @@ package com.tencent.bk.job.backup.archive.impl;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.TaskInstanceHostRecordDAO;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
 
 import java.util.List;
+
+import static com.tencent.bk.job.backup.archive.model.BackupResult.NON_OP_BACKUP_RESULT;
 
 
 public class TaskInstanceHostArchiver extends AbstractJobInstanceSubTableArchiver {
@@ -45,7 +48,8 @@ public class TaskInstanceHostArchiver extends AbstractJobInstanceSubTableArchive
     }
 
     @Override
-    public void backupRecords(List<Long> jobInstanceIds) {
+    public BackupResult backupRecords(List<Long> jobInstanceIds) {
         // task_instance_host 表的数据暂时无需备份到冷存储
+        return NON_OP_BACKUP_RESULT;
     }
 }

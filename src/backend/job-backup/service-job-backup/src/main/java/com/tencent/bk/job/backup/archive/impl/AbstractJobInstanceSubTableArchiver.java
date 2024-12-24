@@ -30,6 +30,8 @@ import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
@@ -59,7 +61,7 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
     }
 
     @Override
-    public void backupRecords(List<Long> jobInstanceIds) {
+    public BackupResult backupRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         long backupRows = 0;
 
@@ -68,29 +70,29 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
                 archiveTablePropsStorage.getReadRowLimit(tableName));
         long readStartTime = System.currentTimeMillis();
         // 数据偏移量
-        int offset = 1;
+        int offset = 0;
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
             int rowSize = CollectionUtils.isEmpty(records) ? 0 : records.size();
-            int offsetEnd = offset + rowSize - 1;
             log.info("[{}] Read {}, offset[{}-{}], readRows: {}, cost: {}ms",
                 ArchiveTaskContextHolder.getArchiveTaskId(),
-                tableName, offset, offsetEnd, rowSize, readEndTime - readStartTime);
+                tableName, offset + 1, offset + rowSize, rowSize, readEndTime - readStartTime);
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
                 backupRows += records.size();
             }
-            offset = offsetEnd;
+            offset += rowSize;
         }
 
         long costTime = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableBackup(tableName, backupRows, costTime);
+        return new BackupResult(backupRows, costTime);
     }
 
     @Override
-    public void deleteRecords(List<Long> jobInstanceIds) {
+    public DeleteResult deleteRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
@@ -100,5 +102,11 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
 
         long costTime = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableDelete(tableName, deleteRows, costTime);
+        return new DeleteResult(deleteRows, costTime);
+    }
+
+    @Override
+    public String getTableName() {
+        return tableName;
     }
 }

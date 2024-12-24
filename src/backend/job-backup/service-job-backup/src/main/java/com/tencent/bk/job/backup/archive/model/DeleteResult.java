@@ -22,35 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+/**
+ * 归档-删除结果
+ */
+@Data
+public class DeleteResult {
 
-@Slf4j
-@Configuration(value = "jobBackupExecutorConfig")
-public class ExecutorConfiguration {
+    /**
+     * 删除成功的记录数量
+     */
+    private long deletedRows;
+    /**
+     * 删除耗时
+     */
+    private long deleteCost;
 
-    @Bean("archiveExecutor")
-    public ThreadPoolExecutor archiveExecutor(MeterRegistry meterRegistry) {
-        return new WatchableThreadPoolExecutor(
-            meterRegistry,
-            "archiveExecutor",
-            20,
-            20,
-            0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(20),
-            new ThreadFactoryBuilder().setNameFormat("archive-thread-pool-%d").build(),
-            new ThreadPoolExecutor.AbortPolicy()
-        );
+    public DeleteResult(long deletedRows, long deleteCost) {
+        this.deletedRows = deletedRows;
+        this.deleteCost = deleteCost;
     }
 }
