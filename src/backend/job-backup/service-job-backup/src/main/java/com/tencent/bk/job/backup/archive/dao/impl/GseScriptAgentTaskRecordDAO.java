@@ -46,7 +46,6 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK.ID.asc());
     }
 
@@ -73,7 +72,6 @@ public class GseScriptAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.ID.gt(lastRecord.getId()));
                 return conditions;
             }

@@ -30,10 +30,10 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskContext;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.BackupResult;
 import com.tencent.bk.job.backup.archive.model.DeleteResult;
+import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TablesBackupResult;
 import com.tencent.bk.job.backup.archive.model.TablesDeleteResult;
-import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
@@ -82,7 +82,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     /**
      * 归档进度
      */
-    private final TimeAndIdBasedArchiveProcess progress;
+    private final IdBasedArchiveProcess progress;
 
     private boolean isAcquireLock;
     /**
@@ -289,10 +289,8 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
 
                 // 更新归档进度
                 T lastRecord = jobInstanceRecords.get(jobInstanceRecords.size() - 1);
-                Long lastTimestamp = extractJobInstanceCreateTime(lastRecord);
                 Long lastJobInstanceId = extractJobInstanceId(lastRecord);
-                TimeAndIdBasedArchiveProcess progress =
-                    new TimeAndIdBasedArchiveProcess(lastTimestamp, lastJobInstanceId);
+                IdBasedArchiveProcess progress = new IdBasedArchiveProcess(lastJobInstanceId);
                 boolean isFinished = jobInstanceRecords.size() < readLimit;
                 if (isFinished) {
                     // 更新任务结束信息
@@ -362,14 +360,23 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     private List<T> readJobInstanceRecords(int readLimit) {
         List<T> jobInstanceRecords;
         long readStartTime = System.currentTimeMillis();
-        Long fromTime = progress == null ? archiveTaskInfo.getFromTimestamp() : progress.getTimestamp();
+
         Long fromTaskInstanceId = progress != null ? progress.getId() : null;
-        jobInstanceRecords = jobInstanceMainRecordDAO.readSortedJobInstanceFromHotDB(fromTime,
+        jobInstanceRecords = jobInstanceMainRecordDAO.readSortedJobInstanceFromHotDB(archiveTaskInfo.getFromTimestamp(),
             archiveTaskInfo.getToTimestamp(), fromTaskInstanceId, readLimit);
+        long cost = System.currentTimeMillis() - readStartTime;
         log.info("[{}] Read sorted job instance from hot db, fromJobCreateTime: {}, toJobCreatTime: {}, " +
-                "fromJobInstanceId: {}, resultSize: {}, cost: {} ms",
-            taskId, fromTime, archiveTaskInfo.getToTimestamp(), fromTaskInstanceId,
-            jobInstanceRecords.size(), System.currentTimeMillis() - readStartTime);
+                "fromJobInstanceId: {}, recordSize: {}, cost: {} ms",
+            taskId,
+            archiveTaskInfo.getFromTimestamp(),
+            archiveTaskInfo.getToTimestamp(),
+            fromTaskInstanceId,
+            jobInstanceRecords.size(),
+            cost
+        );
+        if (cost > 1000L) {
+            log.info("[{}] SlowQuery-ReadJobInstanceRecords, cost: {}ms", taskId, cost);
+        }
         return jobInstanceRecords;
     }
 
@@ -448,7 +455,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
         }
     }
 
-    private void updateRunningExecuteInfo(TimeAndIdBasedArchiveProcess process) {
+    private void updateRunningExecuteInfo(IdBasedArchiveProcess process) {
         archiveTaskInfo.setProcess(process);
 
         if (!checkUpdateEnabled()) {
@@ -465,7 +472,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     }
 
     private void updateCompletedExecuteInfo(ArchiveTaskStatusEnum status,
-                                            TimeAndIdBasedArchiveProcess process) {
+                                            IdBasedArchiveProcess process) {
         archiveTaskInfo.setStatus(status);
         if (process != null) {
             archiveTaskInfo.setProcess(process);
@@ -506,15 +513,6 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
      */
     protected Long extractJobInstanceId(T record) {
         return record.get(jobInstanceMainRecordDAO.getJobInstanceIdField());
-    }
-
-    /**
-     * 从作业实例记录中提取作业实例创建时间
-     *
-     * @param record 作业实例记录
-     */
-    protected Long extractJobInstanceCreateTime(T record) {
-        return record.get(jobInstanceMainRecordDAO.getJobInstanceCreateTimeField());
     }
 
     @Override

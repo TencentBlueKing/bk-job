@@ -29,36 +29,30 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 基于数据创建时间（primary)+id(secondary) 的归档进度
+ * 基于自增ID的归档进度
  */
 @Data
 @NoArgsConstructor
-public class TimeAndIdBasedArchiveProcess {
-    private Long timestamp;
+public class IdBasedArchiveProcess {
     private Long id;
 
-    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
-        this.timestamp = timestamp;
+    public IdBasedArchiveProcess(Long id) {
         this.id = id;
     }
 
     @Override
-    public TimeAndIdBasedArchiveProcess clone() {
-        return new TimeAndIdBasedArchiveProcess(timestamp, id);
+    public IdBasedArchiveProcess clone() {
+        return new IdBasedArchiveProcess(id);
     }
 
     public String toPersistentProcess() {
-        return timestamp + ":" + id;
+        return String.valueOf(id);
     }
 
-    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
+    public static IdBasedArchiveProcess fromPersistentProcess(String process) {
         if (StringUtils.isEmpty(process)) {
             return null;
         }
-        String[] processParts = process.split(":");
-        return new TimeAndIdBasedArchiveProcess(
-            Long.parseLong(processParts[0]),
-            Long.parseLong(processParts[1])
-        );
+        return new IdBasedArchiveProcess(Long.parseLong(process));
     }
 }

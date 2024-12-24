@@ -47,7 +47,6 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractJobInstanceHotRecord
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(GseFileExecuteObjTask.GSE_FILE_EXECUTE_OBJ_TASK.ID.asc());
     }
 
@@ -73,7 +72,6 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractJobInstanceHotRecord
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.ID.gt(lastRecord.getId()));
                 return conditions;
             }

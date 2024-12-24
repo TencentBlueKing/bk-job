@@ -44,7 +44,6 @@ public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<T
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(TaskInstanceHost.TASK_INSTANCE_HOST.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(TaskInstanceHost.TASK_INSTANCE_HOST.HOST_ID.asc());
     }
 
@@ -71,7 +70,6 @@ public class TaskInstanceHostRecordDAO extends AbstractJobInstanceHotRecordDAO<T
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.HOST_ID.gt(lastRecord.getHostId()));
                 return conditions;
             }

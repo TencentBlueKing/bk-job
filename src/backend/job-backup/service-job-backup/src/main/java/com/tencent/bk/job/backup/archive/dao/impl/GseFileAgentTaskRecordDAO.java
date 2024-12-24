@@ -46,7 +46,6 @@ public class GseFileAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<G
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(GseFileAgentTask.GSE_FILE_AGENT_TASK.ID.asc());
     }
 
@@ -73,7 +72,6 @@ public class GseFileAgentTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<G
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.ID.gt(lastRecord.getId()));
                 return conditions;
             }

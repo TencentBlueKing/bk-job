@@ -75,9 +75,19 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
             int rowSize = CollectionUtils.isEmpty(records) ? 0 : records.size();
+            long readCost = readEndTime - readStartTime;
             log.info("[{}] Read {}, offset[{}-{}], readRows: {}, cost: {}ms",
                 ArchiveTaskContextHolder.getArchiveTaskId(),
-                tableName, offset + 1, offset + rowSize, rowSize, readEndTime - readStartTime);
+                tableName,
+                offset + 1,
+                offset + rowSize,
+                rowSize,
+                readCost
+            );
+            if (readCost > 1000L) {
+                log.info("[{}] SlowQuery-ReadBackupRecords, table: {}, cost: {}ms",
+                    ArchiveTaskContextHolder.getArchiveTaskId(), tableName, readCost);
+            }
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
