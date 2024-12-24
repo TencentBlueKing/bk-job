@@ -33,6 +33,7 @@ import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskSchedul
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
+import com.tencent.bk.job.common.service.async.TraceExecutorService;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -82,8 +83,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private volatile boolean scheduling = false;
 
-    private final ExecutorService shutdownExecutor = new ThreadPoolExecutor(5, 20, 120L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    private final ExecutorService shutdownExecutor;
 
     /**
      * 调度的所有的任务
@@ -111,6 +111,15 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
         this.tracer = tracer;
+        this.shutdownExecutor = new TraceExecutorService(
+            tracer,
+            new ThreadPoolExecutor(
+                5,
+                20,
+                120L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>()
+            ));
     }
 
     public void schedule() {
