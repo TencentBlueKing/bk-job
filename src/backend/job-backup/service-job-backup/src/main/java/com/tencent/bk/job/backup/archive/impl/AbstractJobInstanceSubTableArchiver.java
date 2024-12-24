@@ -30,6 +30,8 @@ import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchiver;
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.AbstractJobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.TableRecord;
@@ -59,40 +61,64 @@ public class AbstractJobInstanceSubTableArchiver implements JobInstanceSubTableA
     }
 
     @Override
-    public void backupRecords(List<Long> jobInstanceIds) {
+    public BackupResult backupRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         long backupRows = 0;
 
         RecordResultSet<? extends TableRecord<?>> recordResultSet =
             jobInstanceHotRecordDAO.executeQuery(jobInstanceIds,
                 archiveTablePropsStorage.getReadRowLimit(tableName));
+        // 数据偏移量
+        int offset = 0;
         long readStartTime = System.currentTimeMillis();
         while (recordResultSet.next()) {
             List<? extends TableRecord<?>> records = recordResultSet.getRecords();
             long readEndTime = System.currentTimeMillis();
-            log.info("[{}] Read {}, recordSize: {}, cost: {}ms", ArchiveTaskContextHolder.getArchiveTaskId(),
-                tableName, CollectionUtils.isEmpty(records) ? 0 : records.size(), readEndTime - readStartTime);
+            int rowSize = CollectionUtils.isEmpty(records) ? 0 : records.size();
+            long readCost = readEndTime - readStartTime;
+            log.info("[{}] Read {}, offset[{}-{}], readRows: {}, cost: {}ms",
+                ArchiveTaskContextHolder.getArchiveTaskId(),
+                tableName,
+                offset + 1,
+                offset + rowSize,
+                rowSize,
+                readCost
+            );
+            if (readCost > 1000L) {
+                log.info("[{}] SlowQuery-ReadBackupRecords, table: {}, cost: {}ms",
+                    ArchiveTaskContextHolder.getArchiveTaskId(), tableName, readCost);
+            }
             if (CollectionUtils.isNotEmpty(records)) {
                 jobInstanceColdDAO.batchInsert(records,
                     archiveTablePropsStorage.getBatchInsertRowSize(tableName));
                 backupRows += records.size();
             }
+
+            readStartTime = System.currentTimeMillis();
+            offset += rowSize;
         }
 
         long costTime = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableBackup(tableName, backupRows, costTime);
+        return new BackupResult(backupRows, costTime);
     }
 
     @Override
-    public void deleteRecords(List<Long> jobInstanceIds) {
+    public DeleteResult deleteRecords(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         int deleteRows = jobInstanceHotRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
-        log.info("[{}] Delete {}, taskInstanceIdSize: {}, deletedRows: {}, cost: {}ms",
-            ArchiveTaskContextHolder.getArchiveTaskId(), tableName,
-            jobInstanceIds.size(), deleteRows, System.currentTimeMillis() - startTime);
+        log.info("[{}] Delete {}, deletedRows: {}, cost: {}ms",
+            ArchiveTaskContextHolder.getArchiveTaskId(), tableName, deleteRows,
+            System.currentTimeMillis() - startTime);
 
         long costTime = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableDelete(tableName, deleteRows, costTime);
+        return new DeleteResult(deleteRows, costTime);
+    }
+
+    @Override
+    public String getTableName() {
+        return tableName;
     }
 }

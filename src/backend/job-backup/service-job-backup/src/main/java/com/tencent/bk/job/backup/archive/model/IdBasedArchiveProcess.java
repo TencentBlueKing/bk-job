@@ -22,35 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.backup.archive.model;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+/**
+ * 基于自增ID的归档进度
+ */
+@Data
+@NoArgsConstructor
+public class IdBasedArchiveProcess {
+    private Long id;
 
-@Slf4j
-@Configuration(value = "jobBackupExecutorConfig")
-public class ExecutorConfiguration {
+    public IdBasedArchiveProcess(Long id) {
+        this.id = id;
+    }
 
-    @Bean("archiveExecutor")
-    public ThreadPoolExecutor archiveExecutor(MeterRegistry meterRegistry) {
-        return new WatchableThreadPoolExecutor(
-            meterRegistry,
-            "archiveExecutor",
-            20,
-            20,
-            0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(20),
-            new ThreadFactoryBuilder().setNameFormat("archive-thread-pool-%d").build(),
-            new ThreadPoolExecutor.AbortPolicy()
-        );
+    @Override
+    public IdBasedArchiveProcess clone() {
+        return new IdBasedArchiveProcess(id);
+    }
+
+    public String toPersistentProcess() {
+        return String.valueOf(id);
+    }
+
+    public static IdBasedArchiveProcess fromPersistentProcess(String process) {
+        if (StringUtils.isEmpty(process)) {
+            return null;
+        }
+        return new IdBasedArchiveProcess(Long.parseLong(process));
     }
 }

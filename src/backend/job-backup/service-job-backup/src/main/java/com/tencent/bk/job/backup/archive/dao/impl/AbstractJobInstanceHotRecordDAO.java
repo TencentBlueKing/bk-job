@@ -56,11 +56,11 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     }
 
     @Override
-    public List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit) {
+    public List<T> listRecords(Collection<Long> jobInstanceIds, long readRowLimit) {
         return query(table, buildBasicConditions(jobInstanceIds), readRowLimit);
     }
 
-    public List<T> listRecordsByConditions(List<Condition> conditions, Long readRowLimit) {
+    public List<T> listRecordsByConditions(List<Condition> conditions, long readRowLimit) {
         return query(table, conditions, readRowLimit);
     }
 
@@ -93,7 +93,7 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
 
     protected List<T> query(Table<?> table,
                             List<Condition> conditions,
-                            Long readRowLimit) {
+                            long readRowLimit) {
         SelectConditionStep<Record> selectConditionStep = dsl()
             .select()
             .from(table)

@@ -63,7 +63,7 @@ public class JobInstanceArchiveTaskInfo {
     /**
      * 归档进度
      */
-    private TimeAndIdBasedArchiveProcess process;
+    private IdBasedArchiveProcess process;
     /**
      * 归档任务状态
      */

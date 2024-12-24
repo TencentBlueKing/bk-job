@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.dao;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
+import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 
@@ -99,7 +99,7 @@ public interface ArchiveTaskDAO {
                                   DbDataNode dataNode,
                                   Integer day,
                                   Integer hour,
-                                  TimeAndIdBasedArchiveProcess process);
+                                  IdBasedArchiveProcess process);
 
     /**
      * 更新归档任务执行信息 - 结束
@@ -119,7 +119,7 @@ public interface ArchiveTaskDAO {
                                     Integer day,
                                     Integer hour,
                                     ArchiveTaskStatusEnum status,
-                                    TimeAndIdBasedArchiveProcess process,
+                                    IdBasedArchiveProcess process,
                                     Long endTime,
                                     Long cost,
                                     ArchiveTaskExecutionDetail detail);

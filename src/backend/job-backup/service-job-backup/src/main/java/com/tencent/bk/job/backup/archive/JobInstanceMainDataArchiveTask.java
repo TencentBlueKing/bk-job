@@ -26,7 +26,11 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.TablesBackupResult;
+import com.tencent.bk.job.backup.archive.model.TablesDeleteResult;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
@@ -69,51 +73,68 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
 
 
     @Override
-    protected void backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstanceRecords) {
+    protected TablesBackupResult backupJobInstanceToColdDb(List<TaskInstanceRecord> jobInstanceRecords) {
+        TablesBackupResult tablesBackupResult = new TablesBackupResult();
+
         List<Long> jobInstanceIds =
             jobInstanceRecords.stream().map(this::extractJobInstanceId).collect(Collectors.toList());
         // 备份主表数据
-        backupPrimaryTableRecord(jobInstanceRecords);
+        BackupResult primaryTableBackupResult =
+            backupPrimaryTableRecord(jobInstanceRecords);
+        tablesBackupResult.add(jobInstanceMainRecordDAO.getTable().getName(), primaryTableBackupResult);
+
         // 备份子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
-            tableArchiver.backupRecords(jobInstanceIds);
+            BackupResult backupResult = tableArchiver.backupRecords(jobInstanceIds);
+            tablesBackupResult.add(tableArchiver.getTableName(), backupResult);
         });
+        return tablesBackupResult;
     }
 
-    private void backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords) {
+    private BackupResult backupPrimaryTableRecord(List<TaskInstanceRecord> jobInstanceRecords) {
         // 备份主表数据
         long startTime = System.currentTimeMillis();
         long backupRows = jobInstanceColdDAO.batchInsert(jobInstanceRecords,
             archiveTablePropsStorage.getBatchInsertRowSize(jobInstanceMainRecordDAO.getTable().getName()));
+        long cost = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableBackup(
             jobInstanceMainRecordDAO.getTable().getName(),
             backupRows,
-            System.currentTimeMillis() - startTime
+            cost
         );
+        return new BackupResult(backupRows, cost);
     }
 
     @Override
-    protected void deleteJobInstanceHotData(List<Long> jobInstanceIds) {
+    protected TablesDeleteResult deleteJobInstanceHotData(List<Long> jobInstanceIds) {
+        TablesDeleteResult tablesDeleteResult = new TablesDeleteResult();
         long startTime = System.currentTimeMillis();
         // 先删除子表数据
         jobInstanceSubTableArchivers.getAll().forEach(tableArchiver -> {
-            tableArchiver.deleteRecords(jobInstanceIds);
+            DeleteResult deleteResult = tableArchiver.deleteRecords(jobInstanceIds);
+            tablesDeleteResult.add(tableArchiver.getTableName(), deleteResult);
         });
         // 删除主表数据
-        deletePrimaryTableRecord(jobInstanceIds);
+        DeleteResult primaryTableDeleteResult = deletePrimaryTableRecord(jobInstanceIds);
+        tablesDeleteResult.add(jobInstanceMainRecordDAO.getTable().getName(), primaryTableDeleteResult);
+
         log.info("Delete {}, taskInstanceIdSize: {}, cost: {}ms", "task_instance",
             jobInstanceIds.size(), System.currentTimeMillis() - startTime);
+
+        return tablesDeleteResult;
     }
 
-    private void deletePrimaryTableRecord(List<Long> jobInstanceIds) {
+    private DeleteResult deletePrimaryTableRecord(List<Long> jobInstanceIds) {
         long startTime = System.currentTimeMillis();
         String tableName = jobInstanceMainRecordDAO.getTable().getName();
         int deleteRows = jobInstanceMainRecordDAO.deleteRecords(jobInstanceIds,
             archiveTablePropsStorage.getDeleteLimitRowCount(tableName));
+        long cost = System.currentTimeMillis() - startTime;
         ArchiveTaskContextHolder.get().accumulateTableDelete(
             tableName,
             deleteRows,
-            System.currentTimeMillis() - startTime
+            cost
         );
+        return new DeleteResult(deleteRows, cost);
     }
 }

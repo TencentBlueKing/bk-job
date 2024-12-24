@@ -95,7 +95,6 @@ public abstract class AbstractJobInstanceMainHotRecordDAO<T extends Record> exte
             selectConditionStep.and(getJobInstanceIdField().greaterThan(fromJobInstanceId));
         }
         Result<Record> result = selectConditionStep.orderBy(
-                getJobInstanceCreateTimeField().asc(),
                 getJobInstanceIdField().asc()
             )
             .limit(limit)

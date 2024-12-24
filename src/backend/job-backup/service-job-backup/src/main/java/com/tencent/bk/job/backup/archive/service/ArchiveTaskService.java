@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
+import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.common.mysql.JobTransactional;
@@ -134,7 +134,7 @@ public class ArchiveTaskService {
                                          DbDataNode dataNode,
                                          Integer day,
                                          Integer hour,
-                                         TimeAndIdBasedArchiveProcess process) {
+                                         IdBasedArchiveProcess process) {
         archiveTaskDAO.updateRunningExecuteInfo(
             taskType,
             dataNode,
@@ -163,7 +163,7 @@ public class ArchiveTaskService {
                                            Integer day,
                                            Integer hour,
                                            ArchiveTaskStatusEnum status,
-                                           TimeAndIdBasedArchiveProcess process,
+                                           IdBasedArchiveProcess process,
                                            Long endTime,
                                            Long cost,
                                            ArchiveTaskExecutionDetail detail) {

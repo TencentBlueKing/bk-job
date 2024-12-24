@@ -47,7 +47,6 @@ public class StepInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<StepI
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(StepInstance.STEP_INSTANCE.ID.asc());
     }
 
@@ -74,7 +73,6 @@ public class StepInstanceRecordDAO extends AbstractJobInstanceHotRecordDAO<StepI
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.ID.gt(lastRecord.getId()));
                 return conditions;
             }

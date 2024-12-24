@@ -69,7 +69,7 @@ public interface JobInstanceHotRecordDAO<T extends Record> {
      * @param readRowLimit   获取的记录数量
      * @return 表记录
      */
-    List<T> listRecords(Collection<Long> jobInstanceIds, Long readRowLimit);
+    List<T> listRecords(Collection<Long> jobInstanceIds, long readRowLimit);
 
     /**
      * ResultSet 方式查询

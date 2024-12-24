@@ -40,7 +40,7 @@ import java.util.List;
 abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements RecordResultSet<T> {
     private final AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO;
     private final Collection<Long> jobInstanceIds;
-    private final Long readRowLimit;
+    private final long readRowLimit;
     /**
      * 当前查询的记录列表
      */
@@ -54,7 +54,7 @@ abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements R
 
     public AbstractJobInstanceRecordResultSet(AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
                                               Collection<Long> jobInstanceIds,
-                                              Long readRowLimit) {
+                                              long readRowLimit) {
         this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
         this.jobInstanceIds = jobInstanceIds;
         this.readRowLimit = readRowLimit;
@@ -86,12 +86,12 @@ abstract class AbstractJobInstanceRecordResultSet<T extends Record> implements R
         if (CollectionUtils.isEmpty(records)) {
             hasNext = false;
             lastRecord = null;
+            return false;
         } else {
             lastRecord = records.get(records.size() - 1);
-            // 如果查询记录数量小于 readRowLimit 或者指定全量查询(readRowLimit == null 表示)
-            hasNext = readRowLimit != null && records.size() >= readRowLimit;
+            hasNext = records.size() >= readRowLimit;
+            return true;
         }
-        return hasNext;
     }
 
     /**

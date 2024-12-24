@@ -25,40 +25,24 @@
 package com.tencent.bk.job.backup.archive.model;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
 /**
- * 基于数据创建时间（primary)+id(secondary) 的归档进度
+ * 归档-删除结果
  */
 @Data
-@NoArgsConstructor
-public class TimeAndIdBasedArchiveProcess {
-    private Long timestamp;
-    private Long id;
+public class DeleteResult {
 
-    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
-        this.timestamp = timestamp;
-        this.id = id;
-    }
+    /**
+     * 删除成功的记录数量
+     */
+    private long deletedRows;
+    /**
+     * 删除耗时
+     */
+    private long deleteCost;
 
-    @Override
-    public TimeAndIdBasedArchiveProcess clone() {
-        return new TimeAndIdBasedArchiveProcess(timestamp, id);
-    }
-
-    public String toPersistentProcess() {
-        return timestamp + ":" + id;
-    }
-
-    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
-        if (StringUtils.isEmpty(process)) {
-            return null;
-        }
-        String[] processParts = process.split(":");
-        return new TimeAndIdBasedArchiveProcess(
-            Long.parseLong(processParts[0]),
-            Long.parseLong(processParts[1])
-        );
+    public DeleteResult(long deletedRows, long deleteCost) {
+        this.deletedRows = deletedRows;
+        this.deleteCost = deleteCost;
     }
 }

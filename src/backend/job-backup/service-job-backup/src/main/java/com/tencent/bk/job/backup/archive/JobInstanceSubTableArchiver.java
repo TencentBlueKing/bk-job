@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
+
 import java.util.List;
 
 /**
@@ -36,12 +39,18 @@ public interface JobInstanceSubTableArchiver {
      *
      * @param jobInstanceIds 作业实例 ID 列表
      */
-    void backupRecords(List<Long> jobInstanceIds);
+    BackupResult backupRecords(List<Long> jobInstanceIds);
 
     /**
      * 删除作业实例热数据
      *
      * @param jobInstanceIds 作业实例 ID 列表
      */
-    void deleteRecords(List<Long> jobInstanceIds);
+    DeleteResult deleteRecords(List<Long> jobInstanceIds);
+
+    /**
+     * 获取被归档的表名
+     * @return 表名
+     */
+    String getTableName();
 }
