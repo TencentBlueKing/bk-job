@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.RandomUtil;
 import com.tencent.bk.job.execute.model.KubeClusterFilter;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
 import com.tencent.bk.job.execute.model.KubeContainerPropFilter;
@@ -180,7 +181,9 @@ public class ContainerServiceImpl implements ContainerService {
         fillNodeHostInfo(appId, containers);
 
         if (filter.isFetchAnyOneContainer()) {
-            return Collections.singletonList(containers.get(0));
+            // 随机选择一个容器
+            int index = RandomUtil.nextInt(containers.size());
+            return Collections.singletonList(containers.get(index));
         } else {
             return containers;
         }
