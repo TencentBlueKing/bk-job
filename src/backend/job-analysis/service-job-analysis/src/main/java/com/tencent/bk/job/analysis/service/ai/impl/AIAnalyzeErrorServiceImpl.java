@@ -35,12 +35,17 @@ import com.tencent.bk.job.analysis.service.ai.ScriptExecuteTaskErrorAIPromptServ
 import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
+import com.tencent.bk.job.common.config.BkConfig;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 通过AI分析任务报错信息的服务实现类
+ */
 @Slf4j
 @Service
 public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyzeErrorService {
@@ -49,18 +54,24 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
     private final ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService;
     private final FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService;
     private final AIMessageI18nService aiMessageI18nService;
+    private final AITemplateVarService aiTemplateVarService;
+    private final BkConfig bkConfig;
 
     @Autowired
     public AIAnalyzeErrorServiceImpl(TaskContextService taskContextService,
                                      ScriptExecuteTaskErrorAIPromptService scriptExecuteTaskErrorAIPromptService,
                                      FileTransferTaskErrorAIPromptService fileTransferTaskErrorAIPromptService,
                                      AIChatHistoryService aiChatHistoryService,
-                                     AIMessageI18nService aiMessageI18nService) {
+                                     AIMessageI18nService aiMessageI18nService,
+                                     AITemplateVarService aiTemplateVarService,
+                                     BkConfig bkConfig) {
         super(aiChatHistoryService);
         this.taskContextService = taskContextService;
         this.scriptExecuteTaskErrorAIPromptService = scriptExecuteTaskErrorAIPromptService;
         this.fileTransferTaskErrorAIPromptService = fileTransferTaskErrorAIPromptService;
         this.aiMessageI18nService = aiMessageI18nService;
+        this.aiTemplateVarService = aiTemplateVarService;
+        this.bkConfig = bkConfig;
     }
 
     /**
@@ -75,35 +86,97 @@ public class AIAnalyzeErrorServiceImpl extends AIBaseService implements AIAnalyz
     public AIChatRecord analyze(String username, Long appId, AIAnalyzeErrorReq req) {
         TaskContextQuery contextQuery = TaskContextQuery.fromAIAnalyzeErrorReq(appId, req);
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
-        String errorContent = req.getContent();
-        AIPromptDTO aiPromptDTO;
         if (taskContext.isScriptTask()) {
-            aiPromptDTO = scriptExecuteTaskErrorAIPromptService.getPrompt(
-                taskContext.getScriptTaskContext(),
-                errorContent
-            );
-            if (!taskContext.isTaskFail()) {
-                return getDirectlyAIChatRecord(
-                    username,
-                    appId,
-                    aiPromptDTO,
-                    aiMessageI18nService.getNotFailTaskAIAnswerMessage()
-                );
-            }
+            return analyzeScriptTask(username, appId, taskContext, req);
         } else if (taskContext.isFileTask()) {
-            aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(taskContext.getFileTaskContext());
-            if (!taskContext.isTaskFail()) {
-                return getDirectlyAIChatRecord(
-                    username,
-                    appId,
-                    aiPromptDTO,
-                    aiMessageI18nService.getNotFailTaskAIAnswerMessage()
-                );
-            }
+            return analyzeFileTask(username, appId, taskContext, req);
         } else {
             throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
         }
+    }
+
+    /**
+     * 分析脚本执行任务报错信息
+     *
+     * @param username    用户名
+     * @param appId       Job业务ID
+     * @param taskContext 任务上下文
+     * @param req         请求体
+     * @return AI对话记录
+     */
+    private AIChatRecord analyzeScriptTask(String username,
+                                           Long appId,
+                                           TaskContext taskContext,
+                                           AIAnalyzeErrorReq req) {
+        String errorContent = req.getContent();
+        AIPromptDTO aiPromptDTO = scriptExecuteTaskErrorAIPromptService.getPrompt(
+            taskContext.getScriptTaskContext(),
+            errorContent
+        );
+        if (!taskContext.isTaskFail()) {
+            return getDirectlyAIChatRecord(
+                username,
+                appId,
+                aiPromptDTO,
+                aiMessageI18nService.getNotFailTaskAIAnswerMessage()
+            );
+        }
+        if (StringUtils.isEmpty(errorContent)) {
+            return getDirectlyAIChatRecord(
+                username,
+                appId,
+                aiPromptDTO,
+                getRenderedEmptyLogTaskAIAnswerMessage()
+            );
+        }
         AIAnalyzeErrorContextDTO analyzeErrorContext = AIAnalyzeErrorContextDTO.fromAIAnalyzeErrorReq(req);
         return getAIChatRecord(username, appId, aiPromptDTO, analyzeErrorContext);
+    }
+
+    /**
+     * 分析文件分发任务报错信息
+     *
+     * @param username    用户名
+     * @param appId       Job业务ID
+     * @param taskContext 任务上下文
+     * @param req         请求体
+     * @return AI对话记录
+     */
+    private AIChatRecord analyzeFileTask(String username,
+                                         Long appId,
+                                         TaskContext taskContext,
+                                         AIAnalyzeErrorReq req) {
+        AIPromptDTO aiPromptDTO = fileTransferTaskErrorAIPromptService.getPrompt(taskContext.getFileTaskContext());
+        if (!taskContext.isTaskFail()) {
+            return getDirectlyAIChatRecord(
+                username,
+                appId,
+                aiPromptDTO,
+                aiMessageI18nService.getNotFailTaskAIAnswerMessage()
+            );
+        }
+        if (StringUtils.isEmpty(req.getContent())) {
+            return getDirectlyAIChatRecord(
+                username,
+                appId,
+                aiPromptDTO,
+                getRenderedEmptyLogTaskAIAnswerMessage()
+            );
+        }
+        AIAnalyzeErrorContextDTO analyzeErrorContext = AIAnalyzeErrorContextDTO.fromAIAnalyzeErrorReq(req);
+        return getAIChatRecord(username, appId, aiPromptDTO, analyzeErrorContext);
+    }
+
+    /**
+     * 获取变量渲染后的空日志报错回复消息
+     *
+     * @return 空日志报错回复消息
+     */
+    private String getRenderedEmptyLogTaskAIAnswerMessage() {
+        String messageTemplate = aiMessageI18nService.getEmptyLogTaskAIAnswerMessage();
+        if (StringUtils.isBlank(messageTemplate)) {
+            return messageTemplate;
+        }
+        return messageTemplate.replace(aiTemplateVarService.getBkHelperLinkPlaceHolder(), bkConfig.getBkHelperLink());
     }
 }

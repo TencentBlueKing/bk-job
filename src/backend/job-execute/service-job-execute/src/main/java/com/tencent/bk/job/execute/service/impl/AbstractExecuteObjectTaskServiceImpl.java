@@ -88,7 +88,7 @@ public abstract class AbstractExecuteObjectTaskServiceImpl implements ExecuteObj
      *
      * @param tasks 需要被保存的任务
      */
-    protected boolean isSaveTasksUsingExecuteObjectMode(Collection<ExecuteObjectTask> tasks) {
+    protected boolean isExecuteObjectSupported(Collection<ExecuteObjectTask> tasks) {
         // 根据执行对象任务模型中的 executeObjectId 参数判断是否支持执行对象
         ExecuteObjectTask anyTask = tasks.stream().findAny().orElse(null);
         return Objects.requireNonNull(anyTask).getExecuteObjectId() != null;

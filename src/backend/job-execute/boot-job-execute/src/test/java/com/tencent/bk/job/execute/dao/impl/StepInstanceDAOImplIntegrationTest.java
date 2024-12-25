@@ -67,8 +67,9 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testGetStepInstanceBase() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
         assertThat(stepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(stepInstance.getAppId()).isEqualTo(2L);
@@ -154,12 +155,14 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testResetStepStatus() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
-        stepInstanceDAO.resetStepStatus(stepInstanceId);
+        stepInstanceDAO.resetStepStatus(taskInstanceId, stepInstanceId);
 
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getStartTime()).isNull();
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getTotalTime()).isNull();
@@ -167,90 +170,107 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testAddStepRetryCount() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
 
-        stepInstanceDAO.addStepExecuteCount(stepInstanceId);
+        stepInstanceDAO.addStepExecuteCount(taskInstanceId, stepInstanceId);
 
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getExecuteCount()).isEqualTo(1);
     }
 
     @Test
     public void testUpdateStepStatus() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
-        stepInstanceDAO.updateStepStatus(stepInstanceId, RunStatusEnum.RUNNING.getValue());
+        stepInstanceDAO.updateStepStatus(taskInstanceId, stepInstanceId, RunStatusEnum.RUNNING.getValue());
 
         StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
 
+        assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
     }
 
     @Test
     public void testUpdateStepStartTime() {
+        long taskInstanceId = 3L;
         long stepInstanceId = 4L;
         long startTime = 1573041600000L;
-        stepInstanceDAO.updateStepStartTimeIfNull(stepInstanceId, startTime);
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        stepInstanceDAO.updateStepStartTimeIfNull(taskInstanceId, stepInstanceId, startTime);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getStartTime()).isEqualTo(startTime);
 
         stepInstanceId = 1L;
+        taskInstanceId = 1L;
         startTime = 1573041700000L;
-        stepInstanceDAO.updateStepStartTimeIfNull(stepInstanceId, startTime);
-        returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        stepInstanceDAO.updateStepStartTimeIfNull(taskInstanceId, stepInstanceId, startTime);
+        returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getStartTime()).isEqualTo(1572868800000L);
     }
 
     @Test
     void testUpdateStepStartTimeIfNull() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
         long startTime = 1573041600000L;
 
-        stepInstanceDAO.updateStepStartTime(stepInstanceId, startTime);
+        stepInstanceDAO.updateStepStartTime(taskInstanceId, stepInstanceId, startTime);
 
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getStartTime()).isEqualTo(startTime);
     }
 
     @Test
     public void testUpdateStepEndTime() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
         long endTime = 1573041600000L;
 
-        stepInstanceDAO.updateStepEndTime(stepInstanceId, endTime);
+        stepInstanceDAO.updateStepEndTime(taskInstanceId, stepInstanceId, endTime);
 
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getEndTime()).isEqualTo(endTime);
     }
 
     @Test
     public void testUpdateStepTotalTime() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
         long totalTime = 1234L;
 
-        stepInstanceDAO.updateStepTotalTime(stepInstanceId, totalTime);
+        stepInstanceDAO.updateStepTotalTime(taskInstanceId, stepInstanceId, totalTime);
 
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getTotalTime()).isEqualTo(totalTime);
     }
 
     @Test
     public void testResetStepExecuteInfoForRetry() {
+        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
-        stepInstanceDAO.resetStepExecuteInfoForRetry(stepInstanceId);
-        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(stepInstanceId);
+        stepInstanceDAO.resetStepExecuteInfoForRetry(taskInstanceId, stepInstanceId);
+        StepInstanceBaseDTO returnStepInstance = stepInstanceDAO.getStepInstanceBase(taskInstanceId, stepInstanceId);
 
         assertThat(returnStepInstance).isNotNull();
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
+        assertThat(returnStepInstance.getId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getStartTime()).isNotNull();
         assertThat(returnStepInstance.getEndTime()).isNull();
         assertThat(returnStepInstance.getStatus()).isEqualTo(RunStatusEnum.RUNNING);
@@ -259,8 +279,12 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testGetScriptStepInstance() {
-        ScriptStepInstanceDTO returnStepInstance = stepInstanceDAO.getScriptStepInstance(1L);
-        assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(1L);
+        long taskInstanceId = 1L;
+        long stepInstanceId = 1L;
+        ScriptStepInstanceDTO returnStepInstance = stepInstanceDAO.getScriptStepInstance(taskInstanceId,
+            stepInstanceId);
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(taskInstanceId);
+        assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(returnStepInstance.getAccount()).isEqualTo("root");
         assertThat(returnStepInstance.getAccountId()).isEqualTo(1L);
         assertThat(returnStepInstance.getDbPass()).isEqualTo("db_password");
@@ -280,6 +304,7 @@ public class StepInstanceDAOImplIntegrationTest {
     public void testAddScriptStepInstance() {
         StepInstanceDTO scriptStepInstance = new StepInstanceDTO();
         scriptStepInstance.setId(100L);
+        scriptStepInstance.setTaskInstanceId(100L);
         scriptStepInstance.setAccount("root");
         scriptStepInstance.setAccountId(100L);
         scriptStepInstance.setAccountAlias("root");
@@ -296,7 +321,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
         stepInstanceDAO.addScriptStepInstance(scriptStepInstance);
 
-        ScriptStepInstanceDTO savedStepInstance = stepInstanceDAO.getScriptStepInstance(100L);
+        ScriptStepInstanceDTO savedStepInstance = stepInstanceDAO.getScriptStepInstance(100L, 100L);
+        assertThat(savedStepInstance.getTaskInstanceId()).isEqualTo(100L);
         assertThat(savedStepInstance.getStepInstanceId()).isEqualTo(100L);
         assertThat(savedStepInstance.getAccount()).isEqualTo("root");
         assertThat(savedStepInstance.getAccountId()).isEqualTo(100L);
@@ -316,6 +342,7 @@ public class StepInstanceDAOImplIntegrationTest {
     public void testAddFileStepInstance() {
         StepInstanceDTO fileStepInstance = new StepInstanceDTO();
         fileStepInstance.setId(101L);
+        fileStepInstance.setTaskInstanceId(101L);
         fileStepInstance.setAccount("root");
         fileStepInstance.setAccountId(1L);
         fileStepInstance.setAccountAlias("root");
@@ -346,7 +373,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
         stepInstanceDAO.addFileStepInstance(fileStepInstance);
 
-        FileStepInstanceDTO savedStepInstance = stepInstanceDAO.getFileStepInstance(101L);
+        FileStepInstanceDTO savedStepInstance = stepInstanceDAO.getFileStepInstance(101L, 101L);
+        assertThat(savedStepInstance.getTaskInstanceId()).isEqualTo(101L);
         assertThat(savedStepInstance.getStepInstanceId()).isEqualTo(101L);
         assertThat(savedStepInstance.getAccount()).isEqualTo("root");
         assertThat(savedStepInstance.getAccountId()).isEqualTo(1L);
@@ -373,8 +401,9 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testGetFileStepInstance() {
-        FileStepInstanceDTO returnStepInstance = stepInstanceDAO.getFileStepInstance(2L);
+        FileStepInstanceDTO returnStepInstance = stepInstanceDAO.getFileStepInstance(1L, 2L);
         assertThat(returnStepInstance).isNotNull();
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(1L);
         assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(2L);
         assertThat(returnStepInstance.getFileSourceList()).isNotEmpty();
         assertThat(returnStepInstance.getFileSourceList().get(0).getFiles().get(0).getFilePath()).isEqualTo("/$" +
@@ -394,9 +423,10 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     public void testGetConfirmStepInstance() {
-        ConfirmStepInstanceDTO returnStepInstance = stepInstanceDAO.getConfirmStepInstance(3L);
+        ConfirmStepInstanceDTO returnStepInstance = stepInstanceDAO.getConfirmStepInstance(13L, 15L);
         assertThat(returnStepInstance).isNotNull();
-        assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(3L);
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(13L);
+        assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(15L);
         assertThat(returnStepInstance.getConfirmMessage()).isEqualTo("confirm_message");
         assertThat(returnStepInstance.getConfirmReason()).isEqualTo("confirm_reason");
         assertThat(returnStepInstance.getConfirmRoles()).containsOnly("JOB_RESOURCE_TRIGGER_USER");
@@ -408,6 +438,7 @@ public class StepInstanceDAOImplIntegrationTest {
     public void testAddConfirmStepInstance() {
         StepInstanceDTO confirmStepInstance = new StepInstanceDTO();
         confirmStepInstance.setId(102L);
+        confirmStepInstance.setTaskInstanceId(102L);
         confirmStepInstance.setConfirmMessage("confirm_message");
         confirmStepInstance.setConfirmUsers(Lists.newArrayList("admin"));
         confirmStepInstance.setConfirmRoles(Lists.newArrayList("JOB_RESOURCE_TRIGGER_USER"));
@@ -415,8 +446,9 @@ public class StepInstanceDAOImplIntegrationTest {
 
         stepInstanceDAO.addConfirmStepInstance(confirmStepInstance);
 
-        ConfirmStepInstanceDTO returnStepInstance = stepInstanceDAO.getConfirmStepInstance(102L);
+        ConfirmStepInstanceDTO returnStepInstance = stepInstanceDAO.getConfirmStepInstance(102L, 102L);
         assertThat(returnStepInstance).isNotNull();
+        assertThat(returnStepInstance.getTaskInstanceId()).isEqualTo(102L);
         assertThat(returnStepInstance.getStepInstanceId()).isEqualTo(102L);
         assertThat(returnStepInstance.getConfirmMessage()).isEqualTo("confirm_message");
         assertThat(returnStepInstance.getConfirmRoles()).containsOnly("JOB_RESOURCE_TRIGGER_USER");
@@ -427,8 +459,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testUpdateResolvedScriptParam() {
-        stepInstanceDAO.updateResolvedScriptParam(1L, true, "resolved_var");
-        ScriptStepInstanceDTO updatedStepInstance = stepInstanceDAO.getScriptStepInstance(1L);
+        stepInstanceDAO.updateResolvedScriptParam(1L, 1L, true, "resolved_var");
+        ScriptStepInstanceDTO updatedStepInstance = stepInstanceDAO.getScriptStepInstance(1L, 1L);
 
         assertThat(updatedStepInstance).isNotNull();
         assertThat(updatedStepInstance.getResolvedScriptParam()).isEqualTo("resolved_var");
@@ -458,8 +490,8 @@ public class StepInstanceDAOImplIntegrationTest {
         fileSources.add(fileSourceDTO);
 
 
-        stepInstanceDAO.updateResolvedSourceFile(2L, fileSources);
-        FileStepInstanceDTO updatedStepInstance = stepInstanceDAO.getFileStepInstance(2L);
+        stepInstanceDAO.updateResolvedSourceFile(1L, 2L, fileSources);
+        FileStepInstanceDTO updatedStepInstance = stepInstanceDAO.getFileStepInstance(1L, 2L);
 
         assertThat(updatedStepInstance).isNotNull();
         assertThat(updatedStepInstance.getFileSourceList()).hasSize(1);
@@ -475,8 +507,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testUpdateResolvedFileTargetPath() {
-        stepInstanceDAO.updateResolvedTargetPath(2L, "/data/bkee/");
-        FileStepInstanceDTO updatedStepInstance = stepInstanceDAO.getFileStepInstance(2L);
+        stepInstanceDAO.updateResolvedTargetPath(1L, 2L, "/data/bkee/");
+        FileStepInstanceDTO updatedStepInstance = stepInstanceDAO.getFileStepInstance(1L, 2L);
 
         assertThat(updatedStepInstance).isNotNull();
         assertThat(updatedStepInstance.getResolvedFileTargetPath()).isEqualTo("/data/bkee/");
@@ -484,8 +516,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testUpdateConfirmReason() {
-        stepInstanceDAO.updateConfirmReason(3L, "ok");
-        ConfirmStepInstanceDTO updatedStepInstance = stepInstanceDAO.getConfirmStepInstance(3L);
+        stepInstanceDAO.updateConfirmReason(13L, 15L, "ok");
+        ConfirmStepInstanceDTO updatedStepInstance = stepInstanceDAO.getConfirmStepInstance(13L, 15L);
 
         assertThat(updatedStepInstance).isNotNull();
         assertThat(updatedStepInstance.getConfirmReason()).isEqualTo("ok");
@@ -493,8 +525,8 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testUpdateStepOperator() {
-        stepInstanceDAO.updateStepOperator(3L, "test");
-        StepInstanceBaseDTO updatedStepInstance = stepInstanceDAO.getStepInstanceBase(3L);
+        stepInstanceDAO.updateStepOperator(3L, 4L, "test");
+        StepInstanceBaseDTO updatedStepInstance = stepInstanceDAO.getStepInstanceBase(3L, 4L);
 
         assertThat(updatedStepInstance).isNotNull();
         assertThat(updatedStepInstance.getOperator()).isEqualTo("test");
@@ -502,24 +534,25 @@ public class StepInstanceDAOImplIntegrationTest {
 
     @Test
     void testGetPreExecutableStepInstance() {
-        StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(1L, 2L);
+        StepInstanceBaseDTO preStepInstance = stepInstanceDAO.getPreExecutableStepInstance(1L, 2);
         assertThat(preStepInstance).isNotNull();
+        assertThat(preStepInstance.getTaskInstanceId()).isEqualTo(1L);
         assertThat(preStepInstance.getId()).isEqualTo(1L);
     }
 
     @Test
     void updateStepCurrentBatch() {
-        stepInstanceDAO.updateStepCurrentBatch(1L, 1);
+        stepInstanceDAO.updateStepCurrentBatch(1L, 1L, 1);
 
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L, 1L);
         assertThat(stepInstance.getBatch()).isEqualTo(1);
     }
 
     @Test
     void updateStepRollingConfigId() {
-        stepInstanceDAO.updateStepRollingConfigId(1L, 1000L);
+        stepInstanceDAO.updateStepRollingConfigId(1L, 1L, 1000L);
 
-        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L);
+        StepInstanceBaseDTO stepInstance = stepInstanceDAO.getStepInstanceBase(1L, 1L);
         assertThat(stepInstance.getRollingConfigId()).isEqualTo(1000L);
     }
 

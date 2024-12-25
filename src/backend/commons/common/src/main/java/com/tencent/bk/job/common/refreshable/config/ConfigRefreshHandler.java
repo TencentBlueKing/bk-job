@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.refreshable.config;
 
+import java.util.Set;
+
 /**
  * 配置刷新处理
  */
@@ -31,7 +33,8 @@ public interface ConfigRefreshHandler {
     /**
      * 处理配置动态刷新
      *
+     * @param changedKeys 变化的 keys
      * @return 是否成功处理
      */
-    boolean handleConfigChange();
+    boolean handleConfigChange(Set<String> changedKeys);
 }

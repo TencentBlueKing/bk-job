@@ -26,6 +26,9 @@ package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 
+/**
+ * 检查脚本的AI提示符服务
+ */
 public interface CheckScriptAIPromptService {
 
     /**

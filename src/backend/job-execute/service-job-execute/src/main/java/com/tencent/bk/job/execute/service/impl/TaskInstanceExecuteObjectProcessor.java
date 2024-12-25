@@ -44,12 +44,12 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
+import com.tencent.bk.job.common.service.toggle.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ListUtil;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -236,7 +236,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
-            FeatureExecutionContext.builder()
+            ToggleEvaluateContext.builder()
                 .addContextParam(
                     ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(appId)
@@ -919,8 +919,8 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isSupportExecuteObjectFeature(TaskInstanceDTO taskInstance) {
-        FeatureExecutionContext featureExecutionContext =
-            FeatureExecutionContext.builder()
+        ToggleEvaluateContext featureExecutionContext =
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()));
 
@@ -964,8 +964,8 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
         // 初始化Job任务灰度对接 GSE2.0 上下文
-        FeatureExecutionContext featureExecutionContext =
-            FeatureExecutionContext.builder()
+        ToggleEvaluateContext featureExecutionContext =
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
                 .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,

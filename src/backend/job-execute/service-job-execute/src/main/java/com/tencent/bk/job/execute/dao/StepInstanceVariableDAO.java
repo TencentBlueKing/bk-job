@@ -43,12 +43,15 @@ public interface StepInstanceVariableDAO {
     /**
      * 获取步骤变量值
      *
+     * @param taskInstanceId    作业实例 ID
      * @param stepInstanceId    步骤实例ID
      * @param executeCount      执行次数
      * @param variableValueType 参数值类型
      * @return 步骤变量值
      */
-    StepInstanceVariableValuesDTO getStepVariableValues(long stepInstanceId, int executeCount,
+    StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
+                                                        long stepInstanceId,
+                                                        int executeCount,
                                                         VariableValueTypeEnum variableValueType);
 
     /**
@@ -58,13 +61,4 @@ public interface StepInstanceVariableDAO {
      * @return 输出变量值
      */
     List<StepInstanceVariableValuesDTO> listStepOutputVariableValuesByTaskInstanceId(long taskInstanceId);
-
-    /**
-     * 获取前面步骤的所有输出变量值
-     *
-     * @param taskInstanceId 作业实例ID
-     * @param stepInstanceId 步骤实例ID
-     * @return 每个步骤的变量值。返回值按照执行先后排序
-     */
-    List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId, long stepInstanceId);
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.model.dto;
 
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceHostTopoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -72,6 +73,16 @@ public class HostTopoDTO {
             eventDetail.getSetId(),
             eventDetail.getModuleId(),
             lastTimeMills
+        );
+    }
+
+    public ServiceHostTopoDTO toServiceHostTopoDTO() {
+        return new ServiceHostTopoDTO(
+            hostId,
+            bizId,
+            setId,
+            moduleId,
+            lastTime
         );
     }
 }

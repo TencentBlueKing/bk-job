@@ -33,6 +33,7 @@ import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,9 +45,11 @@ import java.util.Map;
 @Slf4j
 public class BusinessAuthHelper extends AuthHelper {
 
-    public BusinessAuthHelper(TokenService tokenService, PolicyService policyService,
+    public BusinessAuthHelper(TokenService tokenService,
+                              PolicyService policyService,
+                              TopoPathService topoPathService,
                               IamConfiguration iamConfiguration) {
-        super(tokenService, policyService, iamConfiguration);
+        super(tokenService, policyService, topoPathService, iamConfiguration);
     }
 
     private InstanceDTO buildAppResourceScopeInstance(AppResourceScope appResourceScope) {

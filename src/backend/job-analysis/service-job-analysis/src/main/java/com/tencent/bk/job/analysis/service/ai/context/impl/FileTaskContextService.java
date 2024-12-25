@@ -63,6 +63,13 @@ public class FileTaskContextService {
         this.fileTaskFailLogAnalyzer = fileTaskFailLogAnalyzer;
     }
 
+    /**
+     * 根据步骤实例与上下文查询条件获取对应的任务上下文
+     *
+     * @param stepInstance 步骤实例
+     * @param contextQuery 上下文查询条件
+     * @return 任务上下文
+     */
     public TaskContext getTaskContext(ServiceStepInstanceDTO stepInstance, TaskContextQuery contextQuery) {
         String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         // 上传日志
@@ -106,6 +113,14 @@ public class FileTaskContextService {
         return buildContextForFileTask(stepInstance, uploadExecuteObjectLogList, downloadExecuteObjectLog);
     }
 
+    /**
+     * 构建文件任务上下文
+     *
+     * @param stepInstance               步骤实例
+     * @param uploadExecuteObjectLogList 上传执行对象日志
+     * @param downloadExecuteObjectLog   下载执行对象日志
+     * @return 任务上下文
+     */
     private TaskContext buildContextForFileTask(ServiceStepInstanceDTO stepInstance,
                                                 List<ServiceExecuteObjectLogDTO> uploadExecuteObjectLogList,
                                                 ServiceExecuteObjectLogDTO downloadExecuteObjectLog) {
@@ -139,6 +154,12 @@ public class FileTaskContextService {
         return new TaskContext(stepInstance.getExecuteType(), stepInstance.getStatus(), null, fileTaskContext);
     }
 
+    /**
+     * 判断是否为上传失败日志
+     *
+     * @param fileTaskLog 文件任务日志
+     * @return 是否为上传失败日志
+     */
     private boolean isUploadFailLog(ServiceFileTaskLogDTO fileTaskLog) {
         Integer mode = fileTaskLog.getMode();
         Integer status = fileTaskLog.getStatus();
@@ -146,6 +167,12 @@ public class FileTaskContextService {
             && FileDistStatusEnum.FAILED.getValue().equals(status);
     }
 
+    /**
+     * 判断是否为下载失败日志
+     *
+     * @param fileTaskLog 文件任务日志
+     * @return 是否为下载失败日志
+     */
     private boolean isDownloadFailLog(ServiceFileTaskLogDTO fileTaskLog) {
         Integer mode = fileTaskLog.getMode();
         Integer status = fileTaskLog.getStatus();

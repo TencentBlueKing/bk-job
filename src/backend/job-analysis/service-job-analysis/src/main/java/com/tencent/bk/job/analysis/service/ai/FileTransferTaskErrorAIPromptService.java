@@ -27,6 +27,9 @@ package com.tencent.bk.job.analysis.service.ai;
 import com.tencent.bk.job.analysis.model.dto.AIPromptDTO;
 import com.tencent.bk.job.analysis.service.ai.context.model.FileTaskContext;
 
+/**
+ * 文件分发任务报错信息AI提示符服务
+ */
 public interface FileTransferTaskErrorAIPromptService {
 
     /**

@@ -38,12 +38,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 配额限制存储
  */
 @Slf4j
 public class ResourceQuotaStore implements ConfigRefreshHandler {
+
+    /**
+     * 属性名称前缀
+     */
+    public static final String PROP_KEY_PREFIX = "job.resourceQuotaLimit.";
 
     /**
      * key: QuotaResourceId; value: ResourceQuotaLimit
@@ -207,7 +213,7 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
     }
 
     @Override
-    public boolean handleConfigChange() {
+    public boolean handleConfigChange(Set<String> changedKeys) {
         return load(true);
     }
 }

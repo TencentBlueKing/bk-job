@@ -34,6 +34,7 @@ import java.util.List;
 @Setter
 @ToString
 public class FileStepInstanceDTO {
+    private Long taskInstanceId;
     private Long stepInstanceId;
     /**
      * 文件传输的源文件

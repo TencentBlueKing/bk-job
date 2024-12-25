@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `step_instance`
 CREATE TABLE IF NOT EXISTS `step_instance_script`
 (
     `step_instance_id`      bigint(20) NOT NULL,
+    `task_instance_id`      bigint(20) NOT NULL DEFAULT 0,
     `script_content`        mediumtext,
     `script_type`           tinyint(4)          DEFAULT NULL,
     `script_param`          text,
@@ -115,6 +116,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
 CREATE TABLE IF NOT EXISTS `step_instance_file`
 (
     `step_instance_id`          bigint(20) NOT NULL,
+    `task_instance_id`          bigint(20) NOT NULL DEFAULT 0,
     `file_source`               mediumtext NOT NULL,
     `resolved_file_source`      mediumtext          DEFAULT NULL,
     `file_target_path`          varchar(512)        DEFAULT NULL,
@@ -136,6 +138,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_file`
 CREATE TABLE IF NOT EXISTS `step_instance_confirm`
 (
     `step_instance_id` bigint(20) NOT NULL,
+    `task_instance_id` bigint(20) NOT NULL DEFAULT 0,
     `confirm_message`  text       NOT NULL,
     `confirm_reason`   varchar(256)        DEFAULT NULL,
     `confirm_users`    varchar(1024)       DEFAULT NULL,
@@ -190,6 +193,7 @@ CREATE TABLE IF NOT EXISTS `gse_task_ip_log`
 CREATE TABLE IF NOT EXISTS `gse_task`
 (
     `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id` bigint(20)  NOT NULL DEFAULT '0',
     `execute_count`    smallint(6) NOT NULL DEFAULT '0',
     `batch`            smallint(6) NOT NULL DEFAULT '0',
@@ -209,6 +213,7 @@ CREATE TABLE IF NOT EXISTS `gse_task`
 CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
 (
     `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id`     bigint(20)  NOT NULL,
     `execute_count`        smallint(6) NOT NULL DEFAULT '0',
     `actual_execute_count` smallint(6)          DEFAULT NULL,
@@ -234,6 +239,7 @@ CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
 CREATE TABLE IF NOT EXISTS `gse_file_agent_task`
 (
     `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id`     bigint(20)  NOT NULL,
     `execute_count`        smallint(6) NOT NULL DEFAULT '0',
     `actual_execute_count` smallint(6)          DEFAULT NULL,
@@ -345,6 +351,7 @@ CREATE TABLE IF NOT EXISTS `rolling_config`
 CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 (
     `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id` bigint(20)  NOT NULL DEFAULT '0',
     `batch`            smallint(6) NOT NULL DEFAULT '0',
     `execute_count`    smallint(6) NOT NULL DEFAULT '0',
@@ -365,6 +372,7 @@ CREATE TABLE IF NOT EXISTS `task_instance_host`
     `host_id`          bigint(20) NOT NULL DEFAULT '0',
     `ip`               varchar(15)         DEFAULT NULL,
     `ipv6`             varchar(46)         DEFAULT NULL,
+    `app_id`           bigint(20) NOT NULL DEFAULT '0',
     `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`task_instance_id`, `host_id`),

@@ -83,7 +83,7 @@ public class ScheduledTasks {
     }
 
     /**
-     * 定时清理用户产生的AI聊天记录，1h一次
+     * 定时清理用户产生的AI对话记录，1h一次
      */
     @Scheduled(cron = "0 20 * * * *")
     public void aiChatHistoryCleanTask() {

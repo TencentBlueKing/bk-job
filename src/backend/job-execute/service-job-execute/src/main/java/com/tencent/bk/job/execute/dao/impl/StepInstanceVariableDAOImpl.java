@@ -24,56 +24,80 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.VariableValueTypeEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceVariable;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
+public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstanceVariableDAO {
     private static final StepInstanceVariable TABLE = StepInstanceVariable.STEP_INSTANCE_VARIABLE;
-    private DSLContext ctx;
-    private TableField[] FIELDS = {TABLE.TASK_INSTANCE_ID, TABLE.STEP_INSTANCE_ID,
-            TABLE.EXECUTE_COUNT, TABLE.TYPE, TABLE.PARAM_VALUES};
+
+    private final TableField<?, ?>[] FIELDS = {
+        TABLE.ID,
+        TABLE.TASK_INSTANCE_ID,
+        TABLE.STEP_INSTANCE_ID,
+        TABLE.EXECUTE_COUNT,
+        TABLE.TYPE,
+        TABLE.PARAM_VALUES
+    };
 
 
     @Autowired
-    public StepInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public StepInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.WRITE)
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
-        ctx.insertInto(TABLE, FIELDS)
-                .values(variableValues.getTaskInstanceId(), variableValues.getStepInstanceId(),
-                        variableValues.getExecuteCount(), JooqDataTypeUtil.toByte(variableValues.getType()),
-                        JsonUtils.toJson(variableValues))
-                .execute();
+        dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.EXECUTE_COUNT,
+                TABLE.TYPE,
+                TABLE.PARAM_VALUES)
+            .values(
+                variableValues.getId(),
+                variableValues.getTaskInstanceId(),
+                variableValues.getStepInstanceId(),
+                variableValues.getExecuteCount(),
+                JooqDataTypeUtil.toByte(variableValues.getType()),
+                JsonUtils.toJson(variableValues))
+            .execute();
     }
 
     @Override
-    public StepInstanceVariableValuesDTO getStepVariableValues(long stepInstanceId, int executeCount,
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
+    public StepInstanceVariableValuesDTO getStepVariableValues(Long taskInstanceId,
+                                                               long stepInstanceId,
+                                                               int executeCount,
                                                                VariableValueTypeEnum variableValueType) {
-        Record record = ctx.select(FIELDS)
-                .from(TABLE)
-                .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(TABLE.EXECUTE_COUNT.eq(executeCount))
-                .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
-                .limit(1)
-                .fetchOne();
+        Record record = dsl().select(FIELDS)
+            .from(TABLE)
+            .where(TaskInstanceIdDynamicCondition.build(taskInstanceId,
+                TABLE.TASK_INSTANCE_ID::eq))
+            .and(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(TABLE.EXECUTE_COUNT.eq(executeCount))
+            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(variableValueType.getValue())))
+            .limit(1)
+            .fetchOne();
         return extract(record);
     }
 
@@ -83,6 +107,7 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
         }
 
         StepInstanceVariableValuesDTO stepInstanceVariableValues = new StepInstanceVariableValuesDTO();
+        stepInstanceVariableValues.setId(record.get(TABLE.ID));
         stepInstanceVariableValues.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         stepInstanceVariableValues.setStepInstanceId(record.get(TABLE.STEP_INSTANCE_ID));
         stepInstanceVariableValues.setExecuteCount(record.get(TABLE.EXECUTE_COUNT));
@@ -98,28 +123,11 @@ public class StepInstanceVariableDAOImpl implements StepInstanceVariableDAO {
     }
 
     @Override
+    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
     public List<StepInstanceVariableValuesDTO> listStepOutputVariableValuesByTaskInstanceId(long taskInstanceId) {
-        Result result = ctx.select(FIELDS)
+        Result result = dsl().select(FIELDS)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
-            .orderBy(TABLE.STEP_INSTANCE_ID.asc(), TABLE.EXECUTE_COUNT.asc())
-            .fetch();
-
-        List<StepInstanceVariableValuesDTO> varList = new ArrayList<>();
-        if (!result.isEmpty()) {
-            result.into(record -> varList.add(extract(record)));
-        }
-        return varList;
-    }
-
-    @Override
-    public List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId,
-                                                                                     long stepInstanceId) {
-        Result result = ctx.select(FIELDS)
-            .from(TABLE)
-            .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(TABLE.STEP_INSTANCE_ID.lt(stepInstanceId))
             .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
             .orderBy(TABLE.STEP_INSTANCE_ID.asc(), TABLE.EXECUTE_COUNT.asc())
             .fetch();
