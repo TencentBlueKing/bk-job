@@ -22,10 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-truncate table db_archive_progress;
+package com.tencent.bk.job.backup.archive.model;
 
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('task_instance','{\"lastArchivedId\":1000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('step_instance','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('gse_task_log','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('gse_task_ip_log','{\"lastArchivedId\":2000}',1621166442000);
-insert into job_backup.db_archive_progress (table_name,progress,last_modify_time) values ('task_instance_variable','{\"lastArchivedId\":1000}',1621166442000);
+import lombok.Data;
+
+/**
+ * 归档-删除结果
+ */
+@Data
+public class DeleteResult {
+
+    /**
+     * 删除成功的记录数量
+     */
+    private long deletedRows;
+    /**
+     * 删除耗时
+     */
+    private long deleteCost;
+
+    public DeleteResult(long deletedRows, long deleteCost) {
+        this.deletedRows = deletedRows;
+        this.deleteCost = deleteCost;
+    }
+}

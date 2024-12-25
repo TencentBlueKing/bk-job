@@ -98,6 +98,9 @@ public class InMemoryPropToggleStore implements PropToggleStore {
         Set<String> uniquePropNames = new HashSet<>();
 
         for (String changeKey : changedKeys) {
+            if (!changeKey.startsWith(PROP_KEY_PREFIX)) {
+                log.error("Invalid key : {}", changeKey);
+            }
             String[] parts = changeKey.split("\\.");
             // 格式 job.toggle.props.{propName}.others
             if (parts.length >= 4) {

@@ -22,43 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.model;
+package com.tencent.bk.job.backup;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/**
- * 基于数据创建时间（primary)+id(secondary) 的归档进度
- */
-@Data
-@NoArgsConstructor
-public class TimeAndIdBasedArchiveProcess {
-    private Long timestamp;
-    private Long id;
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
+@TestPropertySource(locations = "classpath:test.properties")
+@SqlConfig(encoding = "utf-8")
+public class BootIntegrationTest {
 
-    public TimeAndIdBasedArchiveProcess(Long timestamp, Long id) {
-        this.timestamp = timestamp;
-        this.id = id;
-    }
 
-    @Override
-    public TimeAndIdBasedArchiveProcess clone() {
-        return new TimeAndIdBasedArchiveProcess(timestamp, id);
-    }
-
-    public String toPersistentProcess() {
-        return timestamp + ":" + id;
-    }
-
-    public static TimeAndIdBasedArchiveProcess fromPersistentProcess(String process) {
-        if (StringUtils.isEmpty(process)) {
-            return null;
-        }
-        String[] processParts = process.split(":");
-        return new TimeAndIdBasedArchiveProcess(
-            Long.parseLong(processParts[0]),
-            Long.parseLong(processParts[1])
-        );
+    @Test
+    @DisplayName("测试 job-backup 启动")
+    public void bootTest() {
+        // do nothing
     }
 }

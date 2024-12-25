@@ -138,23 +138,4 @@ public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstance
         }
         return varList;
     }
-
-    @Override
-    @MySQLOperation(table = "step_instance_variable", op = DbOperationEnum.READ)
-    public List<StepInstanceVariableValuesDTO> listSortedPreStepOutputVariableValues(long taskInstanceId,
-                                                                                     long stepInstanceId) {
-        Result result = dsl().select(FIELDS)
-            .from(TABLE)
-            .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(TABLE.STEP_INSTANCE_ID.lt(stepInstanceId))
-            .and(TABLE.TYPE.eq(JooqDataTypeUtil.toByte(VariableValueTypeEnum.OUTPUT.getValue())))
-            .orderBy(TABLE.STEP_INSTANCE_ID.asc(), TABLE.EXECUTE_COUNT.asc())
-            .fetch();
-
-        List<StepInstanceVariableValuesDTO> varList = new ArrayList<>();
-        if (!result.isEmpty()) {
-            result.into(record -> varList.add(extract(record)));
-        }
-        return varList;
-    }
 }

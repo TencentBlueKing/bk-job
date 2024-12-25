@@ -32,13 +32,13 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("清空聊天记录响应数据")
+@ApiModel("清空对话记录响应数据")
 @Data
 public class ClearChatHistoryResp {
 
     /**
-     * 被清空的聊天记录数量
+     * 被清空的对话记录数量
      */
-    @ApiModelProperty(value = "被清空的聊天记录数量")
+    @ApiModelProperty(value = "被清空的对话记录数量")
     private Integer count;
 }

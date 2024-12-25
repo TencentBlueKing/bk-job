@@ -44,9 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 作业执行历史归档任务调度
@@ -82,8 +79,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private volatile boolean scheduling = false;
 
-    private final ExecutorService shutdownExecutor = new ThreadPoolExecutor(1, 20, 120L,
-        TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    private final ExecutorService archiveTaskStopExecutor;
 
     /**
      * 调度的所有的任务
@@ -100,7 +96,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                                            ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                            ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                            ArchiveTablePropsStorage archiveTablePropsStorage,
-                                           Tracer tracer) {
+                                           Tracer tracer,
+                                           ExecutorService archiveTaskStopExecutor) {
         this.archiveTaskService = archiveTaskService;
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
@@ -111,6 +108,7 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
         this.tracer = tracer;
+        this.archiveTaskStopExecutor = archiveTaskStopExecutor;
     }
 
     public void schedule() {
@@ -276,7 +274,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 taskCountDownLatch = new TaskCountDownLatch(scheduledTasks.keySet());
             }
             for (JobInstanceArchiveTask task : scheduledTasks.values()) {
-                shutdownExecutor.execute(new StopTask(task, taskCountDownLatch));
+                log.info("Submit stop archive task to executor, taskId: {}", task.getTaskId());
+                archiveTaskStopExecutor.execute(new StopTask(task, taskCountDownLatch));
             }
         }
         try {

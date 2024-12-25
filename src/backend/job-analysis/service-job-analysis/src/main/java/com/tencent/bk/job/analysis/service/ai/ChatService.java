@@ -31,12 +31,12 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.util.List;
 
 /**
- * AI聊天服务
+ * AI对话服务
  */
 public interface ChatService {
 
     /**
-     * 与AI聊天并处理聊天记录保存等逻辑
+     * 与AI对话并处理对话记录保存等逻辑
      *
      * @param username  用户名
      * @param appId     Job业务ID
@@ -46,17 +46,17 @@ public interface ChatService {
     AIChatRecord chatWithAI(String username, Long appId, String userInput);
 
     /**
-     * 获取最近的聊天记录列表
+     * 获取最近的对话记录列表
      *
      * @param username 用户名
      * @param start    起始位置
      * @param length   长度
-     * @return 最近的聊天记录列表
+     * @return 最近的对话记录列表
      */
     List<AIChatHistoryDTO> getLatestChatHistoryList(String username, Integer start, Integer length);
 
     /**
-     * 获取聊天流式数据
+     * 获取对话流式数据
      *
      * @param username 用户名
      * @param recordId 对话记录ID

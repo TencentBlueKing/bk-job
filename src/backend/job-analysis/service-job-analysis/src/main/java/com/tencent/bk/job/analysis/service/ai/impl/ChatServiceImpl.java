@@ -87,7 +87,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public AIChatRecord chatWithAI(String username, Long appId, String userInput) {
         Long startTime = System.currentTimeMillis();
-        // 1.保存初始聊天记录
+        // 1.保存初始对话记录
         AIPromptDTO aiPromptDTO = new AIPromptDTO(null, userInput, userInput);
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
@@ -125,7 +125,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public StreamingResponseBody generateChatStream(String username, Long recordId) {
         log.info("Start to generateChatStream, username={}, recordId={}", username, recordId);
-        // 1.查出指定的聊天记录
+        // 1.查出指定的对话记录
         AIChatHistoryDTO currentChatHistoryDTO = getChatHistory(username, recordId);
         // 2.已经回答完成直接输出
         if (currentChatHistoryDTO.isFinished()) {
@@ -136,14 +136,14 @@ public class ChatServiceImpl implements ChatService {
             return generateRespFromFinishedAIAnswer(currentChatHistoryDTO);
         }
         // 3.未回答完成则调用AI生成回答
-        // 获取最近已完成的聊天记录作为上下文
+        // 获取最近已完成的对话记录作为上下文
         List<AIChatHistoryDTO> chatHistoryDTOList = buildChatHistory(username);
         int affectedNum = aiChatHistoryService.setAIAnswerReplying(recordId);
         if (affectedNum == 0) {
             log.info("AIAnswer is already replying, re-reply, recordId={}", recordId);
         }
         // 4.将AI回答流数据与接口输出流进行同步对接
-        int inMemoryMessageMaxNum = 10000;
+        final int inMemoryMessageMaxNum = 10000;
         AIAnswerStreamSynchronizer aiAnswerStreamSynchronizer = new AIAnswerStreamSynchronizer(inMemoryMessageMaxNum);
         AsyncConsumerAndStreamingResponseBodyPair consumerAndStreamingResponseBodyPair =
             aiAnswerStreamSynchronizer.buildAsyncConsumerAndStreamingResponseBodyPair();
@@ -187,12 +187,13 @@ public class ChatServiceImpl implements ChatService {
      * @return 对话历史记录
      */
     private List<AIChatHistoryDTO> buildChatHistory(String username) {
+        final int maxChatHistoryNum = 5;
         List<AIChatHistoryDTO> chatHistoryDTOList = aiChatHistoryService.getLatestFinishedChatHistoryList(
             username,
             0,
-            5
+            maxChatHistoryNum
         );
-        // 过滤出输入输出均不为空的聊天记录作为上下文
+        // 过滤出输入输出均不为空的对话记录作为上下文
         chatHistoryDTOList = chatHistoryDTOList.stream().filter(aiChatHistoryDTO -> {
             String userInput = aiChatHistoryDTO.getUserInput();
             String aiAnswer = aiChatHistoryDTO.getAiAnswer();

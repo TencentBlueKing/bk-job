@@ -47,7 +47,7 @@ public class JobInstanceRecordResultSetFactory {
     public static <T extends Record> DefaultJobInstanceRecordResultSet<T> createMultiQueryResultSet(
         AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
         Collection<Long> jobInstanceIds,
-        Long readRowLimit,
+        long readRowLimit,
         Function<T, List<Condition>> offsetConditionBuilder) {
         return new DefaultJobInstanceRecordResultSet<>(
             jobInstanceHotRecordDAO,
@@ -69,7 +69,7 @@ public class JobInstanceRecordResultSetFactory {
     public static <T extends Record> DefaultJobInstanceRecordResultSet<T> createOneQueryResultSet(
         AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
         Collection<Long> jobInstanceIds,
-        Long readRowLimit) {
+        long readRowLimit) {
         return new DefaultJobInstanceRecordResultSet<>(
             jobInstanceHotRecordDAO,
             jobInstanceIds,
@@ -86,7 +86,7 @@ public class JobInstanceRecordResultSetFactory {
         public DefaultJobInstanceRecordResultSet(
             AbstractJobInstanceHotRecordDAO<T> jobInstanceHotRecordDAO,
             Collection<Long> jobInstanceIds,
-            Long readRowLimit,
+            long readRowLimit,
             Function<T, List<Condition>> offsetConditionBuilder) {
             super(jobInstanceHotRecordDAO, jobInstanceIds, readRowLimit);
             this.offsetConditionBuilder = offsetConditionBuilder;

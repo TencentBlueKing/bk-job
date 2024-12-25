@@ -47,7 +47,6 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
     private static final List<OrderField<?>> ORDER_FIELDS = new ArrayList<>();
 
     static {
-        ORDER_FIELDS.add(FileSourceTaskLog.FILE_SOURCE_TASK_LOG.TASK_INSTANCE_ID.asc());
         ORDER_FIELDS.add(FileSourceTaskLog.FILE_SOURCE_TASK_LOG.ID.asc());
     }
 
@@ -73,7 +72,6 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
             readRowLimit,
             lastRecord -> {
                 List<Condition> conditions = new ArrayList<>();
-                conditions.add(TABLE.TASK_INSTANCE_ID.ge(lastRecord.getTaskInstanceId()));
                 conditions.add(TABLE.ID.gt(lastRecord.getId()));
                 return conditions;
             }

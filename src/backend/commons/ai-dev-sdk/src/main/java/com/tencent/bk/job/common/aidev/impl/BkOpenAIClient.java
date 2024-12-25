@@ -204,58 +204,35 @@ public class BkOpenAIClient implements IBkOpenAIClient {
      * @return 包含AI完整回复内容的Future
      */
     @Override
-    @SuppressWarnings("unchecked")
     public CompletableFuture<String> getAIAnswerStream(String token,
                                                        List<AIDevMessage> messageHistoryList,
                                                        String userInput,
                                                        Consumer<String> partialRespConsumer) {
-        final OpenAiClient client = OpenAiClient.builder()
-            .baseUrl(getLLMV1Url())
-            .openAiApiKey("empty")
-            .customHeaders(singletonMap("X-Bkapi-Authorization", JsonUtils.toJson(buildAuthorization(token))))
-            .logRequests()
-            .logResponses()
-            .build();
+        final OpenAiClient client = buildOpenAiClient(token);
         OpenAiClient.OpenAiClientContext context = new OpenAiClient.OpenAiClientContext();
+        // 构造AI大模型接口请求
         ChatCompletionRequest request = buildRequest(messageHistoryList, userInput);
         String username = JobContextUtil.getUsername();
-        if (log.isDebugEnabled()) {
-            String requestStr = request.toString();
-            log.debug(
-                "username={}, request={}, length={}",
-                username,
-                getLimitedLog(requestStr),
-                requestStr.length()
-            );
-        }
+        logRequest(username, request);
         ChatCompletionRequest streamRequest = ChatCompletionRequest.builder().from(request).stream(true).build();
         CompletableFuture<String> future = new CompletableFuture<>();
         StringBuilder responseBuilder = new StringBuilder();
         Consumer<ChatCompletionResponse> tracedPartialResponseHandler = getTracedConsumer(
-            getPartialResponseHandler(
-                username,
-                partialRespConsumer,
-                responseBuilder
-            )
+            getPartialResponseHandler(username, partialRespConsumer, responseBuilder)
         );
         long startTime = System.currentTimeMillis();
+        // 构造流式响应回调处理器
         Runnable streamingCompletionCallback = () -> {
             recordAIRespAllBlockDelay(
                 System.currentTimeMillis() - startTime,
                 Tags.of(Tag.of(MetricsConstants.TAG_KEY_STATUS, MetricsConstants.TAG_VALUE_STATUS_SUCCEED))
             );
             String respStr = responseBuilder.toString();
-            if (log.isDebugEnabled()) {
-                log.debug(
-                    "username={}, response={}, length={}",
-                    username,
-                    getLimitedLog(respStr),
-                    respStr.length()
-                );
-            }
+            logRespStr(username, respStr);
             future.complete(respStr);
         };
         Runnable tracedStreamingCompletionCallback = new TraceRunnable(tracer, spanNamer, streamingCompletionCallback);
+        // 构造错误处理器
         Consumer<Throwable> errorHandler = throwable -> {
             recordAIRespAllBlockDelay(
                 System.currentTimeMillis() - startTime,
@@ -269,12 +246,65 @@ public class BkOpenAIClient implements IBkOpenAIClient {
             future.completeExceptionally(throwable);
         };
         Consumer<Throwable> tracedErrorHandler = getTracedConsumer(errorHandler);
+        // 调用AI大模型接口
         client.chatCompletion(context, streamRequest)
             .onPartialResponse(tracedPartialResponseHandler)
             .onComplete(tracedStreamingCompletionCallback)
             .onError(tracedErrorHandler)
             .execute();
         return future;
+    }
+
+    /**
+     * 根据凭证信息构造OpenAiClient
+     *
+     * @param token 用户身份凭证
+     * @return OpenAiClient
+     */
+    @SuppressWarnings("unchecked")
+    private OpenAiClient buildOpenAiClient(String token) {
+        return OpenAiClient.builder()
+            .baseUrl(getLLMV1Url())
+            .openAiApiKey("empty")
+            .customHeaders(singletonMap("X-Bkapi-Authorization", JsonUtils.toJson(buildAuthorization(token))))
+            .logRequests()
+            .logResponses()
+            .build();
+    }
+
+    /**
+     * 按需打印请求内容
+     *
+     * @param username 用户名
+     * @param request  请求
+     */
+    private void logRequest(String username, ChatCompletionRequest request) {
+        if (log.isDebugEnabled()) {
+            String requestStr = request.toString();
+            log.debug(
+                "username={}, request={}, length={}",
+                username,
+                getLimitedLog(requestStr),
+                requestStr.length()
+            );
+        }
+    }
+
+    /**
+     * 打印响应内容
+     *
+     * @param username 用户名
+     * @param respStr  响应内容字符串
+     */
+    private void logRespStr(String username, String respStr) {
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "username={}, response={}, length={}",
+                username,
+                getLimitedLog(respStr),
+                respStr.length()
+            );
+        }
     }
 
     /**

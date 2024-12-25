@@ -60,7 +60,7 @@ public class ArchiveTableDetail {
      */
     public void accumulateBackup(long backupRows, long costTime) {
         this.backupRows += backupRows;
-        this.backupCostTime = costTime;
+        this.backupCostTime += costTime;
         this.costTime += costTime;
     }
 

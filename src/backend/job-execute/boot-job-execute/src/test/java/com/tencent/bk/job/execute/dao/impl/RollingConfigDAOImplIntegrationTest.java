@@ -65,11 +65,11 @@ public class RollingConfigDAOImplIntegrationTest {
     @DisplayName("根据ID获取滚动配置")
     void queryRollingConfig() {
         RollingConfigDTO savedTaskInstanceRollingConfig =
-            rollingConfigDAO.queryRollingConfigById(1L);
+            rollingConfigDAO.queryRollingConfigById(2L, 1L);
 
         assertThat(savedTaskInstanceRollingConfig.getId()).isEqualTo(1L);
+        assertThat(savedTaskInstanceRollingConfig.getTaskInstanceId()).isEqualTo(2L);
         assertThat(savedTaskInstanceRollingConfig.getConfigName()).isEqualTo("config1");
-        assertThat(savedTaskInstanceRollingConfig.getTaskInstanceId()).isEqualTo(1L);
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail()).isNotNull();
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getExpr()).isEqualTo("1 10% 100%");
         assertThat(savedTaskInstanceRollingConfig.getConfigDetail().getMode())
@@ -147,7 +147,7 @@ public class RollingConfigDAOImplIntegrationTest {
         assertThat(rollingConfigId).isGreaterThan(0);
 
         RollingConfigDTO savedTaskInstanceRollingConfig =
-            rollingConfigDAO.queryRollingConfigById(rollingConfigId);
+            rollingConfigDAO.queryRollingConfigById(10L, rollingConfigId);
 
         assertThat(savedTaskInstanceRollingConfig.getId()).isEqualTo(rollingConfigId);
         assertThat(savedTaskInstanceRollingConfig.getConfigName()).isEqualTo("default");

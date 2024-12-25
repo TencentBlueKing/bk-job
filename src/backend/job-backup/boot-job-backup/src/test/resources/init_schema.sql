@@ -23,52 +23,31 @@
  */
 
 SET NAMES utf8mb4;
-CREATE SCHEMA IF NOT EXISTS job_execute;
 CREATE SCHEMA IF NOT EXISTS job_backup;
+USE job_backup;
 
-CREATE TABLE IF NOT EXISTS `job_execute.task_instance`
-(
-    `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
-    `app_id`           bigint(20)   NOT NULL,
-    `task_id`          bigint(20)   NOT NULL,
-    `task_template_id` bigint(20)   NOT NULL,
-    `name`             varchar(512) NOT NULL,
-    `type`             tinyint(4)   NOT NULL,
-    `operator`         varchar(128) NOT NULL,
-    `status`           tinyint(4)   NOT NULL DEFAULT '0',
-    `current_step_id`  bigint(20)   NOT NULL DEFAULT '0',
-    `startup_mode`     tinyint(4)   NOT NULL,
-    `total_time`       bigint(20)            DEFAULT NULL,
-    `callback_url`     varchar(1024)         DEFAULT NULL,
-    `is_debug_task`    tinyint(4)   NOT NULL DEFAULT '0',
-    `cron_task_id`     bigint(20)   NOT NULL DEFAULT '0',
-    `create_time`      bigint(20)            DEFAULT NULL,
-    `start_time`       bigint(20)            DEFAULT NULL,
-    `end_time`         bigint(20)            DEFAULT NULL,
-    `app_code`         varchar(128)          DEFAULT NULL,
-    `row_create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `row_update_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY (`app_id`),
-    KEY (`operator`),
-    KEY (`task_id`),
-    KEY (`status`),
-    KEY (`create_time`)
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 1000000
-  DEFAULT CHARSET = utf8mb4;
-
-  USE `job_backup`;
-
-SET NAMES utf8mb4;
-
-CREATE TABLE `job_backup.db_archive_progress` (
+CREATE TABLE IF NOT EXISTS `archive_task` (
   `row_create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `row_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `table_name` varchar(256) NOT NULL,
-  `progress` text,
-  `last_modify_time` BIGINT(20) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`table_name`)
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `task_type` tinyint(2) DEFAULT NULL,
+  `data_node` varchar(128) NOT NULL,
+  `db_node` varchar(64) NOT NULL,
+  `day` int(8) DEFAULT NULL,
+  `hour` tinyint(2) DEFAULT NULL,
+  `from_timestamp` bigint(20) NOT NULL,
+  `to_timestamp` bigint(20) NOT NULL,
+  `process` varchar(256) DEFAULT NULL,
+  `status` tinyint(2) NOT NULL DEFAULT '0',
+  `create_time` bigint(20) NOT NULL,
+  `last_update_time` bigint(20) NOT NULL,
+  `task_start_time` bigint(20) DEFAULT NULL,
+  `task_end_time` bigint(20) DEFAULT NULL,
+  `task_cost` bigint(20) DEFAULT NULL,
+  `detail` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`task_type`,`data_node`,`day`,`hour`),
+  KEY (`task_type`,`status`,`db_node`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

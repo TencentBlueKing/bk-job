@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
-import com.tencent.bk.job.backup.archive.model.TimeAndIdBasedArchiveProcess;
+import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.model.tables.ArchiveTask;
@@ -103,7 +103,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         archiveTask.setHour(JooqDataTypeUtil.toInteger(record.get(T.HOUR)));
         archiveTask.setFromTimestamp(record.get(T.FROM_TIMESTAMP));
         archiveTask.setToTimestamp(record.get(T.TO_TIMESTAMP));
-        archiveTask.setProcess(TimeAndIdBasedArchiveProcess.fromPersistentProcess(record.get(T.PROCESS)));
+        archiveTask.setProcess(IdBasedArchiveProcess.fromPersistentProcess(record.get(T.PROCESS)));
         archiveTask.setStatus(ArchiveTaskStatusEnum.valOf(record.get(T.STATUS)));
         archiveTask.setCreateTime(record.get(T.CREATE_TIME));
         archiveTask.setLastUpdateTime(record.get(T.LAST_UPDATE_TIME));
@@ -226,7 +226,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                                          DbDataNode dataNode,
                                          Integer day,
                                          Integer hour,
-                                         TimeAndIdBasedArchiveProcess process) {
+                                         IdBasedArchiveProcess process) {
         ctx.update(T)
             .set(T.LAST_UPDATE_TIME, System.currentTimeMillis())
             .set(T.PROCESS, process.toPersistentProcess())
@@ -243,7 +243,7 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
                                            Integer day,
                                            Integer hour,
                                            ArchiveTaskStatusEnum status,
-                                           TimeAndIdBasedArchiveProcess process,
+                                           IdBasedArchiveProcess process,
                                            Long endTime,
                                            Long cost,
                                            ArchiveTaskExecutionDetail detail) {
