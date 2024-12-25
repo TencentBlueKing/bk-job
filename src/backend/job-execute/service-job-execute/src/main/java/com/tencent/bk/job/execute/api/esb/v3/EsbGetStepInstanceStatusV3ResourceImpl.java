@@ -140,6 +140,7 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
         long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .taskInstanceId(taskInstanceId)
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
             .batch(batch == null ? null : (batch == 0 ? null : batch))
