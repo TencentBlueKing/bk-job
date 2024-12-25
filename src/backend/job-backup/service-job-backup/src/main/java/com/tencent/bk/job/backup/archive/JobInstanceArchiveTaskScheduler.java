@@ -135,7 +135,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                         continue;
                     }
 
-
                     // 获取待调度的任务信息(按照 DB 节点计数)
                     watch.start("countScheduleTasks");
                     Map<String, Integer> scheduleTasksGroupByDb =
@@ -307,10 +306,13 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         @Override
         public void run() {
             try {
+                log.info("[{}] Run stop task begin", task.getTaskId());
                 task.stop(() -> taskCountDownLatch.decrement(task.getTaskId()));
             } catch (Throwable e) {
-                String errorMsg = "Stop archive task caught exception, task: " + task;
+                String errorMsg = "Stop archive task caught exception, task: " + task.getTaskId();
                 log.warn(errorMsg, e);
+            } finally {
+                log.info("[{}] Run stop task end", task.getTaskId());
             }
         }
     }

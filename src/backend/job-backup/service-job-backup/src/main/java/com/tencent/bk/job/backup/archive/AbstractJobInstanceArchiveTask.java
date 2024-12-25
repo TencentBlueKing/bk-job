@@ -41,6 +41,7 @@ import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -204,6 +205,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             }
 
             log.info("[{}] Start archive task", taskId);
+            ThreadUtils.sleep(1000*3600L, true);
             // 更新任务信息 - 启动完成
             updateStartedExecuteInfo();
             // 归档
