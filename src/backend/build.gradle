@@ -158,8 +158,8 @@ ext {
     set('zookeeperVersion', "3.8.4")
     // Fix CVE-2023-20873 2.6.13->2.6.15
     set('springbootActuatorAutoconfigureVersion', "2.6.15")
-    // Fix CVE-2022-1471 1.29->2.0
-    set('snakeyaml.version', "2.0")
+    // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
+    set('snakeyaml.version', "1.33")
     // Fix CVE-2023-3635 2.8.0->3.4.0
     set('okioVersion', "3.4.0")
     // Fix CVE-2023-34062 1.0.24->1.0.39
