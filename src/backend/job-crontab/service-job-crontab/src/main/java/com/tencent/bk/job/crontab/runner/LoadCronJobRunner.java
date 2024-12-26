@@ -64,6 +64,7 @@ public class LoadCronJobRunner implements CommandLineRunner {
 
     @PreDestroy
     public void destroy() {
+        log.info("destroy LoadCronJobRunner");
         if (loadCronJobFuture != null) {
             boolean result = loadCronJobFuture.cancel(true);
             log.info("loadCronJobFuture cancel result:{}", result);
