@@ -205,7 +205,6 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
             }
 
             log.info("[{}] Start archive task", taskId);
-            ThreadUtils.sleep(1000*3600L, true);
             // 更新任务信息 - 启动完成
             updateStartedExecuteInfo();
             // 归档
