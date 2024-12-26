@@ -57,6 +57,8 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
             }
             loadingCronToQuartz = true;
             loadAllCronJobToQuartz();
+        } catch (InterruptedException e) {
+            log.info("loadAllCronJob interrupted, application may be closing");
         } catch (Exception e) {
             log.warn("Fail to loadAllCronJob", e);
         } finally {
@@ -65,7 +67,7 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
         }
     }
 
-    private void loadAllCronJobToQuartz() {
+    private void loadAllCronJobToQuartz() throws InterruptedException {
         int start = 0;
         int limit = 100;
         int currentFetchNum;
