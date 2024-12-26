@@ -135,7 +135,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                         continue;
                     }
 
-
                     // 获取待调度的任务信息(按照 DB 节点计数)
                     watch.start("countScheduleTasks");
                     Map<String, Integer> scheduleTasksGroupByDb =
@@ -162,12 +161,12 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     watch.stop();
                     int taskConcurrent = archiveProperties.getTasks().getJobInstance().getConcurrent();
                     if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
-                        // 休眠5分钟，等待并行任务减少
-                        log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);
+                        // 休眠1分钟，等待并行任务减少
+                        log.info("Running archive task count exceed concurrent limit : {}, wait 60s", taskConcurrent);
                         // 释放锁
                         jobInstanceArchiveTaskScheduleLock.unlock();
                         locked = false;
-                        ThreadUtils.sleep(1000 * 300L);
+                        ThreadUtils.sleep(1000 * 60L);
                         continue;
                     }
 
@@ -280,8 +279,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         }
         try {
             if (taskCountDownLatch != null) {
-                // 等待任务结束，最多等待 2min
-                boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(120);
+                // 等待任务结束，最多等待 10s(等待时间太长进程会被k8s kill掉)
+                boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(10);
                 if (!isAllTaskStopped) {
                     for (JobInstanceArchiveTask task : scheduledTasks.values()) {
                         task.forceStopAtOnce();
@@ -307,10 +306,13 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         @Override
         public void run() {
             try {
+                log.info("[{}] Run stop task begin", task.getTaskId());
                 task.stop(() -> taskCountDownLatch.decrement(task.getTaskId()));
             } catch (Throwable e) {
-                String errorMsg = "Stop archive task caught exception, task: " + task;
+                String errorMsg = "Stop archive task caught exception, task: " + task.getTaskId();
                 log.warn(errorMsg, e);
+            } finally {
+                log.info("[{}] Run stop task end", task.getTaskId());
             }
         }
     }

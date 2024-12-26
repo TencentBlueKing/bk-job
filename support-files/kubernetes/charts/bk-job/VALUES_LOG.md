@@ -10,6 +10,12 @@ analysisConfig:
     model: hunyuan
 ```
 
+2. 调整pod删除时等待优雅关闭的最大时间，从 40s -> 60s
+```yaml
+# pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
+podTerminationGracePeriodSeconds: 60
+```
+
 ## 0.8.0
 1. 增加按主机拓扑路径鉴权相关配置
 ```yaml
