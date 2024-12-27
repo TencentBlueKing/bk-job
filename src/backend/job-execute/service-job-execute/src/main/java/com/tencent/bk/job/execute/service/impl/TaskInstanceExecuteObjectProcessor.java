@@ -468,22 +468,20 @@ public class TaskInstanceExecuteObjectProcessor {
 
         fillHostAgent(taskInstance, taskInstanceExecuteObjects);
 
-        Map<HostCompositeKey, HostDTO> hostMap = taskInstanceExecuteObjects.getHostMap();
-
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isStepContainsExecuteObject()) {
                 continue;
             }
             // 目标主机设置主机详情
-            fillTargetHostDetail(stepInstance, hostMap);
+            fillTargetHostDetail(stepInstance, taskInstanceExecuteObjects);
             // 文件源设置主机详情
-            fillFileSourceHostDetail(stepInstance, hostMap);
+            fillFileSourceHostDetail(stepInstance, taskInstanceExecuteObjects);
         }
 
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    fillHostsDetail(variable.getExecuteTarget(), hostMap);
+                    fillHostsDetail(variable.getExecuteTarget(), taskInstanceExecuteObjects);
                 }
             });
         }
@@ -528,37 +526,41 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<HostCompositeKey, HostDTO> hostMap) {
-        fillHostsDetail(stepInstance.getTargetExecuteObjects(), hostMap);
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance,
+                                      TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        fillHostsDetail(stepInstance.getTargetExecuteObjects(), taskInstanceExecuteObjects);
     }
 
-    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<HostCompositeKey, HostDTO> hostMap) {
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance,
+                                          TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (stepInstance.getExecuteType() == SEND_FILE) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
                 for (FileSourceDTO fileSource : fileSourceList) {
-                    fillHostsDetail(fileSource.getServers(), hostMap);
+                    fillHostsDetail(fileSource.getServers(), taskInstanceExecuteObjects);
                 }
             }
         }
     }
 
-    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO, Map<HostCompositeKey, HostDTO> hostMap) {
+    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO,
+                                 TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (executeTargetDTO != null) {
-            fillHostsDetail(executeTargetDTO.getStaticIpList(), hostMap);
+            fillHostsDetail(executeTargetDTO.getStaticIpList(), taskInstanceExecuteObjects);
             if (CollectionUtils.isNotEmpty(executeTargetDTO.getDynamicServerGroups())) {
                 executeTargetDTO.getDynamicServerGroups()
-                    .forEach(group -> fillHostsDetail(group.getIpList(), hostMap));
+                    .forEach(group -> fillHostsDetail(group.getIpList(), taskInstanceExecuteObjects));
             }
             if (CollectionUtils.isNotEmpty(executeTargetDTO.getTopoNodes())) {
-                executeTargetDTO.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
+                executeTargetDTO.getTopoNodes().forEach(
+                    topoNode -> fillHostsDetail(topoNode.getIpList(), taskInstanceExecuteObjects));
             }
         }
     }
 
-    private void fillHostsDetail(Collection<HostDTO> hosts, Map<HostCompositeKey, HostDTO> hostMap) {
+    private void fillHostsDetail(Collection<HostDTO> hosts, TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (CollectionUtils.isNotEmpty(hosts)) {
-            hosts.forEach(host -> host.updateByHost(hostMap.get(host.getUniqueKey())));
+            hosts.forEach(host -> host.updateByHost(taskInstanceExecuteObjects.queryByHostKey(host)));
         }
     }
 
