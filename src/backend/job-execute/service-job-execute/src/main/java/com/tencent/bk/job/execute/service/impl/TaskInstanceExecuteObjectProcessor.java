@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
+import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -163,8 +164,8 @@ public class TaskInstanceExecuteObjectProcessor {
             boolean isSupportExecuteObjectFeature = isSupportExecuteObjectFeature(taskInstance);
             // 合并所有执行对象
             mergeExecuteObjects(stepInstanceList, variables, isSupportExecuteObjectFeature);
-            // 检查执行对象是否存在
-            checkExecuteObjectExist(taskInstanceExecuteObjects);
+            // 检查执行对象是否合法
+            checkExecuteObjectExist(taskInstance, stepInstanceList, taskInstanceExecuteObjects);
             watch.stop();
 
             // 如果包含主机执行对象，需要获取主机白名单
@@ -180,7 +181,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
             // 检查执行对象是否可用
             watch.start("checkExecuteObjectAccessible");
-            checkExecuteObjectAccessible(appId, stepInstanceList, taskInstanceExecuteObjects);
+            checkExecuteObjectAccessible(taskInstance, stepInstanceList, taskInstanceExecuteObjects);
             watch.stop();
 
             return taskInstanceExecuteObjects;
@@ -467,19 +468,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
         fillHostAgent(taskInstance, taskInstanceExecuteObjects);
 
-        Map<String, HostDTO> hostMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidHosts())) {
-            taskInstanceExecuteObjects.getValidHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
-        if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
-            taskInstanceExecuteObjects.getNotInAppHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
+        Map<HostCompositeKey, HostDTO> hostMap = taskInstanceExecuteObjects.getHostMap();
 
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isStepContainsExecuteObject()) {
@@ -539,11 +528,11 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<HostCompositeKey, HostDTO> hostMap) {
         fillHostsDetail(stepInstance.getTargetExecuteObjects(), hostMap);
     }
 
-    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<HostCompositeKey, HostDTO> hostMap) {
         if (stepInstance.getExecuteType() == SEND_FILE) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
@@ -554,7 +543,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO, Map<String, HostDTO> hostMap) {
+    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO, Map<HostCompositeKey, HostDTO> hostMap) {
         if (executeTargetDTO != null) {
             fillHostsDetail(executeTargetDTO.getStaticIpList(), hostMap);
             if (CollectionUtils.isNotEmpty(executeTargetDTO.getDynamicServerGroups())) {
@@ -567,17 +556,9 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void fillHostsDetail(Collection<HostDTO> hosts, Map<String, HostDTO> hostMap) {
+    private void fillHostsDetail(Collection<HostDTO> hosts, Map<HostCompositeKey, HostDTO> hostMap) {
         if (CollectionUtils.isNotEmpty(hosts)) {
-            hosts.forEach(host -> {
-                HostDTO hostDetail;
-                if (host.getHostId() != null) {
-                    hostDetail = hostMap.get("hostId:" + host.getHostId());
-                } else {
-                    hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
-                }
-                host.updateByHost(hostDetail);
-            });
+            hosts.forEach(host -> host.updateByHost(hostMap.get(host.getUniqueKey())));
         }
     }
 
@@ -782,25 +763,83 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void checkExecuteObjectExist(TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
-        List<String> notExistExecuteObjectList = new ArrayList<>();
+    private void checkExecuteObjectExist(TaskInstanceDTO taskInstance,
+                                         List<StepInstanceDTO> stepInstanceList,
+                                         TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        List<String> invalidExecuteObjects = new ArrayList<>();
+
+        // 处理主机执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistHosts())) {
-            notExistExecuteObjectList.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
-                .map(this::printHostIdOrIp).collect(Collectors.toList()));
+            if (shouldIgnoreInvalidHost(taskInstance)) {
+                // 忽略主机不存在错误，并标识执行对象的 invalid 属性为 true
+                markExecuteObjectInvalid(stepInstanceList, taskInstanceExecuteObjects.getNotExistHosts());
+            } else {
+                invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
+                    .map(this::printHostIdOrIp).collect(Collectors.toList()));
+            }
         }
+
+        // 处理容器执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistContainerIds())) {
-            notExistExecuteObjectList.addAll(
+            invalidExecuteObjects.addAll(
                 taskInstanceExecuteObjects.getNotExistContainerIds().stream()
                     .map(containerId -> "(container_id:" + containerId + ")")
                     .collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(notExistExecuteObjectList)) {
-            String executeObjectStr = StringUtils.join(notExistExecuteObjectList, ",");
-            log.warn("The following execute object are not exist, notExistExecuteObjectList={}",
-                notExistExecuteObjectList);
+
+        if (CollectionUtils.isNotEmpty(invalidExecuteObjects)) {
+            String executeObjectStr = StringUtils.join(invalidExecuteObjects, ",");
+            log.warn("The following execute object are not exist, invalidExecuteObjects={}",
+                invalidExecuteObjects);
             throw new FailedPreconditionException(ErrorCode.EXECUTE_OBJECT_NOT_EXIST,
-                new Object[]{notExistExecuteObjectList.size(), executeObjectStr});
+                new Object[]{invalidExecuteObjects.size(), executeObjectStr});
         }
+    }
+
+    private void markExecuteObjectInvalid(List<StepInstanceDTO> stepInstanceList,
+                                          List<HostDTO> invalidHost) {
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (!stepInstance.isStepContainsExecuteObject()) {
+                continue;
+            }
+            // 检查目标主机
+            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly().stream()
+                .filter(ExecuteObject::isHostExecuteObject)
+                .forEach(executeObject -> {
+                    if (invalidHost.contains(executeObject.getHost())) {
+                        executeObject.setInvalid(true);
+                    }
+                });
+            // 如果是文件分发任务，检查文件源
+            if (stepInstance.isFileStep()) {
+                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+                if (CollectionUtils.isEmpty(fileSourceList)) {
+                    return;
+                }
+                for (FileSourceDTO fileSource : fileSourceList) {
+                    // 远程文件分发需要校验文件源主机;其他类型不需要
+                    if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
+                        ExecuteTargetDTO executeTarget = fileSource.getServers();
+                        if (executeTarget == null ||
+                            CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                            continue;
+                        }
+                        executeTarget.getExecuteObjectsCompatibly().stream()
+                            .filter(ExecuteObject::isHostExecuteObject)
+                            .forEach(executeObject -> {
+                                if (invalidHost.contains(executeObject.getHost())) {
+                                    executeObject.setInvalid(true);
+                                }
+                            });
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean shouldIgnoreInvalidHost(TaskInstanceDTO taskInstance) {
+        // 定时任务忽略非法主机，继续执行
+        return TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()) == TaskStartupModeEnum.CRON;
     }
 
     private void throwHostInvalidException(Long appId, Collection<HostDTO> invalidHosts) {
@@ -816,11 +855,11 @@ public class TaskInstanceExecuteObjectProcessor {
     /**
      * 判断执行对象是否可以被当前作业使用
      *
-     * @param appId                      业务 ID
+     * @param taskInstance               作业实例
      * @param stepInstanceList           作业步骤列表
      * @param taskInstanceExecuteObjects 作业实例中包含的执行对象
      */
-    private void checkExecuteObjectAccessible(long appId,
+    private void checkExecuteObjectAccessible(TaskInstanceDTO taskInstance,
                                               List<StepInstanceDTO> stepInstanceList,
                                               TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (CollectionUtils.isEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
@@ -833,6 +872,7 @@ public class TaskInstanceExecuteObjectProcessor {
             .collect(Collectors.toMap(HostDTO::getHostId, host -> host, (host1, host2) -> host2));
 
         // 非法的主机
+        boolean shouldIgnoreInvalidHost = shouldIgnoreInvalidHost(taskInstance);
         Set<HostDTO> invalidHosts = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isStepContainsExecuteObject()) {
@@ -844,17 +884,22 @@ public class TaskInstanceExecuteObjectProcessor {
                 .filter(ExecuteObject::isHostExecuteObject)
                 .forEach(executeObject -> {
                     if (isHostUnAccessible(stepType, executeObject.getHost(), notInAppHostMap, whileHostAllowActions)) {
-                        invalidHosts.add(executeObject.getHost());
+                        if (shouldIgnoreInvalidHost) {
+                            executeObject.setInvalid(true);
+                        } else {
+                            invalidHosts.add(executeObject.getHost());
+                        }
                     }
                 });
             // 如果是文件分发任务，检查文件源
-            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap, whileHostAllowActions);
+            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap,
+                whileHostAllowActions, shouldIgnoreInvalidHost);
         }
 
         if (CollectionUtils.isNotEmpty(invalidHosts)) {
             // 检查是否在白名单配置
-            log.warn("Found hosts not in target app: {}!", appId);
-            throwHostInvalidException(appId, invalidHosts);
+            log.warn("Found hosts not in target app: {}!", taskInstance.getAppId());
+            throwHostInvalidException(taskInstance.getAppId(), invalidHosts);
         }
     }
 
@@ -862,7 +907,8 @@ public class TaskInstanceExecuteObjectProcessor {
                                                StepInstanceDTO stepInstance,
                                                TaskStepTypeEnum stepType,
                                                Map<Long, HostDTO> notInAppHostMap,
-                                               Map<Long, List<String>> whileHostAllowActions) {
+                                               Map<Long, List<String>> whileHostAllowActions,
+                                               boolean ignoreInvalidHost) {
         if (!stepInstance.isFileStep()) {
             return;
         }
@@ -882,7 +928,11 @@ public class TaskInstanceExecuteObjectProcessor {
                     .forEach(executeObject -> {
                         if (isHostUnAccessible(stepType, executeObject.getHost(),
                             notInAppHostMap, whileHostAllowActions)) {
-                            invalidHosts.add(executeObject.getHost());
+                            if (ignoreInvalidHost) {
+                                executeObject.setInvalid(true);
+                            } else {
+                                invalidHosts.add(executeObject.getHost());
+                            }
                         }
                     });
             }

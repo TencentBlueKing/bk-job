@@ -150,9 +150,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private String taskInfo;
     /**
-     * 是否包含非法文件源
+     * 是否存在不可执行的源执行对象
      */
-    protected boolean hasInvalidSourceExecuteObject;
+    protected boolean existNoExecutableSourceExecuteObject;
 
 
     public FileResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
@@ -182,10 +182,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         initFileTaskNumMap();
         initSourceExecuteObjectGseKeys();
 
+        this.existNoExecutableSourceExecuteObject =
+            executeObjectTasks.stream().anyMatch(
+                executeObjectTask -> !executeObjectTask.isTarget() &&
+                    !executeObjectTask.getExecuteObject().isExecutable());
+
         log.info("InitFileResultHandleTask|stepInstanceId: {}|sourceExecuteObjectGseKeys: {}"
-                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}"
+                + "|existNoExecutableSourceExecuteObject: {}",
             stepInstance.getId(), sourceExecuteObjectGseKeys, targetExecuteObjectGseKeys, fileUploadTaskNumMap,
-            fileDownloadTaskNumMap);
+            fileDownloadTaskNumMap, existNoExecutableSourceExecuteObject);
     }
 
     private void initSrcFilesMap(Collection<JobFile> srcFiles) {
@@ -532,6 +538,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         return rst;
     }
 
+    @Override
+    protected boolean existNoExecutableExecuteObject() {
+        return this.existNoExecutableTargetExecuteObject || this.existNoExecutableSourceExecuteObject;
+    }
+
     private boolean isAllSourceExecuteObjectTasksDone() {
         return this.notFinishedSourceExecuteObjectGseKeys.isEmpty()
             && this.notFinishedTargetExecuteObjectGseKeys.isEmpty();
@@ -724,7 +735,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                                 ExecuteObjectTask executeObjectTask) {
         // 文件任务成功数=任务总数
         if (successNum >= fileNum) {
-            if (hasInvalidSourceExecuteObject) {
+            if (existNoExecutableSourceExecuteObject) {
                 // 如果包含了非法的源文件主机，即使GSE任务（已过滤非法主机)执行成功，那么对于这个主机来说，整体上任务状态是失败
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
             } else {
