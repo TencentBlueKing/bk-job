@@ -34,7 +34,6 @@ spec:
       annotations:
         {{ include "annotations.sha256sum.configmap" ( dict "service" "job-backup" "context" . ) | nindent 8 }}
     spec:
-      {{- include "job.podTerminationGracePeriodSeconds" . | nindent 6 }}
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       {{- if .Values.backupConfig.affinity }}
@@ -104,6 +103,7 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
+      terminationGracePeriodSeconds: 80
       volumes:
         - name: job-storage
           persistentVolumeClaim:
