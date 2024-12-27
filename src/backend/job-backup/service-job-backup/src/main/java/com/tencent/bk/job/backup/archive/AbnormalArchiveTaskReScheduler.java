@@ -113,9 +113,8 @@ public class AbnormalArchiveTaskReScheduler {
         }
         long currentTime = System.currentTimeMillis();
         runningTasks.forEach(runningTask -> {
-            // 如果归档任务没有正常结束，通过当前时间减去任务创建(修改）时间计算执行时长，判断是否超过合理的执行时长
-            if (currentTime - runningTask.getCreateTime() > TIMEOUT_MILLS ||
-                currentTime - runningTask.getLastUpdateTime() > TIMEOUT_MILLS) {
+            // 如果归档任务没有正常结束，通过当前时间减去任务最后修改时间计算执行时长，判断是否超过合理的执行时长
+            if (currentTime - runningTask.getLastUpdateTime() > TIMEOUT_MILLS) {
                 log.info("Found timeout archive task, and set archive task status to pending. taskId: {}",
                     runningTask.buildTaskUniqueId());
                 // 设置为 pending 状态，会被重新调度
