@@ -49,12 +49,13 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
 
     @Override
     @JobTransactional(transactionManager = "jobCrontabTransactionManager", timeout = 30)
-    public CronLoadResult batchLoadCronToQuartz(int start, int limit) {
+    public CronLoadResult batchLoadCronToQuartz(int start, int limit) throws InterruptedException {
         int successNum = 0;
         int failedNum = 0;
         List<CronJobBasicInfoDTO> failedCronList = new ArrayList<>();
         List<CronJobBasicInfoDTO> cronJobBasicInfoList = cronJobService.listEnabledCronBasicInfoForUpdate(start, limit);
         for (CronJobBasicInfoDTO cronJobBasicInfoDTO : cronJobBasicInfoList) {
+            checkInterrupt();
             boolean result = false;
             try {
                 result = cronJobService.addJobToQuartz(
@@ -92,5 +93,11 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
         cronLoadResult.setFailedNum(failedNum);
         cronLoadResult.setFailedCronList(failedCronList);
         return cronLoadResult;
+    }
+
+    private void checkInterrupt() throws InterruptedException {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException("batchLoadCronToQuartz thread is interrupted, exit");
+        }
     }
 }
