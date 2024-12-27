@@ -102,7 +102,6 @@ public class LogExportServiceImpl implements LogExportService {
     @Override
     public LogExportJobInfoDTO packageLogFile(String username,
                                               Long appId,
-                                              Long taskInstanceId,
                                               Long stepInstanceId,
                                               ExecuteObjectTypeEnum executeObjectType,
                                               Long executeObjectResourceId,
@@ -128,7 +127,7 @@ public class LogExportServiceImpl implements LogExportService {
         boolean isGetByExecuteObject = executeObjectResourceId != null;
 
         if (isGetByExecuteObject) {
-            doPackage(exportJobInfo, taskInstanceId, stepInstanceId, executeObjectType, executeObjectResourceId,
+            doPackage(exportJobInfo, stepInstanceId, executeObjectType, executeObjectResourceId,
                 executeCount, logFileDir, logFileName);
         } else {
             String requestId = JobContextUtil.getRequestId();
@@ -142,8 +141,8 @@ public class LogExportServiceImpl implements LogExportService {
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
-                        doPackage(exportJobInfo, taskInstanceId, stepInstanceId, executeObjectType,
-                            executeObjectResourceId, executeCount, logFileDir, logFileName);
+                        doPackage(exportJobInfo, stepInstanceId, executeObjectType, executeObjectResourceId,
+                            executeCount, logFileDir, logFileName);
                     } else {
                         log.error("Job already running!|appId={}|stepInstanceId={}", appId, stepInstanceId);
                     }
@@ -203,14 +202,13 @@ public class LogExportServiceImpl implements LogExportService {
     }
 
     private void doPackage(LogExportJobInfoDTO exportJobInfo,
-                           long taskInstanceId,
                            long stepInstanceId,
                            ExecuteObjectTypeEnum executeObjectType,
                            Long executeObjectResourceId,
                            int executeCount,
                            String logFileDir,
                            String logFileName) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
         File logFile = new File(logFileDir + logFileName);
 
         StopWatch watch = new StopWatch("exportJobLog");

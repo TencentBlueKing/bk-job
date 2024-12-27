@@ -52,9 +52,9 @@ public class CommonStatisticWithRateVO {
     private Float momRate;
 
     @ApiModelProperty("同比趋势：1：上升，0：不变，-1：下降")
-    private Integer yoyTrend;
+    private Long yoyTrend;
 
     @ApiModelProperty("环比趋势：1：上升，0：不变，-1：下降")
-    private Integer momTrend;
+    private Long momTrend;
 
 }

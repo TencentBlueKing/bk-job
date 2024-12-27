@@ -61,7 +61,7 @@ public abstract class AbstractStepEventHandler implements StepEventHandler {
             finishStepWithAbnormalState(stepInstance);
             taskExecuteMQEventDispatcher.dispatchJobEvent(
                 JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                    EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
+                    EventSource.buildStepEventSource(stepInstance.getId())));
         } catch (Throwable e) {
             log.error("Finish step instance safely caught exception", e);
         }
@@ -77,7 +77,6 @@ public abstract class AbstractStepEventHandler implements StepEventHandler {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             stepInstanceService.updateStepExecutionInfo(
-                stepInstance.getTaskInstanceId(),
                 stepInstance.getId(),
                 status,
                 null,

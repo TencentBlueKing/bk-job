@@ -87,7 +87,7 @@ public class CommonStatisticService {
      */
     public CommonStatisticWithRateVO calcMomYoyStatistic(StatisticsDTO statisticsDTO, StatisticsDTO momStatisticsDTO,
                                                          StatisticsDTO yoyStatisticsDTO) {
-        return new SimpleMomYoyCalculator(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO).calc();
+        return new SimpleMomYoyCalculator(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO).getResult();
     }
 
     public CommonStatisticWithRateVO getCommonTotalStatistics(TotalMetricEnum metric, List<Long> appIdList,

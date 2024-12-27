@@ -25,20 +25,39 @@
 package com.tencent.bk.job.analysis.service.ai;
 
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.web.resp.AIAnswer;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/**
- * AI核心能力服务
- */
 public interface AIService {
+
+    /**
+     * 根据用户输入获取AI回答
+     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
+     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
+     *
+     * @param chatHistoryDTOList 历史聊天记录
+     * @param userInput          用户输入
+     * @return AI回答结果
+     */
+    AIAnswer getAIAnswer(List<AIChatHistoryDTO> chatHistoryDTOList, String userInput);
+
+    /**
+     * 根据用户输入获取AI回答（不传入历史聊天记录）
+     * 注意：默认使用当前线程上下文中的请求Cookie中的bk_ticket/bk_token调用大模型接口，
+     * 非HTTP请求处理线程中调用需要额外实现登录态传递逻辑
+     *
+     * @param userInput 用户输入
+     * @return AI回答结果
+     */
+    AIAnswer getAIAnswer(String userInput);
 
     /**
      * 获取AI回答流（流式接口）
      *
-     * @param chatHistoryDTOList  历史对话记录
+     * @param chatHistoryDTOList  历史聊天记录
      * @param userInput           用户输入
      * @param partialRespConsumer AI回答流回调
      * @return AI回答结果Future

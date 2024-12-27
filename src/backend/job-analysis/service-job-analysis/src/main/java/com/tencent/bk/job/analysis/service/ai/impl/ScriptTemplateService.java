@@ -37,35 +37,20 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * 脚本模板服务
- */
 @Slf4j
 @Service
 public class ScriptTemplateService {
 
     private final ServiceScriptTemplateResource scriptTemplateResource;
-    /**
-     * 最大脚本模板数量
-     */
-    private final int maxScriptTemplateNum = 6;
-    /**
-     * 脚本模板缓存过期时间（天）
-     */
-    private final int scriptTemplateCacheExpireDays = 1;
-
-    /**
-     * 各种语言类型的脚本模板数量有限且很少变动，使用本地缓存提高加载速率，也避免频繁的服务调用
-     */
     private final LoadingCache<Integer, String> scriptTemplateCache = CacheBuilder.newBuilder()
-        .maximumSize(maxScriptTemplateNum).expireAfterWrite(scriptTemplateCacheExpireDays, TimeUnit.DAYS)
-        .build(new CacheLoader<Integer, String>() {
-                   @SuppressWarnings("all")
-                   @Override
-                   public String load(Integer scriptType) {
-                       return getScriptTemplateIndeed(scriptType);
-                   }
-               }
+        .maximumSize(6).expireAfterWrite(1, TimeUnit.DAYS).
+        build(new CacheLoader<Integer, String>() {
+                  @SuppressWarnings("all")
+                  @Override
+                  public String load(Integer scriptType) {
+                      return getScriptTemplateIndeed(scriptType);
+                  }
+              }
         );
 
     @Autowired
@@ -73,12 +58,6 @@ public class ScriptTemplateService {
         this.scriptTemplateResource = scriptTemplateResource;
     }
 
-    /**
-     * 根据脚本类型获取脚本模板，优先从缓存获取，如果缓存未命中则通过服务调用获取
-     *
-     * @param scriptType 脚本类型
-     * @return 脚本模板
-     */
     public String getScriptTemplate(Integer scriptType) {
         try {
             return scriptTemplateCache.get(scriptType);
@@ -88,12 +67,6 @@ public class ScriptTemplateService {
         }
     }
 
-    /**
-     * 通过服务调用获取脚本模板
-     *
-     * @param scriptType 脚本类型
-     * @return 脚本模板
-     */
     public String getScriptTemplateIndeed(Integer scriptType) {
         InternalResponse<String> resp = scriptTemplateResource.getScriptTemplate(scriptType);
         if (log.isDebugEnabled()) {

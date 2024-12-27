@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.redis.util;
 
 import com.tencent.bk.job.common.util.JobUUID;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -34,7 +33,6 @@ import lombok.Setter;
  */
 @Setter
 @Getter
-@NoArgsConstructor
 public class HeartBeatRedisLockConfig {
 
     /**
@@ -56,9 +54,4 @@ public class HeartBeatRedisLockConfig {
         return INSTANCE;
     }
 
-    public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {
-        this.heartBeatThreadName = heartBeatThreadName;
-        this.expireTimeMillis = expireTimeMillis;
-        this.periodMillis = periodMillis;
-    }
 }

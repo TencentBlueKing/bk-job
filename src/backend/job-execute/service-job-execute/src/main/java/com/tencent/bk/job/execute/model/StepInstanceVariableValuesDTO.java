@@ -43,11 +43,6 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class StepInstanceVariableValuesDTO {
     /**
-     * 变量 ID
-     */
-    @JsonProperty("id")
-    private Long id;
-    /**
      * 步骤实例ID
      */
     @JsonProperty("stepInstanceId")

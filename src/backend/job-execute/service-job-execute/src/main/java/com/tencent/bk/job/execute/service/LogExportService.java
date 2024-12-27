@@ -34,7 +34,6 @@ public interface LogExportService {
 
     LogExportJobInfoDTO packageLogFile(String username,
                                        Long appId,
-                                       Long taskInstanceId,
                                        Long stepInstanceId,
                                        ExecuteObjectTypeEnum executeObjectType,
                                        Long executeObjectResourceId,

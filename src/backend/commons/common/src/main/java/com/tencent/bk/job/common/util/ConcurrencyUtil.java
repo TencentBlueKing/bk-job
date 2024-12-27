@@ -67,11 +67,9 @@ public class ConcurrencyUtil {
             ApplicationContextRegister.getContext(),
             Executors.newFixedThreadPool(threadNum)
         );
-        try {
-            return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
-        } finally {
-            threadPoolExecutor.shutdown();
-        }
+        List<Output> result = getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        threadPoolExecutor.shutdown();
+        return result;
     }
 
     /**

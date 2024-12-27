@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceRollingTaskDAO;
-import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,29 +44,23 @@ import java.util.stream.Collectors;
 public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTaskService {
 
     private final StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO;
-    private final IdGen idGen;
 
     @Autowired
     public StepInstanceRollingTaskServiceImpl(
-            StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO, IdGen idGen) {
+        StepInstanceRollingTaskDAO stepInstanceRollingTaskDAO) {
         this.stepInstanceRollingTaskDAO = stepInstanceRollingTaskDAO;
-        this.idGen = idGen;
     }
 
     @Override
-    public StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
-                                                       long stepInstanceId,
-                                                       int executeCount,
-                                                       int batch) {
-        return stepInstanceRollingTaskDAO.queryRollingTask(taskInstanceId, stepInstanceId, executeCount, batch);
+    public StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
+                                                       int executeCount, int batch) {
+        return stepInstanceRollingTaskDAO.queryRollingTask(stepInstanceId, executeCount, batch);
     }
 
     @Override
-    public List<StepInstanceRollingTaskDTO> listLatestRollingTasks(Long taskInstanceId,
-                                                                   long stepInstanceId,
-                                                                   int executeCount) {
+    public List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount) {
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks =
-            stepInstanceRollingTaskDAO.listRollingTasks(taskInstanceId, stepInstanceId, null, null);
+            stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, null);
         if (CollectionUtils.isEmpty(stepInstanceRollingTasks)) {
             return stepInstanceRollingTasks;
         }
@@ -99,33 +92,29 @@ public class StepInstanceRollingTaskServiceImpl implements StepInstanceRollingTa
     }
 
     @Override
-    public List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(Long taskInstanceId,
-                                                                    long stepInstanceId,
-                                                                    Integer batch) {
-        return stepInstanceRollingTaskDAO.listRollingTasks(taskInstanceId, stepInstanceId, null, batch);
+    public List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(long stepInstanceId, Integer batch) {
+        return stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, batch);
     }
 
     @Override
     public long saveRollingTask(StepInstanceRollingTaskDTO rollingTask) {
-        rollingTask.setId(idGen.genStepInstanceRollingTaskId());
         return stepInstanceRollingTaskDAO.saveRollingTask(rollingTask);
     }
 
     @Override
-    public void updateRollingTask(Long taskInstanceId,
-                                  long stepInstanceId,
+    public void updateRollingTask(long stepInstanceId,
                                   int executeCount,
                                   int batch,
                                   RunStatusEnum status,
                                   Long startTime,
                                   Long endTime,
                                   Long totalTime) {
-        stepInstanceRollingTaskDAO.updateRollingTask(taskInstanceId, stepInstanceId, executeCount, batch, status,
-            startTime, endTime, totalTime);
+        stepInstanceRollingTaskDAO.updateRollingTask(stepInstanceId, executeCount, batch, status, startTime,
+            endTime, totalTime);
     }
 
     @Override
-    public List<StepInstanceRollingTaskDTO> listRollingTasksByStep(Long taskInstanceId, long stepInstanceId) {
-        return stepInstanceRollingTaskDAO.listRollingTasks(taskInstanceId, stepInstanceId, null, null);
+    public List<StepInstanceRollingTaskDTO> listRollingTasksByStep(long stepInstanceId) {
+        return stepInstanceRollingTaskDAO.listRollingTasks(stepInstanceId, null, null);
     }
 }

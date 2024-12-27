@@ -27,20 +27,19 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
-import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
-import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.DangerousRecordDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
 import com.tencent.bk.job.execute.model.ScriptCheckResultDTO;
 import com.tencent.bk.job.execute.model.tables.DangerousRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -48,37 +47,25 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDAO {
+public class DangerousRecordDAOImpl implements DangerousRecordDAO {
 
     private static final DangerousRecord T = DangerousRecord.DANGEROUS_RECORD;
+    private final DSLContext ctx;
 
     @Autowired
-    public DangerousRecordDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory, T.getName());
+    public DangerousRecordDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+        this.ctx = ctx;
     }
 
     @Override
-    @MySQLOperation(table = "dangerous_record", op = DbOperationEnum.READ)
     public PageData<DangerousRecordDTO> listPageDangerousRecord(DangerousRecordDTO query,
                                                                 BaseSearchCondition baseSearchCondition) {
         int count = getPageDangerousRecordCount(query, baseSearchCondition);
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        Result result = dsl().select(
-                T.ID,
-                T.RULE_ID,
-                T.RULE_EXPRESSION,
-                T.APP_ID,
-                T.APP_NAME,
-                T.OPERATOR,
-                T.SCRIPT_LANGUAGE,
-                T.SCRIPT_CONTENT,
-                T.CREATE_TIME,
-                T.STARTUP_MODE,
-                T.CLIENT,
-                T.ACTION,
-                T.CHECK_RESULT,
-                T.EXT_DATA)
+        Result result = ctx.select(T.ID, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME, T.OPERATOR,
+            T.SCRIPT_LANGUAGE,
+            T.SCRIPT_CONTENT, T.CREATE_TIME, T.STARTUP_MODE, T.CLIENT, T.ACTION, T.CHECK_RESULT, T.EXT_DATA)
             .from(T)
             .where(buildSearchCondition(query, baseSearchCondition))
             .orderBy(T.ID.desc())
@@ -90,7 +77,7 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
     @SuppressWarnings("all")
     private int getPageDangerousRecordCount(DangerousRecordDTO query, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = buildSearchCondition(query, baseSearchCondition);
-        return dsl().selectCount().from(T).where(conditions).fetchOne(0, Integer.class);
+        return ctx.selectCount().from(T).where(conditions).fetchOne(0, Integer.class);
     }
 
     private List<Condition> buildSearchCondition(DangerousRecordDTO query, BaseSearchCondition baseSearchCondition) {
@@ -158,7 +145,7 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
         dangerousRecord.setScriptContent(record.get(T.SCRIPT_CONTENT));
         dangerousRecord.setCheckResult(JsonUtils.fromJson(record.get(T.CHECK_RESULT),
             new TypeReference<ScriptCheckResultDTO>() {
-            }));
+        }));
         String extData = record.get(T.EXT_DATA);
         if (StringUtils.isNotEmpty(extData)) {
             dangerousRecord.setExtData(JsonUtils.fromJson(extData, new TypeReference<Map<String, String>>() {
@@ -168,11 +155,9 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
     }
 
     @Override
-    @MySQLOperation(table = "dangerous_record", op = DbOperationEnum.WRITE)
     public boolean saveDangerousRecord(DangerousRecordDTO record) {
-        int count = dsl().insertInto(T, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME,
-                T.OPERATOR, T.SCRIPT_LANGUAGE,
-                T.SCRIPT_CONTENT, T.CREATE_TIME, T.STARTUP_MODE, T.CLIENT, T.ACTION, T.CHECK_RESULT, T.EXT_DATA)
+        int count = ctx.insertInto(T, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME, T.OPERATOR, T.SCRIPT_LANGUAGE,
+            T.SCRIPT_CONTENT, T.CREATE_TIME, T.STARTUP_MODE, T.CLIENT, T.ACTION, T.CHECK_RESULT, T.EXT_DATA)
             .values(record.getRuleId(),
                 record.getRuleExpression(),
                 record.getAppId(),

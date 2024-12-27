@@ -48,10 +48,6 @@ public class StepEvent extends Event {
      */
     private int action;
     /**
-     * 作业实例ID
-     */
-    private Long jobInstanceId;
-    /**
      * 步骤实例ID
      */
     private long stepInstanceId;
@@ -63,13 +59,11 @@ public class StepEvent extends Event {
     /**
      * 构造`忽略错误`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent ignoreError(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent ignoreError(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.IGNORE_ERROR.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -79,13 +73,11 @@ public class StepEvent extends Event {
     /**
      * 构造`下一步`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent nextStep(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent nextStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.NEXT_STEP.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -95,13 +87,11 @@ public class StepEvent extends Event {
     /**
      * 构造`人工确认-重新发起确认`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepContinue(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepContinue(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.CONFIRM_CONTINUE.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -111,13 +101,11 @@ public class StepEvent extends Event {
     /**
      * 构造`人工确认-终止流程`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepTerminate(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepTerminate(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.CONFIRM_TERMINATE.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -127,13 +115,11 @@ public class StepEvent extends Event {
     /**
      * 构造`人工确认-重新发起确认`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent confirmStepRestart(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent confirmStepRestart(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.CONFIRM_RESTART.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -143,14 +129,12 @@ public class StepEvent extends Event {
     /**
      * 构造`启动步骤`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动执行批次
      * @return 事件
      */
-    public static StepEvent startStep(Long jobInstanceId, long stepInstanceId, Integer batch) {
+    public static StepEvent startStep(long stepInstanceId, Integer batch) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setBatch(batch);
         stepEvent.setAction(StepActionEnum.START.getValue());
@@ -161,13 +145,11 @@ public class StepEvent extends Event {
     /**
      * 构造`跳过步骤`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent skipStep(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent skipStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.SKIP.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -177,13 +159,11 @@ public class StepEvent extends Event {
     /**
      * 构造`停止步骤`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent stopStep(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent stopStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.STOP.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -193,13 +173,11 @@ public class StepEvent extends Event {
     /**
      * 构造`失败IP重试`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent retryStepFail(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent retryStepFail(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.RETRY_FAIL.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -209,13 +187,11 @@ public class StepEvent extends Event {
     /**
      * 构造`全部重试`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent retryStepAll(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent retryStepAll(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.RETRY_ALL.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -225,13 +201,11 @@ public class StepEvent extends Event {
     /**
      * 构造`文件准备完成后继续GSE分发`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent continueGseFileStep(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent continueGseFileStep(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.CONTINUE_FILE_PUSH.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -241,13 +215,11 @@ public class StepEvent extends Event {
     /**
      * 构造`准备文件`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent prepareFile(Long jobInstanceId, long stepInstanceId) {
+    public static StepEvent prepareFile(long stepInstanceId) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.PREPARE_FILE.getValue());
         stepEvent.setTime(LocalDateTime.now());
@@ -257,13 +229,11 @@ public class StepEvent extends Event {
     /**
      * 构造`刷新步骤状态`事件
      *
-     * @param jobInstanceId  作业实例ID
      * @param stepInstanceId 步骤实例ID
      * @return 事件
      */
-    public static StepEvent refreshStep(Long jobInstanceId, long stepInstanceId, EventSource eventSource) {
+    public static StepEvent refreshStep(long stepInstanceId, EventSource eventSource) {
         StepEvent stepEvent = new StepEvent();
-        stepEvent.setJobInstanceId(jobInstanceId);
         stepEvent.setStepInstanceId(stepInstanceId);
         stepEvent.setAction(StepActionEnum.REFRESH.getValue());
         stepEvent.setSource(eventSource);
@@ -276,7 +246,6 @@ public class StepEvent extends Event {
         return new StringJoiner(", ", StepEvent.class.getSimpleName() + "[", "]")
             .add("action=" + action)
             .add("actionDesc=" + StepActionEnum.valueOf(action))
-            .add("jobInstanceId=" + jobInstanceId)
             .add("stepInstanceId=" + stepInstanceId)
             .add("batch=" + batch)
             .add("source=" + source)

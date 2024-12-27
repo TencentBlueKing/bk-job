@@ -58,14 +58,12 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
     @DisplayName("根据主机获取Agent任务")
     public void testGetAgentTaskByHostId() {
         long hostId = 101L;
-        long taskInstanceId = 1L;
         long stepInstanceId = 1L;
         int executeCount = 0;
         int batch = 1;
-        ExecuteObjectTask agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(taskInstanceId,
-            stepInstanceId, executeCount, batch, hostId);
+        ExecuteObjectTask agentTask = scriptAgentTaskDAO.getAgentTaskByHostId(stepInstanceId, executeCount, batch,
+            hostId);
 
-        assertThat(agentTask.getTaskInstanceId()).isEqualTo(taskInstanceId);
         assertThat(agentTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(agentTask.getExecuteCount()).isEqualTo(executeCount);
         assertThat(agentTask.getBatch()).isEqualTo(batch);
@@ -89,7 +87,6 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
     public void testBatchSaveAgentTasks() {
         List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
         ExecuteObjectTask agentTask1 = new ExecuteObjectTask();
-        agentTask1.setTaskInstanceId(100L);
         agentTask1.setStepInstanceId(100L);
         agentTask1.setExecuteCount(1);
         agentTask1.setActualExecuteCount(1);
@@ -107,7 +104,6 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTaskList.add(agentTask1);
 
         ExecuteObjectTask agentTask2 = new ExecuteObjectTask();
-        agentTask2.setTaskInstanceId(100L);
         agentTask2.setStepInstanceId(100L);
         agentTask2.setExecuteCount(1);
         agentTask2.setActualExecuteCount(1);
@@ -128,8 +124,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         scriptAgentTaskDAO.batchSaveAgentTasks(agentTaskList);
 
-        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 100L, 1, 1, 101L);
-        assertThat(agentTask1Return.getTaskInstanceId()).isEqualTo(100L);
+        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 101L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(1L);
         assertThat(agentTask1Return.getActualExecuteCount()).isEqualTo(1L);
@@ -146,8 +141,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 100L, 1, 1, 102L);
-        assertThat(agentTask2Return.getTaskInstanceId()).isEqualTo(100L);
+        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(100L, 1, 1, 102L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(1L);
         assertThat(agentTask2Return.getActualExecuteCount()).isEqualTo(1L);
@@ -169,7 +163,6 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
     public void testBatchUpdateAgentTasks() {
         List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
         ExecuteObjectTask agentTask1 = new ExecuteObjectTask();
-        agentTask1.setTaskInstanceId(1L);
         agentTask1.setStepInstanceId(1L);
         agentTask1.setExecuteCount(0);
         agentTask1.setBatch(3);
@@ -186,7 +179,6 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         agentTaskList.add(agentTask1);
 
         ExecuteObjectTask agentTask2 = new ExecuteObjectTask();
-        agentTask2.setTaskInstanceId(1L);
         agentTask2.setStepInstanceId(1L);
         agentTask2.setExecuteCount(0);
         agentTask2.setBatch(3);
@@ -206,8 +198,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
         scriptAgentTaskDAO.batchUpdateAgentTasks(agentTaskList);
 
-        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 1L, 0, 3, 103L);
-        assertThat(agentTask1Return.getTaskInstanceId()).isEqualTo(1L);
+        ExecuteObjectTask agentTask1Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 103L);
         assertThat(agentTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask1Return.getBatch()).isEqualTo(3);
@@ -223,8 +214,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         assertThat(agentTask1Return.getExitCode()).isEqualTo(1);
 
 
-        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 1L, 0, 3, 104L);
-        assertThat(agentTask2Return.getTaskInstanceId()).isEqualTo(1L);
+        ExecuteObjectTask agentTask2Return = scriptAgentTaskDAO.getAgentTaskByHostId(1L, 0, 3, 104L);
         assertThat(agentTask2Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(agentTask2Return.getBatch()).isEqualTo(3);
@@ -242,14 +232,14 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
     @Test
     public void testGetSuccessIpCount() {
-        Integer count = scriptAgentTaskDAO.getSuccessAgentTaskCount(1L, 1L, 0);
+        Integer count = scriptAgentTaskDAO.getSuccessAgentTaskCount(1L, 0);
         assertThat(count).isEqualTo(4);
     }
 
     @Test
     @DisplayName("Agent任务结果分组")
     public void listResultGroups() {
-        List<ResultGroupBaseDTO> resultGroups = scriptAgentTaskDAO.listResultGroups(1L, 1L, 0, null);
+        List<ResultGroupBaseDTO> resultGroups = scriptAgentTaskDAO.listResultGroups(1L, 0, null);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -263,7 +253,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
         }
 
         // 根据滚动执行批次查询
-        resultGroups = scriptAgentTaskDAO.listResultGroups(1L, 1L, 0, 3);
+        resultGroups = scriptAgentTaskDAO.listResultGroups(1L, 0, 3);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -279,7 +269,7 @@ public class ScriptAgentTaskDAOImplIntegrationTest {
 
     @Test
     public void testListAgentTaskByResultGroup() {
-        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(1L, 1L, 0, 1, 9, "succ");
+        List<ExecuteObjectTask> agentTasks = scriptAgentTaskDAO.listAgentTaskByResultGroup(1L, 0, 1, 9, "succ");
         assertThat(agentTasks.size()).isEqualTo(1);
         assertThat(agentTasks.get(0).getStepInstanceId()).isEqualTo(1L);
         assertThat(agentTasks.get(0).getExecuteCount()).isEqualTo(0);

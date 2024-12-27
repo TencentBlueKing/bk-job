@@ -61,14 +61,8 @@ public class StandardLoginClient extends BkApiClient implements ILoginClient {
     private final AppProperties appProperties;
 
     public StandardLoginClient(EsbProperties esbProperties, AppProperties appProperties, MeterRegistry meterRegistry) {
-        super(
-            meterRegistry,
-            ESB_BK_LOGIN_API,
-            esbProperties.getService().getUrl(),
-            HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
-        );
+        super(meterRegistry, ESB_BK_LOGIN_API, esbProperties.getService().getUrl(),
+            HttpHelperFactory.getDefaultHttpHelper());
         this.appProperties = appProperties;
     }
 

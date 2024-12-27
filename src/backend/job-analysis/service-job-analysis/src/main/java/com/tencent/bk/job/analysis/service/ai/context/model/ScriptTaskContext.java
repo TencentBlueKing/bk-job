@@ -51,11 +51,6 @@ public class ScriptTaskContext {
      */
     private boolean secureParam;
 
-    /**
-     * 获取脱敏后的脚本参数
-     *
-     * @return 脱敏后的脚本参数
-     */
     public String getInsensitiveScriptParamsStr() {
         if (!secureParam) {
             return scriptParams == null ? "" : scriptParams;

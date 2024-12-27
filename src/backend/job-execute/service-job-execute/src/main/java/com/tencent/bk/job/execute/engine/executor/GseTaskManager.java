@@ -163,8 +163,7 @@ public class GseTaskManager implements SmartLifecycle {
             watch.stop();
 
             watch.start("loadTaskAndCheck");
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-                gseTask.getTaskInstanceId(), stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
             // 如果任务应当被驱逐，直接置为被丢弃状态
@@ -219,19 +218,9 @@ public class GseTaskManager implements SmartLifecycle {
         }
         gseTask.setTotalTime(endTime - gseTask.getStartTime());
         gseTaskService.updateGseTask(gseTask);
-        taskExecuteMQEventDispatcher.dispatchStepEvent(
-            StepEvent.refreshStep(
-                gseTask.getTaskInstanceId(),
-                gseTask.getStepInstanceId(),
-                EventSource.buildGseTaskEventSource(
-                    gseTask.getTaskInstanceId(),
-                    gseTask.getStepInstanceId(),
-                    gseTask.getExecuteCount(),
-                    gseTask.getBatch(),
-                    gseTask.getId()
-                )
-            )
-        );
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(gseTask.getStepInstanceId(),
+            EventSource.buildGseTaskEventSource(gseTask.getStepInstanceId(), gseTask.getExecuteCount(),
+                gseTask.getBatch(), gseTask.getId())));
     }
 
     private String buildGseTaskLockKey(GseTaskDTO gseTask) {
@@ -356,8 +345,7 @@ public class GseTaskManager implements SmartLifecycle {
         GseTaskCommand stopCommand;
         try {
             watch.start("loadTaskAndCheck");
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-                gseTask.getTaskInstanceId(), stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
             watch.stop();
 

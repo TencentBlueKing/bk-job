@@ -108,7 +108,6 @@
       //  步骤详情
       fetchStep() {
         return TaskExecuteService.fetchStepInstance({
-          taskInstanceId: this.taskId,
           id: this.id,
         }).then((data) => {
           if (data.rollingEnabled) {

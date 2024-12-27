@@ -152,7 +152,6 @@
     created() {
       this.timer = '';
 
-
       const { taskInstanceId } = this.$route.params;
       const { stepInstanceId, executeCount = 0 } = this.$route.query;
 

@@ -55,12 +55,11 @@ public interface ExecuteObjectTaskService {
     /**
      * 获取执行成功的执行对象任务数量
      *
-     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @return 执行成功的任务数量
      */
-    int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount);
+    int getSuccessTaskCount(long stepInstanceId, int executeCount);
 
 
     /**

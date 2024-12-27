@@ -133,8 +133,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private boolean needToStop(StepInstanceDTO stepInstance) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 刷新步骤状态
-        stepInstance = stepInstanceService.getStepInstanceDetail(
-            stepInstance.getTaskInstanceId(), stepInstance.getId());
+        stepInstance = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
         // 如果任务处于“终止中”状态，触发任务终止
         if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
             // 已经发送过停止命令的就不再重复发送了
@@ -165,8 +164,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
             // 1.停止正在进行的所有文件准备任务
             filePrepareService.stopPrepareFile(stepInstance);
             // 2.MQ消息通知其他实例准备文件
-            taskExecuteMQEventDispatcher.dispatchStepEvent(
-                StepEvent.prepareFile(stepInstance.getTaskInstanceId(), stepInstance.getId()));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.prepareFile(stepInstance.getId()));
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
             log.info("gracefulStop end:{}", getTaskId());

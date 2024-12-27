@@ -42,10 +42,6 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultHandleTaskResumeEvent extends Event {
     /**
-     * 作业实例ID
-     */
-    private Long jobInstanceId;
-    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -76,14 +72,12 @@ public class ResultHandleTaskResumeEvent extends Event {
      * @param requestId      请求ID,防止重复下发任务
      * @return 事件
      */
-    public static ResultHandleTaskResumeEvent resume(Long jobInstanceId,
-                                                     Long stepInstanceId,
+    public static ResultHandleTaskResumeEvent resume(Long stepInstanceId,
                                                      Integer executeCount,
                                                      Integer batch,
                                                      Long gseTaskId,
                                                      String requestId) {
         ResultHandleTaskResumeEvent event = new ResultHandleTaskResumeEvent();
-        event.setJobInstanceId(jobInstanceId);
         event.setStepInstanceId(stepInstanceId);
         event.setExecuteCount(executeCount);
         event.setBatch(batch);

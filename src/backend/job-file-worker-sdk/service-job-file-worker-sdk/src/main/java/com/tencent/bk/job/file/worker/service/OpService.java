@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
+import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import lombok.extern.slf4j.Slf4j;

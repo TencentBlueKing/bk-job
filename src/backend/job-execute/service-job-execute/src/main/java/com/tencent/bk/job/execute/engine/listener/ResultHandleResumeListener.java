@@ -30,7 +30,6 @@ import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
-import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.ResultHandleTaskResumeEvent;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
@@ -53,7 +52,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -67,8 +65,7 @@ import java.util.UUID;
  */
 @Component
 @Slf4j
-public class ResultHandleResumeListener extends BaseJobMqListener {
-
+public class ResultHandleResumeListener {
     private final EngineDependentServiceHolder engineDependentServiceHolder;
     private final TaskInstanceService taskInstanceService;
 
@@ -115,17 +112,15 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
     /**
      * 恢复被中断的作业结果处理任务
      */
-    public void handleEvent(Message<? extends JobMessage> message) {
-        ResultHandleTaskResumeEvent event = (ResultHandleTaskResumeEvent) message.getPayload();
+    public void handleEvent(ResultHandleTaskResumeEvent event) {
         log.info("Receive gse task result handle task resume event: {}, duration: {}ms", event, event.duration());
-        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getJobInstanceId(), event.getGseTaskId());
+        GseTaskDTO gseTask = gseTaskService.getGseTask(event.getGseTaskId());
         long stepInstanceId = gseTask.getStepInstanceId();
         String requestId = StringUtils.isNotEmpty(event.getRequestId()) ? event.getRequestId()
             : UUID.randomUUID().toString();
 
         try {
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-                event.getJobInstanceId(), stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
 
             if (!checkIsTaskResumeable(stepInstance, gseTask)) {
@@ -208,6 +203,7 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
         FileResultHandleTask fileResultHandleTask = new FileResultHandleTask(
             engineDependentServiceHolder,
             fileExecuteObjectTaskService,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

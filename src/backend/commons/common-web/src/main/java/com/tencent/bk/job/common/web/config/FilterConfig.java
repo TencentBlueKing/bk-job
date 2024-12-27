@@ -36,7 +36,7 @@ public class FilterConfig {
         FilterRegistrationBean<RepeatableReadWriteServletRequestResponseFilter> registration =
             new FilterRegistrationBean<>();
         registration.setFilter(repeatableRRRFilter());
-        registration.addUrlPatterns("/esb/api/*", "/service/*", "/web/*");
+        registration.addUrlPatterns("/esb/api/*");
         registration.setName("repeatableReadRequestResponseFilter");
         registration.setOrder(0);
         return registration;

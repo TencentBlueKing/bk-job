@@ -52,13 +52,9 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
     }
 
     @Override
-    public InternalResponse<ServiceStepInstanceDTO> getStepInstance(String username,
-                                                                    Long appId,
-                                                                    Long taskInstanceId,
-                                                                    Long stepInstanceId) {
+    public InternalResponse<ServiceStepInstanceDTO> getStepInstance(String username, Long appId, Long stepInstanceId) {
         try {
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId,
-                taskInstanceId, stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
             taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
             return InternalResponse.buildSuccessResp(stepInstance.toServiceStepInstanceDTO());
         } catch (NotFoundException e) {

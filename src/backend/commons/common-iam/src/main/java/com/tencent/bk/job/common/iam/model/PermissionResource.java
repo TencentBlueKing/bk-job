@@ -40,7 +40,7 @@ public class PermissionResource {
      */
     private String systemId;
     /**
-     * 资源类型，用于构造资源路径判断是否有权限
+     * 资源类型
      */
     private ResourceTypeEnum resourceType;
     /**
@@ -52,7 +52,7 @@ public class PermissionResource {
      */
     private String resourceId;
     /**
-     * iam path，用于构造资源路径判断是否有权限
+     * iam path
      */
     private PathInfoDTO pathInfo;
     /**
@@ -60,12 +60,12 @@ public class PermissionResource {
      */
     private String resourceName;
     /**
-     * 层级节点的资源类型，用于构造获取权限申请链接的请求数据，优先于resourceType
+     * 层级节点的资源类型
      */
     private String type;
 
     /**
-     * 层级节点（比如CMDB的主机)的父资源，用于构造获取权限申请链接的请求数据
+     * 层级节点（比如CMDB的主机)的父资源
      */
     private List<PermissionResource> parentHierarchicalResources;
 

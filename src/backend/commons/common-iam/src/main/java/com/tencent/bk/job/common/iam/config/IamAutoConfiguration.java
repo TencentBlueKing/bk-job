@@ -42,12 +42,10 @@ import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
-import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -83,17 +81,15 @@ public class IamAutoConfiguration {
     @Bean
     public AuthHelper authHelper(IamConfiguration iamConfiguration,
                                  TokenService tokenService,
-                                 PolicyService policyService,
-                                 @Autowired(required = false) TopoPathService topoPathService) {
-        return new AuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
+                                 PolicyService policyService) {
+        return new AuthHelper(tokenService, policyService, iamConfiguration);
     }
 
     @Bean
     public BusinessAuthHelper businessAuthHelper(IamConfiguration iamConfiguration,
                                                  TokenService tokenService,
-                                                 PolicyService policyService,
-                                                 @Autowired(required = false) TopoPathService topoPathService) {
-        return new BusinessAuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
+                                                 PolicyService policyService) {
+        return new BusinessAuthHelper(tokenService, policyService, iamConfiguration);
     }
 
     @Bean

@@ -67,13 +67,11 @@ public class EventSource {
     /**
      * 构造事件源 - 步骤
      *
-     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @return 执行引擎事件源
      */
-    public static EventSource buildStepEventSource(Long jobInstanceId, long stepInstanceId) {
+    public static EventSource buildStepEventSource(long stepInstanceId) {
         EventSource eventSource = new EventSource();
-        eventSource.setJobInstanceId(jobInstanceId);
         eventSource.setStepInstanceId(stepInstanceId);
         eventSource.setSourceType(EventSourceTypeEnum.STEP);
         return eventSource;
@@ -82,20 +80,17 @@ public class EventSource {
     /**
      * 构造事件源 - GSE 任务
      *
-     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动执行批次
      * @param gseTaskId      GSE 任务ID
      * @return 执行引擎事件源
      */
-    public static EventSource buildGseTaskEventSource(Long jobInstanceId,
-                                                      Long stepInstanceId,
+    public static EventSource buildGseTaskEventSource(Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
                                                       Long gseTaskId) {
         EventSource eventSource = new EventSource();
-        eventSource.setJobInstanceId(jobInstanceId);
         eventSource.setStepInstanceId(stepInstanceId);
         eventSource.setExecuteCount(executeCount);
         eventSource.setBatch(batch);

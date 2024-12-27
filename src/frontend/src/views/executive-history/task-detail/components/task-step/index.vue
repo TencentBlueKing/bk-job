@@ -80,7 +80,6 @@
       },
       handleChangeStatus(operationCode, confirmReason) {
         return TaskExecuteService.updateTaskExecutionStepOperate({
-          taskInstanceId: this.$route.params.id,
           id: this.data.stepInstanceId,
           operationCode,
           confirmReason,

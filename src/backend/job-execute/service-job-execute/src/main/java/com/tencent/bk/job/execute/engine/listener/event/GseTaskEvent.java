@@ -52,10 +52,6 @@ public class GseTaskEvent extends Event {
     /**
      * 步骤实例ID
      */
-    private Long jobInstanceId;
-    /**
-     * 步骤实例ID
-     */
     private Long stepInstanceId;
     /**
      * 执行次数
@@ -77,7 +73,6 @@ public class GseTaskEvent extends Event {
     /**
      * 构造启动 GSE 任务 事件
      *
-     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动批次
@@ -85,13 +80,12 @@ public class GseTaskEvent extends Event {
      * @param requestId      请求ID,防止重复下发任务
      * @return 事件
      */
-    public static GseTaskEvent startGseTask(Long jobInstanceId,
-                                            Long stepInstanceId,
+    public static GseTaskEvent startGseTask(Long stepInstanceId,
                                             Integer executeCount,
                                             Integer batch,
                                             Long gseTaskId,
                                             String requestId) {
-        GseTaskEvent gseTaskEvent = buildGseTaskEvent(jobInstanceId, stepInstanceId, executeCount, batch, gseTaskId);
+        GseTaskEvent gseTaskEvent = buildGseTaskEvent(stepInstanceId, executeCount, batch, gseTaskId);
         if (StringUtils.isNotEmpty(requestId)) {
             gseTaskEvent.setRequestId(requestId);
         } else {
@@ -104,31 +98,27 @@ public class GseTaskEvent extends Event {
     /**
      * 构造停止 GSE 任务 事件
      *
-     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动批次
      * @param gseTaskId      GSE任务ID
      * @return 事件
      */
-    public static GseTaskEvent stopGseTask(Long jobInstanceId,
-                                           Long stepInstanceId,
+    public static GseTaskEvent stopGseTask(Long stepInstanceId,
                                            Integer executeCount,
                                            Integer batch,
                                            Long gseTaskId) {
-        GseTaskEvent gseTaskEvent = buildGseTaskEvent(jobInstanceId, stepInstanceId, executeCount, batch, gseTaskId);
+        GseTaskEvent gseTaskEvent = buildGseTaskEvent(stepInstanceId, executeCount, batch, gseTaskId);
         gseTaskEvent.setAction(GseTaskActionEnum.STOP.getValue());
         return gseTaskEvent;
     }
 
-    private static GseTaskEvent buildGseTaskEvent(Long jobInstanceId,
-                                                  Long stepInstanceId,
+    private static GseTaskEvent buildGseTaskEvent(Long stepInstanceId,
                                                   Integer executeCount,
                                                   Integer batch,
                                                   Long gseTaskId) {
         GseTaskEvent gseTaskEvent = new GseTaskEvent();
         gseTaskEvent.setGseTaskId(gseTaskId);
-        gseTaskEvent.setJobInstanceId(jobInstanceId);
         gseTaskEvent.setStepInstanceId(stepInstanceId);
         gseTaskEvent.setExecuteCount(executeCount);
         gseTaskEvent.setBatch(batch);
@@ -143,10 +133,6 @@ public class GseTaskEvent extends Event {
             .add("action=" + action)
             .add("actionDesc=" + GseTaskActionEnum.valueOf(action))
             .add("gseTaskId=" + gseTaskId)
-            .add("jobInstanceId=" + jobInstanceId)
-            .add("stepInstanceId=" + stepInstanceId)
-            .add("executeCount=" + executeCount)
-            .add("batch=" + batch)
             .add("requestId='" + requestId + "'")
             .add("source=" + source)
             .add("time=" + time)

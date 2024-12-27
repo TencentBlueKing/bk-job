@@ -105,28 +105,25 @@ public class DefaultFilePrepareTaskResultHandler implements FilePrepareTaskResul
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            taskExecuteMQEventDispatcher.dispatchStepEvent(
-                StepEvent.continueGseFileStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
         }
     }
 
     private void onStopped(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 步骤状态变更
-        stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
-            stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
-        stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
-            stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
+                EventSource.buildStepEventSource(stepInstance.getId())));
     }
 
 }

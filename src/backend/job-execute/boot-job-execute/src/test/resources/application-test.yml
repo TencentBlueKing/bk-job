@@ -45,12 +45,3 @@ bk-api-gateway:
 esb:
   service:
     url: esb.service
-mysql:
-  standalone:
-    enabled : true
-leaf:
-  enabled: false
-idGen:
-  type: auto_increment
-  migration:
-    enabled: false

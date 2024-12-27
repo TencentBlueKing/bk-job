@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.common.util.toggle.feature.Feature;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureManager;
+import com.tencent.bk.job.common.util.feature.Feature;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureManager;
 import com.tencent.bk.job.manage.api.web.WebFeatureToggleResource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

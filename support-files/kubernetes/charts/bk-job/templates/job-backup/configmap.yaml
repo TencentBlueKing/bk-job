@@ -48,7 +48,6 @@ data:
           poolName: "job-backup"
           validationTimeout: 5000
         {{- if and .Values.backupConfig.archive.execute.enabled }}
-        {{- if eq .Values.backupConfig.archive.execute.mariadb.dataSourceMode "standalone" }}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -64,21 +63,7 @@ data:
           idle-timeout: 6000
           poolName: "job-execute"
           validationTimeout: 5000
-        {{- else if eq .Values.backupConfig.archive.execute.mariadb.dataSourceMode "vertical_sharding" }}
-        {{- range $dsName, $ds := .Values.backupConfig.archive.execute.mariadb.verticalSharding.datasource }}
-        {{ $dsName }}:
-            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
-            jdbcUrl: {{ $ds.jdbcUrl | quote }}
-            username: {{ $ds.username | quote }}
-            password: {{ $ds.password | quote }}
-            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
-            minimumIdle: {{ $ds.minimumIdle | default 20 }}
-            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
-            poolName: {{ $ds.poolName | default "job-execute" }}
-            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
-        {{- end }}
         {{- end }}  
-        {{- end }}
         {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
