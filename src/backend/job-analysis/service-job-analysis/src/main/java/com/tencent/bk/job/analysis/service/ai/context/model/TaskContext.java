@@ -29,6 +29,9 @@ import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * 任务上下文，用作动态数据填充模板，进而构建向AI提问的Prompt
+ */
 @AllArgsConstructor
 @Data
 public class TaskContext {

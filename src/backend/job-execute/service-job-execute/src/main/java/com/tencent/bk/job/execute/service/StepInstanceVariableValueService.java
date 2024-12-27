@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 
 import java.util.List;
@@ -51,11 +52,10 @@ public interface StepInstanceVariableValueService {
     /**
      * 获取步骤输入参数
      *
-     * @param taskInstanceId 作业实例ID
-     * @param stepInstanceId 当前步骤ID
-     * @param taskVariables  全局变量初始值
+     * @param stepInstance  当前步骤实例
+     * @param taskVariables 全局变量初始值
      * @return 变量值
      */
-    StepInstanceVariableValuesDTO computeInputStepInstanceVariableValues(long taskInstanceId, long stepInstanceId,
+    StepInstanceVariableValuesDTO computeInputStepInstanceVariableValues(StepInstanceBaseDTO stepInstance,
                                                                          List<TaskVariableDTO> taskVariables);
 }

@@ -184,6 +184,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.targetExecuteObjects = stepInstanceBase.targetExecuteObjects;
         this.rollingConfigId = stepInstanceBase.rollingConfigId;
         this.batch = stepInstanceBase.getBatch();
+        this.stepOrder = stepInstanceBase.getStepOrder();
     }
 
     // -------------公共方法------------------//

@@ -31,6 +31,9 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 基础AI提示符服务
+ */
 @Slf4j
 public class AIBasePromptService {
 
@@ -40,6 +43,12 @@ public class AIBasePromptService {
         this.aiPromptTemplateDAO = aiPromptTemplateDAO;
     }
 
+    /**
+     * 根据模板代码获取提示符模板
+     *
+     * @param templateCode 模板代码
+     * @return AI提示符模板
+     */
     protected AIPromptTemplateDTO getPromptTemplate(String templateCode) {
         String userLang = JobContextUtil.getUserLang();
         AIPromptTemplateDTO promptTemplate = aiPromptTemplateDAO.getAIPromptTemplate(

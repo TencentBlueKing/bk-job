@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.engine.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,7 +37,7 @@ import java.util.Collection;
 @Getter
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JobCallbackDTO {
+public class JobCallbackDTO implements JobMessage {
     @JsonProperty("job_instance_id")
     private long id;
 

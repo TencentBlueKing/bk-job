@@ -43,7 +43,6 @@ public class AIAnalyzeErrorReq {
     private Long taskInstanceId;
 
     @ApiModelProperty("步骤执行类型：1-脚本，2-文件")
-//    @NotNull(message = "{validation.constraints.AIAnalyzeError_stepExecuteTypeEmpty.message}")
     private Integer stepExecuteType;
 
     @ApiModelProperty(value = "步骤ID")

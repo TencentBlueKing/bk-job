@@ -59,6 +59,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 提供Web端使用的AI功能相关接口实现
+ */
 @RestController("jobAnalysisWebAIResource")
 @Slf4j
 public class WebAIResourceImpl implements WebAIResource {
@@ -88,6 +91,15 @@ public class WebAIResourceImpl implements WebAIResource {
         this.aiProperties = aiProperties;
     }
 
+    /**
+     * 获取AI相关配置信息
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @return AI相关配置信息
+     */
     @Override
     public Response<Map<String, Object>> getAIConfig(String username,
                                                      AppResourceScope appResourceScope,
@@ -96,6 +108,17 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiConfigService.getAIConfig());
     }
 
+    /**
+     * 获取最新对话记录列表
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param start            起始位置
+     * @param length           长度
+     * @return 最新对话记录列表
+     */
     @Override
     public Response<List<AIChatRecord>> getLatestChatHistoryList(String username,
                                                                  AppResourceScope appResourceScope,
@@ -115,6 +138,13 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiChatRecordList);
     }
 
+    /**
+     * 获取开场白对话记录
+     *
+     * @param username 用户名
+     * @param appId    Job业务ID
+     * @return 开场白对话记录
+     */
     private AIChatHistoryDTO getGreetingChatHistory(String username, Long appId) {
         AIChatHistoryDTO greetingChatHistory = new AIChatHistoryDTO();
         greetingChatHistory.setUsername(username);
@@ -133,6 +163,16 @@ public class WebAIResourceImpl implements WebAIResource {
         return greetingChatHistory;
     }
 
+    /**
+     * 与AI进行通用对话
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param req              请求体
+     * @return AI对话记录响应
+     */
     @Override
     public Response<AIChatRecord> generalChat(String username,
                                               AppResourceScope appResourceScope,
@@ -143,6 +183,16 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiChatRecord);
     }
 
+    /**
+     * 使用AI检查脚本内容
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param req              请求体
+     * @return AI对话记录响应
+     */
     @Override
     public Response<AIChatRecord> checkScript(String username,
                                               AppResourceScope appResourceScope,
@@ -158,6 +208,16 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiChatRecord);
     }
 
+    /**
+     * 使用AI分析任务报错信息
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param req              请求体
+     * @return AI对话记录响应
+     */
     @Override
     public Response<AIChatRecord> analyzeError(String username,
                                                AppResourceScope appResourceScope,
@@ -169,6 +229,16 @@ public class WebAIResourceImpl implements WebAIResource {
         return Response.buildSuccessResp(aiChatRecord);
     }
 
+    /**
+     * 生成AI对话流式数据
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param req              请求体
+     * @return AI对话流式数据
+     */
     @Override
     public ResponseEntity<StreamingResponseBody> generateChatStream(String username,
                                                                     AppResourceScope appResourceScope,
@@ -179,6 +249,16 @@ public class WebAIResourceImpl implements WebAIResource {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(streamingResponseBody);
     }
 
+    /**
+     * 终止对话
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @param req              请求体
+     * @return 是否终止成功
+     */
     @Override
     public Response<Boolean> terminateChat(String username,
                                            AppResourceScope appResourceScope,
@@ -207,6 +287,15 @@ public class WebAIResourceImpl implements WebAIResource {
         }
     }
 
+    /**
+     * 清空对话记录
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围（业务/业务集）
+     * @param scopeType        资源范围类型
+     * @param scopeId          资源范围ID
+     * @return 清空对话记录响应数据（被清空数据量等）
+     */
     @Override
     public Response<ClearChatHistoryResp> clearChatHistory(String username,
                                                            AppResourceScope appResourceScope,

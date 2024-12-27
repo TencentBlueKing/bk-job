@@ -26,7 +26,8 @@ package com.tencent.bk.job.common.aidev.impl;
 
 public enum BkChatCompletionModel {
 
-    HUNYUAN("hunyuan");
+    HUNYUAN("hunyuan"),
+    HUNYUAN_TURBO("hunyuan-turbo");
 
     private final String value;
 

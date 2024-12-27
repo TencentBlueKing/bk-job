@@ -28,13 +28,13 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
-import org.jooq.InsertValuesStep5;
+import org.jooq.InsertValuesStep6;
 import org.jooq.Record;
 import org.jooq.Record6;
 import org.jooq.Result;
@@ -64,17 +64,17 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
     @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.READ)
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
         Result<Record6<Long, Long, String, Byte, Byte, String>> result = dsl().select(
-            TABLE.ID,
-            TABLE.TASK_INSTANCE_ID,
-            TABLE.NAME,
-            TABLE.TYPE,
-            TABLE.IS_CHANGEABLE,
-            TABLE.VALUE
-        ).from(TABLE)
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.NAME,
+                TABLE.TYPE,
+                TABLE.IS_CHANGEABLE,
+                TABLE.VALUE
+            ).from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .fetch();
         List<TaskVariableDTO> taskVariables = new ArrayList<>();
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             result.into(record -> taskVariables.add(extract((record))));
         }
         return taskVariables;
@@ -109,9 +109,10 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
     @Override
     @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
-        InsertValuesStep5<TaskInstanceVariableRecord, Long, String, Byte, String, Byte> insertStep =
+        InsertValuesStep6<TaskInstanceVariableRecord, Long, Long, String, Byte, String, Byte> insertStep =
             dsl().insertInto(TABLE)
                 .columns(
+                    TABLE.ID,
                     TABLE.TASK_INSTANCE_ID,
                     TABLE.NAME,
                     TABLE.TYPE,
@@ -122,6 +123,7 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
         taskVarList.forEach(taskVar -> {
             TaskVariableTypeEnum taskVarType = TaskVariableTypeEnum.valOf(taskVar.getType());
             insertStep.values(
+                taskVar.getId(),
                 taskVar.getTaskInstanceId(),
                 taskVar.getName(),
                 JooqDataTypeUtil.toByte(taskVar.getType()),

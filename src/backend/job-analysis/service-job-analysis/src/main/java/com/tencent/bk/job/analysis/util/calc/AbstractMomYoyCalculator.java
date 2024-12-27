@@ -25,68 +25,105 @@
 package com.tencent.bk.job.analysis.util.calc;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
+import com.tencent.bk.job.analysis.consts.DataTrendEnum;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 抽象的同环比计算器
+ */
 @Slf4j
 public abstract class AbstractMomYoyCalculator {
-    StatisticsDTO statisticsDTO;
-    StatisticsDTO momStatisticsDTO;
-    StatisticsDTO yoyStatisticsDTO;
+    // 当前统计数据
+    private final StatisticsDTO statisticsDTO;
+    // 环比上一周期的统计数据
+    private final StatisticsDTO momStatisticsDTO;
+    // 同比上一周期的统计数据
+    private final StatisticsDTO yoyStatisticsDTO;
 
-    public AbstractMomYoyCalculator(StatisticsDTO statisticsDTO, StatisticsDTO momStatisticsDTO,
+    public AbstractMomYoyCalculator(StatisticsDTO statisticsDTO,
+                                    StatisticsDTO momStatisticsDTO,
                                     StatisticsDTO yoyStatisticsDTO) {
         this.statisticsDTO = statisticsDTO;
         this.momStatisticsDTO = momStatisticsDTO;
         this.yoyStatisticsDTO = yoyStatisticsDTO;
     }
 
-    abstract Long getCountFromStatisticValue(String value);
+    /**
+     * 从序列化的存储数据中解析统计量数值
+     *
+     * @param serializedData 序列化的存储数据
+     * @return 统计量数值
+     */
+    protected abstract Long getCountFromSerializedData(String serializedData);
 
-    public CommonStatisticWithRateVO getResult() {
+    /**
+     * 根据几个时间点的统计数据计算同环比数据
+     *
+     * @return 同环比数据
+     */
+    public CommonStatisticWithRateVO calc() {
         if (statisticsDTO == null) {
             return null;
         }
-        Long count = getCountFromStatisticValue(statisticsDTO.getValue());
+        Long count = getCountFromSerializedData(statisticsDTO.getValue());
         CommonStatisticWithRateVO commonStatisticWithRateVO = new CommonStatisticWithRateVO();
         commonStatisticWithRateVO.setCount(count);
         if (momStatisticsDTO != null) {
-            Long momCount = getCountFromStatisticValue(momStatisticsDTO.getValue());
             // 环比计算
-            Long momValue = count - momCount;
-            Float momRate = 1f;
-            if (momCount > 0) {
-                momRate = (count - momCount) / (float) momCount;
-            }
-            long momTrend = 0;
-            if (momValue > 0) {
-                momTrend = 1;
-            } else if (momValue < 0) {
-                momTrend = -1;
-            }
-            commonStatisticWithRateVO.setMomValue(momValue);
-            commonStatisticWithRateVO.setMomRate(momRate);
-            commonStatisticWithRateVO.setMomTrend(momTrend);
+            Increment increment = calcIncrement(count, momStatisticsDTO);
+            commonStatisticWithRateVO.setMomValue(increment.getValue());
+            commonStatisticWithRateVO.setMomRate(increment.getRate());
+            commonStatisticWithRateVO.setMomTrend(increment.getTrend().getValue());
         }
         if (yoyStatisticsDTO != null) {
-            Long yoyCount = getCountFromStatisticValue(yoyStatisticsDTO.getValue());
             // 同比计算
-            Long yoyValue = count - yoyCount;
-            Float yoyRate = 1f;
-            if (yoyCount > 0) {
-                yoyRate = (count - yoyCount) / (float) yoyCount;
-            }
-            long yoyTrend = 0;
-            if (yoyValue > 0) {
-                yoyTrend = 1;
-            } else if (yoyValue < 0) {
-                yoyTrend = -1;
-            }
-
-            commonStatisticWithRateVO.setYoyValue(yoyValue);
-            commonStatisticWithRateVO.setYoyRate(yoyRate);
-            commonStatisticWithRateVO.setYoyTrend(yoyTrend);
+            Increment increment = calcIncrement(count, yoyStatisticsDTO);
+            commonStatisticWithRateVO.setYoyValue(increment.getValue());
+            commonStatisticWithRateVO.setYoyRate(increment.getRate());
+            commonStatisticWithRateVO.setYoyTrend(increment.getTrend().getValue());
         }
         return commonStatisticWithRateVO;
+    }
+
+    /**
+     * 根据当前统计值与上一时间点的统计数据计算数据增量
+     *
+     * @param count                 当前统计值
+     * @param previousStatisticsDTO 上一时间点统计数据
+     * @return 数据增量
+     */
+    private Increment calcIncrement(Long count, StatisticsDTO previousStatisticsDTO) {
+        Long previousCount = getCountFromSerializedData(previousStatisticsDTO.getValue());
+        // 增量计算
+        long value = count - previousCount;
+        // 从无到有的初始增长率认定为1
+        float rate = 1f;
+        if (previousCount > 0) {
+            rate = (count - previousCount) / (float) previousCount;
+        }
+        DataTrendEnum trend = DataTrendEnum.NOT_CHANGE;
+        if (value > 0) {
+            trend = DataTrendEnum.UP;
+        } else if (value < 0) {
+            trend = DataTrendEnum.DOWN;
+        }
+        return new Increment(value, rate, trend);
+    }
+
+    /**
+     * 数据增量
+     */
+    @AllArgsConstructor
+    @Getter
+    static class Increment {
+        // 增量值
+        private final long value;
+        // 增量比率
+        private final float rate;
+        // 增量趋势
+        private final DataTrendEnum trend;
     }
 }

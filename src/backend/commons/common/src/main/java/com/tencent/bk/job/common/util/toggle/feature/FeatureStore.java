@@ -32,6 +32,12 @@ import java.util.List;
  * 特性开关配置存储
  */
 public interface FeatureStore extends RefreshableConfigStore {
+
+    /**
+     * 属性名称前缀
+     */
+    String PROP_KEY_PREFIX = "job.features.";
+
     /**
      * 返回特性开关配置
      *

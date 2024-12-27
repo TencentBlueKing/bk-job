@@ -56,25 +56,31 @@ public interface ScriptAgentTaskDAO {
     /**
      * 获取步骤成功执行的Agent任务数量
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @return 步骤成功执行的Agent任务数量
      */
-    int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
+    int getSuccessAgentTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
+    List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
+                                              long stepInstanceId,
+                                              int executeCount,
+                                              Integer batch);
 
     /**
      * 根据执行结果查询Agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
@@ -82,7 +88,8 @@ public interface ScriptAgentTaskDAO {
      * @param tag            用户自定义分组标签
      * @return Agent任务
      */
-    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
+                                                       Long stepInstanceId,
                                                        Integer executeCount,
                                                        Integer batch,
                                                        Integer status,
@@ -91,6 +98,7 @@ public interface ScriptAgentTaskDAO {
     /**
      * 根据执行结果查询Agent任务(排序、限制返回数量)
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
@@ -101,7 +109,8 @@ public interface ScriptAgentTaskDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
+                                                       Long stepInstanceId,
                                                        Integer executeCount,
                                                        Integer batch,
                                                        Integer status,
@@ -113,44 +122,54 @@ public interface ScriptAgentTaskDAO {
     /**
      * 获取Agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @return Agent任务信息
      */
-    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
+    List<ExecuteObjectTask> listAgentTasks(Long taskInstanceId,
+                                           Long stepInstanceId,
                                            Integer executeCount,
                                            Integer batch);
 
     /**
      * 根据GSE任务ID获取Agent任务
      *
-     * @param gseTaskId GSE任务ID
+     * @param taskInstanceId 作业实例 ID
+     * @param gseTaskId      GSE任务ID
      * @return Agent任务
      */
-    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long taskInstanceId, Long gseTaskId);
 
     /**
      * 根据hostId查询Agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @param hostId         主机ID
      * @return Agent任务
      */
-    ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch, long hostId);
+    ExecuteObjectTask getAgentTaskByHostId(Long taskInstanceId,
+                                           Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           long hostId);
 
     /**
      * 部分更新AgentTask的字段
      *
+     * @param taskInstanceId     作业实例 ID
      * @param stepInstanceId     条件 - 步骤实例ID
      * @param executeCount       条件 - 重试次数
      * @param batch              条件 - 滚动执行批次；传入null将忽略该条件
      * @param actualExecuteCount 值 - Agent任务实际执行的步骤重试次数；如果传入null，则不更新
      * @param gseTaskId          值 - Agent任务对应的GSE_TASK_ID；如果传入null，则不更新
      */
-    void updateAgentTaskFields(long stepInstanceId,
+    void updateAgentTaskFields(Long taskInstanceId,
+                               long stepInstanceId,
                                int executeCount,
                                Integer batch,
                                Integer actualExecuteCount,

@@ -35,6 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * AI基础服务
+ */
 @Slf4j
 @Service
 public class AIBaseService {
@@ -74,7 +77,7 @@ public class AIBaseService {
                                         AIPromptDTO aiPromptDTO,
                                         AIAnalyzeErrorContextDTO analyzeErrorContext) {
         long startTime = System.currentTimeMillis();
-        // 1.插入初始聊天记录
+        // 1.插入初始对话记录
         AIChatHistoryDTO aiChatHistoryDTO = aiChatHistoryService.buildAIChatHistoryDTO(
             username,
             appId,

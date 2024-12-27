@@ -41,14 +41,14 @@ import java.util.Map;
  */
 public interface CronJobService {
     /**
-     * 分页查询定时任务列表
+     * 分页查询定时任务列表（不含变量）
      *
      * @param cronJobCondition    查询条件
      * @param baseSearchCondition 搜索参数
      * @return 分页后的定时任务列表
      */
-    PageData<CronJobInfoDTO> listPageCronJobInfos(CronJobInfoDTO cronJobCondition,
-                                                  BaseSearchCondition baseSearchCondition);
+    PageData<CronJobInfoDTO> listPageCronJobInfosWithoutVars(CronJobInfoDTO cronJobCondition,
+                                                             BaseSearchCondition baseSearchCondition);
 
     /**
      * 根据 ID 查询定时任务信息

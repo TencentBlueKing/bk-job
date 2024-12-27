@@ -53,35 +53,24 @@ public class InMemoryPropToggleStore implements PropToggleStore {
      * key: prop_name; value: PropToggle
      */
     private volatile Map<String, PropToggle> propToggles = new HashMap<>();
-    /**
-     * 是否初始化
-     */
-    private volatile boolean isInitial = false;
 
     private final Map<String, List<PropChangeEventListener>> propEventListeners = new HashMap<>();
 
-    @Override
-    public PropToggle getPropToggle(String propName) {
-        if (!isInitial) {
-            synchronized (this) {
-                if (!isInitial) {
-                    init();
-                }
-            }
-        }
-        return propToggles.get(propName);
+    public InMemoryPropToggleStore(PropToggleProperties propToggleProperties) {
+        log.info("Init InMemoryPropToggleStore, properties : {}", JsonUtils.toJson(propToggleProperties));
+        loadAllPropToggles(propToggleProperties);
+        log.info("Init InMemoryPropToggleStore successfully");
     }
 
-    @Override
-    public void init() {
-        loadAllPropToggles();
+    public PropToggle getPropToggle(String propName) {
+        return propToggles.get(propName);
     }
 
     @Override
     public boolean handleConfigChange(Set<String> changedKeys, boolean ignoreException) {
         boolean loadResult = true;
         try {
-            loadAllPropToggles();
+            loadAllPropToggles(getRealTimePropToggleProperties());
         } catch (Throwable e) {
             log.warn("Load prop config error", e);
             loadResult = false;
@@ -109,6 +98,9 @@ public class InMemoryPropToggleStore implements PropToggleStore {
         Set<String> uniquePropNames = new HashSet<>();
 
         for (String changeKey : changedKeys) {
+            if (!changeKey.startsWith(PROP_KEY_PREFIX)) {
+                log.error("Invalid key : {}", changeKey);
+            }
             String[] parts = changeKey.split("\\.");
             // 格式 job.toggle.props.{propName}.others
             if (parts.length >= 4) {
@@ -122,11 +114,16 @@ public class InMemoryPropToggleStore implements PropToggleStore {
     }
 
 
-    private void loadAllPropToggles() {
+    /**
+     * 获取 PropToggleProperties 实时配置
+     */
+    private PropToggleProperties getRealTimePropToggleProperties() {
+        return ApplicationContextRegister.getBean(PropToggleProperties.class);
+    }
+
+    private void loadAllPropToggles(PropToggleProperties propToggleProperties) {
         synchronized (this) {
             log.info("Load prop toggle start ...");
-            PropToggleProperties propToggleProperties =
-                ApplicationContextRegister.getBean(PropToggleProperties.class);
 
             if (propToggleProperties.getProps() == null || propToggleProperties.getProps().isEmpty()) {
                 log.info("Prop toggle config empty!");
@@ -144,8 +141,6 @@ public class InMemoryPropToggleStore implements PropToggleStore {
             // 使用新的配置完全替换老的配置
             propToggles = tmpPropToggles;
             log.info("Load prop toggle config done! props: {}", propToggles);
-
-            isInitial = true;
         }
     }
 
@@ -184,7 +179,7 @@ public class InMemoryPropToggleStore implements PropToggleStore {
 
         return propToggle;
     }
-    
+
 
     @Override
     public void addPropChangeEventListener(String propName, PropChangeEventListener propChangeEventListener) {

@@ -62,7 +62,7 @@ public class StatisticsDTO implements Cloneable {
      */
     private String date;
     /**
-     * 统计值
+     * 序列化的统计数据
      */
     private String value;
     /**
@@ -73,6 +73,10 @@ public class StatisticsDTO implements Cloneable {
      * 更新时间
      */
     private Long lastModifyTime;
+
+    public StatisticsDTO(String value) {
+        this.value = value;
+    }
 
     @Override
     public StatisticsDTO clone() {

@@ -38,7 +38,7 @@ public interface CronJobBatchLoadService {
      * @param limit 一批定时任务的数量
      * @return 加载结果数据
      */
-    CronLoadResult batchLoadCronToQuartz(int start, int limit);
+    CronLoadResult batchLoadCronToQuartz(int start, int limit) throws InterruptedException;
 
     @Data
     class CronLoadResult {

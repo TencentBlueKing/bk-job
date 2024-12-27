@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
@@ -53,24 +55,51 @@ import java.util.List;
 @RestController
 @WebAPI
 public interface WebTaskInstanceResource {
+    @Deprecated
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/step_instance/{stepInstanceId}"})
     Response<ExecuteStepVO> getStepInstanceDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
+        String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
+        AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
-            String scopeType,
+        String scopeType,
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
-            String scopeId,
+        String scopeId,
         @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
-            Long stepInstanceId
+        Long stepInstanceId
+    );
+
+    @ApiOperation(value = "获取作业步骤实例详情", produces = "application/json")
+    @GetMapping(value = {
+        "/scope/{scopeType}/{scopeId}/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/detail"})
+    Response<ExecuteStepVO> getStepInstanceDetailV2(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
+        @PathVariable("taskInstanceId")
+        Long taskInstanceId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+        Long stepInstanceId
     );
 
     @ApiOperation(value = "获取作业实例全局参数", produces = "application/json")
@@ -78,19 +107,19 @@ public interface WebTaskInstanceResource {
     Response<List<ExecuteVariableVO>> getTaskInstanceVariables(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
+        String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
+        AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
-            String scopeType,
+        String scopeType,
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
-            String scopeId,
+        String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
-            Long taskInstanceId
+        Long taskInstanceId
     );
 
     @ApiOperation(value = "获取作业操作日志", produces = "application/json")
@@ -98,19 +127,19 @@ public interface WebTaskInstanceResource {
     Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
+        String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
+        AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
-            String scopeType,
+        String scopeType,
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
-            String scopeId,
+        String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
-            Long taskInstanceId
+        Long taskInstanceId
     );
 
     @ApiOperation(value = "获取作业实例详情,包括步骤列表和全局变量列表", produces = "application/json")
@@ -118,19 +147,19 @@ public interface WebTaskInstanceResource {
     Response<TaskInstanceDetailVO> getTaskInstanceDetail(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
+        String username,
         @ApiIgnore
         @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
+        AppResourceScope appResourceScope,
         @ApiParam(value = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
-            String scopeType,
+        String scopeType,
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
-            String scopeId,
+        String scopeId,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
-            Long taskInstanceId
+        Long taskInstanceId
     );
 
     @ApiOperation(value = "获取作业实例基本信息", produces = "application/json")
@@ -140,6 +169,6 @@ public interface WebTaskInstanceResource {
         @RequestHeader("username") String username,
         @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
-            Long taskInstanceId
+        Long taskInstanceId
     );
 }

@@ -63,6 +63,8 @@ public interface AppScopeMappingService {
      */
     AppResourceScope getAppResourceScope(Long appId, String scopeType, String scopeId);
 
+    AppResourceScope getAppResourceScope(Long appId);
+
     /**
      * 根据scopeType&scopeId获取AppResourceScope
      *

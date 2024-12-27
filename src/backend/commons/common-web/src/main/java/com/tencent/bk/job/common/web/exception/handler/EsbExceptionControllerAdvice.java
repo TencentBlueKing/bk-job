@@ -110,7 +110,10 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleInternalException(HttpServletRequest request, InternalException ex) {
         String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(
+            EsbResp.buildCommonFailResp(ex.getErrorCode(), ex.getErrorParams(), null),
+            HttpStatus.OK
+        );
     }
 
     @ExceptionHandler(PermissionDeniedException.class)

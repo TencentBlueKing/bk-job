@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
 import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -162,8 +163,16 @@ public class ResultHandleManager implements SmartLifecycle {
         resultHandleLimiter.acquire();
         log.info("Handle delivered task: {}", task);
         ScheduledContinuousResultHandleTask scheduleTask =
-            new ScheduledContinuousResultHandleTask(resultHandleTaskSampler, tracer, task, this,
-                resultHandleTaskKeepaliveManager, resultHandleLimiter, runningJobKeepaliveManager);
+            new ScheduledContinuousResultHandleTask(
+                resultHandleTaskSampler,
+                tracer,
+                task,
+                this,
+                resultHandleTaskKeepaliveManager,
+                resultHandleLimiter,
+                runningJobKeepaliveManager,
+                JobExecuteContextThreadLocalRepo.get()
+            );
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
                 log.warn("ResultHandleManager is not active, reject! task: {}", task);
@@ -385,7 +394,9 @@ public class ResultHandleManager implements SmartLifecycle {
         @Override
         public void run() {
             Span span = tracer1.nextSpan(task.getTraceContext()).name("stop-task");
+
             try (Tracer.SpanInScope ignored = tracer1.withSpan(span.start())) {
+                JobExecuteContextThreadLocalRepo.set(task.getJobExecuteContext());
                 log.info("Begin to stop task, task: {}", task.getResultHandleTask());
                 task.getResultHandleTask().stop();
                 log.info("Stop task successfully, task: {}", task.getResultHandleTask());
@@ -397,6 +408,7 @@ public class ResultHandleManager implements SmartLifecycle {
                 if (span != null) {
                     span.end();
                 }
+                JobExecuteContextThreadLocalRepo.unset();
             }
         }
     }

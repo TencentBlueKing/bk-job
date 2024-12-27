@@ -30,11 +30,11 @@ import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
@@ -52,9 +52,12 @@ import com.tencent.bk.job.execute.model.tables.records.StepInstanceRecord;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Record2;
 import org.jooq.Result;
+import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.types.UByte;
@@ -62,15 +65,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Repository
 public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     private static final StepInstance T_STEP_INSTANCE = StepInstance.STEP_INSTANCE;
-    private static final StepInstanceScript TABLE_STEP_INSTANCE_SCRIPT = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-    private static final StepInstanceFile TABLE_STEP_INSTANCE_FILE = StepInstanceFile.STEP_INSTANCE_FILE;
+    private static final StepInstanceScript T_STEP_INSTANCE_SCRIPT = StepInstanceScript.STEP_INSTANCE_SCRIPT;
+    private static final StepInstanceFile T_STEP_INSTANCE_FILE = StepInstanceFile.STEP_INSTANCE_FILE;
+    private static final StepInstanceConfirm T_STEP_INSTANCE_CONFIRM = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
+
     private static final TableField<?, ?>[] T_STEP_INSTANCE_ALL_FIELDS = {
         T_STEP_INSTANCE.ID,
         T_STEP_INSTANCE.STEP_ID,
@@ -92,6 +100,50 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         T_STEP_INSTANCE.BATCH,
         T_STEP_INSTANCE.ROLLING_CONFIG_ID
     };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_SCRIPT_ALL_FIELDS = {
+        T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_CONTENT,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_PARAM,
+        T_STEP_INSTANCE_SCRIPT.RESOLVED_SCRIPT_PARAM,
+        T_STEP_INSTANCE_SCRIPT.EXECUTION_TIMEOUT,
+        T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT_ID,
+        T_STEP_INSTANCE_SCRIPT.SYSTEM_ACCOUNT,
+        T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT_ID,
+        T_STEP_INSTANCE_SCRIPT.DB_ACCOUNT,
+        T_STEP_INSTANCE_SCRIPT.DB_TYPE,
+        T_STEP_INSTANCE_SCRIPT.DB_PASSWORD,
+        T_STEP_INSTANCE_SCRIPT.DB_PORT,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_SOURCE,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_ID,
+        T_STEP_INSTANCE_SCRIPT.SCRIPT_VERSION_ID,
+        T_STEP_INSTANCE_SCRIPT.IS_SECURE_PARAM
+    };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_FILE_ALL_FIELDS = {
+        T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_FILE.FILE_SOURCE,
+        T_STEP_INSTANCE_FILE.FILE_TARGET_PATH,
+        T_STEP_INSTANCE_FILE.FILE_TARGET_NAME,
+        T_STEP_INSTANCE_FILE.RESOLVED_FILE_TARGET_PATH,
+        T_STEP_INSTANCE_FILE.FILE_UPLOAD_SPEED_LIMIT,
+        T_STEP_INSTANCE_FILE.FILE_DOWNLOAD_SPEED_LIMIT,
+        T_STEP_INSTANCE_FILE.FILE_DUPLICATE_HANDLE,
+        T_STEP_INSTANCE_FILE.NOT_EXIST_PATH_HANDLER,
+        T_STEP_INSTANCE_FILE.EXECUTION_TIMEOUT,
+        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT_ID,
+        T_STEP_INSTANCE_FILE.SYSTEM_ACCOUNT
+    };
+    private static final TableField<?, ?>[] T_STEP_INSTANCE_CONFIRM_ALL_FIELDS = {
+        T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID,
+        T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_MESSAGE,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_REASON,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_USERS,
+        T_STEP_INSTANCE_CONFIRM.CONFIRM_ROLES,
+        T_STEP_INSTANCE_CONFIRM.NOTIFY_CHANNELS
+    };
 
     private final SensitiveParamCryptoService sensitiveParamCryptoService;
     private final DbPasswordCryptoService dbPasswordCryptoService;
@@ -109,46 +161,50 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
     public Long addStepInstanceBase(StepInstanceBaseDTO stepInstance) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        Record record = dsl().insertInto(t,
-            t.STEP_ID,
-            t.TASK_INSTANCE_ID,
-            t.APP_ID,
-            t.NAME,
-            t.TYPE,
-            t.OPERATOR,
-            t.STATUS,
-            t.EXECUTE_COUNT,
-            t.START_TIME,
-            t.END_TIME,
-            t.TOTAL_TIME,
-            t.TARGET_SERVERS,
-            t.CREATE_TIME,
-            t.IGNORE_ERROR,
-            t.STEP_NUM,
-            t.STEP_ORDER,
-            t.BATCH
-        ).values(
-            stepInstance.getStepId(),
-            stepInstance.getTaskInstanceId(),
-            stepInstance.getAppId(),
-            stepInstance.getName(),
-            stepInstance.getExecuteType().getValue().byteValue(),
-            stepInstance.getOperator(),
-            stepInstance.getStatus().getValue().byteValue(),
-            stepInstance.getExecuteCount(),
-            stepInstance.getStartTime(),
-            stepInstance.getEndTime(),
-            stepInstance.getTotalTime(),
-            stepInstance.getTargetExecuteObjects() == null ? null :
-                JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
-            stepInstance.getCreateTime(),
-            stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
-            stepInstance.getStepNum(),
-            stepInstance.getStepOrder(),
-            (short) stepInstance.getBatch()
-        ).returning(t.ID).fetchOne();
-        assert record != null;
-        return record.getValue(t.ID);
+        Record record = dsl().insertInto(
+                t,
+                t.ID,
+                t.STEP_ID,
+                t.TASK_INSTANCE_ID,
+                t.APP_ID,
+                t.NAME,
+                t.TYPE,
+                t.OPERATOR,
+                t.STATUS,
+                t.EXECUTE_COUNT,
+                t.START_TIME,
+                t.END_TIME,
+                t.TOTAL_TIME,
+                t.TARGET_SERVERS,
+                t.CREATE_TIME,
+                t.IGNORE_ERROR,
+                t.STEP_NUM,
+                t.STEP_ORDER,
+                t.BATCH
+            ).values(
+                stepInstance.getId(),
+                stepInstance.getStepId(),
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getAppId(),
+                stepInstance.getName(),
+                stepInstance.getExecuteType().getValue().byteValue(),
+                stepInstance.getOperator(),
+                stepInstance.getStatus().getValue().byteValue(),
+                stepInstance.getExecuteCount(),
+                stepInstance.getStartTime(),
+                stepInstance.getEndTime(),
+                stepInstance.getTotalTime(),
+                stepInstance.getTargetExecuteObjects() == null ? null :
+                    JsonUtils.toJson(stepInstance.getTargetExecuteObjects()),
+                stepInstance.getCreateTime(),
+                stepInstance.isIgnoreError() ? Byte.valueOf("1") : Byte.valueOf("0"),
+                stepInstance.getStepNum(),
+                stepInstance.getStepOrder(),
+                (short) stepInstance.getBatch()
+            ).returning(t.ID)
+            .fetchOne();
+        return stepInstance.getId() != null ? stepInstance.getId() : record.getValue(t.ID);
+
     }
 
     @Override
@@ -162,6 +218,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         dsl().insertInto(t,
             t.STEP_INSTANCE_ID,
+            t.TASK_INSTANCE_ID,
             t.SCRIPT_CONTENT,
             t.SCRIPT_TYPE,
             t.SCRIPT_PARAM,
@@ -180,6 +237,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             t.IS_SECURE_PARAM
         ).values(
             stepInstance.getId(),
+            stepInstance.getTaskInstanceId(),
             stepInstance.getScriptContent(),
             stepInstance.getScriptType().getValue().byteValue(),
             sensitiveParamCryptoService.encryptParamIfNeeded(
@@ -208,6 +266,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         dsl().insertInto(t,
             t.STEP_INSTANCE_ID,
+            t.TASK_INSTANCE_ID,
             t.FILE_SOURCE,
             t.FILE_TARGET_PATH,
             t.FILE_TARGET_NAME,
@@ -220,6 +279,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             t.SYSTEM_ACCOUNT
         ).values(
             stepInstance.getId(),
+            stepInstance.getTaskInstanceId(),
             JsonUtils.toJson(stepInstance.getFileSourceList()),
             stepInstance.getFileTargetPath(),
             stepInstance.getFileTargetName(),
@@ -237,8 +297,16 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
     @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.WRITE)
     public void addConfirmStepInstance(StepInstanceDTO stepInstance) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        dsl().insertInto(t, t.STEP_INSTANCE_ID, t.CONFIRM_MESSAGE, t.CONFIRM_USERS, t.CONFIRM_ROLES, t.NOTIFY_CHANNELS)
-            .values(stepInstance.getId(),
+        dsl().insertInto(t,
+                t.STEP_INSTANCE_ID,
+                t.TASK_INSTANCE_ID,
+                t.CONFIRM_MESSAGE,
+                t.CONFIRM_USERS,
+                t.CONFIRM_ROLES,
+                t.NOTIFY_CHANNELS)
+            .values(
+                stepInstance.getId(),
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getConfirmMessage(),
                 stepInstance.getConfirmUsers() == null ? null :
                     Utils.concatStringWithSeperator(stepInstance.getConfirmUsers(), ","),
@@ -251,30 +319,42 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.READ)
-    public ScriptStepInstanceDTO getScriptStepInstance(long stepInstanceId) {
-        StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
-        Record record = dsl().select(
-            t.STEP_INSTANCE_ID,
-            t.SCRIPT_CONTENT,
-            t.SCRIPT_TYPE,
-            t.SCRIPT_PARAM,
-            t.RESOLVED_SCRIPT_PARAM,
-            t.EXECUTION_TIMEOUT,
-            t.SYSTEM_ACCOUNT_ID,
-            t.SYSTEM_ACCOUNT,
-            t.DB_ACCOUNT_ID,
-            t.DB_ACCOUNT,
-            t.DB_TYPE,
-            t.DB_PASSWORD,
-            t.DB_PORT,
-            t.SCRIPT_SOURCE,
-            t.SCRIPT_ID,
-            t.SCRIPT_VERSION_ID,
-            t.IS_SECURE_PARAM
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public ScriptStepInstanceDTO getScriptStepInstance(Long taskInstanceId, long stepInstanceId) {
+        Record record = dsl().select(T_STEP_INSTANCE_SCRIPT_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_SCRIPT)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
+            .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractScriptInfo(record);
     }
+
+    private Condition buildTaskInstanceIdQueryCondition(Table<?> table,
+                                                        Long taskInstanceId) {
+        if (table instanceof StepInstance) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceScript) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_SCRIPT.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceFile) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID::eq
+            );
+        } else if (table instanceof StepInstanceConfirm) {
+            return TaskInstanceIdDynamicCondition.build(
+                taskInstanceId,
+                T_STEP_INSTANCE_CONFIRM.TASK_INSTANCE_ID::eq
+            );
+        } else {
+            throw new IllegalArgumentException("Invalid table for building task_instance_id query condition");
+        }
+    }
+
 
     private ScriptStepInstanceDTO extractScriptInfo(Record record) {
         if (record == null) {
@@ -282,6 +362,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         }
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         ScriptStepInstanceDTO stepInstance = new ScriptStepInstanceDTO();
+        stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setScriptContent(record.get(t.SCRIPT_CONTENT));
         stepInstance.setScriptType(ScriptTypeEnum.valOf(record.get(t.SCRIPT_TYPE).intValue()));
@@ -330,23 +411,12 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.READ)
-    public FileStepInstanceDTO getFileStepInstance(long stepInstanceId) {
-        StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        Record record = dsl().select(
-            t.STEP_INSTANCE_ID,
-            t.FILE_SOURCE,
-            t.FILE_TARGET_PATH,
-            t.FILE_TARGET_NAME,
-            t.RESOLVED_FILE_TARGET_PATH,
-            t.FILE_UPLOAD_SPEED_LIMIT,
-            t.FILE_DOWNLOAD_SPEED_LIMIT,
-            t.FILE_DUPLICATE_HANDLE,
-            t.NOT_EXIST_PATH_HANDLER,
-            t.EXECUTION_TIMEOUT,
-            t.SYSTEM_ACCOUNT_ID,
-            t.SYSTEM_ACCOUNT
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public FileStepInstanceDTO getFileStepInstance(Long taskInstanceId, long stepInstanceId) {
+        Record record = dsl().select(T_STEP_INSTANCE_FILE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_FILE)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_FILE, taskInstanceId))
+            .and(T_STEP_INSTANCE_FILE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractFileInfo(record);
     }
 
@@ -356,6 +426,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         }
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
         FileStepInstanceDTO stepInstance = new FileStepInstanceDTO();
+        stepInstance.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstance.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstance.setTimeout(record.get(t.EXECUTION_TIMEOUT));
         List<FileSourceDTO> fileSourceList = JsonUtils.fromJson(record.get(t.FILE_SOURCE),
@@ -382,17 +453,12 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.READ)
-    public ConfirmStepInstanceDTO getConfirmStepInstance(long stepInstanceId) {
-        StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
-        Record record = dsl().select(
-            t.STEP_INSTANCE_ID,
-            t.CONFIRM_MESSAGE,
-            t.CONFIRM_REASON,
-            t.CONFIRM_USERS,
-            t.CONFIRM_ROLES,
-            t.NOTIFY_CHANNELS
-        ).from(t)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId)).fetchOne();
+    public ConfirmStepInstanceDTO getConfirmStepInstance(Long taskInstanceId, long stepInstanceId) {
+        Record record = dsl().select(T_STEP_INSTANCE_CONFIRM_ALL_FIELDS)
+            .from(T_STEP_INSTANCE_CONFIRM)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_CONFIRM, taskInstanceId))
+            .and(T_STEP_INSTANCE_CONFIRM.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .fetchOne();
         return extractConfirmInfo(record);
     }
 
@@ -402,6 +468,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         }
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         ConfirmStepInstanceDTO stepInstanceDTO = new ConfirmStepInstanceDTO();
+        stepInstanceDTO.setTaskInstanceId(record.get(t.TASK_INSTANCE_ID));
         stepInstanceDTO.setStepInstanceId(record.get(t.STEP_INSTANCE_ID));
         stepInstanceDTO.setConfirmMessage(record.get(t.CONFIRM_MESSAGE));
         stepInstanceDTO.setConfirmReason(record.get(t.CONFIRM_REASON));
@@ -416,11 +483,12 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
+    public StepInstanceBaseDTO getStepInstanceBase(Long taskInstanceId, long stepInstanceId) {
         Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .fetchOne();
         return extractBaseInfo(record);
     }
@@ -459,12 +527,23 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public StepInstanceBaseDTO getFirstStepInstanceBase(long taskInstanceId) {
+    public StepInstanceBaseDTO getStepInstanceBase(long stepInstanceId) {
+        Record record = dsl()
+            .select(T_STEP_INSTANCE_ALL_FIELDS)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+            .fetchOne();
+        return extractBaseInfo(record);
+    }
+
+    @Override
+    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
+    public StepInstanceBaseDTO getFirstStepInstanceBase(Long taskInstanceId) {
         Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .orderBy(T_STEP_INSTANCE.ID.asc())
+            .orderBy(T_STEP_INSTANCE.STEP_ORDER.asc())
             .limit(1)
             .fetchOne();
         return extractBaseInfo(record);
@@ -472,7 +551,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public StepInstanceBaseDTO getNextStepInstance(long taskInstanceId, int currentStepOrder) {
+    public StepInstanceBaseDTO getNextStepInstance(Long taskInstanceId, int currentStepOrder) {
         Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
@@ -486,12 +565,12 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(long taskInstanceId) {
+    public List<StepInstanceBaseDTO> listStepInstanceBaseByTaskInstanceId(Long taskInstanceId) {
         Result<Record> result = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .orderBy(T_STEP_INSTANCE.ID.asc())
+            .orderBy(T_STEP_INSTANCE.STEP_ORDER.asc())
             .fetch();
         List<StepInstanceBaseDTO> stepInstanceList = new ArrayList<>();
         result.into(record -> stepInstanceList.add(extractBaseInfo(record)));
@@ -500,85 +579,115 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void resetStepStatus(long stepInstanceId) {
+    public void resetStepStatus(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).setNull(t.START_TIME).setNull(t.END_TIME).setNull(t.TOTAL_TIME)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .setNull(t.START_TIME)
+            .setNull(t.END_TIME)
+            .setNull(t.TOTAL_TIME)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void resetStepExecuteInfoForRetry(long stepInstanceId) {
+    public void resetStepExecuteInfoForRetry(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         dsl().update(t)
             .set(t.STATUS, RunStatusEnum.RUNNING.getValue().byteValue())
             .setNull(t.END_TIME)
             .setNull(t.TOTAL_TIME)
-            .where(t.ID.eq(stepInstanceId)).execute();
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void addStepExecuteCount(long stepInstanceId) {
+    public void addStepExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepStatus(long stepInstanceId, int status) {
+    public void updateStepStatus(Long taskInstanceId, long stepInstanceId, int status) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.STATUS, JooqDataTypeUtil.toByte(status))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .set(t.STATUS, JooqDataTypeUtil.toByte(status))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepStartTime(long stepInstanceId, Long startTime) {
+    public void updateStepStartTime(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.START_TIME, startTime)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .set(t.START_TIME, startTime)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepStartTimeIfNull(long stepInstanceId, Long startTime) {
+    public void updateStepStartTimeIfNull(Long taskInstanceId, long stepInstanceId, Long startTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.START_TIME, startTime)
-            .where(t.ID.eq(stepInstanceId))
+        dsl().update(t)
+            .set(t.START_TIME, startTime)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .and(t.START_TIME.isNull())
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepEndTime(long stepInstanceId, Long endTime) {
+    public void updateStepEndTime(Long taskInstanceId, long stepInstanceId, Long endTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.END_TIME, endTime)
-            .where(t.ID.eq(stepInstanceId))
+        dsl().update(t)
+            .set(t.END_TIME, endTime)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void addStepInstanceExecuteCount(long stepInstanceId) {
+    public void addStepInstanceExecuteCount(Long taskInstanceId, long stepInstanceId) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .set(t.EXECUTE_COUNT, t.EXECUTE_COUNT.plus(1))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepTotalTime(long stepInstanceId, long totalTime) {
+    public void updateStepTotalTime(Long taskInstanceId, long stepInstanceId, long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
-        dsl().update(t).set(t.TOTAL_TIME, totalTime)
-            .where(t.ID.eq(stepInstanceId)).execute();
+        dsl().update(t)
+            .set(t.TOTAL_TIME, totalTime)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepExecutionInfo(long stepInstanceId, RunStatusEnum status, Long startTime, Long endTime,
+    public void updateStepExecutionInfo(Long taskInstanceId,
+                                        long stepInstanceId,
+                                        RunStatusEnum status,
+                                        Long startTime,
+                                        Long endTime,
                                         Long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = buildBasicUpdateSetMoreStep(status,
@@ -586,15 +695,21 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         if (updateSetMoreStep == null) {
             return;
         }
-        updateSetMoreStep.where(t.ID.eq(stepInstanceId)).execute();
+        updateSetMoreStep
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
+            .execute();
     }
 
-    private UpdateSetMoreStep<StepInstanceRecord> buildBasicUpdateSetMoreStep(RunStatusEnum status, Long startTime,
-                                                                              Long endTime, Long totalTime) {
+    private UpdateSetMoreStep<StepInstanceRecord> buildBasicUpdateSetMoreStep(RunStatusEnum status,
+                                                                              Long startTime,
+                                                                              Long endTime,
+                                                                              Long totalTime) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         UpdateSetMoreStep<StepInstanceRecord> updateSetMoreStep = null;
         if (status != null) {
-            updateSetMoreStep = dsl().update(t).set(t.STATUS, JooqDataTypeUtil.toByte(status.getValue()));
+            updateSetMoreStep = dsl().update(t).set(t.STATUS,
+                JooqDataTypeUtil.toByte(status.getValue()));
         }
         if (startTime != null) {
             if (updateSetMoreStep == null) {
@@ -622,69 +737,97 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
 
     @Override
     @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.WRITE)
-    public void updateResolvedScriptParam(long stepInstanceId, boolean isSecureParam, String resolvedScriptParam) {
+    public void updateResolvedScriptParam(Long taskInstanceId,
+                                          long stepInstanceId,
+                                          boolean isSecureParam,
+                                          String resolvedScriptParam) {
         StepInstanceScript t = StepInstanceScript.STEP_INSTANCE_SCRIPT;
         dsl().update(t)
             .set(t.RESOLVED_SCRIPT_PARAM, sensitiveParamCryptoService.encryptParamIfNeeded(
                 isSecureParam, resolvedScriptParam
-            )).where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+            ))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.WRITE)
-    public void updateResolvedSourceFile(long stepInstanceId, List<FileSourceDTO> resolvedFileSources) {
+    public void updateResolvedSourceFile(Long taskInstanceId,
+                                         long stepInstanceId,
+                                         List<FileSourceDTO> resolvedFileSources) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        dsl().update(t).set(t.FILE_SOURCE, JsonUtils.toJson(resolvedFileSources))
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+        dsl().update(t)
+            .set(t.FILE_SOURCE, JsonUtils.toJson(resolvedFileSources))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_FILE, taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance_file", op = DbOperationEnum.WRITE)
-    public void updateResolvedTargetPath(long stepInstanceId, String resolvedTargetPath) {
+    public void updateResolvedTargetPath(Long taskInstanceId, long stepInstanceId, String resolvedTargetPath) {
         StepInstanceFile t = StepInstanceFile.STEP_INSTANCE_FILE;
-        dsl().update(t).set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+        dsl().update(t)
+            .set(t.RESOLVED_FILE_TARGET_PATH, resolvedTargetPath)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_FILE, taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance_confirm", op = DbOperationEnum.WRITE)
-    public void updateConfirmReason(long stepInstanceId, String confirmReason) {
+    public void updateConfirmReason(Long taskInstanceId, long stepInstanceId, String confirmReason) {
         StepInstanceConfirm t = StepInstanceConfirm.STEP_INSTANCE_CONFIRM;
         dsl().update(t).set(t.CONFIRM_REASON, confirmReason)
-            .where(t.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_CONFIRM, taskInstanceId))
+            .and(t.STEP_INSTANCE_ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepOperator(long stepInstanceId, String operator) {
+    public void updateStepOperator(Long taskInstanceId, long stepInstanceId, String operator) {
         StepInstance t = StepInstance.STEP_INSTANCE;
         dsl().update(t).set(t.OPERATOR, operator)
-            .where(t.ID.eq(stepInstanceId))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(t.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public StepInstanceBaseDTO getPreExecutableStepInstance(long taskInstanceId, long stepInstanceId) {
+    public StepInstanceBaseDTO getPreExecutableStepInstance(Long taskInstanceId, int currentStepOrder) {
         Record record = dsl()
             .select(T_STEP_INSTANCE_ALL_FIELDS)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .and(T_STEP_INSTANCE.ID.lt(stepInstanceId))
+            .and(T_STEP_INSTANCE.STEP_ORDER.lt(currentStepOrder))
             .and(T_STEP_INSTANCE.TYPE.notIn(StepExecuteTypeEnum.MANUAL_CONFIRM.getValue().byteValue()))
-            .orderBy(T_STEP_INSTANCE.ID.desc())
+            .orderBy(T_STEP_INSTANCE.STEP_ORDER.desc())
             .limit(1)
             .fetchOne();
         return extractBaseInfo(record);
     }
 
     @Override
+    public Map<Long, Integer> listStepInstanceIdAndStepOrderMapping(Long taskInstanceId) {
+        Result<Record2<Long, Integer>> result = dsl()
+            .select(T_STEP_INSTANCE.ID, T_STEP_INSTANCE.STEP_ORDER)
+            .from(T_STEP_INSTANCE)
+            .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+            .fetch();
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<Long, Integer> map = new HashMap<>();
+        result.forEach(record -> map.put(record.get(T_STEP_INSTANCE.ID), record.get(T_STEP_INSTANCE.STEP_ORDER)));
+        return map;
+    }
+
+    @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public Long getStepInstanceId(long taskInstanceId) {
+    public Long getStepInstanceId(Long taskInstanceId) {
         Result<Record1<Long>> records = dsl().select(T_STEP_INSTANCE.ID)
             .from(T_STEP_INSTANCE)
             .where(T_STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
@@ -698,67 +841,59 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
     }
 
     @Override
-    @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public Long getTaskInstanceId(long appId, long stepInstanceId) {
-        Result<Record1<Long>> records = dsl().select(T_STEP_INSTANCE.TASK_INSTANCE_ID)
-            .from(T_STEP_INSTANCE)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
-            .and(T_STEP_INSTANCE.APP_ID.eq(appId))
-            .limit(1)
-            .fetch();
-        if (records.isEmpty()) {
-            return null;
-        } else {
-            return records.get(0).get(T_STEP_INSTANCE.TASK_INSTANCE_ID);
-        }
-    }
-
-    @Override
     @MySQLOperation(table = "step_instance_script", op = DbOperationEnum.READ)
-    public Byte getScriptTypeByStepInstanceId(long stepInstanceId) {
-        Result<Record1<Byte>> records = dsl().select(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
-            .from(TABLE_STEP_INSTANCE_SCRIPT)
-            .where(TABLE_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
+    public Byte getScriptTypeByStepInstanceId(Long taskInstanceId, long stepInstanceId) {
+        Result<Record1<Byte>> records = dsl().select(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE)
+            .from(T_STEP_INSTANCE_SCRIPT)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE_SCRIPT, taskInstanceId))
+            .and(T_STEP_INSTANCE_SCRIPT.STEP_INSTANCE_ID.eq(stepInstanceId))
             .limit(1)
             .fetch();
         if (records.isEmpty()) {
             return null;
         } else {
-            return records.get(0).get(TABLE_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE);
+            return records.get(0).get(T_STEP_INSTANCE_SCRIPT.SCRIPT_TYPE);
         }
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepCurrentBatch(long stepInstanceId, int batch) {
-        dsl().update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepCurrentBatch(Long taskInstanceId, long stepInstanceId, int batch) {
+        dsl().update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.BATCH, JooqDataTypeUtil.toShort(batch))
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepCurrentExecuteCount(long stepInstanceId, int executeCount) {
-        dsl().update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepCurrentExecuteCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
+        dsl().update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.EXECUTE_COUNT, executeCount)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.WRITE)
-    public void updateStepRollingConfigId(long stepInstanceId, long rollingConfigId) {
-        dsl().update(T_STEP_INSTANCE).set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
-            .where(T_STEP_INSTANCE.ID.eq(stepInstanceId))
+    public void updateStepRollingConfigId(Long taskInstanceId, long stepInstanceId, long rollingConfigId) {
+        dsl().update(T_STEP_INSTANCE)
+            .set(T_STEP_INSTANCE.ROLLING_CONFIG_ID, rollingConfigId)
+            .where(buildTaskInstanceIdQueryCondition(T_STEP_INSTANCE, taskInstanceId))
+            .and(T_STEP_INSTANCE.ID.eq(stepInstanceId))
             .execute();
     }
 
     @Override
     @MySQLOperation(table = "step_instance", op = DbOperationEnum.READ)
-    public List<Long> getTaskStepInstanceIdList(long taskInstanceId) {
-        Result result = dsl().select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
-            .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
-            .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
-            .fetch();
+    public List<Long> getTaskStepInstanceIdList(Long taskInstanceId) {
+        Result result =
+            dsl().select(StepInstance.STEP_INSTANCE.ID).from(StepInstance.STEP_INSTANCE)
+                .where(StepInstance.STEP_INSTANCE.TASK_INSTANCE_ID.eq(taskInstanceId))
+                .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
+                .fetch();
         List<Long> stepInstanceIdList = new ArrayList<>();
         result.into(record -> {
             Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);

@@ -32,47 +32,103 @@ import org.springframework.stereotype.Service;
 @Service
 public class AITemplateVarService {
 
+    /**
+     * 获取模板变量占位符
+     *
+     * @param varName 变量名
+     * @return 占位符
+     */
     public String getTemplateVarPlaceHolder(String varName) {
         String TEMPLATE_VAR_PREFIX = "{BK_JOB_AI_TEMPLATE_VAR";
         return TEMPLATE_VAR_PREFIX + "{" + varName + "}}";
     }
 
+    /**
+     * 获取脚本类型占位符
+     *
+     * @return 脚本类型占位符
+     */
     public String getScriptTypePlaceHolder() {
         return getTemplateVarPlaceHolder("script_type");
     }
 
+    /**
+     * 获取脚本模板占位符
+     *
+     * @return 脚本模板占位符
+     */
     public String getScriptTemplatePlaceHolder() {
         return getTemplateVarPlaceHolder("script_template");
     }
 
+    /**
+     * 获取脚本参数占位符
+     *
+     * @return 脚本参数占位符
+     */
     public String getScriptParamsPlaceHolder() {
         return getTemplateVarPlaceHolder("script_params");
     }
 
+    /**
+     * 获取脚本内容占位符
+     *
+     * @return 脚本内容占位符
+     */
     public String getScriptContentPlaceHolder() {
         return getTemplateVarPlaceHolder("script_content");
     }
 
+    /**
+     * 获取报错信息占位符
+     *
+     * @return 报错信息占位符
+     */
     public String getErrorContentPlaceHolder() {
         return getTemplateVarPlaceHolder("error_content");
     }
 
+    /**
+     * 获取文件任务错误源占位符
+     *
+     * @return 文件任务错误源占位符
+     */
     public String getFileTaskErrorSourcePlaceHolder() {
         return getTemplateVarPlaceHolder("file_task_error_source");
     }
 
+    /**
+     * 获取上传文件错误数据占位符
+     *
+     * @return 上传文件错误数据占位符
+     */
     public String getUploadFileErrorDataPlaceHolder() {
         return getTemplateVarPlaceHolder("upload_file_error_data");
     }
 
+    /**
+     * 获取下载文件错误数据占位符
+     *
+     * @return 下载文件错误数据占位符
+     */
     public String getDownloadFileErrorDataPlaceHolder() {
         return getTemplateVarPlaceHolder("download_file_error_data");
     }
 
+    /**
+     * 获取BK助手链接占位符
+     *
+     * @return BK助手链接占位符
+     */
     public String getBkHelperLinkPlaceHolder() {
         return getTemplateVarPlaceHolder("bk_helper_link");
     }
 
+    /**
+     * 获取步骤实例名占位符
+     *
+     * @return 步骤实例名占位符
+     */
     public String getStepInstanceNamePlaceHolder() {
         return getTemplateVarPlaceHolder("step_instance_name");
     }

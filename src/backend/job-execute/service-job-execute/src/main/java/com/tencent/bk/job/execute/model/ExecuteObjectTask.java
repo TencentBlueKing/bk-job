@@ -30,7 +30,9 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -39,6 +41,12 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class ExecuteObjectTask {
+    /**
+     * 执行对象任务 ID
+     */
+    @Getter
+    @Setter
+    private Long id;
     /**
      * 作业实例ID
      */

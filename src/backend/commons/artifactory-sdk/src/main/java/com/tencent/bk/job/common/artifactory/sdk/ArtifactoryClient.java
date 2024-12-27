@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.artifactory.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
+import com.tencent.bk.job.common.artifactory.constants.MetricsConstants;
 import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
@@ -52,10 +53,10 @@ import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -89,6 +90,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 
 @Slf4j
 public class ArtifactoryClient {
@@ -254,10 +257,10 @@ public class ArtifactoryClient {
         }
         String respStr;
         long start = System.nanoTime();
-        String status = "none";
+        AtomicReference<String> statusRef = new AtomicReference<>(MetricsConstants.TAG_VALUE_NONE);
         try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", urlTemplate));
+            HttpMetricUtil.setHttpMetricName(MetricsConstants.METRICS_NAME_BKREPO_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of(MetricsConstants.TAG_KEY_API_NAME, urlTemplate));
             switch (method) {
                 case HttpGet.METHOD_NAME:
                     respStr = doHttpGet(url, reqBody, httpHelper);
@@ -284,13 +287,8 @@ public class ArtifactoryClient {
                 );
             }
             R result = JsonUtils.fromJson(respStr, typeReference);
-            try {
-                checkResult(result, method, url, reqStr, respStr);
-            } catch (Exception e) {
-                status = "error";
-                throw e;
-            }
-            status = "ok";
+            checkResult(result, method, url, reqStr, respStr);
+            statusRef.set(MetricsConstants.TAG_VALUE_OK);
             return result;
         } catch (Exception e) {
             String msg = MessageFormatter.arrayFormat(
@@ -302,13 +300,20 @@ public class ArtifactoryClient {
                 }
             ).getMessage();
             log.error(msg, e);
-            status = "error";
-            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+            statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
+
+            // 特殊处理文件 NotFound 导致的 HttpStatusException
+            return convertException(statusRef, e);
+
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
             if (null != meterRegistry) {
-                meterRegistry.timer(CommonMetricNames.BKREPO_API, "api_name", urlTemplate, "status", status)
+                meterRegistry.timer(
+                        MetricsConstants.METRICS_NAME_BKREPO_API,
+                        MetricsConstants.TAG_KEY_API_NAME, urlTemplate,
+                        MetricsConstants.TAG_KEY_STATUS, statusRef.get()
+                    )
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
         }
@@ -483,6 +488,7 @@ public class ArtifactoryClient {
     public NodeDTO getFileNode(String filePath) {
         List<String> pathList = parsePath(filePath);
         NodeDTO nodeDTO = queryNodeDetail(pathList.get(0), pathList.get(1), pathList.get(2));
+
         if (null == nodeDTO) {
             throw new InternalException(
                 "can not find node by filePath",
@@ -508,7 +514,7 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         CloseableHttpResponse resp;
         try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.setHttpMetricName(MetricsConstants.METRICS_NAME_BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "download:" + URL_DOWNLOAD_GENERIC_FILE));
             Pair<HttpRequestBase, CloseableHttpResponse> pair = longHttpHelper.getRawResp(false, url, getJsonHeaders());
             resp = pair.getRight();
@@ -556,7 +562,7 @@ public class ArtifactoryClient {
         url = getCompleteUrl(url);
         String respStr;
         try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.BKREPO_API_HTTP);
+            HttpMetricUtil.setHttpMetricName(MetricsConstants.METRICS_NAME_BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
 
             respStr = longHttpHelper.requestForSuccessResp(
@@ -661,5 +667,29 @@ public class ArtifactoryClient {
 
     private String getSimplifiedStrForLog(String rawStr) {
         return StringUtil.substring(rawStr, 20000);
+    }
+
+    private <R> R convertException(AtomicReference<String> statusRef, Exception e) {
+        if (e instanceof HttpStatusException) {
+            String httpStatusExceptionRespStr = ((HttpStatusException) e).getRespBodyStr();
+            ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
+                new TypeReference<ArtifactoryResp<Object>>() {
+                });
+            if (artifactoryResp != null
+                && artifactoryResp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_NODE_NOT_FOUND) {
+                statusRef.set(MetricsConstants.TAG_VALUE_CLIENT_ERROR_NODE_NOT_FOUND);
+                throw new InternalException(
+                    artifactoryResp.getMessage(),
+                    ErrorCode.CAN_NOT_FIND_NODE_IN_ARTIFACTORY
+                );
+            } else {
+                throw new InternalException(
+                    "Fail to request ARTIFACTORY data",
+                    ErrorCode.ARTIFACTORY_API_DATA_ERROR
+                );
+            }
+        } else {
+            throw new InternalException("Fail to request ARTIFACTORY data", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
+        }
     }
 }

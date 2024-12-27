@@ -30,8 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -64,9 +62,6 @@ public class ServiceCronJobDTO {
 
     @ApiModelProperty("单次执行的指定执行时间戳")
     private Long executeTime;
-
-    @ApiModelProperty("变量信息")
-    private List<ServiceCronJobVariableDTO> variableValue;
 
     @ApiModelProperty("上次执行结果 0 - 未执行 1 - 成功 2 - 失败")
     private Integer lastExecuteStatus;
