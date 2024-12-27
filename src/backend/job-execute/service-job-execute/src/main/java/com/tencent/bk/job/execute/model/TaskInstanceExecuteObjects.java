@@ -24,12 +24,12 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collection;
@@ -44,6 +44,7 @@ import java.util.Set;
  */
 @Getter
 @ToString
+@Slf4j
 public class TaskInstanceExecuteObjects {
 
     /**
@@ -86,9 +87,13 @@ public class TaskInstanceExecuteObjects {
     @Setter
     private Map<Long, List<String>> whiteHostAllowActions;
     /**
-     * 全量主机 Map
+     * 全量主机 Map - key: hostId
      */
-    private final Map<HostCompositeKey, HostDTO> hostMap = new HashMap<>();
+    private final Map<Long, HostDTO> hostsByHostId = new HashMap<>();
+    /**
+     * 全量主机 Map - key: cloudIp
+     */
+    private final Map<String, HostDTO> hostsByCloudIp = new HashMap<>();
 
     public void addContainers(Collection<Container> containers) {
         if (validContainers == null) {
@@ -121,7 +126,25 @@ public class TaskInstanceExecuteObjects {
 
     private void putHostMap(List<HostDTO> hosts) {
         if (CollectionUtils.isNotEmpty(hosts)) {
-            hosts.forEach(host -> hostMap.put(host.getUniqueKey(), host));
+            hosts.forEach(host -> {
+                if (host.getHostId() != null) {
+                    hostsByHostId.put(host.getHostId(), host);
+                }
+                if (host.toCloudIp() != null) {
+                    hostsByCloudIp.put(host.toCloudIp(), host);
+                }
+            });
+        }
+    }
+
+    public HostDTO queryByHostKey(HostDTO host) {
+        if (host.getHostId() != null) {
+            return hostsByHostId.get(host.getHostId());
+        } else if (host.toCloudIp() != null) {
+            return hostsByCloudIp.get(host.toCloudIp());
+        } else {
+            log.info("Host not found, host: {}", host);
+            return null;
         }
     }
 }

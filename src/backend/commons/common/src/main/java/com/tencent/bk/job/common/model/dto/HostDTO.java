@@ -126,10 +126,17 @@ public class HostDTO implements Cloneable {
      */
     private String cloudVendorName;
 
+    /**
+     * 管控区域:IPv4
+     */
+    @JsonIgnore
+    private String cloudIp;
+
     @Deprecated
-    public HostDTO(Long bkCloudId, String ip) {
+    public HostDTO(Long bkCloudId, String ipv4) {
         this.bkCloudId = bkCloudId;
-        this.ip = ip;
+        this.ip = ipv4;
+        this.cloudIp = buildCloudIp(bkCloudId, ipv4);
     }
 
     public HostDTO(Long hostId) {
@@ -173,11 +180,19 @@ public class HostDTO implements Cloneable {
      * 返回主机 云区域:ipv4
      */
     public String toCloudIp() {
+        if (StringUtils.isNotEmpty(cloudIp)) {
+            return cloudIp;
+        }
         if (StringUtils.isEmpty(ip)) {
             return null;
         } else {
-            return bkCloudId + ":" + ip;
+            cloudIp = buildCloudIp(bkCloudId, ip);
+            return cloudIp;
         }
+    }
+
+    private String buildCloudIp(Long bkCloudId, String ip) {
+        return bkCloudId + ":" + ip;
     }
 
     /**
@@ -187,7 +202,7 @@ public class HostDTO implements Cloneable {
         if (StringUtils.isEmpty(ipv6)) {
             return null;
         } else {
-            return bkCloudId + ":" + ipv6;
+            return buildCloudIp(bkCloudId, ipv6);
         }
     }
 
