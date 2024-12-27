@@ -71,6 +71,8 @@ public class TaskInstanceIdDynamicCondition {
         if (FeatureToggle.checkFeature(FeatureIdConstants.DAO_ADD_TASK_INSTANCE_ID, toggleEvaluateContext)) {
             if (taskInstanceId == null || taskInstanceId <= 0L) {
                 log.info("TaskInstanceIdDynamicCondition : InvalidTaskInstanceId : {}", taskInstanceId);
+                // 输出堆栈信息，便于发现问题；后续功能稳定之后需要删除
+                safePrintStackTrace();
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
             } else {
@@ -82,6 +84,18 @@ public class TaskInstanceIdDynamicCondition {
             // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
             log.info("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
             return DSL.trueCondition();
+        }
+    }
+
+    private static void safePrintStackTrace() {
+        try {
+            StringBuilder message = new StringBuilder();
+            for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
+                message.append(System.lineSeparator()).append(stackTraceElement.toString());
+            }
+            log.info("InvalidTaskInstanceIdConditionStackTrace: {}", message);
+        } catch (Throwable e) {
+            // ignore
         }
     }
 }

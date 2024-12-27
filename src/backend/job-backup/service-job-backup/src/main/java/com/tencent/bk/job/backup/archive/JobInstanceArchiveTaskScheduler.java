@@ -86,6 +86,11 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
      */
     private final Map<String, JobInstanceMainDataArchiveTask> scheduledTasks = new ConcurrentHashMap<>();
 
+    /**
+     * 调度器线程挂起 object monitor
+     */
+    private final Object schedulerHangMonitor = new Object();
+
 
     public JobInstanceArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
                                            JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -118,12 +123,12 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                 return;
             }
             this.scheduling = true;
-            if (!isActive()) {
-                log.info("JobInstanceArchiveTaskScheduler is not active, skip");
-                return;
-            }
 
             while (true) {
+                if (!isActive()) {
+                    log.info("JobInstanceArchiveTaskScheduler is not active, skip");
+                    return;
+                }
                 StopWatch watch = new StopWatch("archive-task-schedule");
                 boolean locked = false;
                 try {
@@ -134,7 +139,6 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                         ThreadUtils.sleep(1000L);
                         continue;
                     }
-
 
                     // 获取待调度的任务信息(按照 DB 节点计数)
                     watch.start("countScheduleTasks");
@@ -162,12 +166,14 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
                     watch.stop();
                     int taskConcurrent = archiveProperties.getTasks().getJobInstance().getConcurrent();
                     if (highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent) {
-                        // 休眠5分钟，等待并行任务减少
-                        log.info("Running archive task count exceed concurrent limit : {}, wait 300s", taskConcurrent);
+                        // 休眠1分钟，等待并行任务减少
+                        log.info("Running archive task count exceed concurrent limit : {}, wait 60s", taskConcurrent);
                         // 释放锁
                         jobInstanceArchiveTaskScheduleLock.unlock();
                         locked = false;
-                        ThreadUtils.sleep(1000 * 300L);
+                        synchronized (schedulerHangMonitor) {
+                            schedulerHangMonitor.wait(1000 * 60L);
+                        }
                         continue;
                     }
 
@@ -260,6 +266,10 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
             }
             this.active = false;
         }
+        synchronized (schedulerHangMonitor) {
+            schedulerHangMonitor.notify();
+            log.info("Try notify scheduler when stopping");
+        }
         stopTasksGraceful();
         log.info("JobInstanceArchiveTaskScheduler stop successfully!");
     }
@@ -280,8 +290,8 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         }
         try {
             if (taskCountDownLatch != null) {
-                // 等待任务结束，最多等待 2min
-                boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(120);
+                // 等待任务结束，最多等待 30s(等待时间太长进程会被k8s kill掉)
+                boolean isAllTaskStopped = taskCountDownLatch.waitingForAllTasksDone(30);
                 if (!isAllTaskStopped) {
                     for (JobInstanceArchiveTask task : scheduledTasks.values()) {
                         task.forceStopAtOnce();
@@ -307,10 +317,13 @@ public class JobInstanceArchiveTaskScheduler implements SmartLifecycle {
         @Override
         public void run() {
             try {
+                log.info("[{}] Run stop task begin", task.getTaskId());
                 task.stop(() -> taskCountDownLatch.decrement(task.getTaskId()));
             } catch (Throwable e) {
-                String errorMsg = "Stop archive task caught exception, task: " + task;
+                String errorMsg = "Stop archive task caught exception, task: " + task.getTaskId();
                 log.warn(errorMsg, e);
+            } finally {
+                log.info("[{}] Run stop task end", task.getTaskId());
             }
         }
     }
