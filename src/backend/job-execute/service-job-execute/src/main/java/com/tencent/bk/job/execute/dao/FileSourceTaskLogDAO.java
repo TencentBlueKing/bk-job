@@ -32,14 +32,10 @@ public interface FileSourceTaskLogDAO {
 
     int updateFileSourceTaskLogByStepInstance(FileSourceTaskLogDTO fileSourceTaskLog);
 
-    FileSourceTaskLogDTO getFileSourceTaskLog(Long taskInstanceId, long stepInstanceId, int executeCount);
+    FileSourceTaskLogDTO getFileSourceTaskLog(long stepInstanceId, int executeCount);
 
-    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(Long taskInstanceId, String fileSourceBatchTaskId);
+    FileSourceTaskLogDTO getFileSourceTaskLogByBatchTaskId(String fileSourceBatchTaskId);
 
-    int updateTimeConsumingByBatchTaskId(Long taskInstanceId,
-                                         String fileSourceBatchTaskId,
-                                         Long startTime,
-                                         Long endTime,
-                                         Long totalTime);
+    int updateTimeConsumingByBatchTaskId(String fileSourceBatchTaskId, Long startTime, Long endTime, Long totalTime);
 
 }

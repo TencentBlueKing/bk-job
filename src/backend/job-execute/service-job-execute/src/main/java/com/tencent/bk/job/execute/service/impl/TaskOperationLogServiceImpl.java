@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
-import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,17 +35,14 @@ import java.util.List;
 @Service
 public class TaskOperationLogServiceImpl implements TaskOperationLogService {
     private final OperationLogDAO operationLogDAO;
-    private final IdGen idGen;
 
     @Autowired
-    public TaskOperationLogServiceImpl(OperationLogDAO operationLogDAO, IdGen idGen) {
+    public TaskOperationLogServiceImpl(OperationLogDAO operationLogDAO) {
         this.operationLogDAO = operationLogDAO;
-        this.idGen = idGen;
     }
 
     @Override
     public long saveOperationLog(OperationLogDTO operationLog) {
-        operationLog.setId(idGen.genOperationLogId());
         return operationLogDAO.saveOperationLog(operationLog);
     }
 

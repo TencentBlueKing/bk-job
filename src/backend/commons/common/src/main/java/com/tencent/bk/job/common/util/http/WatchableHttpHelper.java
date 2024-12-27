@@ -36,7 +36,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import java.util.AbstractList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * 对Http请求状态码与异常情况进行统计便于监控
@@ -44,11 +43,11 @@ import java.util.function.Supplier;
 public class WatchableHttpHelper implements HttpHelper {
 
     private final HttpHelper httpHelper;
-    private final Supplier<MeterRegistry> meterRegistrySupplier;
+    private final MeterRegistry meterRegistry;
 
-    public WatchableHttpHelper(HttpHelper httpHelper, Supplier<MeterRegistry> meterRegistrySupplier) {
+    public WatchableHttpHelper(HttpHelper httpHelper, MeterRegistry meterRegistry) {
         this.httpHelper = httpHelper;
-        this.meterRegistrySupplier = meterRegistrySupplier;
+        this.meterRegistry = meterRegistry;
     }
 
     @Override
@@ -83,7 +82,6 @@ public class WatchableHttpHelper implements HttpHelper {
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status",
                 StringUtils.isNotEmpty(httpStatusTagValue) ? httpStatusTagValue : "UNKNOWN"));
-            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);

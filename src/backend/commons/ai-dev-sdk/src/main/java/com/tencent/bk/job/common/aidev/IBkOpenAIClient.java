@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 public interface IBkOpenAIClient {
 
     /**
-     * 获取AI流式回答，最终返回完整的回答结果，流式数据由partialRespConsumer接收处理
+     * 获取混元流式回答，最终返回完整的回答结果，流式数据由partialRespConsumer接收处理
      *
      * @param token               用户身份凭据
      * @param messageHistoryList  历史消息列表
@@ -41,9 +41,9 @@ public interface IBkOpenAIClient {
      * @param partialRespConsumer 分块消息处理器
      * @return 完整的回答结果Future
      */
-    CompletableFuture<String> getAIAnswerStream(String token,
-                                                List<AIDevMessage> messageHistoryList,
-                                                String userInput,
-                                                Consumer<String> partialRespConsumer);
+    CompletableFuture<String> getHunYuanAnswerStream(String token,
+                                                     List<AIDevMessage> messageHistoryList,
+                                                     String userInput,
+                                                     Consumer<String> partialRespConsumer);
 
 }

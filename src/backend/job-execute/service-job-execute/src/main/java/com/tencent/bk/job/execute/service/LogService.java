@@ -179,15 +179,13 @@ public interface LogService {
     /**
      * 根据文件任务ID批量获取文件任务执行日志
      *
-     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @param taskIds        文件任务ID列表
      * @return 日志内容
      */
-    List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long taskInstanceId,
-                                                          long stepInstanceId,
+    List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long stepInstanceId,
                                                           int executeCount,
                                                           Integer batch,
                                                           List<String> taskIds);
@@ -195,21 +193,18 @@ public interface LogService {
     /**
      * 获取文件任务文件源日志
      *
-     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例 ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @return 日志内容
      */
-    List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long taskInstanceId,
-                                                                                long stepInstanceId,
+    List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
                                                                                 int executeCount,
                                                                                 Integer batch);
 
     /**
      * 获取文件任务文件日志
      *
-     * @param taskInstanceId             作业实例 ID
      * @param stepInstanceId             步骤实例 ID
      * @param executeCount               执行次数
      * @param batch                      滚动执行批次;非滚动步骤传入null
@@ -218,7 +213,6 @@ public interface LogService {
      * @return 日志内容
      */
     List<FileExecuteObjectLogContent> batchGetFileExecuteObjectLogContent(
-        long taskInstanceId,
         long stepInstanceId,
         int executeCount,
         Integer batch,

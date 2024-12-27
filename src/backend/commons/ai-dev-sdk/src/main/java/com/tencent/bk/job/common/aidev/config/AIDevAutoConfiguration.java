@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.common.aidev.config;
 
-import com.tencent.bk.job.common.aidev.impl.BkChatCompletionModel;
+import com.tencent.bk.job.common.aidev.impl.BkAIDevClient;
 import com.tencent.bk.job.common.aidev.impl.BkOpenAIClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.sleuth.SpanNamer;
 import org.springframework.cloud.sleuth.Tracer;
@@ -43,7 +42,14 @@ import org.springframework.context.annotation.Configuration;
 public class AIDevAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
+    public BkAIDevClient bkAIDevClient(MeterRegistry meterRegistry,
+                                       AppProperties appProperties,
+                                       CustomPaasLoginProperties customPaasLoginProperties,
+                                       BkApiGatewayProperties bkApiGatewayProperties) {
+        return new BkAIDevClient(meterRegistry, appProperties, customPaasLoginProperties, bkApiGatewayProperties);
+    }
+
+    @Bean
     public BkOpenAIClient bkOpenAIClient(Tracer tracer,
                                          SpanNamer spanNamer,
                                          MeterRegistry meterRegistry,
@@ -56,8 +62,7 @@ public class AIDevAutoConfiguration {
             meterRegistry,
             appProperties,
             customPaasLoginProperties,
-            bkApiGatewayProperties,
-            BkChatCompletionModel.HUNYUAN.toString()
+            bkApiGatewayProperties
         );
     }
 

@@ -134,7 +134,6 @@
        */
       fetchStepExecutionHistory: _.debounce(function (from) {
         TaskExecuteService.fetchStepExecutionHistory({
-          taskInstanceId: this.$route.params.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
           batch: this.batch,
         }).then((data) => {

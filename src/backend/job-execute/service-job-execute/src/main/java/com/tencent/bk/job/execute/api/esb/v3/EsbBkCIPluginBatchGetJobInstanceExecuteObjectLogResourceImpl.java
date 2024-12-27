@@ -90,8 +90,7 @@ public class EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogResourceImpl
         taskInstanceAccessProcessor.processBeforeAccess(username,
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
-            request.getTaskInstanceId(), request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
@@ -142,8 +141,7 @@ public class EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogResourceImpl
         esbExecuteObjectLogs.setLogType(LogTypeEnum.FILE.getValue());
 
         List<FileExecuteObjectLogContent> executeObjectLogs = logService.batchGetFileExecuteObjectLogContent(
-            stepInstance.getTaskInstanceId(), stepInstance.getId(), stepInstance.getExecuteCount(),
-            null, null, executeObjectCompositeKeys);
+            stepInstance.getId(), stepInstance.getExecuteCount(), null, null, executeObjectCompositeKeys);
 
         if (CollectionUtils.isEmpty(executeObjectLogs)) {
             return;

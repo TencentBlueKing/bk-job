@@ -173,13 +173,13 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     private final LoadingCache<Long, InstanceTopologyDTO> bizInstCompleteTopologyCache = CacheBuilder.newBuilder()
         .maximumSize(1000).expireAfterWrite(30, TimeUnit.SECONDS).
-        build(new CacheLoader<Long, InstanceTopologyDTO>() {
-                  @Override
-                  public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
-                      return getBizInstCompleteTopology(bizId);
+            build(new CacheLoader<Long, InstanceTopologyDTO>() {
+                      @Override
+                      public InstanceTopologyDTO load(@SuppressWarnings("NullableProblems") Long bizId) {
+                          return getBizInstCompleteTopology(bizId);
+                      }
                   }
-              }
-        );
+            );
 
     public BizCmdbClient(AppProperties appProperties,
                          EsbProperties esbProperties,
@@ -975,14 +975,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             ipList.contains(new HostDTO(host.getCloudAreaId(), host.getIp()))).collect(Collectors.toList());
     }
 
-    /**
-     * 根据hostId查询主机业务关系信息
-     *
-     * @param hostIdList 主机id列表，数量<=500
-     * @return 主机业务关系列表
-     */
     @Override
-    public List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList) {
+    public List<HostBizRelationDTO> findHostBizRelations(String uin, List<Long> hostIdList) {
         FindHostBizRelationsReq req = makeCmdbBaseReq(FindHostBizRelationsReq.class);
         req.setHostIdList(hostIdList);
         EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(
@@ -1146,7 +1140,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
 
     private void setBizRelationInfo(List<ApplicationHostDTO> hosts) {
         List<Long> hostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
-        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(hostIds);
+        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(null, hostIds);
         Map<Long, List<HostBizRelationDTO>> hostBizRelationMap =
             hostBizRelations.stream().collect(
                 Collectors.groupingBy(HostBizRelationDTO::getHostId));
@@ -1348,10 +1342,10 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                 hierarchyTopo.setInstanceId(nodePath.getInstanceId());
                 hierarchyTopo.setInstanceName(nodePath.getObjectName());
                 if (!CollectionUtils.isEmpty(nodePath.getTopoPaths())) {
-                    List<InstanceTopologyDTO> parentNodeList = nodePath.getTopoPaths().get(0);
-                    if (!CollectionUtils.isEmpty(parentNodeList)) {
-                        Collections.reverse(parentNodeList);
-                        parentNodeList.forEach(hierarchyTopo::addParent);
+                    List<InstanceTopologyDTO> parents = nodePath.getTopoPaths().get(0);
+                    if (!CollectionUtils.isEmpty(parents)) {
+                        Collections.reverse(parents);
+                        parents.forEach(hierarchyTopo::addParent);
                     }
                 }
                 hierarchyTopoList.add(hierarchyTopo);

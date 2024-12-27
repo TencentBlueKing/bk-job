@@ -1,32 +1,4 @@
 # chart values 更新日志
-## 0.8.2
-1. AI小鲸支持配置使用的大模型
-```yaml
-analysisConfig:
-  # AI相关配置
-  ai:
-    # 使用的大模型类型，默认腾讯混元，支持的取值：hunyuan、hunyuan-turbo、gpt-4、gpt-4o、gpt-4o-mini、gpt-3.5-turbo等，
-    # 平台会将任务相关的脚本、参数、日志等数据发送给大模型，使用大模型时请注意数据安全风险
-    model: hunyuan
-```
-
-## 0.8.0
-1. 增加按主机拓扑路径鉴权相关配置
-```yaml
-executeConfig:
-  # 权限中心相关配置
-  iam:
-    # 按主机拓扑路径鉴权相关配置
-    hostTopoPath:
-      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
-      enabled : true
-      # 缓存配置
-      cache:
-        # 是否开启，默认开启
-        enabled: true
-        # 过期时间（s）
-        expireSeconds: 10
-```
 
 ## 0.7.1
 1. 增加AI相关配置
@@ -47,11 +19,11 @@ analysisConfig:
     analyzeErrorLog:
       # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
       logMaxLength: "5MB"
-    # AI对话记录相关配置
+    # AI聊天记录相关配置
     chatHistory:
       # 最大保留天数，默认31天
       maxKeepDays: 31
-      # 单个用户最大保留的对话记录数量，默认1000条
+      # 单个用户最大保留的聊天记录数量，默认1000条
       maxHistoryPerUser: 1000
 ```
 

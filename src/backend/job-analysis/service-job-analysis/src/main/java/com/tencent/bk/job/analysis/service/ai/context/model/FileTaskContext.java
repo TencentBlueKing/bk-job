@@ -40,9 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 文件任务上下文
- */
 @AllArgsConstructor
 @Data
 public class FileTaskContext {
@@ -58,9 +55,7 @@ public class FileTaskContext {
      * 文件分发任务错误根源分析结果
      */
     FileTaskErrorSourceResult errorSourceResult;
-    /**
-     * 执行对象表，Key为执行对象ID，Value为执行对象
-     */
+
     Map<String, ServiceExecuteObject> executeObjectMap;
 
     public FileTaskContext(String name,
@@ -71,9 +66,6 @@ public class FileTaskContext {
         this.errorSourceResult = errorSourceResult;
     }
 
-    /**
-     * 根据文件步骤实例信息构建执行对象表
-     */
     private void buildExecuteObjectMapIfNeeded() {
         if (executeObjectMap != null) {
             return;
@@ -108,20 +100,10 @@ public class FileTaskContext {
         }
     }
 
-    /**
-     * 获取文件任务错误根源的国际化Key
-     *
-     * @return 国际化Key
-     */
     public String getFileTaskErrorSourceI18nKey() {
         return errorSourceResult.getErrorSource().getI18nKey();
     }
 
-    /**
-     * 获取上传文件错误数据
-     *
-     * @return 错误数据
-     */
     @SuppressWarnings("DuplicatedCode")
     public String getUploadFileErrorData() {
         buildExecuteObjectMapIfNeeded();
@@ -155,11 +137,6 @@ public class FileTaskContext {
         return JsonUtils.toJson(uploadFileErrorInfoList);
     }
 
-    /**
-     * 获取下载文件错误数据
-     *
-     * @return 错误数据
-     */
     @SuppressWarnings("DuplicatedCode")
     public String getDownloadFileErrorData() {
         buildExecuteObjectMapIfNeeded();

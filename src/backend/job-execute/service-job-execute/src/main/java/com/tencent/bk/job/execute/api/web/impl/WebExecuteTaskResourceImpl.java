@@ -26,8 +26,6 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -57,7 +55,6 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
@@ -74,7 +71,6 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
-import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
@@ -100,13 +96,10 @@ import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
 @Slf4j
 public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private final TaskExecuteService taskExecuteService;
-    private final StepInstanceService stepInstanceService;
 
     @Autowired
-    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                      StepInstanceService stepInstanceService) {
+    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
-        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -498,6 +491,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
 
+
     private List<FileSourceDTO> convertFileSource(List<ExecuteFileSourceInfoVO> fileSources) {
         if (fileSources == null) {
             return null;
@@ -533,34 +527,17 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
-    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
-        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     public Response<StepOperationVO> doStepOperation(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
-        // 兼容代码，部署完成后删除
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
-        return doStepOperationV2(username, appResourceScope, scopeType, scopeId,
-            stepInstance.getTaskInstanceId(), stepInstanceId, operation);
-    }
-
-    @Override
-    public Response<StepOperationVO> doStepOperationV2(String username,
-                                                       AppResourceScope appResourceScope,
-                                                       String scopeType,
-                                                       String scopeId,
-                                                       Long taskInstanceId,
-                                                       Long stepInstanceId,
-                                                       WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         StepOperationDTO stepOperation = new StepOperationDTO();
-        stepOperation.setTaskInstanceId(taskInstanceId);
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());

@@ -25,52 +25,156 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
-import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.util.Wrapper;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.tables.Statistics;
 import com.tencent.bk.job.execute.model.tables.records.StatisticsRecord;
-import com.tencent.bk.job.execute.statistics.StatisticsKey;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
-import org.jooq.Record2;
+import org.jooq.Record1;
 import org.jooq.Result;
+import org.jooq.TransactionalRunnable;
 import org.jooq.conf.ParamType;
-import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository("jobExecuteStatisticsDAOImpl")
 @Slf4j
-public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
+public class StatisticsDAOImpl implements StatisticsDAO {
 
     private static final Statistics defaultTable = Statistics.STATISTICS;
+    private final DSLContext defaultDSLContext;
 
     @Autowired
-    public StatisticsDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory, defaultTable.getName());
+    public StatisticsDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext dslContext) {
+        this.defaultDSLContext = dslContext;
     }
 
     @Override
-    @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
+    public Long insertStatistics(DSLContext dslContext, StatisticsDTO statisticsDTO) {
+        if (statisticsDTO == null) {
+            return -1L;
+        }
+        if (statisticsDTO.getCreateTime() == null) {
+            statisticsDTO.setCreateTime(System.currentTimeMillis());
+        }
+        val query = dslContext.insertInto(defaultTable,
+            defaultTable.ID,
+            defaultTable.APP_ID,
+            defaultTable.RESOURCE,
+            defaultTable.DIMENSION,
+            defaultTable.DIMENSION_VALUE,
+            defaultTable.DATE,
+            defaultTable.VALUE,
+            defaultTable.CREATE_TIME,
+            defaultTable.LAST_MODIFY_TIME
+        ).values(
+            null,
+            statisticsDTO.getAppId(),
+            statisticsDTO.getResource(),
+            statisticsDTO.getDimension(),
+            statisticsDTO.getDimensionValue(),
+            statisticsDTO.getDate(),
+            statisticsDTO.getValue(),
+            ULong.valueOf(statisticsDTO.getCreateTime()),
+            ULong.valueOf(System.currentTimeMillis())
+        ).returning(defaultTable.ID);
+        val sql = query.getSQL(ParamType.INLINED);
+        try {
+            return query.fetchOne().getId();
+        } catch (Exception e) {
+            log.error(sql);
+            throw e;
+        }
+    }
+
+    private Collection<Condition> genConditions(Long appId, String resource, String dimension, String dimensionValue,
+                                                String date) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.RESOURCE.eq(resource));
+        conditions.add(defaultTable.DIMENSION.eq(dimension));
+        conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        conditions.add(defaultTable.DATE.eq(date));
+        return conditions;
+    }
+
+    public Boolean exist(DSLContext dslContext, Long appId, String resource, String dimension, String dimensionValue,
+                         String date) {
+        Collection<Condition> conditions = genConditions(appId, resource, dimension, dimensionValue, date);
+        return dslContext.fetchExists(defaultTable, conditions);
+    }
+
+    @Override
+    public Long upsertStatistics(DSLContext dslContext, StatisticsDTO statisticsDTO) {
+        Wrapper<Long> idWrapper = new Wrapper<>(-1L);
+        dslContext.transaction(new TransactionalRunnable() {
+            @Override
+            public void run(Configuration configuration) throws Throwable {
+                DSLContext context = DSL.using(configuration);
+                StatisticsDTO oldStatisticsDTO = getStatistics(context, statisticsDTO.getAppId(),
+                    statisticsDTO.getResource(), statisticsDTO.getDimension(), statisticsDTO.getDimensionValue(),
+                    statisticsDTO.getDate());
+                if (oldStatisticsDTO == null) {
+                    idWrapper.setValue(insertStatistics(context, statisticsDTO));
+                } else {
+                    oldStatisticsDTO.setValue(statisticsDTO.getValue());
+                    updateStatisticsById(context, oldStatisticsDTO);
+                    idWrapper.setValue(oldStatisticsDTO.getId());
+                }
+            }
+        });
+        return idWrapper.getValue();
+    }
+
+    @Override
+    public int updateStatisticsById(DSLContext dslContext, StatisticsDTO statisticsDTO) {
+        val query = dslContext.update(defaultTable)
+            .set(defaultTable.APP_ID, statisticsDTO.getAppId())
+            .set(defaultTable.RESOURCE, statisticsDTO.getResource())
+            .set(defaultTable.DIMENSION, statisticsDTO.getDimension())
+            .set(defaultTable.DIMENSION_VALUE, statisticsDTO.getDimensionValue())
+            .set(defaultTable.DATE, statisticsDTO.getDate())
+            .set(defaultTable.VALUE, statisticsDTO.getValue())
+            .set(defaultTable.CREATE_TIME, ULong.valueOf(statisticsDTO.getCreateTime()))
+            .set(defaultTable.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
+            .where(defaultTable.ID.eq(statisticsDTO.getId()));
+        val sql = query.getSQL(ParamType.INLINED);
+        try {
+            return query.execute();
+        } catch (Exception e) {
+            log.error(sql);
+            throw e;
+        }
+    }
+
+    @Override
+    public int deleteStatisticsById(DSLContext dslContext, Long id) {
+        return dslContext.deleteFrom(defaultTable).where(
+            defaultTable.ID.eq(id)
+        ).execute();
+    }
+
+    @Override
     public int deleteStatisticsByDate(String date) {
         int totalAffectedRows = 0;
         int affectedRows;
         do {
-            affectedRows = dsl().deleteFrom(defaultTable).where(
+            affectedRows = defaultDSLContext.deleteFrom(defaultTable).where(
                 defaultTable.DATE.lessThan(date)
             ).limit(10000).execute();
             totalAffectedRows += affectedRows;
@@ -79,7 +183,6 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     @Override
-    @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
     public int deleteOneDayStatistics(Long appId, String date) {
         int totalAffectedRows = 0;
         int affectedRows;
@@ -91,7 +194,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
             conditions.add(defaultTable.DATE.eq(date));
         }
         do {
-            affectedRows = dsl().deleteFrom(defaultTable)
+            affectedRows = defaultDSLContext.deleteFrom(defaultTable)
                 .where(conditions)
                 .limit(10000).execute();
             totalAffectedRows += affectedRows;
@@ -99,12 +202,22 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         return totalAffectedRows;
     }
 
+    @Override
+    public StatisticsDTO getStatisticsById(Long id) {
+        val record = defaultDSLContext.selectFrom(defaultTable).where(
+            defaultTable.ID.eq(id)
+        ).fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convert(record);
+        }
+    }
 
     @Override
-    @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
     public StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue,
                                        String date) {
-        val record = dsl().selectFrom(defaultTable)
+        val record = defaultDSLContext.selectFrom(defaultTable)
             .where(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE.eq(resource))
             .and(defaultTable.DIMENSION.eq(dimension))
@@ -119,11 +232,83 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     @Override
-    @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
+    public List<StatisticsDTO> getStatisticsListByAppId(Long appId, String resource, String dimension,
+                                                        String dimensionValue, String sinceDate) {
+        List<Condition> conditions = new ArrayList<>();
+        if (appId != null) {
+            conditions.add(defaultTable.APP_ID.eq(appId));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(dimensionValue)) {
+            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        }
+        if (StringUtils.isNotBlank(sinceDate)) {
+            conditions.add(defaultTable.DATE.lessOrEqual(sinceDate));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    @Override
+    public List<StatisticsDTO> getStatisticsList(Long appId, String resource, String dimension, String date) {
+        List<Condition> conditions = new ArrayList<>();
+        if (appId != null) {
+            conditions.add(defaultTable.APP_ID.eq(appId));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(date)) {
+            conditions.add(defaultTable.DATE.eq(date));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    @Override
+    public List<StatisticsDTO> getStatisticsList(List<Long> inAppIdList, String resource, String dimension,
+                                                 String date) {
+        List<Condition> conditions = new ArrayList<>();
+        if (inAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.in(inAppIdList));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(date)) {
+            conditions.add(defaultTable.DATE.eq(date));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    @Override
     public List<StatisticsDTO> getStatisticsList(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
                                                  String dimension, String dimensionValue, String date) {
-        return listStatisticsWithConditions(dsl(), genConditions(inAppIdList, notInAppIdList, resource,
+        return listStatisticsWithConditions(defaultDSLContext, genConditions(inAppIdList, notInAppIdList, resource,
             dimension, dimensionValue, date));
+    }
+
+    @Override
+    public Long getTotalValueOfStatisticsList(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
+                                              String dimension, String dimensionValue, String date) {
+        return getTotalValueOfStatisticsWithConditions(defaultDSLContext, genConditions(inAppIdList, notInAppIdList,
+            resource, dimension, dimensionValue, date));
+    }
+
+    @Override
+    public Integer countStatistics(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
+                                   String dimension, String dimensionValue, String date) {
+        return countStatisticsByConditions(genConditions(inAppIdList, notInAppIdList, resource, dimension,
+            dimensionValue, date));
     }
 
     public Collection<Condition> genConditions(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
@@ -150,6 +335,128 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         return conditions;
     }
 
+    @Override
+    public List<StatisticsDTO> getStatisticsListBetweenDate(List<Long> inAppIdList, List<Long> notInAppIdList,
+                                                            String resource, String dimension, String startDate,
+                                                            String endDate) {
+        List<Condition> conditions = new ArrayList<>();
+        if (inAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.in(inAppIdList));
+        }
+        if (notInAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.notIn(notInAppIdList));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(startDate)) {
+            conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        }
+        if (StringUtils.isNotBlank(endDate)) {
+            conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    @Override
+    public List<StatisticsDTO> getStatisticsListBetweenDate(List<Long> inAppIdList, List<Long> notInAppIdList,
+                                                            String resource, String dimension, String dimensionValue,
+                                                            String startDate, String endDate) {
+        List<Condition> conditions = new ArrayList<>();
+        if (inAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.in(inAppIdList));
+        }
+        if (notInAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.notIn(notInAppIdList));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(dimensionValue)) {
+            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        }
+        if (StringUtils.isNotBlank(startDate)) {
+            conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        }
+        if (StringUtils.isNotBlank(endDate)) {
+            conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    @Override
+    public List<StatisticsDTO> getStatisticsListBetweenDate(Long appId, String resource, String dimension,
+                                                            String dimensionValue, String startDate, String endDate) {
+        List<Condition> conditions = new ArrayList<>();
+        if (appId != null) {
+            conditions.add(defaultTable.APP_ID.eq(appId));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        if (StringUtils.isNotBlank(dimensionValue)) {
+            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        }
+        if (StringUtils.isNotBlank(startDate)) {
+            conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        }
+        if (StringUtils.isNotBlank(endDate)) {
+            conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        }
+        return listStatisticsWithConditions(defaultDSLContext, conditions);
+    }
+
+    public StatisticsDTO getStatistics(DSLContext dslContext, Long appId, String resource, String dimension,
+                                       String dimensionValue, String date) {
+        Collection<Condition> conditions = genConditions(appId, resource, dimension, dimensionValue, date);
+        val query = dslContext.selectFrom(defaultTable).where(conditions);
+        val sql = query.getSQL(ParamType.INLINED);
+        try {
+            val record = query.fetchOne();
+            if (record == null) {
+                return null;
+            } else {
+                return convert(record);
+            }
+        } catch (Exception e) {
+            log.error(sql);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<StatisticsDTO> listAllStatistics() {
+        return listStatisticsWithConditions(defaultDSLContext, Collections.emptyList());
+    }
+
+    @Override
+    public Integer countStatisticsByDate(String date) {
+        Collection<Condition> conditions = new ArrayList<>();
+        if (StringUtils.isNotBlank(date)) {
+            conditions.add(defaultTable.DATE.eq(date));
+        }
+        var query = defaultDSLContext.selectCount().from(defaultTable).where(
+            conditions
+        );
+        return query.fetchOne().get(0, Integer.class);
+    }
+
+    public Integer countStatisticsByConditions(Collection<Condition> conditions) {
+        var query = defaultDSLContext.selectCount().from(defaultTable).where(
+            conditions
+        );
+        return query.fetchOne().get(0, Integer.class);
+    }
+
     private List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
         var query = dslContext.selectFrom(defaultTable).where(
             conditions
@@ -169,6 +476,25 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         }
     }
 
+    private Long getTotalValueOfStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
+        var query = dslContext.select(DSL.sum(defaultTable.VALUE.cast(Long.class))).from(defaultTable).where(
+            conditions
+        );
+        Result<Record1<BigDecimal>> records;
+        val sql = query.getSQL(ParamType.INLINED);
+        try {
+            records = query.fetch();
+        } catch (Exception e) {
+            log.error(sql);
+            throw e;
+        }
+        if (records == null || records.isEmpty()) {
+            return 0L;
+        } else {
+            return records.get(0).value1().longValue();
+        }
+    }
+
     private StatisticsDTO convert(StatisticsRecord record) {
         return new StatisticsDTO(
             record.getId(),
@@ -181,86 +507,6 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
             record.getCreateTime().longValue(),
             record.getLastModifyTime().longValue()
         );
-    }
-
-    @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
-    public int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue) {
-        Long appId = statisticsKey.getAppId();
-        String resource = statisticsKey.getResource();
-        String dimension = statisticsKey.getDimension();
-        String dimensionValue = statisticsKey.getDimensionValue();
-        AtomicInteger affectedRows = new AtomicInteger(0);
-        dsl().transaction(configuration -> {
-            DSLContext context = DSL.using(configuration);
-            List<Condition> conditions = new ArrayList<>();
-            conditions.add(defaultTable.APP_ID.eq(appId));
-            conditions.add(defaultTable.RESOURCE.eq(resource));
-            conditions.add(defaultTable.DIMENSION.eq(dimension));
-            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
-            conditions.add(defaultTable.DATE.eq(date));
-            try {
-                Long oldValue = 0L;
-                Long id;
-                val selectQuery = context.select(defaultTable.ID, defaultTable.VALUE)
-                    .from(defaultTable)
-                    .where(conditions)
-                    .forUpdate();
-                log.debug("selectQuery=" + selectQuery.getSQL(ParamType.INLINED));
-                Result<Record2<Long, String>> records = selectQuery.fetch();
-                if (records.isEmpty()) {
-                    log.debug("records is empty");
-                    // 记录不存在，先插入
-                    val query = context.insertInto(defaultTable,
-                        defaultTable.ID,
-                        defaultTable.APP_ID,
-                        defaultTable.RESOURCE,
-                        defaultTable.DIMENSION,
-                        defaultTable.DIMENSION_VALUE,
-                        defaultTable.DATE,
-                        defaultTable.VALUE,
-                        defaultTable.CREATE_TIME,
-                        defaultTable.LAST_MODIFY_TIME
-                    ).values(
-                        null,
-                        appId,
-                        resource,
-                        dimension,
-                        dimensionValue,
-                        date,
-                        "0",
-                        ULong.valueOf(System.currentTimeMillis()),
-                        ULong.valueOf(System.currentTimeMillis())
-                    ).returning(defaultTable.ID);
-                    id = query.fetchOne().getId();
-                } else {
-                    if (records.size() > 1) {
-                        log.warn("more than 1 records, statisticsKey:{}", statisticsKey);
-                    }
-                    id = records.get(0).get(defaultTable.ID);
-                    oldValue = Long.parseLong(records.get(0).get(defaultTable.VALUE));
-                }
-                // 更新
-                log.debug("Update record {} from {} to {}", id, oldValue, (oldValue + incrementValue));
-                affectedRows.set(context.update(defaultTable)
-                    .set(defaultTable.VALUE, "" + (oldValue + incrementValue))
-                    .where(defaultTable.ID.eq(id))
-                    .and(defaultTable.VALUE.eq("" + oldValue))
-                    .execute());
-                if (affectedRows.get() == 0) {
-                    log.debug("Record {} updated by other thread just now, retry", statisticsKey);
-                }
-            } catch (DataAccessException dataAccessException) {
-                if (dataAccessException.getMessage().contains("Duplicate entry")) {
-                    //多个实例并发插入导致的主键冲突，忽略，改为更新
-                } else {
-                    log.warn("dataAccessException when update/create", dataAccessException);
-                }
-            } catch (Throwable t) {
-                log.info("May fail to lock", t);
-            }
-            log.debug("affectedRows={}", affectedRows.get());
-        });
-        return affectedRows.get();
     }
 
 }

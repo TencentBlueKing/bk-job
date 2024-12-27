@@ -90,7 +90,7 @@ public class WorkerEventDispatcher extends Thread {
             dispatchEvent(event);
         } catch (Throwable t) {
             span.error(t);
-            log.warn("Fail to handlePropChangeEvent:" + event, t);
+            log.warn("Fail to handleEvent:" + event, t);
         } finally {
             span.end();
         }

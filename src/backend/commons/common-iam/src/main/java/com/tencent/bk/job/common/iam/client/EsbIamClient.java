@@ -79,14 +79,7 @@ public class EsbIamClient extends BkApiClient implements IIamClient {
     public EsbIamClient(MeterRegistry meterRegistry,
                         AppProperties appProperties,
                         EsbProperties esbProperties) {
-        super(
-            meterRegistry,
-            IAM_API,
-            esbProperties.getService().getUrl(),
-            HttpHelperFactory.createHttpHelper(
-                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
-        );
+        super(meterRegistry, IAM_API, esbProperties.getService().getUrl(), HttpHelperFactory.getDefaultHttpHelper());
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }

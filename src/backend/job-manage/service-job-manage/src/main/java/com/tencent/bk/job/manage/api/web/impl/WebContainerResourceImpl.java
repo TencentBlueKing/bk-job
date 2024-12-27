@@ -34,10 +34,10 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
-import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
 import com.tencent.bk.job.manage.model.mapper.ContainerMapper;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
@@ -127,7 +127,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
         }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
-            ToggleEvaluateContext.builder().addContextParam(
+            FeatureExecutionContext.builder().addContextParam(
                 ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope));
     }
 

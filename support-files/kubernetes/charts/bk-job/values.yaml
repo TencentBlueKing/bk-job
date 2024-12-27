@@ -635,9 +635,6 @@ job:
     # 是否支持容器执行
     containerExecution:
       enabled: false
-    # 分库分表迁移使用，控制是否在mysql 查询条件中加入 task_instance_id 字段作为查询条件
-    daoAddTaskInstanceId:
-      enabled: true
   trace:
     report:
       # 是否上报Trace数据至监控平台APM应用，默认不上报
@@ -688,13 +685,7 @@ job:
       #   appQuotaLimit:
       #     global: "20%"
       #     custom: "bk-nodeman=1000,bk-soap=50%"
-  # 动态属性配置
-  toggle:
-    props:
-      # prop_a:
-      #   defaultValue: "valueA"
-      # prop_b:
-      #   defaultValue: "valueB"
+
 ## 依赖宿主机GSE Agent的文件分发相关配置
 fileDistribute:
   # 分发文件所在根目录：宿主机路径（以HostPath方式挂载到容器内）
@@ -989,52 +980,6 @@ executeConfig:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
   #     value: 8
-  # 权限中心相关配置
-  iam:
-    # 按主机拓扑路径鉴权相关配置
-    hostTopoPath:
-      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
-      enabled : true
-      # 缓存配置
-      cache:
-        # 是否开启，默认开启
-        enabled: true
-        # 过期时间（s）
-        expireSeconds: 10
-
-  mysql:
-    # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
-    dataSourceMode: standalone
-    migration:
-      # 是否启用 db 迁移功能
-      enabled: false
-    standalone:
-      enabled: true
-    # 垂直分片配置
-    verticalSharding:
-      enabled: false
-    #   datasource:
-    #     job-execute-vertical-a:
-    #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
-    #       username: "job"
-    #       password: "job"
-    #     job-execute-vertical-b:
-    #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
-    #       username: "job"
-    #       password: "job"
-    #     job-execute-vertical-c:
-    #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
-    #       username: "job"
-    #       password: "job"
-  # 分布式ID组件 leaf 配置
-  leaf:
-    enabled: false
-  # id生成器配置
-  idGen:
-    migration:
-      enabled: false
-    # auto_increment: 自增长;leaf_segment: leaf segment id
-    type: auto_increment
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1206,47 +1151,23 @@ backupConfig:
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
-      enabled: true
+      enabled: false
       # 被归档 DB 的配置
       mariadb:
         connection:
           properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-        dataSourceMode: standalone
-        # 垂直分片配置, 需要与 executeConfig 中保持一致
-        # verticalSharding:
-        #   datasource:
-        #     job-execute-vertical-a:
-        #       jdbcUrl: jdbc:otel:mysql://db_host_a:3306/job_execute
-        #       username: "job"
-        #       password: "job"
-        #     job-execute-vertical-b:
-        #       jdbcUrl: jdbc:otel:mysql://db_host_b:3306/job_execute
-        #       username: "job"
-        #       password: "job"
-        #     job-execute-vertical-c:
-        #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
-        #       username: "job"
-        #       password: "job"
       # 归档模式。deleteOnly: 仅删除；backupThenDelete: 先备份数据再删除。默认 deleteOnly
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
       keeyDays: 30
-      # 每批次从 db 表中读取的记录数量
-      readRowLimit: 1000
+      # 归档数据读取时每次读取的数据量（单个表），服务内存受限时可适当降低该值
+      readIdStepSize: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
-      tasks:
-        jobInstance:
-          dataSourceMode: standalone
-          concurrent: 6
-          # shardingDsDataNodes:
-          #   - dataSourceName: ds
-          #     dbCount: 2
-          #     tableCount: 31
   image:
     registry: hub.bktencent.com
     repository: blueking/job-backup
@@ -1359,18 +1280,15 @@ analysisConfig:
   ai:
     # 是否开启AI功能，默认不开启
     enabled: false
-    # 使用的大模型类型，默认腾讯混元，支持的取值：hunyuan、hunyuan-turbo、gpt-4、gpt-4o、gpt-4o-mini、gpt-3.5-turbo等，
-    # 平台会将任务相关的脚本、参数、日志等数据发送给大模型，使用大模型时请注意数据安全风险
-    model: hunyuan
     # AI分析错误日志功能相关配置
     analyzeErrorLog:
       # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
       logMaxLength: "5MB"
-    # AI对话记录相关配置
+    # AI聊天记录相关配置
     chatHistory:
       # 最大保留天数，默认31天
       maxKeepDays: 31
-      # 单个用户最大保留的对话记录数量，默认1000条
+      # 单个用户最大保留的聊天记录数量，默认1000条
       maxHistoryPerUser: 1000
 
 ## job-file-gateway文件网关服务配置

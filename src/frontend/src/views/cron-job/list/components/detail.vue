@@ -108,7 +108,6 @@
   </detail-layout>
 </template>
 <script>
-  import CronJobService from '@service/cron-job';
   import NotifyService from '@service/notify';
   import QueryGlobalSettingService from '@service/query-global-setting';
   import TaskPlanService from '@service/task-plan';
@@ -159,20 +158,15 @@
        * @desc 获取定时人详情
        */
       fetchData() {
-        return Promise.all([
-          CronJobService.getDetail({
-            id: this.data.id,
-          }),
-          TaskPlanService.fetchPlanDetailInfo({
-            templateId: this.data.taskTemplateId,
-            id: this.data.taskPlanId,
-          }),
-        ]).then(([cronJobDetail, planDetail]) => {
+        TaskPlanService.fetchPlanDetailInfo({
+          templateId: this.data.taskTemplateId,
+          id: this.data.taskPlanId,
+        }).then((planInfo) => {
           // 使用执行方案的变量
           // 如果定时任务任务中存有变量变量值——拷贝过来
-          const currentPlanVariableList = planDetail.variableList;
+          const currentPlanVariableList = planInfo.variableList;
           // 当前定时任务变量
-          const cronJobVariableMap = cronJobDetail.variableValue.reduce((result, variableItem) => {
+          const cronJobVariableMap = this.data.variableValue.reduce((result, variableItem) => {
             result[variableItem.id] = variableItem;
             return result;
           }, {});
@@ -193,7 +187,7 @@
        * @desc 通知人列表
        */
       fetchRoleList() {
-        return NotifyService.fetchRoleList()
+        NotifyService.fetchRoleList()
           .then((data) => {
             const roleMap = {};
             data.forEach((role) => {
@@ -206,7 +200,7 @@
        * @desc 通知渠道
        */
       fetchAllChannel() {
-        return QueryGlobalSettingService.fetchActiveNotifyChannel()
+        QueryGlobalSettingService.fetchActiveNotifyChannel()
           .then((data) => {
             const channelMap = {};
             data.forEach((channel) => {

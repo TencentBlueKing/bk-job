@@ -34,10 +34,6 @@ import lombok.ToString;
 @ToString
 public class ScriptStepInstanceDTO {
     /**
-     * 作业实例ID
-     */
-    private Long taskInstanceId;
-    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -63,6 +59,7 @@ public class ScriptStepInstanceDTO {
 
     /**
      * 执行脚本的类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)
+     *
      */
     private ScriptTypeEnum scriptType;
     /**

@@ -36,11 +36,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.context.JobExecuteContext;
-import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
-import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
-import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -63,26 +59,21 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final ExecuteAuthService executeAuthService;
     private final StepInstanceService stepInstanceService;
 
-    private final IdGen idGen;
-
     @Autowired
     public TaskInstanceServiceImpl(ApplicationService applicationService,
                                    TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    ExecuteAuthService executeAuthService,
-                                   StepInstanceService stepInstanceService,
-                                   IdGen idGen) {
+                                   StepInstanceService stepInstanceService) {
         this.applicationService = applicationService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.executeAuthService = executeAuthService;
-        this.idGen = idGen;
     }
 
     @Override
     public long addTaskInstance(TaskInstanceDTO taskInstance) {
-        taskInstance.setId(idGen.genTaskInstanceId());
         return taskInstanceDAO.addTaskInstance(taskInstance);
     }
 
@@ -121,11 +112,6 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
         checkTaskInstanceExist(appId, taskInstanceId, taskInstance);
         auditAndAuthViewTaskInstance(username, taskInstance);
-        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
-        if (jobExecuteContext != null) {
-            JobInstanceContext jobInstanceContext = new JobInstanceContext();
-            jobInstanceContext.setTaskInstanceId(taskInstanceId);
-        }
         return taskInstance;
     }
 
@@ -218,9 +204,8 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public void saveTaskInstanceHosts(long appId,
-                                      long taskInstanceId,
+    public void saveTaskInstanceHosts(long taskInstanceId,
                                       Collection<HostDTO> hosts) {
-        taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
+        taskInstanceDAO.saveTaskInstanceHosts(taskInstanceId, hosts);
     }
 }

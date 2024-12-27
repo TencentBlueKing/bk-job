@@ -26,8 +26,8 @@ package com.tencent.bk.job.common.gse.service;
 
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.feature.FeatureToggle;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

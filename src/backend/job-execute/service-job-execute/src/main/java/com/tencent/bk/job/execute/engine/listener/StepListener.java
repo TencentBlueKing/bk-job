@@ -25,13 +25,11 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +37,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class StepListener extends BaseJobMqListener {
+public class StepListener {
     private final StepInstanceService stepInstanceService;
     private final GseStepEventHandler gseStepEventHandler;
     private final ConfirmStepEventHandler confirmStepEventHandler;
@@ -56,16 +54,13 @@ public class StepListener extends BaseJobMqListener {
     /**
      * 处理步骤执行相关的事件
      *
-     * @param message 消息
+     * @param stepEvent 步骤执行相关的事件
      */
-    @Override
-    public void handleEvent(Message<? extends JobMessage> message) {
-        StepEvent stepEvent = (StepEvent) message.getPayload();
+    public void handleEvent(StepEvent stepEvent) {
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-                stepEvent.getJobInstanceId(), stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
             dispatchEvent(stepEvent, stepInstance);
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;

@@ -82,8 +82,4 @@ public class DynamicServerTopoNodeDTO implements Cloneable {
         }
         return cloneTopoNode;
     }
-
-    public String getUniqueKey() {
-        return nodeType + "_" + topoNodeId;
-    }
 }

@@ -43,15 +43,6 @@ public class AIMessageI18nService {
     }
 
     /**
-     * 获取无日志输出任务的AI分析结果信息
-     *
-     * @return 国际化的AI分析结果信息
-     */
-    public String getEmptyLogTaskAIAnswerMessage() {
-        return messageI18nService.getI18n("job.analysis.ai.emptyLogTaskAnswerMessage");
-    }
-
-    /**
      * 获取非失败状态任务的AI分析结果信息
      *
      * @return 国际化的AI分析结果信息

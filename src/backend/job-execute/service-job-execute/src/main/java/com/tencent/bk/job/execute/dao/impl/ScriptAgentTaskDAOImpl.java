@@ -28,10 +28,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
-import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
-import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupBaseDTO;
@@ -40,6 +37,7 @@ import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -51,6 +49,7 @@ import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetMoreStep;
 import org.jooq.UpdateSetStep;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -64,11 +63,10 @@ import static org.jooq.impl.DSL.count;
 @Repository
 @Deprecated
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
-public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDAO {
+public class ScriptAgentTaskDAOImpl implements ScriptAgentTaskDAO {
 
     private static final GseScriptAgentTask T_GSE_SCRIPT_AGENT_TASK = GseScriptAgentTask.GSE_SCRIPT_AGENT_TASK;
     private static final TableField<?, ?>[] ALL_FIELDS = {
-        T_GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID,
         T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID,
         T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT,
         T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT,
@@ -86,57 +84,55 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
         T_GSE_SCRIPT_AGENT_TASK.LOG_OFFSET
     };
 
+    private final DSLContext CTX;
+
     @Autowired
-    public ScriptAgentTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory, T_GSE_SCRIPT_AGENT_TASK.getName());
+    public ScriptAgentTaskDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext CTX) {
+        this.CTX = CTX;
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.WRITE)
     public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
-        String sql = "insert into gse_script_agent_task (task_instance_id, step_instance_id, execute_count, "
-            + "actual_execute_count, batch, host_id, agent_id, gse_task_id, status, start_time, end_time, "
-            + "total_time, error_code, exit_code, tag, log_offset) "
-            + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        Object[][] params = new Object[agentTasks.size()][16];
+        String sql = "insert into gse_script_agent_task (step_instance_id, execute_count, actual_execute_count, batch,"
+            + " host_id, agent_id, gse_task_id, status, start_time, end_time, total_time, error_code, exit_code, tag,"
+            + " log_offset)"
+            + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        Object[][] params = new Object[agentTasks.size()][15];
         int batchCount = 0;
         for (ExecuteObjectTask agentTask : agentTasks) {
-            Object[] param = new Object[16];
-            param[0] = agentTask.getTaskInstanceId();
-            param[1] = agentTask.getStepInstanceId();
-            param[2] = agentTask.getExecuteCount();
-            param[3] = agentTask.getActualExecuteCount();
-            param[4] = agentTask.getBatch();
-            param[5] = agentTask.getHostId();
-            param[6] = agentTask.getAgentId() == null ? "" : agentTask.getAgentId();
-            param[7] = agentTask.getGseTaskId();
-            param[8] = agentTask.getStatus().getValue();
-            param[9] = agentTask.getStartTime();
-            param[10] = agentTask.getEndTime();
-            param[11] = agentTask.getTotalTime();
-            param[12] = agentTask.getErrorCode();
-            param[13] = agentTask.getExitCode();
-            param[14] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[15] = agentTask.getScriptLogOffset();
+            Object[] param = new Object[15];
+            param[0] = agentTask.getStepInstanceId();
+            param[1] = agentTask.getExecuteCount();
+            param[2] = agentTask.getActualExecuteCount();
+            param[3] = agentTask.getBatch();
+            param[4] = agentTask.getHostId();
+            param[5] = agentTask.getAgentId() == null ? "" : agentTask.getAgentId();
+            param[6] = agentTask.getGseTaskId();
+            param[7] = agentTask.getStatus().getValue();
+            param[8] = agentTask.getStartTime();
+            param[9] = agentTask.getEndTime();
+            param[10] = agentTask.getTotalTime();
+            param[11] = agentTask.getErrorCode();
+            param[12] = agentTask.getExitCode();
+            param[13] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
+            param[14] = agentTask.getScriptLogOffset();
             params[batchCount++] = param;
         }
-        dsl().batch(sql, params).execute();
+        CTX.batch(sql, params).execute();
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.WRITE)
     public void batchUpdateAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
         String sql = "update gse_script_agent_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
             + ", total_time = ?, error_code = ?, exit_code = ?, tag = ?, log_offset = ?"
-            + " where task_instance_id = ? and step_instance_id = ? and execute_count = ?"
-            + " and batch = ? and host_id = ?";
-        Object[][] params = new Object[agentTasks.size()][14];
+            + " where step_instance_id = ? and execute_count = ? and batch = ? and host_id = ?";
+        Object[][] params = new Object[agentTasks.size()][13];
         int batchCount = 0;
         for (ExecuteObjectTask agentTask : agentTasks) {
-            Object[] param = new Object[14];
+            Object[] param = new Object[13];
             param[0] = agentTask.getGseTaskId();
             param[1] = agentTask.getStatus().getValue();
             param[2] = agentTask.getStartTime();
@@ -146,49 +142,34 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
             param[6] = agentTask.getExitCode();
             param[7] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
             param[8] = agentTask.getScriptLogOffset();
-            param[9] = agentTask.getTaskInstanceId();
-            param[10] = agentTask.getStepInstanceId();
-            param[11] = agentTask.getExecuteCount();
-            param[12] = agentTask.getBatch();
-            param[13] = agentTask.getHostId();
+            param[9] = agentTask.getStepInstanceId();
+            param[10] = agentTask.getExecuteCount();
+            param[11] = agentTask.getBatch();
+            param[12] = agentTask.getHostId();
             params[batchCount++] = param;
         }
-        dsl().batch(sql, params).execute();
+        CTX.batch(sql, params).execute();
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public int getSuccessAgentTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount) {
-        Integer count = dsl().selectCount()
+    public int getSuccessAgentTaskCount(long stepInstanceId, int executeCount) {
+        Integer count = CTX.selectCount()
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STATUS.in(ExecuteObjectTaskStatusEnum.LAST_SUCCESS.getValue(),
                 ExecuteObjectTaskStatusEnum.SUCCESS.getValue()))
             .and(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
-            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .fetchOne(0, Integer.class);
         return count == null ? 0 : count;
     }
 
-    private Condition buildTaskInstanceIdQueryCondition(Long taskInstanceId) {
-        return TaskInstanceIdDynamicCondition.build(
-            taskInstanceId,
-            T_GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID::eq
-        );
-    }
-
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
-                                                     long stepInstanceId,
-                                                     int executeCount,
-                                                     Integer batch) {
+    public List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch) {
         SelectConditionStep<?> selectConditionStep =
-            dsl().select(T_GSE_SCRIPT_AGENT_TASK.STATUS, T_GSE_SCRIPT_AGENT_TASK.TAG, count().as("ip_count"))
+            CTX.select(T_GSE_SCRIPT_AGENT_TASK.STATUS, T_GSE_SCRIPT_AGENT_TASK.TAG, count().as("ip_count"))
                 .from(T_GSE_SCRIPT_AGENT_TASK)
                 .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
-                .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
+                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount));
         if (batch != null && batch > 0) {
             selectConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
         }
@@ -210,36 +191,31 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
-                                                              Long stepInstanceId,
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                               Integer executeCount,
                                                               Integer batch,
                                                               Integer status,
                                                               String tag) {
-        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
             .and(T_GSE_SCRIPT_AGENT_TASK.STATUS.eq(status))
-            .and(T_GSE_SCRIPT_AGENT_TASK.TAG.eq(tag == null ? "" : tag))
-            .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
+            .and(T_GSE_SCRIPT_AGENT_TASK.TAG.eq(tag == null ? "" : tag));
         if (batch != null && batch > 0) {
             selectConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
         }
         Result<?> result = selectConditionStep.fetch();
 
         List<ExecuteObjectTask> agentTasks = new ArrayList<>();
-        if (!result.isEmpty()) {
+        if (result.size() > 0) {
             result.forEach(record -> agentTasks.add(extract(record)));
         }
         return agentTasks;
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
-                                                              Long stepInstanceId,
+    public List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
                                                               Integer executeCount,
                                                               Integer batch,
                                                               Integer status,
@@ -252,9 +228,8 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.STATUS.eq(status));
         conditions.add(T_GSE_SCRIPT_AGENT_TASK.TAG.eq(tag == null ? "" : tag));
-        conditions.add(buildTaskInstanceIdQueryCondition(taskInstanceId));
 
-        SelectConditionStep<Record> select = dsl().select(ALL_FIELDS)
+        SelectConditionStep<Record> select = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(conditions);
 
@@ -287,7 +262,7 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
             result = select.fetch();
         }
 
-        if (!result.isEmpty()) {
+        if (result.size() > 0) {
             result.into(record -> agentTasks.add(extract(record)));
         }
         return agentTasks;
@@ -314,22 +289,19 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public List<ExecuteObjectTask> listAgentTasks(Long taskInstanceId,
-                                                  Long stepInstanceId,
+    public List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
                                                   Integer executeCount,
                                                   Integer batch) {
-        SelectConditionStep<?> selectConditionStep = dsl().select(ALL_FIELDS)
+        SelectConditionStep<?> selectConditionStep = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
-            .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
+            .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()));
         if (batch != null && batch > 0) {
             selectConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
         }
         Result<?> result = selectConditionStep.fetch();
         List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
-        if (!result.isEmpty()) {
+        if (result.size() != 0) {
             result.map(record -> {
                 agentTaskList.add(extract(record));
                 return null;
@@ -343,7 +315,6 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
             return null;
         }
         ExecuteObjectTask agentTask = new ExecuteObjectTask();
-        agentTask.setTaskInstanceId(record.get(T_GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID));
         agentTask.setStepInstanceId(record.get(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID));
         agentTask.setExecuteCount(record.get(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT));
         Short actualExecuteCount = record.get(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT);
@@ -364,39 +335,32 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long taskInstanceId, Long gseTaskId) {
+    public List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId) {
         if (gseTaskId == null || gseTaskId <= 0) {
             return Collections.emptyList();
         }
 
         List<ExecuteObjectTask> agentTaskList = new ArrayList<>();
 
-        Result<?> result = dsl().select(ALL_FIELDS)
+        Result<?> result = CTX.select(ALL_FIELDS)
             .from(T_GSE_SCRIPT_AGENT_TASK)
             .where(T_GSE_SCRIPT_AGENT_TASK.GSE_TASK_ID.eq(gseTaskId))
-            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .fetch();
-        if (!result.isEmpty()) {
+        if (result.size() > 0) {
             result.forEach(record -> agentTaskList.add(extract(record)));
         }
         return agentTaskList;
     }
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.READ)
-    public ExecuteObjectTask getAgentTaskByHostId(Long taskInstanceId,
-                                                  Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
+    public ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
                                                   long hostId) {
         SelectConditionStep<?> selectConditionStep =
-            dsl().select(ALL_FIELDS)
+            CTX.select(ALL_FIELDS)
                 .from(T_GSE_SCRIPT_AGENT_TASK)
                 .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
                 .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq(executeCount.shortValue()))
-                .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId))
-                .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
+                .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(hostId));
         if (batch != null && batch > 0) {
             // 滚动执行批次，传入null或者0将忽略该参数
             selectConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
@@ -408,14 +372,12 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
 
 
     @Override
-    @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.WRITE)
-    public void updateAgentTaskFields(Long taskInstanceId,
-                                      long stepInstanceId,
+    public void updateAgentTaskFields(long stepInstanceId,
                                       int executeCount,
                                       Integer batch,
                                       Integer actualExecuteCount,
                                       Long gseTaskId) {
-        UpdateSetStep<GseScriptAgentTaskRecord> updateSetStep = dsl().update(T_GSE_SCRIPT_AGENT_TASK);
+        UpdateSetStep<GseScriptAgentTaskRecord> updateSetStep = CTX.update(T_GSE_SCRIPT_AGENT_TASK);
         boolean needUpdate = false;
         if (actualExecuteCount != null) {
             updateSetStep = updateSetStep.set(T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT,
@@ -437,8 +399,7 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
         UpdateConditionStep<GseScriptAgentTaskRecord> updateConditionStep =
             updateSetMoreStep
                 .where(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(stepInstanceId))
-                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount))
-                .and(buildTaskInstanceIdQueryCondition(taskInstanceId));
+                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) executeCount));
         if (batch != null) {
             updateConditionStep.and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq(batch.shortValue()));
         }

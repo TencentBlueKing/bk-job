@@ -86,7 +86,6 @@
 
   //  步骤详情
   const fetchStep = () => TaskExecuteService.fetchStepInstance({
-    taskInstanceId: props.taskId,
     id: props.id,
   }).then((data) => {
     if (data.rollingEnabled) {

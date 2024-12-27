@@ -536,7 +536,6 @@
       handleStatusUpdate(operationCode) {
         this.$Progress.start();
         return TaskExecuteService.updateTaskExecutionStepOperate({
-          taskInstanceId: this.taskInstanceId,
           id: this.params.id,
           operationCode,
         }).then((data) => {

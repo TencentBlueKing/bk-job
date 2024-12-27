@@ -26,19 +26,18 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
-import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
-import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
-import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
+import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.tables.TaskInstanceVariable;
 import com.tencent.bk.job.execute.model.tables.records.TaskInstanceVariableRecord;
-import org.jooq.InsertValuesStep6;
+import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep5;
 import org.jooq.Record;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -48,33 +47,33 @@ import java.util.List;
  * 作业实例全局变量DAO
  */
 @Repository
-public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstanceVariableDAO {
+public class TaskInstanceVariableDAOImpl implements TaskInstanceVariableDAO {
     private static final TaskInstanceVariable TABLE = TaskInstanceVariable.TASK_INSTANCE_VARIABLE;
 
+    private final DSLContext ctx;
     private final CipherVariableCryptoService cipherVariableCryptoService;
 
     @Autowired
-    public TaskInstanceVariableDAOImpl(DSLContextProviderFactory dslContextProviderFactory,
+    public TaskInstanceVariableDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx,
                                        CipherVariableCryptoService cipherVariableCryptoService) {
-        super(dslContextProviderFactory, TABLE.getName());
+        this.ctx = ctx;
         this.cipherVariableCryptoService = cipherVariableCryptoService;
     }
 
     @Override
-    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.READ)
     public List<TaskVariableDTO> getByTaskInstanceId(long taskInstanceId) {
-        Result<Record6<Long, Long, String, Byte, Byte, String>> result = dsl().select(
-                TABLE.ID,
-                TABLE.TASK_INSTANCE_ID,
-                TABLE.NAME,
-                TABLE.TYPE,
-                TABLE.IS_CHANGEABLE,
-                TABLE.VALUE
-            ).from(TABLE)
+        Result<Record6<Long, Long, String, Byte, Byte, String>> result = ctx.select(
+            TABLE.ID,
+            TABLE.TASK_INSTANCE_ID,
+            TABLE.NAME,
+            TABLE.TYPE,
+            TABLE.IS_CHANGEABLE,
+            TABLE.VALUE
+        ).from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .fetch();
         List<TaskVariableDTO> taskVariables = new ArrayList<>();
-        if (!result.isEmpty()) {
+        if (result.size() > 0) {
             result.into(record -> taskVariables.add(extract((record))));
         }
         return taskVariables;
@@ -95,24 +94,20 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
     }
 
     @Override
-    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void batchDeleteByTaskInstanceIds(List<Long> taskInstanceIdList) {
 
     }
 
     @Override
-    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void deleteByTaskInstanceId(long taskInstanceId) {
 
     }
 
     @Override
-    @MySQLOperation(table = "task_instance_variable", op = DbOperationEnum.WRITE)
     public void saveTaskInstanceVariables(List<TaskVariableDTO> taskVarList) {
-        InsertValuesStep6<TaskInstanceVariableRecord, Long, Long, String, Byte, String, Byte> insertStep =
-            dsl().insertInto(TABLE)
+        InsertValuesStep5<TaskInstanceVariableRecord, Long, String, Byte, String, Byte> insertStep =
+            ctx.insertInto(TABLE)
                 .columns(
-                    TABLE.ID,
                     TABLE.TASK_INSTANCE_ID,
                     TABLE.NAME,
                     TABLE.TYPE,
@@ -123,7 +118,6 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
         taskVarList.forEach(taskVar -> {
             TaskVariableTypeEnum taskVarType = TaskVariableTypeEnum.valOf(taskVar.getType());
             insertStep.values(
-                taskVar.getId(),
                 taskVar.getTaskInstanceId(),
                 taskVar.getName(),
                 JooqDataTypeUtil.toByte(taskVar.getType()),

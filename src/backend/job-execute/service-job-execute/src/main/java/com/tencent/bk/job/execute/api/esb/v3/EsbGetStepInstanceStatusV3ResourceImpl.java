@@ -28,10 +28,12 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -41,6 +43,7 @@ import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbStepInstanceStatusV3DTO;
+import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,13 +55,16 @@ import java.util.List;
 @Slf4j
 public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanceStatusV3Resource {
 
+    private final StepInstanceValidateService stepInstanceValidateService;
     private final AppScopeMappingService appScopeMappingService;
     private final TaskResultService taskResultService;
     private final MessageI18nService messageI18nService;
 
-    public EsbGetStepInstanceStatusV3ResourceImpl(AppScopeMappingService appScopeMappingService,
+    public EsbGetStepInstanceStatusV3ResourceImpl(StepInstanceValidateService stepInstanceValidateService,
+                                                  AppScopeMappingService appScopeMappingService,
                                                   TaskResultService taskResultService,
                                                   MessageI18nService messageI18nService) {
+        this.stepInstanceValidateService = stepInstanceValidateService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskResultService = taskResultService;
         this.messageI18nService = messageI18nService;
@@ -138,6 +144,16 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
                                                                      Integer status,
                                                                      String tag) {
         long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+
+        ValidateResult checkResult = stepInstanceValidateService.checkStepInstance(
+            appId,
+            taskInstanceId,
+            stepInstanceId
+        );
+        if (!checkResult.isPass()) {
+            log.warn("Get step instance status request is illegal!");
+            throw new InvalidParamException(checkResult);
+        }
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(stepInstanceId)

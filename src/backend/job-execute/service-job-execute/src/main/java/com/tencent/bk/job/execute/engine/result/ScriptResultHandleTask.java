@@ -131,6 +131,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                                   List<ExecuteObjectTask> executeObjectTasks) {
         super(engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
+            jobExecuteConfig,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,

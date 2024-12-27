@@ -34,7 +34,6 @@ import java.util.List;
 @Setter
 @ToString
 public class ConfirmStepInstanceDTO {
-    private Long taskInstanceId;
     private Long stepInstanceId;
     private String confirmMessage;
     private String confirmReason;

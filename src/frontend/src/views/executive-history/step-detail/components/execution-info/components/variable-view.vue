@@ -65,16 +65,8 @@
     inheritAttrs: false,
     props: {
       name: String,
-      taskInstanceId: {
-        type: Number,
-        required: true,
-      },
       stepInstanceId: {
         type: Number,
-        required: true,
-      },
-      taskExecuteDetail: {
-        type: Object,
         required: true,
       },
     },
@@ -97,10 +89,7 @@
       fetchStepVariables() {
         this.isLoading = true;
         TaskExecuteService.fetchStepVariables({
-          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
-          executeObjectType: this.taskExecuteDetail.executeObject.type,
-          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
         }).then((data) => {
           this.variableList = Object.freeze(data);
         })

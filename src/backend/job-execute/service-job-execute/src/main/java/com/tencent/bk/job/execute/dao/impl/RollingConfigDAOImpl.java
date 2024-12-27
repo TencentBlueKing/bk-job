@@ -24,71 +24,64 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
-import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
-import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
-import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
+public class RollingConfigDAOImpl implements RollingConfigDAO {
 
     private static final RollingConfig TABLE = RollingConfig.ROLLING_CONFIG;
+    private final DSLContext CTX;
 
     @Autowired
-    public RollingConfigDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
-        super(dslContextProviderFactory, TABLE.getName());
+    public RollingConfigDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
+        this.CTX = ctx;
     }
 
     @Override
-    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.WRITE)
     public long saveRollingConfig(RollingConfigDTO rollingConfig) {
-        Record record = dsl().insertInto(
-                TABLE,
-                TABLE.ID,
-                TABLE.TASK_INSTANCE_ID,
-                TABLE.CONFIG_NAME,
-                TABLE.CONFIG)
+        Record record = CTX.insertInto(
+            TABLE,
+            TABLE.TASK_INSTANCE_ID,
+            TABLE.CONFIG_NAME,
+            TABLE.CONFIG)
             .values(
-                rollingConfig.getId(),
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
                 JsonUtils.toJson(rollingConfig.getConfigDetail()))
             .returning(TABLE.ID)
             .fetchOne();
-
-        return rollingConfig.getId() != null ? rollingConfig.getId() : record.getValue(TABLE.ID);
-
+        assert record != null;
+        return record.get(TABLE.ID);
     }
 
     @Override
-    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
-    public RollingConfigDTO queryRollingConfigById(Long taskInstanceId, Long rollingConfigId) {
-        Record record = dsl().select(
-                TABLE.ID,
-                TABLE.TASK_INSTANCE_ID,
-                TABLE.CONFIG_NAME,
-                TABLE.CONFIG)
+    public RollingConfigDTO queryRollingConfigById(Long rollingConfigId) {
+        Record record = CTX.select(
+            TABLE.ID,
+            TABLE.TASK_INSTANCE_ID,
+            TABLE.CONFIG_NAME,
+            TABLE.CONFIG)
             .from(TABLE)
-            .where(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq))
-            .and(TABLE.ID.eq(rollingConfigId))
+            .where(TABLE.ID.eq(rollingConfigId))
             .fetchOne();
         return extract(record);
     }
 
     @Override
-    @MySQLOperation(table = "rolling_config", op = DbOperationEnum.READ)
     public boolean existsRollingConfig(long taskInstanceId) {
-        Result<Record1<Integer>> records = dsl().selectOne()
+        Result<Record1<Integer>> records = CTX.selectOne()
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .limit(1)

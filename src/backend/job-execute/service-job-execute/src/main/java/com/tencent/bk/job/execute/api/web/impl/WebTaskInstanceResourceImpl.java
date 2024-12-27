@@ -25,8 +25,6 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -117,28 +115,14 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
-        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     public Response<ExecuteStepVO> getStepInstanceDetail(String username,
                                                          AppResourceScope appResourceScope,
                                                          String scopeType,
                                                          String scopeId,
                                                          Long stepInstanceId) {
-        // 兼容代码，部署完成后删除
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
-        return getStepInstanceDetailV2(username, appResourceScope, scopeType, scopeId,
-            stepInstance.getTaskInstanceId(), stepInstanceId);
-    }
 
-    @Override
-    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    public Response<ExecuteStepVO> getStepInstanceDetailV2(String username,
-                                                           AppResourceScope appResourceScope,
-                                                           String scopeType,
-                                                           String scopeId,
-                                                           Long taskInstanceId,
-                                                           Long stepInstanceId) {
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+            appResourceScope.getAppId(), stepInstanceId);
 
         taskInstanceAccessProcessor.processBeforeAccess(username,
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
@@ -153,8 +137,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
         if (stepInstance.isRollingStep()) {
             RollingConfigVO rollingConfigVO = new RollingConfigVO();
             RollingConfigDTO rollingConfigDTO =
-                rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
-                    stepInstance.getRollingConfigId());
+                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
             RollingConfigDetailDO rollingConfig = rollingConfigDTO.getConfigDetail();
             rollingConfigVO.setMode(rollingConfig.getMode());
             if (rollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {

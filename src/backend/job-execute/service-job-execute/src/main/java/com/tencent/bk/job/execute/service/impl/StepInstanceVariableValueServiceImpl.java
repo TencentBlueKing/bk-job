@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.dao.StepInstanceVariableDAO;
-import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.model.HostVariableValuesDTO;
@@ -58,22 +57,18 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
     private final StepInstanceVariableDAO stepInstanceVariableDAO;
     private final StepInstanceService stepInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
-    private final IdGen idGen;
 
     @Autowired
     public StepInstanceVariableValueServiceImpl(StepInstanceVariableDAO stepInstanceVariableDAO,
                                                 StepInstanceService stepInstanceService,
-                                                TaskInstanceVariableService taskInstanceVariableService,
-                                                IdGen idGen) {
+                                                TaskInstanceVariableService taskInstanceVariableService) {
         this.stepInstanceVariableDAO = stepInstanceVariableDAO;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
-        this.idGen = idGen;
     }
 
     @Override
     public void saveVariableValues(StepInstanceVariableValuesDTO variableValues) {
-        variableValues.setId(idGen.genStepInstanceVariableId());
         stepInstanceVariableDAO.saveVariableValues(variableValues);
     }
 
@@ -125,7 +120,8 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
     }
 
     @Override
-    public StepInstanceVariableValuesDTO computeInputStepInstanceVariableValues(StepInstanceBaseDTO stepInstance,
+    public StepInstanceVariableValuesDTO computeInputStepInstanceVariableValues(long taskInstanceId,
+                                                                                long stepInstanceId,
                                                                                 List<TaskVariableDTO> taskVariables) {
         TaskVariablesAnalyzeResult variablesAnalyzeResult = new TaskVariablesAnalyzeResult(taskVariables);
         if (!variablesAnalyzeResult.isExistAnyVar()) {
@@ -133,8 +129,8 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
             return null;
         }
         StepInstanceVariableValuesDTO inputStepInstanceVariableValues = new StepInstanceVariableValuesDTO();
-        inputStepInstanceVariableValues.setTaskInstanceId(stepInstance.getTaskInstanceId());
-        inputStepInstanceVariableValues.setStepInstanceId(stepInstance.getId());
+        inputStepInstanceVariableValues.setTaskInstanceId(taskInstanceId);
+        inputStepInstanceVariableValues.setStepInstanceId(stepInstanceId);
 
         // 初始化全局变量
         List<VariableValueDTO> globalVarValues = new ArrayList<>();
@@ -153,7 +149,7 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
 
         // 如果包含可变变量，那么需要获取前面所有步骤的输出变量值来进行处理
         List<StepInstanceVariableValuesDTO> preStepInstanceVariableValuesList =
-            listPreStepOutputVariableValuesByStepOrder(stepInstance.getTaskInstanceId(), stepInstance.getStepOrder());
+            stepInstanceVariableDAO.listSortedPreStepOutputVariableValues(taskInstanceId, stepInstanceId);
         if (CollectionUtils.isEmpty(preStepInstanceVariableValuesList)) {
             if (!globalVarValueMap.isEmpty()) {
                 globalVarValueMap.forEach((paramName, param) -> globalVarValues.add(param));
@@ -170,30 +166,6 @@ public class StepInstanceVariableValueServiceImpl implements StepInstanceVariabl
         }
 
         return inputStepInstanceVariableValues;
-    }
-
-    private List<StepInstanceVariableValuesDTO> listPreStepOutputVariableValuesByStepOrder(long taskInstanceId,
-                                                                                           int currentStepOrder) {
-        // 获取全量步骤变量
-        List<StepInstanceVariableValuesDTO> stepInstanceVariableValuesList =
-            stepInstanceVariableDAO.listStepOutputVariableValuesByTaskInstanceId(taskInstanceId);
-        if (CollectionUtils.isEmpty(stepInstanceVariableValuesList)) {
-            return null;
-        }
-        Map<Long, Integer> stepInstanceIdAndOrderMap = stepInstanceService.listStepInstanceIdAndStepOrderMapping(
-            taskInstanceId);
-
-        return stepInstanceVariableValuesList.stream()
-            .filter(var -> {
-                int stepOrder = stepInstanceIdAndOrderMap.get(var.getStepInstanceId());
-                // 只保留前置步骤
-                return stepOrder < currentStepOrder;
-            }).sorted((var1, var2) -> {
-                int stepOrderForVar1 = stepInstanceIdAndOrderMap.get(var1.getStepInstanceId());
-                int stepOrderForVar2 = stepInstanceIdAndOrderMap.get(var2.getStepInstanceId());
-                // 根据 stepOrder 升序排列
-                return Integer.compare(stepOrderForVar1, stepOrderForVar2);
-            }).collect(Collectors.toList());
     }
 
     private void updateGlobalVarValues(List<StepInstanceVariableValuesDTO> stepInstanceVariableValuesList,

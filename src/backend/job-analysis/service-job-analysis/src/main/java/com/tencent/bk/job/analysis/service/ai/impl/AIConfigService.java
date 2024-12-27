@@ -25,15 +25,13 @@
 package com.tencent.bk.job.analysis.service.ai.impl;
 
 import com.tencent.bk.job.analysis.config.AIProperties;
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * AI配置服务
- */
 @Service
 public class AIConfigService {
     private final AIProperties aiProperties;
@@ -43,11 +41,6 @@ public class AIConfigService {
         this.aiProperties = aiProperties;
     }
 
-    /**
-     * 获取AI配置
-     *
-     * @return AI配置表，key为配置名称，value为配置取值
-     */
     public Map<String, Object> getAIConfig() {
         Map<String, Object> map = new HashMap<>();
         Long logMaxLengthBytes = aiProperties.getAnalyzeErrorLog().getLogMaxLengthBytes();

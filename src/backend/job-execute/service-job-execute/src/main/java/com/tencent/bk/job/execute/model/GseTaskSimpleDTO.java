@@ -34,10 +34,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GseTaskSimpleDTO {
     /**
-     * 作业实例ID
-     */
-    private Long taskInstanceId;
-    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
