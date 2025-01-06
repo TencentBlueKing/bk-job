@@ -25,10 +25,11 @@
 package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.login.CustomLoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.common.paas.login.StandardLoginClient;
+import com.tencent.bk.job.common.paas.login.v3.BkLoginApiClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -53,16 +54,20 @@ public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
+    public BkLoginApiClient bkLoginApiClient(BkApiGatewayProperties bkApiGatewayProperties,
+                                             AppProperties appProperties,
+                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+        log.info("Init LoginApiClient");
+        return new BkLoginApiClient(bkApiGatewayProperties, appProperties,
+            meterRegistryObjectProvider.getIfAvailable());
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
     @Primary
-    public ILoginClient standardLoginClient(AppProperties appProperties,
-                                            EsbProperties esbProperties,
-                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+    public ILoginClient standardLoginClient(BkLoginApiClient bkLoginApiClient) {
 
         log.info("Init StandardLoginClient");
-        return new StandardLoginClient(
-            esbProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable()
-        );
+        return new StandardLoginClient(bkLoginApiClient);
     }
 }

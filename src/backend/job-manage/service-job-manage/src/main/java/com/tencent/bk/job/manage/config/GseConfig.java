@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.gse.service.GseV1AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.service.GseV2AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.service.UseV2ByFeatureAgentStateClientImpl;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
-import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiV1Client;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +66,7 @@ public class GseConfig {
 
     @Bean(MANAGE_BEAN_GSE_V2_AGENT_STATE_CLIENT)
     public GseV2AgentStateClientImpl gseV2AgentStateClient(AgentStateQueryConfig agentStateQueryConfig,
-                                                           ObjectProvider<GseV2ApiClient> gseV2ApiClient,
+                                                           ObjectProvider<GseV2ApiV1Client> gseV2ApiClient,
                                                            @Qualifier(DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
                                                                ThreadPoolExecutor threadPoolExecutor) {
         return new GseV2AgentStateClientImpl(

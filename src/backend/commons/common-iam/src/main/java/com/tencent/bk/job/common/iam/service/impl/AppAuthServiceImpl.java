@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.iam.service.impl;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
 import com.tencent.bk.job.common.iam.config.JobIamProperties;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -68,7 +68,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     private final BusinessAuthHelper businessAuthHelper;
     private final PolicyService policyService;
     private final JobIamProperties jobIamProperties;
-    private final EsbIamClient iamClient;
+    private final EsbIamV1Client iamClient;
     private ResourceNameQueryService resourceNameQueryService;
 
     public AppAuthServiceImpl(AuthHelper authHelper,
@@ -82,7 +82,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
         this.jobIamProperties = jobIamProperties;
-        this.iamClient = new EsbIamClient(
+        this.iamClient = new EsbIamV1Client(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
             esbProperties);

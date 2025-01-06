@@ -26,20 +26,20 @@ package com.tencent.bk.job.upgrader.iam;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 
 import java.util.Properties;
 
 public class ApiClientUtils {
 
-    public static EsbIamClient buildEsbIamClient(Properties properties) {
+    public static EsbIamV1Client buildEsbIamClient(Properties properties) {
         EsbProperties esbProperties = new EsbProperties();
         EsbProperties.EsbServiceConfig esbServiceConfig = new EsbProperties.EsbServiceConfig();
         esbServiceConfig.setUrl((String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL));
         esbProperties.setService(esbServiceConfig);
 
-        return new EsbIamClient(
+        return new EsbIamV1Client(
             null,
             new AppProperties(
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),

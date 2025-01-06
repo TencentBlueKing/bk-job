@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
@@ -57,16 +57,16 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiClient {
+public class CmsiApiV1Client extends BkApiV1Client {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
     private final BkApiAuthorization authorization;
 
-    public CmsiApiClient(EsbProperties esbProperties,
-                         AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
+    public CmsiApiV1Client(EsbProperties esbProperties,
+                           AppProperties appProperties,
+                           MeterRegistry meterRegistry) {
         super(
             meterRegistry,
             ESB_CMSI_API,

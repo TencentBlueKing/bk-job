@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.PreferV2AgentStateClientImpl;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
 import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
-import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiV1Client;
 import com.tencent.bk.job.common.gse.v2.GseV2AutoConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +66,7 @@ public class GseAutoConfiguration {
 
     @Bean("GseApiClient")
     public GseClient gseClient(ObjectProvider<GseV1ApiClient> gseV1ApiClient,
-                               ObjectProvider<GseV2ApiClient> gseV2ApiClient) {
+                               ObjectProvider<GseV2ApiV1Client> gseV2ApiClient) {
         return new GseClient(gseV1ApiClient.getIfAvailable(),
             gseV2ApiClient.getIfAvailable());
     }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.upgrader.task;
 
-import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.dto.EsbIamAction;
@@ -58,7 +58,7 @@ import java.util.Properties;
 public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
 
     private IamClient iamClient;
-    private EsbIamClient esbIamClient;
+    private EsbIamV1Client esbIamClient;
 
     public ManagePublicScriptPermissionMigrationTask(Properties properties) {
         super(properties);
@@ -76,7 +76,7 @@ public class ManagePublicScriptPermissionMigrationTask extends BaseUpgradeTask {
         return iamClient;
     }
 
-    private EsbIamClient getEsbIamClient() {
+    private EsbIamV1Client getEsbIamClient() {
         if (this.esbIamClient == null) {
             this.esbIamClient = ApiClientUtils.buildEsbIamClient(getProperties());
         }

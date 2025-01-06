@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -72,4 +73,14 @@ public class BkUserDTO {
      * 用户微信
      */
     private String wxUserId;
+
+    /**
+     * 用户所属租户 ID
+     */
+    private String tenantId;
+
+    /**
+     * 用户语言，枚举值：zh-cn / en
+     */
+    private String language;
 }

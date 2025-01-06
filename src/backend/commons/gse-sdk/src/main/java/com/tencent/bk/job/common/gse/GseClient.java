@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
-import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiV1Client;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
@@ -53,11 +53,11 @@ import java.util.List;
 public class GseClient implements IGseClient {
 
     private final GseV1ApiClient gseV1ApiClient;
-    private final GseV2ApiClient gseV2ApiClient;
+    private final GseV2ApiV1Client gseV2ApiClient;
 
 
     public GseClient(GseV1ApiClient gseV1ApiClient,
-                     GseV2ApiClient gseV2ApiClient) {
+                     GseV2ApiV1Client gseV2ApiClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2ApiClient = gseV2ApiClient;
         log.info("Init gseClient, gseV1ApiClient: {}, gseV2ApiClient: {}", gseV1ApiClient, gseV2ApiClient);

@@ -22,40 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.login;
+package com.tencent.bk.job.common.tenant;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.login.v3.BkLoginApiClient;
-import com.tencent.bk.job.common.paas.login.v3.OpenApiBkUser;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Slf4j
-public class StandardLoginClient implements ILoginClient {
-
-    private final BkLoginApiClient bkLoginApiClient;
-
-    public StandardLoginClient(BkLoginApiClient bkLoginApiClient) {
-        this.bkLoginApiClient = bkLoginApiClient;
-    }
-
+/**
+ * 多租户配置
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "tenant")
+public class TenantProperties {
     /**
-     * 获取指定用户信息
-     *
-     * @param bkToken 用户登录 token
-     * @return 用户信息
+     * 是否支持多租户
      */
-    @Override
-    public BkUserDTO getUserInfoByToken(String bkToken) {
-        OpenApiBkUser bkUser = bkLoginApiClient.getBkUserByToken(bkToken);
-        if (bkUser == null) {
-            return null;
-        }
-        BkUserDTO bkUserDTO = new BkUserDTO();
-        bkUserDTO.setUsername(bkUser.getUsername());
-        bkUserDTO.setDisplayName(bkUser.getDisplayName());
-        bkUserDTO.setTimeZone(bkUser.getTimeZone());
-        bkUserDTO.setTenantId(bkUser.getTenantId());
-        bkUserDTO.setLanguage(bkUser.getLanguage());
-        return bkUserDTO;
-    }
+    private boolean enabled;
 }

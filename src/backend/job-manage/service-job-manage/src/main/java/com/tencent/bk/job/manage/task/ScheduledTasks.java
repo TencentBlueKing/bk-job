@@ -48,7 +48,8 @@ public class ScheduledTasks {
         EsbUserInfoUpdateTask esbUserInfoUpdateTask,
         SyncService syncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask, ApplicationCache applicationCache) {
+        ClearDeletedHostsTask clearDeletedHostsTask,
+        ApplicationCache applicationCache) {
         this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
         this.syncService = syncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;

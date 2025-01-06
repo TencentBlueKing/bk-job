@@ -39,9 +39,9 @@ import org.springframework.context.annotation.Configuration;
 public class GseV2AutoConfiguration {
 
     @Bean("gseV2ApiClient")
-    public GseV2ApiClient gseV2ApiClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
-        return new GseV2ApiClient(meterRegistry, appProperties, bkApiGatewayProperties);
+    public GseV2ApiV1Client gseV2ApiClient(MeterRegistry meterRegistry,
+                                           AppProperties appProperties,
+                                           BkApiGatewayProperties bkApiGatewayProperties) {
+        return new GseV2ApiV1Client(meterRegistry, appProperties, bkApiGatewayProperties);
     }
 }

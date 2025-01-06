@@ -29,12 +29,12 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
-import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
+import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
 import com.tencent.bk.job.common.iam.constant.ActionInfo;
 import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final AuthHelper authHelper;
-    private final EsbIamClient iamClient;
+    private final EsbIamV1Client iamClient;
     private final MessageI18nService i18nService;
     private ResourceNameQueryService resourceNameQueryService;
 
@@ -81,7 +81,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            MeterRegistry meterRegistry) {
         this.authHelper = authHelper;
         this.i18nService = i18nService;
-        this.iamClient = new EsbIamClient(
+        this.iamClient = new EsbIamV1Client(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
             esbProperties);
@@ -313,7 +313,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(List<PermissionActionResource> permissionActionResources) {
         List<ActionDTO> actions = buildApplyActions(permissionActionResources);
-        EsbApplyPermissionDTO applyPermission = new EsbApplyPermissionDTO();
+        OpenApiApplyPermissionDTO applyPermission = new OpenApiApplyPermissionDTO();
         applyPermission.setSystemId(SystemId.JOB);
         applyPermission.setSystemName(i18nService.getI18n("system.bk_job"));
         applyPermission.setActions(actions.stream().map(this::convertToEsbAction).collect(Collectors.toList()));

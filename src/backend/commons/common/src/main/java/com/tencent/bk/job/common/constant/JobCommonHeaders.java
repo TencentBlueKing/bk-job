@@ -47,4 +47,9 @@ public interface JobCommonHeaders {
      * 蓝鲸网关-从网关来的请求，与ESB请求区分
      */
     String BK_GATEWAY_FROM = "X-Bkapi-From";
+
+    /**
+     * 租户 ID
+     */
+    String BK_TENANT_ID = "X-Bk-Tenant-Id";
 }

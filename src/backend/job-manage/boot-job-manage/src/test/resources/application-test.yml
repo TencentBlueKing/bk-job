@@ -33,6 +33,9 @@ bk-api-gateway:
     url: bk-notice.apigw.com
   cmdb:
     url: cmdb.apigw.com
+  bk-login:
+    url : bk-login.apigw.com
 esb:
   service:
     url: esb.service
+

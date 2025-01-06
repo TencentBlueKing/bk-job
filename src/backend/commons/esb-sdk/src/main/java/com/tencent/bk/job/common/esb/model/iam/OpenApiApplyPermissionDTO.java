@@ -34,7 +34,7 @@ import java.util.List;
  * 返回给第三方api调用者的无权限申请url信息
  */
 @Data
-public class EsbApplyPermissionDTO {
+public class OpenApiApplyPermissionDTO {
     @JsonProperty("system_id")
     private String systemId;
     @JsonProperty("system_name")

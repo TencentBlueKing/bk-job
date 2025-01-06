@@ -30,7 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiV1Client;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
-    private final CmsiApiClient cmsiApiClient;
+    private final CmsiApiV1Client cmsiApiClient;
     private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
             build(new CacheLoader<String, List<NotifyEsbChannelDTO>>() {
@@ -73,7 +73,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                   }
             );
 
-    public NotifyEsbChannelDAOImpl(CmsiApiClient cmsiApiClient) {
+    public NotifyEsbChannelDAOImpl(CmsiApiV1Client cmsiApiClient) {
         this.cmsiApiClient = cmsiApiClient;
     }
 
