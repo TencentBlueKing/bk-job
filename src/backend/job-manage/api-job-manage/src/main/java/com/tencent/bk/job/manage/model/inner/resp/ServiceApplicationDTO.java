@@ -79,6 +79,11 @@ public class ServiceApplicationDTO {
      */
     private ServiceApplicationAttrsDTO attrs;
 
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
+
     public boolean isBiz() {
         return ResourceScopeTypeEnum.BIZ.getValue().equals(scopeType);
     }

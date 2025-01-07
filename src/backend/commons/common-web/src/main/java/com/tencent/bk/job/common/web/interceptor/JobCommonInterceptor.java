@@ -81,6 +81,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
         addUsername(request);
         addLang(request);
+        addTenantId(request);
 
         return true;
     }
@@ -184,7 +185,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
             log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
-                JobContextUtil.getAppResourceScope(),
+                JobContextUtil.getApp(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
@@ -229,5 +230,11 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
     private boolean isClientOrServerError(HttpServletResponse response) {
         return response.getStatus() >= HttpStatus.SC_BAD_REQUEST;
+    }
+
+    private void addTenantId(HttpServletRequest request) {
+        String tenantId = request.getHeader(JobCommonHeaders.BK_TENANT_ID);
+        log.debug("Add tenant id to JobContext, tenantId: {}", tenantId);
+        JobContextUtil.setTenantId(tenantId);
     }
 }

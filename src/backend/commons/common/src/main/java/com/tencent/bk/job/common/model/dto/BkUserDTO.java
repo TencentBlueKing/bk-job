@@ -24,10 +24,11 @@
 
 package com.tencent.bk.job.common.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.Objects;
 
 /**
  * 作业平台通用的用户DTO
@@ -41,11 +42,7 @@ public class BkUserDTO {
      */
     private Long id;
     /**
-     * 用户 UID
-     */
-    private String uid;
-    /**
-     * 用户名
+     * 用户 id
      */
     private String username;
     /**
@@ -83,4 +80,24 @@ public class BkUserDTO {
      * 用户语言，枚举值：zh-cn / en
      */
     private String language;
+
+    /**
+     * 获取用户的完整账号名称
+     */
+    public String getFullName() {
+        return displayName + ":" + username + "@" + tenantId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BkUserDTO bkUserDTO = (BkUserDTO) o;
+        return Objects.equals(username, bkUserDTO.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
+    }
 }

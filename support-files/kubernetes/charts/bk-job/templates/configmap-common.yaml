@@ -50,6 +50,10 @@ data:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
       bkApiGateway:
         url: {{ .Values.bkApiGatewayConfig.url }}
+      bkUser:
+        url: {{ .Values.bkUserApiGatewayUrl }}
+      bkLogin:
+        url: {{ .Values.bkLoginApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:

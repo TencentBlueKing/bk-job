@@ -31,16 +31,16 @@ import java.util.List;
 
 public interface EsbUserInfoDAO {
 
-    int insertEsbUserInfo(EsbUserInfoDTO esbUserInfoDTO);
-
-    int deleteEsbUserInfoById(Long id);
-
-    List<EsbUserInfoDTO> listEsbUserInfo();
-
-    List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit);
-
-    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
-
-    List<String> listExistUserName(Collection<String> userNames);
+//    int insertEsbUserInfo(EsbUserInfoDTO esbUserInfoDTO);
+//
+//    int deleteEsbUserInfoById(Long id);
+//
+//    List<EsbUserInfoDTO> listEsbUserInfo();
+//
+//    List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit);
+//
+//    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
+//
+//    List<String> listExistUserName(Collection<String> userNames);
 
 }

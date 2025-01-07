@@ -87,7 +87,7 @@ public class UserMgrApiClient extends BkApiV2Client {
         this.tenantEnvService = tenantEnvService;
     }
 
-    public List<BkUserDTO> getAllUserList() {
+    public List<BkUserDTO> getAllUserList(String tenantId) {
         String fields = "id,username,display_name,logo";
         List<EsbListUsersResult> esbUserList;
         try {
@@ -102,6 +102,7 @@ public class UserMgrApiClient extends BkApiV2Client {
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_USER_LIST)
                     .queryParams(req.toUrlParams())
+//                    .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId))
                     .authorization(authorization)
                     .build(),
                 new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
@@ -140,7 +141,6 @@ public class UserMgrApiClient extends BkApiV2Client {
             user.setUsername(esbUser.getUsername());
             user.setDisplayName(esbUser.getDisplayName());
             user.setLogo(esbUser.getLogo());
-            user.setUid(esbUser.getUid());
             userList.add(user);
         }
         return userList;

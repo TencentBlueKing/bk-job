@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.service.AppCacheService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -58,17 +58,17 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
 import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_SET_ID_MIN;
 
 /**
- * Job AppResourceScope 处理
+ * Job 业务信息处理拦截器
  */
 @Slf4j
 @JobInterceptor(pathPatterns = {"/web/**", "/service/**", "/esb/api/**"},
     order = InterceptorOrder.Init.REWRITE_REQUEST)
-public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
+public class BasicAppInterceptor implements AsyncHandlerInterceptor {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("/scope/(\\w+)/(\\d+)");
 
     private static final Pattern APP_PATTERN = Pattern.compile("/app/(\\d+)");
 
-    private final AppScopeMappingService appScopeMappingService;
+    private final AppCacheService appCacheService;
 
     private final AppResourceScopeParser webAppResourceScopeParser;
 
@@ -76,8 +76,8 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
 
     private final AppResourceScopeParser internalAppResourceScopeParser;
 
-    public AppResourceScopeInterceptor(AppScopeMappingService appScopeMappingService) {
-        this.appScopeMappingService = appScopeMappingService;
+    public BasicAppInterceptor(AppCacheService appCacheService) {
+        this.appCacheService = appCacheService;
         this.webAppResourceScopeParser = new WebAppResourceScopeParser();
         this.esbAppResourceScopeParser = new EsbAppResourceScopeParser();
         this.internalAppResourceScopeParser = new InternalAppResourceScopeParser();
@@ -107,37 +107,37 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             return;
         }
 
-        AppResourceScope appResourceScope = null;
+        BasicApp app = null;
         switch (requestSource) {
             case WEB:
-                appResourceScope = webAppResourceScopeParser.parseAppResourceScope(request);
-                log.debug("Scope from web:{}", appResourceScope);
+                app = webAppResourceScopeParser.parseApp(request);
+                log.debug("Scope from web:{}", app);
                 break;
             case ESB:
-                appResourceScope = esbAppResourceScopeParser.parseAppResourceScope(request);
-                log.debug("Scope from esb:{}", appResourceScope);
+                app = esbAppResourceScopeParser.parseApp(request);
+                log.debug("Scope from esb:{}", app);
                 break;
             case INTERNAL:
-                appResourceScope = internalAppResourceScopeParser.parseAppResourceScope(request);
-                log.debug("Scope from internal:{}", appResourceScope);
+                app = internalAppResourceScopeParser.parseApp(request);
+                log.debug("Scope from internal:{}", app);
                 break;
             default:
                 log.debug("Ignore invalid scope: {}", requestSource);
                 break;
         }
-        if (appResourceScope != null) {
-            request.setAttribute("appResourceScope", appResourceScope);
-            JobContextUtil.setAppResourceScope(appResourceScope);
+        if (app != null) {
+            request.setAttribute("appResourceScope", app);
+            JobContextUtil.setApp(app);
         } else {
             log.debug("AppResourceScope is empty");
         }
     }
 
     /**
-     * 从 http 请求中解析 AppResourceScope
+     * 从 http 请求中解析 BasicApp
      */
     public interface AppResourceScopeParser {
-        AppResourceScope parseAppResourceScope(HttpServletRequest request);
+        BasicApp parseApp(HttpServletRequest request);
     }
 
     /**
@@ -145,14 +145,10 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
      */
     public class WebAppResourceScopeParser implements AppResourceScopeParser {
         @Override
-        public AppResourceScope parseAppResourceScope(HttpServletRequest request) {
-            return parseAppResourceScopeFromPath(request.getRequestURI());
-        }
-
-        private AppResourceScope parseAppResourceScopeFromPath(String requestURI) {
-            ResourceScope resourceScope = parseResourceScopeFromURI(requestURI);
+        public BasicApp parseApp(HttpServletRequest request) {
+            ResourceScope resourceScope = parseResourceScopeFromURI(request.getRequestURI());
             if (resourceScope != null) {
-                return buildAppResourceScope(resourceScope);
+                return appCacheService.getApp(resourceScope);
             }
 
             return null;
@@ -166,11 +162,6 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             }
             return resourceScope;
         }
-
-        private AppResourceScope buildAppResourceScope(ResourceScope resourceScope) {
-            Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
-            return new AppResourceScope(appId, resourceScope);
-        }
     }
 
     /**
@@ -178,11 +169,11 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
      */
     public class EsbAppResourceScopeParser implements AppResourceScopeParser {
         @Override
-        public AppResourceScope parseAppResourceScope(HttpServletRequest request) {
+        public BasicApp parseApp(HttpServletRequest request) {
             return parseAppResourceScopeFromQueryStringOrBody(request);
         }
 
-        private AppResourceScope parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
+        private BasicApp parseAppResourceScopeFromQueryStringOrBody(HttpServletRequest request) {
             Map<String, String> params = parseMultiValueFromQueryStringOrBody(request,
                 "bk_scope_type", "bk_scope_id", "bk_biz_id");
             String scopeType = params.get("bk_scope_type");
@@ -190,26 +181,25 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             String bizIdStr = params.get("bk_biz_id");
 
             if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
-                return new AppResourceScope(scopeType, scopeId, null);
+                // 优先使用 bk_scope_type & bk_scope_id
+                return appCacheService.getApp(new ResourceScope(scopeType, scopeId));
             }
 
             // 如果兼容bk_biz_id参数
             if (FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE,
                 ToggleEvaluateContext.EMPTY)) {
+                ResourceScope resourceScope = null;
                 // 兼容当前业务ID参数
                 if (StringUtils.isNotBlank(bizIdStr)) {
                     long bizId = Long.parseLong(bizIdStr);
                     // [8000000,9999999]是迁移业务集之前约定的业务集ID范围。为了兼容老的API调用方，在这个范围内的bizId解析为业务集
                     scopeId = bizIdStr;
                     if (bizId >= JOB_BUILD_IN_BIZ_SET_ID_MIN && bizId <= JOB_BUILD_IN_BIZ_SET_ID_MAX) {
-                        Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ_SET.getValue(),
-                            scopeId);
-                        return new AppResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId, appId);
+                        resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, scopeId);
                     } else {
-                        Long appId = appScopeMappingService.getAppIdByScope(ResourceScopeTypeEnum.BIZ.getValue(),
-                            scopeId);
-                        return new AppResourceScope(ResourceScopeTypeEnum.BIZ, scopeId, appId);
+                        resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ, scopeId);
                     }
+                    return appCacheService.getApp(resourceScope);
                 }
             }
             // 其他情况返回null，后续拦截器会处理null
@@ -274,7 +264,7 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
      */
     public class InternalAppResourceScopeParser implements AppResourceScopeParser {
         @Override
-        public AppResourceScope parseAppResourceScope(HttpServletRequest request) {
+        public BasicApp parseApp(HttpServletRequest request) {
             // 优先从 path 解析
             Long appId = parseAppIdFromPath(request.getRequestURI());
             if (appId == null) {
@@ -288,7 +278,7 @@ public class AppResourceScopeInterceptor implements AsyncHandlerInterceptor {
             if (appId == null) {
                 return null;
             }
-            return appScopeMappingService.getAppResourceScope(appId);
+            return appCacheService.getApp(appId);
         }
 
         private Long parseAppIdFromPath(String requestURI) {

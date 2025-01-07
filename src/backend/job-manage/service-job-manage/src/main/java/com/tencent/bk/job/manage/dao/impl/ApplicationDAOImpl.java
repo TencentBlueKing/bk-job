@@ -72,7 +72,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.TIMEZONE,
         T_APP.LANGUAGE,
         T_APP.IS_DELETED,
-        T_APP.ATTRS
+        T_APP.ATTRS,
+        T_APP.TENANT_ID
     };
 
     private final DSLContext dslContext;
@@ -122,6 +123,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
         applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
         applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).byteValue()));
+        applicationDTO.setTenantId(record.get(T_APP.TENANT_ID));
         return applicationDTO;
     }
 
@@ -222,7 +224,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.BK_SCOPE_TYPE,
             T_APP.BK_SCOPE_ID,
             T_APP.ATTRS,
-            T_APP.IS_DELETED
+            T_APP.IS_DELETED,
+            T_APP.TENANT_ID
         ).values(
             applicationDTO.getName(),
             applicationDTO.getBkSupplierAccount(),
@@ -231,7 +234,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
             applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
-            UByte.valueOf(Bool.FALSE.byteValue())
+            UByte.valueOf(Bool.FALSE.byteValue()),
+            applicationDTO.getTenantId()
         );
         try {
             val record = query.returning(T_APP.APP_ID).fetchOne();

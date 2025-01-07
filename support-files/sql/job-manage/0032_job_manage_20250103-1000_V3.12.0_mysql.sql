@@ -29,6 +29,17 @@ BEGIN
     ALTER TABLE application ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
+  CREATE TABLE IF NOT EXISTS `user` (
+      `username` varchar(64) NOT NULL,
+      `tenant_id` varchar(32) NOT NULL,
+      `display_name` varchar(128) DEFAULT NULL,
+      `row_update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      `last_modify_time` bigint(20) unsigned DEFAULT NULL,
+      PRIMARY KEY (`username`) USING BTREE,
+      KEY `idx_tenant_id` (`tenant_id`) USING BTREE,
+      KEY `idx_display_name` (`display_name`) USING BTREE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

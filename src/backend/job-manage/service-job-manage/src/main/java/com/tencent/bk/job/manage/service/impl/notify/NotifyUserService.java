@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
+import com.tencent.bk.job.manage.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -49,13 +51,13 @@ import java.util.stream.Collectors;
 public class NotifyUserService {
 
     private final NotifyBlackUserInfoDAO notifyBlackUserInfoDAO;
-    private final EsbUserInfoDAO esbUserInfoDAO;
+    private final UserService userService;
 
     @Autowired
     public NotifyUserService(NotifyBlackUserInfoDAO notifyBlackUserInfoDAO,
-                             EsbUserInfoDAO esbUserInfoDAO) {
+                             UserService userService) {
         this.notifyBlackUserInfoDAO = notifyBlackUserInfoDAO;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userService = userService;
     }
 
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(Integer start, Integer pageSize) {
@@ -131,8 +133,8 @@ public class NotifyUserService {
         if (null == limit || limit <= 0) {
             limit = -1L;
         }
-        List<EsbUserInfoDTO> esbUserInfoDTOList = searchUserByPrefix(prefixStr);
-        List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it ->
+        List<BkUserDTO> userList = searchUserByPrefix(prefixStr);
+        List<UserVO> userVOList = userList.stream().map(it ->
             new UserVO(it.getUsername(), it.getDisplayName(), it.getLogo(), true)
         ).collect(Collectors.toList());
         if (excludeBlackUsers) {
@@ -141,7 +143,7 @@ public class NotifyUserService {
         return calcFinalListByOffsetAndLimit(userVOList, offset, limit);
     }
 
-    private List<EsbUserInfoDTO> searchUserByPrefix(String prefixStr) {
+    private List<BkUserDTO> searchUserByPrefix(String prefixStr) {
         // 从数据库查
         if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
             // 前端回显，传全量
@@ -149,9 +151,9 @@ public class NotifyUserService {
             while (userNames.contains("")) {
                 userNames.remove("");
             }
-            return esbUserInfoDAO.listEsbUserInfo(userNames);
+            return userService.listUsersByUsernames(null, userNames);
         } else {
-            return esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
+            return userService.listUsersByDisplayNamePrefix(null, prefixStr, -1L);
         }
     }
 

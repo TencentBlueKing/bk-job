@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.crypto.util.RSAUtils;
 import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
 import com.tencent.bk.job.common.service.SpringProfile;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
@@ -53,14 +54,18 @@ public class CheckOpenApiJwtGatewayFilterFactory
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
 
+    private final TenantEnvService tenantEnvService;
+
     @Autowired
     public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
                                                SpringProfile springProfile,
-                                               ServiceSecurityProperties securityProperties) {
+                                               ServiceSecurityProperties securityProperties,
+                                               TenantEnvService tenantEnvService) {
         super(Config.class);
         this.openApiJwtService = openApiJwtService;
         this.springProfile = springProfile;
         this.securityProperties = securityProperties;
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
@@ -91,9 +96,9 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 authInfo = openApiJwtService.extractFromJwt(token);
             }
 
-            if (authInfo == null) {
-                log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
+            if (!validateJwt(authInfo)) {
+                log.warn("Untrusted open api request, request-id:{}, authInfo: {}",
+                    RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID), authInfo);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
@@ -101,8 +106,19 @@ public class CheckOpenApiJwtGatewayFilterFactory
             // set app code header
             request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
             request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{authInfo.getTenantId()}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    public boolean validateJwt(EsbJwtInfo jwtInfo) {
+        if (!tenantEnvService.isTenantEnabled()) {
+            // 如果未开启多租户特性，设置默认租户（蓝鲸约定）
+            jwtInfo.setTenantId(tenantEnvService.getDefaultTenantId());
+        }
+        return StringUtils.isNotEmpty(jwtInfo.getUsername())
+            && StringUtils.isNotEmpty(jwtInfo.getAppCode())
+            && StringUtils.isNotEmpty(jwtInfo.getTenantId());
     }
 
     private boolean isOpenApiTestActive(ServerHttpRequest request) {

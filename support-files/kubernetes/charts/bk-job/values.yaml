@@ -433,6 +433,10 @@ bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
 # 蓝鲸 AIDev API Gateway url
 bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 蓝鲸登录 API Gateway url
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
+# 蓝鲸用户管理 API Gateway url
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
 bkAIDevAppCode: ""
 # 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值

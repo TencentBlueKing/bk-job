@@ -84,6 +84,11 @@ public class ApplicationDTO {
      */
     private ApplicationAttrsDO attrs;
 
+    /**
+     * 业务所属租户 ID
+     */
+    private String tenantId;
+
     @JsonIgnore
     public boolean isBiz() {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ;

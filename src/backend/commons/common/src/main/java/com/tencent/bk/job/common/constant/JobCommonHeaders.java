@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.common.constant;
 
+/**
+ * Job 通用 http header 定义
+ */
 public interface JobCommonHeaders {
 
     String APP_CODE = "X-AppCode";

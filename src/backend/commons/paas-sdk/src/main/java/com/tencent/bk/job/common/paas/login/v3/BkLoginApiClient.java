@@ -26,6 +26,9 @@ import java.util.function.Function;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.BK_LOGIN_API;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.BK_LOGIN_API_HTTP;
 
+/**
+ * bk-login API 客户端
+ */
 @Slf4j
 public class BkLoginApiClient extends BkApiV2Client {
 

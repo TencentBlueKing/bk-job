@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.model.esb;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @NoArgsConstructor
@@ -42,10 +43,16 @@ public class EsbJwtInfo {
      * 业务Code
      */
     private String appCode;
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
 
-    public EsbJwtInfo(Long tokenExpireAt, String username, String appCode) {
+    public EsbJwtInfo(Long tokenExpireAt, String username, String appCode, String tenantId) {
         this.tokenExpireAt = tokenExpireAt;
         this.username = username;
         this.appCode = appCode;
+        this.tenantId = tenantId;
     }
+
 }

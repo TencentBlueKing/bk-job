@@ -185,7 +185,9 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                 .setSigningKey(publicKey)
                 .parseClaimsJws(token)
                 .getBody();
-            String appCode = "";
+            String appCode = null;
+            String tenantId = null;
+            String username = null;
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
                 if (appProps == null) {
@@ -193,38 +195,32 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                     return null;
                 }
                 boolean isVerified = appProps.get("verified") != null && (boolean) appProps.get("verified");
-                appCode = (String) appProps.get("app_code");
-                if (StringUtils.isEmpty(appCode)) {
-                    appCode = (String) appProps.get("bk_app_code");
-                }
-                if (!isVerified || StringUtils.isEmpty(appCode)) {
-                    log.warn("App code not verified or empty, isVerified:{}, jwtAppCode:{}", isVerified, appCode);
+                if (!isVerified) {
+                    log.warn("App info not verified");
                     return null;
                 }
+                appCode = extractAppCode(appProps);
+                tenantId = extractAppTenantId(appProps);
             }
 
-            String username = "";
             if (claims.get("user") != null) {
                 LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
                 if (userProps == null) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
                 }
-                username = (String) userProps.get("username");
-                if (StringUtils.isEmpty(username)) {
-                    username = (String) userProps.get("bk_username");
-                }
-                if (StringUtils.isEmpty(username)) {
-                    log.warn("Username is empty!");
-                    return null;
+                username = extractUsername(userProps);
+                if (tenantId == null) {
+                    tenantId = extractUserTenantId(userProps);
                 }
             }
+
             Date expireAt = claims.get("exp", Date.class);
             if (expireAt == null) {
                 log.warn("Invalid JWT token, exp is null!");
                 return null;
             }
-            esbJwtInfo = new EsbJwtInfo(expireAt.getTime(), username, appCode);
+            esbJwtInfo = new EsbJwtInfo(expireAt.getTime(), username, appCode, tenantId);
             tokenCache.put(token, esbJwtInfo);
         } catch (Exception e) {
             log.warn("Verify jwt caught exception", e);
@@ -239,6 +235,50 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             }
         }
         return esbJwtInfo;
+    }
+
+    private String extractAppCode(LinkedHashMap appProps) {
+        String appCode = (String) appProps.get("app_code");
+        if (StringUtils.isEmpty(appCode)) {
+            appCode = (String) appProps.get("bk_app_code");
+        }
+        return appCode;
+    }
+
+    /**
+     * 应用态 API，从 app 信息中获取租户 ID
+     *
+     * @param appProps 应用信息
+     * @return 租户 ID
+     */
+    private String extractAppTenantId(LinkedHashMap appProps) {
+        Object tenantId = appProps.get("tenant_id");
+        return tenantId != null ? (String) tenantId : null;
+    }
+
+    /**
+     * 获取用户账号 ID
+     *
+     * @param userProps 用户信息
+     * @return 用户账号 ID
+     */
+    private String extractUsername(LinkedHashMap userProps) {
+        String username = (String) userProps.get("username");
+        if (StringUtils.isEmpty(username)) {
+            username = (String) userProps.get("bk_username");
+        }
+        return username;
+    }
+
+    /**
+     * 用户态 API，从 user 信息中获取租户 ID
+     *
+     * @param userProps 用户信息
+     * @return 租户 ID
+     */
+    private String extractUserTenantId(LinkedHashMap userProps) {
+        Object tenantId = userProps.get("tenant_id");
+        return tenantId != null ? (String) tenantId : null;
     }
 
     // 请求是否来自蓝鲸网关

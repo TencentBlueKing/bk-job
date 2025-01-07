@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
+import com.tencent.bk.job.manage.service.UserService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class SendNotifyTask implements Runnable {
     private final int NOTIFY_MAX_RETRY_COUNT = 1;
 
     private WatchableSendMsgService watchableSendMsgService;
-    private EsbUserInfoDAO esbUserInfoDAO;
+    private UserService userService;
 
     private final Long appId;
     private final long createTimeMillis;
@@ -58,9 +59,9 @@ public class SendNotifyTask implements Runnable {
     private Set<String> validReceivers;
 
     public void bindService(WatchableSendMsgService watchableSendMsgService,
-                            EsbUserInfoDAO esbUserInfoDAO) {
+                            UserService userService) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userService = userService;
     }
 
     @Override
@@ -87,7 +88,8 @@ public class SendNotifyTask implements Runnable {
     }
 
     private void pickValidReceivers() {
-        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
+        // TODO 需要加入租户 ID
+        List<String> existUserNameList = userService.listExistUserName(null, receivers);
         validReceivers = new HashSet<>(existUserNameList);
     }
 
