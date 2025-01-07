@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.service.UserService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;

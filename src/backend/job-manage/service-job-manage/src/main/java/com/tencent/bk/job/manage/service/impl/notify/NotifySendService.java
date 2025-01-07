@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.UserService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;

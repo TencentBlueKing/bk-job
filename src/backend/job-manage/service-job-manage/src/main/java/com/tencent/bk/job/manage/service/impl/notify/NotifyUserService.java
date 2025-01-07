@@ -26,9 +26,7 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;

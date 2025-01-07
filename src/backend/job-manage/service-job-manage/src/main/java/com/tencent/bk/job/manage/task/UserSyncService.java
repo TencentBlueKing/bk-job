@@ -58,15 +58,12 @@ public class UserSyncService {
     private static final String machineIp = IpUtils.getFirstMachineIP();
 
     static {
-        List<String> keyList = Arrays.asList(REDIS_KEY_SYNC_USER_JOB_LOCK);
-        keyList.forEach(key -> {
-            try {
-                //进程重启首先尝试释放上次加上的锁避免死锁
-                LockUtils.releaseDistributedLock(key, machineIp);
-            } catch (Throwable t) {
-                log.info("Redis key:" + key + " does not need to be released, ignore");
-            }
-        });
+        try {
+            //进程重启首先尝试释放上次加上的锁避免死锁
+            LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_USER_JOB_LOCK, machineIp);
+        } catch (Throwable t) {
+            log.info("Redis key:" + REDIS_KEY_SYNC_USER_JOB_LOCK + " does not need to be released, ignore");
+        }
     }
 
     private final String REDIS_KEY_SYNC_USER_JOB_RUNNING_MACHINE = "sync-user-job-running-machine";
@@ -107,9 +104,7 @@ public class UserSyncService {
         );
         userSyncRedisKeyHeartBeatThread.setName("userSyncRedisKeyHeartBeatThread");
         userSyncRedisKeyHeartBeatThread.start();
-        log.info("syncUser:beigin");
-        StopWatch watch = new StopWatch("syncUser");
-        watch.start("total");
+        log.info("Begin sync all tenant users");
         try {
             List<OpenApiTenant> allTenants = userMgrApiClient.listAllTenant();
             if (CollectionUtils.isEmpty(allTenants)) {
@@ -126,8 +121,6 @@ public class UserSyncService {
             log.error("FATAL: syncUser thread fail", t);
         } finally {
             userSyncRedisKeyHeartBeatThread.setRunFlag(false);
-            watch.stop();
-            log.info("syncUser time consuming:" + watch.toString());
         }
         return true;
     }
