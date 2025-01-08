@@ -6,12 +6,12 @@ package com.tencent.bk.job.common.constant;
 public interface TenantIdConstants {
 
     /**
-     * 单租户环境默认租户 ID
+     * 非多租户环境默认租户 ID
      */
-    String SINGLE_TENANT_ENV_DEFAULT_TENANT_ID = "default";
+    String NON_TENANT_ENV_DEFAULT_TENANT_ID = "default";
 
     /**
-     * 多租户环境默认租户 ID
+     * 多租户环境运营租户 ID
      */
-    String MULTI_TENANT_ENV_DEFAULT_TENANT_ID = "system";
+    String TENANT_ENV_SYSTEM_TENANT_ID = "system";
 }

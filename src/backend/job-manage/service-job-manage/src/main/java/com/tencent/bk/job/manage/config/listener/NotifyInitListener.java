@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.config.listener;
 
 import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiV1Client;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
@@ -60,7 +60,7 @@ import java.util.List;
 @Profile("!test")
 public class NotifyInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final CmsiApiV1Client cmsiApiClient;
+    private final CmsiApiClient cmsiApiClient;
     private final GlobalSettingsService globalSettingsService;
     private final NotifyService notifyService;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
@@ -70,7 +70,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
-    public NotifyInitListener(CmsiApiV1Client cmsiApiClient,
+    public NotifyInitListener(CmsiApiClient cmsiApiClient,
                               GlobalSettingsService globalSettingsService,
                               NotifyService notifyService,
                               AvailableEsbChannelDAO availableEsbChannelDAO,

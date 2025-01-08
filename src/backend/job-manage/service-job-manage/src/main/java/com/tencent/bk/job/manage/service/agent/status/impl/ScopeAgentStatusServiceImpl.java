@@ -2,7 +2,7 @@ package com.tencent.bk.job.manage.service.agent.status.impl;
 
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
-import com.tencent.bk.job.common.gse.v2.GseV2ApiV1Client;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -22,10 +22,10 @@ import java.util.List;
 public class ScopeAgentStatusServiceImpl implements ScopeAgentStatusService {
 
     private final GseV1ApiClient gseV1ApiClient;
-    private final GseV2ApiV1Client gseV2ApiClient;
+    private final GseV2ApiClient gseV2ApiClient;
 
     public ScopeAgentStatusServiceImpl(@Autowired(required = false) GseV1ApiClient gseV1ApiClient,
-                                       @Autowired(required = false) GseV2ApiV1Client gseV2ApiClient) {
+                                       @Autowired(required = false) GseV2ApiClient gseV2ApiClient) {
         this.gseV1ApiClient = gseV1ApiClient;
         this.gseV2ApiClient = gseV2ApiClient;
     }

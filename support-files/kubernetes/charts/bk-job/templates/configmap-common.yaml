@@ -184,3 +184,5 @@ data:
         enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
+    tenant:
+      enabled:  {{ .Values.tenant.enabled }}

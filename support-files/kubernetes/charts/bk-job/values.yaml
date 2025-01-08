@@ -1812,3 +1812,6 @@ assembleConfig:
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60
+# 多租户配置
+tenant:
+  enabled: false

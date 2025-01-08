@@ -26,7 +26,8 @@ package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiV1Client;
+import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,11 +39,17 @@ import org.springframework.context.annotation.Configuration;
 public class CmsiAutoConfiguration {
 
     @Bean
-    public CmsiApiV1Client cmsiApiClient(AppProperties appProperties,
-                                         EsbProperties esbProperties,
-                                         ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+    public CmsiApiClient cmsiApiClient(AppProperties appProperties,
+                                       EsbProperties esbProperties,
+                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                       TenantEnvService tenantEnvService) {
         log.info("Init CmsiApiClient");
-        return new CmsiApiV1Client(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+        return new CmsiApiClient(
+            esbProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable(),
+            tenantEnvService
+        );
     }
 
 }

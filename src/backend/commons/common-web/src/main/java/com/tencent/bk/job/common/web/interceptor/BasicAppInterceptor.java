@@ -70,17 +70,17 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
 
     private final AppCacheService appCacheService;
 
-    private final AppResourceScopeParser webAppResourceScopeParser;
+    private final AppParser webAppParser;
 
-    private final AppResourceScopeParser esbAppResourceScopeParser;
+    private final AppParser esbAppParser;
 
-    private final AppResourceScopeParser internalAppResourceScopeParser;
+    private final AppParser internalAppParser;
 
     public BasicAppInterceptor(AppCacheService appCacheService) {
         this.appCacheService = appCacheService;
-        this.webAppResourceScopeParser = new WebAppResourceScopeParser();
-        this.esbAppResourceScopeParser = new EsbAppResourceScopeParser();
-        this.internalAppResourceScopeParser = new InternalAppResourceScopeParser();
+        this.webAppParser = new WebAppParser();
+        this.esbAppParser = new EsbAppParser();
+        this.internalAppParser = new InternalAppParser();
     }
 
     @Override
@@ -90,7 +90,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
         if (!shouldFilter(request)) {
             return true;
         }
-        addAppResourceScope(request);
+        addApp(request);
 
         return true;
     }
@@ -101,7 +101,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
 
-    private void addAppResourceScope(HttpServletRequest request) {
+    private void addApp(HttpServletRequest request) {
         HttpRequestSourceEnum requestSource = RequestUtil.parseHttpRequestSource(request);
         if (requestSource == HttpRequestSourceEnum.UNKNOWN) {
             return;
@@ -110,40 +110,42 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
         BasicApp app = null;
         switch (requestSource) {
             case WEB:
-                app = webAppResourceScopeParser.parseApp(request);
-                log.debug("Scope from web:{}", app);
+                app = webAppParser.parseApp(request);
                 break;
             case ESB:
-                app = esbAppResourceScopeParser.parseApp(request);
-                log.debug("Scope from esb:{}", app);
+                app = esbAppParser.parseApp(request);
                 break;
             case INTERNAL:
-                app = internalAppResourceScopeParser.parseApp(request);
-                log.debug("Scope from internal:{}", app);
+                app = internalAppParser.parseApp(request);
                 break;
             default:
-                log.debug("Ignore invalid scope: {}", requestSource);
+                log.debug("Ignore invalid app: {}", requestSource);
                 break;
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Parse app, requestSource: {}, app: {}", requestSource.name(), app);
+        }
+
         if (app != null) {
-            request.setAttribute("appResourceScope", app);
+            request.setAttribute("appResourceScope", app.getAppResourceScope());
             JobContextUtil.setApp(app);
         } else {
-            log.debug("AppResourceScope is empty");
+            log.debug("Parsed app is empty");
         }
     }
 
     /**
      * 从 http 请求中解析 BasicApp
      */
-    public interface AppResourceScopeParser {
+    public interface AppParser {
         BasicApp parseApp(HttpServletRequest request);
     }
 
     /**
-     * 从 http 请求中解析 AppResourceScope - Web 请求
+     * 从 http 请求中解析 BasicApp - Web 请求
      */
-    public class WebAppResourceScopeParser implements AppResourceScopeParser {
+    public class WebAppParser implements AppParser {
         @Override
         public BasicApp parseApp(HttpServletRequest request) {
             ResourceScope resourceScope = parseResourceScopeFromURI(request.getRequestURI());
@@ -165,9 +167,9 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
     }
 
     /**
-     * 从 http 请求中解析 AppResourceScope - ESB/蓝鲸网关请求
+     * 从 http 请求中解析 BasicApp - ESB/蓝鲸网关请求
      */
-    public class EsbAppResourceScopeParser implements AppResourceScopeParser {
+    public class EsbAppParser implements AppParser {
         @Override
         public BasicApp parseApp(HttpServletRequest request) {
             return parseAppResourceScopeFromQueryStringOrBody(request);
@@ -260,9 +262,9 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
     }
 
     /**
-     * 从 http 请求中解析 AppResourceScope - Job 内部请求
+     * 从 http 请求中解析 BasicApp - Job 内部请求
      */
-    public class InternalAppResourceScopeParser implements AppResourceScopeParser {
+    public class InternalAppParser implements AppParser {
         @Override
         public BasicApp parseApp(HttpServletRequest request) {
             // 优先从 path 解析

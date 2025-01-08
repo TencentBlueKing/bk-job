@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
@@ -132,7 +133,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
             request.mutate().header("username", new String[]{user.getUsername()}).build();
             String tenantId = tenantEnvService.isTenantEnabled() ? user.getTenantId() :
-                tenantEnvService.getDefaultTenantId();
+                TenantIdConstants.NON_TENANT_ENV_DEFAULT_TENANT_ID;
             request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };

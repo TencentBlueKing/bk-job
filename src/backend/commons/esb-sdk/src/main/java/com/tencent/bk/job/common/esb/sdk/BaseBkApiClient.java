@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.interceptor.LogBkApiRequestIdInterceptor;
@@ -35,6 +36,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
@@ -73,6 +75,7 @@ public class BaseBkApiClient {
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
+    private final TenantEnvService tenantEnvService;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
     /**
      * API调用度量指标名称
@@ -91,19 +94,22 @@ public class BaseBkApiClient {
     public BaseBkApiClient(MeterRegistry meterRegistry,
                            String metricName,
                            String baseAccessUrl,
-                           HttpHelper defaultHttpHelper) {
+                           HttpHelper defaultHttpHelper,
+                           TenantEnvService tenantEnvService) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
         this.baseAccessUrl = baseAccessUrl;
         this.defaultHttpHelper = defaultHttpHelper;
+        this.tenantEnvService = tenantEnvService;
     }
 
     public BaseBkApiClient(MeterRegistry meterRegistry,
                            String metricName,
                            String baseAccessUrl,
                            HttpHelper defaultHttpHelper,
-                           String lang) {
-        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper);
+                           String lang,
+                           TenantEnvService tenantEnvService) {
+        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, tenantEnvService);
         this.lang = lang;
     }
 
@@ -344,6 +350,14 @@ public class BaseBkApiClient {
     protected void handleResponseError(HttpResponse httpResponse, Object responseBody)
         throws BkOpenApiException {
         throw new BkOpenApiException(httpResponse.getStatusCode());
+    }
+
+    /**
+     * 获取 Open API 调用默认的租户 ID
+     */
+    protected String getDefaultTenant() {
+        return tenantEnvService.isTenantEnabled() ? TenantIdConstants.TENANT_ENV_SYSTEM_TENANT_ID
+            : TenantIdConstants.NON_TENANT_ENV_DEFAULT_TENANT_ID;
     }
 
 }

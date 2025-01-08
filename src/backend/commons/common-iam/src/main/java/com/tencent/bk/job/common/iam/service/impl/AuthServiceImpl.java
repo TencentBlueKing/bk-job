@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
+import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.constant.ActionInfo;
 import com.tencent.bk.job.common.iam.constant.Actions;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -70,7 +71,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final AuthHelper authHelper;
-    private final EsbIamV1Client iamClient;
+    private final EsbIamClient iamClient;
     private final MessageI18nService i18nService;
     private ResourceNameQueryService resourceNameQueryService;
 
@@ -78,13 +79,16 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            IamConfiguration iamConfiguration,
                            EsbProperties esbProperties,
                            MessageI18nService i18nService,
-                           MeterRegistry meterRegistry) {
+                           MeterRegistry meterRegistry,
+                           TenantEnvService tenantEnvService) {
         this.authHelper = authHelper;
         this.i18nService = i18nService;
-        this.iamClient = new EsbIamV1Client(
+        this.iamClient = new EsbIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
-            esbProperties);
+            esbProperties,
+            tenantEnvService
+        );
     }
 
     @Override

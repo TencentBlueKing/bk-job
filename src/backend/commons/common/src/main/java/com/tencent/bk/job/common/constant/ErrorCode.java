@@ -96,7 +96,7 @@ public class ErrorCode {
     // bk-login（蓝鲸登录） 接口调用异常
     public static final int BK_LOGIN_API_ERROR = 1219001;
 
-    // bk-user-manage（用户管理） 接口调用异常
+    // bk-user（用户管理） 接口调用异常
     public static final int BK_USER_MANAGE_API_ERROR = 1220001;
 
 

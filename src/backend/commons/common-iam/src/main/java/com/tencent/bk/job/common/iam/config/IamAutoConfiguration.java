@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.iam.service.impl.AuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.WebAuthServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
@@ -111,9 +112,10 @@ public class IamAutoConfiguration {
                                    IamConfiguration iamConfiguration,
                                    EsbProperties esbProperties,
                                    MessageI18nService i18nService,
-                                   ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                   ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                   TenantEnvService tenantEnvService) {
         return new AuthServiceImpl(authHelper, iamConfiguration, esbProperties, i18nService,
-            meterRegistryObjectProvider.getIfAvailable());
+            meterRegistryObjectProvider.getIfAvailable(), tenantEnvService);
     }
 
     @Bean
@@ -123,7 +125,8 @@ public class IamAutoConfiguration {
                                          PolicyService policyService,
                                          JobIamProperties jobIamProperties,
                                          EsbProperties esbProperties,
-                                         ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                         ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                         TenantEnvService tenantEnvService) {
         return new AppAuthServiceImpl(
             authHelper,
             businessAuthHelper,
@@ -131,7 +134,8 @@ public class IamAutoConfiguration {
             policyService,
             jobIamProperties,
             esbProperties,
-            meterRegistryObjectProvider.getIfAvailable()
+            meterRegistryObjectProvider.getIfAvailable(),
+            tenantEnvService
         );
     }
 

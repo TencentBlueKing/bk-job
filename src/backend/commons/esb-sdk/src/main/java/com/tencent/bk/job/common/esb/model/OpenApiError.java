@@ -43,6 +43,9 @@ public class OpenApiError {
      */
     private List<Map<String, Object>> details;
 
+    /**
+     * OpenApiError 自定义反序列化
+     */
     static class OpenApiErrorDeserializer extends JsonDeserializer<OpenApiError> {
         @Override
         public OpenApiError deserialize(JsonParser p, DeserializationContext ctx) throws IOException {
@@ -63,7 +66,7 @@ public class OpenApiError {
             if (BkErrorCodeEnum.IAM_NO_PERMISSION.getErrorCode().equals(code)) {
                 error.setData(mapper.treeToValue(node.get("data"), OpenApiApplyPermissionDTO.class));
             } else {
-                // 处理其他类型的 data
+                // 处理其他类型的 data，蓝鲸 API 规范暂未定义具体的 schema，所以直接设置为原始的 JsonNode
                 error.setData(node.get("data"));
             }
 

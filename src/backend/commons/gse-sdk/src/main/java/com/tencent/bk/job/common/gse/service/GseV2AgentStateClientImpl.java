@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.gse.service;
 
 import com.tencent.bk.job.common.gse.config.AgentStateQueryConfig;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
-import com.tencent.bk.job.common.gse.v2.GseV2ApiV1Client;
+import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -35,7 +35,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class GseV2AgentStateClientImpl extends SingleChannelAgentStateClientImpl {
 
     public GseV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                     GseV2ApiV1Client gseV2ApiClient,
+                                     GseV2ApiClient gseV2ApiClient,
                                      ThreadPoolExecutor threadPoolExecutor) {
         super(agentStateQueryConfig, gseV2ApiClient, threadPoolExecutor);
     }

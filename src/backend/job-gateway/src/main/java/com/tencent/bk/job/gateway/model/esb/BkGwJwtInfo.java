@@ -26,11 +26,13 @@ package com.tencent.bk.job.gateway.model.esb;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 
+/**
+ * 蓝鲸网关 JWT
+ */
 @Data
 @NoArgsConstructor
-public class EsbJwtInfo {
+public class BkGwJwtInfo {
     /**
      * jwt失效时间
      */
@@ -43,16 +45,11 @@ public class EsbJwtInfo {
      * 业务Code
      */
     private String appCode;
-    /**
-     * 租户 ID
-     */
-    private String tenantId;
 
-    public EsbJwtInfo(Long tokenExpireAt, String username, String appCode, String tenantId) {
+    public BkGwJwtInfo(Long tokenExpireAt, String username, String appCode) {
         this.tokenExpireAt = tokenExpireAt;
         this.username = username;
         this.appCode = appCode;
-        this.tenantId = tenantId;
     }
 
 }

@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.OpenApiResponse;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpResponse;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -42,12 +43,14 @@ public class BkApiV2Client extends BaseBkApiClient {
      * @param metricName        API http 请求指标名称
      * @param baseAccessUrl     API 服务访问地址
      * @param defaultHttpHelper http 请求处理客户端
+     * @param tenantEnvService  租户环境信息 Service
      */
     public BkApiV2Client(MeterRegistry meterRegistry,
                          String metricName,
                          String baseAccessUrl,
-                         HttpHelper defaultHttpHelper) {
-        super(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper);
+                         HttpHelper defaultHttpHelper,
+                         TenantEnvService tenantEnvService) {
+        super(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, tenantEnvService);
     }
 
     public <T, V> OpenApiResponse<V> request(OpenApiRequestInfo<T> requestInfo,

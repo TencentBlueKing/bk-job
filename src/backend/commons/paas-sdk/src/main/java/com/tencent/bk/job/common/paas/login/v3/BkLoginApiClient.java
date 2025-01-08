@@ -12,6 +12,7 @@ import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.OpenApiResponse;
 import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -39,14 +40,16 @@ public class BkLoginApiClient extends BkApiV2Client {
 
     public BkLoginApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                             AppProperties appProperties,
-                            MeterRegistry meterRegistry) {
+                            MeterRegistry meterRegistry,
+                            TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             BK_LOGIN_API,
             bkApiGatewayProperties.getBkLogin().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(
             appProperties.getCode(), appProperties.getSecret());
@@ -68,7 +71,7 @@ public class BkLoginApiClient extends BkApiV2Client {
                 .uri(API_URL_USERINFO)
                 .queryParams("bk_token=" + token)
                 .body(null)
-                // 登录相关 API ，需要写死租户 ID 为 system
+                // 该API 与租户无关，写死租户 ID 为 system以便通过蓝鲸网关验证
                 .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, "system"))
                 .authorization(authorization)
                 .build(),

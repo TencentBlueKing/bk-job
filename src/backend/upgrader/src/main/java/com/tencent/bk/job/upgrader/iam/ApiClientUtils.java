@@ -26,27 +26,36 @@ package com.tencent.bk.job.upgrader.iam;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.iam.client.EsbIamV1Client;
+import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 
 import java.util.Properties;
 
 public class ApiClientUtils {
 
-    public static EsbIamV1Client buildEsbIamClient(Properties properties) {
+    public static EsbIamClient buildEsbIamClient(Properties properties) {
         EsbProperties esbProperties = new EsbProperties();
         EsbProperties.EsbServiceConfig esbServiceConfig = new EsbProperties.EsbServiceConfig();
         esbServiceConfig.setUrl((String) properties.get(ParamNameConsts.CONFIG_PROPERTY_ESB_SERVICE_URL));
         esbProperties.setService(esbServiceConfig);
 
-        return new EsbIamV1Client(
+        return new EsbIamClient(
             null,
             new AppProperties(
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_CODE),
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
             ),
-            esbProperties
+            esbProperties,
+            new NonTenantEnvService()
         );
+    }
+
+    private static class NonTenantEnvService implements TenantEnvService {
+        @Override
+        public boolean isTenantEnabled() {
+            return false;
+        }
     }
 
 }

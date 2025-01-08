@@ -233,7 +233,12 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     }
 
     private void addTenantId(HttpServletRequest request) {
+        // 使用 job-gateway 设置的租户 Header
         String tenantId = request.getHeader(JobCommonHeaders.BK_TENANT_ID);
+        if (StringUtils.isEmpty(tenantId)) {
+            log.warn("Invalid request, tenant is not set");
+            return;
+        }
         log.debug("Add tenant id to JobContext, tenantId: {}", tenantId);
         JobContextUtil.setTenantId(tenantId);
     }

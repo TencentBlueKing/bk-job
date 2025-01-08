@@ -47,7 +47,7 @@
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeV1Client" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
@@ -57,7 +57,7 @@
         <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeV1Client" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
         </logger>
@@ -68,7 +68,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeV1Client" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>
@@ -80,7 +80,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
-        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeV1Client" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="notice-appender"/>
             <appender-ref ref="error-appender"/>

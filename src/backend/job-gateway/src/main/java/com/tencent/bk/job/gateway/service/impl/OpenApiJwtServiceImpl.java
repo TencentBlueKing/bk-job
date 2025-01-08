@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtPublicKeyService;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import io.jsonwebtoken.Claims;
@@ -67,7 +67,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
      */
     private static final String REQUEST_FROM_BK_API_GW = "bk-job-apigw";
 
-    private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
+    private final Cache<String, BkGwJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
@@ -157,7 +157,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     }
 
     @Override
-    public EsbJwtInfo extractFromJwt(String token) {
+    public BkGwJwtInfo extractFromJwt(String token) {
         if (requestFromApiGw()) {
             log.debug("Extract bkApiGateway jwt");
             return extractFromJwt(token, this.bkApiGatewayJwtPublicKey);
@@ -168,9 +168,9 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     }
 
     @Override
-    public EsbJwtInfo extractFromJwt(String token, PublicKey publicKey) {
+    public BkGwJwtInfo extractFromJwt(String token, PublicKey publicKey) {
         long start = System.currentTimeMillis();
-        EsbJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
+        BkGwJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
         if (cacheJwtInfo != null) {
             Long tokenExpireAt = cacheJwtInfo.getTokenExpireAt();
             // 如果未超时
@@ -179,14 +179,13 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             }
         }
 
-        EsbJwtInfo esbJwtInfo;
+        BkGwJwtInfo bkGwJwtInfo;
         try {
             Claims claims = Jwts.parser()
                 .setSigningKey(publicKey)
                 .parseClaimsJws(token)
                 .getBody();
             String appCode = null;
-            String tenantId = null;
             String username = null;
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
@@ -200,7 +199,6 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                     return null;
                 }
                 appCode = extractAppCode(appProps);
-                tenantId = extractAppTenantId(appProps);
             }
 
             if (claims.get("user") != null) {
@@ -210,9 +208,6 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                     return null;
                 }
                 username = extractUsername(userProps);
-                if (tenantId == null) {
-                    tenantId = extractUserTenantId(userProps);
-                }
             }
 
             Date expireAt = claims.get("exp", Date.class);
@@ -220,8 +215,8 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                 log.warn("Invalid JWT token, exp is null!");
                 return null;
             }
-            esbJwtInfo = new EsbJwtInfo(expireAt.getTime(), username, appCode, tenantId);
-            tokenCache.put(token, esbJwtInfo);
+            bkGwJwtInfo = new BkGwJwtInfo(expireAt.getTime(), username, appCode);
+            tokenCache.put(token, bkGwJwtInfo);
         } catch (Exception e) {
             log.warn("Verify jwt caught exception", e);
             if (log.isDebugEnabled()) {
@@ -234,7 +229,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                 log.warn("Verify jwt cost too much, cost:{}", cost);
             }
         }
-        return esbJwtInfo;
+        return bkGwJwtInfo;
     }
 
     private String extractAppCode(LinkedHashMap appProps) {
@@ -243,17 +238,6 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             appCode = (String) appProps.get("bk_app_code");
         }
         return appCode;
-    }
-
-    /**
-     * 应用态 API，从 app 信息中获取租户 ID
-     *
-     * @param appProps 应用信息
-     * @return 租户 ID
-     */
-    private String extractAppTenantId(LinkedHashMap appProps) {
-        Object tenantId = appProps.get("tenant_id");
-        return tenantId != null ? (String) tenantId : null;
     }
 
     /**
@@ -268,17 +252,6 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             username = (String) userProps.get("bk_username");
         }
         return username;
-    }
-
-    /**
-     * 用户态 API，从 user 信息中获取租户 ID
-     *
-     * @param userProps 用户信息
-     * @return 租户 ID
-     */
-    private String extractUserTenantId(LinkedHashMap userProps) {
-        Object tenantId = userProps.get("tenant_id");
-        return tenantId != null ? (String) tenantId : null;
     }
 
     // 请求是否来自蓝鲸网关

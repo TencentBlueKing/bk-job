@@ -80,7 +80,8 @@ public class UserMgrApiClient extends BkApiV2Client {
         super(meterRegistry,
             USER_MANAGE_API,
             bkApiGatewayProperties.getBkUser().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper()
+            HttpHelperFactory.getRetryableHttpHelper(),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret());
@@ -157,7 +158,7 @@ public class UserMgrApiClient extends BkApiV2Client {
                 .builder()
                 .method(HttpMethodEnum.GET)
                 .uri("/api/v3/open/tenants")
-                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantEnvService.getDefaultTenantId()))
+                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, getDefaultTenant()))
                 .authorization(authorization)
                 .build(),
             request -> doRequest(request, new TypeReference<OpenApiResponse<List<OpenApiTenant>>>() {

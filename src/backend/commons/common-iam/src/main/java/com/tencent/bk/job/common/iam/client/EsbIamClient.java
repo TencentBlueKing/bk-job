@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -64,7 +65,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.IAM_API;
  * IAM API 调用客户端
  */
 @Slf4j
-public class EsbIamV1Client extends BkApiV1Client implements IIamClient {
+public class EsbIamClient extends BkApiV1Client implements IIamClient {
 
     private static final String API_GET_APPLY_URL = "/api/c/compapi/v2/iam/application/";
     private static final String API_REGISTER_RESOURCE_URL =
@@ -76,16 +77,18 @@ public class EsbIamV1Client extends BkApiV1Client implements IIamClient {
 
     private final BkApiAuthorization authorization;
 
-    public EsbIamV1Client(MeterRegistry meterRegistry,
-                          AppProperties appProperties,
-                          EsbProperties esbProperties) {
+    public EsbIamClient(MeterRegistry meterRegistry,
+                        AppProperties appProperties,
+                        EsbProperties esbProperties,
+                        TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             IAM_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");

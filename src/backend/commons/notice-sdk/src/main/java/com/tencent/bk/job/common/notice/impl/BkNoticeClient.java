@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.exception.BkNoticeException;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -50,7 +51,7 @@ import org.apache.http.HttpStatus;
 import java.util.List;
 
 @SuppressWarnings("SameParameterValue")
-public class BkNoticeV1Client extends BkApiV1Client implements IBkNoticeClient {
+public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
 
     private static final String URI_REGISTER_APPLICATION = "/apigw/v1/register/";
     private static final String URI_GET_CURRENT_ANNOUNCEMENTS = "/apigw/v1/announcement/get_current_announcements/";
@@ -58,16 +59,18 @@ public class BkNoticeV1Client extends BkApiV1Client implements IBkNoticeClient {
     private final AppProperties appProperties;
     private final BkApiAuthorization authorization;
 
-    public BkNoticeV1Client(MeterRegistry meterRegistry,
-                            AppProperties appProperties,
-                            BkApiGatewayProperties bkApiGatewayProperties) {
+    public BkNoticeClient(MeterRegistry meterRegistry,
+                          AppProperties appProperties,
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             CommonMetricNames.BK_NOTICE_API,
             getBkNoticeUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.appProperties = appProperties;
         authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());

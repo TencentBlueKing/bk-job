@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.paas.login.CustomLoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.common.paas.login.StandardLoginClient;
 import com.tencent.bk.job.common.paas.login.v3.BkLoginApiClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -56,10 +57,11 @@ public class LoginAutoConfiguration {
     @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
     public BkLoginApiClient bkLoginApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                                              AppProperties appProperties,
-                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                             TenantEnvService tenantEnvService) {
         log.info("Init LoginApiClient");
         return new BkLoginApiClient(bkApiGatewayProperties, appProperties,
-            meterRegistryObjectProvider.getIfAvailable());
+            meterRegistryObjectProvider.getIfAvailable(), tenantEnvService);
     }
 
     @Bean

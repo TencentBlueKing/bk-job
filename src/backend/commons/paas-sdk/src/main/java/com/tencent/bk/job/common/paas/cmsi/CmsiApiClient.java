@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -57,23 +58,25 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiV1Client extends BkApiV1Client {
+public class CmsiApiClient extends BkApiV1Client {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
     private final BkApiAuthorization authorization;
 
-    public CmsiApiV1Client(EsbProperties esbProperties,
-                           AppProperties appProperties,
-                           MeterRegistry meterRegistry) {
+    public CmsiApiClient(EsbProperties esbProperties,
+                         AppProperties appProperties,
+                         MeterRegistry meterRegistry,
+                         TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");

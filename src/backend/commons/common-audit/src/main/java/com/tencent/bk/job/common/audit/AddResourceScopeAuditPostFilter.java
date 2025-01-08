@@ -43,7 +43,7 @@ public class AddResourceScopeAuditPostFilter implements AuditPostFilter {
             return null;
         }
         BasicApp app = JobContextUtil.getApp();
-        if (app != null) {
+        if (app != null && app.getScope() != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Add resource scope for audit event, resourceScope: {}", app.getScope());
             }

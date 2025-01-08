@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -134,20 +135,23 @@ public class BaseCmdbApiClient {
                                 BkApiGatewayProperties bkApiGatewayProperties,
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
+                                TenantEnvService tenantEnvService,
                                 String lang) {
         WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
         this.esbCmdbApiClient = new BkApiV1Client(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
             httpHelper,
-            lang
+            lang,
+            tenantEnvService
         );
         this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.apiGwCmdbApiClient = new BkApiV1Client(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
             httpHelper,
-            lang
+            lang,
+            tenantEnvService
         );
         this.apiGwCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.globalFlowController = flowController;

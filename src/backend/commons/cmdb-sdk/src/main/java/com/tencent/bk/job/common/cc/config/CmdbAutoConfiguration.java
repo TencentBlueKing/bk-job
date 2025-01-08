@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +99,8 @@ public class CmdbAutoConfiguration {
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                        MeterRegistry meterRegistry,
-                                       ObjectProvider<FlowController> flowControllerProvider) {
+                                       ObjectProvider<FlowController> flowControllerProvider,
+                                       TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
             esbProperties,
@@ -108,7 +110,8 @@ public class CmdbAutoConfiguration {
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 
@@ -120,7 +123,8 @@ public class CmdbAutoConfiguration {
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                          MeterRegistry meterRegistry,
-                                         ObjectProvider<FlowController> flowControllerProvider) {
+                                         ObjectProvider<FlowController> flowControllerProvider,
+                                         TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
             esbProperties,
@@ -130,7 +134,8 @@ public class CmdbAutoConfiguration {
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 
@@ -140,14 +145,16 @@ public class CmdbAutoConfiguration {
                                              BkApiGatewayProperties bkApiGatewayProperties,
                                              CmdbConfig cmdbConfig,
                                              MeterRegistry meterRegistry,
-                                             ObjectProvider<FlowController> flowControllerProvider) {
+                                             ObjectProvider<FlowController> flowControllerProvider,
+                                             TenantEnvService tenantEnvService) {
         return new BizSetCmdbClient(
             appProperties,
             esbProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 

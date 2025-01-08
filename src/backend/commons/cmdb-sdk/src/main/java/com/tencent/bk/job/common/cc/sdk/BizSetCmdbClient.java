@@ -51,6 +51,7 @@ import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -77,9 +78,10 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
                             BkApiGatewayProperties bkApiGatewayProperties,
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
-                            MeterRegistry meterRegistry) {
+                            MeterRegistry meterRegistry,
+                            TenantEnvService tenantEnvService) {
         super(flowController, appProperties, esbProperties,
-            bkApiGatewayProperties, cmdbConfig, meterRegistry, null);
+            bkApiGatewayProperties, cmdbConfig, meterRegistry, tenantEnvService, null);
     }
 
     /**

@@ -31,8 +31,13 @@ public class BasicApp {
      */
     private String tenantId;
 
+    private AppResourceScope appResourceScope;
+
     public AppResourceScope getAppResourceScope() {
-        return new AppResourceScope(id, scope);
+        if (appResourceScope == null) {
+            appResourceScope = new AppResourceScope(id, scope);
+        }
+        return appResourceScope;
     }
 
     @Override

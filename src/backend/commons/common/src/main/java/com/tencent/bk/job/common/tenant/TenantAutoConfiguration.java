@@ -34,6 +34,6 @@ public class TenantAutoConfiguration {
 
     @Bean
     public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
-        return new TenantEnvService(tenantProperties);
+        return new TenantEnvServiceImpl(tenantProperties);
     }
 }
