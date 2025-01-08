@@ -40,7 +40,7 @@ public class JobCrontabConfiguration {
     }
 
     @Bean
-    public BasicAppInterceptor appResourceScopeInterceptor(AppCacheService appCacheService) {
+    public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
         return new BasicAppInterceptor(appCacheService);
     }
 }

@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 用户服务
+ * 用户信息缓存服务
  */
-public interface UserService {
+public interface UserCacheService {
     void saveUser(BkUserDTO user);
 
     int deleteUser(String username);

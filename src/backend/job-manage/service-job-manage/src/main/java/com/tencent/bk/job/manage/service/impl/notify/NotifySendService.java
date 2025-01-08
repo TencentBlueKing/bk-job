@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.UserService;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -47,15 +47,15 @@ public class NotifySendService {
     //发通知专用线程池
     private final ThreadPoolExecutor notifySendExecutor;
     private final WatchableSendMsgService watchableSendMsgService;
-    private final UserService userService;
+    private final UserCacheService userCacheService;
 
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
-                             UserService userService,
+                             UserCacheService userCacheService,
                              @Qualifier("notifySendExecutor") ThreadPoolExecutor notifySendExecutor,
                              MeterRegistry meterRegistry) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.userService = userService;
+        this.userCacheService = userCacheService;
         this.notifySendExecutor = notifySendExecutor;
         measureNotifySendExecutor(meterRegistry);
     }
@@ -90,7 +90,7 @@ public class NotifySendService {
             .title(title)
             .content(content)
             .build();
-        task.bindService(watchableSendMsgService, userService);
+        task.bindService(watchableSendMsgService, userCacheService);
         return task;
     }
 

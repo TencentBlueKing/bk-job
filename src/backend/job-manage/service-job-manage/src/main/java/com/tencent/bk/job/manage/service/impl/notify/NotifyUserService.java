@@ -31,7 +31,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import com.tencent.bk.job.manage.service.UserService;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -49,13 +49,13 @@ import java.util.stream.Collectors;
 public class NotifyUserService {
 
     private final NotifyBlackUserInfoDAO notifyBlackUserInfoDAO;
-    private final UserService userService;
+    private final UserCacheService userCacheService;
 
     @Autowired
     public NotifyUserService(NotifyBlackUserInfoDAO notifyBlackUserInfoDAO,
-                             UserService userService) {
+                             UserCacheService userCacheService) {
         this.notifyBlackUserInfoDAO = notifyBlackUserInfoDAO;
-        this.userService = userService;
+        this.userCacheService = userCacheService;
     }
 
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(Integer start, Integer pageSize) {
@@ -149,9 +149,9 @@ public class NotifyUserService {
             while (userNames.contains("")) {
                 userNames.remove("");
             }
-            return userService.listUsersByUsernames(null, userNames);
+            return userCacheService.listUsersByUsernames(null, userNames);
         } else {
-            return userService.listUsersByDisplayNamePrefix(null, prefixStr, -1L);
+            return userCacheService.listUsersByDisplayNamePrefix(null, prefixStr, -1L);
         }
     }
 

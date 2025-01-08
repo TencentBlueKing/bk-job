@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.manage.service.UserService;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class SendNotifyTask implements Runnable {
     private final int NOTIFY_MAX_RETRY_COUNT = 1;
 
     private WatchableSendMsgService watchableSendMsgService;
-    private UserService userService;
+    private UserCacheService userCacheService;
 
     private final Long appId;
     private final long createTimeMillis;
@@ -58,9 +58,9 @@ public class SendNotifyTask implements Runnable {
     private Set<String> validReceivers;
 
     public void bindService(WatchableSendMsgService watchableSendMsgService,
-                            UserService userService) {
+                            UserCacheService userCacheService) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.userService = userService;
+        this.userCacheService = userCacheService;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class SendNotifyTask implements Runnable {
 
     private void pickValidReceivers() {
         // TODO 需要加入租户 ID
-        List<String> existUserNameList = userService.listExistUserName(null, receivers);
+        List<String> existUserNameList = userCacheService.listExistUserName(null, receivers);
         validReceivers = new HashSet<>(existUserNameList);
     }
 

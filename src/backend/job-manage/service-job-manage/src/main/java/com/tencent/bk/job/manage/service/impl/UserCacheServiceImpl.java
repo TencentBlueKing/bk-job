@@ -3,7 +3,7 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.UserDAO;
-import com.tencent.bk.job.manage.service.UserService;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +13,11 @@ import java.util.Set;
 
 @Slf4j
 @Service
-public class UserServiceImpl implements UserService {
+public class UserCacheServiceImpl implements UserCacheService {
 
     private final UserDAO userDAO;
 
-    public UserServiceImpl(UserDAO userDAO) {
+    public UserCacheServiceImpl(UserDAO userDAO) {
         this.userDAO = userDAO;
     }
 

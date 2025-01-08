@@ -30,18 +30,16 @@ import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.manage.service.UserService;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,14 +67,14 @@ public class UserSyncService {
     private final String REDIS_KEY_SYNC_USER_JOB_RUNNING_MACHINE = "sync-user-job-running-machine";
     private final RedisTemplate<String, String> redisTemplate;
     private final UserMgrApiClient userMgrApiClient;
-    private final UserService userService;
+    private final UserCacheService userCacheService;
 
     @Autowired
     public UserSyncService(UserMgrApiClient userMgrApiClient,
-                           UserService userService,
+                           UserCacheService userCacheService,
                            RedisTemplate<String, String> redisTemplate) {
         this.userMgrApiClient = userMgrApiClient;
-        this.userService = userService;
+        this.userCacheService = userCacheService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -105,6 +103,7 @@ public class UserSyncService {
         userSyncRedisKeyHeartBeatThread.setName("userSyncRedisKeyHeartBeatThread");
         userSyncRedisKeyHeartBeatThread.start();
         log.info("Begin sync all tenant users");
+        boolean isAllSuccess = true;
         try {
             List<OpenApiTenant> allTenants = userMgrApiClient.listAllTenant();
             if (CollectionUtils.isEmpty(allTenants)) {
@@ -114,35 +113,30 @@ public class UserSyncService {
                     allTenants.stream().map(OpenApiTenant::getId).collect(Collectors.toList()));
             }
             for (OpenApiTenant tenant : allTenants) {
-                syncUsersByTenant(tenant.getId());
+                boolean isSuccess = syncUsersByTenant(tenant.getId());
+                isAllSuccess = isAllSuccess && isSuccess;
             }
 
         } catch (Throwable t) {
             log.error("FATAL: syncUser thread fail", t);
         } finally {
             userSyncRedisKeyHeartBeatThread.setRunFlag(false);
+            log.info("Sync all tenant users done, result: {}", isAllSuccess);
         }
         return true;
     }
 
-    private void syncUsersByTenant(String tenantId) {
+    private boolean syncUsersByTenant(String tenantId) {
         log.info("Sync user by tenant : {}", tenantId);
-
-        StopWatch watch = new StopWatch("syncUserByTenant");
-        watch.start("total");
+        boolean isSuccess = true;
         try {
-            // 1.接口数据拉取
+            // 1.获取租户下的所有用户列表
             List<BkUserDTO> remoteUserList = userMgrApiClient.getAllUserList(tenantId);
-            if (remoteUserList.isEmpty()) {
-                log.warn("[{}] Fail to fetch remote userInfo, return", tenantId);
-                return;
-            }
-            // 2.组装
-            Set<BkUserDTO> remoteUserSet = new HashSet<>(remoteUserList);
+            Set<BkUserDTO> remoteUserSet = CollectionUtils.isEmpty(remoteUserList) ?
+                Collections.emptySet(): new HashSet<>(remoteUserList);
 
-            // 3.计算差异数据
-            Set<BkUserDTO> localUserSet = new HashSet<>(userService.listTenantUsers(tenantId));
-            remoteUserSet.removeAll(localUserSet);
+            // 2.计算差异数据
+            Set<BkUserDTO> localUserSet = new HashSet<>(userCacheService.listTenantUsers(tenantId));
             Set<BkUserDTO> addUsers = remoteUserSet.stream()
                 .filter(user -> !localUserSet.contains(user)).collect(Collectors.toSet());
             log.info("[{}] New users : {}",
@@ -154,15 +148,12 @@ public class UserSyncService {
                 tenantId,
                 deleteUsers.stream().map(BkUserDTO::getFullName).collect(Collectors.joining(",")));
 
-            // 4.入库
-            userService.batchPatchUsers(deleteUsers, addUsers);
+            // 3.保存
+            userCacheService.batchPatchUsers(deleteUsers, addUsers);
         } catch (Throwable t) {
             log.error("Sync user fail", t);
-        } finally {
-            if (watch.isRunning()) {
-                watch.stop();
-            }
-            log.info("[{}] Sync user time consuming: {}", tenantId, watch);
+            isSuccess = false;
         }
+        return isSuccess;
     }
 }

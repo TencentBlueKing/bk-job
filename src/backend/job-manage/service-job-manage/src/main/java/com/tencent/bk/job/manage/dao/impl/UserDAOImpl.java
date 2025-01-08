@@ -39,7 +39,8 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void saveUser(BkUserDTO user) {
         dslContext
-            .insertInto(T_USER,
+            .insertInto(
+                T_USER,
                 T_USER.USERNAME,
                 T_USER.DISPLAY_NAME,
                 T_USER.TENANT_ID,
@@ -62,7 +63,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<BkUserDTO> listTenantUsers(String tenantId) {
-        Result<Record> result = dslContext.select(ALL_FIELDS)
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
             .fetch();
@@ -82,7 +84,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<BkUserDTO> listUsersByDisplayNamePrefix(String tenantId, String prefixStr, Long limit) {
-        Result<Record> result = dslContext.select(ALL_FIELDS)
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
             .and(T_USER.DISPLAY_NAME.startsWith(prefixStr))
@@ -95,7 +98,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames) {
-        Result<Record> result = dslContext.select(ALL_FIELDS)
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
             .and(T_USER.USERNAME.in(usernames))
@@ -108,7 +112,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<String> listExistUserName(String tenantId, Collection<String> usernames) {
-        Result<Record> result = dslContext.select(ALL_FIELDS)
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
             .and(T_USER.USERNAME.in(usernames))
