@@ -129,7 +129,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
             }
         } else {
             // 如果未开启多租户特性，设置默认租户 default（蓝鲸约定）
-            return TenantIdConstants.NON_TENANT_ENV_DEFAULT_TENANT_ID;
+            return TenantIdConstants.DEFAULT_TENANT_ID;
         }
     }
 

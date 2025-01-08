@@ -133,7 +133,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
             request.mutate().header("username", new String[]{user.getUsername()}).build();
             String tenantId = tenantEnvService.isTenantEnabled() ? user.getTenantId() :
-                TenantIdConstants.NON_TENANT_ENV_DEFAULT_TENANT_ID;
+                TenantIdConstants.DEFAULT_TENANT_ID;
             request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };

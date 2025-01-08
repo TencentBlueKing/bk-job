@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
@@ -158,7 +159,7 @@ public class UserMgrApiClient extends BkApiV2Client {
                 .builder()
                 .method(HttpMethodEnum.GET)
                 .uri("/api/v3/open/tenants")
-                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, getDefaultTenant()))
+                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID))
                 .authorization(authorization)
                 .build(),
             request -> doRequest(request, new TypeReference<OpenApiResponse<List<OpenApiTenant>>>() {

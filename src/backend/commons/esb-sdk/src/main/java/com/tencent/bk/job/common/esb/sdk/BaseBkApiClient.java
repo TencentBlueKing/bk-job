@@ -298,8 +298,31 @@ public class BaseBkApiClient {
             headers.addAll(requestInfo.getHeaders());
         }
 
+        checkTenantHeader(headers);
+
         Header[] headerArray = new Header[headers.size()];
         return headers.toArray(headerArray);
+    }
+
+    /**
+     * 检查调用蓝鲸 Open API 的请求是否包含租户 header
+     *
+     * @param headers 请求 headers
+     */
+    private void checkTenantHeader(List<Header> headers) {
+        boolean containsTenantHeader = headers.stream()
+            .anyMatch(header -> header.getName().equalsIgnoreCase(JobCommonHeaders.BK_TENANT_ID));
+        if (!containsTenantHeader) {
+            if (tenantEnvService.isTenantEnabled()) {
+                // 临时方案，为了尽快联调；后续这里需要抛出异常
+                log.warn("Add default tenant header : {}", TenantIdConstants.DEFAULT_TENANT_ID);
+                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+//                throw new InternalException("Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
+//                        ErrorCode.API_ERROR);
+            } else {
+                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+            }
+        }
     }
 
     private Header buildBkApiAuthorizationHeader(BkApiAuthorization authorization) {
@@ -350,14 +373,6 @@ public class BaseBkApiClient {
     protected void handleResponseError(HttpResponse httpResponse, Object responseBody)
         throws BkOpenApiException {
         throw new BkOpenApiException(httpResponse.getStatusCode());
-    }
-
-    /**
-     * 获取 Open API 调用默认的租户 ID
-     */
-    protected String getDefaultTenant() {
-        return tenantEnvService.isTenantEnabled() ? TenantIdConstants.TENANT_ENV_SYSTEM_TENANT_ID
-            : TenantIdConstants.NON_TENANT_ENV_DEFAULT_TENANT_ID;
     }
 
 }
