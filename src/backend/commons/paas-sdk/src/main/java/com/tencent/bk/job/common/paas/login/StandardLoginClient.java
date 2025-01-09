@@ -39,7 +39,7 @@ public class StandardLoginClient implements ILoginClient {
     }
 
     /**
-     * 获取指定用户信息
+     * 根据 token 获取指定用户信息
      *
      * @param bkToken 用户登录 token
      * @return 用户信息
