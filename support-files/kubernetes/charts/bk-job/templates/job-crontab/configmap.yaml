@@ -101,6 +101,9 @@ data:
                 class: org.quartz.simpl.RAMJobStore
                 misfireThreshold: 60000
               plugin:
+                shutdownhook:
+                  class: org.quartz.plugins.management.ShutdownHookPlugin
+                  cleanShutdown: true
                 triggHistory:
                   class: org.quartz.plugins.history.LoggingJobHistoryPlugin
               scheduler:
