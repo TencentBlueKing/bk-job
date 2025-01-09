@@ -773,8 +773,15 @@ public class TaskInstanceExecuteObjectProcessor {
         // 处理主机执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistHosts())) {
             if (shouldIgnoreInvalidHost(taskInstance)) {
-                // 忽略主机不存在错误，并标识执行对象的 invalid 属性为 true
-                markExecuteObjectInvalid(stepInstanceList, taskInstanceExecuteObjects.getNotExistHosts());
+                if (taskInstanceExecuteObjects.getNotExistHosts().stream().anyMatch(host -> host.getHostId() == null)) {
+                    // 由于历史原因，部分定时任务使用了管控区域ID:Ipv4 作为主机 ID，并且这部分主机已经不存在于 cmdb，所以无法
+                    // 正确获取到对应的 hostId，会导致后续报错；所以这里直接对外抛出错误，不再继续兼容处理
+                    invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
+                        .map(this::printHostIdOrIp).collect(Collectors.toList()));
+                } else {
+                    // 忽略主机不存在错误，并标识执行对象的 invalid 属性为 true
+                    markExecuteObjectInvalid(stepInstanceList, taskInstanceExecuteObjects.getNotExistHosts());
+                }
             } else {
                 invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
                     .map(this::printHostIdOrIp).collect(Collectors.toList()));
