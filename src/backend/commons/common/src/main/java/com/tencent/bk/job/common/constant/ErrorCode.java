@@ -58,11 +58,8 @@ public class ErrorCode {
     // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
     public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
 
-    // PaaS异常
     // CMSI接口访问异常
     public static final int CMSI_API_ACCESS_ERROR = 1213001;
-    // 用户管理接口访问异常
-    public static final int USER_MANAGE_API_ACCESS_ERROR = 1213002;
     // 调用CMSI接口获取通知渠道数据异常
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
     // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
@@ -95,6 +92,13 @@ public class ErrorCode {
     public static final int BK_OPEN_AI_API_DATA_ERROR = 1218002;
     // 蓝鲸OpenAI接口数据超时
     public static final int BK_OPEN_AI_API_DATA_TIMEOUT = 1218003;
+
+    // bk-login（蓝鲸登录） 接口调用异常
+    public static final int BK_LOGIN_API_ERROR = 1219001;
+
+    // bk-user（用户管理） 接口调用异常
+    public static final int BK_USER_MANAGE_API_ERROR = 1220001;
+
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试

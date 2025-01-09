@@ -25,8 +25,9 @@
 package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -39,10 +40,16 @@ public class UserMgrAutoConfiguration {
 
     @Bean
     public UserMgrApiClient userMgrApiClient(AppProperties appProperties,
-                                             EsbProperties esbProperties,
-                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                             BkApiGatewayProperties bkApiGatewayProperties,
+                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                             TenantEnvService tenantEnvService) {
         log.info("Init UserMgrApiClient");
-        return new UserMgrApiClient(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+        return new UserMgrApiClient(
+            bkApiGatewayProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable(),
+            tenantEnvService
+        );
     }
 
 }

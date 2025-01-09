@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtPublicKeyService;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import io.jsonwebtoken.Claims;
@@ -67,7 +67,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
      */
     private static final String REQUEST_FROM_BK_API_GW = "bk-job-apigw";
 
-    private final Cache<String, EsbJwtInfo> tokenCache = CacheBuilder.newBuilder()
+    private final Cache<String, BkGwJwtInfo> tokenCache = CacheBuilder.newBuilder()
         .maximumSize(99999).expireAfterWrite(30, TimeUnit.SECONDS).build();
 
     @Autowired
@@ -157,7 +157,7 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     }
 
     @Override
-    public EsbJwtInfo extractFromJwt(String token) {
+    public BkGwJwtInfo extractFromJwt(String token) {
         if (requestFromApiGw()) {
             log.debug("Extract bkApiGateway jwt");
             return extractFromJwt(token, this.bkApiGatewayJwtPublicKey);
@@ -168,9 +168,9 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     }
 
     @Override
-    public EsbJwtInfo extractFromJwt(String token, PublicKey publicKey) {
+    public BkGwJwtInfo extractFromJwt(String token, PublicKey publicKey) {
         long start = System.currentTimeMillis();
-        EsbJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
+        BkGwJwtInfo cacheJwtInfo = tokenCache.getIfPresent(token);
         if (cacheJwtInfo != null) {
             Long tokenExpireAt = cacheJwtInfo.getTokenExpireAt();
             // 如果未超时
@@ -179,13 +179,14 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
             }
         }
 
-        EsbJwtInfo esbJwtInfo;
+        BkGwJwtInfo bkGwJwtInfo;
         try {
             Claims claims = Jwts.parser()
                 .setSigningKey(publicKey)
                 .parseClaimsJws(token)
                 .getBody();
-            String appCode = "";
+            String appCode = null;
+            String username = null;
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);
                 if (appProps == null) {
@@ -193,39 +194,29 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                     return null;
                 }
                 boolean isVerified = appProps.get("verified") != null && (boolean) appProps.get("verified");
-                appCode = (String) appProps.get("app_code");
-                if (StringUtils.isEmpty(appCode)) {
-                    appCode = (String) appProps.get("bk_app_code");
-                }
-                if (!isVerified || StringUtils.isEmpty(appCode)) {
-                    log.warn("App code not verified or empty, isVerified:{}, jwtAppCode:{}", isVerified, appCode);
+                if (!isVerified) {
+                    log.warn("App info not verified");
                     return null;
                 }
+                appCode = extractAppCode(appProps);
             }
 
-            String username = "";
             if (claims.get("user") != null) {
                 LinkedHashMap userProps = claims.get("user", LinkedHashMap.class);
                 if (userProps == null) {
                     log.warn("Invalid JWT token, user is null!");
                     return null;
                 }
-                username = (String) userProps.get("username");
-                if (StringUtils.isEmpty(username)) {
-                    username = (String) userProps.get("bk_username");
-                }
-                if (StringUtils.isEmpty(username)) {
-                    log.warn("Username is empty!");
-                    return null;
-                }
+                username = extractUsername(userProps);
             }
+
             Date expireAt = claims.get("exp", Date.class);
             if (expireAt == null) {
                 log.warn("Invalid JWT token, exp is null!");
                 return null;
             }
-            esbJwtInfo = new EsbJwtInfo(expireAt.getTime(), username, appCode);
-            tokenCache.put(token, esbJwtInfo);
+            bkGwJwtInfo = new BkGwJwtInfo(expireAt.getTime(), username, appCode);
+            tokenCache.put(token, bkGwJwtInfo);
         } catch (Exception e) {
             log.warn("Verify jwt caught exception", e);
             if (log.isDebugEnabled()) {
@@ -238,7 +229,29 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
                 log.warn("Verify jwt cost too much, cost:{}", cost);
             }
         }
-        return esbJwtInfo;
+        return bkGwJwtInfo;
+    }
+
+    private String extractAppCode(LinkedHashMap appProps) {
+        String appCode = (String) appProps.get("app_code");
+        if (StringUtils.isEmpty(appCode)) {
+            appCode = (String) appProps.get("bk_app_code");
+        }
+        return appCode;
+    }
+
+    /**
+     * 获取用户账号 ID
+     *
+     * @param userProps 用户信息
+     * @return 用户账号 ID
+     */
+    private String extractUsername(LinkedHashMap userProps) {
+        String username = (String) userProps.get("username");
+        if (StringUtils.isEmpty(username)) {
+            username = (String) userProps.get("bk_username");
+        }
+        return username;
     }
 
     // 请求是否来自蓝鲸网关

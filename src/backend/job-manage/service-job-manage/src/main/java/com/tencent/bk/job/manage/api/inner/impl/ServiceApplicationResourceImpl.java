@@ -110,6 +110,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             attrs.setSubBizIds(appInfo.getAttrs().getSubBizIds());
             app.setAttrs(attrs);
         }
+        app.setTenantId(appInfo.getTenantId());
         return app;
     }
 

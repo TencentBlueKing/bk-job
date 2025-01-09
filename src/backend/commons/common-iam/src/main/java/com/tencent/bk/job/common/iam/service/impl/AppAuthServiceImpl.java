@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.constants.ExpressionOperationEnum;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -77,7 +78,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
                               PolicyService policyService,
                               JobIamProperties jobIamProperties,
                               EsbProperties esbProperties,
-                              MeterRegistry meterRegistry) {
+                              MeterRegistry meterRegistry,
+                              TenantEnvService tenantEnvService) {
         this.authHelper = authHelper;
         this.businessAuthHelper = businessAuthHelper;
         this.policyService = policyService;
@@ -85,7 +87,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         this.iamClient = new EsbIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
-            esbProperties);
+            esbProperties,
+            tenantEnvService);
     }
 
     @Override

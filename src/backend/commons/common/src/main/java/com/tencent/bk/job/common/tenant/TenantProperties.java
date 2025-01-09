@@ -22,30 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.model.esb;
+package com.tencent.bk.job.common.tenant;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Data
-@NoArgsConstructor
-public class EsbJwtInfo {
+/**
+ * 多租户配置
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "tenant")
+public class TenantProperties {
     /**
-     * jwt失效时间
+     * 是否支持多租户
      */
-    private Long tokenExpireAt;
-    /**
-     * 用户名
-     */
-    private String username;
-    /**
-     * 业务Code
-     */
-    private String appCode;
-
-    public EsbJwtInfo(Long tokenExpireAt, String username, String appCode) {
-        this.tokenExpireAt = tokenExpireAt;
-        this.username = username;
-        this.appCode = appCode;
-    }
+    private boolean enabled;
 }

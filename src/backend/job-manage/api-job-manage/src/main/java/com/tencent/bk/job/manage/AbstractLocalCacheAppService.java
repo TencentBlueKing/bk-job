@@ -32,9 +32,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.service.AppCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,60 +46,38 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 业务与资源范围转换公共实现 - 使用本地缓存
+ * 业务信息缓存
  */
 @Slf4j
-public abstract class AbstractLocalCacheAppScopeMappingService implements AppScopeMappingService {
+public abstract class AbstractLocalCacheAppService implements AppCacheService {
 
-    /**
-     * appId 与 resourceScope 的映射关系缓存
-     * 由于appId与resourceScope映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
-     */
-    private final LoadingCache<Long, ResourceScope> appIdAndScopeCache =
+    private final LoadingCache<Long, BasicApp> appIdAndAppCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
-            .build(new CacheLoader<Long, ResourceScope>() {
+            .build(new CacheLoader<Long, BasicApp>() {
                        @Override
-                       public ResourceScope load(Long appId) {
-                           return queryScopeByAppId(appId);
+                       public BasicApp load(Long appId) {
+                           return queryAppByAppId(appId);
                        }
                    }
             );
 
-    /**
-     * resourceScope 与 appId 的映射关系缓存
-     * 由于resourceScope与appId映射关系一旦确定之后就不会再发生变化，所以使用本地缓存来优化查询性能
-     */
-    private final LoadingCache<ResourceScope, Long> scopeAndAppIdCache =
+    private final LoadingCache<ResourceScope, BasicApp> scopeAndAppCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
-            .build(new CacheLoader<ResourceScope, Long>() {
+            .build(new CacheLoader<ResourceScope, BasicApp>() {
                        @Override
-                       public Long load(ResourceScope resourceScope) {
+                       public BasicApp load(ResourceScope resourceScope) {
                            return queryAppByScope(resourceScope);
                        }
                    }
             );
 
 
-    public AbstractLocalCacheAppScopeMappingService() {
+    public AbstractLocalCacheAppService() {
     }
 
     public Long getAppIdByScope(ResourceScope resourceScope) {
-        try {
-            return scopeAndAppIdCache.get(resourceScope);
-        } catch (ExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            log.error("Get appId from cache error", e);
-            throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
-        } catch (UncheckedExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            Throwable t = e.getCause();
-            if (t instanceof ServiceException) {
-                throw (ServiceException) e.getCause();
-            } else {
-                log.error("Get appId from cache error", e);
-                throw new InternalException("Get appId from cache error", e, ErrorCode.INTERNAL_ERROR);
-            }
-        }
+        BasicApp app = getApp(resourceScope);
+        return app == null ? null : app.getId();
     }
 
     @Override
@@ -107,22 +86,8 @@ public abstract class AbstractLocalCacheAppScopeMappingService implements AppSco
     }
 
     public ResourceScope getScopeByAppId(Long appId) {
-        try {
-            return appIdAndScopeCache.get(appId);
-        } catch (ExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            log.error("Get scope from cache error", e);
-            throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
-        } catch (UncheckedExecutionException e) {
-            // 处理被CacheLoader包装的原始异常
-            Throwable t = e.getCause();
-            if (t instanceof ServiceException) {
-                throw (ServiceException) e.getCause();
-            } else {
-                log.error("Get scope from cache error", e);
-                throw new InternalException("Get scope from cache error", e, ErrorCode.INTERNAL_ERROR);
-            }
-        }
+        BasicApp app = queryAppByAppId(appId);
+        return app == null ? null : app.getScope();
     }
 
     @Override
@@ -170,20 +135,54 @@ public abstract class AbstractLocalCacheAppScopeMappingService implements AppSco
     }
 
     /**
-     * 根据资源范围查询JOB业务ID
+     * 根据资源管理空间查询JOB业务信息
      *
-     * @param resourceScope 资源范围
-     * @return JOB业务ID
+     * @param resourceScope 资源管理空间 ID
+     * @return 业务
      * @throws NotFoundException 如果业务不存在，抛出NotFoundException
      */
-    public abstract Long queryAppByScope(ResourceScope resourceScope) throws NotFoundException;
+    protected abstract BasicApp queryAppByScope(ResourceScope resourceScope) throws NotFoundException;
 
     /**
-     * 根据JOB业务ID查询资源范围
+     * 根据 appId 查询 业务
      *
      * @param appId Job业务ID
-     * @return 资源范围
+     * @return 业务
      * @throws NotFoundException 如果业务不存在，抛出NotFoundException
      */
-    public abstract ResourceScope queryScopeByAppId(Long appId) throws NotFoundException;
+    protected abstract BasicApp queryAppByAppId(Long appId) throws NotFoundException;
+
+    @Override
+    public BasicApp getApp(ResourceScope resourceScope) {
+        return queryCache(() -> scopeAndAppCache.get(resourceScope));
+    }
+
+    @Override
+    public BasicApp getApp(Long appId) {
+        return queryCache(() -> appIdAndAppCache.get(appId));
+    }
+
+    @FunctionalInterface
+    public interface QueryCache<T> {
+        T query() throws ExecutionException, UncheckedExecutionException;
+    }
+
+    private BasicApp queryCache(QueryCache<BasicApp> query) {
+        try {
+            return query.query();
+        } catch (ExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
+            log.error("Get app from cache error", e);
+            throw new InternalException("Get app from cache error", e, ErrorCode.INTERNAL_ERROR);
+        } catch (UncheckedExecutionException e) {
+            // 处理被CacheLoader包装的原始异常
+            Throwable t = e.getCause();
+            if (t instanceof ServiceException) {
+                throw (ServiceException) e.getCause();
+            } else {
+                log.error("Get app from cache error", e);
+                throw new InternalException("Get app from cache error", e, ErrorCode.INTERNAL_ERROR);
+            }
+        }
+    }
 }

@@ -1,3 +1,5 @@
+package com.tencent.bk.job.common.esb.sdk;
+
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
@@ -22,19 +24,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.sdk;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.interceptor.LogBkApiRequestIdInterceptor;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpRequest;
@@ -44,6 +46,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -51,29 +54,35 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.tencent.bk.job.common.constant.HttpHeader.HDR_BK_LANG;
 import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
 
 /**
- * 蓝鲸API（组件 API（ESB）、网关 API（蓝鲸 ApiGateway)）调用客户端
+ * 蓝鲸API（组件 API（ESB）、网关 API（蓝鲸 ApiGateway)）调用客户端基础类
  */
-public class BkApiClient {
+public class BaseBkApiClient {
 
     private String lang;
     private Logger log = LoggerFactory.getLogger(this.getClass());
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
+    private final TenantEnvService tenantEnvService;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
     /**
      * API调用度量指标名称
      */
     private final String metricName;
+
+    @Setter
     private JsonMapper jsonMapper = JsonMapper.nonNullMapper();
 
     /**
@@ -82,32 +91,26 @@ public class BkApiClient {
      * @param baseAccessUrl     API 服务访问地址
      * @param defaultHttpHelper http 请求处理客户端
      */
-    public BkApiClient(MeterRegistry meterRegistry,
-                       String metricName,
-                       String baseAccessUrl,
-                       HttpHelper defaultHttpHelper) {
+    public BaseBkApiClient(MeterRegistry meterRegistry,
+                           String metricName,
+                           String baseAccessUrl,
+                           HttpHelper defaultHttpHelper,
+                           TenantEnvService tenantEnvService) {
         this.meterRegistry = meterRegistry;
         this.metricName = metricName;
         this.baseAccessUrl = baseAccessUrl;
         this.defaultHttpHelper = defaultHttpHelper;
+        this.tenantEnvService = tenantEnvService;
     }
 
-    public BkApiClient(MeterRegistry meterRegistry,
-                       String metricName,
-                       String baseAccessUrl,
-                       HttpHelper defaultHttpHelper,
-                       String lang) {
-        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper);
+    public BaseBkApiClient(MeterRegistry meterRegistry,
+                           String metricName,
+                           String baseAccessUrl,
+                           HttpHelper defaultHttpHelper,
+                           String lang,
+                           TenantEnvService tenantEnvService) {
+        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, tenantEnvService);
         this.lang = lang;
-    }
-
-    /**
-     * 配置自定义的 JsonMapper, 用于序列化 Json 数据
-     *
-     * @param jsonMapper jsonMapper
-     */
-    public void setJsonMapper(JsonMapper jsonMapper) {
-        this.jsonMapper = jsonMapper;
     }
 
     /**
@@ -119,21 +122,21 @@ public class BkApiClient {
         this.log = logger;
     }
 
-    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
-                                       TypeReference<EsbResp<R>> typeReference,
-                                       HttpHelper httpHelper) {
+    public <T, R> R doRequest(OpenApiRequestInfo<T> requestInfo,
+                              TypeReference<R> typeReference,
+                              HttpHelper httpHelper) throws BkOpenApiException {
         return doRequest(requestInfo, typeReference, null, httpHelper);
     }
 
-    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
-                                       TypeReference<EsbResp<R>> typeReference) {
+    public <T, R> R doRequest(OpenApiRequestInfo<T> requestInfo,
+                              TypeReference<R> typeReference) throws BkOpenApiException {
         return doRequest(requestInfo, typeReference, null);
     }
 
-    public <T, R> EsbResp<R> doRequest(OpenApiRequestInfo<T> requestInfo,
-                                       TypeReference<EsbResp<R>> typeReference,
-                                       BkApiLogStrategy logStrategy,
-                                       HttpHelper httpHelper) {
+    public <T, R> R doRequest(OpenApiRequestInfo<T> requestInfo,
+                              TypeReference<R> typeReference,
+                              BkApiLogStrategy logStrategy,
+                              HttpHelper httpHelper) throws BkOpenApiException {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
             requestInfo.getBody(), null, null, 0, false);
@@ -173,65 +176,12 @@ public class BkApiClient {
         }
     }
 
-    public <T, R> R requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
-                                              TypeReference<R> typeReference,
-                                              HttpHelper httpHelper) {
-        if (log.isInfoEnabled()) {
-            log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                requestInfo.getMethod().name(), requestInfo.getUri(),
-                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
-        }
-        String uri = requestInfo.getUri();
-        String respStr = null;
-        String status = EsbMetricTags.VALUE_STATUS_OK;
-        HttpMethodEnum httpMethod = requestInfo.getMethod();
-        long start = System.currentTimeMillis();
-        String bkApiRequestId = null;
-        boolean success = true;
-        try {
-            HttpResponse response = requestApi(httpHelper, requestInfo);
-            bkApiRequestId = extractBkApiRequestId(response);
-            respStr = response.getEntity();
-            if (StringUtils.isBlank(respStr)) {
-                String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
-                    + uri + ", error: " + "Response is blank";
-                log.warn(
-                    "[AbstractBkApiClient] fail: Response is blank| requestId={}|method={}|uri={}",
-                    bkApiRequestId,
-                    httpMethod.name(),
-                    uri
-                );
-                status = EsbMetricTags.VALUE_STATUS_ERROR;
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
-            }
-            return jsonMapper.fromJson(respStr, typeReference);
-        } catch (Throwable e) {
-            success = false;
-            String errorMsg = "Fail to request api|method=" + httpMethod.name()
-                + "|uri=" + uri;
-            log.error(errorMsg, e);
-            status = EsbMetricTags.VALUE_STATUS_ERROR;
-            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
-        } finally {
-            long cost = System.currentTimeMillis() - start;
-            if (meterRegistry != null) {
-                meterRegistry.timer(metricName, buildMetricTags(uri, status))
-                    .record(cost, TimeUnit.MILLISECONDS);
-            }
-            if (log.isInfoEnabled()) {
-                log.info("[AbstractBkApiClient] Response|requestId={}|method={}|uri={}|success={}"
-                        + "|costTime={}|resp={}",
-                    bkApiRequestId, httpMethod.name(), requestInfo.getUri(), success, cost, respStr);
-            }
-        }
-    }
-
-    private <T, R> EsbResp<R> requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
-                                                        BkApiContext<T, R> apiContext,
-                                                        TypeReference<EsbResp<R>> typeReference,
-                                                        HttpHelper httpHelper) {
+    private <T, R> R requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
+                                               BkApiContext<T, R> apiContext,
+                                               TypeReference<R> typeReference,
+                                               HttpHelper httpHelper) throws BkOpenApiException {
         String uri = apiContext.getUri();
-        EsbResp<R> esbResp;
+        R responseBody;
         String respStr;
         String status = EsbMetricTags.VALUE_STATUS_OK;
         HttpMethodEnum httpMethod = requestInfo.getMethod();
@@ -246,8 +196,7 @@ public class BkApiClient {
             apiContext.setOriginResp(response.getEntity());
 
             if (StringUtils.isBlank(respStr)) {
-                String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
-                    + uri + ", error: " + "Response is blank";
+                String errorMsg = httpMethod.name() + " " + uri + ", error: " + "Response is blank";
                 log.warn("[AbstractBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
                     apiContext.getRequestId(), httpMethod.name(), uri);
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
@@ -255,45 +204,25 @@ public class BkApiClient {
             }
 
             long deserializeStartTimestamp = System.currentTimeMillis();
-            esbResp = jsonMapper.fromJson(respStr, typeReference);
+            responseBody = jsonMapper.fromJson(respStr, typeReference);
             apiContext.setDeserializeCostTime(System.currentTimeMillis() - deserializeStartTimestamp);
-            apiContext.setResp(esbResp);
-            if (!esbResp.isSuccess()) {
-                log.warn(
-                    "[AbstractBkApiClient] fail:response code!=0" +
-                        "|bkApiRequestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
-                    apiContext.getRequestId(),
-                    esbResp.getCode(),
-                    esbResp.getMessage(),
-                    httpMethod.name(),
-                    uri,
-                    apiContext.getReq() != null ? JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq()) : null,
-                    respStr
-                );
+            apiContext.setResp(responseBody);
+            if (isResponseError(response, responseBody)) {
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
+                apiContext.setSuccess(false);
+                handleResponseError(response, responseBody);
+            } else {
+                apiContext.setSuccess(true);
             }
-            if (esbResp.getData() == null) {
-                log.warn(
-                    "[AbstractBkApiClient] warn: response data is null" +
-                        "|bkApiRequestId={}|code={}|message={}|method={}|uri={}|reqStr={}|respStr={}",
-                    apiContext.getRequestId(),
-                    esbResp.getCode(),
-                    esbResp.getMessage(),
-                    httpMethod.name(),
-                    uri,
-                    apiContext.getReq() != null ? JsonUtils.toJsonWithoutSkippedFields(apiContext.getReq()) : null,
-                    respStr
-                );
-            }
-            apiContext.setSuccess(true);
-            return esbResp;
+            return responseBody;
+        } catch (BkOpenApiException e) {
+            throw e;
         } catch (Throwable e) {
-            String errorMsg = "Fail to request api|method=" + httpMethod.name()
-                + "|uri=" + uri;
+            String errorMsg = "Fail to request api|method=" + httpMethod.name() + "|uri=" + uri;
             log.error(errorMsg, e);
             apiContext.setSuccess(false);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
-            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
+            throw new InternalException("Request bk open api error", ErrorCode.API_ERROR);
         } finally {
             long cost = System.currentTimeMillis() - startTimestamp;
             apiContext.setCostTime(cost);
@@ -328,7 +257,7 @@ public class BkApiClient {
     private <T> HttpResponse requestApi(HttpHelper httpHelper, OpenApiRequestInfo<T> requestInfo) {
         String url = buildApiUrl(requestInfo.buildFinalUri());
 
-        Header[] headers = buildBkApiRequestHeaders(requestInfo.getAuthorization());
+        Header[] headers = buildBkApiRequestHeaders(requestInfo);
         HttpRequest httpRequest = HttpRequest.builder(requestInfo.getMethod(), url)
             .setHeaders(headers)
             .setKeepAlive(true)
@@ -337,7 +266,7 @@ public class BkApiClient {
             .setStringEntity(requestInfo.getBody() != null ? jsonMapper.toJson(requestInfo.getBody()) : null)
             .build();
 
-        return chooseHttpHelper(httpHelper).requestForSuccessResp(httpRequest);
+        return chooseHttpHelper(httpHelper).request(httpRequest);
     }
 
     private HttpHelper chooseHttpHelper(HttpHelper httpHelper) {
@@ -354,16 +283,46 @@ public class BkApiClient {
         return url;
     }
 
-    private Header[] buildBkApiRequestHeaders(BkApiAuthorization authorization) {
-        Header[] header = new Header[3];
-        header[0] = new BasicHeader("Content-Type", "application/json");
-        header[1] = buildBkApiAuthorizationHeader(authorization);
+    private <T> Header[] buildBkApiRequestHeaders(OpenApiRequestInfo<T> requestInfo) {
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Content-Type", "application/json"));
+        headers.add(buildBkApiAuthorizationHeader(requestInfo.getAuthorization()));
+        headers.add(buildBkApiAuthorizationHeader(requestInfo.getAuthorization()));
         if (StringUtils.isNotEmpty(lang)) {
-            header[2] = new BasicHeader(HDR_BK_LANG, lang);
+            headers.add(new BasicHeader(HDR_BK_LANG, lang));
         } else {
-            header[2] = new BasicHeader(HDR_BK_LANG, getLangFromRequest());
+            headers.add(new BasicHeader(HDR_BK_LANG, getLangFromRequest()));
         }
-        return header;
+
+        if (CollectionUtils.isNotEmpty(requestInfo.getHeaders())) {
+            headers.addAll(requestInfo.getHeaders());
+        }
+
+        checkTenantHeader(headers);
+
+        Header[] headerArray = new Header[headers.size()];
+        return headers.toArray(headerArray);
+    }
+
+    /**
+     * 检查调用蓝鲸 Open API 的请求是否包含租户 header
+     *
+     * @param headers 请求 headers
+     */
+    private void checkTenantHeader(List<Header> headers) {
+        boolean containsTenantHeader = headers.stream()
+            .anyMatch(header -> header.getName().equalsIgnoreCase(JobCommonHeaders.BK_TENANT_ID));
+        if (!containsTenantHeader) {
+            if (tenantEnvService.isTenantEnabled()) {
+                // 临时方案，为了尽快联调；后续这里需要抛出异常
+                log.warn("Add default tenant header : {}", TenantIdConstants.DEFAULT_TENANT_ID);
+                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+//                throw new InternalException("Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
+//                        ErrorCode.API_ERROR);
+            } else {
+                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+            }
+        }
     }
 
     private Header buildBkApiAuthorizationHeader(BkApiAuthorization authorization) {
@@ -402,4 +361,19 @@ public class BkApiClient {
         return new LogBkApiRequestIdInterceptor();
     }
 
+    protected boolean isResponseError(HttpResponse httpResponse, Object responseBody) {
+        // http code - 2xx
+        HttpStatus httpStatus = HttpStatus.resolve(httpResponse.getStatusCode());
+        if (httpStatus == null) {
+            return true;
+        }
+        return !httpStatus.is2xxSuccessful();
+    }
+
+    protected void handleResponseError(HttpResponse httpResponse, Object responseBody)
+        throws BkOpenApiException {
+        throw new BkOpenApiException(httpResponse.getStatusCode());
+    }
+
 }
+

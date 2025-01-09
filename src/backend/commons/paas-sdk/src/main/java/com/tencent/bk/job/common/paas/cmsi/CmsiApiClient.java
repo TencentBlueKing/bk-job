@@ -34,13 +34,14 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -57,7 +58,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiClient {
+public class CmsiApiClient extends BkApiV1Client {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
@@ -66,14 +67,16 @@ public class CmsiApiClient extends BkApiClient {
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");

@@ -24,15 +24,16 @@
 
 package com.tencent.bk.job.assemble.config;
 
+import com.tencent.bk.job.common.service.AppCacheService;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
+import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JobAssembleConfiguration {
     @Bean
-    public AppResourceScopeInterceptor appResourceScopeInterceptor(AppScopeMappingService appScopeMappingService) {
-        return new AppResourceScopeInterceptor(appScopeMappingService);
+    public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
+        return new BasicAppInterceptor(appCacheService);
     }
 }

@@ -25,67 +25,56 @@
 package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import lombok.var;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @Description
- * @Date 2020/1/12
- * @Version 1.0
+ * 用户同步服务
  */
 @Slf4j
 @Component
-public class EsbUserInfoUpdateTask {
+public class UserSyncService {
 
     private static final String REDIS_KEY_SYNC_USER_JOB_LOCK = "sync-user-job-lock";
     private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final Logger logger = LoggerFactory.getLogger(EsbUserInfoUpdateTask.class);
 
     static {
-        List<String> keyList = Arrays.asList(REDIS_KEY_SYNC_USER_JOB_LOCK);
-        keyList.forEach(key -> {
-            try {
-                //进程重启首先尝试释放上次加上的锁避免死锁
-                LockUtils.releaseDistributedLock(key, machineIp);
-            } catch (Throwable t) {
-                logger.info("Redis key:" + key + " does not need to be released, ignore");
-            }
-        });
+        try {
+            //进程重启首先尝试释放上次加上的锁避免死锁
+            LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_USER_JOB_LOCK, machineIp);
+        } catch (Throwable t) {
+            log.info("Redis key:" + REDIS_KEY_SYNC_USER_JOB_LOCK + " does not need to be released, ignore");
+        }
     }
 
     private final String REDIS_KEY_SYNC_USER_JOB_RUNNING_MACHINE = "sync-user-job-running-machine";
     private final RedisTemplate<String, String> redisTemplate;
-    private UserMgrApiClient userMgrApiClient;
-    private final EsbUserInfoDAO esbUserInfoDAO;
+    private final UserMgrApiClient userMgrApiClient;
+    private final UserCacheService userCacheService;
 
     @Autowired
-    public EsbUserInfoUpdateTask(UserMgrApiClient userMgrApiClient,
-                                 EsbUserInfoDAO esbUserInfoDAO,
-                                 RedisTemplate<String, String> redisTemplate) {
+    public UserSyncService(UserMgrApiClient userMgrApiClient,
+                           UserCacheService userCacheService,
+                           RedisTemplate<String, String> redisTemplate) {
         this.userMgrApiClient = userMgrApiClient;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userCacheService = userCacheService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -113,51 +102,58 @@ public class EsbUserInfoUpdateTask {
         );
         userSyncRedisKeyHeartBeatThread.setName("userSyncRedisKeyHeartBeatThread");
         userSyncRedisKeyHeartBeatThread.start();
-        logger.info("updateEsbUserInfo:beigin");
-        StopWatch watch = new StopWatch("syncUser");
-        watch.start("total");
+        log.info("Begin sync all tenant users");
+        boolean isAllSuccess = true;
         try {
-            // 1.接口数据拉取
-            List<BkUserDTO> userList = userMgrApiClient.getAllUserList();
-            if (null == userList) {
-                userList = new ArrayList<>();
+            List<OpenApiTenant> allTenants = userMgrApiClient.listAllTenant();
+            if (CollectionUtils.isEmpty(allTenants)) {
+                log.info("Empty tenant list, skip sync");
+            } else {
+                log.info("Sync user, tenantList: {}",
+                    allTenants.stream().map(OpenApiTenant::getId).collect(Collectors.toList()));
             }
-            // 2.组装
-            var remoteUserSet = userList.stream().map(it -> new EsbUserInfoDTO(it.getId(), it.getUsername(),
-                it.getDisplayName(), it.getLogo(), System.currentTimeMillis())).collect(Collectors.toSet());
-            if (remoteUserSet.isEmpty()) {
-                logger.warn("updateEsbUserInfo: fail to fetch remote userInfo, return");
-                return false;
+            for (OpenApiTenant tenant : allTenants) {
+                boolean isSuccess = syncUsersByTenant(tenant.getId());
+                isAllSuccess = isAllSuccess && isSuccess;
             }
 
-            // 3.计算差异数据
-            val localUserSet = new HashSet<>(esbUserInfoDAO.listEsbUserInfo());
-            val clonedRemoteUserSet = new HashSet<>(remoteUserSet);
-            remoteUserSet.removeAll(localUserSet);
-            val insertSet = remoteUserSet;
-            logger.info("insertUserInfoSet=" + insertSet.stream()
-                .map(EsbUserInfoDTO::toString).collect(Collectors.joining(",")));
-            localUserSet.removeAll(clonedRemoteUserSet);
-            val deleteSet = localUserSet;
-            logger.info("deleteUserInfoSet=" + deleteSet.stream()
-                .map(EsbUserInfoDTO::toString).collect(Collectors.joining(",")));
-
-            // 4.入库
-            saveEsbUserInfos(deleteSet, insertSet);
         } catch (Throwable t) {
             log.error("FATAL: syncUser thread fail", t);
         } finally {
             userSyncRedisKeyHeartBeatThread.setRunFlag(false);
-            watch.stop();
-            log.info("syncUser time consuming:" + watch.toString());
+            log.info("Sync all tenant users done, result: {}", isAllSuccess);
         }
         return true;
     }
 
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void saveEsbUserInfos(Set<EsbUserInfoDTO> deleteSet, Set<EsbUserInfoDTO> insertSet) {
-        deleteSet.forEach(esbUserInfoDTO -> esbUserInfoDAO.deleteEsbUserInfoById(
-            esbUserInfoDTO.getId()));
-        insertSet.forEach(esbUserInfoDTO -> esbUserInfoDAO.insertEsbUserInfo(esbUserInfoDTO));
+    private boolean syncUsersByTenant(String tenantId) {
+        log.info("Sync user by tenant : {}", tenantId);
+        boolean isSuccess = true;
+        try {
+            // 1.获取租户下的所有用户列表
+            List<BkUserDTO> remoteUserList = userMgrApiClient.getAllUserList(tenantId);
+            Set<BkUserDTO> remoteUserSet = CollectionUtils.isEmpty(remoteUserList) ?
+                Collections.emptySet(): new HashSet<>(remoteUserList);
+
+            // 2.计算差异数据
+            Set<BkUserDTO> localUserSet = new HashSet<>(userCacheService.listTenantUsers(tenantId));
+            Set<BkUserDTO> addUsers = remoteUserSet.stream()
+                .filter(user -> !localUserSet.contains(user)).collect(Collectors.toSet());
+            log.info("[{}] New users : {}",
+                tenantId,
+                addUsers.stream().map(BkUserDTO::getFullName).collect(Collectors.joining(",")));
+            Set<BkUserDTO> deleteUsers = localUserSet.stream()
+                .filter(user -> !remoteUserSet.contains(user)).collect(Collectors.toSet());
+            log.info("[{}] Delete users : {}",
+                tenantId,
+                deleteUsers.stream().map(BkUserDTO::getFullName).collect(Collectors.joining(",")));
+
+            // 3.保存
+            userCacheService.batchPatchUsers(deleteUsers, addUsers);
+        } catch (Throwable t) {
+            log.error("Sync user fail", t);
+            isSuccess = false;
+        }
+        return isSuccess;
     }
 }

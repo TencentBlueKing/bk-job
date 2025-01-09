@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
 import com.tencent.bk.job.common.iam.dto.BatchAuthByPathReq;
@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -64,7 +65,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.IAM_API;
  * IAM API 调用客户端
  */
 @Slf4j
-public class EsbIamClient extends BkApiClient implements IIamClient {
+public class EsbIamClient extends BkApiV1Client implements IIamClient {
 
     private static final String API_GET_APPLY_URL = "/api/c/compapi/v2/iam/application/";
     private static final String API_REGISTER_RESOURCE_URL =
@@ -78,14 +79,16 @@ public class EsbIamClient extends BkApiClient implements IIamClient {
 
     public EsbIamClient(MeterRegistry meterRegistry,
                         AppProperties appProperties,
-                        EsbProperties esbProperties) {
+                        EsbProperties esbProperties,
+                        TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             IAM_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
