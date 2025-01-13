@@ -100,10 +100,6 @@ public class BaseCmdbApiClient {
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
     /**
-     * CMDB ESB API 客户端
-     */
-    protected BkApiV1Client esbCmdbApiClient;
-    /**
      * CMDB 蓝鲸网关 API 客户端
      */
     protected BkApiV1Client apiGwCmdbApiClient;
@@ -138,14 +134,6 @@ public class BaseCmdbApiClient {
                                 TenantEnvService tenantEnvService,
                                 String lang) {
         WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
-        this.esbCmdbApiClient = new BkApiV1Client(meterRegistry,
-            CmdbMetricNames.CMDB_API_PREFIX,
-            esbProperties.getService().getUrl(),
-            httpHelper,
-            lang,
-            tenantEnvService
-        );
-        this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.apiGwCmdbApiClient = new BkApiV1Client(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
@@ -166,17 +154,15 @@ public class BaseCmdbApiClient {
         return EsbReq.buildRequest(reqClass, cmdbSupplierAccount);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
-                                            HttpMethodEnum method,
+    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(apiGwType, method, uri, queryParams, reqBody, typeReference, null);
+        return requestCmdbApi(method, uri, queryParams, reqBody, typeReference, null);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
-                                            HttpMethodEnum method,
+    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
@@ -210,7 +196,7 @@ public class BaseCmdbApiClient {
                 .body(reqBody)
                 .authorization(cmdbBkApiAuthorization)
                 .build();
-            return getApiClientByApiGwType(apiGwType).doRequest(requestInfo, typeReference, httpHelper);
+            return apiGwCmdbApiClient.doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
                 + queryParams + "|body="
@@ -222,15 +208,15 @@ public class BaseCmdbApiClient {
         }
     }
 
-    private BkApiV1Client getApiClientByApiGwType(ApiGwType apiGwType) {
-        switch (apiGwType) {
-            case ESB:
-                return esbCmdbApiClient;
-            case BK_APIGW:
-                return apiGwCmdbApiClient;
-            default:
-                log.error("BkApiClient for type: {} not found", apiGwType.name());
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-    }
+//    private BkApiV1Client getApiClientByApiGwType(ApiGwType apiGwType) {
+//        switch (apiGwType) {
+//            case ESB:
+//                return esbCmdbApiClient;
+//            case BK_APIGW:
+//                return apiGwCmdbApiClient;
+//            default:
+//                log.error("BkApiClient for type: {} not found", apiGwType.name());
+//                throw new InternalException(ErrorCode.INTERNAL_ERROR);
+//        }
+//    }
 }

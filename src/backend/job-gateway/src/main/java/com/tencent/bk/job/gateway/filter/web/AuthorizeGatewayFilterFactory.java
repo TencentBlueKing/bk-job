@@ -124,7 +124,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                     throw e;
                 }
             }
-            if (user == null) {
+            if (user == null || !user.validate()) {
                 log.warn("Invalid user token");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
@@ -135,6 +135,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             String tenantId = tenantEnvService.isTenantEnabled() ? user.getTenantId() :
                 TenantIdConstants.DEFAULT_TENANT_ID;
             request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
+            log.debug("Add user info, username: {}, tenantId: {}", user.getUsername(), tenantId);
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
