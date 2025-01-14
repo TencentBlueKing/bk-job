@@ -84,9 +84,9 @@ public class QuartzServiceImpl implements QuartzService {
         if (appId <= 0 || cronJobId <= 0) {
             return false;
         }
-        String jobName = JobCronNameUtil.getJobName(appId, cronJobId);
-        String jobGroup = JobCronNameUtil.getJobGroup(appId, cronJobId);
-        String notifyJobName = JobCronNameUtil.getNotifyJobName(appId, cronJobId);
+        String jobName = JobCronNameUtil.getJobName(cronJobId);
+        String jobGroup = JobCronNameUtil.getJobGroup(appId);
+        String notifyJobName = JobCronNameUtil.getNotifyJobName(cronJobId);
         try {
             quartzTaskHandler.deleteJob(JobKey.jobKey(jobName, jobGroup));
             quartzTaskHandler.deleteJob(JobKey.jobKey(notifyJobName, jobGroup));
@@ -106,8 +106,8 @@ public class QuartzServiceImpl implements QuartzService {
     private void addJobToQuartz(CronJobInfoDTO cronJobInfo) throws SchedulerException {
         Long appId = cronJobInfo.getAppId();
         Long cronJobId = cronJobInfo.getId();
-        String jobName = JobCronNameUtil.getJobName(appId, cronJobId);
-        String jobGroup = JobCronNameUtil.getJobGroup(appId, cronJobId);
+        String jobName = JobCronNameUtil.getJobName(cronJobId);
+        String jobGroup = JobCronNameUtil.getJobGroup(appId);
         QuartzTrigger trigger = buildTrigger(cronJobInfo);
 
         QuartzJob job = QuartzJobBuilder.newJob()
@@ -132,8 +132,8 @@ public class QuartzServiceImpl implements QuartzService {
      */
     private QuartzTrigger buildTrigger(CronJobInfoDTO cronJobInfo) {
         QuartzTrigger trigger = null;
-        String jobName = JobCronNameUtil.getJobName(cronJobInfo.getAppId(), cronJobInfo.getId());
-        String jobGroup = JobCronNameUtil.getJobGroup(cronJobInfo.getAppId(), cronJobInfo.getId());
+        String jobName = JobCronNameUtil.getJobName(cronJobInfo.getId());
+        String jobGroup = JobCronNameUtil.getJobGroup(cronJobInfo.getAppId());
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             // 根据cron表达式执行的定时任务
             QuartzTriggerBuilder cronTriggerBuilder = QuartzTriggerBuilder.newTrigger()
@@ -171,8 +171,8 @@ public class QuartzServiceImpl implements QuartzService {
     private void addNotifyJobIfNeed(CronJobInfoDTO cronJobInfo) throws SchedulerException {
         Long appId = cronJobInfo.getAppId();
         Long cronJobId = cronJobInfo.getId();
-        String notifyJobName = JobCronNameUtil.getNotifyJobName(appId, cronJobId);
-        String jobGroup = JobCronNameUtil.getJobGroup(appId, cronJobId);
+        String notifyJobName = JobCronNameUtil.getNotifyJobName(cronJobId);
+        String jobGroup = JobCronNameUtil.getJobGroup(appId);
         if (cronJobInfo.getNotifyOffset() > 0) {
             long notifyTime = 0L;
             if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {

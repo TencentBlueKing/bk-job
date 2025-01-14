@@ -32,32 +32,29 @@ public class JobCronNameUtil {
     /**
      * 获取Quartz Job名称
      *
-     * @param appId     Job业务ID
      * @param cronJobId 定时任务ID
      * @return Quartz Job名称
      */
-    public static String getJobName(long appId, long cronJobId) {
+    public static String getJobName(long cronJobId) {
         return "job_" + cronJobId;
     }
 
     /**
      * 获取Quartz Job分组
      *
-     * @param appId     Job业务ID
-     * @param cronJobId 定时任务ID
+     * @param appId Job业务ID
      * @return Quartz Job分组
      */
-    public static String getJobGroup(long appId, long cronJobId) {
+    public static String getJobGroup(long appId) {
         return "bk_app_" + appId;
     }
 
     /***
      * 获取通知Job名称
-     * @param appId Job业务ID
      * @param cronJobId 定时任务ID
      * @return 通知Job名称
      */
-    public static String getNotifyJobName(long appId, long cronJobId) {
-        return getJobName(appId, cronJobId) + "_notify";
+    public static String getNotifyJobName(long cronJobId) {
+        return getJobName(cronJobId) + "_notify";
     }
 }
