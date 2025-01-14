@@ -58,7 +58,7 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
             checkInterrupt();
             boolean result = false;
             try {
-                result = cronJobService.addJobToQuartz(
+                result = cronJobService.checkAndAddJobToQuartz(
                     cronJobBasicInfoDTO.getAppId(),
                     cronJobBasicInfoDTO.getId()
                 );

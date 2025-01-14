@@ -32,9 +32,12 @@ import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
+import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.NeedScheduleCronInfo;
+import com.tencent.bk.job.crontab.service.BatchCronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.extern.slf4j.Slf4j;
@@ -51,19 +54,25 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BatchCronJobService {
+public class BatchCronJobServiceImpl implements BatchCronJobService {
 
     private final CronJobDAO cronJobDAO;
     private final CronAuthService cronAuthService;
     private final ExecuteTaskService executeTaskService;
 
     @Autowired
-    public BatchCronJobService(CronJobDAO cronJobDAO,
-                               CronAuthService cronAuthService,
-                               ExecuteTaskService executeTaskService) {
+    public BatchCronJobServiceImpl(CronJobDAO cronJobDAO,
+                                   CronAuthService cronAuthService,
+                                   ExecuteTaskService executeTaskService) {
         this.cronJobDAO = cronJobDAO;
         this.cronAuthService = cronAuthService;
         this.executeTaskService = executeTaskService;
+    }
+
+    @Override
+    public BatchAddResult batchAddJobToQuartz(List<CronJobBasicInfoDTO> cronJobBasicInfoList) {
+        // TODO
+        return null;
     }
 
     /**
