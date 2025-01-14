@@ -47,4 +47,51 @@ public class AddJobToQuartzResult {
      * 异常信息
      */
     private Exception exception;
+
+    /**
+     * 构造失败结果
+     *
+     * @param cronJobBasicInfo 定时任务基本信息
+     * @param message          提示信息
+     * @return 失败结果
+     */
+    public static AddJobToQuartzResult failResult(CronJobBasicInfoDTO cronJobBasicInfo, String message) {
+        AddJobToQuartzResult result = new AddJobToQuartzResult();
+        result.setCronJobBasicInfo(cronJobBasicInfo);
+        result.setSuccess(false);
+        result.setMessage(message);
+        return result;
+    }
+
+    /**
+     * 构造失败结果
+     *
+     * @param cronJobBasicInfo 定时任务基本信息
+     * @param message          提示信息
+     * @param exception        异常信息
+     * @return 失败结果
+     */
+    public static AddJobToQuartzResult failResult(CronJobBasicInfoDTO cronJobBasicInfo,
+                                                  String message,
+                                                  Exception exception) {
+        AddJobToQuartzResult result = new AddJobToQuartzResult();
+        result.setCronJobBasicInfo(cronJobBasicInfo);
+        result.setSuccess(false);
+        result.setMessage(message);
+        result.setException(exception);
+        return result;
+    }
+
+    /**
+     * 构造成功结果
+     *
+     * @param cronJobBasicInfo 定时任务基本信息
+     * @return 成功结果
+     */
+    public static AddJobToQuartzResult successResult(CronJobBasicInfoDTO cronJobBasicInfo) {
+        AddJobToQuartzResult result = new AddJobToQuartzResult();
+        result.setCronJobBasicInfo(cronJobBasicInfo);
+        result.setSuccess(true);
+        return result;
+    }
 }

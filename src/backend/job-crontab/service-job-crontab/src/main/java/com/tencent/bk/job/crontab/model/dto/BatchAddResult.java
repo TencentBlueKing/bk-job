@@ -26,8 +26,12 @@ package com.tencent.bk.job.crontab.model.dto;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,5 +76,44 @@ public class BatchAddResult {
         } else {
             failNum++;
         }
+    }
+
+    /**
+     * 合并批量结果
+     *
+     * @param batchAddResult 待合并的批量结果
+     */
+    public void merge(BatchAddResult batchAddResult) {
+        if (batchAddResult == null) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(batchAddResult.resultMap)) {
+            return;
+        }
+        if (resultMap == null) {
+            resultMap = new HashMap<>(batchAddResult.resultMap);
+        } else {
+            resultMap.putAll(batchAddResult.resultMap);
+        }
+        successNum += batchAddResult.successNum;
+        failNum += batchAddResult.failNum;
+    }
+
+    /**
+     * 获取批量添加失败的添加结果列表
+     *
+     * @return 批量添加失败的添加结果列表
+     */
+    public List<AddJobToQuartzResult> getFailedResultList() {
+        if (failNum == 0) {
+            return Collections.emptyList();
+        }
+        List<AddJobToQuartzResult> failedResultList = new ArrayList<>();
+        for (Map.Entry<Long, AddJobToQuartzResult> entry : resultMap.entrySet()) {
+            if (!entry.getValue().isSuccess()) {
+                failedResultList.add(entry.getValue());
+            }
+        }
+        return failedResultList;
     }
 }

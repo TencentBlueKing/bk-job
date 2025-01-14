@@ -151,7 +151,7 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public Map<Long, CronJobInfoDTO> getCronJobInfoMapByIds(List<Long> cronJobIdList) {
-        List<CronJobInfoDTO> cronJobInfoDTOList = cronJobDAO.getCronJobByIds(cronJobIdList);
+        List<CronJobInfoDTO> cronJobInfoDTOList = cronJobDAO.listCronJobByIds(cronJobIdList);
         Map<Long, CronJobInfoDTO> map = new HashMap<>();
         for (CronJobInfoDTO cronJobInfoDTO : cronJobInfoDTOList) {
             map.put(cronJobInfoDTO.getId(), cronJobInfoDTO);
