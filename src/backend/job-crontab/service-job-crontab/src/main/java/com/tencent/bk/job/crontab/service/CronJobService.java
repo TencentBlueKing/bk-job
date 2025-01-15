@@ -252,9 +252,7 @@ public interface CronJobService {
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
 
-    boolean addJobToQuartz(long appId, long cronJobId) throws ServiceException;
-
-    boolean deleteJobFromQuartz(long appId, long cronJobId);
+    boolean checkAndAddJobToQuartz(long appId, long cronJobId) throws ServiceException;
 
     List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit);
 
