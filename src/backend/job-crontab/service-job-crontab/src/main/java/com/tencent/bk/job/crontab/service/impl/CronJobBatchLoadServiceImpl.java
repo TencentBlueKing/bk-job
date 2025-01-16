@@ -74,16 +74,28 @@ public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
      * @return 失败的定时任务信息
      */
     private List<CronJobBasicInfoDTO> extractFailedCronList(BatchAddResult batchAddResult) {
+        if (batchAddResult == null || batchAddResult.getTotalNum() == 0) {
+            return new ArrayList<>();
+        }
         List<CronJobBasicInfoDTO> failedCronList = new ArrayList<>();
         int successNum = batchAddResult.getSuccessNum();
         int failedNum = batchAddResult.getFailNum();
         if (failedNum > 0) {
-            log.warn("batchAddJobToQuartz result: {} failed, {} success", failedNum, successNum);
+            String message = MessageFormatter.format(
+                "batchAddJobToQuartz result: {} failed, {} success",
+                failedNum,
+                successNum
+            ).getMessage();
+            if (batchAddResult.getFailRate() > 0.5) {
+                log.error(message);
+            } else {
+                log.warn(message);
+            }
             List<AddJobToQuartzResult> failedResultList = batchAddResult.getFailedResultList();
             for (AddJobToQuartzResult addJobToQuartzResult : failedResultList) {
                 CronJobBasicInfoDTO cronJobBasicInfo = addJobToQuartzResult.getCronJobBasicInfo();
                 failedCronList.add(cronJobBasicInfo);
-                String message = MessageFormatter.arrayFormat(
+                message = MessageFormatter.arrayFormat(
                     "Fail to load cronJob({},{},{}), reason={}",
                     new Object[]{
                         cronJobBasicInfo.getAppId(),

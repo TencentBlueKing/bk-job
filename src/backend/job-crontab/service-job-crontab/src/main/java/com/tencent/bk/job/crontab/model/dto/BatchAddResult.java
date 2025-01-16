@@ -116,4 +116,26 @@ public class BatchAddResult {
         }
         return failedResultList;
     }
+
+    /**
+     * 获取批量添加的总数
+     *
+     * @return 批量添加总数
+     */
+    public int getTotalNum() {
+        return successNum + failNum;
+    }
+
+    /**
+     * 获取批量添加失败的比率
+     *
+     * @return 批量添加失败的比率
+     */
+    public float getFailRate() {
+        int totalNum = successNum + failNum;
+        if (totalNum == 0) {
+            return 0;
+        }
+        return 1.0f * failNum / totalNum;
+    }
 }

@@ -132,7 +132,6 @@ public class BatchCronJobServiceImpl implements BatchCronJobService {
                     "Add cronJob(id={}) to quartz failed",
                     cronJobInfoDTO.getId()
                 ).getMessage();
-                log.error(message, e);
                 batchAddResult.addResult(
                     AddJobToQuartzResult.failResult(
                         cronJobInfoDTO.toBasicInfoDTO(),
