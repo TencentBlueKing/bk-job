@@ -27,6 +27,8 @@ package com.tencent.bk.job.crontab.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.constant.CronConstants;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -44,6 +46,7 @@ import org.quartz.CronTrigger;
 import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,10 +68,12 @@ public class QuartzServiceImpl implements QuartzService {
     public void tryToAddJobToQuartz(CronJobInfoDTO cronJobInfo) {
         try {
             addJobToQuartz(cronJobInfo);
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
-            deleteJobFromQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
-            log.error("Error while addJobToQuartz!", e);
             throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
+        } finally {
+            deleteJobFromQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
         }
     }
 
@@ -131,7 +136,7 @@ public class QuartzServiceImpl implements QuartzService {
      * @return 定时任务Quartz触发器
      */
     private QuartzTrigger buildTrigger(CronJobInfoDTO cronJobInfo) {
-        QuartzTrigger trigger = null;
+        QuartzTrigger trigger;
         String jobName = JobCronNameUtil.getJobName(cronJobInfo.getId());
         String jobGroup = JobCronNameUtil.getJobGroup(cronJobInfo.getAppId());
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
@@ -158,6 +163,13 @@ public class QuartzServiceImpl implements QuartzService {
                 .withIntervalInHours(1)
                 .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT)
                 .build();
+        } else {
+            // 只执行一次但是执行时间已经过期的定时任务
+            String message = MessageFormatter.format(
+                "Cron job executionTime({}) already passed",
+                TimeUtil.formatTime(cronJobInfo.getExecuteTime())
+            ).getMessage();
+            throw new FailedPreconditionException(message, ErrorCode.CRON_JOB_TIME_PASSED);
         }
         return trigger;
     }
