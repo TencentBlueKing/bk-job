@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.web.filter;
 
 import com.tencent.bk.job.common.web.utils.ServletUtil;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,30 +35,34 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
-public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
+public class WebRepeatableReadServletRequestFilter implements Filter {
     @Override
-    public void init(FilterConfig filterConfig) {
-
+    public void init(FilterConfig filterConfig) throws ServletException {
+        // do nothing
     }
 
+    /**
+     * 仅包装ServletRequest，给/web使用
+     *
+     */
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        if (!ServletUtil.isJsonRequest(request)) {
-            chain.doFilter(request, response);
-            return;
+    public void doFilter(ServletRequest request, ServletResponse response,
+                         FilterChain chain) throws IOException, ServletException {
+        ServletRequest servletRequest = request;
+
+        if (ServletUtil.isJsonRequest(request)) {
+            // 仅处理 ContentType: application/json 请求
+            servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
         }
-        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(servletRequest, servletResponse);
+
+        chain.doFilter(servletRequest, response);
     }
 
     @Override
     public void destroy() {
-
+        // do nothing
     }
 }
