@@ -127,7 +127,6 @@ ext {
     set('caffeineVersion', "2.9.3")
     set('jjwtVersion', "0.9.1")
     set('hibernateValidatorVersion', "6.1.4.Final")
-    set('micrometerPrometheusVersion', "1.5.1")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.70")
@@ -331,7 +330,6 @@ subprojects {
             dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
             dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
             dependency "net.sourceforge.jchardet:jchardet:1.0"
-            dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
