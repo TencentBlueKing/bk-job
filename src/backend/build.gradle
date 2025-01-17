@@ -27,7 +27,7 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 buildscript {
     ext {
         set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
-        set("springBootVersion", "2.6.13")
+        set("springBootVersion", "2.7.11")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -68,7 +68,7 @@ buildscript {
 plugins {
     id "java-library"
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
-    id 'org.springframework.boot' version '2.6.13' apply false
+    id 'org.springframework.boot' version '2.7.11' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
@@ -82,7 +82,7 @@ ext {
 
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.6.13")
+    set("springBootVersion", "2.7.11")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2021.0.5")
     set('springCloudOtelVersion', "1.1.3")
@@ -140,8 +140,8 @@ ext {
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     set('cryptoJavaSDKVersion', "1.1.3")
-    // Fix CVE-2023-44487
-    set('tomcat.version', "9.0.90")
+    // Fix CVE-2023-44487, CVE-2024-52316
+    set('tomcat.version', "9.0.96")
     // Fix CVE-2019-10086,CVE-2014-0114
     set('commonsBeanutilsVersion', "1.9.4")
     if (System.getProperty("bkjobVersion")) {
@@ -156,14 +156,13 @@ ext {
     set('embeddedRedisVersion', "0.6")
     // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
     set('zookeeperVersion', "3.8.4")
-    // Fix CVE-2023-20873 2.6.13->2.6.15
-    set('springbootActuatorAutoconfigureVersion', "2.6.15")
     // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
-    set('snakeyaml.version', "1.33")
+    set('snakeyaml.version', "2.0")
     // Fix CVE-2023-3635 2.8.0->3.4.0
     set('okioVersion', "3.4.0")
     // Fix CVE-2023-34062 1.0.24->1.0.39
     set('reactorNettyHttpVersion', "1.0.39")
+    set('reactorNettyCoreVersion', "1.0.39")
     // Fix CVE-2023-44487 4.1.84.Final->4.1.100.Final
     set('nettyCodecHttp2Version', "4.1.100.Final")
     // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
@@ -369,9 +368,9 @@ subprojects {
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
             dependency "org.apache.zookeeper:zookeeper:$zookeeperVersion"
-            dependency "org.springframework.boot:spring-boot-actuator-autoconfigure:$springbootActuatorAutoconfigureVersion"
             dependency "com.squareup.okio:okio:$okioVersion"
             dependency "io.projectreactor.netty:reactor-netty-http:$reactorNettyHttpVersion"
+            dependency "io.projectreactor.netty:reactor-netty-core:$reactorNettyCoreVersion"
             dependency "io.netty:netty-codec-http2:$nettyCodecHttp2Version"
             dependency "org.springframework:spring-web:$springWebVersion"
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
