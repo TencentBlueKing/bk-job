@@ -69,11 +69,11 @@ public class QuartzServiceImpl implements QuartzService {
         try {
             addJobToQuartz(cronJobInfo);
         } catch (ServiceException e) {
+            deleteJobFromQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
             throw e;
         } catch (Exception e) {
-            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
-        } finally {
             deleteJobFromQuartz(cronJobInfo.getAppId(), cronJobInfo.getId());
+            throw new InternalException(e, ErrorCode.INTERNAL_ERROR);
         }
     }
 
