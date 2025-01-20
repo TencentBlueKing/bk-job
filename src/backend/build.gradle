@@ -27,7 +27,7 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 buildscript {
     ext {
         set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
-        set("springBootVersion", "2.6.13")
+        set("springBootVersion", "2.7.11")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -68,7 +68,7 @@ buildscript {
 plugins {
     id "java-library"
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
-    id 'org.springframework.boot' version '2.6.13' apply false
+    id 'org.springframework.boot' version '2.7.11' apply false
     id "idea"
     id 'nu.studer.jooq' version '3.0.0'
 }
@@ -82,7 +82,7 @@ ext {
 
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.6.13")
+    set("springBootVersion", "2.7.11")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2021.0.5")
     set('springCloudOtelVersion', "1.1.3")
@@ -94,7 +94,8 @@ ext {
     set('jacksonVersion', "2.13.5")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    set('logbackVersion', "1.2.10")
+    // Fix CVE-2023-6378 1.2.11->1.2.13
+    set('logbackVersion', "1.2.13")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "1.7.30")
     set('servletVersion', "3.0.1")
@@ -118,13 +119,14 @@ ext {
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.13")
     set('apacheThriftVersion', "0.15.0")
-    set('commonsIOVersion', "2.6")
+    // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
+    set('commonsIOVersion', "2.14.0")
     set('javaxServletVersion', "4.0.1")
-    set('guavaVersion', "28.2-jre")
+    // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
+    set('guavaVersion', "32.0.0-android")
     set('caffeineVersion', "2.9.3")
     set('jjwtVersion', "0.9.1")
     set('hibernateValidatorVersion', "6.1.4.Final")
-    set('micrometerPrometheusVersion', "1.5.1")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.70")
@@ -137,8 +139,6 @@ ext {
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     set('cryptoJavaSDKVersion', "1.1.3")
-    // Fix CVE-2023-44487
-    set('tomcat.version', "9.0.90")
     // Fix CVE-2019-10086,CVE-2014-0114
     set('commonsBeanutilsVersion', "1.9.4")
     if (System.getProperty("bkjobVersion")) {
@@ -151,6 +151,31 @@ ext {
     set('bkAuditJavaSdkVersion', "1.0.8")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
+    // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
+    set('zookeeperVersion', "3.8.4")
+    // Fix CVE-2023-3635 2.8.0->3.4.0
+    set('okioVersion', "3.4.0")
+    // Fix CVE-2023-34062 1.0.24->1.0.39
+    set('reactorNettyHttpVersion', "1.0.39")
+    set('reactorNettyCoreVersion', "1.0.39")
+    // Fix CVE-2023-44487 4.1.84.Final->4.1.100.Final
+    set('nettyCodecHttp2Version', "4.1.100.Final")
+    // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
+    set('springWebVersion', "5.3.39")
+    // Fix CVE-2021-0341 4.9.1->4.9.2
+    set('okHttpVersion', "4.9.2")
+    // Fix CVE-2023-46120 5.13.1->5.18.0
+    set('amqpClientVersion', "5.18.0")
+    // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
+    set('jgitVersion', "6.6.1.202309021850-r")
+
+    // 使用Spring Boot内置的版本号变量，不采用驼峰命名，保持与官方BOM文件一致
+    // Fix CVE-2023-22102 8.0.33->8.2.0
+    set('mysql.version', "8.2.0")
+    // Fix CVE-2023-44487, CVE-2024-52316
+    set('tomcat.version', "9.0.96")
+    // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
+    set('snakeyaml.version', "2.0")
 }
 
 group "com.tencent.bk.job"
@@ -309,7 +334,6 @@ subprojects {
             dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
             dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
             dependency "net.sourceforge.jchardet:jchardet:1.0"
-            dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
@@ -345,6 +369,15 @@ subprojects {
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
+            dependency "org.apache.zookeeper:zookeeper:$zookeeperVersion"
+            dependency "com.squareup.okio:okio:$okioVersion"
+            dependency "io.projectreactor.netty:reactor-netty-http:$reactorNettyHttpVersion"
+            dependency "io.projectreactor.netty:reactor-netty-core:$reactorNettyCoreVersion"
+            dependency "io.netty:netty-codec-http2:$nettyCodecHttp2Version"
+            dependency "org.springframework:spring-web:$springWebVersion"
+            dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
+            dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
+            dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
         }
     }
     dependencies {

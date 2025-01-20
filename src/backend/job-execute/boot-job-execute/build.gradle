@@ -28,7 +28,7 @@ dependencies {
     api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     testImplementation("com.h2database:h2")
 }
