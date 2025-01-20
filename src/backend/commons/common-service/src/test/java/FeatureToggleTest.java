@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -54,7 +55,8 @@ class FeatureToggleTest {
 
     @BeforeAll
     static void beforeAll() {
-        Yaml yaml = new Yaml(new Constructor(FeatureToggleProperties.class));
+        Constructor constructor = new Constructor(FeatureToggleProperties.class, new LoaderOptions());
+        Yaml yaml = new Yaml(constructor);
         InputStream inputStream = FeatureToggleTest.class.getClassLoader()
             .getResourceAsStream("features_1.yaml");
         FeatureToggleProperties featureToggleProperties = yaml.load(inputStream);
