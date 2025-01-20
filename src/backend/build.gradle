@@ -139,8 +139,6 @@ ext {
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     set('cryptoJavaSDKVersion', "1.1.3")
-    // Fix CVE-2023-44487, CVE-2024-52316
-    set('tomcat.version', "9.0.96")
     // Fix CVE-2019-10086,CVE-2014-0114
     set('commonsBeanutilsVersion', "1.9.4")
     if (System.getProperty("bkjobVersion")) {
@@ -155,8 +153,6 @@ ext {
     set('embeddedRedisVersion', "0.6")
     // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
     set('zookeeperVersion', "3.8.4")
-    // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
-    set('snakeyaml.version', "2.0")
     // Fix CVE-2023-3635 2.8.0->3.4.0
     set('okioVersion', "3.4.0")
     // Fix CVE-2023-34062 1.0.24->1.0.39
@@ -172,8 +168,14 @@ ext {
     set('amqpClientVersion', "5.18.0")
     // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
     set('jgitVersion', "6.6.1.202309021850-r")
+
+    // 使用Spring Boot内置的版本号变量，不采用驼峰命名，保持与官方BOM文件一致
     // Fix CVE-2023-22102 8.0.33->8.2.0
     set('mysql.version', "8.2.0")
+    // Fix CVE-2023-44487, CVE-2024-52316
+    set('tomcat.version', "9.0.96")
+    // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
+    set('snakeyaml.version', "2.0")
 }
 
 group "com.tencent.bk.job"
