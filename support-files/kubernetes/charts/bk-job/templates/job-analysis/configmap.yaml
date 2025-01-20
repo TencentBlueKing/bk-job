@@ -17,6 +17,9 @@ data:
         async:
           requestTimeout: 180s
       cloud:
+        loadbalancer:
+          cache:
+            ttl: 20s
         stream:
           function:
             definition: handleAIChatOperationEvent

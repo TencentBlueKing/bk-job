@@ -232,7 +232,7 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     @Override
-    public List<CronJobInfoDTO> getCronJobByIds(List<Long> cronJobIdList) {
+    public List<CronJobInfoDTO> listCronJobByIds(List<Long> cronJobIdList) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.in(cronJobIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));

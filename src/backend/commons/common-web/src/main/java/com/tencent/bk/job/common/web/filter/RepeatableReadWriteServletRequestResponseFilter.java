@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.common.web.filter;
 
+import com.tencent.bk.job.common.web.utils.ServletUtil;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -49,33 +49,13 @@ public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
         ServletException {
-        ServletRequest servletRequest = request;
-        ServletResponse servletResponse = response;
-        if (isJsonRequest(request)) {
-            // 仅处理 ContentType: application/json 请求
-            servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
+        if (!ServletUtil.isJsonRequest(request)) {
+            chain.doFilter(request, response);
+            return;
         }
-        if (isJsonResponse(response)) {
-            // 仅处理 ContentType: application/json 响应
-            servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        }
+        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
+        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
         chain.doFilter(servletRequest, servletResponse);
-    }
-
-    private boolean isJsonRequest(ServletRequest request) {
-        return isJsonContentType(request.getContentType());
-    }
-
-    private boolean isJsonResponse(ServletResponse response) {
-        return isJsonContentType(response.getContentType());
-    }
-
-    private boolean isJsonContentType(String contentType) {
-        if (StringUtils.isBlank(contentType)) {
-            return false;
-        }
-        contentType = contentType.trim().toLowerCase();
-        return contentType.startsWith("application/json");
     }
 
     @Override

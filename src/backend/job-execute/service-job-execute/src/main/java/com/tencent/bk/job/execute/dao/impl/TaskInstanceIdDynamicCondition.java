@@ -53,7 +53,6 @@ public class TaskInstanceIdDynamicCondition {
         ToggleEvaluateContext toggleEvaluateContext;
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext == null) {
-            log.info("TaskInstanceIdDynamicCondition : EmptyJobExecuteContext!");
             // JobExecuteContext 正常应该不会为 null 。为了不影响请求正常处理，忽略错误,直接返回 TRUE Condition
             // (不会影响 DAO 查询，task_instance_id 仅作为分片功能实用，实际业务数据关系并不强依赖 task_instance_id)
             toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
@@ -63,7 +62,6 @@ public class TaskInstanceIdDynamicCondition {
                 toggleEvaluateContext = ToggleEvaluateContext.builder()
                     .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
             } else {
-                log.info("TaskInstanceIdDynamicCondition : EmptyResourceScope!");
                 toggleEvaluateContext = ToggleEvaluateContext.EMPTY;
             }
         }
@@ -76,13 +74,9 @@ public class TaskInstanceIdDynamicCondition {
                 // 为了不影响兼容性，忽略错误
                 return DSL.trueCondition();
             } else {
-                // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
-                log.info("TaskInstanceIdDynamicCondition: UseTaskInstanceIdCondition");
                 return taskInstanceIdConditionBuilder.apply(taskInstanceId);
             }
         } else {
-            // 为了便于观察和排查，暂时设定为 INFO 级别，等后续正式交付再改成 DEBUG
-            log.info("TaskInstanceIdDynamicCondition: IgnoreTaskInstanceIdCondition");
             return DSL.trueCondition();
         }
     }

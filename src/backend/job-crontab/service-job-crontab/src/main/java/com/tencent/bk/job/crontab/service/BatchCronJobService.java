@@ -22,12 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-truncate table dangerous_record;
+package com.tencent.bk.job.crontab.service;
 
-insert into job_execute.dangerous_record (id,rule_id,rule_expression,app_id,app_name,operator,script_language,script_content,create_time,startup_mode,client,action,check_result,
-ext_data,tenant_id) values (1, 1, 'rm -rf',2,'BlueKing','admin',1,'#!/bin/bash\nrm -rf *',1619748000000,2,'app1',1,'{"results":[{"line":"2","level":3,"description":"rm -rf forbidden"}]}','{"request_param":"aaa"}','default');
-insert into job_execute.dangerous_record (id,rule_id,rule_expression,app_id,app_name,operator,script_language,script_content,create_time,startup_mode,client,action,check_result,
-ext_data,tenant_id) values (2, 2,'shutdown',3,'Test','userT',2,'shutdown',1619834400000,3,'job',2,'{"results":[{"line":"1","level":3,"description":"shutdown forbidden"}]}','{"request_param":"bbb"}','default');
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
+import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
+import com.tencent.bk.job.crontab.model.dto.NeedScheduleCronInfo;
 
+import java.util.List;
 
+public interface BatchCronJobService {
 
+    /**
+     * 批量添加定时任务到Quartz
+     *
+     * @param cronJobBasicInfoList 定时任务列表
+     * @return 批量添加结果
+     */
+    BatchAddResult batchAddJobToQuartz(List<CronJobBasicInfoDTO> cronJobBasicInfoList);
+
+    /**
+     * 批量更新定时任务
+     *
+     * @param user                  用户
+     * @param appId                 Job业务ID
+     * @param batchUpdateCronJobReq 批量更新请求
+     * @return 更新结果数据
+     */
+    NeedScheduleCronInfo batchUpdateCronJob(User user,
+                                            Long appId,
+                                            BatchUpdateCronJobReq batchUpdateCronJobReq);
+}
