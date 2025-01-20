@@ -26,9 +26,11 @@ package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.NotExceedMySQLFieldLength;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider;
@@ -61,6 +63,10 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
+    @NotExceedMySQLFieldLength(
+        fieldName = "scriptContent",
+        fieldType = MySQLDataType.MEDIUMTEXT
+    )
     private String content;
 
     /**
