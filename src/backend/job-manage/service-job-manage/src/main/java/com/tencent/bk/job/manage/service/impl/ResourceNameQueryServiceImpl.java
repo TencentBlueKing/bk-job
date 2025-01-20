@@ -109,7 +109,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                 }
                 break;
             case PUBLIC_SCRIPT:
-                ScriptDTO publicScript = publicScriptService.getScriptByScriptId(resourceId);
+                ScriptDTO publicScript = publicScriptService.getScript(resourceId);
                 if (publicScript != null) {
                     return publicScript.getName();
                 }

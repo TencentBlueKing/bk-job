@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -321,8 +322,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         ),
         content = EventContentConstants.VIEW_JOB_TEMPLATE
     )
-    public TaskTemplateInfoDTO getTaskTemplate(String username, long appId, Long templateId) {
-        authViewJobTemplate(username, appId, templateId);
+    public TaskTemplateInfoDTO getTaskTemplate(User user, long appId, Long templateId) {
+        authViewJobTemplate(user, appId, templateId);
         TaskTemplateInfoDTO templateInfo = getTaskTemplateById(appId, templateId);
         if (templateInfo == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
@@ -330,23 +331,23 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         return templateInfo;
     }
 
-    private void authEditTemplate(String username, long appId, long templateId) {
-        templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId),
+    private void authEditTemplate(User user, long appId, long templateId) {
+        templateAuthService.authEditJobTemplate(user, new AppResourceScope(appId),
             templateId).denyIfNoPermission();
     }
 
-    private void authViewJobTemplate(String username, long appId, long templateId) {
-        templateAuthService.authViewJobTemplate(username, new AppResourceScope(appId),
+    private void authViewJobTemplate(User user, long appId, long templateId) {
+        templateAuthService.authViewJobTemplate(user, new AppResourceScope(appId),
             templateId).denyIfNoPermission();
     }
 
-    private void authDeleteTemplate(String username, long appId, long templateId) {
-        templateAuthService.authDeleteJobTemplate(username, new AppResourceScope(appId),
+    private void authDeleteTemplate(User user, long appId, long templateId) {
+        templateAuthService.authDeleteJobTemplate(user, new AppResourceScope(appId),
             templateId).denyIfNoPermission();
     }
 
-    private void authCreateTemplate(String username, long appId) {
-        templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId)).denyIfNoPermission();
+    private void authCreateTemplate(User user, long appId) {
+        templateAuthService.authCreateJobTemplate(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
     @Override
@@ -360,10 +361,10 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         ),
         content = EventContentConstants.CREATE_JOB_TEMPLATE
     )
-    public TaskTemplateInfoDTO saveTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
-        authCreateTemplate(username, taskTemplateInfo.getAppId());
+    public TaskTemplateInfoDTO saveTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo) {
+        authCreateTemplate(user, taskTemplateInfo.getAppId());
         TaskTemplateInfoDTO createdTemplate = saveOrUpdateTaskTemplate(taskTemplateInfo);
-        templateAuthService.registerTemplate(createdTemplate.getId(), createdTemplate.getName(), username);
+        templateAuthService.registerTemplate(user, createdTemplate.getId(), createdTemplate.getName());
         return createdTemplate;
     }
 
@@ -378,8 +379,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         ),
         content = EventContentConstants.EDIT_JOB_TEMPLATE
     )
-    public TaskTemplateInfoDTO updateTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo) {
-        authEditTemplate(username, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+    public TaskTemplateInfoDTO updateTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo) {
+        authEditTemplate(user, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
 
         TaskTemplateInfoDTO template = saveOrUpdateTaskTemplate(taskTemplateInfo);
 
@@ -583,8 +584,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         ),
         content = EventContentConstants.DELETE_JOB_TEMPLATE
     )
-    public TaskTemplateInfoDTO deleteTaskTemplate(String username, Long appId, Long templateId) {
-        authDeleteTemplate(username, appId, templateId);
+    public TaskTemplateInfoDTO deleteTaskTemplate(User user, Long appId, Long templateId) {
+        authDeleteTemplate(user, appId, templateId);
 
         TaskTemplateInfoDTO template = getTaskTemplateById(appId, templateId);
         if (template == null) {
@@ -645,8 +646,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         ),
         content = EventContentConstants.EDIT_JOB_TEMPLATE
     )
-    public TaskTemplateInfoDTO saveTaskTemplateBasicInfo(String username, TaskTemplateInfoDTO taskTemplateInfo) {
-        authEditTemplate(username, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+    public TaskTemplateInfoDTO saveTaskTemplateBasicInfo(User user, TaskTemplateInfoDTO taskTemplateInfo) {
+        authEditTemplate(user, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
 
         TaskTemplateInfoDTO originTemplate = getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
         if (originTemplate == null) {

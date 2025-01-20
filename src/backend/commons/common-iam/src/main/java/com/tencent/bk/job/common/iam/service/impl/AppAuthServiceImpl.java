@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
@@ -98,14 +99,15 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public AuthResult auth(String username,
+    public AuthResult auth(User user,
                            String actionId,
                            AppResourceScope appResourceScope) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstanceWithPath(appResourceScope));
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            actionId, buildInstanceWithPath(appResourceScope));
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         } else {
-            return buildFailAuthResult(actionId, appResourceScope);
+            return buildFailAuthResult(user, actionId, appResourceScope);
         }
     }
 
@@ -141,8 +143,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         return iamClient.getApplyUrl(Collections.singletonList(action));
     }
 
-    private AuthResult buildFailAuthResult(String actionId, AppResourceScope appResourceScope) {
-        AuthResult authResult = AuthResult.fail();
+    private AuthResult buildFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {
+        AuthResult authResult = AuthResult.fail(user);
         ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
         String resourceId = appResourceScope.getId();
         String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
@@ -193,29 +195,33 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public List<String> batchAuth(String username,
+    public List<String> batchAuth(User user,
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
         return authHelper.isAllowed(
-            username, actionId,
-            buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList));
+            user.getTenantId(),
+            user.getUsername(),
+            actionId,
+            buildAppResourceScopeInstanceList(appResourceScope, resourceType, resourceIdList)
+        );
     }
 
     @Override
-    public AuthResult batchAuthResources(String username,
+    public AuthResult batchAuthResources(User user,
                                          String actionId,
                                          AppResourceScope appResourceScope,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+        List<String> allowResourceIds = authHelper.isAllowed(
+            user.getTenantId(), user.getUsername(), actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
         AuthResult authResult = new AuthResult();
         if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(actionId, resourceType, notAllowResourceIds);
+            authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
         } else {
             authResult.setPass(true);
         }
@@ -223,15 +229,15 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public List<String> batchAuth(String username,
+    public List<String> batchAuth(User user,
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   List<PermissionResource> resourceList) {
-        return authHelper.isAllowed(username, actionId, buildInstanceList(resourceList));
+        return authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId, buildInstanceList(resourceList));
     }
 
     @Override
-    public AppResourceScopeResult getAppResourceScopeList(String username,
+    public AppResourceScopeResult getAppResourceScopeList(User user,
                                                           List<AppResourceScope> allAppResourceScopeList) {
         AppResourceScopeResult result = new AppResourceScopeResult();
         result.setAppResourceScopeList(new ArrayList<>());
@@ -239,7 +245,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
 
         ActionDTO action = new ActionDTO();
         action.setId(ActionId.ACCESS_BUSINESS);
-        ExpressionDTO expression = policyService.getPolicyByAction(username, action, null);
+        ExpressionDTO expression = policyService.getPolicyByAction(user.getTenantId(),
+            user.getUsername(), action, null);
         if (ExpressionOperationEnum.ANY == expression.getOperator()) {
             result.setAny(true);
         } else {
@@ -279,7 +286,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     }
 
     @Override
-    public String getBusinessApplyUrl(AppResourceScope appResourceScope) {
+    public String getBusinessApplyUrl(String tenantId, AppResourceScope appResourceScope) {
         if (appResourceScope == null) {
             return jobIamProperties.getWebUrl();
         }

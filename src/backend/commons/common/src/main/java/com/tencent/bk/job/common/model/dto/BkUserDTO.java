@@ -27,6 +27,8 @@ package com.tencent.bk.job.common.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -36,6 +38,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@Slf4j
 public class BkUserDTO {
     /**
      * 用户ID
@@ -99,5 +102,17 @@ public class BkUserDTO {
     @Override
     public int hashCode() {
         return Objects.hash(username);
+    }
+
+    public boolean validate() {
+        if (StringUtils.isEmpty(username)) {
+            log.warn("Empty username");
+            return false;
+        }
+        if (StringUtils.isEmpty(tenantId)) {
+            log.warn("Empty tenantId");
+            return false;
+        }
+        return true;
     }
 }

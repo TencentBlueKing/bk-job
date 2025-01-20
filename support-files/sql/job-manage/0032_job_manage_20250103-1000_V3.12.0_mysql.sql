@@ -40,6 +40,38 @@ BEGIN
       KEY `idx_display_name` (`display_name`) USING BTREE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'dangerous_rule'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+  ALTER TABLE dangerous_rule ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'dangerous_rule'
+                    AND INDEX_NAME = 'idx_tenant_id') THEN
+  ALTER TABLE dangerous_rule ADD INDEX idx_tenant_id(`tenant_id`);
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'script'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+  ALTER TABLE script ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'script'
+                    AND INDEX_NAME = 'idx_tenant_id') THEN
+  ALTER TABLE script ADD INDEX idx_tenant_id(`tenant_id`);
+  END IF;
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

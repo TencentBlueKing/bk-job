@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobUUID;
@@ -87,6 +88,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 /**
  * 脚本管理通用实现
@@ -315,7 +318,7 @@ public class ScriptManagerImpl implements ScriptManager {
             newTags = tagService.createNewTagIfNotExist(tags, appId, operator);
         }
 
-        Integer resourceType = appId == (JobConstants.PUBLIC_APP_ID) ?
+        Integer resourceType = appId == (PUBLIC_APP_ID) ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
 
@@ -381,7 +384,7 @@ public class ScriptManagerImpl implements ScriptManager {
             "lastModifyTime={}", appId, JsonUtils.toJson(script), createTime, lastModifyTime);
         script.setCreateTime(getTimeOrDefault(createTime));
         script.setLastModifyTime(getTimeOrDefault(lastModifyTime));
-        final long targetAppId = script.isPublicScript() ? JobConstants.PUBLIC_APP_ID : appId;
+        final long targetAppId = script.isPublicScript() ? PUBLIC_APP_ID : appId;
         script.setAppId(targetAppId);
 
         // 默认为未上线状态
@@ -480,7 +483,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     private void deleteScriptRelatedTags(Long appId, String scriptId) {
-        Integer resourceType = (appId == JobConstants.PUBLIC_APP_ID) ?
+        Integer resourceType = (appId == PUBLIC_APP_ID) ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         tagService.batchDeleteResourceTags(appId, resourceType, scriptId);
@@ -495,7 +498,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         long targetAppId = appId;
         if (existScript.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
         if (!existScript.getAppId().equals(targetAppId)) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
@@ -517,7 +520,7 @@ public class ScriptManagerImpl implements ScriptManager {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -577,7 +580,7 @@ public class ScriptManagerImpl implements ScriptManager {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -653,7 +656,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
         boolean isNameExist = scriptDAO.isExistDuplicateName(targetAppId, newName);
         if (isNameExist) {
@@ -675,7 +678,7 @@ public class ScriptManagerImpl implements ScriptManager {
         checkScriptInApp(appId, script);
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
         saveScriptTags(operator, targetAppId, scriptId, tags);
 
@@ -689,8 +692,20 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public List<String> listPublicScriptNames(String tenantId, String keyword) {
+        return scriptDAO.listPublicScriptNames(tenantId, keyword);
+    }
+
+    @Override
     public List<ScriptDTO> listOnlineScriptForApp(long appId) {
         List<ScriptDTO> scripts = scriptDAO.listOnlineScriptForApp(appId);
+        setTags(scripts);
+        return scripts;
+    }
+
+    @Override
+    public List<ScriptDTO> listOnlinePublicScript(String tenantId) {
+        List<ScriptDTO> scripts = scriptDAO.listOnlinePublicScript(tenantId);
         setTags(scripts);
         return scripts;
     }
@@ -754,7 +769,9 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
+    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(User user,
+                                                              Long appId,
+                                                              String scriptId,
                                                               Long syncScriptVersionId,
                                                               List<TemplateStepIDDTO> templateStepIDs)
         throws PermissionDeniedException {
@@ -783,7 +800,7 @@ public class ScriptManagerImpl implements ScriptManager {
             }
         });
         AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(
-            username,
+            user,
             new AppResourceScope(appId),
             authTemplateIds
         );
@@ -944,6 +961,11 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public List<String> listPublicScriptIds(String tenantId) {
+        return scriptDAO.listPublicScriptIds(tenantId);
+    }
+
+    @Override
     public Integer countCiteScripts(Long appId) {
         // 1.查询业务下所有脚本
         List<String> scriptIdList = scriptDAO.listAppScriptIds(appId);
@@ -959,7 +981,7 @@ public class ScriptManagerImpl implements ScriptManager {
             .stream().map(String::valueOf).collect(Collectors.toList());
         tagCount.setTotal((long) appScriptIds.size());
 
-        Integer resourceType = JobConstants.PUBLIC_APP_ID == appId ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+        Integer resourceType = PUBLIC_APP_ID == appId ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(appId,
             resourceType, appScriptIds);
@@ -973,8 +995,32 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public TagCountVO getTagPublicScriptCount(String tenantId) {
+        TagCountVO tagCount = new TagCountVO();
+
+        List<String> scriptIds = scriptDAO.listPublicScriptIds(tenantId)
+            .stream().map(String::valueOf).collect(Collectors.toList());
+        tagCount.setTotal((long) scriptIds.size());
+
+        List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(PUBLIC_APP_ID,
+            JobResourceTypeEnum.PUBLIC_SCRIPT.getValue(), scriptIds);
+        Map<Long, Long> scriptTagCount = tagService.countResourcesByTag(tags);
+        tagCount.setTagCount(scriptTagCount);
+
+        long taggedScriptCount = tags.stream()
+            .map(ResourceTagDTO::getResourceId).distinct().count();
+        tagCount.setUnclassified(scriptIds.size() - taggedScriptCount);
+        return tagCount;
+    }
+
+    @Override
     public boolean isExistAnyScript(Long appId) {
         return scriptDAO.isExistAnyScript(appId);
+    }
+
+    @Override
+    public boolean isExistAnyPublicScript(String tenantId) {
+        return scriptDAO.isExistAnyPublicScript(tenantId);
     }
 
     @Override

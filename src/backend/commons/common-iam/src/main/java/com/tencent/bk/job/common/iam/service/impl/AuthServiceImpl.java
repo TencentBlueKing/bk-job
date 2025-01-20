@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.iam.EsbActionDTO;
-import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbInstanceDTO;
 import com.tencent.bk.job.common.esb.model.iam.EsbRelatedResourceTypeDTO;
+import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
@@ -45,6 +45,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
@@ -98,33 +99,35 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(String username, String actionId) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId);
+    public AuthResult auth(User user, String actionId) {
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId);
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         } else {
-            return buildFailAuthResult(actionId, null, (String) null);
+            return buildFailAuthResult(user, actionId, null, (String) null);
         }
     }
 
     @Override
-    public AuthResult auth(String username,
+    public AuthResult auth(User user,
                            String actionId,
                            ResourceTypeEnum resourceType,
                            String resourceId,
                            PathInfoDTO pathInfo) {
-        boolean isAllowed = authHelper.isAllowed(username, actionId, buildInstance(resourceType, resourceId, pathInfo));
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            actionId, buildInstance(resourceType, resourceId, pathInfo));
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         } else {
-            return buildFailAuthResult(actionId, resourceType, resourceId);
+            return buildFailAuthResult(user, actionId, resourceType, resourceId);
         }
     }
 
-    private AuthResult buildFailAuthResult(String actionId,
+    private AuthResult buildFailAuthResult(User user,
+                                           String actionId,
                                            ResourceTypeEnum resourceType,
                                            String resourceId) {
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
         if (resourceType == null || StringUtils.isEmpty(resourceId)) {
             authResult.addRequiredPermission(actionId, null);
         } else {
@@ -135,7 +138,9 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean isReturnApplyUrl, String username, List<PermissionActionResource> actionResources) {
+    public AuthResult auth(boolean isReturnApplyUrl,
+                           User user,
+                           List<PermissionActionResource> actionResources) {
         AuthResult authResult = new AuthResult();
         authResult.setPass(true);
         List<PermissionActionResource> requiredActionResources = new ArrayList<>();
@@ -144,7 +149,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             String actionId = actionResource.getActionId();
             List<PermissionResourceGroup> relatedResourceGroups = actionResource.getResourceGroups();
             if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                if (!authHelper.isAllowed(username, actionId)) {
+                if (!authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId)) {
                     authResult.setPass(false);
                     PermissionActionResource requiredActionResource = new PermissionActionResource();
                     requiredActionResource.setActionId(actionId);
@@ -157,7 +162,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
                 // All resources are under one application, so choose any one for authentication
                 List<String> allowedResourceIds =
-                    authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+                    authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+                        actionId, buildInstanceList(resources));
                 List<String> notAllowResourceIds =
                     resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
                         .map(PermissionResource::getResourceId).collect(Collectors.toList());
@@ -181,29 +187,33 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         }
 
         if (!authResult.isPass() && isReturnApplyUrl) {
-            authResult.setApplyUrl(getApplyUrl(requiredActionResources));
+            authResult.setApplyUrl(getApplyUrl(user.getTenantId(), requiredActionResources));
         }
         return authResult;
     }
 
     @Override
-    public List<String> batchAuth(String username, String actionId, ResourceTypeEnum resourceType,
+    public List<String> batchAuth(User user,
+                                  String actionId,
+                                  ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        return authHelper.isAllowed(username, actionId, buildInstanceList(resourceType, resourceIdList));
+        return authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            actionId, buildInstanceList(resourceType, resourceIdList));
     }
 
     @Override
-    public AuthResult batchAuthResources(String username,
+    public AuthResult batchAuthResources(User user,
                                          String actionId,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(username, actionId, buildInstanceList(resources));
+        List<String> allowResourceIds = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
         AuthResult authResult = new AuthResult();
         if (!notAllowResourceIds.isEmpty()) {
-            authResult = buildFailAuthResult(actionId, resourceType, notAllowResourceIds);
+            authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
         } else {
             authResult.setPass(true);
         }
@@ -218,7 +228,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public String getApplyUrl(List<PermissionActionResource> permissionActionResources) {
+    public String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources) {
         if (permissionActionResources == null || permissionActionResources.isEmpty()) {
             log.warn("Get apply url, action resource is empty!");
             return "";
@@ -372,7 +382,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType, String resourceId) {
+    public String getApplyUrl(String tenantId, String actionId, ResourceTypeEnum resourceType, String resourceId) {
         InstanceDTO instance = new InstanceDTO();
         instance.setId(resourceId);
         instance.setType(resourceType.getId());
@@ -390,7 +400,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public String getApplyUrl(String actionId) {
+    public String getApplyUrl(String tenantId, String actionId) {
         ActionDTO action = new ActionDTO();
         action.setId(actionId);
         action.setRelatedResourceTypes(Collections.emptyList());
@@ -398,7 +408,11 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors) {
-        return iamClient.registerResource(id, name, type, creator, ancestors);
+    public boolean registerResource(User user,
+                                    String id,
+                                    String name,
+                                    String type,
+                                    List<ResourceDTO> ancestors) {
+        return iamClient.registerResource(id, name, type, user.getUsername(), ancestors);
     }
 }

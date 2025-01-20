@@ -60,6 +60,7 @@ class DangerousRuleDAOImplIntegrationTest {
     @Test
     void listDangerousRulesByScriptType() {
         DangerousRuleDTO dangerousRule = new DangerousRuleDTO();
+        dangerousRule.setTenantId("tencent");
         dangerousRule.setScriptType(1);
         assertThat(dangerousRuleDAO.listDangerousRules(dangerousRule)).hasSize(8);
         dangerousRule.setScriptType(2);
@@ -87,6 +88,7 @@ class DangerousRuleDAOImplIntegrationTest {
         DangerousRuleQuery query = DangerousRuleQuery
             .builder()
             .expression("sql")
+            .tenantId("tencent")
             .build();
         List<DangerousRuleDTO> dangerousRuleDTOS = dangerousRuleDAO.listDangerousRules(query);
         assertThat(dangerousRuleDTOS).hasSize(3);

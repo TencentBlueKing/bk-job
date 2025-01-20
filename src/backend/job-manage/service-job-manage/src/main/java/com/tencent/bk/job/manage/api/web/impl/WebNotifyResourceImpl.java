@@ -29,7 +29,9 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
@@ -85,7 +87,8 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        NotifyPoliciesCreateUpdateReq createUpdateReq) {
-        AuthResult authResult = notificationAuthService.authNotificationSetting(username, appResourceScope);
+        User user = JobContextUtil.getUser();
+        AuthResult authResult = notificationAuthService.authNotificationSetting(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }

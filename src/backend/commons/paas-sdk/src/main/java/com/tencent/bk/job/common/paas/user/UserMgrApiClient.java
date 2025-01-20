@@ -47,8 +47,11 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.message.BasicHeader;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API;
@@ -77,6 +80,7 @@ public class UserMgrApiClient extends BkApiV2Client {
     }
 
     public List<BkUserDTO> getAllUserList(String tenantId) {
+        // TODO:tenant 网关暂未提供实现
         return Collections.emptyList();
     }
 
@@ -90,7 +94,7 @@ public class UserMgrApiClient extends BkApiV2Client {
                 .builder()
                 .method(HttpMethodEnum.GET)
                 .uri("/api/v3/open/tenants")
-                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID))
+                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.SYSTEM_TENANT_ID))
                 .authorization(authorization)
                 .build(),
             request -> doRequest(request, new TypeReference<OpenApiResponse<List<OpenApiTenant>>>() {
@@ -122,4 +126,13 @@ public class UserMgrApiClient extends BkApiV2Client {
         }
     }
 
+    public BkUserDTO getUserByUsername(String username) {
+        // TODO:tenant 网关暂未提供实现
+        return null;
+    }
+
+    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
+        // TODO:tenant 网关暂未提供实现
+        return new HashMap<>();
+    }
 }

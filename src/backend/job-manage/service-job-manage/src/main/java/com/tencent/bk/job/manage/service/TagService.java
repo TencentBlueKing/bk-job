@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 
@@ -82,20 +83,20 @@ public interface TagService {
     /**
      * 新增 Tag
      *
-     * @param username 操作人
-     * @param tag      Tag
+     * @param user 操作人
+     * @param tag  Tag
      * @return Tag
      */
-    TagDTO createTag(String username, TagDTO tag);
+    TagDTO createTag(User user, TagDTO tag);
 
     /**
      * 更新 Tag 信息
      *
-     * @param username 操作人
-     * @param tag      Tag
+     * @param user 操作人
+     * @param tag  Tag
      * @return 是否成功
      */
-    boolean updateTagById(String username, TagDTO tag);
+    boolean updateTagById(User user, TagDTO tag);
 
     /**
      * 批量创建不存在的标签
@@ -123,11 +124,11 @@ public interface TagService {
     /**
      * 删除标签
      *
-     * @param username 用户账号
-     * @param appId    业务 ID
-     * @param tagId    标签ID
+     * @param user  用户账号
+     * @param appId 业务 ID
+     * @param tagId 标签ID
      */
-    void deleteTag(String username, long appId, Long tagId);
+    void deleteTag(User user, long appId, Long tagId);
 
     List<ResourceTagDTO> listResourceTagsByTagId(Long appId, Long tagId);
 

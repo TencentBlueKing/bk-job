@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
@@ -87,7 +88,7 @@ public class EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogResourceImpl
             EsbBkCIPluginBatchGetJobInstanceExecuteObjectLogRequest request) {
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(

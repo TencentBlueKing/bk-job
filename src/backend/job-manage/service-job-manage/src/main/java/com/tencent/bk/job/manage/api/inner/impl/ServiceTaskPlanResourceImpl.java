@@ -30,7 +30,9 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
@@ -90,17 +92,22 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     private final AccountService accountService;
 
+    private final UserLocalCache userLocalCache;
+
     @Autowired
     public ServiceTaskPlanResourceImpl(
-        TaskPlanService taskPlanService,
-        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        ScriptService scriptService, PublicScriptService publicScriptService,
-        AccountService accountService) {
+            TaskPlanService taskPlanService,
+            @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
+            ScriptService scriptService,
+            PublicScriptService publicScriptService,
+            AccountService accountService,
+            UserLocalCache userLocalCache) {
         this.taskPlanService = taskPlanService;
         this.taskVariableService = taskVariableService;
         this.scriptService = scriptService;
         this.publicScriptService = publicScriptService;
         this.accountService = accountService;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
@@ -216,7 +223,8 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(username, appId, templateId,
+        User user = userLocalCache.getUser(username);
+        return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(user, appId, templateId,
             planId, createTime, lastModifyTime, lastModifyUser));
     }
 

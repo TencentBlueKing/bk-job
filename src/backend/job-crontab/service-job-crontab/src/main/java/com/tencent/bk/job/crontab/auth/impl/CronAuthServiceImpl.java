@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -68,17 +69,17 @@ public class CronAuthServiceImpl implements CronAuthService {
     }
 
     @Override
-    public AuthResult authCreateCron(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_CRON, appResourceScope);
+    public AuthResult authCreateCron(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_CRON, appResourceScope);
     }
 
     @Override
-    public AuthResult authManageCron(String username,
+    public AuthResult authManageCron(User user,
                                      AppResourceScope appResourceScope,
                                      Long cronId,
                                      String cronName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_CRON,
             ResourceTypeEnum.CRON,
             cronId.toString(),
@@ -87,27 +88,27 @@ public class CronAuthServiceImpl implements CronAuthService {
     }
 
     @Override
-    public List<Long> getPermissionAllowedCronIds(String username,
+    public List<Long> getPermissionAllowedCronIds(User user,
                                                   AppResourceScope appResourceScope,
                                                   List<Long> cronIdList) {
 
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_CRON,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.MANAGE_CRON,
             appResourceScope, ResourceTypeEnum.CRON,
             cronIdList.stream().map(Objects::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
-    public void batchAuthManageCron(String username,
+    public void batchAuthManageCron(User user,
                                     AppResourceScope appResourceScope,
                                     List<Long> cronIdList) throws PermissionDeniedException {
 
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_CRON,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.MANAGE_CRON,
             appResourceScope, ResourceTypeEnum.CRON,
             cronIdList.stream().map(Objects::toString).collect(Collectors.toList()));
         if (cronIdList.size() == allowedIdList.size()) {
             return;
         }
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
         for (Long cronId : cronIdList) {
             String cronIdStr = String.valueOf(cronId);
             if (!allowedIdList.contains(cronIdStr)) {
@@ -122,7 +123,7 @@ public class CronAuthServiceImpl implements CronAuthService {
     }
 
     @Override
-    public boolean registerCron(Long id, String name, String creator) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.CRON, creator, null);
+    public boolean registerCron(User creator, Long id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.CRON, null);
     }
 }

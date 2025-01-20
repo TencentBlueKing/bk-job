@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -59,27 +60,22 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        String username = JobContextUtil.getUsername();
-        String tenantId = JobContextUtil.getTenantId();
-        if (StringUtils.isEmpty(username)) {
-            log.debug("Can not find username for url:{}", url);
-            return true;
-        }
-        if (StringUtils.isEmpty(tenantId)) {
-            log.debug("Can not find tenantId for url:{}", url);
+        User user = JobContextUtil.getUser();
+        if (user == null) {
+            log.debug("Can not find user for url:{}", url);
             return true;
         }
         BasicApp app = JobContextUtil.getApp();
         if (app != null) {
-            checkAppTenant(app, tenantId);
+            checkAppTenant(app, user.getTenantId());
             AppResourceScope appResourceScope = new AppResourceScope(app.getId(), app.getScope());
-            log.debug("Auth {} access_business {}", username, appResourceScope);
-            AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
+            log.debug("Auth {} access_business {}", user.getUsername(), appResourceScope);
+            AuthResult authResult = businessAuthService.authAccessBusiness(user, appResourceScope);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else {
-            log.debug("Ignore auth {} access_business public scope", username);
+            log.debug("Ignore auth {} access_business public scope", user.getUsername());
         }
         return true;
     }

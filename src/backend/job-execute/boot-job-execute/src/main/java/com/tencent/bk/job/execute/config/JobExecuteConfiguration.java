@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.service.AppCacheService;
-import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import com.tencent.bk.job.manage.AppCacheServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
@@ -43,4 +42,5 @@ public class JobExecuteConfiguration {
     public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
         return new BasicAppInterceptor(appCacheService);
     }
+
 }

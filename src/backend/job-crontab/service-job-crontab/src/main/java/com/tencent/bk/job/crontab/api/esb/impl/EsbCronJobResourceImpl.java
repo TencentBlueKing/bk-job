@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.EsbCronJobResource;
@@ -138,7 +139,7 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
         if (request.validate()) {
 
             AuthResult authResult = cronAuthService.authManageCron(
-                username, request.getAppResourceScope(), request.getId(), null
+                JobContextUtil.getUser(), request.getAppResourceScope(), request.getId(), null
             );
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
@@ -146,8 +147,8 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
             Boolean updateResult;
             try {
-                updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
-                    request.getStatus() == 1);
+                updateResult = cronJobService.changeCronJobEnableStatus(JobContextUtil.getUser(),
+                    appId, request.getId(), request.getStatus() == 1);
             } catch (TaskExecuteAuthFailedException e) {
                 throw new PermissionDeniedException(e.getAuthResult());
             }
@@ -206,9 +207,9 @@ public class EsbCronJobResourceImpl implements EsbCronJobResource {
 
         CronJobInfoDTO result;
         if (isUpdate) {
-            result = cronJobService.updateCronJobInfo(username, cronJobInfo);
+            result = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfo);
         } else {
-            result = cronJobService.createCronJobInfo(username, cronJobInfo);
+            result = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfo);
         }
         if (result.getId() > 0) {
             esbCronInfoResponse = CronJobInfoDTO.toEsbCronInfo(cronJobService.getCronJobInfoById(result.getId()));

@@ -41,9 +41,11 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
@@ -109,6 +111,7 @@ public class EsbFastTransferFileV3ResourceImpl
     public EsbResp<EsbJobExecuteV3DTO> fastTransferFile(String username,
                                                         String appCode,
                                                         @AuditRequestBody EsbFastTransferFileV3Request request) {
+        User user = JobContextUtil.getUser();
         ValidateResult checkResult = checkFastTransferFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -130,6 +133,7 @@ public class EsbFastTransferFileV3ResourceImpl
                 .taskInstance(taskInstance)
                 .stepInstance(stepInstance)
                 .rollingConfig(rollingConfig)
+                .operator(user)
                 .build()
         );
 

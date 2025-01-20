@@ -156,6 +156,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    public List<ApplicationDTO> listAllAppsForTenant(String tenantId) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.eq(tenantId));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.APP_ID.in(appIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));

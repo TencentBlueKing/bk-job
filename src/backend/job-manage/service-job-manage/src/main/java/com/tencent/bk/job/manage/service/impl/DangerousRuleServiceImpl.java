@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
@@ -62,8 +63,8 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
     }
 
     @Override
-    public List<DangerousRuleVO> listDangerousRules(String username) {
-        return dangerousRuleDAO.listDangerousRules().stream().map(DangerousRuleDTO::toVO)
+    public List<DangerousRuleVO> listDangerousRules(User user) {
+        return dangerousRuleDAO.listDangerousRules(user.getTenantId()).stream().map(DangerousRuleDTO::toVO)
             .collect(Collectors.toList());
     }
 
@@ -77,16 +78,28 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.CREATE_HIGH_RISK_DETECT_RULE
     )
-    public DangerousRuleDTO createDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
+    public DangerousRuleDTO createDangerousRule(User user, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
-        int maxPriority = dangerousRuleDAO.getMaxPriority();
+        int maxPriority = dangerousRuleDAO.getMaxPriority(user.getTenantId());
         log.info(String.format("current maxPriority:%d", maxPriority));
-        long id = dangerousRuleDAO.insertDangerousRule(new DangerousRuleDTO(null, req.getExpression(),
-            req.getDescription(), maxPriority + 1, scriptType, username, System.currentTimeMillis(), username,
-            System.currentTimeMillis(), req.getAction(), EnableStatusEnum.DISABLED.getValue()));
+        long id = dangerousRuleDAO.insertDangerousRule(
+            new DangerousRuleDTO(
+                null, req.getExpression(),
+                req.getDescription(),
+                maxPriority + 1,
+                scriptType,
+                user.getUsername(),
+                System.currentTimeMillis(),
+                user.getUsername(),
+                System.currentTimeMillis(),
+                req.getAction(),
+                EnableStatusEnum.DISABLED.getValue(),
+                user.getTenantId()
+            )
+        );
 
         // 清理缓存
-        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(req.getScriptTypeList());
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(), req.getScriptTypeList());
 
         return getDangerousRuleById(id);
     }
@@ -96,16 +109,29 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
     )
-    public DangerousRuleDTO updateDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
+    public DangerousRuleDTO updateDangerousRule(User user, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
         DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
         if (existDangerousRuleDTO != null) {
-            dangerousRuleDAO.updateDangerousRule(new DangerousRuleDTO(req.getId(),
-                req.getExpression(), req.getDescription(), existDangerousRuleDTO.getPriority(), scriptType, null,
-                null, username, System.currentTimeMillis(), req.getAction(), req.getStatus()));
+            dangerousRuleDAO.updateDangerousRule(
+                new DangerousRuleDTO(
+                    req.getId(),
+                    req.getExpression(),
+                    req.getDescription(),
+                    existDangerousRuleDTO.getPriority(),
+                    scriptType,
+                    null,
+                    null,
+                    user.getUsername(),
+                    System.currentTimeMillis(),
+                    req.getAction(),
+                    req.getStatus(),
+                    user.getTenantId()
+                )
+            );
             // 清理缓存
-            List<Byte> existScriptTypes  = DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType());
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(existScriptTypes);
+            List<Byte> existScriptTypes = DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType());
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(), existScriptTypes);
         }
         return getDangerousRuleById(req.getId());
     }
@@ -117,7 +143,7 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
     )
-    public Integer moveDangerousRule(String username, MoveDangerousRuleReq req) {
+    public Integer moveDangerousRule(User user, MoveDangerousRuleReq req) {
         int dir = req.getDir();
         DangerousRuleDTO currentRuleDTO = dangerousRuleDAO.getDangerousRuleById(req.getId());
         if (currentRuleDTO == null) {
@@ -126,32 +152,32 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         }
         if (dir == -1) {
             //往上移动
-            int minPriority = dangerousRuleDAO.getMinPriority();
+            int minPriority = dangerousRuleDAO.getMinPriority(user.getTenantId());
             if (currentRuleDTO.getPriority() <= minPriority) {
                 log.info("Fail to move, id=%d dangerousRule already has min priority");
                 return 0;
             }
             //需要移动的情况
-            DangerousRuleDTO upperRuleDTO = dangerousRuleDAO.getDangerousRuleByPriority(
+            DangerousRuleDTO upperRuleDTO = dangerousRuleDAO.getDangerousRuleByPriority(user.getTenantId(),
                 currentRuleDTO.getPriority() - 1);
             upperRuleDTO.setPriority(upperRuleDTO.getPriority() + 1);
             currentRuleDTO.setPriority(currentRuleDTO.getPriority() - 1);
             dangerousRuleDAO.updateDangerousRule(upperRuleDTO);
             dangerousRuleDAO.updateDangerousRule(currentRuleDTO);
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                 DangerousRuleDTO.decodeScriptType(upperRuleDTO.getScriptType()));
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                 DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else if (dir == 1) {
             //往下移动
-            int maxPriority = dangerousRuleDAO.getMaxPriority();
+            int maxPriority = dangerousRuleDAO.getMaxPriority(user.getTenantId());
             if (currentRuleDTO.getPriority() >= maxPriority) {
                 log.info("Fail to move, id=%d dangerousRule already has max priority");
                 return 0;
             }
             //需要移动的情况
-            DangerousRuleDTO downerRuleDTO = dangerousRuleDAO.getDangerousRuleByPriority(
+            DangerousRuleDTO downerRuleDTO = dangerousRuleDAO.getDangerousRuleByPriority(user.getTenantId(),
                 currentRuleDTO.getPriority() + 1);
             if (downerRuleDTO == null) {
                 return 0;
@@ -160,9 +186,9 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
             currentRuleDTO.setPriority(currentRuleDTO.getPriority() + 1);
             dangerousRuleDAO.updateDangerousRule(downerRuleDTO);
             dangerousRuleDAO.updateDangerousRule(currentRuleDTO);
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                 DangerousRuleDTO.decodeScriptType(downerRuleDTO.getScriptType()));
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                 DangerousRuleDTO.decodeScriptType(currentRuleDTO.getScriptType()));
             return 2;
         } else {
@@ -177,12 +203,12 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.DELETE_HIGH_RISK_DETECT_RULE
     )
-    public Integer deleteDangerousRuleById(String username, Long id) {
+    public Integer deleteDangerousRuleById(User user, Long id) {
         DangerousRuleDTO existDangerousRuleDTO = dangerousRuleDAO.getDangerousRuleById(id);
         if (existDangerousRuleDTO == null) {
             return -1;
         }
-        List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules();
+        List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(user.getTenantId());
         for (int i = 0; i < dangerousRuleDTOList.size(); i++) {
             if (dangerousRuleDTOList.get(i).getId().equals(id)) {
                 dangerousRuleDTOList.remove(i);
@@ -196,10 +222,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
                 DangerousRuleDTO dangerousRuleDTO = dangerousRuleDTOList.get(i);
                 dangerousRuleDTO.setPriority(i + 1);
                 dangerousRuleDAO.updateDangerousRule(dangerousRuleDTO);
-                dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+                dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                     DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
             }
-            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+            dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
                 DangerousRuleDTO.decodeScriptType(existDangerousRuleDTO.getScriptType()));
         } catch (Exception e) {
             log.error(String.format("delete dangerous rule fail! id: %s", id), e);
@@ -221,10 +247,10 @@ public class DangerousRuleServiceImpl implements DangerousRuleService {
         actionId = ActionId.HIGH_RISK_DETECT_RULE,
         content = EventContentConstants.EDIT_HIGH_RISK_DETECT_RULE
     )
-    public DangerousRuleDTO updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status) {
-        dangerousRuleDAO.updateDangerousRuleStatus(userName, id, status);
+    public DangerousRuleDTO updateDangerousRuleStatus(User user, Long id, EnableStatusEnum status) {
+        dangerousRuleDAO.updateDangerousRuleStatus(user.getUsername(), id, status);
         DangerousRuleDTO dangerousRuleDTO = getDangerousRuleById(id);
-        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(
+        dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(),
             DangerousRuleDTO.decodeScriptType(dangerousRuleDTO.getScriptType()));
         return dangerousRuleDTO;
     }

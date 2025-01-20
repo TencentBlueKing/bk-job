@@ -29,8 +29,10 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebPermissionResource;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
@@ -123,7 +125,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         }
     }
 
-    private Response<AuthResultVO> checkScriptOperationPermission(String username,
+    private Response<AuthResultVO> checkScriptOperationPermission(User user,
                                                                   AppResourceScope appResourceScope,
                                                                   String action,
                                                                   String resourceId,
@@ -137,7 +139,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        scriptAuthService.authCreateScript(username, appResourceScope)
+                        scriptAuthService.authCreateScript(user, appResourceScope)
                     )
                 );
             case "view":
@@ -145,7 +147,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        scriptAuthService.authViewScript(username, appResourceScope, resourceId, null)
+                        scriptAuthService.authViewScript(user, appResourceScope, resourceId, null)
                     )
                 );
             case "edit":
@@ -154,7 +156,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        scriptAuthService.authManageScript(username, appResourceScope, resourceId, null)
+                        scriptAuthService.authManageScript(user, appResourceScope, resourceId, null)
                     )
                 );
         }
@@ -162,7 +164,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private Response<AuthResultVO> checkPublicScriptOperationPermission(
-        String username,
+        User user,
         String action,
         String resourceId,
         boolean isReturnApplyUrl
@@ -172,7 +174,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        noResourceScopeAuthService.authCreatePublicScript(username)
+                        noResourceScopeAuthService.authCreatePublicScript(user)
                     )
                 );
             case "view":
@@ -183,28 +185,28 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        noResourceScopeAuthService.authManagePublicScript(username, resourceId)
+                        noResourceScopeAuthService.authManagePublicScript(user, resourceId)
                     )
                 );
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
-    private Response<AuthResultVO> checkCloneTemplate(String username,
+    private Response<AuthResultVO> checkCloneTemplate(User user,
                                                       AppResourceScope appResourceScope,
                                                       String resourceId,
                                                       boolean isReturnApplyUrl) {
         AuthResult authResult = templateAuthService.authViewJobTemplate(
-            username,
+            user,
             appResourceScope,
             Long.parseLong(resourceId)
         );
-        authResult = authResult.mergeAuthResult(templateAuthService.authCreateJobTemplate(username, appResourceScope));
+        authResult = authResult.mergeAuthResult(templateAuthService.authCreateJobTemplate(user, appResourceScope));
         return Response.buildSuccessResp(webAuthService.toAuthResultVO(isReturnApplyUrl, authResult));
     }
 
     private Response<AuthResultVO> checkJobTemplateOperationPermission(
-        String username,
+        User user,
         AppResourceScope appResourceScope,
         String action,
         String resourceId,
@@ -220,7 +222,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        templateAuthService.authCreateJobTemplate(username, appResourceScope)
+                        templateAuthService.authCreateJobTemplate(user, appResourceScope)
                     )
                 );
             case "view":
@@ -229,18 +231,18 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        templateAuthService.authViewJobTemplate(username, appResourceScope, templateId)
+                        templateAuthService.authViewJobTemplate(user, appResourceScope, templateId)
                     )
                 );
             case "edit":
                 templateId = Long.parseLong(resourceId);
                 AuthResult authEditResult = templateAuthService.authEditJobTemplate(
-                    username,
+                    user,
                     appResourceScope,
                     templateId
                 );
                 AuthResult authViewResult = templateAuthService.authViewJobTemplate(
-                    username,
+                    user,
                     appResourceScope,
                     templateId
                 );
@@ -255,17 +257,17 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        templateAuthService.authDeleteJobTemplate(username, appResourceScope, templateId)
+                        templateAuthService.authDeleteJobTemplate(user, appResourceScope, templateId)
                     )
                 );
             case "clone":
-                return checkCloneTemplate(username, appResourceScope, resourceId, isReturnApplyUrl);
+                return checkCloneTemplate(user, appResourceScope, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
     private Response<AuthResultVO> checkJobPlanOperationPermission(
-        String username,
+        User user,
         AppResourceScope appResourceScope,
         String action,
         String resourceId,
@@ -294,7 +296,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        planAuthService.authCreateJobPlan(username, appResourceScope, templateId, null)
+                        planAuthService.authCreateJobPlan(user, appResourceScope, templateId, null)
                     )
                 );
             case "view":
@@ -307,7 +309,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
                         planAuthService.authViewJobPlan(
-                            username, appResourceScope,
+                            user, appResourceScope,
                             plan.getTemplateId(), plan.getId(), null
                         )
                     )
@@ -321,7 +323,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
                         planAuthService.authEditJobPlan(
-                            username, appResourceScope,
+                            user, appResourceScope,
                             plan.getTemplateId(), plan.getId(), null
                         )
                     )
@@ -335,7 +337,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
                         planAuthService.authDeleteJobPlan(
-                            username, appResourceScope,
+                            user, appResourceScope,
                             plan.getTemplateId(), plan.getId(), null
                         )
                     )
@@ -349,7 +351,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
                         planAuthService.authSyncJobPlan(
-                            username, appResourceScope,
+                            user, appResourceScope,
                             plan.getTemplateId(), plan.getId(), null
                         )
                     )
@@ -359,7 +361,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private Response<AuthResultVO> checkAccountOperationPermission(
-        String username,
+        User user,
         AppResourceScope appResourceScope,
         String action,
         String resourceId,
@@ -376,7 +378,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        accountAuthService.authCreateAccount(username, appResourceScope)
+                        accountAuthService.authCreateAccount(user, appResourceScope)
                     )
                 );
             case "view":
@@ -386,7 +388,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        accountAuthService.authManageAccount(username, appResourceScope, accountId, null)
+                        accountAuthService.authManageAccount(user, appResourceScope, accountId, null)
                     )
                 );
             case "use":
@@ -394,7 +396,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        accountAuthService.authUseAccount(username, appResourceScope, accountId, null)
+                        accountAuthService.authUseAccount(user, appResourceScope, accountId, null)
                     )
                 );
         }
@@ -402,7 +404,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private Response<AuthResultVO> checkTagOperationPermission(
-        String username,
+        User user,
         AppResourceScope appResourceScope,
         String action,
         String resourceId,
@@ -417,7 +419,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        tagAuthService.authCreateTag(username, appResourceScope)
+                        tagAuthService.authCreateTag(user, appResourceScope)
                     )
                 );
             case "edit":
@@ -426,7 +428,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        tagAuthService.authManageTag(username, appResourceScope, tagId, null)
+                        tagAuthService.authManageTag(user, appResourceScope, tagId, null)
                     )
                 );
         }
@@ -434,7 +436,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
     }
 
     private Response<AuthResultVO> checkTicketOperationPermission(
-        String username,
+        User user,
         AppResourceScope appResourceScope,
         String action,
         String resourceId,
@@ -449,7 +451,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        ticketAuthService.authCreateTicket(username, appResourceScope)
+                        ticketAuthService.authCreateTicket(user, appResourceScope)
                     )
                 );
             case "edit":
@@ -457,24 +459,24 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        ticketAuthService.authManageTicket(username, appResourceScope, resourceId, null)
+                        ticketAuthService.authManageTicket(user, appResourceScope, resourceId, null)
                     )
                 );
             case "use":
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        ticketAuthService.authUseTicket(username, appResourceScope, resourceId, null)
+                        ticketAuthService.authUseTicket(user, appResourceScope, resourceId, null)
                     )
                 );
             default:
-                log.error("Unknown operator|{}|{}|{}|{}", username, appResourceScope, action, resourceId);
+                log.error("Unknown operator|{}|{}|{}|{}", user, appResourceScope, action, resourceId);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());
     }
 
     private Response<AuthResultVO> checkWhiteIPOperationPermission(
-        String username,
+        User user,
         String action,
         boolean isReturnApplyUrl
     ) {
@@ -483,7 +485,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        noResourceScopeAuthService.authCreateWhiteList(username)
+                        noResourceScopeAuthService.authCreateWhiteList(user)
                     )
                 );
             case "view":
@@ -492,7 +494,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 return Response.buildSuccessResp(
                     webAuthService.toAuthResultVO(
                         isReturnApplyUrl,
-                        noResourceScopeAuthService.authManageWhiteList(username)
+                        noResourceScopeAuthService.authManageWhiteList(user)
                     )
                 );
         }
@@ -519,38 +521,40 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
         String action = resourceAndAction[1];
         boolean isReturnApplyUrl = returnPermissionDetail != null && returnPermissionDetail;
 
+        User user = JobContextUtil.getUser();
         switch (resourceType) {
             case "biz":
                 if ("access_business".equals(action)) {
                     return Response.buildSuccessResp(
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
-                            businessAuthService.authAccessBusiness(username, buildResourceScope(scopeType, scopeId))
+                            businessAuthService.authAccessBusiness(
+                                user, buildResourceScope(scopeType, scopeId))
                         )
                     );
                 }
                 break;
             case "script":
-                return checkScriptOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkScriptOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "public_script":
-                return checkPublicScriptOperationPermission(username, action, resourceId, isReturnApplyUrl);
+                return checkPublicScriptOperationPermission(user, action, resourceId, isReturnApplyUrl);
             case "job_template":
-                return checkJobTemplateOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkJobTemplateOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "job_plan":
-                return checkJobPlanOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkJobPlanOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "account":
-                return checkAccountOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkAccountOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "whitelist":
-                return checkWhiteIPOperationPermission(username, action, isReturnApplyUrl);
+                return checkWhiteIPOperationPermission(user, action, isReturnApplyUrl);
             case "tag":
-                return checkTagOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkTagOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
             case "ticket":
-                return checkTicketOperationPermission(username, buildResourceScope(scopeType, scopeId),
+                return checkTicketOperationPermission(user, buildResourceScope(scopeType, scopeId),
                     action, resourceId, isReturnApplyUrl);
         }
         return Response.buildSuccessResp(AuthResultVO.fail());

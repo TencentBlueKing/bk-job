@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -50,6 +51,12 @@ public class UserMgrAutoConfiguration {
             meterRegistryObjectProvider.getIfAvailable(),
             tenantEnvService
         );
+    }
+
+    @Bean
+    UserLocalCache userLocalCache(UserMgrApiClient userMgrApiClient) {
+        log.info("Init UserLocalCache");
+        return new UserLocalCache(userMgrApiClient);
     }
 
 }

@@ -135,8 +135,12 @@ public class UserSyncService {
             Set<BkUserDTO> remoteUserSet = CollectionUtils.isEmpty(remoteUserList) ?
                 Collections.emptySet(): new HashSet<>(remoteUserList);
 
-            // 2.计算差异数据
-            Set<BkUserDTO> localUserSet = new HashSet<>(userCacheService.listTenantUsers(tenantId));
+            // 2.获取本地缓存的租户下的所有用户
+            List<BkUserDTO> localUserList = userCacheService.listTenantUsers(tenantId);
+            Set<BkUserDTO> localUserSet = CollectionUtils.isEmpty(localUserList) ?
+                Collections.emptySet(): new HashSet<>(localUserList);
+
+            // 3.计算差异数据
             Set<BkUserDTO> addUsers = remoteUserSet.stream()
                 .filter(user -> !localUserSet.contains(user)).collect(Collectors.toSet());
             log.info("[{}] New users : {}",
@@ -148,7 +152,7 @@ public class UserSyncService {
                 tenantId,
                 deleteUsers.stream().map(BkUserDTO::getFullName).collect(Collectors.joining(",")));
 
-            // 3.保存
+            // 4.保存
             userCacheService.batchPatchUsers(deleteUsers, addUsers);
         } catch (Throwable t) {
             log.error("Sync user fail", t);

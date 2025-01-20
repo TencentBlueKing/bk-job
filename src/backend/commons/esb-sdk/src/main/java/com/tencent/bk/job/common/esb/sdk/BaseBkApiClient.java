@@ -287,7 +287,6 @@ public class BaseBkApiClient {
         List<Header> headers = new ArrayList<>();
         headers.add(new BasicHeader("Content-Type", "application/json"));
         headers.add(buildBkApiAuthorizationHeader(requestInfo.getAuthorization()));
-        headers.add(buildBkApiAuthorizationHeader(requestInfo.getAuthorization()));
         if (StringUtils.isNotEmpty(lang)) {
             headers.add(new BasicHeader(HDR_BK_LANG, lang));
         } else {
@@ -326,6 +325,10 @@ public class BaseBkApiClient {
     }
 
     private Header buildBkApiAuthorizationHeader(BkApiAuthorization authorization) {
+        if (authorization == null) {
+            log.error("Bk Api authorization header is missing");
+            throw new InternalException("Header: " + BK_API_AUTH_HEADER + " is required", ErrorCode.API_ERROR);
+        }
         return new BasicHeader(BK_API_AUTH_HEADER, jsonMapper.toJson(authorization));
     }
 

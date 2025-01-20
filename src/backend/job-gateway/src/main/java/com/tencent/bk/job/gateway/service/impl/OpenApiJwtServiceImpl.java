@@ -27,6 +27,7 @@ package com.tencent.bk.job.gateway.service.impl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.gateway.config.BkGatewayConfig;
@@ -61,6 +62,8 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
     private volatile PublicKey esbJwtPublicKey;
     private volatile PublicKey bkApiGatewayJwtPublicKey;
     private final BkGatewayConfig bkApiGatewayConfig;
+    private final TenantEnvService tenantEnvService;
+
 
     /**
      * 蓝鲸网关请求标识
@@ -72,9 +75,11 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
 
     @Autowired
     public OpenApiJwtServiceImpl(OpenApiJwtPublicKeyService openApiJwtPublicKeyService,
-                                 BkGatewayConfig bkApiGatewayConfig) {
+                                 BkGatewayConfig bkApiGatewayConfig,
+                                 TenantEnvService tenantEnvService) {
         this.openApiJwtPublicKeyService = openApiJwtPublicKeyService;
         this.bkApiGatewayConfig = bkApiGatewayConfig;
+        this.tenantEnvService = tenantEnvService;
         getJwtPublicKeyByPolicy();
     }
 
@@ -114,14 +119,17 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
 
     private boolean tryToGetAndCachePublicKeyOnce() {
         try {
-            if (this.esbJwtPublicKey == null) {
-                String esbJwtPublicKey = openApiJwtPublicKeyService.getEsbJWTPublicKey();
-                if (StringUtils.isEmpty(esbJwtPublicKey)) {
-                    log.error("Esb jwt public key is not configured!");
-                    return false;
+            if (!tenantEnvService.isTenantEnabled()) {
+                // 非多租户环境，需要兼容 ESB
+                if (this.esbJwtPublicKey == null) {
+                    String esbJwtPublicKey = openApiJwtPublicKeyService.getEsbJWTPublicKey();
+                    if (StringUtils.isEmpty(esbJwtPublicKey)) {
+                        log.error("Esb jwt public key is not configured!");
+                        return false;
+                    }
+                    this.esbJwtPublicKey = buildPublicKey(esbJwtPublicKey);
+                    log.info("Init esb jwt public key success");
                 }
-                this.esbJwtPublicKey = buildPublicKey(esbJwtPublicKey);
-                log.info("Init esb jwt public key success");
             }
 
             if (this.bkApiGatewayJwtPublicKey == null && bkApiGatewayConfig.isEnabled()) {

@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
@@ -96,26 +97,28 @@ public class CredentialServiceImpl implements CredentialService {
         transactionManager = "jobManageTransactionManager",
         rollbackFor = {Exception.class, Error.class}
     )
-    public CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
-        authCreateTicket(username, appId);
+    public CredentialDTO createCredential(User user,
+                                          Long appId,
+                                          CredentialCreateUpdateReq createUpdateReq) {
+        authCreateTicket(user, appId);
 
-        CredentialDTO credentialDTO = buildCredentialDTO(username, appId, createUpdateReq);
-        credentialDTO.setCreator(username);
+        CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
+        credentialDTO.setCreator(user.getUsername());
         credentialDTO.setCreateTime(credentialDTO.getLastModifyTime());
         String id = credentialDAO.insertCredential(credentialDTO);
-        Boolean registerResult = ticketAuthService.registerTicket(username, id, createUpdateReq.getName());
+        Boolean registerResult = ticketAuthService.registerTicket(user, id, createUpdateReq.getName());
         if (!registerResult) {
             log.warn("Fail to register ticket to iam:({},{})", id, createUpdateReq.getName());
         }
         return getCredentialById(id);
     }
 
-    public void authCreateTicket(String username, long appId) {
-        ticketAuthService.authCreateTicket(username, new AppResourceScope(appId)).denyIfNoPermission();
+    public void authCreateTicket(User user, long appId) {
+        ticketAuthService.authCreateTicket(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
-    private void authManageTicket(String username, long appId, String credentialId) {
-        ticketAuthService.authManageTicket(username, new AppResourceScope(appId), credentialId, null)
+    private void authManageTicket(User user, long appId, String credentialId) {
+        ticketAuthService.authManageTicket(user, new AppResourceScope(appId), credentialId, null)
             .denyIfNoPermission();
     }
 
@@ -129,11 +132,13 @@ public class CredentialServiceImpl implements CredentialService {
         ),
         content = EventContentConstants.EDIT_TICKET
     )
-    public CredentialDTO updateCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {
+    public CredentialDTO updateCredential(User user,
+                                          Long appId,
+                                          CredentialCreateUpdateReq createUpdateReq) {
         String id = createUpdateReq.getId();
-        authManageTicket(username, appId, id);
+        authManageTicket(user, appId, id);
 
-        CredentialDTO credentialDTO = buildCredentialDTO(username, appId, createUpdateReq);
+        CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
         CredentialDTO originCredentialDTO = credentialDAO.getCredentialById(id);
         if (originCredentialDTO == null) {
             throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
@@ -172,8 +177,8 @@ public class CredentialServiceImpl implements CredentialService {
         ),
         content = EventContentConstants.DELETE_TICKET
     )
-    public Integer deleteCredentialById(String username, Long appId, String id) {
-        authManageTicket(username, appId, id);
+    public Integer deleteCredentialById(User user, Long appId, String id) {
+        authManageTicket(user, appId, id);
 
         CredentialDTO credential = getCredentialById(id);
         if (credential == null) {

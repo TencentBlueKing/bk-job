@@ -36,7 +36,9 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -119,8 +121,9 @@ public class EsbGetScriptListResourceImpl implements EsbGetScriptListResource {
                 idNameMap.put(it.getId(), it.getName());
                 return it.getId();
             }).collect(Collectors.toList());
+            User user = JobContextUtil.getUser();
             if (!resourceIds.isEmpty()) {
-                EsbResp authFailResp = authService.batchAuthJobResources(username, ActionId.VIEW_SCRIPT,
+                EsbResp authFailResp = authService.batchAuthJobResources(user, ActionId.VIEW_SCRIPT,
                     request.getAppResourceScope(), ResourceTypeEnum.SCRIPT, resourceIds, idNameMap);
                 if (authFailResp != null) {
                     return authFailResp;
