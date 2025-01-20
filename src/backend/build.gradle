@@ -172,6 +172,8 @@ ext {
     set('amqpClientVersion', "5.18.0")
     // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
     set('jgitVersion', "6.6.1.202309021850-r")
+    // Fix CVE-2023-22102 8.0.33->8.2.0
+    set('mysql.version', "8.2.0")
 }
 
 group "com.tencent.bk.job"

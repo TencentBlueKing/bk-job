@@ -106,7 +106,7 @@ micrometer-core
 micrometer-registry-prometheus
 mongodb-driver-core
 mongodb-driver-sync
-mysql-connector-java
+mysql-connector-j
 netflix-commons-util
 netflix-statistics
 netty-buffer
