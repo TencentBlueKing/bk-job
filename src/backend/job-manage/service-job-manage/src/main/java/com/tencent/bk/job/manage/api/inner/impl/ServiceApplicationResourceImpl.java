@@ -34,7 +34,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -66,24 +65,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
-        List<ServiceAppBaseInfoDTO> resultList =
-            appList.stream().filter(ApplicationDTO::isBiz)
-                .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
-        return InternalResponse.buildSuccessResp(resultList);
-    }
-
-    @Override
-    public InternalResponse<List<ServiceApplicationDTO>> listBizSetApps() {
-        List<ApplicationDTO> applicationInfoDTOList =
-            applicationService.listAppsByScopeType(ResourceScopeTypeEnum.BIZ_SET);
-        List<ServiceApplicationDTO> resultList =
-            applicationInfoDTOList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
-        return InternalResponse.buildSuccessResp(resultList);
-    }
-
-    @Override
     public ServiceApplicationDTO queryAppById(Long appId) {
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         if (appInfo == null) {
@@ -112,15 +93,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         }
         app.setTenantId(appInfo.getTenantId());
         return app;
-    }
-
-    private ServiceAppBaseInfoDTO convertToServiceAppBaseInfo(ApplicationDTO appInfo) {
-        ServiceAppBaseInfoDTO appBaseInfoDTO = new ServiceAppBaseInfoDTO();
-        appBaseInfoDTO.setScopeType(appInfo.getScope().getType().getValue());
-        appBaseInfoDTO.setScopeId(appInfo.getScope().getId());
-        appBaseInfoDTO.setAppId(appInfo.getId());
-        appBaseInfoDTO.setName(appInfo.getName());
-        return appBaseInfoDTO;
     }
 
     @Override
@@ -188,7 +160,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
                 .map(ccBizApp -> ccBizApp.getScope().getId())
                 .collect(Collectors.toSet());
             archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
-                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .map(ApplicationDTO::getId)
                 .collect(Collectors.toList()));
         }
@@ -198,7 +170,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
                 .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
                 .collect(Collectors.toSet());
             archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
-                !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .map(ApplicationDTO::getId)
                 .collect(Collectors.toList()));
         }
@@ -211,7 +183,7 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         try {
             ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
             return InternalResponse.buildSuccessResp(appInfo != null);
-        } catch (NotFoundException e){
+        } catch (NotFoundException e) {
             log.info("biz/bizSet not exist, appId={}", appId);
             return InternalResponse.buildSuccessResp(false);
         }

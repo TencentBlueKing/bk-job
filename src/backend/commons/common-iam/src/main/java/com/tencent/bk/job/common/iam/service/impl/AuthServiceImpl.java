@@ -69,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// TODO: tenant
 @Slf4j
 public class AuthServiceImpl extends BasicAuthService implements AuthService {
     private final AuthHelper authHelper;
@@ -101,7 +100,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
 
     @Override
     public AuthResult auth(User user, String actionId) {
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(), actionId);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId);
         if (isAllowed) {
             return AuthResult.pass(user);
         } else {
@@ -115,7 +114,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                            ResourceTypeEnum resourceType,
                            String resourceId,
                            PathInfoDTO pathInfo) {
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(),
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             actionId, buildInstance(resourceType, resourceId, pathInfo));
         if (isAllowed) {
             return AuthResult.pass(user);
@@ -150,7 +149,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
             String actionId = actionResource.getActionId();
             List<PermissionResourceGroup> relatedResourceGroups = actionResource.getResourceGroups();
             if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                if (!authHelper.isAllowed(user.getUsername(), actionId)) {
+                if (!authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId)) {
                     authResult.setPass(false);
                     PermissionActionResource requiredActionResource = new PermissionActionResource();
                     requiredActionResource.setActionId(actionId);
@@ -163,7 +162,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                 List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
                 // All resources are under one application, so choose any one for authentication
                 List<String> allowedResourceIds =
-                    authHelper.isAllowed(user.getUsername(), actionId, buildInstanceList(resources));
+                    authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+                        actionId, buildInstanceList(resources));
                 List<String> notAllowResourceIds =
                     resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
                         .map(PermissionResource::getResourceId).collect(Collectors.toList());
@@ -197,7 +197,8 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                                   String actionId,
                                   ResourceTypeEnum resourceType,
                                   List<String> resourceIdList) {
-        return authHelper.isAllowed(user.getUsername(), actionId, buildInstanceList(resourceType, resourceIdList));
+        return authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            actionId, buildInstanceList(resourceType, resourceIdList));
     }
 
     @Override
@@ -205,7 +206,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                                          String actionId,
                                          List<PermissionResource> resources) {
         ResourceTypeEnum resourceType = resources.get(0).getResourceType();
-        List<String> allowResourceIds = authHelper.isAllowed(user.getUsername(),
+        List<String> allowResourceIds = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             actionId, buildInstanceList(resources));
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))

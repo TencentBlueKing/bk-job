@@ -114,7 +114,7 @@ public class WebAppResourceImpl implements WebAppResource {
                                                                                Integer start,
                                                                                Integer pageSize) {
         User user = JobContextUtil.getUser();
-        List<ApplicationDTO> appList = applicationService.listAllApps();
+        List<ApplicationDTO> appList = applicationService.listAllAppsForTenant(user.getTenantId());
         List<AppResourceScope> appResourceScopeList =
             appList.stream()
                 .map(app -> new AppResourceScope(app.getId(), app.getScope()))

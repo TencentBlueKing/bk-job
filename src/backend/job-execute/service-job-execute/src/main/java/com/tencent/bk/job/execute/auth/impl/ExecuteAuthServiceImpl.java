@@ -106,7 +106,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}",
                 user.getUsername(), appResourceScope, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
             user.getUsername(), ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
 
         if (isAllowed) {
@@ -132,7 +132,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", user.getUsername(),
                 appResourceScope, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
             user.getUsername(), ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
 
         if (isAllowed) {
@@ -160,7 +160,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     "hostInstances:{}",
                 user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(),
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
@@ -219,8 +219,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             log.debug("Auth execute public script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
                 "hostInstances:{}", user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(), ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass(user);
@@ -268,7 +268,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     " hostInstances:{}",
                 user.getUsername(), appResourceScope, planId, planInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(),
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
             ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
 
         if (isAllowed) {
@@ -313,8 +313,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     "hostInstances:{}", user.getUsername(), appResourceScope, templateId, jobTemplateInstance,
                 hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(user.getUsername(), ActionId.DEBUG_JOB_TEMPLATE, jobTemplateInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), ActionId.DEBUG_JOB_TEMPLATE,
+            jobTemplateInstance, hostInstanceList);
 
         if (isAllowed) {
             return AuthResult.pass(user);

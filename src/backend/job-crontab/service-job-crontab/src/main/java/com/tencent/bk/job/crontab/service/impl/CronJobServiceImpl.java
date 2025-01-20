@@ -873,7 +873,7 @@ public class CronJobServiceImpl implements CronJobService {
             log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
             for (Long cronJobId : cronJobIdList) {
                 try {
-                    // TODO: tenant 需要修改实现，不能只传入系统用户 ID
+                    // TODO:tenant 需要修改实现，不能只传入系统用户 ID
 //                    Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
 //                        cronJobId, false);
                     Boolean disableResult = changeCronJobEnableStatus(null, appId,

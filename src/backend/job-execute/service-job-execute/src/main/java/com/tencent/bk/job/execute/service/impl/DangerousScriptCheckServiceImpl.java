@@ -130,9 +130,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         record.setAction(checkResultItem.getAction());
         record.setAppId(taskInstance.getAppId());
         ServiceApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
-        if (app != null) {
-            record.setAppName(app.getName());
-        }
+        record.setAppName(app.getName());
         record.setCreateTime(System.currentTimeMillis());
         record.setStartupMode(taskInstance.getStartupMode());
         if (TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()) == TaskStartupModeEnum.API) {
@@ -151,6 +149,8 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         checkItems.add(checkItem);
         ScriptCheckResultDTO checkResult = new ScriptCheckResultDTO(checkItems);
         record.setCheckResult(checkResult);
+
+        record.setTenantId(app.getTenantId());
 
         return record;
     }
