@@ -28,7 +28,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLDataType;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.NotExceedMySQLFieldLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -52,6 +54,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本内容
      */
     @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数")
+    @NotExceedMySQLFieldLength(
+        fieldName = "scriptContent",
+        fieldType = MySQLDataType.MEDIUMTEXT
+    )
     private String content;
 
     @ApiModelProperty(value = "脚本ID,当引用脚本的时候传该参数")
