@@ -22,44 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.crontab.service.impl;
 
-import com.tencent.bk.job.common.web.utils.ServletUtil;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
-import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+/**
+ * Job定时任务名称工具类
+ */
+public class JobCronNameUtil {
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-@Slf4j
-public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) {
-
+    /**
+     * 获取Quartz Job名称
+     *
+     * @param cronJobId 定时任务ID
+     * @return Quartz Job名称
+     */
+    public static String getJobName(long cronJobId) {
+        return "job_" + cronJobId;
     }
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        if (!ServletUtil.isJsonRequest(request)) {
-            chain.doFilter(request, response);
-            return;
-        }
-        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(servletRequest, servletResponse);
+    /**
+     * 获取Quartz Job分组
+     *
+     * @param appId Job业务ID
+     * @return Quartz Job分组
+     */
+    public static String getJobGroup(long appId) {
+        return "bk_app_" + appId;
     }
 
-    @Override
-    public void destroy() {
-
+    /***
+     * 获取通知Job名称
+     * @param cronJobId 定时任务ID
+     * @return 通知Job名称
+     */
+    public static String getNotifyJobName(long cronJobId) {
+        return getJobName(cronJobId) + "_notify";
     }
 }

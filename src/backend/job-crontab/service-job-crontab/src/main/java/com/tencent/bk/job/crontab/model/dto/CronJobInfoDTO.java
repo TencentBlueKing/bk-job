@@ -589,4 +589,12 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJob.setLastModifyTime(lastModifyTime);
         return cronJob;
     }
+
+    public CronJobBasicInfoDTO toBasicInfoDTO() {
+        CronJobBasicInfoDTO cronJob = new CronJobBasicInfoDTO();
+        cronJob.setId(id);
+        cronJob.setAppId(appId);
+        cronJob.setName(name);
+        return cronJob;
+    }
 }

@@ -72,7 +72,7 @@ public interface CronJobDAO {
      * @param cronJobIdList 定时任务 IDs
      * @return 定时任务信息
      */
-    List<CronJobInfoDTO> getCronJobByIds(List<Long> cronJobIdList);
+    List<CronJobInfoDTO> listCronJobByIds(List<Long> cronJobIdList);
 
     /**
      * 根据定时任务 ID 查询定时任务信息

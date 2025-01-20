@@ -22,44 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.crontab.service;
 
-import com.tencent.bk.job.common.web.utils.ServletUtil;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
-import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
+import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
+import com.tencent.bk.job.crontab.model.dto.NeedScheduleCronInfo;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.List;
 
-@Slf4j
-public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) {
+public interface BatchCronJobService {
 
-    }
+    /**
+     * 批量添加定时任务到Quartz
+     *
+     * @param cronJobBasicInfoList 定时任务列表
+     * @return 批量添加结果
+     */
+    BatchAddResult batchAddJobToQuartz(List<CronJobBasicInfoDTO> cronJobBasicInfoList);
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        if (!ServletUtil.isJsonRequest(request)) {
-            chain.doFilter(request, response);
-            return;
-        }
-        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(servletRequest, servletResponse);
-    }
-
-    @Override
-    public void destroy() {
-
-    }
+    /**
+     * 批量更新定时任务
+     *
+     * @param user                  用户
+     * @param appId                 Job业务ID
+     * @param batchUpdateCronJobReq 批量更新请求
+     * @return 更新结果数据
+     */
+    NeedScheduleCronInfo batchUpdateCronJob(User user,
+                                            Long appId,
+                                            BatchUpdateCronJobReq batchUpdateCronJobReq);
 }
