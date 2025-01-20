@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.context;
 
 import com.tencent.bk.job.common.model.BasicApp;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.User;
 import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,8 +44,6 @@ import java.util.Map;
 public class JobContext {
 
     private Long startTime;
-
-    private String username;
 
     private BasicApp app;
 
@@ -72,7 +70,17 @@ public class JobContext {
     private AbstractList<Tag> httpMetricTags;
 
     /**
-     * 租户 ID
+     * 用户
      */
-    private String tenantId;
+    private User user;
+
+    public String getUsername() {
+        return user != null ? user.getUsername() : null;
+    }
+
+    public String getTenantId() {
+        return user != null ? user.getTenantId() : null;
+    }
+
+
 }

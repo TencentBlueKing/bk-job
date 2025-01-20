@@ -82,7 +82,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             T.LAST_MODIFY_USER,
             T.LAST_MODIFY_TIME,
             T.ACTION,
-            T.STATUS
+            T.STATUS,
+            T.TENANT_ID
         ).values(
             dangerousRuleDTO.getExpression(),
             dangerousRuleDTO.getDescription(),
@@ -93,7 +94,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             dangerousRuleDTO.getLastModifier(),
             ULong.valueOf(dangerousRuleDTO.getLastModifyTime()),
             JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getAction()),
-            JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getStatus())
+            JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getStatus()),
+            dangerousRuleDTO.getTenantId()
         ).returning(T.ID);
         try {
             return query.fetchOne().getId();
@@ -146,10 +148,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public DangerousRuleDTO getDangerousRuleByPriority(int priority) {
-        val record = dslContext.selectFrom(T).where(
-            T.PRIORITY.eq(priority)
-        ).fetchOne();
+    public DangerousRuleDTO getDangerousRuleByPriority(String tenantId, int priority) {
+        val record = dslContext.selectFrom(T)
+            .where(T.PRIORITY.eq(priority))
+            .and(T.TENANT_ID.eq(tenantId))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -158,8 +161,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public List<DangerousRuleDTO> listDangerousRules() {
-        val records = dslContext.selectFrom(T).orderBy(T.PRIORITY).fetch();
+    public List<DangerousRuleDTO> listDangerousRules(String tenantId) {
+        val records = dslContext.selectFrom(T)
+            .where(T.TENANT_ID.eq(tenantId))
+            .orderBy(T.PRIORITY)
+            .fetch();
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -174,6 +180,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
         if (dangerousRuleQuery.getStatus() != null) {
             conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
         }
+        conditions.add(T.TENANT_ID.eq(dangerousRuleQuery.getTenantId()));
         val records =
             dslContext.selectFrom(T).where(conditions).orderBy(T.PRIORITY).fetch();
         if (records.isEmpty()) {
@@ -202,6 +209,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     private List<Condition> buildConditionList(DangerousRuleQuery query) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.TENANT_ID.eq(query.getTenantId()));
         if (StringUtils.isNotBlank(query.getExpression())) {
             conditions.add(T.EXPRESSION.like("%" + query.getExpression() + "%"));
         }
@@ -225,8 +233,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public int getMaxPriority() {
-        val record = dslContext.select(DSL.max(T.PRIORITY)).from(T).fetchOne();
+    public int getMaxPriority(String tenantId) {
+        val record = dslContext.select(DSL.max(T.PRIORITY))
+            .from(T)
+            .where(T.TENANT_ID.eq(tenantId))
+            .fetchOne();
         if (record == null || record.value1() == null) {
             return 0;
         } else {
@@ -235,8 +246,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     }
 
     @Override
-    public int getMinPriority() {
-        val record = dslContext.select(DSL.min(T.PRIORITY)).from(T).fetchOne();
+    public int getMinPriority(String tenantId) {
+        val record = dslContext.select(DSL.min(T.PRIORITY))
+            .from(T)
+            .where(T.TENANT_ID.eq(tenantId))
+            .fetchOne();
         if (record == null || record.value1() == null) {
             return 0;
         } else {
@@ -272,7 +286,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             record.get(T.LAST_MODIFY_USER),
             record.get(T.LAST_MODIFY_TIME).longValue(),
             record.get(T.ACTION).intValue(),
-            record.get(T.STATUS).intValue());
+            record.get(T.STATUS).intValue(),
+            record.get(T.TENANT_ID));
     }
 
 }

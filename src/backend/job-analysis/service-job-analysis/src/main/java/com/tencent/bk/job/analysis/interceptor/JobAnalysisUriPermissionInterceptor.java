@@ -63,11 +63,10 @@ public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapt
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
         if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
             AuthResult authResult = authService.auth(
-                username,
+                JobContextUtil.getUser(),
                 ActionId.DASHBOARD_VIEW,
                 ResourceTypeEnum.DASHBOARD_VIEW,
                 AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,

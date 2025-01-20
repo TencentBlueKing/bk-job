@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,8 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         log.info("Handle PermissionDeniedException, uri: {}, authResult: {}",
             request.getRequestURI(), authResult);
         if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
+            authResult.setApplyUrl(webAuthService.getApplyUrl(JobContextUtil.getTenantId(),
+                authResult.getRequiredActionResources()));
         }
         return Response.buildAuthFailResp(webAuthService.toAuthResultVO(true, ex.getAuthResult()));
     }

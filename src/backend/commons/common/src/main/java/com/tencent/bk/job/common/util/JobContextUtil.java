@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.User;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -86,9 +87,9 @@ public class JobContextUtil {
         return staffName;
     }
 
-    public static void setUsername(String username) {
+    public static void setUser(User user) {
         JobContext jobContext = getOrInitContext();
-        jobContext.setUsername(username);
+        jobContext.setUser(user);
     }
 
     public static BasicApp getApp() {
@@ -269,8 +270,11 @@ public class JobContextUtil {
         return jobContext == null ? null : jobContext.getTenantId();
     }
 
-    public static void setTenantId(String tenantId) {
-        JobContext jobContext = getOrInitContext();
-        jobContext.setTenantId(tenantId);
+    public static User getUser() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        if (jobContext == null || jobContext.getUser() == null) {
+            throw new IllegalStateException("User not set in JobContext");
+        }
+        return jobContext.getUser();
     }
 }

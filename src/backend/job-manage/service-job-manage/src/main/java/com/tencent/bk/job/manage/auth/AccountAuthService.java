@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -36,22 +37,22 @@ public interface AccountAuthService {
     /**
      * 资源范围下创建账号鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateAccount(String username, AppResourceScope appResourceScope);
+    AuthResult authCreateAccount(User user, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理账号鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param accountId        账号ID
      * @param accountName      账号名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authManageAccount(String username,
+    AuthResult authManageAccount(User user,
                                  AppResourceScope appResourceScope,
                                  Long accountId,
                                  String accountName);
@@ -59,13 +60,13 @@ public interface AccountAuthService {
     /**
      * 资源范围下使用账号鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param accountId        账号ID
      * @param accountName      账号名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authUseAccount(String username,
+    AuthResult authUseAccount(User user,
                               AppResourceScope appResourceScope,
                               Long accountId,
                               String accountName);
@@ -73,24 +74,24 @@ public interface AccountAuthService {
     /**
      * 资源范围下管理账号批量鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param accountIdList    账号ID列表
      * @return 有权限的账号ID
      */
-    List<Long> batchAuthManageAccount(String username,
+    List<Long> batchAuthManageAccount(User user,
                                       AppResourceScope appResourceScope,
                                       List<Long> accountIdList);
 
     /**
      * 资源范围下使用账号批量鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param accountIdList    账号ID列表
      * @return 有权限的账号ID
      */
-    List<Long> batchAuthUseAccount(String username,
+    List<Long> batchAuthUseAccount(User user,
                                    AppResourceScope appResourceScope,
                                    List<Long> accountIdList);
 
@@ -102,5 +103,5 @@ public interface AccountAuthService {
      * @param name    资源实例名称
      * @return 是否注册成功
      */
-    boolean registerAccount(String creator, Long id, String name);
+    boolean registerAccount(User creator, Long id, String name);
 }

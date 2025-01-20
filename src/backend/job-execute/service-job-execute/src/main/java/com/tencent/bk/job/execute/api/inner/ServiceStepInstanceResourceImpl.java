@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -44,11 +45,15 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
+    private final UserLocalCache userCache;
+
     @Autowired
     public ServiceStepInstanceResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                           StepInstanceService stepInstanceService) {
+                                           StepInstanceService stepInstanceService,
+                                           UserLocalCache userCache) {
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
+        this.userCache = userCache;
     }
 
     @Override
@@ -59,7 +64,8 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
         try {
             StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId,
                 taskInstanceId, stepInstanceId);
-            taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
+            taskInstanceAccessProcessor.processBeforeAccess(userCache.getUser(username),
+                appId, stepInstance.getTaskInstanceId());
             return InternalResponse.buildSuccessResp(stepInstance.toServiceStepInstanceDTO());
         } catch (NotFoundException e) {
             return InternalResponse.buildCommonFailResp(e);

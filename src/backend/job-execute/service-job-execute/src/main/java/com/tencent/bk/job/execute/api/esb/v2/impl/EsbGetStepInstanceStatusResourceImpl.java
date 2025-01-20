@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -96,8 +97,8 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
             .taskInstanceId(request.getTaskInstanceId())
             .stepInstanceId(request.getStepInstanceId())
             .build();
-        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(username,
-            request.getAppId(), query);
+        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(
+            JobContextUtil.getUser(), request.getAppId(), query);
 
         resultData.setIsFinished(stepExecutionDetail.isFinished());
         resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));

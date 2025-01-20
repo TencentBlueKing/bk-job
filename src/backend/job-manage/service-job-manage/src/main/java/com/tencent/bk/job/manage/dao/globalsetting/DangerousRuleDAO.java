@@ -39,17 +39,17 @@ public interface DangerousRuleDAO {
 
     DangerousRuleDTO getDangerousRuleById(Long id);
 
-    DangerousRuleDTO getDangerousRuleByPriority(int priority);
+    DangerousRuleDTO getDangerousRuleByPriority(String tenantId, int priority);
 
-    List<DangerousRuleDTO> listDangerousRules();
+    List<DangerousRuleDTO> listDangerousRules(String tenantId);
 
     List<DangerousRuleDTO> listDangerousRules(DangerousRuleDTO dangerousRuleQuery);
 
     List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query);
 
-    int getMaxPriority();
+    int getMaxPriority(String tenantId);
 
-    int getMinPriority();
+    int getMinPriority(String tenantId);
 
     int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
 }

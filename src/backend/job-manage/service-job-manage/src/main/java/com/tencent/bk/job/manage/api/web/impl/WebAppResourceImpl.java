@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
@@ -111,6 +113,7 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
                                                                                Integer start,
                                                                                Integer pageSize) {
+        User user = JobContextUtil.getUser();
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<AppResourceScope> appResourceScopeList =
             appList.stream()
@@ -119,7 +122,7 @@ public class WebAppResourceImpl implements WebAppResource {
 
         // IAM鉴权
         AppResourceScopeResult appResourceScopeResult =
-            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
+            appAuthService.getAppResourceScopeList(user, appResourceScopeList);
 
         // 可用的普通业务
         List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);

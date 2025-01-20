@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -144,8 +145,8 @@ public class FileSourceServiceImpl implements FileSourceService {
         transactionManager = "jobFileGatewayTransactionManager",
         rollbackFor = {Exception.class, Error.class}
     )
-    public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
-        authCreate(username, appId);
+    public FileSourceDTO saveFileSource(User user, Long appId, FileSourceDTO fileSource) {
+        authCreate(user, appId);
 
         if (existsCode(appId, fileSource.getCode())) {
             throw new FailedPreconditionException(
@@ -163,24 +164,24 @@ public class FileSourceServiceImpl implements FileSourceService {
         fileSource.setId(id);
 
         boolean registerResult = fileSourceAuthService.registerFileSource(
-            username, fileSource.getId(), fileSource.getAlias());
+            user, fileSource.getId(), fileSource.getAlias());
         if (!registerResult) {
             log.warn("Fail to register file_source to iam:({},{})", fileSource.getId(), fileSource.getAlias());
         }
         return getFileSourceById(id);
     }
 
-    private void authView(String username, long appId, int fileSourceId) {
-        fileSourceAuthService.authViewFileSource(username, new AppResourceScope(appId), fileSourceId, null)
+    private void authView(User user, long appId, int fileSourceId) {
+        fileSourceAuthService.authViewFileSource(user, new AppResourceScope(appId), fileSourceId, null)
             .denyIfNoPermission();
     }
 
-    private void authCreate(String username, long appId) {
-        fileSourceAuthService.authCreateFileSource(username, new AppResourceScope(appId)).denyIfNoPermission();
+    private void authCreate(User user, long appId) {
+        fileSourceAuthService.authCreateFileSource(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
-    private void authManage(String username, long appId, int fileSourceId) {
-        fileSourceAuthService.authManageFileSource(username, new AppResourceScope(appId),
+    private void authManage(User user, long appId, int fileSourceId) {
+        fileSourceAuthService.authManageFileSource(user, new AppResourceScope(appId),
             fileSourceId, null).denyIfNoPermission();
     }
 
@@ -194,8 +195,8 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.EDIT_FILE_SOURCE
     )
-    public FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSource) {
-        authManage(username, appId, fileSource.getId());
+    public FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSource) {
+        authManage(user, appId, fileSource.getId());
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {
             throw new FailedPreconditionException(
@@ -245,8 +246,8 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.DELETE_FILE_SOURCE
     )
-    public Integer deleteFileSourceById(String username, Long appId, Integer id) {
-        authManage(username, appId, id);
+    public Integer deleteFileSourceById(User user, Long appId, Integer id) {
+        authManage(user, appId, id);
 
         FileSourceDTO fileSource = getFileSourceById(id);
         if (fileSource == null) {
@@ -266,8 +267,8 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.SWITCH_FILE_SOURCE_STATUS
     )
-    public Boolean enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag) {
-        authManage(username, appId, id);
+    public Boolean enableFileSourceById(User user, Long appId, Integer id, Boolean enableFlag) {
+        authManage(user, appId, id);
         FileSourceDTO fileSource = getFileSourceById(id);
         if (fileSource == null) {
             throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST);
@@ -278,7 +279,7 @@ public class FileSourceServiceImpl implements FileSourceService {
             .setInstanceName(fileSource.getAlias())
             .addAttribute(JobAuditAttributeNames.OPERATION, enableFlag ? "Switch on" : "Switch off");
 
-        return fileSourceDAO.enableFileSourceById(username, appId, id, enableFlag) == 1;
+        return fileSourceDAO.enableFileSourceById(user.getUsername(), appId, id, enableFlag) == 1;
     }
 
     @Override
@@ -291,8 +292,8 @@ public class FileSourceServiceImpl implements FileSourceService {
         ),
         content = EventContentConstants.VIEW_FILE_SOURCE
     )
-    public FileSourceDTO getFileSourceById(String username, Long appId, Integer id) {
-        authView(username, appId, id);
+    public FileSourceDTO getFileSourceById(User user, Long appId, Integer id) {
+        authView(user, appId, id);
         return getFileSourceById(appId, id);
     }
 

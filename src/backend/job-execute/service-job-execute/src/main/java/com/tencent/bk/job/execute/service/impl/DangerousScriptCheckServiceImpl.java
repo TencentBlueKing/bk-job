@@ -73,14 +73,14 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
     }
 
     @Override
-    public List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
+    public List<ServiceScriptCheckResultItemDTO> check(String tenantId, ScriptTypeEnum scriptType, String content) {
         InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
-            scriptCheckResource.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
+            scriptCheckResource.check(new ServiceCheckScriptRequest(tenantId, content, scriptType.getValue()));
         return response.isSuccess() ? response.getData() : Collections.emptyList();
     }
 
     @Override
-    public boolean shouldIntercept(List<ServiceScriptCheckResultItemDTO> checkResultItems) {
+    public boolean shouldIntercept(String tenantId, List<ServiceScriptCheckResultItemDTO> checkResultItems) {
         return checkResultItems.stream().anyMatch(checkResultItem -> checkResultItem.getAction() != null
             && RuleMatchHandleActionEnum.INTERCEPT.getValue() == checkResultItem.getAction());
     }

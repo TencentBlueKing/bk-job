@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
@@ -183,12 +184,12 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.VIEW_CRON_JOB
     )
-    public CronJobInfoDTO getCronJobInfoById(String username, Long appId, Long cronJobId) {
+    public CronJobInfoDTO getCronJobInfoById(User user, Long appId, Long cronJobId) {
         CronJobInfoDTO cronJob = getCronJobInfoById(appId, cronJobId);
         if (cronJob == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
-        cronAuthService.authManageCron(username,
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
         return cronJob;
     }
@@ -214,8 +215,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.CREATE_CRON_JOB
     )
-    public CronJobInfoDTO createCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
-        cronAuthService.authCreateCron(username,
+    public CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authCreateCron(user,
             new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
 
         checkCronJobPlanOrScript(cronJobInfo);
@@ -227,7 +228,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setEnable(false);
 
         Long id = cronJobDAO.insertCronJob(cronJobInfo);
-        cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
+        cronAuthService.registerCron(user, id, cronJobInfo.getName());
 
         return getCronJobInfoById(id);
     }
@@ -242,8 +243,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.EDIT_CRON_JOB
     )
-    public CronJobInfoDTO updateCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
-        cronAuthService.authManageCron(username,
+    public CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
         CronJobInfoDTO originCron = getCronJobInfoById(cronJobInfo.getId());
@@ -382,8 +383,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.DELETE_CRON_JOB
     )
-    public Boolean deleteCronJobInfo(String username, Long appId, Long cronJobId) {
-        cronAuthService.authManageCron(username,
+    public Boolean deleteCronJobInfo(User user, Long appId, Long cronJobId) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
         CronJobInfoDTO cron = getCronJobInfoById(cronJobId);
@@ -410,8 +411,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.SWITCH_CRON_JOB_STATUS
     )
-    public Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable) {
-        cronAuthService.authManageCron(username,
+    public Boolean changeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
         CronJobInfoDTO originCronJobInfo = getCronJobInfoById(appId, cronJobId);
@@ -428,7 +429,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setAppId(appId);
         cronJobInfo.setId(cronJobId);
         cronJobInfo.setEnable(enable);
-        cronJobInfo.setLastModifyUser(username);
+        cronJobInfo.setLastModifyUser(user.getUsername());
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         if (enable) {
             try {
@@ -439,7 +440,7 @@ public class CronJobServiceImpl implements CronJobService {
                             .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
-                    cronJobId, originCronJobInfo.getName(), taskVariables, username);
+                    cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
@@ -614,12 +615,12 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.EDIT_CRON_JOB
     )
-    public Boolean batchUpdateCronJob(String username,
+    public Boolean batchUpdateCronJob(User user,
                                       Long appId,
                                       BatchUpdateCronJobReq batchUpdateCronJobReq) {
         // 更新DB中的数据
         NeedScheduleCronInfo needScheduleCronInfo = batchCronJobService.batchUpdateCronJob(
-            username,
+            user,
             appId,
             batchUpdateCronJobReq
         );
@@ -872,7 +873,10 @@ public class CronJobServiceImpl implements CronJobService {
             log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
             for (Long cronJobId : cronJobIdList) {
                 try {
-                    Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+                    // TODO: tenant 需要修改实现，不能只传入系统用户 ID
+//                    Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
+//                        cronJobId, false);
+                    Boolean disableResult = changeCronJobEnableStatus(null, appId,
                         cronJobId, false);
                     log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
                     if (!disableResult) {
