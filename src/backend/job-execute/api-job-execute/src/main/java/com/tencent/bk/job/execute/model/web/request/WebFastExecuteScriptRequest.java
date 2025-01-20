@@ -88,6 +88,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本参数
      */
     @ApiModelProperty(value = "脚本参数")
+    @NotExceedMySQLFieldLength(
+        fieldName = "scriptParam",
+        fieldType = MySQLDataType.TEXT
+    )
     private String scriptParam;
 
     /**

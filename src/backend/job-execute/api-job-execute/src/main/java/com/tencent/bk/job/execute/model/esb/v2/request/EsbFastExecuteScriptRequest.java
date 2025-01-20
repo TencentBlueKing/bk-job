@@ -75,6 +75,10 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
+    @NotExceedMySQLFieldLength(
+        fieldName = "scriptParam",
+        fieldType = MySQLDataType.TEXT
+    )
     private String scriptParam;
 
     /**

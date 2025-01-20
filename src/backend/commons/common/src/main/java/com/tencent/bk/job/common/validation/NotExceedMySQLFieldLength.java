@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -52,6 +53,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface NotExceedMySQLFieldLength {
 
     String message() default "{fieldName} {validation.constraints.NotExceedMySQLFieldLength.message}";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 
     String fieldName();
 
