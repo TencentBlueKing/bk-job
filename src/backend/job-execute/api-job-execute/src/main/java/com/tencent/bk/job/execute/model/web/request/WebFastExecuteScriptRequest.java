@@ -28,9 +28,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.constant.MySQLDataType;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import com.tencent.bk.job.common.validation.NotExceedMySQLFieldLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -54,9 +54,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本内容
      */
     @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数")
-    @NotExceedMySQLFieldLength(
+    @NotExceedMySQLTextFieldLength(
         fieldName = "scriptContent",
-        fieldType = MySQLDataType.MEDIUMTEXT
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
     )
     private String content;
 
@@ -88,9 +89,10 @@ public class WebFastExecuteScriptRequest {
      * 脚本参数
      */
     @ApiModelProperty(value = "脚本参数")
-    @NotExceedMySQLFieldLength(
+    @NotExceedMySQLTextFieldLength(
         fieldName = "scriptParam",
-        fieldType = MySQLDataType.TEXT
+        fieldType = MySQLTextDataType.TEXT,
+        base64 = false
     )
     private String scriptParam;
 

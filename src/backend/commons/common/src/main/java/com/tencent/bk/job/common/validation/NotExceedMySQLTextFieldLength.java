@@ -25,7 +25,8 @@
 package com.tencent.bk.job.common.validation;
 
 
-import com.tencent.bk.job.common.constant.MySQLDataType;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
+import com.tencent.bk.job.common.util.Base64Util;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Constraint;
@@ -35,6 +36,7 @@ import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.nio.charset.StandardCharsets;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -44,15 +46,18 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 通过在MySQL定义的字段类型判断是否过长
+ * 通过在MySQL定义的TEXT一族字段类型（TINYTEXT/TEXT/MEDIUMTEXT/LONGTEXT）判断是否过长
+ * 因为在MySQL中，TEXT类型的存储是以字节流的长度为限制的，而char/varchar则是以字符串的长度为限制的，所以校验长度合法的逻辑是不太一样的
+ * 因此这个校验器只校验TEXT类型的字节流长度，若需要校验char/varchar类型的字段长度，请用str.length()校验
+ *
  */
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
-@Constraint(validatedBy = NotExceedMySQLFieldLength.FieldLengthValidator.class)
+@Constraint(validatedBy = NotExceedMySQLTextFieldLength.FieldLengthValidator.class)
 @Documented
 @Retention(RUNTIME)
-public @interface NotExceedMySQLFieldLength {
+public @interface NotExceedMySQLTextFieldLength {
 
-    String message() default "{fieldName} {validation.constraints.NotExceedMySQLFieldLength.message}";
+    String message() default "{fieldName} {validation.constraints.NotExceedMySQLFieldLength.message} limit:{fieldType}";
 
     Class<?>[] groups() default {};
 
@@ -60,29 +65,39 @@ public @interface NotExceedMySQLFieldLength {
 
     String fieldName();
 
-    MySQLDataType fieldType();
+    MySQLTextDataType fieldType();
+
+    boolean base64();
 
     @Slf4j
-    class FieldLengthValidator implements ConstraintValidator<NotExceedMySQLFieldLength, String> {
+    class FieldLengthValidator implements ConstraintValidator<NotExceedMySQLTextFieldLength, String> {
 
-        MySQLDataType fieldType = null;
+        MySQLTextDataType fieldType = null;
+        boolean useBase64 = false;
 
         @Override
-        public void initialize(NotExceedMySQLFieldLength constraintAnnotation) {
+        public void initialize(NotExceedMySQLTextFieldLength constraintAnnotation) {
             fieldType = constraintAnnotation.fieldType();
+            useBase64 = constraintAnnotation.base64();
         }
 
         @Override
-        public boolean isValid(String scriptContent, ConstraintValidatorContext constraintValidatorContext) {
-
-            log.debug("[Validate MySQLFieldLength] field type: {}, content length: {}, maximum length: {}]",
-                fieldType.getValue(), scriptContent.length(), fieldType.getMaximumLength());
-
-            if (fieldType == null || scriptContent == null) {
+        public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+            if (value == null || fieldType == null) {
                 return true;
             }
 
-            return scriptContent.length() <= fieldType.getMaximumLength();
+            int currentLength;
+            if (useBase64) {
+                currentLength = Base64Util.calcOriginBytesLength(value);
+            } else {
+                currentLength = value.getBytes(StandardCharsets.UTF_8).length;
+            }
+
+            log.debug("[Validate MySQLFieldLength] field type: {}, current length: {}, maximum length: {}]",
+                fieldType.getValue(), currentLength, fieldType.getMaximumLength());
+
+            return currentLength <= fieldType.getMaximumLength();
         }
     }
 }

@@ -24,34 +24,40 @@
 
 package com.tencent.bk.job.common.constant;
 
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
 import lombok.Getter;
 
 /**
- * 这里暂时只记录字符串形式的MySQL类型，用于获取各类型的最大长度
+ * 这里暂时只记录TEXT形式的MySQL类型，用于获取各类型的最大长度。
+ * 因为在MySQL中，TEXT类型的存储是以字节流的长度为限制的，而char/varchar则是以字符串的长度为限制的，所以校验长度合法的逻辑是不太一样的。
+ *
  */
 @Getter
-public enum MySQLDataType {
-    CHAR("CHAR", 255L),
-    VARCHAR("VARCHAR", 65535L),
+public enum MySQLTextDataType {
     TINYTEXT("TINYTEXT", 255L),
     TEXT("TEXT", 65535L),
     MEDIUMTEXT("MEDIUMTEXT", 16777215L),
     LONGTEXT("LONGTEXT", 4294967295L);
 
     private final String value;
-    private final Long maximumLength;
+    private final Long maximumLength;   // MySQL能存的最大字节数
 
-    MySQLDataType(String value, Long maximumLength) {
+    MySQLTextDataType(String value, Long maximumLength) {
         this.value = value;
         this.maximumLength = maximumLength;
     }
 
-    public static MySQLDataType valOf(String value) {
-        for (MySQLDataType type : MySQLDataType.values()) {
+    public static MySQLTextDataType valOf(String value) {
+        for (MySQLTextDataType type : MySQLTextDataType.values()) {
             if (type.value.equals(value)) {
                 return type;
             }
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return value + "(" + FileSizeUtil.getFileSizeStr(maximumLength) + ")";
     }
 }

@@ -26,11 +26,11 @@ package com.tencent.bk.job.execute.model.esb.v2.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.constant.MySQLDataType;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
-import com.tencent.bk.job.common.validation.NotExceedMySQLFieldLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -54,9 +54,10 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * "脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
-    @NotExceedMySQLFieldLength(
-        fieldName = "scriptContent",
-        fieldType = MySQLDataType.MEDIUMTEXT
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "script_content",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
     )
     private String content;
 
@@ -75,9 +76,10 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLFieldLength(
-        fieldName = "scriptParam",
-        fieldType = MySQLDataType.TEXT
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "script_param",
+        fieldType = MySQLTextDataType.TEXT,
+        base64 = true
     )
     private String scriptParam;
 
