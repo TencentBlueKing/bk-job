@@ -25,7 +25,7 @@ apply plugin: 'nu.studer.jooq'
 
 dependencies {
     api "org.jooq:jooq"
-    jooqRuntime "mysql:mysql-connector-java"
+    jooqRuntime "com.mysql:mysql-connector-j"
 }
 
 def nameArr = name.split('-')
