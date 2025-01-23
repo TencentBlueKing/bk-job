@@ -22,25 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.common.esb.model.iam;
 
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 
-import java.util.Collection;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
 import java.util.List;
 
-public interface EsbUserInfoDAO {
-
-    int insertEsbUserInfo(EsbUserInfoDTO esbUserInfoDTO);
-
-    int deleteEsbUserInfoById(Long id);
-
-    List<EsbUserInfoDTO> listEsbUserInfo();
-
-    List<EsbUserInfoDTO> listEsbUserInfo(String prefixStr, Long limit);
-
-    List<EsbUserInfoDTO> listEsbUserInfo(Collection<String> userNames);
-
-    List<String> listExistUserName(Collection<String> userNames);
-
+/**
+ * 返回给第三方api调用者的无权限申请url信息
+ */
+@Data
+public class OpenApiApplyPermissionDTO {
+    @JsonProperty("system_id")
+    private String systemId;
+    @JsonProperty("system_name")
+    private String systemName;
+    @JsonProperty("actions")
+    private List<EsbActionDTO> actions;
 }

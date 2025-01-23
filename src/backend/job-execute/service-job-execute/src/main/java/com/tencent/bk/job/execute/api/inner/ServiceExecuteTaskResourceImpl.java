@@ -26,12 +26,15 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -64,11 +67,15 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final WebAuthService webAuthService;
 
+    private final UserLocalCache userCache;
+
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                          WebAuthService webAuthService) {
+                                          WebAuthService webAuthService,
+                                          UserLocalCache userCache) {
         this.taskExecuteService = taskExecuteService;
         this.webAuthService = webAuthService;
+        this.userCache = userCache;
     }
 
     @Override
@@ -98,7 +105,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
-            .operator(request.getOperator())
+            .operator(getUser(request.getOperator()))
             .executeVariableValues(executeVariableValues)
             .startupMode(TaskStartupModeEnum.getStartupMode(request.getStartupMode()))
             .cronTaskId(request.getCronTaskId())
@@ -134,6 +141,14 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         }
         taskExecuteParam.setExecuteVariableValues(executeVariableValues);
         return taskExecuteParam;
+    }
+
+    private User getUser(String username) {
+        User user = userCache.getUser(username);
+        if (user == null) {
+            throw new InternalException("User is not exist, username: " + username);
+        }
+        return user;
     }
 
     private ExecuteTargetDTO convertToServersDTO(ServiceTargetServers servers) {
@@ -193,7 +208,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             authResult = AuthResult.toAuthResultDTO(e.getAuthResult());
             log.debug("Insufficient permission, authResult: {}", authResult);
             if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-                authResult.setApplyUrl(webAuthService.getApplyUrl(e.getAuthResult().getRequiredActionResources()));
+                authResult.setApplyUrl(webAuthService.getApplyUrl(
+                    executeParam.getOperator().getTenantId(), e.getAuthResult().getRequiredActionResources()));
             }
         }
         return InternalResponse.buildSuccessResp(authResult);

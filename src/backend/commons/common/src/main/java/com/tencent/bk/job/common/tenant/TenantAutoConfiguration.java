@@ -22,23 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.model.iam;
+package com.tencent.bk.job.common.tenant;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(TenantProperties.class)
+public class TenantAutoConfiguration {
 
-import java.util.List;
-
-/**
- * 返回给第三方api调用者的无权限申请url信息
- */
-@Data
-public class EsbApplyPermissionDTO {
-    @JsonProperty("system_id")
-    private String systemId;
-    @JsonProperty("system_name")
-    private String systemName;
-    @JsonProperty("actions")
-    private List<EsbActionDTO> actions;
+    @Bean
+    public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
+        return new TenantEnvServiceImpl(tenantProperties);
+    }
 }

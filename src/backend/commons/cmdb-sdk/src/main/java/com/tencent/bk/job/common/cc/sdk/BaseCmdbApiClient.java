@@ -37,10 +37,11 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -101,11 +102,11 @@ public class BaseCmdbApiClient {
     /**
      * CMDB ESB API 客户端
      */
-    protected BkApiClient esbCmdbApiClient;
+    protected BkApiV1Client esbCmdbApiClient;
     /**
      * CMDB 蓝鲸网关 API 客户端
      */
-    protected BkApiClient apiGwCmdbApiClient;
+    protected BkApiV1Client apiGwCmdbApiClient;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -134,20 +135,23 @@ public class BaseCmdbApiClient {
                                 BkApiGatewayProperties bkApiGatewayProperties,
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
+                                TenantEnvService tenantEnvService,
                                 String lang) {
         WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
-        this.esbCmdbApiClient = new BkApiClient(meterRegistry,
+        this.esbCmdbApiClient = new BkApiV1Client(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
             httpHelper,
-            lang
+            lang,
+            tenantEnvService
         );
         this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
-        this.apiGwCmdbApiClient = new BkApiClient(meterRegistry,
+        this.apiGwCmdbApiClient = new BkApiV1Client(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
             httpHelper,
-            lang
+            lang,
+            tenantEnvService
         );
         this.apiGwCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.globalFlowController = flowController;
@@ -218,7 +222,7 @@ public class BaseCmdbApiClient {
         }
     }
 
-    private BkApiClient getApiClientByApiGwType(ApiGwType apiGwType) {
+    private BkApiV1Client getApiClientByApiGwType(ApiGwType apiGwType) {
         switch (apiGwType) {
             case ESB:
                 return esbCmdbApiClient;

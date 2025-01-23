@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -71,12 +72,12 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public AuthResult authCreateJobPlan(String username,
+    public AuthResult authCreateJobPlan(User user,
                                         AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         String jobTemplateName) {
         return authService.auth(
-            username,
+            user,
             ActionId.CREATE_JOB_PLAN,
             ResourceTypeEnum.TEMPLATE,
             jobTemplateId.toString(),
@@ -85,13 +86,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public AuthResult authViewJobPlan(String username,
+    public AuthResult authViewJobPlan(User user,
                                       AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
         return authService.auth(
-            username,
+            user,
             ActionId.VIEW_JOB_PLAN,
             ResourceTypeEnum.PLAN,
             jobPlanId.toString(),
@@ -100,13 +101,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public AuthResult authEditJobPlan(String username,
+    public AuthResult authEditJobPlan(User user,
                                       AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
         return authService.auth(
-            username,
+            user,
             ActionId.EDIT_JOB_PLAN,
             ResourceTypeEnum.PLAN,
             jobPlanId.toString(),
@@ -115,13 +116,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public AuthResult authDeleteJobPlan(String username,
+    public AuthResult authDeleteJobPlan(User user,
                                         AppResourceScope appResourceScope,
                                         Long jobTemplateId,
                                         Long jobPlanId,
                                         String jobPlanName) {
         return authService.auth(
-            username,
+            user,
             ActionId.DELETE_JOB_PLAN,
             ResourceTypeEnum.PLAN,
             jobPlanId.toString(),
@@ -130,13 +131,13 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public AuthResult authSyncJobPlan(String username,
+    public AuthResult authSyncJobPlan(User user,
                                       AppResourceScope appResourceScope,
                                       Long jobTemplateId,
                                       Long jobPlanId,
                                       String jobPlanName) {
         return authService.auth(
-            username,
+            user,
             ActionId.SYNC_JOB_PLAN,
             ResourceTypeEnum.PLAN,
             jobPlanId.toString(),
@@ -161,46 +162,46 @@ public class PlanAuthServiceImpl implements PlanAuthService {
     }
 
     @Override
-    public List<Long> batchAuthViewJobPlan(String username,
+    public List<Long> batchAuthViewJobPlan(User user,
                                            AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.VIEW_JOB_PLAN,
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(user, ActionId.VIEW_JOB_PLAN,
             appResourceScope,
             planPermissionResourceList));
         return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public List<Long> batchAuthEditJobPlan(String username,
+    public List<Long> batchAuthEditJobPlan(User user,
                                            AppResourceScope appResourceScope,
                                            List<Long> jobTemplateIdList,
                                            List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.EDIT_JOB_PLAN,
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(user, ActionId.EDIT_JOB_PLAN,
             appResourceScope,
             planPermissionResourceList));
         return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public List<Long> batchAuthDeleteJobPlan(String username,
+    public List<Long> batchAuthDeleteJobPlan(User user,
                                              AppResourceScope appResourceScope,
                                              List<Long> jobTemplateIdList,
                                              List<Long> jobPlanIdList) {
         List<PermissionResource> planPermissionResourceList = buildPlanPermissionResource(
             appResourceScope, jobTemplateIdList, jobPlanIdList);
-        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(username, ActionId.DELETE_JOB_PLAN,
+        List<String> allowedPlanIdList = new ArrayList<>(appAuthService.batchAuth(user, ActionId.DELETE_JOB_PLAN,
             appResourceScope,
             planPermissionResourceList));
         return allowedPlanIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public boolean registerPlan(Long id, String name, String creator) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.PLAN, creator, null);
+    public boolean registerPlan(User creator, Long id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.PLAN, null);
     }
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.service;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTypeDTO;
@@ -70,9 +71,9 @@ public interface FileSourceService {
         Integer pageSize
     );
 
-    FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSourceDTO);
+    FileSourceDTO saveFileSource(User user, Long appId, FileSourceDTO fileSourceDTO);
 
-    FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSourceDTO);
+    FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSourceDTO);
 
     int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
@@ -80,11 +81,11 @@ public interface FileSourceService {
 
     FileSourceTypeDTO getFileSourceTypeByCode(String code);
 
-    Integer deleteFileSourceById(String username, Long appId, Integer id);
+    Integer deleteFileSourceById(User user, Long appId, Integer id);
 
-    Boolean enableFileSourceById(String username, Long appId, Integer id, Boolean enableFlag);
+    Boolean enableFileSourceById(User user, Long appId, Integer id, Boolean enableFlag);
 
-    FileSourceDTO getFileSourceById(String username, Long appId, Integer id);
+    FileSourceDTO getFileSourceById(User user, Long appId, Integer id);
 
     FileSourceDTO getFileSourceById(Long appId, Integer id);
 

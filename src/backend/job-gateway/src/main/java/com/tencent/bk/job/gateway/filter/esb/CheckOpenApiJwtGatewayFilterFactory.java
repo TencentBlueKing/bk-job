@@ -25,12 +25,14 @@
 package com.tencent.bk.job.gateway.filter.esb;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.crypto.util.RSAUtils;
 import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
 import com.tencent.bk.job.common.service.SpringProfile;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,14 +55,18 @@ public class CheckOpenApiJwtGatewayFilterFactory
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
 
+    private final TenantEnvService tenantEnvService;
+
     @Autowired
     public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
                                                SpringProfile springProfile,
-                                               ServiceSecurityProperties securityProperties) {
+                                               ServiceSecurityProperties securityProperties,
+                                               TenantEnvService tenantEnvService) {
         super(Config.class);
         this.openApiJwtService = openApiJwtService;
         this.springProfile = springProfile;
         this.securityProperties = securityProperties;
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
@@ -82,7 +88,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return response.setComplete();
             }
 
-            EsbJwtInfo authInfo;
+            BkGwJwtInfo authInfo;
             if (isOpenApiTestActive(request)) {
                 // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
                 authInfo = openApiJwtService.extractFromJwt(token,
@@ -91,18 +97,44 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 authInfo = openApiJwtService.extractFromJwt(token);
             }
 
-            if (authInfo == null) {
-                log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
+            if (!validateJwt(authInfo)) {
+                log.warn("Untrusted open api request, request-id:{}, authInfo: {}",
+                    RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID), authInfo);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
 
-            // set app code header
+            String tenantId = extractTenantId(request);
+            if (tenantId == null) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return response.setComplete();
+            }
+
+            // set header
             request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
             request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    private String extractTenantId(ServerHttpRequest request) {
+        if (tenantEnvService.isTenantEnabled()) {
+            String tenantId = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_TENANT_ID);
+            if (StringUtils.isEmpty(tenantId)) {
+                log.error("Missing tenant header from bkApiGateway");
+                return null;
+            } else {
+                return tenantId;
+            }
+        } else {
+            // 如果未开启多租户特性，设置默认租户 default（蓝鲸约定）
+            return TenantIdConstants.DEFAULT_TENANT_ID;
+        }
+    }
+
+    public boolean validateJwt(BkGwJwtInfo jwtInfo) {
+        return StringUtils.isNotEmpty(jwtInfo.getUsername()) && StringUtils.isNotEmpty(jwtInfo.getAppCode());
     }
 
     private boolean isOpenApiTestActive(ServerHttpRequest request) {

@@ -65,6 +65,8 @@ public class CacheAppDO {
      */
     private ApplicationAttrsDO attrs;
 
+    private String tenantId;
+
     public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
         if (application == null) {
             return null;
@@ -75,6 +77,7 @@ public class CacheAppDO {
         cacheAppDO.setScopeId(application.getScope().getId());
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAttrs(application.getAttrs());
+        cacheAppDO.setTenantId(application.getTenantId());
         return cacheAppDO;
     }
 
@@ -87,6 +90,7 @@ public class CacheAppDO {
         application.setScope(new ResourceScope(cacheAppDO.getScopeType(), cacheAppDO.getScopeId()));
         application.setName(cacheAppDO.getName());
         application.setAttrs(cacheAppDO.getAttrs());
+        application.setTenantId(cacheAppDO.getTenantId());
         return application;
     }
 }
