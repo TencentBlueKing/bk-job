@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.MaxLength;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -57,6 +58,11 @@ public class TaskScriptStepVO {
 
     @ApiModelProperty("脚本参数")
     private String scriptParam;
+
+    @ApiModelProperty("自定义Windows解释器路径")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    private String windowsInterpreter;
 
     @ApiModelProperty("脚本超时时间")
     @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,

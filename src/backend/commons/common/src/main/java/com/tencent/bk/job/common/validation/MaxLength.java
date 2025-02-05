@@ -22,25 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.common.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
-    private Long maxLength;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    @Override
-    public void initialize(MaxLength maxLengthAnnotation) {
-        this.maxLength = maxLengthAnnotation.value();
-    }
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = MaxLengthValidator.class)
+@Documented
+public @interface MaxLength {
+    long value();
 
-    @Override
-    public boolean isValid(String content,
-                           ConstraintValidatorContext constraintValidatorContext) {
-        if (content == null) {
-            return true;
-        }
-        return content.length() <= maxLength;
-    }
+    String message() default "{validation.constraints.ExceedMaxLength.message}";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 }

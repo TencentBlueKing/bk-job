@@ -118,7 +118,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         T_STEP_INSTANCE_SCRIPT.SCRIPT_SOURCE,
         T_STEP_INSTANCE_SCRIPT.SCRIPT_ID,
         T_STEP_INSTANCE_SCRIPT.SCRIPT_VERSION_ID,
-        T_STEP_INSTANCE_SCRIPT.IS_SECURE_PARAM
+        T_STEP_INSTANCE_SCRIPT.IS_SECURE_PARAM,
+        T_STEP_INSTANCE_SCRIPT.WINDOWS_INTERPRETER
     };
     private static final TableField<?, ?>[] T_STEP_INSTANCE_FILE_ALL_FIELDS = {
         T_STEP_INSTANCE_FILE.TASK_INSTANCE_ID,
@@ -234,7 +235,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             t.SCRIPT_SOURCE,
             t.SCRIPT_ID,
             t.SCRIPT_VERSION_ID,
-            t.IS_SECURE_PARAM
+            t.IS_SECURE_PARAM,
+            t.WINDOWS_INTERPRETER
         ).values(
             stepInstance.getId(),
             stepInstance.getTaskInstanceId(),
@@ -256,7 +258,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             stepInstance.getScriptId(),
             stepInstance.getScriptVersionId(),
             stepInstance.isSecureParam() ? JooqDataTypeUtil.toByte(1) :
-                JooqDataTypeUtil.toByte(0)
+                JooqDataTypeUtil.toByte(0),
+            stepInstance.getWindowsInterpreter()
         ).execute();
     }
 
@@ -406,6 +409,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
         }
         stepInstance.setScriptId(record.get(t.SCRIPT_ID));
         stepInstance.setScriptVersionId(record.get(t.SCRIPT_VERSION_ID));
+        stepInstance.setWindowsInterpreter(record.get(t.WINDOWS_INTERPRETER));
         return stepInstance;
     }
 
