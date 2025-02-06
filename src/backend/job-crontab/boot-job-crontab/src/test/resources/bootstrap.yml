@@ -3,3 +3,6 @@ spring:
     name: job-crontab
   profiles:
     active: test
+  cloud:
+    kubernetes:
+      enabled: false
