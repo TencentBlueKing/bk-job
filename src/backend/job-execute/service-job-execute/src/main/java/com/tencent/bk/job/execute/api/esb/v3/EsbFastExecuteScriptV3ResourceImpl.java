@@ -210,6 +210,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
             }
         }
         stepInstance.setSecureParam(request.getIsParamSensitive() != null && request.getIsParamSensitive() == 1);
+        stepInstance.setWindowsInterpreter(request.getWindowsInterpreter());
         stepInstance.setTimeout(
             request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());
 

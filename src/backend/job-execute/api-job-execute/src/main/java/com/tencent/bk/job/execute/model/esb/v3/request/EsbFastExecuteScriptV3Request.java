@@ -81,6 +81,12 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private String scriptParam;
 
     /**
+     * 自定义Windows解释器路径
+     */
+    @JsonProperty("windows_interpreter")
+    private String windowsInterpreter;
+
+    /**
      * 脚本ID
      */
     @JsonProperty("script_id")
