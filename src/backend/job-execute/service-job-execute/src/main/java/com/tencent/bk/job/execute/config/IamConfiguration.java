@@ -78,12 +78,12 @@ public class IamConfiguration {
 
     @Bean
     @Primary
-    public TopoPathService switchableTopoPathService(@Qualifier("topoPathService")
-                                                     TopoPathService topoPathService,
-                                                     @Autowired(required = false)
-                                                     @Qualifier("cachedTopoPathService")
-                                                     TopoPathService cachedTopoPathService,
-                                                     IamHostTopoPathProperties iamHostTopoPathProperties) {
+    public SwitchableTopoPathService switchableTopoPathService(@Qualifier("topoPathService")
+                                                               TopoPathService topoPathService,
+                                                               @Autowired(required = false)
+                                                               @Qualifier("cachedTopoPathService")
+                                                               TopoPathService cachedTopoPathService,
+                                                               IamHostTopoPathProperties iamHostTopoPathProperties) {
         if (cachedTopoPathService != null) {
             return new SwitchableTopoPathService(cachedTopoPathService, iamHostTopoPathProperties);
         }
