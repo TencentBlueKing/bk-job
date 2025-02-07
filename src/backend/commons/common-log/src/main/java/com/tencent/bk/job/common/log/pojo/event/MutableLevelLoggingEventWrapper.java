@@ -22,23 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-ext {
-    if (System.getProperty("jobCommonVersion")) {
-        set("jobCommonVersion", System.getProperty("jobCommonVersion"))
-    } else if (System.getProperty("bkjobVersion")) {
-        set("jobCommonVersion", System.getProperty("bkjobVersion"))
-    } else {
-        set("jobCommonVersion", "1.0.0")
+package com.tencent.bk.job.common.log.pojo.event;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import lombok.experimental.Delegate;
+
+public class MutableLevelLoggingEventWrapper implements ILoggingEvent {
+    @Delegate
+    private final ILoggingEvent originalEvent;
+
+    private Level wrapLevel;
+
+    public MutableLevelLoggingEventWrapper(ILoggingEvent originalEvent, Level level) {
+        this.originalEvent = originalEvent;
+        this.wrapLevel = level;
     }
-}
-version "${jobCommonVersion}"
-subprojects {
-    version "${jobCommonVersion}"
-    dependencies {
-        compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
-        compileOnly 'ch.qos.logback:logback-classic'
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    public void setLevel(Level level) {
+        this.wrapLevel = level;
+    }
+
+    @Override
+    public Level getLevel() {
+        return wrapLevel;
     }
 }

@@ -89,7 +89,7 @@ ext {
     set('swaggerVersion', "3.0.0")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
-    set('lombokVersion', "1.18.10")
+    set('lombokVersion', "1.18.24")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     set('jacksonVersion', "2.13.5")
     set('jaxrsVersion', "2.0")
