@@ -70,6 +70,11 @@
             secure-field="secureParam"
             @on-change="handleChange" />
           <item-factory
+            field="windowsInterpreter"
+            :form-data="formData"
+            name="windowsInterpreter"
+            @on-change="handleChange" />
+          <item-factory
             field="timeout"
             :form-data="formData"
             name="scriptTimeout"
@@ -183,6 +188,8 @@
     scriptParam: '',
     // 敏感参数 0-关闭 1-开启
     secureParam: 0,
+    // windows解释器
+    windowsInterpreter: '',
     // 超时
     timeout: 300,
     // 账号
@@ -259,6 +266,7 @@
             scriptId,
             scriptLanguage,
             scriptParam,
+            windowsInterpreter,
             scriptSource,
             scriptVersionId,
             secureParam,
@@ -275,6 +283,7 @@
             scriptId,
             scriptLanguage,
             scriptParam,
+            windowsInterpreter,
             scriptSource,
             scriptVersionId,
             secureParam,
@@ -413,6 +422,7 @@
               scriptLanguage,
               content,
               scriptParam,
+              windowsInterpreter,
               secureParam,
               timeout,
               account,
@@ -430,6 +440,7 @@
               scriptLanguage,
               content,
               scriptParam,
+              windowsInterpreter,
               secureParam,
               timeout,
               account,

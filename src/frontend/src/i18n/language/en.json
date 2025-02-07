@@ -562,5 +562,9 @@
   "注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！": "Attention! The AI model may use the information you provide as training material. If the content contains sensitive information, please use it cautiously!",
   "小鲸": "AI-assistant",
   "开源社区": "Open Source",
-  "脚本参数最大输入为 64KB": "The maximum script parameter size is 64KB"
+  "脚本参数最大输入为 64KB": "The maximum script parameter size is 64KB",
+  "解释器": "Interpreter",
+  "使用目标机器指定路径下的解释器运行本脚本（近对Windows有效）": "Run this script using the interpreter in the specified path on the target hosts (Only for Windows)",
+  "自定义window解释器路径": "Customize the Interpreter Path in Windows",
+  "输入目标机器上的自定义解释器软件路径，如：/usr/local/python-2/bin/python": "Enter the path of the custom interpreter software on the target machine, such as: /usr/local/python-2/bin/python"
 }

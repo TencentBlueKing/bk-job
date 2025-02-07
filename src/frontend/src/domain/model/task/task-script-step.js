@@ -48,6 +48,7 @@ export default class TaskScriptStep {
     this.account = payload.account;
     this.status = payload.status;
     this.executeTarget = new ExecuteTargetModel(payload.executeTarget || {});
+    this.windowsInterpreter = payload.windowsInterpreter;
   }
 
   get isReferPublicScript() {

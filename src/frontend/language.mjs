@@ -46,7 +46,6 @@ const recur = async (target) => {
       const { message, namespace } = data.default;
       const znData = {};
       const enData = {};
-      console.log('data = ', data);
       Object.keys(message).forEach((key) => {
         if (typeof message[key] === 'string') {
           znData[key] = key;
