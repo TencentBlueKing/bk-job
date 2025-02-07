@@ -379,7 +379,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private String buildInitialFileTaskUploadLogContent(boolean isSourceValid,
                                                         boolean isSourceAgentInstalled) {
         if (!isSourceValid) {
-            return "Execute object is invalid";
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
         } else if (!isSourceAgentInstalled) {
             return "Agent is not installed";
         } else {
@@ -429,11 +429,11 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                                           boolean isSourceValid,
                                                           boolean isSourceAgentInstalled) {
         if (!isTargetValid) {
-            return "Execute object is invalid";
+            return "Target execute object is invalid, please check whether the host belongs to the current business";
         } else if (!isTargetAgentInstalled) {
             return "Agent is not installed";
         } else if (!isSourceValid) {
-            return "Source execute object is invalid";
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
         } else if (!isSourceAgentInstalled) {
             return "Source agent is not installed";
         } else {
