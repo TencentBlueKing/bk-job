@@ -22,37 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":commons:common-redis")
-    api project(":job-file-gateway:service-job-file-gateway")
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework:spring-webmvc'
-    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    runtimeOnly('com.mysql:mysql-connector-j')
-}
-springBoot {
-    getMainClass().set("com.tencent.bk.job.file_gateway.JobFileGatewayBootApplication")
-    buildInfo()
-}
-task renameArtifacts(type: Copy) {
-    from('build/libs')
-    include "boot-job-file-gateway-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-file-gateway-${version}.jar", "job-file-gateway-${version}.jar"
-}
-renameArtifacts.dependsOn assemble
+package com.tencent.bk.job.common.constant;
 
-task copyToLatestJar(type: Copy) {
-    group = "local"
-    from('build/libs')
-    include "boot-job-file-gateway-${version}.jar"
-    destinationDir file('build/libs/')
-    rename "boot-job-file-gateway-${version}.jar", "job-file-gateway.jar"
-}
-copyToLatestJar.dependsOn assemble
+import com.tencent.bk.job.common.util.file.FileSizeUtil;
+import lombok.Getter;
 
-apply from: "$rootDir/task_job_package.gradle"
-copyToRelease.dependsOn renameArtifacts
+/**
+ * 这里暂时只记录TEXT形式的MySQL类型，用于获取各类型的最大长度。
+ * 因为在MySQL中，TEXT类型的存储是以字节流的长度为限制的，而char/varchar则是以字符串的长度为限制的，所以校验长度合法的逻辑是不太一样的。
+ *
+ */
+@Getter
+public enum MySQLTextDataType {
+    TINYTEXT("TINYTEXT", 255L),
+    TEXT("TEXT", 65535L),
+    MEDIUMTEXT("MEDIUMTEXT", 16777215L),
+    LONGTEXT("LONGTEXT", 4294967295L);
+
+    private final String value;
+    private final Long maximumLength;   // MySQL能存的最大字节数
+
+    MySQLTextDataType(String value, Long maximumLength) {
+        this.value = value;
+        this.maximumLength = maximumLength;
+    }
+
+    public static MySQLTextDataType valOf(String value) {
+        for (MySQLTextDataType type : MySQLTextDataType.values()) {
+            if (type.value.equals(value)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return value + "(" + FileSizeUtil.getFileSizeStr(maximumLength) + ")";
+    }
+}
