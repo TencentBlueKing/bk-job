@@ -5,9 +5,9 @@
     :label="$t('解释器')">
     <bk-checkbox v-model="isCustom">
       <span
-        v-bk-tooltips="$t('使用目标机器指定路径下的解释器运行本脚本（近对Windows有效）')"
+        v-bk-tooltips="$t('使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）')"
         class="tips">
-        {{ $t('自定义window解释器路径') }}
+        {{ $t('自定义windows解释器路径') }}
       </span>
     </bk-checkbox>
     <div
