@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
@@ -89,6 +90,7 @@ public class WebFastExecuteScriptRequest {
      * 自定义Windows解释器路径
      */
     @ApiModelProperty(value = "自定义Windows解释器路径，对Linux机器不生效，对SQL脚本不生效")
+    @EndWith(fieldName = "windowsInterpreter", value = ".exe")
     @MaxLength(value = 260,
         message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
     private String windowsInterpreter;
