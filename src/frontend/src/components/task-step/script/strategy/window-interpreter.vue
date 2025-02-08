@@ -3,7 +3,9 @@
     class="form-item-content"
     :field="field"
     :label="$t('解释器')">
-    <bk-checkbox v-model="isCustom">
+    <bk-checkbox
+      v-model="isCustom"
+      @change="handleCustomChange">
       <span
         v-bk-tooltips="$t('使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）')"
         class="tips">
@@ -15,7 +17,7 @@
       style="margin-top: 8px">
       <bk-input
         class="form-item-content"
-        :placeholder="$t('输入目标机器上的自定义解释器软件路径，如：/usr/local/python-2/bin/python')"
+        :placeholder="$t('输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe')"
         :value="formData[field]"
         @change="handleChange" />
     </div>
@@ -46,6 +48,12 @@
   }, {
     immediate: true,
   });
+
+  const handleCustomChange = (value) => {
+    if (!value) {
+      emits('on-change', props.field, '');
+    }
+  };
 
   const handleChange = (value) => {
     emits('on-change', props.field, value);
