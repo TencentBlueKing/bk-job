@@ -61,7 +61,8 @@ public class TaskScriptStepVO {
     private String scriptParam;
 
     @ApiModelProperty("自定义Windows解释器路径")
-    @EndWith(fieldName = "windowsInterpreter", value = ".exe")
+    @EndWith(fieldName = "windowsInterpreter", value = ".exe",
+        message = "validation.constraints.WinInterpreterInvalidSuffix.message")
     @MaxLength(value = 260,
         message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
     private String windowsInterpreter;
