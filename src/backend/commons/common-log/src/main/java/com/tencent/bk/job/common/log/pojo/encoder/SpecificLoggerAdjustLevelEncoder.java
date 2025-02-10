@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 自定义encoder，可对特定logger(s)打出对日志做日志级别的调整，此encoder包含 {@link PatternLayoutEncoder} 所有功能
+ * 自定义encoder，可对特定logger(s)打出的日志做日志级别的调整，此encoder包含 {@link PatternLayoutEncoder} 所有功能
  * 使用方法：
  *  将所需调整日志级别的logger路径用<targetLogger>包裹起来（以<包名>.<类名>为路径）
  *  将所需要调整的日志级别包裹在<originLoggingLevel>内
@@ -42,14 +42,14 @@ import java.util.Set;
  *
  */
 public class SpecificLoggerAdjustLevelEncoder extends PatternLayoutEncoder {
-    private Set<String> targetLoggerList = new HashSet<>();
+    private final Set<String> targetLoggerSet = new HashSet<>();
     @Setter
     private Level originLoggingLevel;
     @Setter
     private Level targetLoggingLevel;
 
     public void addTargetLogger(String targetLogger) {
-        targetLoggerList.add(targetLogger);
+        targetLoggerSet.add(targetLogger);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class SpecificLoggerAdjustLevelEncoder extends PatternLayoutEncoder {
         }
 
         ILoggingEvent wrappedEvent = event;
-        if (targetLoggerList.contains(event.getLoggerName()) && originLoggingLevel.equals(event.getLevel())) {
+        if (targetLoggerSet.contains(event.getLoggerName()) && originLoggingLevel.equals(event.getLevel())) {
             wrappedEvent = new MutableLevelLoggingEventWrapper(event, targetLoggingLevel);
         }
 

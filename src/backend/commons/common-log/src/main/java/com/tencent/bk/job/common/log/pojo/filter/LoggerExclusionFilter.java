@@ -35,10 +35,10 @@ import java.util.Set;
  * 排除特定logger打出的日志
  */
 public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> {
-    private Set<String> exclusiveLoggerList = new HashSet<>();
+    private final Set<String> exclusiveLoggerSet = new HashSet<>();
 
     public void addExclusiveLogger(String exclusiveLogger) {
-        this.exclusiveLoggerList.add(exclusiveLogger);
+        this.exclusiveLoggerSet.add(exclusiveLogger);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> 
             return FilterReply.NEUTRAL;
         }
 
-        if (exclusiveLoggerList.contains(event.getLoggerName())) {
+        if (exclusiveLoggerSet.contains(event.getLoggerName())) {
             return onMatch;
         }
 
@@ -55,8 +55,6 @@ public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> 
     }
 
     public void start() {
-        if (this.exclusiveLoggerList != null) {
-            super.start();
-        }
+        super.start();
     }
 }
