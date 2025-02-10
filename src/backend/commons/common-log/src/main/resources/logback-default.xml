@@ -38,9 +38,12 @@ Default job logback configuration provided for import
             <totalSizeCap>100GB</totalSizeCap>
             <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
-        <encoder>
+        <encoder class="com.tencent.bk.job.common.log.pojo.encoder.SpecificLoggerAdjustLevelEncoder">
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
+            <targetLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</targetLogger>
+            <originLoggingLevel>ERROR</originLoggingLevel>
+            <targetLoggingLevel>WARN</targetLoggingLevel>
         </encoder>
     </appender>
     <appender name="async-app-appender" class="ch.qos.logback.classic.AsyncAppender">
@@ -173,8 +176,14 @@ Default job logback configuration provided for import
         </encoder>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
+            <onMatch>NEUTRAL</onMatch>
             <onMismatch>DENY</onMismatch>
+        </filter>
+        <!-- 因为这个过滤器需要走HashSet匹配，考虑性能，所以放在后面 -->
+        <filter class="com.tencent.bk.job.common.log.pojo.filter.LoggerExclusionFilter">
+            <exclusiveLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</exclusiveLogger>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
         </filter>
     </appender>
 

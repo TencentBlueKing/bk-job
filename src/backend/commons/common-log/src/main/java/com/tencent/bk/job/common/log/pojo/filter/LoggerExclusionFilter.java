@@ -22,23 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-ext {
-    if (System.getProperty("jobCommonVersion")) {
-        set("jobCommonVersion", System.getProperty("jobCommonVersion"))
-    } else if (System.getProperty("bkjobVersion")) {
-        set("jobCommonVersion", System.getProperty("bkjobVersion"))
-    } else {
-        set("jobCommonVersion", "1.0.0")
+package com.tencent.bk.job.common.log.pojo.filter;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.filter.AbstractMatcherFilter;
+import ch.qos.logback.core.spi.FilterReply;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * 排除特定logger打出的日志
+ */
+public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> {
+    private final Set<String> exclusiveLoggerSet = new HashSet<>();
+
+    public void addExclusiveLogger(String exclusiveLogger) {
+        this.exclusiveLoggerSet.add(exclusiveLogger);
     }
-}
-version "${jobCommonVersion}"
-subprojects {
-    version "${jobCommonVersion}"
-    dependencies {
-        compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
-        compileOnly 'ch.qos.logback:logback-classic'
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    @Override
+    public FilterReply decide(ILoggingEvent event) {
+        if (!isStarted()) {
+            return FilterReply.NEUTRAL;
+        }
+
+        if (exclusiveLoggerSet.contains(event.getLoggerName())) {
+            return onMatch;
+        }
+
+        return onMismatch;
+    }
+
+    public void start() {
+        super.start();
     }
 }
