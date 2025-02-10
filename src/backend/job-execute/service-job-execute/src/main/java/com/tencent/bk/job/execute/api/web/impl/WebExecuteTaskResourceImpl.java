@@ -340,6 +340,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setScriptId(request.getScriptId());
         stepInstance.setScriptVersionId(request.getScriptVersionId());
         stepInstance.setTimeout(request.getTimeout());
+        stepInstance.setWindowsInterpreter(request.getTrimmedWindowsInterpreter());
         stepInstance.setScriptParam(request.getScriptParam());
         stepInstance.setSecureParam(request.getSecureParam() != null && request.getSecureParam() == 1);
         return stepInstance;

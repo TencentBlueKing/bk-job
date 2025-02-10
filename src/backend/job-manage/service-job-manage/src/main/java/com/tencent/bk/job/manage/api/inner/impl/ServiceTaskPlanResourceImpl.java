@@ -361,6 +361,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         }
 
         scriptStepDTO.setScriptParam(scriptStep.getScriptParam());
+        scriptStepDTO.setWindowsInterpreter(scriptStep.getWindowsInterpreter());
         scriptStepDTO.setScriptTimeout(scriptStep.getTimeout());
         scriptStepDTO.setSecureParam(scriptStep.getSecureParam());
 

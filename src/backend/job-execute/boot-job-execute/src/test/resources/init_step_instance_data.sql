@@ -36,7 +36,7 @@ values
  (4,2,3,-1,'fast_execute_task_name',1,'{"ipList":[{"cloudAreaId":0,"ip":"127.0.0.1"}]}','admin',3,0,null,1572868801000,0,null,1,1);
 
 insert into job_execute.step_instance_script(step_instance_id,task_instance_id,script_content,script_type,script_param,resolved_script_param,execution_timeout,system_account_id,system_account,
-                                             db_account_id,db_type,db_account,db_password,db_port,script_source,script_id,script_version_id,is_secure_param) values (1,1,'script_content',1,'${var1}','var1',1000,1,'root',11,1,'root','ESKsXn+pF9hACG3BSYG38ZnUjQQ8bUcOylREiEnDTPU=',3306,1,NULL,NULL,1);
+                                             db_account_id,db_type,db_account,db_password,db_port,script_source,script_id,script_version_id,is_secure_param,windows_interpreter) values (1,1,'script_content',1,'${var1}','var1',1000,1,'root',11,1,'root','ESKsXn+pF9hACG3BSYG38ZnUjQQ8bUcOylREiEnDTPU=',3306,1,NULL,NULL,1,NULL);
 
 insert into job_execute.step_instance_file(step_instance_id,task_instance_id,file_source,resolved_file_source,file_target_path,file_target_name,resolved_file_target_path,file_upload_speed_limit,file_download_speed_limit,
                                            file_duplicate_handle,not_exist_path_handler,execution_timeout,system_account_id,system_account) values (2,1,'[{"files":[{ "filePath":"/${log_dir}/1.log" }],"localUpload":false}]',

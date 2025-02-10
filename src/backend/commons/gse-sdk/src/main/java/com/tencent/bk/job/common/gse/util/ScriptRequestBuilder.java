@@ -105,6 +105,15 @@ public class ScriptRequestBuilder {
         return this;
     }
 
+    /**
+     * 设置Windows执行脚本的命令行解释器
+     *
+     * @param windowsInterpreter Windows执行脚本的命令行解释器
+     */
+    public void setWindowsInterpreter(String windowsInterpreter) {
+        request.setWindowsInterpreter(windowsInterpreter);
+    }
+
     public ExecuteScriptRequest build() {
         return request;
     }

@@ -41,6 +41,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Record15;
+import org.jooq.Record16;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
@@ -77,8 +78,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
     }
 
-    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record15<ULong, ULong, ULong, UByte,
-        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte> record) {
+    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte,
+            String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte, String> record) {
         if (record == null) {
             return null;
         }
@@ -106,6 +107,7 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
 
         taskScriptStep.setStatus((record.get(TABLE.STATUS)).intValue());
         taskScriptStep.setIgnoreError((record.get(TABLE.IGNORE_ERROR)).intValue() == 1);
+        taskScriptStep.setWindowsInterpreter(record.get(TABLE.WINDOWS_INTERPRETER));
         return taskScriptStep;
     }
 
@@ -114,8 +116,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(parentId)));
         Result<
-            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte>> result =
+            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -132,7 +134,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR
+                    TABLE.IGNORE_ERROR,
+                    TABLE.WINDOWS_INTERPRETER
                 ).from(TABLE).where(conditions).fetch();
 
         List<TaskScriptStepDTO> taskScriptStepList = new ArrayList<>();
@@ -149,8 +152,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<
-            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte>> result =
+            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -167,7 +170,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR
+                    TABLE.IGNORE_ERROR,
+                    TABLE.WINDOWS_INTERPRETER
                 ).from(TABLE).where(conditions).fetch();
 
         Map<Long, TaskScriptStepDTO> taskScriptStepMap = new HashMap<>(stepIdList.size());
@@ -185,8 +189,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
     public TaskScriptStepDTO getScriptStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
-            UByte> record = context.select(
+        Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
+            UByte, String> record = context.select(
             TABLE.ID,
             TABLE.PLAN_ID,
             TABLE.STEP_ID,
@@ -201,7 +205,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
             TABLE.DESTINATION_HOST_LIST,
             TABLE.IS_SECURE_PARAM,
             TABLE.STATUS,
-            TABLE.IGNORE_ERROR
+            TABLE.IGNORE_ERROR,
+            TABLE.WINDOWS_INTERPRETER
         ).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return convertRecordToTaskScriptStep(record);
@@ -236,7 +241,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 TABLE.DESTINATION_HOST_LIST,
                 TABLE.IS_SECURE_PARAM,
                 TABLE.STATUS,
-                TABLE.IGNORE_ERROR
+                TABLE.IGNORE_ERROR,
+                TABLE.WINDOWS_INTERPRETER
             ).values(
                 ULong.valueOf(scriptStep.getPlanId()),
                 ULong.valueOf(scriptStep.getStepId()),
@@ -252,7 +258,8 @@ public class TaskPlanScriptStepDAOImpl implements TaskScriptStepDAO {
                 scriptStep.getExecuteTarget().toJsonString(),
                 isSecureParam,
                 status,
-                ignoreError
+                ignoreError,
+                scriptStep.getWindowsInterpreter()
             ).returning(TABLE.ID).fetchOne();
         assert record != null;
         return record.getId().longValue();

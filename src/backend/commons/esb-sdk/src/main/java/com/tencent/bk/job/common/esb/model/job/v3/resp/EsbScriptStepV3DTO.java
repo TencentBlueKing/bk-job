@@ -59,6 +59,10 @@ public class EsbScriptStepV3DTO {
     @JsonPropertyDescription("Script params")
     private String scriptParam;
 
+    @JsonProperty("windows_interpreter")
+    @JsonPropertyDescription("Windows interpreter")
+    private String windowsInterpreter;
+
     @JsonProperty("script_timeout")
     @JsonPropertyDescription("Timeout")
     private Long scriptTimeout;

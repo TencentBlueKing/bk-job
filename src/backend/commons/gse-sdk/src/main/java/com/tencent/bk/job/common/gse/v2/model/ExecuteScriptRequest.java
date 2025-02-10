@@ -40,6 +40,12 @@ public class ExecuteScriptRequest extends GseReq {
     @JsonProperty("atomic_tasks_relations")
     private List<AtomicScriptTaskRelation> atomicScriptTaskRelations = new ArrayList<>();
 
+    /**
+     * 当该值不为空时，在windows中优先使用该解释器运行脚本
+     */
+    @JsonProperty("windows_interpreter")
+    private String windowsInterpreter;
+
     public void addScript(GseScript script) {
         scripts.add(script);
     }

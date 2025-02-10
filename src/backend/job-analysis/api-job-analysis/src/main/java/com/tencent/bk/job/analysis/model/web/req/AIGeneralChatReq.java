@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.model.web.req;
 
-import com.tencent.bk.job.analysis.model.web.req.validation.MaxLength;
+import com.tencent.bk.job.common.validation.MaxLength;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
