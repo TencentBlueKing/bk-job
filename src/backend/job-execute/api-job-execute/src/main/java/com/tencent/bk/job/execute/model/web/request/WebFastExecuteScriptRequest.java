@@ -103,7 +103,7 @@ public class WebFastExecuteScriptRequest {
      */
     @ApiModelProperty(value = "自定义Windows解释器路径，对Linux机器不生效，对SQL脚本不生效")
     @EndWith(fieldName = "windowsInterpreter", value = ".exe",
-        message = "validation.constraints.WinInterpreterInvalidSuffix.message")
+        message = "{validation.constraints.WinInterpreterInvalidSuffix.message}")
     @MaxLength(value = 260,
         message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
     private String windowsInterpreter;
