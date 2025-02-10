@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -34,20 +35,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 业务与资源范围转换
+ * 业务基础信息缓存
  */
 @Slf4j
-public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappingService {
+public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
 
     private final ServiceApplicationResource applicationResource;
 
-    public AppScopeMappingServiceImpl(ServiceApplicationResource applicationResource) {
+    public AppCacheServiceImpl(ServiceApplicationResource applicationResource) {
         this.applicationResource = applicationResource;
         GlobalAppScopeMappingService.register(this);
     }
 
     @Override
-    public Long queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
+    protected BasicApp queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
         ServiceApplicationDTO app = applicationResource.queryAppByScope(
             resourceScope.getType().getValue(), resourceScope.getId());
         if (app == null) {
@@ -59,11 +60,11 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
             log.error("Empty appId for application, reject cache! query scope: {}", resourceScope);
             throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
         }
-        return app.getId();
+        return convertToBasicApp(app);
     }
 
     @Override
-    public ResourceScope queryScopeByAppId(Long appId) throws NotFoundException {
+    protected BasicApp queryAppByAppId(Long appId) throws NotFoundException {
         ServiceApplicationDTO app = applicationResource.queryAppById(appId);
         if (app == null) {
             log.error("App not found, query appId: {}", appId);
@@ -74,6 +75,17 @@ public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappin
             log.error("Empty scopeType|scopeId for application, reject cache! query appId: {}", appId);
             throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
         }
-        return new ResourceScope(app.getScopeType(), app.getScopeId());
+        return convertToBasicApp(app);
     }
+
+    private BasicApp convertToBasicApp(ServiceApplicationDTO app) {
+        BasicApp basicApp = new BasicApp();
+        basicApp.setId(app.getId());
+        basicApp.setName(app.getName());
+        basicApp.setScope(new ResourceScope(app.getScopeType(), app.getScopeId()));
+        basicApp.setTenantId(app.getTenantId());
+        return basicApp;
+    }
+
+
 }

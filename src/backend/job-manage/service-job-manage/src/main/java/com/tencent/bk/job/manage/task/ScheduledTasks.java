@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final EsbUserInfoUpdateTask esbUserInfoUpdateTask;
+    private final UserSyncService userSyncService;
     private final SyncService syncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
     private final ClearDeletedHostsTask clearDeletedHostsTask;
@@ -45,11 +45,12 @@ public class ScheduledTasks {
 
     @Autowired
     public ScheduledTasks(
-        EsbUserInfoUpdateTask esbUserInfoUpdateTask,
+        UserSyncService userSyncService,
         SyncService syncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask, ApplicationCache applicationCache) {
-        this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
+        ClearDeletedHostsTask clearDeletedHostsTask,
+        ApplicationCache applicationCache) {
+        this.userSyncService = userSyncService;
         this.syncService = syncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
         this.clearDeletedHostsTask = clearDeletedHostsTask;
@@ -60,12 +61,12 @@ public class ScheduledTasks {
      * 每间隔1h更新一次人员数据
      */
     @Scheduled(initialDelay = 2 * 1000, fixedDelay = 60 * 60 * 1000)
-    public void updateEsbUserInfo() {
-        log.info("updateEsbUserInfo");
+    public void syncUser() {
+        log.info("syncUser");
         try {
-            esbUserInfoUpdateTask.execute();
+            userSyncService.execute();
         } catch (Exception e) {
-            log.error("updateEsbUserInfo fail", e);
+            log.error("syncUser fail", e);
         }
     }
 

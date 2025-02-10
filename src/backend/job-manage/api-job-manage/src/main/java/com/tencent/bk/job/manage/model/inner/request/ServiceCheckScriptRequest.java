@@ -55,7 +55,15 @@ public class ServiceCheckScriptRequest {
     @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid")
     private Integer scriptType;
 
-    public ServiceCheckScriptRequest(String scriptContent, Integer scriptType) {
+    /**
+     * 租户 ID
+     */
+    @ApiModelProperty("租户 ID")
+    @NotBlank
+    private String tenantId;
+
+    public ServiceCheckScriptRequest(String tenantId, String scriptContent, Integer scriptType) {
+        this.tenantId = tenantId;
         this.scriptContent = scriptContent;
         this.scriptType = scriptType;
     }

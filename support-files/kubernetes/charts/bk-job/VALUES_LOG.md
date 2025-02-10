@@ -1,4 +1,21 @@
 # chart values 更新日志
+## 0.9.0
+1. 新增 bk-login/bk-user蓝鲸网关配置
+```yaml
+# 蓝鲸登录 API Gateway url
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
+# 蓝鲸用户管理 API Gateway url
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
+```
+
+2. 新增租户配置
+```yaml
+# 多租户配置
+tenant:
+  # 是否启用多租户
+  enabled: false
+```
+
 ## 0.8.2
 1. AI小鲸支持配置使用的大模型
 ```yaml

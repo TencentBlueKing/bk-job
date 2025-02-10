@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -36,22 +37,22 @@ public interface TagAuthService {
     /**
      * 资源范围下创建标签鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateTag(String username, AppResourceScope appResourceScope);
+    AuthResult authCreateTag(User user, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理标签鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param tagId         标签ID
-     * @param tagName       标签名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param tagId            标签ID
+     * @param tagName          标签名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authManageTag(String username,
+    AuthResult authManageTag(User user,
                              AppResourceScope appResourceScope,
                              Long tagId,
                              String tagName);
@@ -59,22 +60,22 @@ public interface TagAuthService {
     /**
      * 资源范围下管理标签批量鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param tagIdList     标签ID列表
+     * @param tagIdList        标签ID列表
      * @return 有权限的标签ID
      */
-    List<Long> batchAuthManageTag(String username,
+    List<Long> batchAuthManageTag(User user,
                                   AppResourceScope appResourceScope,
                                   List<Long> tagIdList);
 
     /**
      * 注册标签实例
      *
+     * @param creator 资源实例创建者
      * @param id      资源实例 ID
      * @param name    资源实例名称
-     * @param creator 资源实例创建者
      * @return 是否注册成功
      */
-    boolean registerTag(Long id, String name, String creator);
+    boolean registerTag(User creator, Long id, String name);
 }

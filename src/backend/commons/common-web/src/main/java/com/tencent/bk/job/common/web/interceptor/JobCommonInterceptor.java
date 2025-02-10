@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -79,7 +80,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
             return true;
         }
 
-        addUsername(request);
+        addUser(request);
         addLang(request);
 
         return true;
@@ -101,11 +102,13 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         JobContextUtil.setRequestId(traceId);
     }
 
-    private void addUsername(HttpServletRequest request) {
+    private void addUser(HttpServletRequest request) {
         HttpRequestSourceEnum requestSource = RequestUtil.parseHttpRequestSource(request);
         if (requestSource == HttpRequestSourceEnum.UNKNOWN) {
             return;
         }
+
+        String tenantId = extractTenantId(request);
 
         String username = null;
         switch (requestSource) {
@@ -124,9 +127,17 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                 break;
         }
 
-        if (StringUtils.isNotBlank(username)) {
-            JobContextUtil.setUsername(username);
+        JobContextUtil.setUser(new User(tenantId, username));
+    }
+
+    private String extractTenantId(HttpServletRequest request) {
+        // 使用 job-gateway 设置的租户 Header
+        String tenantId = request.getHeader(JobCommonHeaders.BK_TENANT_ID);
+        if (StringUtils.isEmpty(tenantId)) {
+            log.warn("Invalid request, tenant is not set");
+            return null;
         }
+        return tenantId;
     }
 
     private void addLang(HttpServletRequest request) {
@@ -184,7 +195,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
             log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
-                JobContextUtil.getAppResourceScope(),
+                JobContextUtil.getApp(),
                 JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
                 request.getRequestURI());
         }
@@ -230,4 +241,6 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     private boolean isClientOrServerError(HttpServletResponse response) {
         return response.getStatus() >= HttpStatus.SC_BAD_REQUEST;
     }
+
+
 }

@@ -78,7 +78,8 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
                 T.CLIENT,
                 T.ACTION,
                 T.CHECK_RESULT,
-                T.EXT_DATA)
+                T.EXT_DATA,
+                T.TENANT_ID)
             .from(T)
             .where(buildSearchCondition(query, baseSearchCondition))
             .orderBy(T.ID.desc())
@@ -95,6 +96,7 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
 
     private List<Condition> buildSearchCondition(DangerousRecordDTO query, BaseSearchCondition baseSearchCondition) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.TENANT_ID.eq(query.getTenantId()));
         if (baseSearchCondition.getCreateTimeStart() != null) {
             conditions.add(T.CREATE_TIME.ge(baseSearchCondition.getCreateTimeStart()));
         }
@@ -164,15 +166,30 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
             dangerousRecord.setExtData(JsonUtils.fromJson(extData, new TypeReference<Map<String, String>>() {
             }));
         }
+        dangerousRecord.setTenantId(record.get(T.TENANT_ID));
         return dangerousRecord;
     }
 
     @Override
     @MySQLOperation(table = "dangerous_record", op = DbOperationEnum.WRITE)
     public boolean saveDangerousRecord(DangerousRecordDTO record) {
-        int count = dsl().insertInto(T, T.RULE_ID, T.RULE_EXPRESSION, T.APP_ID, T.APP_NAME,
-                T.OPERATOR, T.SCRIPT_LANGUAGE,
-                T.SCRIPT_CONTENT, T.CREATE_TIME, T.STARTUP_MODE, T.CLIENT, T.ACTION, T.CHECK_RESULT, T.EXT_DATA)
+        int count = dsl().insertInto(
+                T,
+                T.RULE_ID,
+                T.RULE_EXPRESSION,
+                T.APP_ID,
+                T.APP_NAME,
+                T.OPERATOR,
+                T.SCRIPT_LANGUAGE,
+                T.SCRIPT_CONTENT,
+                T.CREATE_TIME,
+                T.STARTUP_MODE,
+                T.CLIENT,
+                T.ACTION,
+                T.CHECK_RESULT,
+                T.EXT_DATA,
+                T.TENANT_ID
+            )
             .values(record.getRuleId(),
                 record.getRuleExpression(),
                 record.getAppId(),
@@ -184,7 +201,8 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
                 JooqDataTypeUtil.toByte(record.getStartupMode()),
                 record.getClient(),
                 JooqDataTypeUtil.toByte(record.getAction()), JsonUtils.toJson(record.getCheckResult()),
-                record.getExtData() == null ? "" : JsonUtils.toJson(record.getExtData()))
+                record.getExtData() == null ? "" : JsonUtils.toJson(record.getExtData()),
+                record.getTenantId())
             .execute();
         return count > 0;
     }

@@ -27,8 +27,10 @@ package com.tencent.bk.job.crontab.api.web.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.api.web.WebPermissionResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.model.OperationPermissionReq;
@@ -68,6 +70,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
+        User user = JobContextUtil.getUser();
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM);
@@ -85,14 +88,14 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                 switch (action) {
                     case "create":
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(
-                            isReturnApplyUrl, cronAuthService.authCreateCron(username, appResourceScope)));
+                            isReturnApplyUrl, cronAuthService.authCreateCron(user, appResourceScope)));
                     case "view":
                     case "edit":
                     case "delete":
                     case "manage":
                         return Response.buildSuccessResp(webAuthService.toAuthResultVO(
                             isReturnApplyUrl, cronAuthService.authManageCron(
-                                username, appResourceScope, Long.valueOf(resourceId), null)));
+                                user, appResourceScope, Long.valueOf(resourceId), null)));
                     default:
                         log.error("Unknown operator|{}|{}|{}|{}|{}", username, appResourceScope, operation, resourceId,
                             returnPermissionDetail);

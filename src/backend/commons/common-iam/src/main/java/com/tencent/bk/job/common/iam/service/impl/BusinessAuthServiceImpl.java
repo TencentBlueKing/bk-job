@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,8 +45,8 @@ public class BusinessAuthServiceImpl implements BusinessAuthService {
     }
 
     @Override
-    public AuthResult authAccessBusiness(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.ACCESS_BUSINESS, appResourceScope);
+    public AuthResult authAccessBusiness(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.ACCESS_BUSINESS, appResourceScope);
     }
 
 }

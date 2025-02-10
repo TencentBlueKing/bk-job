@@ -33,8 +33,10 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -83,20 +85,24 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
 
     private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
 
+    private final UserLocalCache userLocalCache;
+
     @Autowired
     public ServiceTaskTemplateResourceImpl(
-        TaskTemplateService templateService,
-        @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        TemplateAuthService templateAuthService,
-        TagService tagService,
-        AddHostIdForTemplateAndPlanMigrationTask addHostIdService,
-        TemplateScriptStatusUpdateService templateScriptStatusUpdateService) {
+            TaskTemplateService templateService,
+            @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
+            TemplateAuthService templateAuthService,
+            TagService tagService,
+            AddHostIdForTemplateAndPlanMigrationTask addHostIdService,
+            TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
+            UserLocalCache userLocalCache) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.templateAuthService = templateAuthService;
         this.tagService = tagService;
         this.addHostIdService = addHostIdService;
         this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
@@ -147,12 +153,13 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Integer requestSource,
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
+        User user = userLocalCache.getUser(username);
         JobContextUtil.setAllowMigration(true);
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
             if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
                 AuthResult authResult =
-                    templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
+                    templateAuthService.authEditJobTemplate(user, new AppResourceScope(appId), templateId);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
@@ -162,7 +169,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         } else {
             if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
                 AuthResult authResult =
-                    templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
+                    templateAuthService.authCreateJobTemplate(user, new AppResourceScope(appId));
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
@@ -181,7 +188,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
             lastModifyTime, lastModifyUser);
         templateAuthService.registerTemplate(
-            finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
+            user, finalTemplateId, taskTemplateCreateUpdateReq.getName());
         return InternalResponse.buildSuccessResp(finalTemplateId);
     }
 
