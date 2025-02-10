@@ -26,10 +26,12 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -52,12 +54,22 @@ public class TaskScriptStepVO {
     private Long scriptVersionId;
 
     @ApiModelProperty("脚本内容")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "content",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
+    )
     private String content;
 
     @ApiModelProperty("脚本语言")
     private Integer scriptLanguage;
 
     @ApiModelProperty("脚本参数")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "scriptParam",
+        fieldType = MySQLTextDataType.TEXT,
+        base64 = false
+    )
     private String scriptParam;
 
     @ApiModelProperty("自定义Windows解释器路径")
