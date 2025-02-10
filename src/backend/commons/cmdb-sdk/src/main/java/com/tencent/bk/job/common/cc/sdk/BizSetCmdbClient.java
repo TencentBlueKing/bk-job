@@ -46,8 +46,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
@@ -70,18 +68,24 @@ import java.util.Set;
  * cmdb API Client - 业务集相关
  */
 @Slf4j
-public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbClient {
+public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClient {
 
 
     public BizSetCmdbClient(AppProperties appProperties,
-                            EsbProperties esbProperties,
                             BkApiGatewayProperties bkApiGatewayProperties,
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
                             MeterRegistry meterRegistry,
                             TenantEnvService tenantEnvService) {
-        super(flowController, appProperties, esbProperties,
-            bkApiGatewayProperties, cmdbConfig, meterRegistry, tenantEnvService, null);
+        super(
+            flowController,
+            appProperties,
+            bkApiGatewayProperties,
+            cmdbConfig,
+            meterRegistry,
+            tenantEnvService,
+            null
+        );
     }
 
     /**
@@ -99,7 +103,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(null);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -182,7 +185,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(filter);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -214,7 +216,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -259,7 +260,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -300,7 +300,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setStartTime(startTime);
         try {
             EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
                 null,
@@ -326,7 +325,6 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setStartTime(startTime);
         try {
             EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
-                ApiGwType.ESB,
                 HttpMethodEnum.POST,
                 RESOURCE_WATCH,
                 null,
