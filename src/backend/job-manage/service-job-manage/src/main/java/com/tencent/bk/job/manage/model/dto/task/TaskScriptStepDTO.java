@@ -128,7 +128,7 @@ public class TaskScriptStepDTO {
         }
         scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptStepVO.getScriptLanguage()));
         scriptStep.setScriptParam(scriptStepVO.getScriptParam());
-        scriptStep.setWindowsInterpreter(scriptStepVO.getWindowsInterpreter());
+        scriptStep.setWindowsInterpreter(scriptStepVO.getTrimmedWindowsInterpreter());
         if (scriptStepVO.getTimeout() == null) {
             scriptStep.setTimeout((long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);
         } else {

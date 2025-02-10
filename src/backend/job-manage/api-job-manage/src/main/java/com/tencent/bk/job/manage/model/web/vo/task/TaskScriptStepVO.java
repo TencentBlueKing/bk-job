@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
@@ -142,5 +143,15 @@ public class TaskScriptStepVO {
             ignoreError = 0;
         }
         executeTarget.validate();
+    }
+
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    @JsonIgnore
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
     }
 }

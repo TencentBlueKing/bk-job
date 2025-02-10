@@ -163,7 +163,7 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
                 stepInstance.setScriptParam(scriptParam.replace("\n", " "));
             }
         }
-        stepInstance.setWindowsInterpreter(request.getWindowsInterpreter());
+        stepInstance.setWindowsInterpreter(request.getTrimmedWindowsInterpreter());
         stepInstance.setSecureParam(request.isParamSensitive());
         stepInstance.setTimeout(
             request.getTimeout() == null ? JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS : request.getTimeout());

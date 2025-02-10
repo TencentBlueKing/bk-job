@@ -158,4 +158,12 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
     @JsonProperty("rolling_config")
     private EsbRollingConfigDTO rollingConfig;
 
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
+    }
 }
