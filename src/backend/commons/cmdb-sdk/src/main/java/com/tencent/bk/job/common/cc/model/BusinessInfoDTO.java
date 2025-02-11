@@ -52,11 +52,6 @@ public class BusinessInfoDTO {
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     /**
-     * 开发商账号
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-    /**
      * 表示业务类型
      */
     @JsonProperty("default")

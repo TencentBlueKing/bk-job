@@ -76,12 +76,6 @@ public class BizSetInfo {
     private String lastTime;
 
     /**
-     * 运维部门ID
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-
-    /**
      * 时区
      */
     private String timezone;

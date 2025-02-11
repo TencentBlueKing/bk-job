@@ -708,7 +708,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             if (businessInfos != null && !businessInfos.isEmpty()) {
                 for (BusinessInfoDTO businessInfo : businessInfos) {
                     if (businessInfo.getDefaultApp() == 0) {
-                        appList.add(convertToAppInfo(businessInfo));
+                        ApplicationDTO applicationDTO = convertToAppInfo(req.getBkSupplierAccount(), businessInfo);
+                        appList.add(applicationDTO);
                     }
                 }
                 start += businessInfos.size();
@@ -721,22 +722,23 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return appList;
     }
 
-    private ApplicationDTO convertToAppInfo(BusinessInfoDTO businessInfo) {
+    private ApplicationDTO convertToAppInfo(String supplierAccount, BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
         appInfo.setName(businessInfo.getBizName());
-        appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
+        appInfo.setBkSupplierAccount(supplierAccount);
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
         appInfo.setLanguage(businessInfo.getLanguage());
         return appInfo;
     }
 
-    private List<ApplicationDTO> convertToAppInfoList(List<BusinessInfoDTO> businessInfoList) {
+    private List<ApplicationDTO> convertToAppInfoList(String supplierAccount,
+                                                      List<BusinessInfoDTO> businessInfoList) {
         List<ApplicationDTO> appInfoList = new ArrayList<>();
         for (BusinessInfoDTO businessInfo : businessInfoList) {
             ApplicationDTO appInfo = new ApplicationDTO();
             appInfo.setName(businessInfo.getBizName());
-            appInfo.setBkSupplierAccount(businessInfo.getSupplierAccount());
+            appInfo.setBkSupplierAccount(supplierAccount);
             appInfo.setTimeZone(businessInfo.getTimezone());
             appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
             appInfo.setLanguage(businessInfo.getLanguage());
@@ -767,7 +769,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         if (businessInfos == null || businessInfos.isEmpty()) {
             throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
         }
-        return convertToAppInfo(businessInfos.get(0));
+        return convertToAppInfo(req.getBkSupplierAccount(), businessInfos.get(0));
     }
 
     @Override
@@ -801,7 +803,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             log.info("Query biz from cmdb through bizIds, return data is null, bizIdz={}", bizIds);
             return new ArrayList<>();
         }
-        return convertToAppInfoList(businessInfos);
+        return convertToAppInfoList(req.getBkSupplierAccount(), businessInfos);
     }
 
     @Override
