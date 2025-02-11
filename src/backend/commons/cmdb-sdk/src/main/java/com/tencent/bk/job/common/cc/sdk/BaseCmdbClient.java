@@ -70,7 +70,6 @@ public class BaseCmdbClient extends BkApiV1Client {
     protected static final String LIST_BIZ_HOSTS = "/api/v3/hosts/app/{bk_biz_id}/list_hosts";
     protected static final String LIST_HOSTS_WITHOUT_BIZ = "/api/v3/hosts/list_hosts_without_app";
     protected static final String FIND_HOST_BIZ_RELATIONS = "/api/v3/hosts/modules/read";
-    protected static final String LIST_BIZ_HOSTS_TOPO = "/api/v3/hosts/app/{bk_biz_id}/list_hosts_topo";
     protected static final String FIND_MODULE_HOST_RELATION = "/api/v3/findmany/module_relation/bk_biz_id/{bk_biz_id}";
     protected static final String RESOURCE_WATCH = "/api/v3/event/watch/resource/{bk_resource}";
     protected static final String SEARCH_BUSINESS = "/api/v3/biz/search/{bk_supplier_account}";
@@ -110,7 +109,6 @@ public class BaseCmdbClient extends BkApiV1Client {
         interfaceNameMap.put(LIST_BIZ_HOSTS, "list_biz_hosts");
         interfaceNameMap.put(LIST_HOSTS_WITHOUT_BIZ, "list_hosts_without_biz");
         interfaceNameMap.put(FIND_HOST_BIZ_RELATIONS, "find_host_biz_relations");
-        interfaceNameMap.put(LIST_BIZ_HOSTS_TOPO, "list_biz_hosts_topo");
         interfaceNameMap.put(FIND_MODULE_HOST_RELATION, "find_module_host_relation");
         interfaceNameMap.put(RESOURCE_WATCH, "resource_watch");
         interfaceNameMap.put(SEARCH_BUSINESS, "search_business");

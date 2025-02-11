@@ -273,10 +273,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     public InstanceTopologyDTO getBriefCacheTopo(String tenantId, long bizId) {
         GetBriefCacheTopoReq req = makeCmdbBaseReq(GetBriefCacheTopoReq.class);
         req.setBizId(bizId);
+        String uri = GET_BIZ_BRIEF_CACHE_TOPO.replace("{bk_biz_id}", String.valueOf(bizId));
         EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
-            GET_BIZ_BRIEF_CACHE_TOPO,
+            uri,
             req.toUrlParams(),
             null,
             new TypeReference<EsbResp<BriefTopologyDTO>>() {
@@ -287,15 +288,16 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     public InstanceTopologyDTO getBizInstTopologyWithoutInternalTopoFromCMDB(String tenantId, long bizId) {
         GetBizInstTopoReq req = makeCmdbBaseReq(GetBizInstTopoReq.class);
         req.setBizId(bizId);
+        String uri = SEARCH_BIZ_INST_TOPO.replace("{bk_biz_id}", String.valueOf(bizId));
         EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
-            SEARCH_BIZ_INST_TOPO,
+            uri,
             req.toUrlParams(),
             null,
             new TypeReference<EsbResp<List<InstanceTopologyDTO>>>() {
             });
-        if (esbResp.getData().size() > 0) {
+        if (!esbResp.getData().isEmpty()) {
             return esbResp.getData().get(0);
         } else {
             return null;
@@ -341,10 +343,12 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     public InstanceTopologyDTO getBizInternalModuleFromCMDB(String tenantId, long bizId) {
         GetBizInternalModuleReq req = makeCmdbBaseReq(GetBizInternalModuleReq.class);
         req.setBizId(bizId);
+        String uri = GET_BIZ_INTERNAL_MODULE.replace("{bk_supplier_account}", req.getBkSupplierAccount());
+        uri = uri.replace("{bk_biz_id}", String.valueOf(bizId));
         EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
-            GET_BIZ_INTERNAL_MODULE,
+            uri,
             req.toUrlParams(),
             null,
             new TypeReference<EsbResp<GetBizInternalModuleResult>>() {
@@ -457,10 +461,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     private FindModuleHostRelationResult getHostsByReq(String tenantId, FindModuleHostRelationReq req) {
+        String uri = FIND_MODULE_HOST_RELATION.replace("{bk_biz_id}", String.valueOf(req.getBizId()));
         EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
-            FIND_MODULE_HOST_RELATION,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<FindModuleHostRelationResult>>() {
@@ -685,10 +690,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
             Page page = new Page(start, limit, orderField);
             req.setPage(page);
+            String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
             EsbResp<SearchAppResult> esbResp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
-                SEARCH_BUSINESS,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchAppResult>>() {
@@ -745,9 +751,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         Map<String, Object> conditionMap = new HashMap<>();
         conditionMap.put("bk_biz_id", bizId);
         req.setCondition(conditionMap);
+        String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
         EsbResp<SearchAppResult> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
-            SEARCH_BUSINESS,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<SearchAppResult>>() {
@@ -776,10 +783,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         filter.setCondition(BizFilter.CONDITION_AND);
         req.setBizFilter(filter);
 
+        String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
         EsbResp<SearchAppResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
-            SEARCH_BUSINESS,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<SearchAppResult>>() {
@@ -808,10 +816,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
-
+            String uri = SEARCH_DYNAMIC_GROUP.replace("{bk_biz_id}", String.valueOf(bizId));
             EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                SEARCH_DYNAMIC_GROUP,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchDynamicGroupResult>>() {
@@ -869,9 +877,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         boolean isLastPage = false;
         while (!isLastPage) {
             req.getPage().setStart(start);
+            String uri = EXECUTE_DYNAMIC_GROUP.replace("{bk_biz_id}", String.valueOf(bizId));
+            uri = uri.replace("{id}", groupId);
             EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                EXECUTE_DYNAMIC_GROUP,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ExecuteDynamicGroupHostResult>>() {
@@ -1020,6 +1030,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         condition.addRule(BaseRuleDTO.in("bk_host_innerip", input.ipList));
         req.setCondition(condition);
 
+        String uri = LIST_BIZ_HOSTS.replace("{bk_biz_id}", String.valueOf(input.getBizId()));
         int limit = 200;
         int start = 0;
         boolean isLastPage = false;
@@ -1028,7 +1039,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             req.setPage(page);
             EsbResp<ListBizHostResult> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                LIST_BIZ_HOSTS,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ListBizHostResult>>() {
@@ -1223,9 +1234,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         condition.put("bk_biz_id", bizId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
+        String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
         EsbResp<CcCountInfo> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
-            SEARCH_BUSINESS,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<CcCountInfo>>() {
@@ -1334,9 +1346,13 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
         List<InstanceTopologyDTO> hierarchyTopoList = new ArrayList<>();
         if (!nonAppNodes.isEmpty()) {
+            String uri = GET_TOPO_NODE_PATHS.replace(
+                "{bk_biz_id}",
+                String.valueOf(getTopoNodePathReq.getBizId())
+            );
             EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                GET_TOPO_NODE_PATHS,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<List<TopoNodePathDTO>>>() {
@@ -1380,9 +1396,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setResource("host");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
-            RESOURCE_WATCH,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<ResourceWatchResult<HostEventDetail>>>() {
@@ -1398,9 +1415,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
-            RESOURCE_WATCH,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<ResourceWatchResult<HostRelationEventDetail>>>() {
@@ -1417,9 +1435,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
-            RESOURCE_WATCH,
+            uri,
             null,
             req,
             new TypeReference<EsbResp<ResourceWatchResult<BizEventDetail>>>() {

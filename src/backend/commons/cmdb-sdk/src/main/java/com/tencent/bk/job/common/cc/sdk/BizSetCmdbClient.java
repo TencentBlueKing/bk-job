@@ -132,7 +132,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         int start = 0;
         List<BizSetInfo> bizSetInfoList = new ArrayList<>();
         while (start < bizSetCount) {
-            bizSetInfoList.addAll(searchBizSet(tenantId,null, start, limit));
+            bizSetInfoList.addAll(searchBizSet(tenantId, null, start, limit));
             start += limit;
         }
         return bizSetInfoList;
@@ -141,7 +141,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     /**
      * 查询业务集信息
      *
-     * @param tenantId 租户ID
+     * @param tenantId  租户ID
      * @param bizSetIds 业务集ID集合
      * @return 业务集信息列表
      */
@@ -174,9 +174,9 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
      * 查询业务集信息
      *
      * @param tenantId 租户ID
-     * @param filter 查询条件
-     * @param start  分页起始
-     * @param limit  每页大小
+     * @param filter   查询条件
+     * @param start    分页起始
+     * @param limit    每页大小
      * @return 业务集信息列表
      */
     private List<BizSetInfo> searchBizSet(String tenantId, BizSetFilter filter, int start, int limit) {
@@ -306,10 +306,11 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         req.setResource("biz_set");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
             EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                RESOURCE_WATCH,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
@@ -331,10 +332,11 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         req.setResource("biz_set_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
             EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                RESOURCE_WATCH,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
