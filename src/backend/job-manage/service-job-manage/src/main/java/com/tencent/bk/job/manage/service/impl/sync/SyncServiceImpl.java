@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -104,6 +106,7 @@ public class SyncServiceImpl implements SyncService {
     private final AgentStatusSyncService agentStatusSyncService;
     private final BizSetEventWatcher bizSetEventWatcher;
     private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
+    private final UserMgrApiClient userMgrApiClient;
 
     @Autowired
     public SyncServiceImpl(BizSyncService bizSyncService,
@@ -120,7 +123,8 @@ public class SyncServiceImpl implements SyncService {
                            HostEventWatcher hostEventWatcher,
                            HostRelationEventWatcher hostRelationEventWatcher,
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
-                           @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor) {
+                           @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
+                           UserMgrApiClient userMgrApiClient) {
         this.applicationDAO = applicationDAO;
         this.jobManageConfig = jobManageConfig;
         this.redisTemplate = redisTemplate;
@@ -141,6 +145,7 @@ public class SyncServiceImpl implements SyncService {
         this.syncAppExecutor = syncAppExecutor;
         // 同步主机的线程池配置
         this.syncHostExecutor = syncHostExecutor;
+        this.userMgrApiClient = userMgrApiClient;
     }
 
     @Override
@@ -206,45 +211,51 @@ public class SyncServiceImpl implements SyncService {
                 log.info("sync app thread already running on {}", runningMachine);
                 return 1L;
             }
-            syncAppExecutor.execute(() -> {
-                // 开一个心跳子线程，维护当前机器正在同步业务的状态
-                RedisKeyHeartBeatThread appSyncRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-                    redisTemplate,
-                    REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE,
-                    machineIp,
-                    5000L,
-                    4000L
-                );
-                appSyncRedisKeyHeartBeatThread.setName("[" + appSyncRedisKeyHeartBeatThread.getId() +
-                    "]-appSyncRedisKeyHeartBeatThread");
-                appSyncRedisKeyHeartBeatThread.start();
-                log.info("start sync app at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-                    System.currentTimeMillis());
-                StopWatch watch = new StopWatch("syncApp");
-                watch.start("total");
-                try {
-                    // 从CMDB同步业务信息
-                    bizSyncService.syncBizFromCMDB();
-                    // 从CMDB同步业务集信息
-                    bizSetSyncService.syncBizSetFromCMDB();
-                    log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
-                    // 将最后同步时间写入Redis
-                    redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
-                        "" + System.currentTimeMillis());
-                } catch (Throwable t) {
-                    log.error("FATAL: syncApp thread fail", t);
-                } finally {
-                    appSyncRedisKeyHeartBeatThread.setRunFlag(false);
-                    watch.stop();
-                    log.info("syncApp time consuming:" + watch.prettyPrint());
-                }
-            });
+            syncAppExecutor.execute(this::doSyncApp);
         } finally {
             applicationCache.refreshCache();
             //释放锁
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_APP_JOB_LOCK, machineIp);
         }
         return 1L;
+    }
+
+    private void doSyncApp() {
+        // 开一个心跳子线程，维护当前机器正在同步业务的状态
+        RedisKeyHeartBeatThread appSyncRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
+            redisTemplate,
+            REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE,
+            machineIp,
+            5000L,
+            4000L
+        );
+        appSyncRedisKeyHeartBeatThread.setName("[" + appSyncRedisKeyHeartBeatThread.getId() +
+            "]-appSyncRedisKeyHeartBeatThread");
+        appSyncRedisKeyHeartBeatThread.start();
+        log.info("start sync app at {},{}", TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+            System.currentTimeMillis());
+        StopWatch watch = new StopWatch("syncApp");
+        watch.start("total");
+        List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
+        try {
+            // 遍历所有租户
+            for (OpenApiTenant openApiTenant : tenantList) {
+                // 从CMDB同步业务信息
+                bizSyncService.syncBizFromCMDB(openApiTenant.getId());
+                // 从CMDB同步业务集信息
+                bizSetSyncService.syncBizSetFromCMDB(openApiTenant.getId());
+            }
+            log.info(Thread.currentThread().getName() + ":Finished:sync app from cmdb");
+            // 将最后同步时间写入Redis
+            redisTemplate.opsForValue().set(REDIS_KEY_LAST_FINISH_TIME_SYNC_APP,
+                "" + System.currentTimeMillis());
+        } catch (Throwable t) {
+            log.error("FATAL: syncApp thread fail", t);
+        } finally {
+            appSyncRedisKeyHeartBeatThread.setRunFlag(false);
+            watch.stop();
+            log.info("syncApp time consuming:" + watch.prettyPrint());
+        }
     }
 
     private Future<Triple<Set<BasicHostDTO>, Long, Long>> arrangeSyncBizHostsTask(ApplicationDTO bizApp) {

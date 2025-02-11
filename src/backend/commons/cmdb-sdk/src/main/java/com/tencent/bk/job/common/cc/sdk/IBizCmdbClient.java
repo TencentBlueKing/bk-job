@@ -62,17 +62,19 @@ public interface IBizCmdbClient {
     /**
      * 获取业务完整拓扑树（含空闲机/故障机模块）
      *
-     * @param bizId cmdb业务ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
      */
-    InstanceTopologyDTO getBizInstCompleteTopology(long bizId);
+    InstanceTopologyDTO getBizInstCompleteTopology(String tenantId, long bizId);
 
     /**
      * 查询业务内置模块（空闲机/故障机等）
      *
-     * @param bizId cmdb业务ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
      * @return 只有一个Set，根节点为Set的Topo树
      */
-    InstanceTopologyDTO getBizInternalModule(long bizId);
+    InstanceTopologyDTO getBizInternalModule(String tenantId, long bizId);
 
     /**
      * 根据topo实例获取hosts
@@ -86,27 +88,29 @@ public interface IBizCmdbClient {
     /**
      * 根据topo实例获取主机及主机关系
      *
+     * @param tenantId   租户ID
      * @param bizId      cmdb业务ID
      * @param ccInstList topo节点列表
      * @return 主机列表
      */
-    List<HostWithModules> getHostRelationsByTopology(long bizId, List<CcInstanceDTO> ccInstList);
+    List<HostWithModules> getHostRelationsByTopology(String tenantId, long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据module获取主机及主机关系
      *
+     * @param tenantId     租户ID
      * @param bizId        cmdb业务ID
      * @param moduleIdList 模块ID列表
      * @return 主机
      */
-    List<HostWithModules> findHostRelationByModule(long bizId, List<Long> moduleIdList);
+    List<HostWithModules> findHostRelationByModule(String tenantId, long bizId, List<Long> moduleIdList);
 
     /**
      * 从CC获取所有业务信息
      *
      * @return 业务
      */
-    List<ApplicationDTO> getAllBizApps();
+    List<ApplicationDTO> getAllBizApps(String tenantId);
 
     /**
      * 获取业务详情
@@ -119,10 +123,11 @@ public interface IBizCmdbClient {
     /**
      * 查询业务列表
      *
-     * @param bizIds cmdb业务ID
+     * @param tenantId 租户ID
+     * @param bizIds   cmdb业务ID
      * @return 业务
      */
-    List<ApplicationDTO> ListBizAppByIds(List<Long> bizIds);
+    List<ApplicationDTO> listBizAppByIds(String tenantId, List<Long> bizIds);
 
     /**
      * 查询业务下的动态分组

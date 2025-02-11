@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -101,6 +102,7 @@ public class BaseCmdbClient extends BkApiV1Client {
      */
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
+    protected final HttpHelper cmdbHttpHelper;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -147,6 +149,17 @@ public class BaseCmdbClient extends BkApiV1Client {
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
         this.appProperties = appProperties;
+        this.cmdbHttpHelper = HttpHelperFactory.createHttpHelper(
+            15000,
+            15000,
+            35000,
+            500,
+            1000,
+            60,
+            true,
+            new JobHttpRequestRetryHandler(),
+            httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+        );
     }
 
 
@@ -154,15 +167,39 @@ public class BaseCmdbClient extends BkApiV1Client {
         return EsbReq.buildRequest(reqClass, cmdbSupplierAccount);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
+    protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uri,
+                                                              String queryParams,
+                                                              EsbReq reqBody,
+                                                              TypeReference<EsbResp<R>> typeReference) {
+        return requestCmdbApiUseContextTenantId(method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
+    }
+
+    protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uri,
+                                                              String queryParams,
+                                                              EsbReq reqBody,
+                                                              TypeReference<EsbResp<R>> typeReference,
+                                                              HttpHelper httpHelper) {
+        String tenantId = JobContextUtil.getTenantId();
+        if (StringUtils.isNotBlank(tenantId)) {
+            return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, httpHelper);
+        } else {
+            throw new InternalException("tenantId is blank", ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    protected <R> EsbResp<R> requestCmdbApi(String tenantId,
+                                            HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(method, uri, queryParams, reqBody, typeReference, null);
+        return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(HttpMethodEnum method,
+    protected <R> EsbResp<R> requestCmdbApi(String tenantId,
+                                            HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
@@ -191,7 +228,7 @@ public class BaseCmdbClient extends BkApiV1Client {
                 .builder()
                 .method(method)
                 .uri(uri)
-                .addHeader(buildTenantHeader())
+                .addHeader(buildTenantHeader(tenantId))
                 .queryParams(queryParams)
                 .body(reqBody)
                 .authorization(buildAuthorization())
@@ -208,13 +245,8 @@ public class BaseCmdbClient extends BkApiV1Client {
         }
     }
 
-    private Header buildTenantHeader() {
-        String tenantId = JobContextUtil.getTenantId();
-        if (StringUtils.isNotBlank(tenantId)) {
-            return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
-        } else {
-            throw new InternalException("tenantId is blank", ErrorCode.INTERNAL_ERROR);
-        }
+    private Header buildTenantHeader(String tenantId) {
+        return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
     }
 
     private BkApiAuthorization buildAuthorization() {

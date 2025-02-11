@@ -55,9 +55,9 @@ public class BizSyncService extends BasicAppSyncService {
         this.applicationDAO = applicationDAO;
     }
 
-    public void syncBizFromCMDB() {
+    public void syncBizFromCMDB(String tenantId) {
         log.info(Thread.currentThread().getName() + ":begin to sync biz from cc");
-        List<ApplicationDTO> ccBizApps = bizCmdbClient.getAllBizApps();
+        List<ApplicationDTO> ccBizApps = bizCmdbClient.getAllBizApps(tenantId);
 
         // 对比业务信息，分出要新增的/要改的/要删的分别处理
         List<ApplicationDTO> insertList;

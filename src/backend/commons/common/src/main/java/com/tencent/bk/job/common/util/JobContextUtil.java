@@ -267,7 +267,11 @@ public class JobContextUtil {
 
     public static String getTenantId() {
         JobContext jobContext = JobContextThreadLocal.get();
-        return jobContext == null ? null : jobContext.getTenantId();
+        String tenantId = jobContext == null ? null : jobContext.getTenantId();
+        if (tenantId == null) {
+            log.warn("tenantId is null in JobContext: {}", StackTraceUtil.getCurrentStackTrace());
+        }
+        return tenantId;
     }
 
     public static User getUser() {

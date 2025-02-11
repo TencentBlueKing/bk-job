@@ -71,7 +71,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         this.bizSetService = bizSetService;
     }
 
-    public void syncBizSetFromCMDB() {
+    public void syncBizSetFromCMDB(String tenantId) {
         if (!bizSetService.isBizSetMigratedToCMDB()) {
             log.warn("Job BizSets have not been migrated to CMDB, " +
                 "do not sync bizSet from CMDB, " +
@@ -80,7 +80,7 @@ public class BizSetSyncService extends BasicAppSyncService {
             return;
         }
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
-        List<BizSetInfo> ccBizSets = bizSetCmdbClient.listAllBizSets();
+        List<BizSetInfo> ccBizSets = bizSetCmdbClient.listAllBizSets(tenantId);
         if (log.isInfoEnabled()) {
             log.info("Sync cmdb bizSet result: {}", JsonUtils.toJson(ccBizSets));
         }
