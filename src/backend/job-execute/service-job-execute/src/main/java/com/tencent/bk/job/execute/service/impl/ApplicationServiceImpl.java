@@ -55,8 +55,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public ServiceApplicationDTO getAppByScope(String scopeType, String scopeId) {
-        return applicationResource.queryAppByScope(scopeType, scopeId);
+    public String getTenantIdByAppId(long appId) {
+        ServiceApplicationDTO app = getAppById(appId);
+        if (app == null) {
+            log.warn("Cannot find application by appId={}", appId);
+            return null;
+        }
+        return app.getTenantId();
     }
 
     @Override

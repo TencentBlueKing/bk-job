@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -34,7 +33,6 @@ import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
-import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -48,6 +46,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
+import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -67,15 +66,15 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final WebAuthService webAuthService;
 
-    private final UserLocalCache userCache;
+    private final ApplicationService applicationService;
 
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
                                           WebAuthService webAuthService,
-                                          UserLocalCache userCache) {
+                                          ApplicationService applicationService) {
         this.taskExecuteService = taskExecuteService;
         this.webAuthService = webAuthService;
-        this.userCache = userCache;
+        this.applicationService = applicationService;
     }
 
     @Override
@@ -101,11 +100,12 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
+        String tenantId = applicationService.getTenantIdByAppId(request.getAppId());
         TaskExecuteParam taskExecuteParam = TaskExecuteParam
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
-            .operator(getUser(request.getOperator()))
+            .operator(new User(tenantId, request.getOperator()))
             .executeVariableValues(executeVariableValues)
             .startupMode(TaskStartupModeEnum.getStartupMode(request.getStartupMode()))
             .cronTaskId(request.getCronTaskId())
@@ -141,14 +141,6 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
         }
         taskExecuteParam.setExecuteVariableValues(executeVariableValues);
         return taskExecuteParam;
-    }
-
-    private User getUser(String username) {
-        User user = userCache.getUser(username);
-        if (user == null) {
-            throw new InternalException("User is not exist, username: " + username);
-        }
-        return user;
     }
 
     private ExecuteTargetDTO convertToServersDTO(ServiceTargetServers servers) {
