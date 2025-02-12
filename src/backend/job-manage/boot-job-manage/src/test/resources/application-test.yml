@@ -37,6 +37,8 @@ bk-api-gateway:
     url: bk-login.apigw.com
   bk-user:
     url: bk-user.apigw.com
+  bkIam:
+    url: iam.apigw.com
 esb:
   service:
     url: esb.service
