@@ -75,7 +75,7 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+    public List<GseTaskSimpleDTO> listGseTaskSimpleInfo(Long stepInstanceId,
                                                         Integer executeCount,
                                                         Integer batch) {
         return gseTaskDAO.ListGseTaskSimpleInfo(stepInstanceId, executeCount, batch);

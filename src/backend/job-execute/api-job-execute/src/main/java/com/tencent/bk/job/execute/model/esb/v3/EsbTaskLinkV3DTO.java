@@ -22,70 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.execute.model.GseTaskDTO;
-import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.util.List;
 
-/**
- * GSE 任务 Service
- */
-public interface GseTaskService {
+@Data
+public class EsbTaskLinkV3DTO {
+    /**
+     * 资源范围类型
+     */
+    @JsonProperty("bk_scope_type")
+    private String scopeType;
 
     /**
-     * 保存 GSE 任务
-     *
-     * @param gseTask GSE 任务
+     * 资源范围ID
      */
-    Long saveGseTask(GseTaskDTO gseTask);
+    @JsonProperty("bk_scope_id")
+    private String scopeId;
 
     /**
-     * 更新 GSE 任务
-     *
-     * @param gseTask GSE 任务
-     * @return 是否更新成功
+     * 业务ID
      */
-    boolean updateGseTask(GseTaskDTO gseTask);
+    @JsonProperty("bk_app_id")
+    private Long appId;
 
     /**
-     * 获取 GSE 任务
-     *
-     * @param taskInstanceId 作业实例 ID
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   步骤执行次数
-     * @param batch          滚动执行批次
-     * @return GSE 任务
+     * 任务ID
      */
-    GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch);
+    @JsonProperty("job_instance_id")
+    private Long jobInstanceId;
 
     /**
-     * 获取 GSE 任务
-     *
-     * @param taskInstanceId 作业实例 ID
-     * @param gseTaskId      GSE任务ID
-     * @return GSE 任务
+     * 步骤ID
      */
-    GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId);
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
 
     /**
-     * 获取 GSE 任务
-     *
-     * @param gseTaskId GSE任务ID
-     * @return stepInstanceId
+     * 执行次数
      */
-    GseTaskSimpleDTO getGseTaskSimpleInfo(String gseTaskId);
+    @JsonProperty("retry_count")
+    private Integer retryCount;
 
     /**
-     * 获取 GSE 任务列表
-     *
-     * @param stepInstanceId 步骤实例ID
-     * @param executeCount   执行次数
-     * @param batch          批次
-     * @return GSE 任务列表
+     * 批次
      */
-    List<GseTaskSimpleDTO> listGseTaskSimpleInfo(Long stepInstanceId,
-                                                 Integer executeCount,
-                                                 Integer batch);
+    @JsonProperty("batch")
+    private Integer batch;
+
+    /**
+     * gse任务ID
+     */
+    @JsonProperty("gse_task_id")
+    private String gseTaskId;
+
+    /**
+     * web访问链接
+     */
+    @JsonProperty("link")
+    private List<String> link;
 }

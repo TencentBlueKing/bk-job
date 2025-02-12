@@ -1,0 +1,66 @@
+### 功能描述
+
+根据gse_task_id查询job链接
+
+### 请求参数
+
+#### Header参数
+
+| 字段         | 类型     | 必选 | 描述  |
+|------------|--------|----|-----|
+| X-Username | String | 是  | 用户名 |
+
+#### Query参数
+
+| 字段          | 类型  | 必选 | 描述          |
+|-------------|-----|----|-------------|
+| gse_task_id | Int | 是  | gse task id |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v3/system/query_job_instance?gse_task_id=a:aa:aa:a
+```
+
+### 返回结果示例
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "success",
+  "data": {
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "bk_app_id": 1,
+    "job_instance_id": 1000000,
+    "step_instance_id": 10000001,
+    "retry_count": 0,
+    "batch": 1,
+    "gse_task_id": "aa:aa:aa:aa",
+    "link": [
+      "https://xxx.com"
+    ]
+  }
+}
+```
+
+### 返回结果说明
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| 字段               | 类型       | 描述                                      |
+|------------------|----------|-----------------------------------------|
+| bk_scope_type    | string   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
+| bk_scope_id      | string   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| bk_app_id        | long     | 业务ID                                    |
+| job_instance_id  | long     | 作业实例ID                                  |
+| step_instance_id | long     | 脚本实例ID                                  |
+| retry_count      | int      | 重试次数                                    |
+| batch            | int      | 批次，滚动执行时不为0                             |
+| gse_task_id      | string   | gse task id                             |
+| link             | string[] | gse task id 对应的job网址                    |

@@ -1,0 +1,90 @@
+### Function Description
+
+query gse task id by step instance id
+
+### Request Parameters
+
+#### Header
+
+| Fields     | Type   | Required | Description |
+|------------|--------|----------|-------------|
+| X-Username | string | yes      | username    |
+
+#### Interface parameters
+
+| Fields           | Type | Required | Description      |
+|------------------|------|----------|------------------|
+| step_instance_id | Int  | 是        | step instance id |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/system/query_gse_task?step_instance_id=1000001
+```
+
+### Example of response
+
+```json
+{
+  "result": true,
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "bk_scope_type": "biz",
+      "bk_scope_id": "1",
+      "bk_app_id": 1,
+      "job_instance_id": 1000000,
+      "step_instance_id": 10000001,
+      "retry_count": 0,
+      "batch": 1,
+      "gse_task_id": "aa:aa:aa:aa",
+      "link": [
+        "https://xxx.com"
+      ]
+    },
+    {
+      "bk_scope_type": "biz",
+      "bk_scope_id": "1",
+      "bk_app_id": 1,
+      "job_instance_id": 1000000,
+      "step_instance_id": 10000001,
+      "retry_count": 0,
+      "batch": 2,
+      "gse_task_id": "aa:aa:aa:aa",
+      "link": [
+        "https://xxx.com"
+      ]
+    }
+  ]
+}
+```
+
+### Response Description
+
+#### response
+
+| Fields     | Type              | Description                                                                              |
+|------------|-------------------|------------------------------------------------------------------------------------------|
+| result     | bool              | Whether the request was successful or not. True: request succeeded;False: request failed |
+| code       | int               | Error code. 0 indicates success, >0 indicates failure                                    |
+| message    | string            | Error message                                                                            |
+| data       | List<TaskLinkDTO> | Data returned by request                                                                 |
+| permission | object            | Permission information                                                                   |
+| request_id | string            | Request chain id                                                                         |
+
+##### TaskLinkDTO
+
+| Fields           | Type     | Description                                                                                 |
+|------------------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| bk_app_id        | long     | Business ID                                                                                 |
+| job_instance_id  | long     | Job instance ID                                                                             |
+| step_instance_id | long     | Step instance ID                                                                            |
+| retry_count      | int      | Step retry count                                                                            |
+| batch            | int      | Batch No. Not set to 0 when rolling                                                         |
+| gse_task_id      | string   | Gse task id                                                                                 |
+| link             | string[] | Gse task id corresponding job links                                                         |
