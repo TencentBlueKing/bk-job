@@ -229,7 +229,7 @@ public class BaseCmdbClient extends BkApiV1Client {
                 .addHeader(buildTenantHeader(tenantId))
                 .queryParams(queryParams)
                 .body(reqBody)
-                .authorization(buildAuthorization())
+                .authorization(buildAuthorization(appProperties, tenantId))
                 .build();
             return doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
@@ -243,16 +243,5 @@ public class BaseCmdbClient extends BkApiV1Client {
         }
     }
 
-    private Header buildTenantHeader(String tenantId) {
-        return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
-    }
 
-    private BkApiAuthorization buildAuthorization() {
-        return BkApiAuthorization.appAuthorization(
-            appProperties.getCode(),
-            appProperties.getSecret(),
-            // TODO：需要根据租户获取对应的虚拟账号，当前仅用admin联调，待IAM虚拟账号方案确定后修改这里
-            "admin"
-        );
-    }
 }

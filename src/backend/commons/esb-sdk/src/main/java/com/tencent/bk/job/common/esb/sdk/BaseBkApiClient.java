@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
+import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.interceptor.LogBkApiRequestIdInterceptor;
@@ -378,5 +379,17 @@ public class BaseBkApiClient {
         throw new BkOpenApiException(httpResponse.getStatusCode());
     }
 
+    protected Header buildTenantHeader(String tenantId) {
+        return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
+    }
+
+    protected BkApiAuthorization buildAuthorization(AppProperties appProperties, String tenantId) {
+        return BkApiAuthorization.appAuthorization(
+            appProperties.getCode(),
+            appProperties.getSecret(),
+            // TODO：需要根据租户获取对应的虚拟账号，当前仅用admin联调，待IAM虚拟账号方案确定后修改这里
+            "admin"
+        );
+    }
 }
 
