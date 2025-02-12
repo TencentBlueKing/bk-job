@@ -287,6 +287,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     public List<BizSetInfo> listAllBizSets(String tenantId) {
         List<BizSetInfo> bizSetInfoList = searchAllBizSet(tenantId);
         bizSetInfoList.forEach(bizSetInfo -> {
+            bizSetInfo.setTenantId(tenantId);
             // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
             if (scope != null && !scope.isMatchAll()) {

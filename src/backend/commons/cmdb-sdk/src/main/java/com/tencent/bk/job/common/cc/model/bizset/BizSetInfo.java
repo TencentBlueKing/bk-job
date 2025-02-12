@@ -95,4 +95,9 @@ public class BizSetInfo {
      * 子业务
      */
     private List<BizInfo> bizList;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 }

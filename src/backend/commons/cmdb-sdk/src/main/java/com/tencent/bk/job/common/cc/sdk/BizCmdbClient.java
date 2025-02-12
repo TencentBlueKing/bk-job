@@ -708,7 +708,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             if (businessInfos != null && !businessInfos.isEmpty()) {
                 for (BusinessInfoDTO businessInfo : businessInfos) {
                     if (businessInfo.getDefaultApp() == 0) {
-                        ApplicationDTO applicationDTO = convertToAppInfo(req.getBkSupplierAccount(), businessInfo);
+                        ApplicationDTO applicationDTO = convertToAppInfo(
+                            tenantId,
+                            req.getBkSupplierAccount(),
+                            businessInfo
+                        );
                         appList.add(applicationDTO);
                     }
                 }
@@ -722,8 +726,9 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return appList;
     }
 
-    private ApplicationDTO convertToAppInfo(String supplierAccount, BusinessInfoDTO businessInfo) {
+    private ApplicationDTO convertToAppInfo(String tenantId, String supplierAccount, BusinessInfoDTO businessInfo) {
         ApplicationDTO appInfo = new ApplicationDTO();
+        appInfo.setTenantId(tenantId);
         appInfo.setName(businessInfo.getBizName());
         appInfo.setBkSupplierAccount(supplierAccount);
         appInfo.setTimeZone(businessInfo.getTimezone());
@@ -745,31 +750,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             appInfoList.add(appInfo);
         }
         return appInfoList;
-    }
-
-    @Override
-    public ApplicationDTO getBizAppById(long bizId) {
-        GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
-        Map<String, Object> conditionMap = new HashMap<>();
-        conditionMap.put("bk_biz_id", bizId);
-        req.setCondition(conditionMap);
-        String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
-        EsbResp<SearchAppResult> esbResp = requestCmdbApiUseContextTenantId(
-            HttpMethodEnum.POST,
-            uri,
-            null,
-            req,
-            new TypeReference<EsbResp<SearchAppResult>>() {
-            });
-        SearchAppResult data = esbResp.getData();
-        if (data == null) {
-            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
-        }
-        List<BusinessInfoDTO> businessInfos = data.getInfo();
-        if (businessInfos == null || businessInfos.isEmpty()) {
-            throw new InternalCmdbException("data is null", ErrorCode.CMDB_API_DATA_ERROR);
-        }
-        return convertToAppInfo(req.getBkSupplierAccount(), businessInfos.get(0));
     }
 
     @Override

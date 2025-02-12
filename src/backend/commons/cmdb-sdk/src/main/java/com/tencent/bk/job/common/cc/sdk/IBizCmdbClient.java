@@ -113,14 +113,6 @@ public interface IBizCmdbClient {
     List<ApplicationDTO> getAllBizApps(String tenantId);
 
     /**
-     * 获取业务详情
-     *
-     * @param bizId cmdb业务ID
-     * @return 业务
-     */
-    ApplicationDTO getBizAppById(long bizId);
-
-    /**
      * 查询业务列表
      *
      * @param tenantId 租户ID

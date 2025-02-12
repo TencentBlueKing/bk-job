@@ -181,6 +181,7 @@ public class BizSetSyncService extends BasicAppSyncService {
 
     private ApplicationDTO convertBizSetToApplication(BizSetInfo bizSetInfo) {
         ApplicationDTO appInfoDTO = new ApplicationDTO();
+        appInfoDTO.setTenantId(bizSetInfo.getTenantId());
         appInfoDTO.setBkSupplierAccount(cmdbConfig.getDefaultSupplierAccount());
         appInfoDTO.setName(bizSetInfo.getName());
         appInfoDTO.setTimeZone(bizSetInfo.getTimezone());
