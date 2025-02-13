@@ -1,5 +1,6 @@
 <template>
   <bk-form-item
+    v-show="isShow"
     class="form-item-content"
     error-display-type="normal"
     :label="t('解释器')"
@@ -7,7 +8,7 @@
     :required="isCustom"
     :rules="rules">
     <bk-checkbox
-      v-model="isCustom"
+      :value="isCustom"
       @change="handleCustomChange">
       <span
         v-bk-tooltips="t('使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）')"
@@ -27,13 +28,20 @@
   </bk-form-item>
 </template>
 <script setup>
-  import { ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
 
   import { useI18n } from '@/i18n';
+  import {
+    formatScriptTypeValue,
+  } from '@/utils/assist';
 
 
   const props = defineProps({
     field: {
+      type: String,
+      required: true,
+    },
+    languageField: {
       type: String,
       required: true,
     },
@@ -49,6 +57,8 @@
 
   const isCustom = ref(false);
 
+  const isShow = computed(() => !['Shell', 'SQL'].includes(formatScriptTypeValue(props.formData[props.languageField])));
+
   const rules = [
     {
       validator: (value) => {
@@ -63,14 +73,22 @@
   ];
 
   watch(() => props.formData, () => {
-    if (props.formData[props.field] !== undefined) {
-      isCustom.value = true;
+    isCustom.value = props.formData[props.field] !== undefined;
+  }, {
+    immediate: true,
+    deep: true,
+  });
+
+  watch(isShow, () => {
+    if (!isShow.value) {
+      emits('on-change', props.field, undefined);
     }
   }, {
     immediate: true,
   });
 
   const handleCustomChange = (custom) => {
+    isCustom.value = custom;
     emits('on-change', props.field, custom ? '' : undefined);
   };
 
