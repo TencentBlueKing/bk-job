@@ -90,6 +90,7 @@
             field="taskTarget"
             :form-data="formData"
             name="executeTargetOfExecution"
+            windows-interpreter-field="windowsInterpreter"
             @on-change="handleChange" />
           <item-factory
             enabled-field="rollingEnabled"

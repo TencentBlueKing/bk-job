@@ -567,5 +567,6 @@
   "使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）": "Run this script using the interpreter in the specified path on the target hosts (Only for Windows)",
   "自定义windows解释器路径": "Customize the Interpreter Path in Windows",
   "输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe。请勿指定命令行选项。": "Enter the path of the custom interpreter software on the target machine, such as: D:\\Software\\python3\\python.exe",
-  "解释器路径有误，需为合法的文件路径、且以 .exe 结尾。": "Interpreter path is invalid; it must be a valid file path ending with .exe."
+  "解释器路径有误，需为合法的文件路径、且以 .exe 结尾。": "Interpreter path is invalid; it must be a valid file path ending with .exe.",
+  "执行目标包含 Linux 服务器，但自定义解释器仅对 Windows 有效，请知悉。": "Please note: The execution targets include Linux hosts, but the interpreter is only supported on Windows."
 }

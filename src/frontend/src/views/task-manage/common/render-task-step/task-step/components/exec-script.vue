@@ -89,6 +89,7 @@
       :form-data="formData"
       name="executeTargetOfTemplate"
       :variable="variable"
+      windows-interpreter-field="windowsInterpreter"
       @on-change="handleChange" />
   </jb-form>
 </template>
