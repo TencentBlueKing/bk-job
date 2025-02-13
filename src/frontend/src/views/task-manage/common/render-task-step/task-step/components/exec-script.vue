@@ -125,8 +125,8 @@
     content: '',
     // 脚本参数
     scriptParam: '',
-    // windows解释器
-    windowsInterpreter: '',
+    // windows解释器 (undefined : 不采用自定义, other: 采用自定义)
+    windowsInterpreter: undefined,
     // 超时时间
     timeout: 300,
     // 敏感参数 （0-关闭 1-开启）

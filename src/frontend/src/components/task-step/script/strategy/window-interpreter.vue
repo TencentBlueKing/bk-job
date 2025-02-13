@@ -1,15 +1,18 @@
 <template>
   <bk-form-item
     class="form-item-content"
-    :field="field"
-    :label="$t('解释器')">
+    error-display-type="normal"
+    :label="t('解释器')"
+    :property="field"
+    :required="isCustom"
+    :rules="rules">
     <bk-checkbox
       v-model="isCustom"
       @change="handleCustomChange">
       <span
-        v-bk-tooltips="$t('使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）')"
+        v-bk-tooltips="t('使用目标机器指定路径下的解释器运行本脚本（仅对Windows有效）')"
         class="tips">
-        {{ $t('自定义windows解释器路径') }}
+        {{ t('自定义windows解释器路径') }}
       </span>
     </bk-checkbox>
     <div
@@ -17,7 +20,7 @@
       style="margin-top: 8px">
       <bk-input
         class="form-item-content"
-        :placeholder="$t('输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe')"
+        :placeholder="t('输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe。请勿指定命令行选项。')"
         :value="formData[field]"
         @change="handleChange" />
     </div>
@@ -25,6 +28,9 @@
 </template>
 <script setup>
   import { ref, watch } from 'vue';
+
+  import { useI18n } from '@/i18n';
+
 
   const props = defineProps({
     field: {
@@ -39,20 +45,33 @@
 
   const emits = defineEmits(['on-change']);
 
+  const { t } = useI18n();
+
   const isCustom = ref(false);
 
+  const rules = [
+    {
+      validator: (value) => {
+        if (!isCustom.value) {
+          return true;
+        }
+        return /^[a-zA-Z]:\\(?:[^<>:"/\\|?*\r\n]+\\)*[^<>:"/\\|?*\r\n]*$/.test(value) && /\.exe$/.test(value);
+      },
+      message: t('解释器路径有误，需为合法的文件路径、且以 .exe 结尾。'),
+      trigger: 'blur',
+    },
+  ];
+
   watch(() => props.formData, () => {
-    if (props.formData[props.field]) {
+    if (props.formData[props.field] !== undefined) {
       isCustom.value = true;
     }
   }, {
     immediate: true,
   });
 
-  const handleCustomChange = (value) => {
-    if (!value) {
-      emits('on-change', props.field, '');
-    }
+  const handleCustomChange = (custom) => {
+    emits('on-change', props.field, custom ? '' : undefined);
   };
 
   const handleChange = (value) => {

@@ -188,8 +188,8 @@
     scriptParam: '',
     // 敏感参数 0-关闭 1-开启
     secureParam: 0,
-    // windows解释器
-    windowsInterpreter: '',
+    // windows解释器 (undefined : 不采用自定义, other: 采用自定义)
+    windowsInterpreter: undefined,
     // 超时
     timeout: 300,
     // 账号
