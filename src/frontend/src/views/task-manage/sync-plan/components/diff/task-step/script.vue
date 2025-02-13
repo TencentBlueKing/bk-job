@@ -47,6 +47,12 @@
     </div>
     <div
       class="row"
+      :class="diff.windowsInterpreter">
+      <span class="label">{{ $t('template.解释器：') }}</span>
+      <span class="value">{{ data.windowsInterpreter || '-' }}</span>
+    </div>
+    <div
+      class="row"
       :class="diff.timeout">
       <span class="label">{{ $t('template.超时时长：') }}</span>
       <span class="value">{{ data.timeout }}(s)</span>

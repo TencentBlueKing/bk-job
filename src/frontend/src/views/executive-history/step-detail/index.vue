@@ -404,6 +404,10 @@
           id: payload.stepInstanceId,
           executeCount: payload.executeCount || 0,
         };
+        this.currentGroup = {
+          resultType: '',
+          tag: '',
+        };
         this.taskInstanceId = payload.taskInstanceId;
         this.isTask = payload.isTask;
         this.taskStepList = Object.freeze(payload.taskStepList);
