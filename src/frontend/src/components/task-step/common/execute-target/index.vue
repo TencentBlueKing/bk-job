@@ -196,6 +196,9 @@
         type: Object,
         required: true,
       },
+      windowsInterpreter: {
+        type: String,
+      },
       variable: {
         type: Array,
         default: () => [],
@@ -344,6 +347,55 @@
               return Boolean(this.localVariable);
             }
             return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
+          },
+          message: I18n.t('目标服务器必填'),
+          trigger: 'blur',
+        },
+        {
+          validator: () => {
+            if (!this.windowsInterpreter) {
+              return true;
+            }
+            return new Promise((resolve) => {
+              this.$refs.ipSelector.getHostList()
+                .then((hostList) => {
+                  const nonWindowsHostList = _.filter(hostList, item => !/windows/i.test(item.os_type));
+                  if (nonWindowsHostList.length < 1) {
+                    return resolve(true);
+                  }
+                  const infoboxHandle = this.$bkInfo({
+                    title: I18n.t('自定义windows解释器路径'),
+                    maskClose: false,
+                    escClose: false,
+                    draggable: false,
+                    showFooter: false,
+                    closeIcon: false,
+                    width: 450,
+                    subHeader: (
+                      <div>
+                        <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
+                          {I18n.t('执行目标包含 Linux 服务器，但自定义解释器仅对 Windows 有效，请知悉。')}
+                        </div>
+                        <div style="padding: 24px 0 21px; text-align: center">
+                          <bk-button
+                            onClick={() => {
+                              resolve(true);
+                              infoboxHandle.close();
+                            }}
+                            style="width: 96px"
+                            theme="primary">
+                            { I18n.t('好的') }
+                          </bk-button>
+                        </div>
+                      </div>
+                    ),
+                    closeFn: () => {
+                      resolve(true);
+                      infoboxHandle.close();
+                    },
+                  });
+                });
+            });
           },
           message: I18n.t('目标服务器必填'),
           trigger: 'blur',

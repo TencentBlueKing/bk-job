@@ -65,6 +65,7 @@
     <item-factory
       field="windowsInterpreter"
       :form-data="formData"
+      language-field="scriptLanguage"
       name="windowsInterpreter"
       @on-change="handleChange" />
     <item-factory
@@ -88,6 +89,7 @@
       :form-data="formData"
       name="executeTargetOfTemplate"
       :variable="variable"
+      windows-interpreter-field="windowsInterpreter"
       @on-change="handleChange" />
   </jb-form>
 </template>
