@@ -119,6 +119,10 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
     private Integer dbPort;
     private Integer dbType;
     private Long dbAccountId;
+    /**
+     * Windows解释器路径
+     */
+    private String windowsInterpreter;
 
     // --------------文件步骤字段--------------//
     /**
@@ -208,6 +212,7 @@ public class StepInstanceDTO extends StepInstanceBaseDTO {
         this.scriptSource = scriptStepInstance.getScriptSource();
         this.resolvedScriptParam = scriptStepInstance.getResolvedScriptParam();
         this.secureParam = scriptStepInstance.isSecureParam();
+        this.windowsInterpreter = scriptStepInstance.getWindowsInterpreter();
     }
 
     public void fillFileStepInfo(FileStepInstanceDTO fileStepInstance) {

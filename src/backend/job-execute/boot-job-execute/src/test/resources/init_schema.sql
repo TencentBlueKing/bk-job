@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
     `script_id`             varchar(32)         DEFAULT NULL,
     `script_version_id`     bigint(20)          DEFAULT NULL,
     `is_secure_param`       tinyint(1)          DEFAULT 0,
+    `windows_interpreter`   varchar(260)        DEFAULT NULL,
     PRIMARY KEY (`step_instance_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;

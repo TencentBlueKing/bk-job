@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
@@ -97,12 +99,25 @@ public class WebFastExecuteScriptRequest {
     private String scriptParam;
 
     /**
+     * 自定义Windows解释器路径
+     */
+    @ApiModelProperty(value = "自定义Windows解释器路径，对Linux机器不生效，对SQL脚本不生效")
+    @EndWith(fieldName = "windowsInterpreter", value = ".exe",
+        message = "{validation.constraints.WinInterpreterInvalidSuffix.message}")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    private String windowsInterpreter;
+
+    /**
      * 执行超时时间
      */
     @ApiModelProperty(value = "执行超时时间，单位秒", required = true)
     @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @Range(
+        min = JobConstants.MIN_JOB_TIMEOUT_SECONDS,
+        max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}"
+    )
     private Integer timeout;
 
     /**
@@ -143,5 +158,14 @@ public class WebFastExecuteScriptRequest {
         explain = "发布完成后可以删除")
     public TaskTargetVO getTaskTarget() {
         return taskTarget != null ? taskTarget : targetServers;
+    }
+
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
     }
 }

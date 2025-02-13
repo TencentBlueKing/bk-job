@@ -99,4 +99,8 @@ public class ScriptStepInstanceDTO {
      * 是否敏感参数
      */
     private boolean secureParam;
+    /**
+     * Windows解释器路径
+     */
+    private String windowsInterpreter;
 }

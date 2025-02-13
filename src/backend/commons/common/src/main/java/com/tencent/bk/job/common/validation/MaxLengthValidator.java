@@ -22,41 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.validation.MaxLength;
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
+    private Long maxLength;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI检查脚本请求体")
-@Data
-public class AICheckScriptReq {
+    @Override
+    public void initialize(MaxLength maxLengthAnnotation) {
+        this.maxLength = maxLengthAnnotation.value();
+    }
 
-    /**
-     * 脚本类型
-     */
-    @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：SQL")
-    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.ScriptType_illegal.message}")
-    private Integer type;
-
-    /**
-     * 脚本内容
-     */
-    @ApiModelProperty(value = "脚本内容，BASE64编码")
-    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
-    @MaxLength(value = 5 * 1024L * 1024L,
-        message = "{validation.constraints.AICheckScript_contentExceedMaxLength.message}")
-    private String content;
+    @Override
+    public boolean isValid(String content,
+                           ConstraintValidatorContext constraintValidatorContext) {
+        if (content == null) {
+            return true;
+        }
+        return content.length() <= maxLength;
+    }
 }
