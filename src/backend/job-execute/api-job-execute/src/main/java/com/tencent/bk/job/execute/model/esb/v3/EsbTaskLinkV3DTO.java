@@ -25,29 +25,13 @@
 package com.tencent.bk.job.execute.model.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class EsbTaskLinkV3DTO {
-    /**
-     * 资源范围类型
-     */
-    @JsonProperty("bk_scope_type")
-    private String scopeType;
-
-    /**
-     * 资源范围ID
-     */
-    @JsonProperty("bk_scope_id")
-    private String scopeId;
-
-    /**
-     * 业务ID
-     */
-    @JsonProperty("bk_app_id")
-    private Long appId;
+public class EsbTaskLinkV3DTO extends EsbAppScopeDTO {
 
     /**
      * 任务ID

@@ -3313,53 +3313,53 @@ paths:
         descriptionEn: Callback protocol
   /api/v3/system/query_gse_task:
     get:
-      operationId : system_query_gse_task
-      description : 根据step_id查询gse task id
-      tags : [ 'system' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : false
-        allowApplyPermission : false
-        matchSubpath : false
-        backend :
+      operationId: system_query_gse_task
+      description: 根据step_id查询gse task id
+      tags: ['system']
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : get
-          path : /api/job/v3/job-execute/query_gse_task
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : false
-          resourcePermissionRequired : true
-        descriptionEn : Query GSE task id by step id
-  /api/v3/system/query_job_instance :
-    get :
-      operationId : system_query_job_instance
-      description : 根据gse_task_id查询job任务
-      tags : [ 'system' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : false
-        allowApplyPermission : false
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-execute/query_gse_task
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Query GSE task id by step id
+  /api/v3/system/query_job_instance:
+    get:
+      operationId: system_query_job_instance
+      description: 根据gse_task_id查询job任务
+      tags: ['system']
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : get
-          path : /api/job/v3/job-execute/query_job_instance
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : false
-          resourcePermissionRequired : true
-        descriptionEn : Query job instance by GSE task id
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-execute/query_job_instance
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Query job instance by GSE task id

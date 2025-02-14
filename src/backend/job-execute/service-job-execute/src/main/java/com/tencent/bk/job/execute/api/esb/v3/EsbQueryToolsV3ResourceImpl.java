@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -126,7 +127,7 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
         List<EsbTaskLinkV3DTO> taskLinks = new ArrayList<>();
         for (GseTaskSimpleDTO gseTaskSimpleDTO : gseTaskResult) {
             taskLinks.add(buildEsbTaskLinkV3DTO(
-                resourceScope,
+                appId,
                 stepInstance,
                 gseTaskSimpleDTO.getExecuteCount(),
                 gseTaskSimpleDTO.getBatch(),
@@ -158,7 +159,7 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
         auth(username, appResourceScope);
 
         return EsbResp.buildSuccessResp(buildEsbTaskLinkV3DTO(
-            resourceScope,
+            appId,
             stepInstanceBaseDTO,
             gseTask.getExecuteCount(),
             gseTask.getBatch(),
@@ -187,7 +188,7 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
     }
 
     private EsbTaskLinkV3DTO buildEsbTaskLinkV3DTO(
-        ResourceScope resourceScope,
+        Long appId,
         StepInstanceBaseDTO stepInstanceBase,
         int retryCount,
         int batch,
@@ -197,9 +198,7 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
         EsbTaskLinkV3DTO esbTaskLinkV3DTO = new EsbTaskLinkV3DTO();
         esbTaskLinkV3DTO.setJobInstanceId(stepInstanceBase.getTaskInstanceId());
         esbTaskLinkV3DTO.setStepInstanceId(stepInstanceBase.getId());
-        esbTaskLinkV3DTO.setAppId(stepInstanceBase.getAppId());
-        esbTaskLinkV3DTO.setScopeType(resourceScope.getType().getValue());
-        esbTaskLinkV3DTO.setScopeId(resourceScope.getId());
+        EsbDTOAppScopeMappingHelper.fillEsbAppScopeDTOByAppId(appId, esbTaskLinkV3DTO);
         esbTaskLinkV3DTO.setRetryCount(retryCount);
         esbTaskLinkV3DTO.setBatch(batch);
         esbTaskLinkV3DTO.setGseTaskId(gseTaskId);
