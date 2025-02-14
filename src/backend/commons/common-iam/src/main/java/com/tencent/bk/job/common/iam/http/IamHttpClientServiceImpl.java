@@ -38,8 +38,12 @@ import com.tencent.bk.sdk.iam.constants.HttpHeader;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+
+import java.util.List;
 
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
@@ -54,14 +58,14 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpGet(String uri) {
+    public String doHttpGet(String uri, List<Pair<String, String>> headerList) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
+                        .setHeaders(buildHeaders(headerList))
+                        .build())
                 .getEntity();
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
@@ -71,34 +75,15 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpPost(String uri, Object body) {
+    public String doHttpPost(String uri, List<Pair<String, String>> headerList, Object body) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .setStringEntity(JsonUtils.toJson(body))
-                    .build())
-                .getEntity();
-        } catch (Exception e) {
-            log.error("Fail to request IAM", e);
-            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-        }
-    }
-
-    @Override
-    public String doHttpPut(String uri, Object body) {
-        try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .setStringEntity(JsonUtils.toJson(body))
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
+                        .setHeaders(buildHeaders(headerList))
+                        .setStringEntity(JsonUtils.toJson(body))
+                        .build())
                 .getEntity();
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
@@ -109,14 +94,33 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     @Override
-    public String doHttpDelete(String uri) {
+    public String doHttpPut(String uri, List<Pair<String, String>> headerList, Object body) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
             return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
+                        .setHeaders(buildHeaders(headerList))
+                        .setStringEntity(JsonUtils.toJson(body))
+                        .build())
+                .getEntity();
+        } catch (Exception e) {
+            log.error("Fail to request IAM", e);
+            throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    @Override
+    public String doHttpDelete(String uri, List<Pair<String, String>> headerList) {
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
+            return httpHelper.requestForSuccessResp(
+                    HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
+                        .setHeaders(buildHeaders(headerList))
+                        .build())
                 .getEntity();
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
@@ -129,10 +133,17 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         return iamConfiguration.getIamBaseUrl() + uri;
     }
 
-    private Header[] buildAuthHeader() {
-        Header[] headers = new Header[2];
+    private Header[] buildHeaders(List<Pair<String, String>> headerList) {
+        int headerSize = (CollectionUtils.isEmpty(headerList) ? 0 : headerList.size()) + 2;
+        Header[] headers = new Header[headerSize];
         headers[0] = new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode());
         headers[1] = new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret());
+        if (CollectionUtils.isNotEmpty(headerList)) {
+            int index = 2;
+            for (Pair<String, String> header : headerList) {
+                headers[index++] = new BasicHeader(header.getKey(), header.getValue());
+            }
+        }
         return headers;
     }
 

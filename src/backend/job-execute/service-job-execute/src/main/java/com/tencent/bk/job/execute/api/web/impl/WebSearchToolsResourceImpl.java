@@ -6,9 +6,11 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.api.web.WebSearchToolsResource;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -80,7 +82,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        auth(username, appResourceScope);
+        auth(JobContextUtil.getUser(), appResourceScope);
         TaskLinkVO taskLinkVO = convertToTaskLinVO(resourceScope,
             stepInstanceBase,
             gseTaskSimpleInfo.getExecuteCount(),
@@ -103,7 +105,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
         // 鉴权
-        auth(username, appResourceScope);
+        auth(JobContextUtil.getUser(), appResourceScope);
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTaskDTOS =
             stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceBase.getTaskInstanceId(), stepInstanceId);
@@ -138,13 +140,13 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         return Response.buildSuccessResp(taskLinkVOList);
     }
 
-    private AuthResult auth(String username,
+    private AuthResult auth(User user,
                             AppResourceScope appResourceScope) {
-        AuthResult authResult = appAuthService.auth(username,
+        AuthResult authResult = appAuthService.auth(user,
             ActionId.ACCESS_BUSINESS,
             appResourceScope);
         if (authResult.isPass()) {
-            authResult = appAuthService.auth(username,
+            authResult = appAuthService.auth(user,
                 ActionId.VIEW_HISTORY,
                 appResourceScope);
         }

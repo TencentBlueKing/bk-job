@@ -98,9 +98,23 @@ public class DangerousRuleDTO {
      */
     private Integer status;
 
-    public DangerousRuleDTO(Long id, String expression, String description, Integer priority, Integer scriptType,
-                            String creator, Long createTime, String lastModifier, Long lastModifyTime,
-                            Integer action, Integer status) {
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
+
+    public DangerousRuleDTO(Long id,
+                            String expression,
+                            String description,
+                            Integer priority,
+                            Integer scriptType,
+                            String creator,
+                            Long createTime,
+                            String lastModifier,
+                            Long lastModifyTime,
+                            Integer action,
+                            Integer status,
+                            String tenantId) {
         this.id = id;
         this.expression = expression;
         this.description = description;
@@ -112,6 +126,7 @@ public class DangerousRuleDTO {
         this.lastModifyTime = lastModifyTime;
         this.action = action;
         this.status = status;
+        this.tenantId = tenantId;
     }
 
     public DangerousRuleVO toVO() {

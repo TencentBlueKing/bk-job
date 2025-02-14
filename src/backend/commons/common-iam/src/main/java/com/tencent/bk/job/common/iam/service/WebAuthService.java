@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionActionResource;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 
 import java.util.List;
@@ -39,13 +40,15 @@ public interface WebAuthService {
      * 多个操作鉴权
      *
      * @param isReturnApplyUrl 是否返回权限申请url
-     * @param username         用户名
+     * @param user             用户
      * @param actionResources  操作列表
      * @return 鉴权结果
      */
-    AuthResultVO auth(boolean isReturnApplyUrl, String username, List<PermissionActionResource> actionResources);
+    AuthResultVO auth(boolean isReturnApplyUrl,
+                      User user,
+                      List<PermissionActionResource> actionResources);
 
-    String getApplyUrl(List<PermissionActionResource> permissionActionResources);
+    String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources);
 
     AuthResultVO toAuthResultVO(boolean isReturnApplyUrl, AuthResult authResult);
 

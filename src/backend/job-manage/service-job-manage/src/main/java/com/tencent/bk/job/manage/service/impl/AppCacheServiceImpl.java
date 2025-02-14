@@ -26,8 +26,10 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.manage.AbstractLocalCacheAppScopeMappingService;
+import com.tencent.bk.job.manage.AbstractLocalCacheAppService;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,33 +38,42 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AppScopeMappingServiceImpl extends AbstractLocalCacheAppScopeMappingService {
+public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
 
     private final ApplicationService applicationService;
 
     @Autowired
-    public AppScopeMappingServiceImpl(ApplicationService applicationService) {
+    public AppCacheServiceImpl(ApplicationService applicationService) {
         this.applicationService = applicationService;
         GlobalAppScopeMappingService.register(this);
     }
 
     @Override
-    public Long queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
-        Long appId = applicationService.getAppIdByScope(resourceScope);
-        if (appId == null) {
+    protected BasicApp queryAppByScope(ResourceScope resourceScope) throws NotFoundException {
+        ApplicationDTO app = applicationService.getAppByScope(resourceScope);
+        if (app == null) {
             log.error("App not exist, resourceScope: {}", resourceScope);
             throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
-        return appId;
+        return convertToBasicApp(app);
+    }
+
+    private BasicApp convertToBasicApp(ApplicationDTO app) {
+        BasicApp basicApp = new BasicApp();
+        basicApp.setId(app.getId());
+        basicApp.setName(app.getName());
+        basicApp.setScope(app.getScope());
+        basicApp.setTenantId(app.getTenantId());
+        return basicApp;
     }
 
     @Override
-    public ResourceScope queryScopeByAppId(Long appId) throws NotFoundException {
-        ResourceScope resourceScope = applicationService.getScopeByAppId(appId);
-        if (resourceScope == null) {
+    protected BasicApp queryAppByAppId(Long appId) throws NotFoundException {
+        ApplicationDTO app = applicationService.getAppByAppId(appId);
+        if (app == null) {
             log.error("App not exist, appId: {}", appId);
             throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
-        return resourceScope;
+        return convertToBasicApp(app);
     }
 }

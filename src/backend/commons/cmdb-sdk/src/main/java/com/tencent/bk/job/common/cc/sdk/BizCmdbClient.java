@@ -120,6 +120,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -189,7 +190,8 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
                          ThreadPoolExecutor threadPoolExecutor,
                          ThreadPoolExecutor longTermThreadPoolExecutor,
                          FlowController flowController,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         TenantEnvService tenantEnvService) {
         super(
             flowController,
             appProperties,
@@ -197,6 +199,7 @@ public class BizCmdbClient extends BaseCmdbApiClient implements IBizCmdbClient {
             bkApiGatewayProperties,
             cmdbConfig,
             meterRegistry,
+            tenantEnvService,
             lang
         );
         this.threadPoolExecutor = threadPoolExecutor;

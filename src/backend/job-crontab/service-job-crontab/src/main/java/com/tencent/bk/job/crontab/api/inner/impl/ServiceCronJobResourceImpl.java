@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -60,9 +61,12 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
 
     private final CronJobService cronJobService;
 
+    private final UserLocalCache userCache;
+
     @Autowired
-    public ServiceCronJobResourceImpl(CronJobService cronJobService) {
+    public ServiceCronJobResourceImpl(CronJobService cronJobService, UserLocalCache userCache) {
         this.cronJobService = cronJobService;
+        this.userCache = userCache;
     }
 
     @Override
@@ -97,7 +101,8 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     public InternalResponse<Boolean> updateCronJobStatus(Long appId, Long cronJobId,
                                                          InternalUpdateCronStatusRequest request) {
         log.info("Update cron job status, appId: {}, cronJobId: {}, request: {}", appId, cronJobId, request);
-        return InternalResponse.buildSuccessResp(cronJobService.changeCronJobEnableStatus(request.getOperator(),
+        return InternalResponse.buildSuccessResp(cronJobService.changeCronJobEnableStatus(
+            userCache.getUser(request.getOperator()),
             appId, cronJobId, CronStatusEnum.RUNNING.getStatus().equals(request.getStatus())));
     }
 

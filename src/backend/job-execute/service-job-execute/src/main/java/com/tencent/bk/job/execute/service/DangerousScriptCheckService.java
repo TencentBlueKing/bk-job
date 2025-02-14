@@ -38,19 +38,21 @@ public interface DangerousScriptCheckService {
     /**
      * 检查脚本
      *
+     * @param tenantId   租户 ID
      * @param scriptType 脚本类型
      * @param content    脚本内容
      * @return 检查结果
      */
-    List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content);
+    List<ServiceScriptCheckResultItemDTO> check(String tenantId, ScriptTypeEnum scriptType, String content);
 
     /**
      * 是否需要拦截
      *
+     * @param tenantId         租户 ID
      * @param checkResultItems 脚本检查结果
      * @return 是否拦截
      */
-    boolean shouldIntercept(List<ServiceScriptCheckResultItemDTO> checkResultItems);
+    boolean shouldIntercept(String tenantId, List<ServiceScriptCheckResultItemDTO> checkResultItems);
 
     /**
      * 输出检查结果
@@ -68,6 +70,7 @@ public interface DangerousScriptCheckService {
      * @param stepInstance     步骤实例
      * @param checkResultItems 脚本检查结果
      */
-    void saveDangerousRecord(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
+    void saveDangerousRecord(TaskInstanceDTO taskInstance,
+                             StepInstanceDTO stepInstance,
                              List<ServiceScriptCheckResultItemDTO> checkResultItems);
 }

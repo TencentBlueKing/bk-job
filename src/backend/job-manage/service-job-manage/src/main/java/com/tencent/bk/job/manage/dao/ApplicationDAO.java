@@ -48,6 +48,8 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllApps();
 
+    List<ApplicationDTO> listAllAppsForTenant(String tenantId);
+
     List<ApplicationDTO> listAllBizApps();
 
     List<ApplicationDTO> listAllBizAppsWithDeleted();
