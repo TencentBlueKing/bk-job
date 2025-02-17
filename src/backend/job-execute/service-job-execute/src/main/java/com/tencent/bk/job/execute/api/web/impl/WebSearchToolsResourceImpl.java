@@ -111,7 +111,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         // 是否滚动执行
         if (CollectionUtils.isNotEmpty(stepInstanceRollingTaskDTOS)) {
             for (StepInstanceRollingTaskDTO stepInstanceRollingTaskDTO : stepInstanceRollingTaskDTOS) {
-                List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
+                List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.listGseTaskSimpleInfo(stepInstanceId,
                     stepInstanceRollingTaskDTO.getExecuteCount(),
                     stepInstanceRollingTaskDTO.getBatch());
                 if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
@@ -119,7 +119,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                 }
             }
         } else {
-            List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
+            List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.listGseTaskSimpleInfo(stepInstanceId,
                 null,
                 null);
             if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
