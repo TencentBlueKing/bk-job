@@ -322,7 +322,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     }
 
     private void saveScriptLogContent(List<ServiceExecuteObjectScriptLogDTO> logs) {
-        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
+        logService.batchWriteScriptLog(taskInstance, stepInstanceId, stepInstance.getExecuteCount(),
             stepInstance.getBatch(), logs);
     }
 
@@ -603,7 +603,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
                     return logService.buildSystemScriptLog(stepInstance, executeObject, errorMsg,
                         executeObjectTask.getScriptLogOffset(), endTime);
                 }).collect(Collectors.toList());
-            logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, stepInstance.getExecuteCount(),
+            logService.batchWriteScriptLog(taskInstance, stepInstanceId, stepInstance.getExecuteCount(),
                 stepInstance.getBatch(), scriptLogs);
         }
     }

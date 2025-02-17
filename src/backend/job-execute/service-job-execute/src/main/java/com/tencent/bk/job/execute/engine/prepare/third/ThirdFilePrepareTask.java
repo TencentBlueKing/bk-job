@@ -46,6 +46,7 @@ import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
@@ -81,6 +82,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskContext {
 
+    private final TaskInstanceDTO taskInstance;
     private final StepInstanceDTO stepInstance;
     private final List<FileSourceDTO> fileSourceList;
     private final String batchTaskId;
@@ -109,11 +111,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private final TaskContext taskContext;
 
     public ThirdFilePrepareTask(
+        TaskInstanceDTO taskInstance,
         StepInstanceDTO stepInstance,
         List<FileSourceDTO> fileSourceList,
         String batchTaskId,
         boolean isForRetry,
         ThirdFilePrepareTaskResultHandler resultHandler) {
+        this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
         this.fileSourceList = fileSourceList;
         this.batchTaskId = batchTaskId;
@@ -447,7 +451,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             serviceExecuteObjectLogDTOList.add(buildServiceHostLogDTO(host, logDTO));
         }
         logService.writeFileLogsWithTimestamp(
-            stepInstance.getCreateTime(),
+            taskInstance,
             serviceExecuteObjectLogDTOList,
             System.currentTimeMillis()
         );
