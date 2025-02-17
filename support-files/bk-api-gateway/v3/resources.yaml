@@ -3314,7 +3314,7 @@ paths:
   /api/v3/system/query_gse_task:
     get:
       operationId: system_query_gse_task
-      description: 根据step_id查询gse task id
+      description: 根据step_instance_id查询gse task id
       tags: ['system']
       responses:
         default:
@@ -3336,7 +3336,7 @@ paths:
           appVerifiedRequired: true
           userVerifiedRequired: false
           resourcePermissionRequired: true
-        descriptionEn: Query GSE task id by step id
+        descriptionEn: Query GSE task id by step instance id
   /api/v3/system/query_job_instance:
     get:
       operationId: system_query_job_instance
