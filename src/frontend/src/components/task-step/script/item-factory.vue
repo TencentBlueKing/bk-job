@@ -45,6 +45,7 @@
   import ScriptParam from './strategy/script-param';
   import ScriptSourceOfExecution from './strategy/script-source-of-execution';
   import ScriptSourceOfTemplate from './strategy/script-source-of-template';
+  import WindowsInterpreter from './strategy/window-interpreter.vue';
 
   export default {
     name: 'ExecuteScriptItemFactory',
@@ -68,6 +69,7 @@
           executeTargetOfTemplate: ExecuteTargetOfTemplate,
           executeTargetOfExecution: ExecuteTargetOfExecution,
           rolling: Rolling,
+          windowsInterpreter: WindowsInterpreter,
         };
         if (!Object.prototype.hasOwnProperty.call(comMap, this.name)) {
           return 'div';

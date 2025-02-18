@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
@@ -93,6 +95,15 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     private String scriptParam;
 
     /**
+     * 自定义Windows解释器路径
+     */
+    @EndWith(fieldName = "windows_interpreter", value = ".exe")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    @JsonProperty("windows_interpreter")
+    private String windowsInterpreter;
+
+    /**
      * 脚本ID
      */
     @JsonProperty("script_id")
@@ -114,7 +125,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
@@ -148,4 +159,12 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
         }
     }
 
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
+    }
 }

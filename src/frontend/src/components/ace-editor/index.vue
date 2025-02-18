@@ -492,7 +492,6 @@
       fetchAiConfig() {
         AiService.fetchConfig()
           .then((data) => {
-            console.log('data = ', data);
             this.isAiEnable = data.enabled;
           });
       },

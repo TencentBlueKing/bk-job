@@ -1565,6 +1565,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else {
             stepInstance.setAccountId(accountInfo.getId());
             stepInstance.setAccount(accountInfo.getAccount());
+            stepInstance.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         }
 
         ServiceTaskTargetDTO target = scriptStepInfo.getExecuteTarget();

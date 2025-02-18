@@ -26,6 +26,7 @@
 | script_content | string | 否 | 脚本内容Base64。如果不存在script_version_id和script_id,那么使用script_content。优先级：script_version_id>script_id>script_content |
 | task_name      |  string    | 否     | 自定义作业名称 |
 | script_param   |  string    | 否     | 脚本参数Base64。注意：如果有多个参数，比如&#34;param1 param2&#34;这种，需要对&#34;param1 param2&#34;整体进行base64编码，而不是对每个参数进行base64编码再拼接起来 |
+| windows_interpreter | string | 否 | 自定义Windows解释器路径，当该值不为空时，在windows中优先使用该解释器运行脚本，只对Windows机器生效 |
 | timeout |  long       | 否     | 脚本执行超时时间，秒。默认7200，取值范围1-86400 |
 | account_alias |  string    | 否    | 执行账号别名。与account_id必须存在一个。当同时存在account_alias和account_id时，account_id优先。 |
 | account_id | long | 否 | 执行账号ID。与account_alias必须存在一个。当同时存在account_alias和account_id时，account_id优先。 |
@@ -80,6 +81,7 @@
     "script_version_id": 1,
     "script_content": "ZWNobyAkMQ==",
     "script_param": "aGVsbG8=",
+    "windows_interpreter": "D:\\Software\\python3\\python.exe",
     "timeout": 1000,
     "account_id": 1000,
     "is_param_sensitive": 0,

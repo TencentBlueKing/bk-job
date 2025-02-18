@@ -63,6 +63,12 @@
       secure-field="secureParam"
       @on-change="handleChange" />
     <item-factory
+      field="windowsInterpreter"
+      :form-data="formData"
+      language-field="scriptLanguage"
+      name="windowsInterpreter"
+      @on-change="handleChange" />
+    <item-factory
       field="timeout"
       :form-data="formData"
       name="scriptTimeout"
@@ -83,6 +89,7 @@
       :form-data="formData"
       name="executeTargetOfTemplate"
       :variable="variable"
+      windows-interpreter-field="windowsInterpreter"
       @on-change="handleChange" />
   </jb-form>
 </template>
@@ -120,6 +127,8 @@
     content: '',
     // 脚本参数
     scriptParam: '',
+    // windows解释器 (undefined : 不采用自定义, other: 采用自定义)
+    windowsInterpreter: undefined,
     // 超时时间
     timeout: 300,
     // 敏感参数 （0-关闭 1-开启）
@@ -197,6 +206,7 @@
           id,
           ignoreError,
           scriptParam,
+          windowsInterpreter,
           timeout,
           secureParam,
           scriptSource,
@@ -217,6 +227,7 @@
           scriptStepInfo: {
             ignoreError,
             scriptParam,
+            windowsInterpreter,
             timeout,
             scriptSource,
             scriptId,

@@ -22,41 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.validation.MaxLength;
-import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@ApiModel("AI检查脚本请求体")
 @Data
-public class AICheckScriptReq {
+public class EsbTaskLinkV3DTO extends EsbAppScopeDTO {
 
     /**
-     * 脚本类型
+     * 任务ID
      */
-    @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：SQL")
-    @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
-    @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
-        message = "{validation.constraints.ScriptType_illegal.message}")
-    private Integer type;
+    @JsonProperty("job_instance_id")
+    private Long jobInstanceId;
 
     /**
-     * 脚本内容
+     * 步骤ID
      */
-    @ApiModelProperty(value = "脚本内容，BASE64编码")
-    @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
-    @MaxLength(value = 5 * 1024L * 1024L,
-        message = "{validation.constraints.AICheckScript_contentExceedMaxLength.message}")
-    private String content;
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
+
+    /**
+     * 执行次数
+     */
+    @JsonProperty("retry_count")
+    private Integer retryCount;
+
+    /**
+     * 批次
+     */
+    @JsonProperty("batch")
+    private Integer batch;
+
+    /**
+     * gse任务ID
+     */
+    @JsonProperty("gse_task_id")
+    private String gseTaskId;
+
+    /**
+     * web访问链接
+     */
+    @JsonProperty("link")
+    private List<String> link;
 }

@@ -22,31 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.execute.model.esb.v3.EsbTaskLinkV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE_USE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
 
-@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
-@Retention(RUNTIME)
-@Constraint(validatedBy = MaxLengthValidator.class)
-@Documented
-public @interface MaxLength {
-    long value();
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbQueryToolsV3Resource {
 
-    String message() default "{validation.constraints.ExceedMaxLength.message}";
+    @GetMapping("/query_gse_task")
+    EsbResp<List<EsbTaskLinkV3DTO>> queryGSETaskByStep(
+        @RequestHeader(value = JobCommonHeaders.USERNAME)
+        String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE)
+        String appCode,
+        @RequestParam(value = "step_instance_id")
+        Long stepInstanceId
+    );
 
-    Class<?>[] groups() default {};
-
-    Class<? extends Payload>[] payload() default {};
+    @GetMapping("/query_job_instance")
+    EsbResp<EsbTaskLinkV3DTO> queryJobInstanceByGseTask(
+        @RequestHeader(value = JobCommonHeaders.USERNAME)
+        String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE)
+        String appCode,
+        @RequestParam(value = "gse_task_id")
+        String gseTaskId
+    );
 }
