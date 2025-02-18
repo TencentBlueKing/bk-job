@@ -26,9 +26,14 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,16 +42,20 @@ import java.util.Set;
 /**
  * 作业实例中包含的执行对象
  */
-@Data
+@Getter
+@ToString
+@Slf4j
 public class TaskInstanceExecuteObjects {
 
     /**
      * 当前作业实例是否包含主机执行对象
      */
+    @Setter
     private boolean containsAnyHost;
     /**
      * 当前作业实例是否包含容器执行对象
      */
+    @Setter
     private boolean containsAnyContainer;
 
     /**
@@ -69,12 +78,22 @@ public class TaskInstanceExecuteObjects {
     /**
      * 不存在的容器ID列表
      */
+    @Setter
     private Set<Long> notExistContainerIds;
     /**
      * 主机白名单
      * key=hostId, value: 允许的操作列表
      */
-    Map<Long, List<String>> whiteHostAllowActions;
+    @Setter
+    private Map<Long, List<String>> whiteHostAllowActions;
+    /**
+     * 全量主机 Map - key: hostId
+     */
+    private final Map<Long, HostDTO> hostsByHostId = new HashMap<>();
+    /**
+     * 全量主机 Map - key: cloudIp
+     */
+    private final Map<String, HostDTO> hostsByCloudIp = new HashMap<>();
 
     public void addContainers(Collection<Container> containers) {
         if (validContainers == null) {
@@ -88,5 +107,44 @@ public class TaskInstanceExecuteObjects {
             validContainers = new HashSet<>();
         }
         validContainers.add(container);
+    }
+
+    public void setNotExistHosts(List<HostDTO> notExistHosts) {
+        this.notExistHosts = notExistHosts;
+        putHostMap(notExistHosts);
+    }
+
+    public void setNotInAppHosts(List<HostDTO> notInAppHosts) {
+        this.notInAppHosts = notInAppHosts;
+        putHostMap(notInAppHosts);
+    }
+
+    public void setValidHosts(List<HostDTO> validHosts) {
+        this.validHosts = validHosts;
+        putHostMap(validHosts);
+    }
+
+    private void putHostMap(List<HostDTO> hosts) {
+        if (CollectionUtils.isNotEmpty(hosts)) {
+            hosts.forEach(host -> {
+                if (host.getHostId() != null) {
+                    hostsByHostId.put(host.getHostId(), host);
+                }
+                if (host.toCloudIp() != null) {
+                    hostsByCloudIp.put(host.toCloudIp(), host);
+                }
+            });
+        }
+    }
+
+    public HostDTO queryByHostKey(HostDTO host) {
+        if (host.getHostId() != null) {
+            return hostsByHostId.get(host.getHostId());
+        } else if (host.toCloudIp() != null) {
+            return hostsByCloudIp.get(host.toCloudIp());
+        } else {
+            log.info("Host not found, host: {}", host);
+            return null;
+        }
     }
 }
