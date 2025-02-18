@@ -264,7 +264,7 @@
         immediate: true,
       },
       'formData.scriptId'(value) {
-        if (value) {
+        if (value && this.$refs.scriptId) {
           this.$refs.scriptId.clearValidator();
         }
       },
