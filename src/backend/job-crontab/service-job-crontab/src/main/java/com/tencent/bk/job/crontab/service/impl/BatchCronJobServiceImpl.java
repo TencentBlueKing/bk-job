@@ -32,18 +32,25 @@ import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
+import com.tencent.bk.job.crontab.model.dto.AddJobToQuartzResult;
+import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
+import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.NeedScheduleCronInfo;
+import com.tencent.bk.job.crontab.service.BatchCronJobService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
+import com.tencent.bk.job.crontab.service.QuartzService;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -51,19 +58,114 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BatchCronJobService {
+public class BatchCronJobServiceImpl implements BatchCronJobService {
 
     private final CronJobDAO cronJobDAO;
     private final CronAuthService cronAuthService;
     private final ExecuteTaskService executeTaskService;
+    private final QuartzService quartzService;
 
     @Autowired
-    public BatchCronJobService(CronJobDAO cronJobDAO,
-                               CronAuthService cronAuthService,
-                               ExecuteTaskService executeTaskService) {
+    public BatchCronJobServiceImpl(CronJobDAO cronJobDAO,
+                                   CronAuthService cronAuthService,
+                                   ExecuteTaskService executeTaskService, QuartzService quartzService) {
         this.cronJobDAO = cronJobDAO;
         this.cronAuthService = cronAuthService;
         this.executeTaskService = executeTaskService;
+        this.quartzService = quartzService;
+    }
+
+    /**
+     * 批量添加定时任务到Quartz
+     *
+     * @param cronJobBasicInfoList 定时任务列表
+     * @return 批量添加结果
+     */
+    @Override
+    public BatchAddResult batchAddJobToQuartz(List<CronJobBasicInfoDTO> cronJobBasicInfoList) {
+        List<Long> cronJobIdList = cronJobBasicInfoList.stream()
+            .map(CronJobBasicInfoDTO::getId)
+            .distinct()
+            .collect(Collectors.toList());
+        // 1.批量获取定时任务信息
+        List<CronJobInfoDTO> cronJobList = cronJobDAO.listCronJobByIds(cronJobIdList);
+        Map<Long, CronJobInfoDTO> cronJobMap = cronJobList.stream()
+            .collect(
+                Collectors.toMap(
+                    CronJobInfoDTO::getId,
+                    cronJobInfoDTO -> cronJobInfoDTO
+                )
+            );
+        BatchAddResult finalBatchResult = new BatchAddResult();
+        BatchAddResult notFoundBatchResult = recordNotFoundCronJobs(
+            cronJobBasicInfoList,
+            cronJobMap
+        );
+        finalBatchResult.merge(notFoundBatchResult);
+        // 2.过滤出开启的定时任务进行触发
+        BatchAddResult addToQuartzBatchResult = addEnabledCronJobToQuartz(cronJobList);
+        finalBatchResult.merge(addToQuartzBatchResult);
+        return finalBatchResult;
+    }
+
+    /**
+     * 批量添加开启的定时任务到Quartz
+     *
+     * @param cronJobList 定时任务列表
+     * @return 批量添加结果
+     */
+    private BatchAddResult addEnabledCronJobToQuartz(List<CronJobInfoDTO> cronJobList) {
+        BatchAddResult batchAddResult = new BatchAddResult();
+        for (CronJobInfoDTO cronJobInfoDTO : cronJobList) {
+            if (!cronJobInfoDTO.getEnable()) {
+                batchAddResult.addResult(AddJobToQuartzResult.failResult(
+                    cronJobInfoDTO.toBasicInfoDTO(),
+                    String.format("CronJob(id=%s) is not enabled, ignore", cronJobInfoDTO.getId())
+                ));
+                continue;
+            }
+            try {
+                quartzService.tryToAddJobToQuartz(cronJobInfoDTO);
+                batchAddResult.addResult(AddJobToQuartzResult.successResult(cronJobInfoDTO.toBasicInfoDTO()));
+            } catch (Exception e) {
+                String message = MessageFormatter.format(
+                    "Add cronJob(id={}) to quartz failed",
+                    cronJobInfoDTO.getId()
+                ).getMessage();
+                batchAddResult.addResult(
+                    AddJobToQuartzResult.failResult(
+                        cronJobInfoDTO.toBasicInfoDTO(),
+                        message,
+                        e
+                    )
+                );
+            }
+        }
+        return batchAddResult;
+    }
+
+    /**
+     * 记录DB中不存在的定时任务
+     *
+     * @param cronJobBasicInfoList 需要添加到Quartz的定时任务基础信息列表
+     * @param cronJobMap           DB中存在的定时任务信息
+     * @return 批量添加失败的定时任务信息
+     */
+    private BatchAddResult recordNotFoundCronJobs(List<CronJobBasicInfoDTO> cronJobBasicInfoList,
+                                                  Map<Long, CronJobInfoDTO> cronJobMap) {
+        BatchAddResult batchAddResult = new BatchAddResult();
+        for (CronJobBasicInfoDTO cronJobBasicInfoDTO : cronJobBasicInfoList) {
+            Long cronJobId = cronJobBasicInfoDTO.getId();
+            if (!cronJobMap.containsKey(cronJobId)) {
+                batchAddResult.addResult(
+                    AddJobToQuartzResult.failResult(
+                        cronJobBasicInfoDTO,
+                        "Cannot find cronJob in DB by id: " + cronJobId
+                    )
+                );
+            }
+        }
+        return batchAddResult;
     }
 
     /**
@@ -88,9 +190,9 @@ public class BatchCronJobService {
 
         List<Long> needAddCronIdList = new ArrayList<>();
         List<Long> needDeleteCronIdList = new ArrayList<>();
-        cronJobReqList.forEach(cronJobReq -> {
-            updateCronJob(username, appId, cronJobReq, needAddCronIdList, needDeleteCronIdList);
-        });
+        cronJobReqList.forEach(cronJobReq ->
+            updateCronJob(username, appId, cronJobReq, needAddCronIdList, needDeleteCronIdList)
+        );
         return new NeedScheduleCronInfo(needAddCronIdList, needDeleteCronIdList);
     }
 

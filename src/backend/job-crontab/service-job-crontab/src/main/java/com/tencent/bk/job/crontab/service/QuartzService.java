@@ -22,44 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.crontab.service;
 
-import com.tencent.bk.job.common.web.utils.ServletUtil;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
-import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+public interface QuartzService {
+    /**
+     * 尝试将定时任务添加到Quartz中，若失败则删除
+     *
+     * @param cronJobInfo 定时任务信息
+     */
+    void tryToAddJobToQuartz(CronJobInfoDTO cronJobInfo);
 
-@Slf4j
-public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) {
-
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        if (!ServletUtil.isJsonRequest(request)) {
-            chain.doFilter(request, response);
-            return;
-        }
-        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(servletRequest, servletResponse);
-    }
-
-    @Override
-    public void destroy() {
-
-    }
+    /**
+     * 从Quartz中删除定时任务
+     *
+     * @param appId     Job业务ID
+     * @param cronJobId 定时任务ID
+     * @return 是否删除成功
+     */
+    boolean deleteJobFromQuartz(long appId, long cronJobId);
 }

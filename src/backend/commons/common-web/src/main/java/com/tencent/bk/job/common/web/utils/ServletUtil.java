@@ -22,44 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.filter;
+package com.tencent.bk.job.common.web.utils;
 
-import com.tencent.bk.job.common.web.utils.ServletUtil;
-import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
-import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-@Slf4j
-public class RepeatableReadWriteServletRequestResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) {
 
+/**
+ * 处理servlet请求和响应的工具类
+ */
+public class ServletUtil {
+
+    /**
+     * 判断 servlet 请求的 Content-Type 是否是 application/json
+     * @param request 请求
+     * @return 请求的 Content-Type 是否是 application/json
+     */
+    public static boolean isJsonRequest(ServletRequest request) {
+        return isJsonContentType(request.getContentType());
     }
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-        ServletException {
-        if (!ServletUtil.isJsonRequest(request)) {
-            chain.doFilter(request, response);
-            return;
+    private static boolean isJsonContentType(String contentType) {
+        if (StringUtils.isBlank(contentType)) {
+            return false;
         }
-        ServletRequest servletRequest = new RepeatableReadWriteHttpServletRequest((HttpServletRequest) request);
-        ServletResponse servletResponse = new RepeatableReadHttpServletResponse((HttpServletResponse) response);
-        chain.doFilter(servletRequest, servletResponse);
-    }
-
-    @Override
-    public void destroy() {
-
+        contentType = contentType.trim().toLowerCase();
+        return contentType.startsWith("application/json");
     }
 }

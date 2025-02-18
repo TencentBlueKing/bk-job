@@ -67,8 +67,8 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
 
         Set<? extends Trigger> triggers = createTriggers(quartzJob);
 
-        if (scheduler.isShutdown()) {
-            log.info("scheduler is shutdown, ignore add job {}!", quartzJob.getKey().getName());
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore add job {}!", quartzJob.getKey().getName());
             return;
         }
 
@@ -96,8 +96,8 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
         Assert.notNull(jobKey, "jobKey cannot be empty!");
         Assert.notNull(jobKey.getName(), "jobKey name cannot be empty!");
 
-        if (scheduler.isShutdown()) {
-            log.info("scheduler is shutdown, ignore delete job {}!", jobKey.getName());
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore delete job {}!", jobKey.getName());
             return;
         }
 
@@ -108,9 +108,9 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
     public void deleteJob(List<JobKey> jobKeys) throws SchedulerException {
         Assert.notNull(jobKeys, "jobKeys cannot be empty!");
 
-        if (scheduler.isShutdown()) {
+        if (!scheduler.isStarted()) {
             log.info(
-                "scheduler is shutdown, ignore delete {} job keys: {}",
+                "scheduler is not started, ignore delete {} job keys: {}",
                 jobKeys.size(),
                 jobKeys.stream().map(JobKey::getName).collect(Collectors.toList())
             );
@@ -125,8 +125,8 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
      */
     @Override
     public void pauseAll() throws SchedulerException {
-        if (scheduler.isShutdown()) {
-            log.info("scheduler is shutdown, ignore pauseAll!");
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore pauseAll!");
             return;
         }
         this.scheduler.pauseAll();
