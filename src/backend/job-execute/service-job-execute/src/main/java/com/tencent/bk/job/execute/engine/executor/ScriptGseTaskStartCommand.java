@@ -643,7 +643,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
             executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
-        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
+        logService.batchWriteScriptLog(taskInstance, stepInstanceId, executeCount, batch, scriptLogs);
         scriptExecuteObjectTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
     }
 

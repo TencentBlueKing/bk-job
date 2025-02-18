@@ -30,6 +30,12 @@ public class ExecuteMetricsConstants {
      * 任务启动指标
      */
     public static final String NAME_JOB_TASK_START = "job.task.start";
+    /**
+     * 日志大小（字节）
+     */
+    public static final String NAME_JOB_LOG_BYTES = "job.log.bytes";
+
+
     // tag
     /**
      * 任务启动方式
@@ -51,6 +57,20 @@ public class ExecuteMetricsConstants {
      * 任务类型
      */
     public static final String TAG_KEY_TASK_TYPE = "task_type";
+    /**
+     * Job业务ID
+     */
+    public static final String TAG_KEY_APP_ID = "app_id";
+    /**
+     * 定时任务ID
+     */
+    public static final String TAG_KEY_CRON_TASK_ID = "cron_task_id";
+    /**
+     * AppCode
+     */
+    public static final String TAG_KEY_APP_CODE = "app_code";
+
+
     /**
      * 任务类型：快速执行脚本
      */
