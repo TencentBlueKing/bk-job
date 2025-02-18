@@ -370,7 +370,7 @@
                     draggable: false,
                     showFooter: false,
                     closeIcon: false,
-                    width: 450,
+                    width: 550,
                     subHeader: (
                       <div>
                         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
