@@ -22,44 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.model.service;
+package com.tencent.bk.job.execute.metrics;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 
-import java.util.List;
-
-/**
- * 批量保存执行日志请求
- */
-@ApiModel("批量保存执行日志请求")
-@Data
-public class ServiceBatchSaveLogRequest {
-
-    @ApiModelProperty(value = "Job业务ID", required = true)
-    private Long appId;
-
-    @ApiModelProperty(value = "定时任务ID", required = true)
-    private Long cronTaskId;
-
-    @ApiModelProperty(value = "API调用的作业，调用方appCode", required = true)
-    private String appCode;
+public interface LogSampler {
 
     /**
-     * 作业实例创建时间
+     * 尝试记录日志大小指标，异常不抛出，内部做日志记录
+     *
+     * @param request 保存日志请求
      */
-    @ApiModelProperty(value = "作业实例创建时间，格式为yyyy_MM_dd", required = true)
-    private String jobCreateDate;
-
-    /**
-     * 执行日志
-     */
-    @ApiModelProperty(value = "执行日志", required = true)
-    private List<ServiceExecuteObjectLogDTO> logs;
-
-    /**
-     * 日志类型
-     */
-    private Integer logType;
+    void tryToRecordLogSizeMetrics(ServiceBatchSaveLogRequest request);
 }

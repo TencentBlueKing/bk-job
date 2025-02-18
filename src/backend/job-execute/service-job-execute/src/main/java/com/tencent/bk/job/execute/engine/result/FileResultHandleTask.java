@@ -950,7 +950,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void writeFileTaskLogContent(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
-            logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+            logService.writeFileLogs(taskInstance, new ArrayList<>(executionLogs.values()));
         }
     }
 

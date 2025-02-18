@@ -446,7 +446,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         if (log.isDebugEnabled()) {
             log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
         }
-        logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+        logService.writeFileLogs(taskInstance, new ArrayList<>(executionLogs.values()));
     }
 
 
