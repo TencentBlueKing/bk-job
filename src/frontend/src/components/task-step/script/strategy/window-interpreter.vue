@@ -1,7 +1,6 @@
 <template>
   <bk-form-item
     v-show="isShow"
-    class="form-item-content"
     error-display-type="normal"
     :label="t('解释器')"
     :property="field"
@@ -22,6 +21,7 @@
       <bk-input
         class="form-item-content"
         :placeholder="t('输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe。请勿指定命令行选项。')"
+        style="width: 100%"
         :value="formData[field]"
         @change="handleChange" />
     </div>
