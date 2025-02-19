@@ -45,7 +45,7 @@ BEGIN
                     WHERE TABLE_SCHEMA = db
                       AND TABLE_NAME = 'dangerous_rule'
                       AND COLUMN_NAME = 'tenant_id') THEN
-  ALTER TABLE dangerous_rule ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+    ALTER TABLE dangerous_rule ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -53,7 +53,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'dangerous_rule'
                     AND INDEX_NAME = 'idx_tenant_id') THEN
-  ALTER TABLE dangerous_rule ADD INDEX idx_tenant_id(`tenant_id`);
+    ALTER TABLE dangerous_rule ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -61,7 +61,7 @@ BEGIN
                     WHERE TABLE_SCHEMA = db
                       AND TABLE_NAME = 'script'
                       AND COLUMN_NAME = 'tenant_id') THEN
-  ALTER TABLE script ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+    ALTER TABLE script ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -69,7 +69,7 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'script'
                     AND INDEX_NAME = 'idx_tenant_id') THEN
-  ALTER TABLE script ADD INDEX idx_tenant_id(`tenant_id`);
+    ALTER TABLE script ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -77,7 +77,7 @@ BEGIN
                     WHERE TABLE_SCHEMA = db
                       AND TABLE_NAME = 'white_ip_record'
                       AND COLUMN_NAME = 'tenant_id') THEN
-  ALTER TABLE white_ip_record ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default' AFTER `id`;
+    ALTER TABLE white_ip_record ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default' AFTER `id`;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -85,7 +85,15 @@ BEGIN
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'white_ip_record'
                     AND INDEX_NAME = 'idx_tenant_id') THEN
-  ALTER TABLE white_ip_record ADD INDEX idx_tenant_id(`tenant_id`);
+    ALTER TABLE white_ip_record ADD INDEX idx_tenant_id(`tenant_id`);
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'application'
+                      AND COLUMN_NAME = 'default') THEN
+    ALTER TABLE application ADD COLUMN `default` int(10) NOT NULL DEFAULT 0;
   END IF;
 
 COMMIT;

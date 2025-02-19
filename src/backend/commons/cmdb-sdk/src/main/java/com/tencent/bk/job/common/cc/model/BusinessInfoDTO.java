@@ -66,4 +66,9 @@ public class BusinessInfoDTO {
      */
     @JsonProperty("language")
     private String language;
+    /**
+     * 资源类型
+     */
+    @JsonProperty("default")
+    private Integer deFault;
 }

@@ -200,6 +200,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         appInfoDTO.setAttrs(attrs);
         appInfoDTO.setScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, bizSetInfo.getId().toString()));
+        appInfoDTO.setDeFault(bizSetInfo.getDeFault());
         return appInfoDTO;
     }
 }

@@ -124,6 +124,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
         applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).byteValue()));
         applicationDTO.setTenantId(record.get(T_APP.TENANT_ID));
+        applicationDTO.setDeFault(record.get(T_APP.DEFAULT));
         return applicationDTO;
     }
 

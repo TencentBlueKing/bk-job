@@ -303,7 +303,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList(
             "bk_biz_set_id", "bk_biz_set_name", "bk_biz_maintainer",
-            "bk_supplier_account", "time_zone", "language"));
+            "bk_supplier_account", "time_zone", "language", "default"));
         req.setResource("biz_set");
         req.setCursor(cursor);
         req.setStartTime(startTime);

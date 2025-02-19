@@ -67,6 +67,11 @@ public class CacheAppDO {
 
     private String tenantId;
 
+    /**
+     * 资源（业务/业务集/租户集）类型，1表示内置资源
+     */
+    private Integer deFault;
+
     public static CacheAppDO fromApplicationDTO(ApplicationDTO application) {
         if (application == null) {
             return null;
@@ -78,6 +83,7 @@ public class CacheAppDO {
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAttrs(application.getAttrs());
         cacheAppDO.setTenantId(application.getTenantId());
+        cacheAppDO.setDeFault(application.getDeFault());
         return cacheAppDO;
     }
 
@@ -91,6 +97,7 @@ public class CacheAppDO {
         application.setName(cacheAppDO.getName());
         application.setAttrs(cacheAppDO.getAttrs());
         application.setTenantId(cacheAppDO.getTenantId());
+        application.setDeFault(cacheAppDO.getDeFault());
         return application;
     }
 }

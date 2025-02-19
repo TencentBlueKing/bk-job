@@ -100,4 +100,9 @@ public class BizSetInfo {
      * 租户ID
      */
     private String tenantId;
+
+    /**
+     * 资源（业务/业务集/租户集）类型，1表示内置资源
+     */
+    private Integer deFault;
 }

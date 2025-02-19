@@ -734,6 +734,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         appInfo.setTimeZone(businessInfo.getTimezone());
         appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
         appInfo.setLanguage(businessInfo.getLanguage());
+        appInfo.setDeFault(businessInfo.getDeFault());
         return appInfo;
     }
 
@@ -747,6 +748,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             appInfo.setTimeZone(businessInfo.getTimezone());
             appInfo.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ, businessInfo.getBizId().toString()));
             appInfo.setLanguage(businessInfo.getLanguage());
+            appInfo.setDeFault(businessInfo.getDeFault());
             appInfoList.add(appInfo);
         }
         return appInfoList;
@@ -1413,7 +1415,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
-            "time_zone", "language"));
+            "time_zone", "language", "default"));
         req.setResource("biz");
         req.setCursor(cursor);
         req.setStartTime(startTime);
