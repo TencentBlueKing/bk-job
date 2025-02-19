@@ -22,35 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner.impl;
+package com.tencent.bk.job.manage.model.inner.resp;
 
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
-import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.service.WhiteIPService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+/**
+ * 租户信息
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class TenantDTO {
+    /**
+     * 租户 ID
+     */
+    private String id;
 
-@Slf4j
-@RestController
-public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
-
-    private final WhiteIPService whiteIPService;
-
-    public ServiceWhiteIPResourceImpl(WhiteIPService whiteIPService) {
-        this.whiteIPService = whiteIPService;
-    }
-
-    @Override
-    public InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos() {
-        return InternalResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos());
-    }
-
-    @Override
-    public InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(String tenantId) {
-        return InternalResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos(tenantId));
-    }
-
+    /**
+     * 租户名
+     */
+    private String name;
 }

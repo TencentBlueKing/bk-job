@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -252,9 +253,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     private List<WhiteIPIPDTO> buildIpDtoList(List<HostIdWithMeta> hostList,
                                               String username) {
-        List<WhiteIPIPDTO> finalIpDtoList = new ArrayList<>();
-        finalIpDtoList.addAll(buildHostDtoList(hostList, username));
-        return finalIpDtoList;
+        return new ArrayList<>(buildHostDtoList(hostList, username));
     }
 
     private List<WhiteIPIPDTO> buildHostDtoList(List<HostIdWithMeta> hostList,
@@ -446,23 +445,15 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     }
 
     @Override
-    public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId) {
-        log.info("Input=({},{},{},{})", appId, ip, cloudAreaId, hostId);
-        // 1.找出与当前业务关联的所有appId
-        List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
-        // 2.再查对应的白名单
-        List<String> actionScopes = new ArrayList<>();
-        if (hostId != null) {
-            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(effectiveAppIds, hostId);
-        }
-        return actionScopes;
+    public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
+        return listWhiteIPInfos(TenantIdConstants.DEFAULT_TENANT_ID);
     }
 
     @Override
-    public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
+    public List<ServiceWhiteIPInfo> listWhiteIPInfos(String tenantId) {
         List<ServiceWhiteIPInfo> resultList = new ArrayList<>();
         //查出所有Record
-        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord();
+        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(tenantId);
         if (CollectionUtils.isEmpty(recordList)) {
             return resultList;
         }

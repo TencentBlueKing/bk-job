@@ -22,37 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner;
+package com.tencent.bk.job.manage.service;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:service:WhiteIP"})
-@SmartFeignClient(value = "job-manage", contextId = "whiteIpResource")
-@InternalAPI
-public interface ServiceWhiteIPResource {
+/**
+ * 租户服务
+ */
+public interface TenantService {
 
-    @Deprecated
-    @CompatibleImplementation(
-        name = "tenant",
-        explain = "兼容发布过程中老的调用，发布完成后删除",
-        deprecatedVersion = "3.13.x",
-        type = CompatibleType.DEPLOY
-    )
-    @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
-    @GetMapping("/service/whiteip/listWhiteIPInfos")
-    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
-
-    @ApiOperation(value = "获取某个租户下白名单内IP详情信息", produces = "application/json")
-    @GetMapping("/service/whiteip/listWhiteIPInfosByTenantId")
-    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(String tenantId);
+    /**
+     * 查询所有启用的租户
+     *
+     * @return 租户列表
+     */
+    List<TenantDTO> listEnabledTenant();
 }

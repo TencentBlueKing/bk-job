@@ -24,4 +24,13 @@ public class OpenApiTenant {
      * @see TenantStatusEnum
      */
     private String status;
+
+    /**
+     * 判断租户是否启用
+     *
+     * @return true 表示启用，false 表示禁用
+     */
+    public boolean isEnabled() {
+        return TenantStatusEnum.ENABLED.getStatus().equals(status);
+    }
 }

@@ -22,13 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.execute.service.ApplicationService;
-import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
-import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,41 +37,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service("jobExecuteApplicationService")
 @Slf4j
-public class ApplicationServiceImpl implements ApplicationService {
-    private final ServiceApplicationResource applicationResource;
-    private final ServiceSyncResource syncResource;
+@Service
+public class TenantServiceImpl implements TenantService {
+
+    private final UserMgrApiClient userMgrApiClient;
 
     @Autowired
-    public ApplicationServiceImpl(ServiceApplicationResource applicationResource,
-                                  ServiceSyncResource syncResource) {
-        this.applicationResource = applicationResource;
-        this.syncResource = syncResource;
+    public TenantServiceImpl(UserMgrApiClient userMgrApiClient) {
+        this.userMgrApiClient = userMgrApiClient;
     }
 
-    @Override
-    public ServiceApplicationDTO getAppById(long appId) {
-        return applicationResource.queryAppById(appId);
-    }
 
     @Override
-    public String getTenantIdByAppId(long appId) {
-        // TODO:内存占用优化
-        ServiceApplicationDTO app = getAppById(appId);
-        if (app == null) {
-            log.warn("Cannot find application by appId={}", appId);
-            return null;
-        }
-        return app.getTenantId();
-    }
-
-    @Override
-    public List<Long> listAllAppIds() {
-        List<ServiceApplicationDTO> apps = syncResource.listAllApps();
-        if (apps == null) {
+    public List<TenantDTO> listEnabledTenant() {
+        List<OpenApiTenant> openApiTenantList = userMgrApiClient.listAllTenant();
+        if (CollectionUtils.isEmpty(openApiTenantList)) {
             return Collections.emptyList();
         }
-        return apps.stream().map(ServiceApplicationDTO::getId).collect(Collectors.toList());
+        return openApiTenantList.stream()
+            .filter(OpenApiTenant::isEnabled)
+            .map(openApiTenant -> new TenantDTO(openApiTenant.getId(), openApiTenant.getName()))
+            .collect(Collectors.toList());
     }
 }
