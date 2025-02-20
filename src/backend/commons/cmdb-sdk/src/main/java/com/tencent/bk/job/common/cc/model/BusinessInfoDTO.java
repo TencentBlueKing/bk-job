@@ -52,11 +52,6 @@ public class BusinessInfoDTO {
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     /**
-     * 表示业务类型
-     */
-    @JsonProperty("default")
-    private Integer defaultApp;
-    /**
      * 业务所在时区
      */
     @JsonProperty("time_zone")

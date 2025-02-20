@@ -707,7 +707,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             List<BusinessInfoDTO> businessInfos = data.getInfo();
             if (businessInfos != null && !businessInfos.isEmpty()) {
                 for (BusinessInfoDTO businessInfo : businessInfos) {
-                    if (businessInfo.getDefaultApp() == 0) {
+                    if (businessInfo.getDeFault() == 0) {
                         ApplicationDTO applicationDTO = convertToAppInfo(
                             tenantId,
                             req.getBkSupplierAccount(),
