@@ -104,5 +104,6 @@ public class BizSetInfo {
     /**
      * 资源（业务/业务集/租户集）类型，1表示内置资源
      */
+    @JsonProperty("default")
     private Integer deFault;
 }

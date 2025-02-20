@@ -234,7 +234,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.BK_SCOPE_ID,
             T_APP.ATTRS,
             T_APP.IS_DELETED,
-            T_APP.TENANT_ID
+            T_APP.TENANT_ID,
+            T_APP.DEFAULT
         ).values(
             applicationDTO.getName(),
             applicationDTO.getBkSupplierAccount(),
@@ -244,7 +245,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             scope == null ? null : scope.getId(),
             applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.byteValue()),
-            applicationDTO.getTenantId()
+            applicationDTO.getTenantId(),
+            applicationDTO.getDeFault()
         );
         try {
             val record = query.returning(T_APP.APP_ID).fetchOne();
@@ -274,6 +276,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.TIMEZONE, applicationDTO.getTimeZone())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
             .set(T_APP.ATTRS, applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()))
+            .set(T_APP.DEFAULT, applicationDTO.getDeFault())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
     }
