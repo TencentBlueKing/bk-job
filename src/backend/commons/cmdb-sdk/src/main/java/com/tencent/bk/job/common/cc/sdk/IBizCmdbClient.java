@@ -141,17 +141,10 @@ public interface IBizCmdbClient {
     /**
      * 获取云区域
      *
+     * @param tenantId 租户ID
      * @return 云区域列表
      */
-    List<CcCloudAreaInfoDTO> getCloudAreaList();
-
-    /**
-     * 根据云区域 ID 获取云区域
-     *
-     * @param bkCloudId 云区域 ID
-     * @return 云区域
-     */
-    CcCloudAreaInfoDTO getCloudAreaByBkCloudId(Long bkCloudId);
+    List<CcCloudAreaInfoDTO> getCloudAreaList(String tenantId);
 
     /**
      * 根据IP查询主机

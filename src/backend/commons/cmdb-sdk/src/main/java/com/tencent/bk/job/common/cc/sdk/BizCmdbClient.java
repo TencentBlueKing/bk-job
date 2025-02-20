@@ -910,22 +910,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<CcCloudAreaInfoDTO> getCloudAreaList() {
-        return getCloudAreaByCondition(null);
+    public List<CcCloudAreaInfoDTO> getCloudAreaList(String tenantId) {
+        return getCloudAreaByCondition(tenantId, null);
     }
 
-    @Override
-    public CcCloudAreaInfoDTO getCloudAreaByBkCloudId(Long bkCloudId) {
-        Map<String, Object> fieldConditions = new HashMap<>();
-        fieldConditions.put("bk_cloud_id", bkCloudId);
-        List<CcCloudAreaInfoDTO> cloudAreas = getCloudAreaByCondition(fieldConditions);
-        if (CollectionUtils.isEmpty(cloudAreas)) {
-            return null;
-        }
-        return cloudAreas.get(0);
-    }
-
-    private List<CcCloudAreaInfoDTO> getCloudAreaByCondition(Map<String, Object> fieldConditions) {
+    private List<CcCloudAreaInfoDTO> getCloudAreaByCondition(String tenantId, Map<String, Object> fieldConditions) {
         List<CcCloudAreaInfoDTO> appCloudAreaList = new ArrayList<>();
         boolean isLastPage = false;
         int limit = 200;
@@ -939,7 +928,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             } else {
                 req.setCondition(Collections.emptyMap());
             }
-            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApiUseContextTenantId(
+            EsbResp<SearchCloudAreaResult> esbResp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 GET_CLOUD_AREAS,
                 null,

@@ -27,8 +27,6 @@ package com.tencent.bk.job.common.cc.config;
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
@@ -151,8 +149,4 @@ public class CmdbAutoConfiguration {
         );
     }
 
-    @Bean
-    public BkNetClient cloudAreaService(IBizCmdbClient bizCmdbClient) {
-        return new BkNetClient(bizCmdbClient);
-    }
 }

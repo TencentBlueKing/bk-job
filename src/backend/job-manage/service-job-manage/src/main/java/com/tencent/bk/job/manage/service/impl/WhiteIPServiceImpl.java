@@ -416,7 +416,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
         log.info("Input(" + username + ")");
         List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getCloudAreaList();
+            .getCloudAreaList(JobContextUtil.getTenantId());
         return cloudAreaInfoList.stream().map(it ->
             new CloudAreaInfoVO(it.getId(), it.getName())).collect(Collectors.toList());
     }
