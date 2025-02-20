@@ -73,7 +73,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.LANGUAGE,
         T_APP.IS_DELETED,
         T_APP.ATTRS,
-        T_APP.TENANT_ID
+        T_APP.TENANT_ID,
+        T_APP.DEFAULT
     };
 
     private final DSLContext dslContext;

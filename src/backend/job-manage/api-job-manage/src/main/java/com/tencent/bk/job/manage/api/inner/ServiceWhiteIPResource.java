@@ -32,7 +32,9 @@ import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -54,5 +56,9 @@ public interface ServiceWhiteIPResource {
 
     @ApiOperation(value = "获取某个租户下白名单内IP详情信息", produces = "application/json")
     @GetMapping("/service/whiteip/listWhiteIPInfosByTenantId")
-    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(String tenantId);
+    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(
+        @ApiParam("租户ID")
+        @RequestParam(value = "tenantId", required = true)
+        String tenantId
+    );
 }
