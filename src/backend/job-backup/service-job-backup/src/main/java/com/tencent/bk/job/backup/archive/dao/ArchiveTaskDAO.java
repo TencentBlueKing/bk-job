@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.archive.dao;
 
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
@@ -44,11 +44,11 @@ public interface ArchiveTaskDAO {
      *
      * @param taskType 归档任务类型
      */
-    JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType);
+    ArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType);
 
-    void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo);
+    void saveArchiveTask(ArchiveTaskInfo archiveTaskInfo);
 
-    List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType);
+    List<ArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType);
 
     /**
      * 获取归档任务
@@ -58,9 +58,19 @@ public interface ArchiveTaskDAO {
      * @param limit    查询条件 - 查询最大数量
      * @return 归档任务列表
      */
-    List<JobInstanceArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
-                                               ArchiveTaskStatusEnum status,
-                                               int limit);
+    List<ArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                    ArchiveTaskStatusEnum status,
+                                    int limit);
+
+    /**
+     * 获取归档任务
+     *
+     * @param status   查询条件 - 任务状态
+     * @param limit    查询条件 - 查询最大数量
+     * @return 归档任务列表
+     */
+    List<ArchiveTaskInfo> listTasks(ArchiveTaskStatusEnum status,
+                                    int limit);
 
     /**
      * 返回根据 db 分组的归档任务数量
@@ -124,7 +134,9 @@ public interface ArchiveTaskDAO {
                                     Long cost,
                                     ArchiveTaskExecutionDetail detail);
 
-    JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId);
+    ArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId);
+
+    ArchiveTaskInfo getFirstScheduleArchiveTask(ArchiveTaskTypeEnum taskType);
 
     void updateArchiveTaskStatus(ArchiveTaskTypeEnum taskType,
                                  DbDataNode dataNode,
@@ -140,4 +152,14 @@ public interface ArchiveTaskDAO {
                                Integer day,
                                Integer hour,
                                ArchiveTaskExecutionDetail detail);
+
+    /**
+     * 获取归档任务
+     *
+     * @param taskType 查询条件 - 任务类型
+     * @param day   查询条件 - 归档数据所在天
+     * @return 归档任务列表
+     */
+    List<ArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                    int day);
 }

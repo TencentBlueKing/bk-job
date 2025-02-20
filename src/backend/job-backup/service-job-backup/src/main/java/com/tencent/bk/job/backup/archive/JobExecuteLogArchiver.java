@@ -22,37 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive;
 
-import lombok.Getter;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
+/**
+ * 作业执行日志归档
+ */
+public interface JobExecuteLogArchiver {
+
     /**
-     * 作业实例数据归档
+     * 备份作业执行日志
+     *
+     * @param archiveDay 归档数据所在天
      */
-    JOB_INSTANCE(1),
+    BackupResult backupRecords(Integer archiveDay);
+
     /**
-     * 作业实例按业务冗余数据归档
+     * 删除作业执行日志
+     *
+     * @param archiveDay 归档数据所在天
      */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
-
-    private final int type;
-
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
-
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
-    }
+    DeleteResult deleteRecords(Integer archiveDay);
 }

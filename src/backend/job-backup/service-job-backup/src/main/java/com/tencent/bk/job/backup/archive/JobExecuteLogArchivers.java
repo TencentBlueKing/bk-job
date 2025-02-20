@@ -24,45 +24,23 @@
 
 package com.tencent.bk.job.backup.archive;
 
-/**
- * 作业执行实例归档任务
- */
-public interface JobInstanceArchiveTask {
+import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
+import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 
-    /**
-     * 执行任务
-     */
-    void execute();
+import java.util.ArrayList;
+import java.util.List;
 
-    /**
-     * 优雅终止任务
-     *
-     * @param stopCallback 回调
-     */
-    void stop(ArchiveTaskStopCallback stopCallback);
+public class JobExecuteLogArchivers {
 
-    /**
-     * 强制终止
-     */
-    void forceStopAtOnce();
+    private final List<JobExecuteLogArchiver> archivers = new ArrayList<>();
 
-    /**
-     * 注册任务完成回调函数
-     *
-     * @param archiveTaskDoneCallback 回调函数
-     */
-    void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
+    public JobExecuteLogArchivers(JobFileLogArchiver jobFileLogArchiver,
+                                  JobScriptLogArchiver jobScriptLogArchiver) {
+        this.archivers.add(jobFileLogArchiver);
+        this.archivers.add(jobScriptLogArchiver);
+    }
 
-    /**
-     * 获取任务 ID
-     */
-    String getTaskId();
-
-    /**
-     * 设置归档任务的 worker 信息
-     *
-     * @param archiveTaskWorker 归档任务执行线程
-     */
-    void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker);
-
+    public List<JobExecuteLogArchiver> getAll() {
+        return this.archivers;
+    }
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
@@ -82,11 +82,11 @@ public class AbnormalArchiveTaskReScheduler {
 
     private void reScheduleFailedTasks() {
         int readLimit = 100;
-        List<JobInstanceArchiveTaskInfo> failedTasks;
+        List<ArchiveTaskInfo> failedTasks;
         do {
             failedTasks =
-                archiveTaskService.listTasks(ArchiveTaskTypeEnum.JOB_INSTANCE, ArchiveTaskStatusEnum.FAIL,
-                    readLimit);
+                archiveTaskService.listTasks(ArchiveTaskStatusEnum.FAIL, readLimit);
+
             if (CollectionUtils.isEmpty(failedTasks)) {
                 return;
             }
@@ -106,7 +106,7 @@ public class AbnormalArchiveTaskReScheduler {
     }
 
     private void reScheduleTimeoutTasks() {
-        List<JobInstanceArchiveTaskInfo> runningTasks =
+        List<ArchiveTaskInfo> runningTasks =
             archiveTaskService.listRunningTasks(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (CollectionUtils.isEmpty(runningTasks)) {
             return;

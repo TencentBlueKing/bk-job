@@ -109,6 +109,10 @@ public class DbDataNode {
         return new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource, dbIndex, tableIndex);
     }
 
+    public static DbDataNode standaloneMongoDbDataNode() {
+        return new DbDataNode(DbDataNodeTypeEnum.SINGLE_MONGODB, null, null, null);
+    }
+
     @Override
     public DbDataNode clone() {
         return new DbDataNode(type, dataSource, dbIndex, tableIndex);

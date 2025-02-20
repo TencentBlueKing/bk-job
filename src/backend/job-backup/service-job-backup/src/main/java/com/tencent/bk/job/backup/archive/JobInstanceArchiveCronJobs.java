@@ -38,18 +38,26 @@ public class JobInstanceArchiveCronJobs {
 
     private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
 
+    private final JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator;
+
     private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
+
+    private final JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler;
 
     private final ArchiveProperties archiveProperties;
 
     private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
 
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+                                      JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
                                       JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+                                      JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
                                       ArchiveProperties archiveProperties,
                                       AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
+        this.jobExecuteLogArchiveTaskGenerator = jobExecuteLogArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
+        this.jobExecuteLogArchiveTaskScheduler = jobExecuteLogArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
         this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
     }
@@ -64,6 +72,7 @@ public class JobInstanceArchiveCronJobs {
         }
         log.info("Generate archive task start...");
         jobInstanceArchiveTaskGenerator.generate();
+        jobExecuteLogArchiveTaskGenerator.generate();
         log.info("Generate archive task done");
     }
 
@@ -77,6 +86,7 @@ public class JobInstanceArchiveCronJobs {
         }
         log.info("Schedule and execute archive task start...");
         jobInstanceArchiveTaskScheduler.schedule();
+        jobExecuteLogArchiveTaskScheduler.schedule();
         log.info("Schedule and execute archive task done");
     }
 

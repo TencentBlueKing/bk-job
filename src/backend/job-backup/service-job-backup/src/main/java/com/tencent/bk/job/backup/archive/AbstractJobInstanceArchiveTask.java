@@ -31,7 +31,7 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.BackupResult;
 import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TablesBackupResult;
 import com.tencent.bk.job.backup.archive.model.TablesDeleteResult;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * @param <T> 表记录
  */
 @Slf4j
-public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> implements JobInstanceArchiveTask {
+public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> implements JobHistoricalDataArchiveTask {
 
     /**
      * 作业实例主表 DAO
@@ -77,7 +77,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
     protected final ArchiveTablePropsStorage archiveTablePropsStorage;
 
     protected String taskId;
-    protected JobInstanceArchiveTaskInfo archiveTaskInfo;
+    protected ArchiveTaskInfo archiveTaskInfo;
 
     /**
      * 归档进度
@@ -114,7 +114,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>> i
                                           ArchiveProperties archiveProperties,
                                           ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                          JobInstanceArchiveTaskInfo archiveTaskInfo,
+                                          ArchiveTaskInfo archiveTaskInfo,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
         this.jobInstanceMainRecordDAO = jobInstanceMainRecordDAO;

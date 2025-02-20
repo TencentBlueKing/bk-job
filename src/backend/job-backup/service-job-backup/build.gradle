@@ -40,6 +40,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation "org.apache.commons:commons-collections4"
     implementation "commons-io:commons-io"
     implementation "ch.qos.logback:logback-core"

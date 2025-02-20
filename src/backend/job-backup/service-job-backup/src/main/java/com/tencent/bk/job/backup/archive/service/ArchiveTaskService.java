@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.service;
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
@@ -53,22 +53,22 @@ public class ArchiveTaskService {
      *
      * @param taskType 归档任务类型
      */
-    public JobInstanceArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
+    public ArchiveTaskInfo getLatestArchiveTask(ArchiveTaskTypeEnum taskType) {
         return archiveTaskDAO.getLatestArchiveTask(taskType);
     }
 
-    public void saveArchiveTask(JobInstanceArchiveTaskInfo jobInstanceArchiveTaskInfo) {
-        archiveTaskDAO.saveArchiveTask(jobInstanceArchiveTaskInfo);
+    public void saveArchiveTask(ArchiveTaskInfo archiveTaskInfo) {
+        archiveTaskDAO.saveArchiveTask(archiveTaskInfo);
     }
 
     @JobTransactional(transactionManager = "jobBackupTransactionManager")
-    public void saveArchiveTasks(Collection<JobInstanceArchiveTaskInfo> archiveTaskList) {
+    public void saveArchiveTasks(Collection<ArchiveTaskInfo> archiveTaskList) {
         if (CollectionUtils.isNotEmpty(archiveTaskList)) {
             archiveTaskList.forEach(archiveTaskDAO::saveArchiveTask);
         }
     }
 
-    public List<JobInstanceArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {
+    public List<ArchiveTaskInfo> listRunningTasks(ArchiveTaskTypeEnum taskType) {
         return archiveTaskDAO.listRunningTasks(taskType);
     }
 
@@ -80,10 +80,22 @@ public class ArchiveTaskService {
      * @param limit    查询条件 - 查询最大数量
      * @return 归档任务列表
      */
-    public List<JobInstanceArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
-                                                      ArchiveTaskStatusEnum status,
-                                                      int limit) {
+    public List<ArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                           ArchiveTaskStatusEnum status,
+                                           int limit) {
         return archiveTaskDAO.listTasks(taskType, status, limit);
+    }
+
+    /**
+     * 获取归档任务
+     *
+     * @param status   查询条件 - 任务状态
+     * @param limit    查询条件 - 查询最大数量
+     * @return 归档任务列表
+     */
+    public List<ArchiveTaskInfo> listTasks(ArchiveTaskStatusEnum status,
+                                           int limit) {
+        return archiveTaskDAO.listTasks(status, limit);
     }
 
     /**
@@ -180,8 +192,12 @@ public class ArchiveTaskService {
         );
     }
 
-    public JobInstanceArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {
+    public ArchiveTaskInfo getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum taskType, String dbNodeId) {
         return archiveTaskDAO.getFirstScheduleArchiveTaskByDb(taskType, dbNodeId);
+    }
+
+    public ArchiveTaskInfo getFirstScheduleArchiveTask(ArchiveTaskTypeEnum taskType) {
+        return archiveTaskDAO.getFirstScheduleArchiveTask(taskType);
     }
 
     /**
@@ -228,5 +244,17 @@ public class ArchiveTaskService {
                                       Integer hour,
                                       ArchiveTaskExecutionDetail detail) {
         archiveTaskDAO.updateExecutionDetail(taskType, dataNode, day, hour, detail);
+    }
+
+    /**
+     * 获取归档任务
+     *
+     * @param taskType 查询条件 - 任务类型
+     * @param day   查询条件 - 归档数据所在天
+     * @return 归档任务列表
+     */
+    public List<ArchiveTaskInfo> listTasks(ArchiveTaskTypeEnum taskType,
+                                           Integer day) {
+        return archiveTaskDAO.listTasks(taskType, day);
     }
 }
