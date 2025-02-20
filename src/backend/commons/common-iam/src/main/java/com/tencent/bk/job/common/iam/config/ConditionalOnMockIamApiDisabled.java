@@ -22,31 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.iam.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Getter
-@Setter
-public class PlatDTO {
-    /**
-     * 平台
-     */
-    @JsonProperty("bk_cloud_id")
-    private Integer source;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    /**
-     * 平台名称
-     */
-    @JsonProperty("bk_cloud_name")
-    private String platformName;
-
-    /**
-     * 平台对应的开发商
-     */
-    @JsonProperty("bk_supplier_account")
-    private String platformCompany;
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "mockApi.iam.enabled",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public @interface ConditionalOnMockIamApiDisabled {
 
 }

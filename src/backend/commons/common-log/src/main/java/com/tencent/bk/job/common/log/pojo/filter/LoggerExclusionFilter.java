@@ -22,19 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.result;
+package com.tencent.bk.job.common.log.pojo.filter;
 
-import com.tencent.bk.job.common.model.dto.PlatDTO;
-import lombok.Data;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.filter.AbstractMatcherFilter;
+import ch.qos.logback.core.spi.FilterReply;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @description
- * @date 2019/3/5
+ * 排除特定logger打出的日志
  */
-@Data
-public class SearchPlatResult {
-    private Integer count;
-    private List<PlatDTO> info;
+public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> {
+    private final Set<String> exclusiveLoggerSet = new HashSet<>();
+
+    public void addExclusiveLogger(String exclusiveLogger) {
+        this.exclusiveLoggerSet.add(exclusiveLogger);
+    }
+
+    @Override
+    public FilterReply decide(ILoggingEvent event) {
+        if (!isStarted()) {
+            return FilterReply.NEUTRAL;
+        }
+
+        if (exclusiveLoggerSet.contains(event.getLoggerName())) {
+            return onMatch;
+        }
+
+        return onMismatch;
+    }
+
+    public void start() {
+        super.start();
+    }
 }

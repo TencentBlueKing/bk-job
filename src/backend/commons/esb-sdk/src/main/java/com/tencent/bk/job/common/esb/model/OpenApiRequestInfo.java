@@ -152,8 +152,8 @@ public class OpenApiRequestInfo<T> {
             return this;
         }
 
-        public Builder<T> setHeaders(List<Header> herders) {
-            this.headers = herders;
+        public Builder<T> setHeaders(List<Header> headers) {
+            this.headers = headers;
             return this;
         }
 

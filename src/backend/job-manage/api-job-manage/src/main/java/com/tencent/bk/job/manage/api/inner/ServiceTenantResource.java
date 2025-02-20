@@ -22,27 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.manage.api.inner;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class HostTopoRelationDTO {
-    @JsonProperty("bk_biz_id")
-    private Long appId;
-    @JsonProperty("bk_host_id")
-    private Long hostId;
-    @JsonProperty("bk_module_id")
-    private Long moduleId;
-    @JsonProperty("bk_set_id")
-    private Long setId;
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
+import java.util.List;
+
+@Api(tags = {"job-manage:service:Tenant"})
+@SmartFeignClient(value = "job-manage", contextId = "tenantResource")
+@InternalAPI
+public interface ServiceTenantResource {
+
+    @ApiOperation(value = "获取启用的租户信息", produces = "application/json")
+    @GetMapping("/service/tenant/listEnabledTenant")
+    InternalResponse<List<TenantDTO>> listEnabledTenant();
 }

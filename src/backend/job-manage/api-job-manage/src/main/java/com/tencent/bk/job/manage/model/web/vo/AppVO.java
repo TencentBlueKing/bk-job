@@ -44,6 +44,8 @@ public class AppVO {
     private String scopeType;
     @ApiModelProperty("资源范围ID")
     private String scopeId;
+    @ApiModelProperty("是否为系统内置的资源：1-是 0-否")
+    private boolean builtIn;
     @ApiModelProperty("业务名称")
     private String name;
     @ApiModelProperty("是否有权限")
@@ -57,6 +59,7 @@ public class AppVO {
     public AppVO(Long id,
                  String scopeType,
                  String scopeId,
+                 boolean builtIn,
                  String name,
                  Boolean hasPermission,
                  Boolean favor,
@@ -64,6 +67,7 @@ public class AppVO {
         this.id = id;
         this.scopeType = scopeType;
         this.scopeId = scopeId;
+        this.builtIn = builtIn;
         this.name = name;
         this.hasPermission = hasPermission;
         this.favor = favor;

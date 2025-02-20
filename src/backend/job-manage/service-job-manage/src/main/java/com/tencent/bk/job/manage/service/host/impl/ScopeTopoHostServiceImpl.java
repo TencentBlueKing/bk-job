@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -39,6 +38,7 @@ import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +66,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
     private final TopologyHelper topologyHelper;
     private final AgentStatusService agentStatusService;
     private final MessageI18nService i18nService;
+    private final BkNetService bkNetService;
 
     @Autowired
     public ScopeTopoHostServiceImpl(ApplicationHostDAO applicationHostDAO,
@@ -73,13 +74,15 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
                                     HostTopoDAO hostTopoDAO,
                                     TopologyHelper topologyHelper,
                                     AgentStatusService agentStatusService,
-                                    MessageI18nService i18nService) {
+                                    MessageI18nService i18nService,
+                                    BkNetService bkNetService) {
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
         this.agentStatusService = agentStatusService;
         this.i18nService = i18nService;
+        this.bkNetService = bkNetService;
     }
 
     @Override
@@ -264,7 +267,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
     private void fillCloudAreaName(List<ApplicationHostDTO> hostDTOList) {
         hostDTOList.forEach(hostDTO ->
-            hostDTO.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
+            hostDTO.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
         );
     }
 }

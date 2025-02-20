@@ -29,10 +29,9 @@ import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.constants.CmdbMetricNames;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -44,14 +43,18 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.http.WatchableHttpHelper;
+import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
@@ -61,22 +64,21 @@ import java.util.Map;
  * CMDB API 基础实现
  */
 @Slf4j
-public class BaseCmdbApiClient {
-    protected static final String SEARCH_BIZ_INST_TOPO = "/api/c/compapi/v2/cc/search_biz_inst_topo/";
-    protected static final String GET_BIZ_INTERNAL_MODULE = "/api/c/compapi/v2/cc/get_biz_internal_module/";
-    protected static final String LIST_BIZ_HOSTS = "/api/c/compapi/v2/cc/list_biz_hosts/";
-    protected static final String LIST_HOSTS_WITHOUT_BIZ = "/api/c/compapi/v2/cc/list_hosts_without_biz/";
-    protected static final String FIND_HOST_BIZ_RELATIONS = "/api/c/compapi/v2/cc/find_host_biz_relations/";
-    protected static final String LIST_BIZ_HOSTS_TOPO = "/api/c/compapi/v2/cc/list_biz_hosts_topo/";
-    protected static final String FIND_MODULE_HOST_RELATION = "/api/c/compapi/v2/cc/find_module_host_relation/";
-    protected static final String RESOURCE_WATCH = "/api/c/compapi/v2/cc/resource_watch/";
-    protected static final String SEARCH_BUSINESS = "/api/c/compapi/v2/cc/search_business/";
-    protected static final String GET_CLOUD_AREAS = "/api/c/compapi/v2/cc/search_cloud_area/";
-    protected static final String GET_OBJ_ATTRIBUTES = "/api/c/compapi/v2/cc/search_object_attribute/";
-    protected static final String GET_TOPO_NODE_PATHS = "/api/c/compapi/v2/cc/find_topo_node_paths/";
-    protected static final String SEARCH_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/search_dynamic_group/";
-    protected static final String EXECUTE_DYNAMIC_GROUP = "/api/c/compapi/v2/cc/execute_dynamic_group/";
-    protected static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/c/compapi/v2/cc/get_biz_brief_cache_topo/";
+public class BaseCmdbClient extends BkApiV1Client {
+    protected static final String SEARCH_BIZ_INST_TOPO = "/api/v3/find/topoinst/biz/{bk_biz_id}";
+    protected static final String GET_BIZ_INTERNAL_MODULE = "/api/v3/topo/internal/{bk_supplier_account}/{bk_biz_id}";
+    protected static final String LIST_BIZ_HOSTS = "/api/v3/hosts/app/{bk_biz_id}/list_hosts";
+    protected static final String LIST_HOSTS_WITHOUT_BIZ = "/api/v3/hosts/list_hosts_without_app";
+    protected static final String FIND_HOST_BIZ_RELATIONS = "/api/v3/hosts/modules/read";
+    protected static final String FIND_MODULE_HOST_RELATION = "/api/v3/findmany/module_relation/bk_biz_id/{bk_biz_id}";
+    protected static final String RESOURCE_WATCH = "/api/v3/event/watch/resource/{bk_resource}";
+    protected static final String SEARCH_BUSINESS = "/api/v3/biz/search/{bk_supplier_account}";
+    protected static final String GET_CLOUD_AREAS = "/api/v3/findmany/cloudarea";
+    protected static final String GET_OBJ_ATTRIBUTES = "/api/v3/find/objectattr";
+    protected static final String GET_TOPO_NODE_PATHS = "/api/v3/cache/find/cache/topo/node_path/biz/{bk_biz_id}";
+    protected static final String SEARCH_DYNAMIC_GROUP = "/api/v3/dynamicgroup/search/{bk_biz_id}";
+    protected static final String EXECUTE_DYNAMIC_GROUP = "/api/v3/dynamicgroup/data/{bk_biz_id}/{id}";
+    protected static final String GET_BIZ_BRIEF_CACHE_TOPO = "/api/v3/cache/find/cache/topo/brief/biz/{bk_biz_id}";
 
     // 容器相关 API
     protected static final String LIST_KUBE_CONTAINER_BY_TOPO = "/api/v3/findmany/kube/container/by_topo";
@@ -86,27 +88,20 @@ public class BaseCmdbApiClient {
     protected static final String LIST_KUBE_WORKLOAD = "/api/v3/findmany/kube/workload/{kind}";
 
     // 业务集相关 API
-    protected static final String SEARCH_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_set/";
-    protected static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/c/compapi/v2/cc/list_business_in_business_set/";
+    protected static final String SEARCH_BUSINESS_SET = "/api/v3/findmany/biz_set";
+    protected static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/v3/find/biz_set/biz_list";
 
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
 
     protected final String cmdbSupplierAccount;
-    protected final BkApiAuthorization cmdbBkApiAuthorization;
+    protected final AppProperties appProperties;
 
     /**
      * 对整个应用中所有的CMDB调用进行限流
      */
     protected final FlowController globalFlowController;
     protected final CmdbConfig cmdbConfig;
-    /**
-     * CMDB ESB API 客户端
-     */
-    protected BkApiV1Client esbCmdbApiClient;
-    /**
-     * CMDB 蓝鲸网关 API 客户端
-     */
-    protected BkApiV1Client apiGwCmdbApiClient;
+    protected final HttpHelper cmdbHttpHelper;
 
     static {
         interfaceNameMap.put(SEARCH_BIZ_INST_TOPO, "search_biz_inst_topo");
@@ -114,7 +109,6 @@ public class BaseCmdbApiClient {
         interfaceNameMap.put(LIST_BIZ_HOSTS, "list_biz_hosts");
         interfaceNameMap.put(LIST_HOSTS_WITHOUT_BIZ, "list_hosts_without_biz");
         interfaceNameMap.put(FIND_HOST_BIZ_RELATIONS, "find_host_biz_relations");
-        interfaceNameMap.put(LIST_BIZ_HOSTS_TOPO, "list_biz_hosts_topo");
         interfaceNameMap.put(FIND_MODULE_HOST_RELATION, "find_module_host_relation");
         interfaceNameMap.put(RESOURCE_WATCH, "resource_watch");
         interfaceNameMap.put(SEARCH_BUSINESS, "search_business");
@@ -124,41 +118,46 @@ public class BaseCmdbApiClient {
         interfaceNameMap.put(SEARCH_DYNAMIC_GROUP, "search_dynamic_group");
         interfaceNameMap.put(EXECUTE_DYNAMIC_GROUP, "execute_dynamic_group");
         interfaceNameMap.put(GET_BIZ_BRIEF_CACHE_TOPO, "get_biz_brief_cache_topo");
-        interfaceNameMap.put(SEARCH_BUSINESS_SET, "list_business_set");
+        interfaceNameMap.put(SEARCH_BUSINESS_SET, "search_business_set");
+        interfaceNameMap.put(SEARCH_BIZ_IN_BUSINESS_SET, "search_biz_in_business_set");
+        interfaceNameMap.put(LIST_KUBE_CLUSTER, "list_kube_cluster");
+        interfaceNameMap.put(LIST_KUBE_NAMESPACE, "list_kube_namespace");
+        interfaceNameMap.put(LIST_KUBE_WORKLOAD, "list_kube_workload");
         interfaceNameMap.put(LIST_KUBE_CONTAINER_BY_TOPO, "list_kube_container_by_topo");
         interfaceNameMap.put(GET_BIZ_KUBE_CACHE_TOPO, "get_biz_kube_cache_topo");
     }
 
-    protected BaseCmdbApiClient(FlowController flowController,
-                                AppProperties appProperties,
-                                EsbProperties esbProperties,
-                                BkApiGatewayProperties bkApiGatewayProperties,
-                                CmdbConfig cmdbConfig,
-                                MeterRegistry meterRegistry,
-                                TenantEnvService tenantEnvService,
-                                String lang) {
-        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
-        this.esbCmdbApiClient = new BkApiV1Client(meterRegistry,
-            CmdbMetricNames.CMDB_API_PREFIX,
-            esbProperties.getService().getUrl(),
-            httpHelper,
-            lang,
-            tenantEnvService
-        );
-        this.esbCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
-        this.apiGwCmdbApiClient = new BkApiV1Client(meterRegistry,
+    protected BaseCmdbClient(FlowController flowController,
+                             AppProperties appProperties,
+                             BkApiGatewayProperties bkApiGatewayProperties,
+                             CmdbConfig cmdbConfig,
+                             MeterRegistry meterRegistry,
+                             TenantEnvService tenantEnvService,
+                             String lang) {
+        super(
+            meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            httpHelper,
+            HttpHelperFactory.getRetryableHttpHelper(),
             lang,
             tenantEnvService
         );
-        this.apiGwCmdbApiClient.setLogger(LoggerFactory.getLogger(this.getClass()));
+        this.setLogger(LoggerFactory.getLogger(this.getClass()));
         this.globalFlowController = flowController;
         this.cmdbConfig = cmdbConfig;
         this.cmdbSupplierAccount = cmdbConfig.getDefaultSupplierAccount();
-        this.cmdbBkApiAuthorization = BkApiAuthorization.appAuthorization(
-            appProperties.getCode(), appProperties.getSecret(), "admin");
+        this.appProperties = appProperties;
+        this.cmdbHttpHelper = HttpHelperFactory.createHttpHelper(
+            15000,
+            15000,
+            35000,
+            500,
+            1000,
+            60,
+            true,
+            new JobHttpRequestRetryHandler(),
+            httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+        );
     }
 
 
@@ -166,23 +165,44 @@ public class BaseCmdbApiClient {
         return EsbReq.buildRequest(reqClass, cmdbSupplierAccount);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
+    protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uri,
+                                                              String queryParams,
+                                                              EsbReq reqBody,
+                                                              TypeReference<EsbResp<R>> typeReference) {
+        return requestCmdbApiUseContextTenantId(method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
+    }
+
+    protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uri,
+                                                              String queryParams,
+                                                              EsbReq reqBody,
+                                                              TypeReference<EsbResp<R>> typeReference,
+                                                              HttpHelper httpHelper) {
+        String tenantId = JobContextUtil.getTenantId();
+        if (StringUtils.isNotBlank(tenantId)) {
+            return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, httpHelper);
+        } else {
+            throw new InternalException("tenantId is blank", ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    protected <R> EsbResp<R> requestCmdbApi(String tenantId,
                                             HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(apiGwType, method, uri, queryParams, reqBody, typeReference, null);
+        return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
     }
 
-    protected <R> EsbResp<R> requestCmdbApi(ApiGwType apiGwType,
+    protected <R> EsbResp<R> requestCmdbApi(String tenantId,
                                             HttpMethodEnum method,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference,
                                             HttpHelper httpHelper) {
-
         String apiName = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
             if (globalFlowController != null && globalFlowController.isReady()) {
@@ -206,11 +226,12 @@ public class BaseCmdbApiClient {
                 .builder()
                 .method(method)
                 .uri(uri)
+                .addHeader(buildTenantHeader(tenantId))
                 .queryParams(queryParams)
                 .body(reqBody)
-                .authorization(cmdbBkApiAuthorization)
+                .authorization(buildAuthorization(appProperties, tenantId))
                 .build();
-            return getApiClientByApiGwType(apiGwType).doRequest(requestInfo, typeReference, httpHelper);
+            return doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
                 + queryParams + "|body="
@@ -222,15 +243,5 @@ public class BaseCmdbApiClient {
         }
     }
 
-    private BkApiV1Client getApiClientByApiGwType(ApiGwType apiGwType) {
-        switch (apiGwType) {
-            case ESB:
-                return esbCmdbApiClient;
-            case BK_APIGW:
-                return apiGwCmdbApiClient;
-            default:
-                log.error("BkApiClient for type: {} not found", apiGwType.name());
-                throw new InternalException(ErrorCode.INTERNAL_ERROR);
-        }
-    }
+
 }

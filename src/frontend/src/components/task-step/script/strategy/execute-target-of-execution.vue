@@ -32,6 +32,7 @@
     from="execute"
     mode="onlyHost"
     property="targetServers"
+    :windows-interpreter="formData[windowsInterpreterField]"
     @on-change="handleTargetChange" />
 </template>
 <script>
@@ -43,6 +44,10 @@
     },
     props: {
       field: {
+        type: String,
+        required: true,
+      },
+      windowsInterpreterField: {
         type: String,
         required: true,
       },

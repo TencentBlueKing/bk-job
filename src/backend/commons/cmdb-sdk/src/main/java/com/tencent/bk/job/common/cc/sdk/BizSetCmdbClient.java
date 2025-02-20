@@ -46,8 +46,6 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.constants.ApiGwType;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
@@ -70,18 +68,24 @@ import java.util.Set;
  * cmdb API Client - 业务集相关
  */
 @Slf4j
-public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbClient {
+public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClient {
 
 
     public BizSetCmdbClient(AppProperties appProperties,
-                            EsbProperties esbProperties,
                             BkApiGatewayProperties bkApiGatewayProperties,
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
                             MeterRegistry meterRegistry,
                             TenantEnvService tenantEnvService) {
-        super(flowController, appProperties, esbProperties,
-            bkApiGatewayProperties, cmdbConfig, meterRegistry, tenantEnvService, null);
+        super(
+            flowController,
+            appProperties,
+            bkApiGatewayProperties,
+            cmdbConfig,
+            meterRegistry,
+            tenantEnvService,
+            null
+        );
     }
 
     /**
@@ -89,7 +93,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
      *
      * @return 业务集数量
      */
-    public int searchBizSetCount() {
+    public int searchBizSetCount(String tenantId) {
         SearchBizSetReq req = EsbReq.buildRequest(SearchBizSetReq.class, cmdbSupplierAccount);
         Page page = new Page();
         page.setStart(0);
@@ -99,7 +103,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(null);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -120,15 +124,15 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
      *
      * @return 业务集信息列表
      */
-    public List<BizSetInfo> searchAllBizSet() {
-        int bizSetCount = searchBizSetCount();
+    public List<BizSetInfo> searchAllBizSet(String tenantId) {
+        int bizSetCount = searchBizSetCount(tenantId);
         log.info("{} bizSet found in cmdb", bizSetCount);
         // 分批查询
         int limit = 500;
         int start = 0;
         List<BizSetInfo> bizSetInfoList = new ArrayList<>();
         while (start < bizSetCount) {
-            bizSetInfoList.addAll(searchBizSet(null, start, limit));
+            bizSetInfoList.addAll(searchBizSet(tenantId, null, start, limit));
             start += limit;
         }
         return bizSetInfoList;
@@ -137,9 +141,11 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     /**
      * 查询业务集信息
      *
+     * @param tenantId  租户ID
+     * @param bizSetIds 业务集ID集合
      * @return 业务集信息列表
      */
-    public List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds) {
+    public List<BizSetInfo> listBizSetByIds(String tenantId, List<Long> bizSetIds) {
         BizSetFilter filter = new BizSetFilter();
         filter.setCondition(BizSetFilter.CONDITION_AND);
         Rule bizSetIdRule = new Rule();
@@ -147,7 +153,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         bizSetIdRule.setOperator(RuleOperatorEnum.IN.getOperator());
         bizSetIdRule.setValue(bizSetIds);
         filter.setRules(Collections.singletonList(bizSetIdRule));
-        List<BizSetInfo> bizSetInfoList = searchBizSet(filter, 0, bizSetIds.size());
+        List<BizSetInfo> bizSetInfoList = searchBizSet(tenantId, filter, 0, bizSetIds.size());
 
         if (bizSetInfoList == null) {
             return new ArrayList<>();
@@ -157,7 +163,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
             // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
             if (scope != null && !scope.isMatchAll()) {
-                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                List<BizInfo> bizList = searchBizInBizSet(tenantId, bizSetInfo.getId());
                 bizSetInfo.setBizList(bizList);
             }
         });
@@ -167,12 +173,13 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     /**
      * 查询业务集信息
      *
-     * @param filter 查询条件
-     * @param start  分页起始
-     * @param limit  每页大小
+     * @param tenantId 租户ID
+     * @param filter   查询条件
+     * @param start    分页起始
+     * @param limit    每页大小
      * @return 业务集信息列表
      */
-    private List<BizSetInfo> searchBizSet(BizSetFilter filter, int start, int limit) {
+    private List<BizSetInfo> searchBizSet(String tenantId, BizSetFilter filter, int start, int limit) {
         SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
         Page page = new Page();
         page.setEnableCount(false);
@@ -182,7 +189,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setFilter(filter);
         try {
             EsbResp<SearchBizSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
                 null,
@@ -213,8 +220,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         page.setLimit(0);
         req.setPage(page);
         try {
-            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
+            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -233,9 +239,11 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     /**
      * 查询业务集内业务信息
      *
+     * @param tenantId 租户ID
+     * @param bizSetId 业务集ID
      * @return 业务ID列表
      */
-    public List<BizInfo> searchBizInBizSet(long bizSetId) {
+    public List<BizInfo> searchBizInBizSet(String tenantId, long bizSetId) {
         int bizCount = searchBizCountInBusinessSet(bizSetId);
         log.info("{} biz found in bizSet {} from cmdb", bizCount, bizSetId);
         // 分批查询
@@ -243,13 +251,13 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         int start = 0;
         List<BizInfo> bizInfoList = new ArrayList<>();
         while (start < bizCount) {
-            bizInfoList.addAll(searchBizInBizSet(bizSetId, start, limit));
+            bizInfoList.addAll(searchBizInBizSet(tenantId, bizSetId, start, limit));
             start += limit;
         }
         return bizInfoList;
     }
 
-    private List<BizInfo> searchBizInBizSet(long bizSetId, int start, int limit) {
+    private List<BizInfo> searchBizInBizSet(String tenantId, long bizSetId, int start, int limit) {
         SearchBizInBusinessReq req = makeCmdbBaseReq(SearchBizInBusinessReq.class);
         req.setBizSetId(bizSetId);
         Page page = new Page();
@@ -259,7 +267,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setPage(page);
         try {
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
-                ApiGwType.ESB,
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -276,13 +284,14 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     }
 
     @Override
-    public List<BizSetInfo> listAllBizSets() {
-        List<BizSetInfo> bizSetInfoList = searchAllBizSet();
+    public List<BizSetInfo> listAllBizSets(String tenantId) {
+        List<BizSetInfo> bizSetInfoList = searchAllBizSet(tenantId);
         bizSetInfoList.forEach(bizSetInfo -> {
+            bizSetInfo.setTenantId(tenantId);
             // 查询业务集下包含的子业务(全业务除外)
             BizSetScope scope = bizSetInfo.getScope();
             if (scope != null && !scope.isMatchAll()) {
-                List<BizInfo> bizList = searchBizInBizSet(bizSetInfo.getId());
+                List<BizInfo> bizList = searchBizInBizSet(tenantId, bizSetInfo.getId());
                 bizSetInfo.setBizList(bizList);
             }
         });
@@ -294,15 +303,15 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList(
             "bk_biz_set_id", "bk_biz_set_name", "bk_biz_maintainer",
-            "bk_supplier_account", "time_zone", "language"));
+            "bk_supplier_account", "time_zone", "language", "default"));
         req.setResource("biz_set");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
-            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
-                ApiGwType.ESB,
+            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                RESOURCE_WATCH,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetEventDetail>>>() {
@@ -324,11 +333,11 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         req.setResource("biz_set_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
+        String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
-            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
-                ApiGwType.ESB,
+            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
-                RESOURCE_WATCH,
+                uri,
                 null,
                 req,
                 new TypeReference<EsbResp<ResourceWatchResult<BizSetRelationEventDetail>>>() {
@@ -344,13 +353,13 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     }
 
     @Override
-    public Set<String> listUsersByRole(Long bizSetId, String role) {
+    public Set<String> listUsersByRole(String tenantId, Long bizSetId, String role) {
         if (!"bk_biz_maintainer".equals(role)) {
             log.warn("Unavailable role for biz set! role: {}", role);
             return Collections.emptySet();
         }
 
-        BizSetInfo bizSet = queryBizSet(bizSetId);
+        BizSetInfo bizSet = queryBizSet(tenantId, bizSetId);
         if (bizSet == null) {
             log.warn("BizSet: {} is not exist", bizSetId);
             return Collections.emptySet();
@@ -370,7 +379,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
     }
 
     @Override
-    public BizSetInfo queryBizSet(Long bizSetId) {
+    public BizSetInfo queryBizSet(String tenantId, Long bizSetId) {
         BizSetFilter filter = new BizSetFilter();
         filter.setCondition(RuleConditionEnum.AND.getCondition());
         Rule bizSetIdRule = new Rule();
@@ -378,7 +387,7 @@ public class BizSetCmdbClient extends BaseCmdbApiClient implements IBizSetCmdbCl
         bizSetIdRule.setOperator("equal");
         bizSetIdRule.setValue(bizSetId);
         filter.setRules(Collections.singletonList(bizSetIdRule));
-        List<BizSetInfo> results = searchBizSet(filter, 0, 1);
+        List<BizSetInfo> results = searchBizSet(tenantId, filter, 0, 1);
         return CollectionUtils.isEmpty(results) ? null : results.get(0);
     }
 }

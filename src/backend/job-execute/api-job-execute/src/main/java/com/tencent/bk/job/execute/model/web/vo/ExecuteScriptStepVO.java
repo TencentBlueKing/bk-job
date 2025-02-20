@@ -52,6 +52,9 @@ public class ExecuteScriptStepVO {
     @ApiModelProperty("脚本参数")
     private String scriptParam;
 
+    @ApiModelProperty("自定义Windows解释器路径")
+    private String windowsInterpreter;
+
     @ApiModelProperty("脚本超时时间")
     private Integer timeout;
 

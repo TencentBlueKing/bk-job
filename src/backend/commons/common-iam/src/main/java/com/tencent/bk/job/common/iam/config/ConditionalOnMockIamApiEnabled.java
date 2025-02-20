@@ -22,31 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.common.iam.config;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE_USE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
-@Retention(RUNTIME)
-@Constraint(validatedBy = MaxLengthValidator.class)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface MaxLength {
-    long value();
+@Inherited
+@ConditionalOnProperty(
+    value = "mockApi.iam.enabled",
+    havingValue = "true"
+)
+public @interface ConditionalOnMockIamApiEnabled {
 
-    String message() default "{validation.constraints.ExceedMaxLength.message}";
-
-    Class<?>[] groups() default {};
-
-    Class<? extends Payload>[] payload() default {};
 }

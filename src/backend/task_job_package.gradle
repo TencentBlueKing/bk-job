@@ -79,7 +79,7 @@ task postProcessRelease(type: GenCompleteDependJarListAndRemoveInfectedJarsTask)
     remove "logback-classic-.*jar"
     remove "logback-core-.*jar"
     remove "mchange-commons-java-.*jar"
-    remove "mysql-connector-java-.*jar"
+    remove "com.mysql:mysql-connector-j-.*jar"
     remove "org.eclipse.jgit-.*jar"
     remove "org.eclipse.jgit.http.apache-.*jar"
     remove "reactive-streams-.*jar"

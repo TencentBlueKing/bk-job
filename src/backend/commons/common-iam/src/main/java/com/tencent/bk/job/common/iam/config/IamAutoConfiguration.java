@@ -25,8 +25,13 @@
 package com.tencent.bk.job.common.iam.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
+import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
+import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.iam.client.IIamClient;
+import com.tencent.bk.job.common.iam.client.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
@@ -52,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 
 @Import({IamAspectConfiguration.class, IamInterceptorConfiguration.class})
 @EnableConfigurationProperties(JobIamProperties.class)
@@ -109,13 +115,13 @@ public class IamAutoConfiguration {
 
     @Bean
     public AuthService authService(AuthHelper authHelper,
-                                   IamConfiguration iamConfiguration,
-                                   EsbProperties esbProperties,
                                    MessageI18nService i18nService,
-                                   ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                   TenantEnvService tenantEnvService) {
-        return new AuthServiceImpl(authHelper, iamConfiguration, esbProperties, i18nService,
-            meterRegistryObjectProvider.getIfAvailable(), tenantEnvService);
+                                   IIamClient iamClient) {
+        return new AuthServiceImpl(
+            authHelper,
+            i18nService,
+            iamClient
+        );
     }
 
     @Bean
@@ -126,7 +132,8 @@ public class IamAutoConfiguration {
                                          JobIamProperties jobIamProperties,
                                          EsbProperties esbProperties,
                                          ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                         TenantEnvService tenantEnvService) {
+                                         TenantEnvService tenantEnvService,
+                                         IIamClient iamClient) {
         return new AppAuthServiceImpl(
             authHelper,
             businessAuthHelper,
@@ -135,8 +142,44 @@ public class IamAutoConfiguration {
             jobIamProperties,
             esbProperties,
             meterRegistryObjectProvider.getIfAvailable(),
+            tenantEnvService,
+            iamClient
+        );
+    }
+
+    @Bean
+    @ConditionalOnMockIamApiDisabled
+    public IIamClient esbIamClient(MeterRegistry meterRegistry,
+                                   IamConfiguration iamConfiguration,
+                                   EsbProperties esbProperties,
+                                   TenantEnvService tenantEnvService) {
+        return new EsbIamClient(
+            meterRegistry,
+            new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
+            esbProperties,
             tenantEnvService
         );
+    }
+
+    @Primary
+    @Bean
+    @ConditionalOnMockIamApiDisabled
+    public IIamClient apiGwIamClient(MeterRegistry meterRegistry,
+                                     IamConfiguration iamConfiguration,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
+                                     TenantEnvService tenantEnvService) {
+        return new ApiGwIamClient(
+            meterRegistry,
+            new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
+            bkApiGatewayProperties,
+            tenantEnvService
+        );
+    }
+
+    @Bean
+    @ConditionalOnMockIamApiEnabled
+    public IIamClient mockedIamClient() {
+        return new MockIamClient();
     }
 
 }

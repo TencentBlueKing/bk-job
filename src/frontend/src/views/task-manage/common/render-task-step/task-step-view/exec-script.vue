@@ -75,6 +75,11 @@
           readonly
           :value="stepInfo.scriptParamText || '--'" />
       </detail-item>
+      <detail-item
+        v-if="stepInfo.windowsInterpreter"
+        :label="$t('template.解释器：')">
+        {{ stepInfo.windowsInterpreter }}
+      </detail-item>
       <detail-item :label="$t('template.超时时长：')">
         {{ stepInfo.timeout }}（s）
       </detail-item>

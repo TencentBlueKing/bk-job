@@ -36,6 +36,16 @@ import java.util.List;
 @ApiModel("批量保存执行日志请求")
 @Data
 public class ServiceBatchSaveLogRequest {
+
+    @ApiModelProperty(value = "Job业务ID", required = true)
+    private Long appId;
+
+    @ApiModelProperty(value = "定时任务ID", required = true)
+    private Long cronTaskId;
+
+    @ApiModelProperty(value = "API调用的作业，调用方appCode", required = true)
+    private String appCode;
+
     /**
      * 作业实例创建时间
      */

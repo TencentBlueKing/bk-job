@@ -54,6 +54,8 @@ data:
         url: {{ .Values.bkUserApiGatewayUrl }}
       bkLogin:
         url: {{ .Values.bkLoginApiGatewayUrl }}
+      bkIam:
+        url: {{ .Values.bkIamApiGatewayUrl }}
     gse:
       enabled: {{ .Values.gse.enabled }}
       cache:
@@ -186,3 +188,6 @@ data:
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
     tenant:
       enabled:  {{ .Values.tenant.enabled }}
+    # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
+    mockApi:
+      {{- toYaml .Values.mockApi | nindent 6 }}

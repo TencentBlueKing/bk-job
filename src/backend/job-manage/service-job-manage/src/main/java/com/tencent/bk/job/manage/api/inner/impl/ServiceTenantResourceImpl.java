@@ -22,57 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
+import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tencent.bk.job.manage.service.TenantService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.Serializable;
+import java.util.List;
 
-/**
- * 蓝鲸平台用户信息,仅用于转换ESB API 调用返回的数据
- */
-@Getter
-@Setter
-@ToString
-public class EsbUserDto implements Serializable {
+@Slf4j
+@RestController
+public class ServiceTenantResourceImpl implements ServiceTenantResource {
 
-    /**
-     * 用户名
-     */
-    @JsonProperty("bk_username")
-    private String username;
+    private final TenantService tenantService;
 
-    @JsonProperty("bk_role")
-    private int role;
+    public ServiceTenantResourceImpl(TenantService tenantService) {
+        this.tenantService = tenantService;
+    }
 
-    private String qq;
-
-    private String phone;
-
-    private String email;
-
-    /**
-     * 中文名称
-     */
-    private String chname;
-
-    private String language;
-
-    @JsonProperty("time_zone")
-    private String timeZone;
-
-    /**
-     * 企业号用户USERID/公众号用户OPENID
-     */
-    @JsonProperty("wx_userid")
-    private String wxUserId;
-
-    /**
-     * 开发商code
-     */
-    @JsonProperty("bk_supplier_account")
-    private String owner;
+    @Override
+    public InternalResponse<List<TenantDTO>> listEnabledTenant() {
+        return InternalResponse.buildSuccessResp(tenantService.listEnabledTenant());
+    }
 }

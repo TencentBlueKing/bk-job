@@ -89,6 +89,7 @@ public class HostSyncService {
         List<CcInstanceDTO> ccInstanceDTOList = new ArrayList<>();
         ccInstanceDTOList.add(new CcInstanceDTO(CcNodeTypeEnum.BIZ.getType(), bizApp.getBizIdIfBizApp()));
         return bizCmdbClient.getHostRelationsByTopology(
+            bizApp.getTenantId(),
             bizApp.getBizIdIfBizApp(),
             ccInstanceDTOList
         );
@@ -806,6 +807,8 @@ public class HostSyncService {
         long startTime = System.currentTimeMillis();
         log.info("begin to syncBizHosts:bizId={}", bizId);
         long cmdbHostsFetchTimeMills = System.currentTimeMillis();
+        // TODO:一次获取大量数据，待重构
+        // 从CMDB获取业务下的主机与主机关系数据
         List<HostWithModules> hostRelationsFromCmdb = getHostRelationsFromCmdb(bizApp);
         cmdbInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
         bizHostsWatch.stop();

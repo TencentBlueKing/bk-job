@@ -41,13 +41,12 @@ public interface ApplicationService {
     ServiceApplicationDTO getAppById(long appId);
 
     /**
-     * 根据业务范围获取业务信息
+     * 根据Job业务ID获取所属租户ID
      *
-     * @param scopeType 资源范围类型
-     * @param scopeId   资源范围Id
-     * @return Job业务对象
+     * @param appId Job业务ID
+     * @return 所属租户ID
      */
-    ServiceApplicationDTO getAppByScope(String scopeType, String scopeId);
+    String getTenantIdByAppId(long appId);
 
     List<Long> listAllAppIds();
 }

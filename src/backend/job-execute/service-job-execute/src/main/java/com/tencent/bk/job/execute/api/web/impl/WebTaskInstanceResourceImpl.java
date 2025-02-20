@@ -241,6 +241,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 }
                 scriptStepVO.setSecureParam(0);
             }
+            scriptStepVO.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
             scriptStepVO.setTimeout(stepInstance.getTimeout());
             scriptStepVO.setScriptLanguage(stepInstance.getScriptType().getValue());
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());

@@ -132,16 +132,32 @@ public class WebAppResourceImpl implements WebAppResource {
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
             for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
+                AppVO appVO = new AppVO(
+                    app.getId(),
+                    app.getScope().getType().getValue(),
+                    app.getScope().getId(),
+                    app.isBuiltInResource(),
+                    app.getName(),
+                    true,
+                    null,
+                    null
+                );
                 finalAppList.add(appVO);
                 availableAppIds.add(app.getId());
             }
         } else {
             // 根据权限中心结果鉴权
             for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
+                AppVO appVO = new AppVO(
+                    app.getId(),
+                    app.getScope().getType().getValue(),
+                    app.getScope().getId(),
+                    app.isBuiltInResource(),
+                    app.getName(),
+                    true,
+                    null,
+                    null
+                );
                 appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
                 finalAppList.add(appVO);
             }

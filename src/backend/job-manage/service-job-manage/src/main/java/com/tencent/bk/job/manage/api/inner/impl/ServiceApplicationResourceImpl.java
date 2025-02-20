@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -138,41 +139,50 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         List<ApplicationDTO> loaclAllDeletedApps = applicationService.listAllDeletedApps();
         log.debug("find archived app from local, size={}", loaclAllDeletedApps.size());
 
-        List<ApplicationDTO> bizApps = loaclAllDeletedApps.stream()
+        Map<String, List<ApplicationDTO>> tenantBizApps = loaclAllDeletedApps.stream()
             .filter(app -> ResourceScopeTypeEnum.BIZ.getValue().equals(app.getScope().getType().getValue()))
-            .collect(Collectors.toList());
-        List<Long> bizIds = bizApps.stream()
-            .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
-            .collect(Collectors.toList());
-
-        List<ApplicationDTO> bizSetApps = loaclAllDeletedApps.stream()
+            .collect(Collectors.groupingBy(ApplicationDTO::getTenantId));
+        Map<String, List<ApplicationDTO>> tenantBizSetApps = loaclAllDeletedApps.stream()
             .filter(app -> ResourceScopeTypeEnum.BIZ_SET.getValue().equals(app.getScope().getType().getValue()))
-            .collect(Collectors.toList());
-        List<Long> bizSetIds = bizSetApps.stream()
-            .map(bizSetApp -> Long.valueOf(bizSetApp.getScope().getId()))
-            .collect(Collectors.toList());
-
+            .collect(Collectors.groupingBy(ApplicationDTO::getTenantId));
         List<Long> archivedIds = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(bizApps)) {
-            List<ApplicationDTO> ccAllBizApps = bizCmdbClient.ListBizAppByIds(bizIds);
-            Set<String> ccBizAppScopeIds = ccAllBizApps.stream()
-                .map(ccBizApp -> ccBizApp.getScope().getId())
-                .collect(Collectors.toSet());
-            archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
-                    !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
-                .map(ApplicationDTO::getId)
-                .collect(Collectors.toList()));
+        // 逐个租户筛选业务
+        for (Map.Entry<String, List<ApplicationDTO>> entry : tenantBizApps.entrySet()) {
+            String tenantId = entry.getKey();
+            List<ApplicationDTO> bizApps = entry.getValue();
+            List<Long> bizIds = bizApps.stream()
+                .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(bizApps)) {
+                List<ApplicationDTO> ccAllBizApps = bizCmdbClient.listBizAppByIds(tenantId, bizIds);
+                Set<String> ccBizAppScopeIds = ccAllBizApps.stream()
+                    .map(ccBizApp -> ccBizApp.getScope().getId())
+                    .collect(Collectors.toSet());
+                archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
+                        !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    .map(ApplicationDTO::getId)
+                    .collect(Collectors.toList()));
+            }
         }
-        if (CollectionUtils.isNotEmpty(bizSetApps)) {
-            List<BizSetInfo> bizSetInfos = bizSetCmdbClient.ListBizSetByIds(bizSetIds);
-            Set<String> ccBizSetAppScopeIds = bizSetInfos.stream()
-                .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
-                .collect(Collectors.toSet());
-            archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
-                    !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
-                .map(ApplicationDTO::getId)
-                .collect(Collectors.toList()));
+
+        // 逐个租户筛选业务集
+        for (Map.Entry<String, List<ApplicationDTO>> entry : tenantBizSetApps.entrySet()) {
+            String tenantId = entry.getKey();
+            List<ApplicationDTO> bizSetApps = entry.getValue();
+            List<Long> bizSetIds = bizSetApps.stream()
+                .map(bizSetApp -> Long.valueOf(bizSetApp.getScope().getId()))
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(bizSetApps)) {
+                List<BizSetInfo> bizSetInfos = bizSetCmdbClient.listBizSetByIds(tenantId, bizSetIds);
+                Set<String> ccBizSetAppScopeIds = bizSetInfos.stream()
+                    .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
+                    .collect(Collectors.toSet());
+                archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
+                        !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    .map(ApplicationDTO::getId)
+                    .collect(Collectors.toList()));
+            }
         }
         log.debug("finally find archived appIds={}", archivedIds);
         return InternalResponse.buildSuccessResp(archivedIds);

@@ -367,7 +367,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                          @AuditRequestBody @Validated ScriptCreateReq request) {
 
         User user = JobContextUtil.getUser();
-        ScriptDTO script = buildCreateScriptDTO(request, appResourceScope, username);
+        ScriptDTO script = buildCreateScriptDTO(request, appResourceScope, user);
         ScriptDTO savedScript = scriptService.createScript(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
@@ -377,12 +377,13 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
     private ScriptDTO buildCreateScriptDTO(ScriptCreateReq request,
                                            AppResourceScope appResourceScope,
-                                           String username) {
+                                           User user) {
         ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(request);
         script.setAppId(appResourceScope.getAppId());
         script.setPublicScript(false);
-        script.setCreator(username);
-        script.setLastModifyUser(username);
+        script.setCreator(user.getUsername());
+        script.setLastModifyUser(user.getUsername());
+        script.setTenantId(user.getTenantId());
         return script;
     }
 

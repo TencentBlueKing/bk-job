@@ -22,25 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.common.iam.client;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import com.tencent.bk.job.common.iam.dto.EsbIamAction;
+import com.tencent.bk.job.common.iam.dto.EsbIamAuthedPolicy;
+import com.tencent.bk.job.common.iam.dto.EsbIamBatchAuthedPolicy;
+import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
+import com.tencent.bk.job.common.iam.dto.EsbIamResource;
+import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
+import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
+import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
+import lombok.extern.slf4j.Slf4j;
 
-public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
-    private Long maxLength;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * 通过 APIGW 调用 IAM API 的客户端
+ */
+@Slf4j
+public class MockIamClient implements IIamClient {
 
     @Override
-    public void initialize(MaxLength maxLengthAnnotation) {
-        this.maxLength = maxLengthAnnotation.value();
+    public String getApplyUrl(List<ActionDTO> actionList) {
+        return "mocked apply url";
     }
 
     @Override
-    public boolean isValid(String content,
-                           ConstraintValidatorContext constraintValidatorContext) {
-        if (content == null) {
-            return true;
-        }
-        return content.length() <= maxLength;
+    public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestor) {
+        return true;
+    }
+
+    @Override
+    public EsbIamAuthedPolicy authByPath(
+        EsbIamAction esbIamAction,
+        EsbIamSubject esbIamSubject,
+        List<EsbIamResource> esbIamResources
+    ) {
+        return null;
+    }
+
+    @Override
+    public List<EsbIamBatchAuthedPolicy> batchAuthByPath(
+        List<EsbIamAction> esbIamActions,
+        EsbIamSubject esbIamSubject,
+        List<EsbIamBatchPathResource> esbIamBatchPathResources,
+        Long expiredAt
+    ) {
+        return Collections.emptyList();
     }
 }
