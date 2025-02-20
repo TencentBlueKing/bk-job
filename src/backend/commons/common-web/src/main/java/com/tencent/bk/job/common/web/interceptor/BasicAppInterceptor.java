@@ -150,6 +150,11 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
         public BasicApp parseApp(HttpServletRequest request) {
             ResourceScope resourceScope = parseResourceScopeFromURI(request.getRequestURI());
             if (resourceScope != null) {
+                // TODO:等待前端配合修改传入真实默认业务集ID，当前先强制指定为1
+                if (resourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET
+                    && resourceScope.getId().equals("9991001")) {
+                    resourceScope.setId("1");
+                }
                 return appCacheService.getApp(resourceScope);
             }
 
