@@ -22,41 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.api.inner;
+package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 
-@Slf4j
-@RestController
-public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource {
+/**
+ * 租户无关的文件源DAO，用于系统内部逻辑
+ */
+public interface NoTenantFileSourceDAO {
 
-    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
+    int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
-    @Autowired
-    public ServiceFileSourceResourceImpl(NoTenantFileSourceDAO noTenantFileSourceDAO) {
-        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
-    }
+    FileSourceDTO getFileSourceById(Integer id);
 
-    @Override
-    public InternalResponse<Integer> getFileSourceIdByCode(Long appId, String code) {
-        FileSourceDTO fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(appId, code);
-        if (null == fileSourceDTO) {
-            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
-        }
-        return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
-    }
+    FileSourceDTO getFileSourceByCode(Long appId, String code);
 
-    @Override
-    public InternalResponse<Boolean> existsFileSourceUsingCredential(Long appId, String credentialId) {
-        boolean result = noTenantFileSourceDAO.existsFileSourceUsingCredential(appId, credentialId);
-        return InternalResponse.buildSuccessResp(result);
-    }
+    List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
+
+    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
+
 }

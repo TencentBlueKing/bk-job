@@ -34,10 +34,10 @@ import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.consts.TaskCommandEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
-import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileTaskDTO;
@@ -74,7 +74,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final FileWorkerDAO fileworkerDAO;
-    private final FileSourceDAO fileSourceDAO;
+    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
     private final DispatchService dispatchService;
     private final FileSourceTaskReqGenService fileSourceTaskReqGenService;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -85,7 +85,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
                                      FileSourceTaskDAO fileSourceTaskDAO,
                                      FileTaskDAO fileTaskDAO,
                                      FileWorkerDAO fileworkerDAO,
-                                     FileSourceDAO fileSourceDAO,
+                                     NoTenantFileSourceDAO noTenantFileSourceDAO,
                                      DispatchService dispatchService,
                                      FileSourceTaskReqGenService fileSourceTaskReqGenService,
                                      @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
@@ -94,7 +94,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.fileworkerDAO = fileworkerDAO;
-        this.fileSourceDAO = fileSourceDAO;
+        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
         this.dispatchService = dispatchService;
         this.fileSourceTaskReqGenService = fileSourceTaskReqGenService;
         this.redisTemplate = redisTemplate;
@@ -139,7 +139,7 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
             fileSourceId,
             filePathList
         );
-        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceId);
+        FileSourceDTO fileSourceDTO = noTenantFileSourceDAO.getFileSourceById(fileSourceId);
         if (fileSourceDTO == null) {
             throw new RuntimeException("FileSource not exist, fileSourceId=" + fileSourceId.toString());
         }

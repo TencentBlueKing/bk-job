@@ -25,10 +25,10 @@
 package com.tencent.bk.job.file_gateway.task.filesource;
 
 import com.tencent.bk.job.file_gateway.consts.FileSourceStatusEnum;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.FileService;
-import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,14 +42,15 @@ public class FileSourceStatusUpdateTask {
 
     private final FileService fileService;
     private final DispatchService dispatchService;
-    private final FileSourceService fileSourceService;
+    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
 
     @Autowired
-    public FileSourceStatusUpdateTask(FileService fileService, DispatchService dispatchService,
-                                      FileSourceService fileSourceService) {
+    public FileSourceStatusUpdateTask(FileService fileService,
+                                      DispatchService dispatchService,
+                                      NoTenantFileSourceDAO noTenantFileSourceDAO) {
         this.fileService = fileService;
         this.dispatchService = dispatchService;
-        this.fileSourceService = fileSourceService;
+        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
     }
 
     public void run() {
@@ -57,16 +58,11 @@ public class FileSourceStatusUpdateTask {
         int start = 0;
         int pageSize = 20;
         do {
-            fileSourceDTOList = fileSourceService.listWorkTableFileSource(
-                null,
-                null,
-                null,
-                start,
-                pageSize
-            );
+            fileSourceDTOList = noTenantFileSourceDAO.listEnabledFileSource(start, pageSize);
             for (FileSourceDTO fileSourceDTO : fileSourceDTOList) {
                 FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
-                    fileSourceDTO, "FileSourceStatusUpdateTask"
+                    fileSourceDTO,
+                    "FileSourceStatusUpdateTask"
                 );
                 int status;
                 if (fileWorkerDTO == null) {
@@ -94,9 +90,14 @@ public class FileSourceStatusUpdateTask {
                         }
                     }
                 }
-                fileSourceService.updateFileSourceStatus(fileSourceDTO.getId(), status);
-                log.debug("Update fileSource:fileSourceId={}, fileSourceCode={}, status={}", fileSourceDTO.getId(),
-                    fileSourceDTO.getCode(), status);
+                int affectedNum = noTenantFileSourceDAO.updateFileSourceStatus(fileSourceDTO.getId(), status);
+                log.debug(
+                    "Update fileSource:fileSourceId={}, fileSourceCode={}, status={}, affectedNum={}",
+                    fileSourceDTO.getId(),
+                    fileSourceDTO.getCode(),
+                    status,
+                    affectedNum
+                );
             }
             start += pageSize;
         } while (fileSourceDTOList.size() == pageSize);

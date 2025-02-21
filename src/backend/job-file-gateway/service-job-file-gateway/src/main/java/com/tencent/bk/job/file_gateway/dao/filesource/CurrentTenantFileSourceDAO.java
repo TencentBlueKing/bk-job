@@ -24,20 +24,20 @@
 
 package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface FileSourceDAO {
+/**
+ * 使用从JobContext中获取的当前租户ID，自动添加到各类查询条件或新增字段中
+ * 用于用户触发操作的逻辑（Web/ESB接口等）
+ */
+public interface CurrentTenantFileSourceDAO {
     Integer insertFileSource(FileSourceDTO fileSourceDTO);
 
     int updateFileSource(FileSourceDTO fileSourceDTO);
-
-    int updateFileSourceStatus(Integer fileSourceId, Integer status);
 
     int deleteFileSourceById(Integer id);
 
@@ -46,11 +46,6 @@ public interface FileSourceDAO {
     FileSourceDTO getFileSourceById(Integer id);
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
-
-    @Deprecated
-    @CompatibleImplementation(name = "fileSourceId", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "文件源标识仅在appId下唯一，发布完成后可删除")
-    FileSourceDTO getFileSourceByCode(String code);
 
     FileSourceDTO getFileSourceByCode(Long appId, String code);
 
@@ -78,8 +73,6 @@ public interface FileSourceDAO {
     boolean existsCodeExceptId(Long appId, String code, Integer exceptId);
 
     boolean existsFileSource(Long appId, Integer id);
-
-    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
 
     Integer getFileSourceIdByCode(Long appId, String code);
 }
