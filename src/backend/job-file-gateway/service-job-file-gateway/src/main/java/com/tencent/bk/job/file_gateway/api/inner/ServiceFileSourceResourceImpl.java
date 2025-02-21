@@ -48,10 +48,14 @@ public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource 
     @Override
     public InternalResponse<Integer> getFileSourceIdByCode(Long appId, String code) {
         FileSourceDTO fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(appId, code);
-        if (null == fileSourceDTO) {
-            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
+        if (null != fileSourceDTO) {
+            return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
         }
-        return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
+        fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(code);
+        if (null != fileSourceDTO && fileSourceDTO.canUseByAppId(appId)) {
+            return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
+        }
+        throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
     }
 
     @Override

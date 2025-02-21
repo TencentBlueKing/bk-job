@@ -77,7 +77,6 @@ public class NoTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implements 
         }
     }
 
-
     @Override
     public FileSourceDTO getFileSourceById(Integer id) {
         val record = dslContext.select(ALL_FIELDS)
@@ -89,6 +88,25 @@ public class NoTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implements 
         } else {
             return convertRecordToDto(record);
         }
+    }
+
+    @Override
+    public FileSourceDTO getFileSourceByCode(String code) {
+        val record = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(buildCodeConditions(code))
+            .fetchOne();
+        if (record == null) {
+            return null;
+        } else {
+            return convertRecordToDto(record);
+        }
+    }
+
+    private List<Condition> buildCodeConditions(String code) {
+        List<Condition> conditionList = new ArrayList<>();
+        conditionList.add(defaultTable.CODE.eq(code));
+        return conditionList;
     }
 
     @Override
