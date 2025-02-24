@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.client.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
+import com.tencent.bk.job.common.iam.mock.MockBusinessAuthHelper;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -52,7 +53,6 @@ import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.service.impl.PolicyServiceImpl;
 import com.tencent.bk.sdk.iam.service.impl.TokenServiceImpl;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -88,14 +88,7 @@ public class IamAutoConfiguration {
     }
 
     @Bean
-    public AuthHelper authHelper(IamConfiguration iamConfiguration,
-                                 TokenService tokenService,
-                                 PolicyService policyService,
-                                 @Autowired(required = false) TopoPathService topoPathService) {
-        return new AuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
-    }
-
-    @Bean
+    @ConditionalOnMockIamApiDisabled
     public BusinessAuthHelper businessAuthHelper(IamConfiguration iamConfiguration,
                                                  TokenService tokenService,
                                                  PolicyService policyService,
@@ -127,22 +120,14 @@ public class IamAutoConfiguration {
     @Bean
     public AppAuthService appAuthService(AuthHelper authHelper,
                                          BusinessAuthHelper businessAuthHelper,
-                                         IamConfiguration iamConfiguration,
                                          PolicyService policyService,
                                          JobIamProperties jobIamProperties,
-                                         EsbProperties esbProperties,
-                                         ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                         TenantEnvService tenantEnvService,
                                          IIamClient iamClient) {
         return new AppAuthServiceImpl(
             authHelper,
             businessAuthHelper,
-            iamConfiguration,
             policyService,
             jobIamProperties,
-            esbProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            tenantEnvService,
             iamClient
         );
     }
@@ -180,6 +165,15 @@ public class IamAutoConfiguration {
     @ConditionalOnMockIamApiEnabled
     public IIamClient mockedIamClient() {
         return new MockIamClient();
+    }
+
+    @Bean
+    @ConditionalOnMockIamApiEnabled
+    public BusinessAuthHelper mockedBusinessAuthHelper(IamConfiguration iamConfiguration,
+                                                       TokenService tokenService,
+                                                       PolicyService policyService,
+                                                       @Autowired(required = false) TopoPathService topoPathService) {
+        return new MockBusinessAuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
     }
 
 }

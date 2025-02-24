@@ -22,21 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
-import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 
-public interface FileService {
+import java.util.List;
 
-    FileNodesVO listFileNode(String username,
-                             Long appId,
-                             Integer fileSourceId,
-                             String path,
-                             String name,
-                             Integer start,
-                             Integer pageSize);
+public interface FileSourceShareDAO {
+    List<Long> getSharedAppIdList(Long appId, Integer fileSourceId);
 
-    Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq req);
-
+    void saveFileSourceShareInfo(Integer fileSourceId, FileSourceDTO fileSourceDTO);
 }

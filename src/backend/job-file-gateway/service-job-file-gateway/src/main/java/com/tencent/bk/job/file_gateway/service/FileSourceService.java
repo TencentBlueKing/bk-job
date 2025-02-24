@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -75,10 +73,6 @@ public interface FileSourceService {
 
     FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSourceDTO);
 
-    int updateFileSourceStatus(Integer fileSourceId, Integer status);
-
-    FileSourceTypeDTO getFileSourceTypeById(Integer id);
-
     FileSourceTypeDTO getFileSourceTypeByCode(String code);
 
     Integer deleteFileSourceById(User user, Long appId, Integer id);
@@ -93,11 +87,6 @@ public interface FileSourceService {
 
     List<FileSourceBasicInfoDTO> listFileSourceByIds(Collection<Integer> ids);
 
-    @Deprecated
-    @CompatibleImplementation(name = "fileSourceId", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "文件源标识仅在appId下唯一，发布完成后可删除")
-    FileSourceDTO getFileSourceByCode(String code);
-
     FileSourceDTO getFileSourceByCode(Long appId, String code);
 
     List<FileSourceStaticParam> getFileSourceParams(Long appId, String fileSourceTypeCode);
@@ -109,8 +98,6 @@ public interface FileSourceService {
     boolean existsCodeExceptId(Long appId, String code, Integer exceptId);
 
     boolean existsFileSource(Long appId, Integer id);
-
-    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
 
     Integer getFileSourceIdByCode(Long appId, String code);
 }

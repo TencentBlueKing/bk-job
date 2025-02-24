@@ -24,19 +24,11 @@
 
 package com.tencent.bk.job.file_gateway.service;
 
-import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
-import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
+/**
+ * 判断文件是否可用
+ */
+public interface FileAvailableService {
 
-public interface FileService {
-
-    FileNodesVO listFileNode(String username,
-                             Long appId,
-                             Integer fileSourceId,
-                             String path,
-                             String name,
-                             Integer start,
-                             Integer pageSize);
-
-    Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq req);
+    boolean isFileAvailable(Integer fileSourceId);
 
 }

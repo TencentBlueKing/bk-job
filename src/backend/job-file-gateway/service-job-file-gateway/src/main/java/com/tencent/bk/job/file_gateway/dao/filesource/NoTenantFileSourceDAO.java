@@ -22,21 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.service;
+package com.tencent.bk.job.file_gateway.dao.filesource;
 
-import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
-import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
+import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 
-public interface FileService {
+import java.util.List;
 
-    FileNodesVO listFileNode(String username,
-                             Long appId,
-                             Integer fileSourceId,
-                             String path,
-                             String name,
-                             Integer start,
-                             Integer pageSize);
+/**
+ * 租户无关的文件源DAO，用于系统内部逻辑
+ */
+public interface NoTenantFileSourceDAO {
 
-    Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq req);
+    int updateFileSourceStatus(Integer fileSourceId, Integer status);
+
+    FileSourceDTO getFileSourceById(Integer id);
+
+    FileSourceDTO getFileSourceByCode(String code);
+
+    FileSourceDTO getFileSourceByCode(Long appId, String code);
+
+    List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
+
+    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
 
 }
