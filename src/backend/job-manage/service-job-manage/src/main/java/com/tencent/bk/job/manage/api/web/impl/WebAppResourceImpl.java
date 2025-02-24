@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
@@ -111,7 +113,8 @@ public class WebAppResourceImpl implements WebAppResource {
     public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
                                                                                Integer start,
                                                                                Integer pageSize) {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
+        User user = JobContextUtil.getUser();
+        List<ApplicationDTO> appList = applicationService.listAllAppsForTenant(user.getTenantId());
         List<AppResourceScope> appResourceScopeList =
             appList.stream()
                 .map(app -> new AppResourceScope(app.getId(), app.getScope()))
@@ -119,7 +122,7 @@ public class WebAppResourceImpl implements WebAppResource {
 
         // IAM鉴权
         AppResourceScopeResult appResourceScopeResult =
-            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
+            appAuthService.getAppResourceScopeList(user, appResourceScopeList);
 
         // 可用的普通业务
         List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
@@ -129,16 +132,34 @@ public class WebAppResourceImpl implements WebAppResource {
         List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
             for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
+                AppVO appVO = new AppVO(
+                    app.getId(),
+                    app.getScope().getType().getValue(),
+                    app.getScope().getId(),
+                    app.isBuiltInResource(),
+                    app.isAllBizSet(),
+                    app.getName(),
+                    true,
+                    null,
+                    null
+                );
                 finalAppList.add(appVO);
                 availableAppIds.add(app.getId());
             }
         } else {
             // 根据权限中心结果鉴权
             for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
+                AppVO appVO = new AppVO(
+                    app.getId(),
+                    app.getScope().getType().getValue(),
+                    app.getScope().getId(),
+                    app.isBuiltInResource(),
+                    app.isAllBizSet(),
+                    app.getName(),
+                    true,
+                    null,
+                    null
+                );
                 appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
                 finalAppList.add(appVO);
             }

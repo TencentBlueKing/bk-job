@@ -57,7 +57,8 @@ public class JobExecuteContextHttpInterceptor implements AsyncHandlerInterceptor
         JobContext jobContext = JobContextUtil.getContext();
         if (jobContext != null) {
             JobExecuteContext jobExecuteContext = new JobExecuteContext();
-            jobExecuteContext.setResourceScope(jobContext.getAppResourceScope());
+            jobExecuteContext.setResourceScope(
+                jobContext.getApp() != null ? jobContext.getApp().getAppResourceScope() : null);
             jobExecuteContext.setUsername(jobContext.getUsername());
             JobExecuteContextThreadLocalRepo.set(jobExecuteContext);
             if (log.isDebugEnabled()) {

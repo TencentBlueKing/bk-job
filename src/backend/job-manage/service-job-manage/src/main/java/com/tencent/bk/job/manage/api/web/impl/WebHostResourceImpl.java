@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
+import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.PageData;
@@ -103,6 +103,7 @@ public class WebHostResourceImpl implements WebHostResource {
     private final BizDynamicGroupService bizDynamicGroupService;
     private final BizDynamicGroupHostService bizDynamicGroupHostService;
     private final ScopeDynamicGroupService scopeDynamicGroupHostService;
+    private final BkNetService bkNetService;
 
     @Autowired
     public WebHostResourceImpl(ApplicationService applicationService,
@@ -115,7 +116,8 @@ public class WebHostResourceImpl implements WebHostResource {
                                BizTopoHostService bizTopoHostService,
                                BizDynamicGroupService bizDynamicGroupService,
                                BizDynamicGroupHostService bizDynamicGroupHostService,
-                               ScopeDynamicGroupService scopeDynamicGroupHostService) {
+                               ScopeDynamicGroupService scopeDynamicGroupHostService,
+                               BkNetService bkNetService) {
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.scopeTopoHostService = scopeTopoHostService;
@@ -127,6 +129,7 @@ public class WebHostResourceImpl implements WebHostResource {
         this.bizDynamicGroupService = bizDynamicGroupService;
         this.bizDynamicGroupHostService = bizDynamicGroupHostService;
         this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
+        this.bkNetService = bkNetService;
     }
 
     // 标准接口1
@@ -362,7 +365,7 @@ public class WebHostResourceImpl implements WebHostResource {
             if (cloudAreaInfo != null
                 && cloudAreaInfo.getId() != null
                 && StringUtils.isBlank(cloudAreaInfo.getName())) {
-                cloudAreaInfo.setName(BkNetClient.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
+                cloudAreaInfo.setName(bkNetService.getCloudAreaNameFromCache(cloudAreaInfo.getId()));
             }
         });
         return Response.buildSuccessResp(hostList);

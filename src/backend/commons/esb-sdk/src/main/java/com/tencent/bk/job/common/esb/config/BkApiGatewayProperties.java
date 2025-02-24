@@ -45,6 +45,21 @@ public class BkApiGatewayProperties {
 
     private ApiGwConfig bkApiGateway;
 
+    /**
+     * 蓝鲸登录相关配置
+     */
+    private ApiGwConfig bkLogin;
+
+    /**
+     * 蓝鲸用户管理相关配置
+     */
+    private ApiGwConfig bkUser;
+
+    /**
+     * 蓝鲸权限中心相关配置
+     */
+    private ApiGwConfig bkIam;
+
     @Getter
     @Setter
     @ToString

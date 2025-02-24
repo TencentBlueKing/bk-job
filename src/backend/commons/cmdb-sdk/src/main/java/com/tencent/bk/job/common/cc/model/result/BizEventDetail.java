@@ -49,6 +49,8 @@ public class BizEventDetail {
     private String timezone;
     @JsonProperty("language")
     private String language;
+    @JsonProperty("default")
+    private Integer deFault;
 
     public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
@@ -58,6 +60,7 @@ public class BizEventDetail {
         applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
         applicationDTO.setTimeZone(bizEventDetail.getTimezone());
         applicationDTO.setLanguage(bizEventDetail.getLanguage());
+        applicationDTO.setDeFault(bizEventDetail.getDeFault());
         return applicationDTO;
     }
 }

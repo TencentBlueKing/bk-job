@@ -33,10 +33,12 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
@@ -128,9 +130,10 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         }
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
 
+        User user = JobContextUtil.getUser();
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
             TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
-                .operator(username).executeVariableValues(executeVariableValues)
+                .operator(user).executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.WEB).build());
 
         TaskExecuteVO result = new TaskExecuteVO();
@@ -167,6 +170,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                             String scopeId,
                                             RedoTaskRequest request) {
         log.info("Redo task, request={}", request);
+        User user = JobContextUtil.getUser();
 
         if (!checkRedoTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -174,7 +178,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         List<TaskVariableDTO> executeVariableValues = buildExecuteVariables(request.getTaskVariables());
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.redoJob(appResourceScope.getAppId(),
-            request.getTaskInstanceId(), username, executeVariableValues);
+            request.getTaskInstanceId(), user, executeVariableValues);
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -378,8 +382,9 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                            TaskInstanceDTO taskInstance,
                                                            StepInstanceDTO stepInstance,
                                                            StepRollingConfigDTO rollingConfig) {
+        User user = JobContextUtil.getUser();
         FastTaskDTO fastTask = FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance)
-            .rollingConfig(rollingConfig).build();
+            .rollingConfig(rollingConfig).operator(user).build();
         TaskInstanceDTO executeTaskInstance;
         if (!isRedoTask) {
             executeTaskInstance = taskExecuteService.executeFastTask(fastTask);
@@ -556,6 +561,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                                        Long taskInstanceId,
                                                        Long stepInstanceId,
                                                        WebStepOperation operation) {
+        User user = JobContextUtil.getUser();
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -565,7 +571,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());
-        int executeCount = taskExecuteService.doStepOperation(appResourceScope.getAppId(), username, stepOperation);
+        int executeCount = taskExecuteService.doStepOperation(appResourceScope.getAppId(), user, stepOperation);
         StepOperationVO stepOperationVO = new StepOperationVO(stepInstanceId, executeCount);
         return Response.buildSuccessResp(stepOperationVO);
     }
@@ -576,10 +582,11 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                                  String scopeType,
                                  String scopeId,
                                  Long taskInstanceId) {
+        User user = JobContextUtil.getUser();
         if (taskInstanceId == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
-        taskExecuteService.terminateJob(username, appResourceScope.getAppId(), taskInstanceId);
+        taskExecuteService.terminateJob(user, appResourceScope.getAppId(), taskInstanceId);
         return Response.buildSuccessResp(null);
     }
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
+import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -50,16 +50,19 @@ public class HostDetailServiceImpl implements HostDetailService {
     private final AgentStatusService agentStatusService;
     private final CloudVendorService cloudVendorService;
     private final OsTypeService osTypeService;
+    private final BkNetService bkNetService;
 
     @Autowired
     public HostDetailServiceImpl(WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                  AgentStatusService agentStatusService,
                                  CloudVendorService cloudVendorService,
-                                 OsTypeService osTypeService) {
+                                 OsTypeService osTypeService,
+                                 BkNetService bkNetService) {
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.agentStatusService = agentStatusService;
         this.cloudVendorService = cloudVendorService;
         this.osTypeService = osTypeService;
+        this.bkNetService = bkNetService;
     }
 
     @Override
@@ -78,7 +81,7 @@ public class HostDetailServiceImpl implements HostDetailService {
     @Override
     public void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList) {
         fillHostsDetail(hostList, host -> {
-            host.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(host.getCloudAreaId()));
+            host.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
@@ -91,7 +94,7 @@ public class HostDetailServiceImpl implements HostDetailService {
     @Override
     public void fillDetailForHosts(List<HostDTO> hostList) {
         fillHostsDetail(hostList, host -> {
-            host.setBkCloudName(BkNetClient.getCloudAreaNameFromCache(host.getBkCloudId()));
+            host.setBkCloudName(bkNetService.getCloudAreaNameFromCache(host.getBkCloudId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
