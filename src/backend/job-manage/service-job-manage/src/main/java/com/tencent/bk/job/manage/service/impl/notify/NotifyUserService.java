@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
@@ -59,7 +60,8 @@ public class NotifyUserService {
     }
 
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(Integer start, Integer pageSize) {
-        return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(start, pageSize);
+        String tenantId = JobContextUtil.getTenantId();
+        return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId, start, pageSize);
     }
 
     private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList) {
@@ -90,10 +92,10 @@ public class NotifyUserService {
         return resultList;
     }
 
-    public Set<String> filterBlackUser(Set<String> userSet) {
-        // 过滤黑名单内用户
+    public Set<String> filterBlackUser(Set<String> userSet, String tenantId) {
+        // 过滤租户哪黑名单内用户
         Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo().stream()
+            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
         log.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
         val removedBlackUserSet = userSet.stream().filter(blackUserSet::contains).collect(Collectors.toSet());
@@ -104,9 +106,10 @@ public class NotifyUserService {
     }
 
     private void filterBlackUsers(List<UserVO> userVOList) {
+        String tenantId = JobContextUtil.getTenantId();
         //过滤黑名单内用户
         Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo().stream()
+            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
         log.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
         userVOList.forEach(it -> {
@@ -142,6 +145,7 @@ public class NotifyUserService {
     }
 
     private List<BkUserDTO> searchUserByPrefix(String prefixStr) {
+        String tenantId = JobContextUtil.getTenantId();
         // 从数据库查
         if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
             // 前端回显，传全量
@@ -149,9 +153,9 @@ public class NotifyUserService {
             while (userNames.contains("")) {
                 userNames.remove("");
             }
-            return userCacheService.listUsersByUsernames(null, userNames);
+            return userCacheService.listUsersByUsernames(tenantId, userNames);
         } else {
-            return userCacheService.listUsersByDisplayNamePrefix(null, prefixStr, -1L);
+            return userCacheService.listUsersByDisplayNamePrefix(tenantId, prefixStr, -1L);
         }
     }
 

@@ -83,7 +83,7 @@ public class CmsiApiClient extends BkApiV1Client {
             appProperties.getSecret(), "admin");
     }
 
-    public List<EsbNotifyChannelDTO> getNotifyChannelList() {
+    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
 //        try {
 //            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
 //            HttpMetricUtil.addTagForCurrentMetric(

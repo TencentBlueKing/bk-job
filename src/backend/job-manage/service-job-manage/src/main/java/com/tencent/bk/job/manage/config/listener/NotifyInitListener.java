@@ -27,6 +27,8 @@ package com.tencent.bk.job.manage.config.listener;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
@@ -65,6 +67,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     private final NotifyService notifyService;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
+    private final UserMgrApiClient userMgrApiClient;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
@@ -74,12 +77,14 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
                               GlobalSettingsService globalSettingsService,
                               NotifyService notifyService,
                               AvailableEsbChannelDAO availableEsbChannelDAO,
-                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO) {
+                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
+                              UserMgrApiClient userMgrApiClient) {
         this.cmsiApiClient = cmsiApiClient;
         this.globalSettingsService = globalSettingsService;
         this.notifyService = notifyService;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
+        this.userMgrApiClient = userMgrApiClient;
     }
 
     @Override
@@ -126,19 +131,26 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
 
     private void initDefaultNotifyChannels() {
         log.info("init default notify channels");
-        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList();
+        List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
+        tenantList.forEach( tenant ->
+            initDefaultNotifyChannelsWithSingleTenant(tenant.getId())
+        );
+    }
+
+    private void initDefaultNotifyChannelsWithSingleTenant(String tenantId) {
+        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList(tenantId);
         if (esbNotifyChannelDTOList == null) {
-            log.error("Fail to get notify channels from esb, null");
+            log.error("Fail to get tenant: {} notify channels from esb, null", tenantId);
             return;
         }
-        saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
+        saveDefaultNotifyChannelsToDb(tenantId, esbNotifyChannelDTOList);
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
-        if (!globalSettingsService.isNotifyChannelConfiged()) {
-            globalSettingsService.setNotifyChannelConfiged();
-            availableEsbChannelDAO.deleteAll();
+    public void saveDefaultNotifyChannelsToDb(String tenantId, List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
+        if (!globalSettingsService.isNotifyChannelConfiged(tenantId)) {
+            globalSettingsService.setNotifyChannelConfiged(tenantId);
+            availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
             for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
                 if (!esbNotifyChannelDTO.isActive()) {
                     continue;
@@ -148,7 +160,8 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
                         esbNotifyChannelDTO.getType(),
                         true,
                         "admin",
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
+                        tenantId
                     )
                 );
             }

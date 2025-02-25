@@ -34,10 +34,10 @@ public interface NotifyTemplateDAO {
 
     int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO);
 
-    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
+    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault, String tenantId);
 
-    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code);
+    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code, String tenantId);
 
-    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
+    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault, String tenantId);
 
 }

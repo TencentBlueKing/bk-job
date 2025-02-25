@@ -48,19 +48,20 @@ import java.util.List;
 @InternalAPI
 public interface ServiceNotificationResource {
 
-    @ApiOperation(value = "发送通知给用户（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
-    @PostMapping("/service/notification/sendNotificationsToUsers")
-    InternalResponse<Integer> sendNotificationsToUsers(
-        @ApiParam("通知接受者与消息内容")
-        @RequestBody ServiceUserNotificationDTO serviceUserNotificationDTO
-    );
-
-    @ApiOperation(value = "发送通知给管理员（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
-    @PostMapping("/service/notification/sendNotificationsToAdministrators")
-    InternalResponse<Integer> sendNotificationsToAdministrators(
-        @ApiParam("消息内容")
-        @RequestBody ServiceNotificationMessage serviceNotificationMessage
-    );
+    // no usage，暂时注释，后续可删
+//    @ApiOperation(value = "发送通知给用户（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
+//    @PostMapping("/service/notification/sendNotificationsToUsers")
+//    InternalResponse<Integer> sendNotificationsToUsers(
+//        @ApiParam("通知接受者与消息内容")
+//        @RequestBody ServiceUserNotificationDTO serviceUserNotificationDTO
+//    );
+//
+//    @ApiOperation(value = "发送通知给管理员（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
+//    @PostMapping("/service/notification/sendNotificationsToAdministrators")
+//    InternalResponse<Integer> sendNotificationsToAdministrators(
+//        @ApiParam("消息内容")
+//        @RequestBody ServiceNotificationMessage serviceNotificationMessage
+//    );
 
     @ApiOperation(value = "触发模板消息通知", produces = "application/json")
     @PostMapping("/service/notification/triggerTemplateNotification")
@@ -86,6 +87,10 @@ public interface ServiceNotificationResource {
     @GetMapping("/service/notification/getNotifyChannels")
     InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(
         @ApiParam("语言")
-        @RequestHeader("lang") String lang
+        @RequestHeader("lang")
+        String lang,
+        @ApiParam("租户ID")
+        @RequestHeader("tenant_id")
+        String tenantId
     );
 }

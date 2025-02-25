@@ -28,10 +28,8 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
@@ -82,7 +80,7 @@ public interface NotifyService {
     /**
      * 获取所有的通知渠道
      */
-    List<NotifyEsbChannelDTO> listAllNotifyChannel();
+    List<NotifyEsbChannelDTO> listAllNotifyChannel(String tenantId);
 
     List<NotifyChannelVO> listAvailableNotifyChannel(String username);
 
@@ -95,12 +93,13 @@ public interface NotifyService {
 
     PageTemplateVO getPageTemplate(String username);
 
-    Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
-
-    Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                            List<String> channelTypeList);
-
-    Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
+    // no usage，暂时注释，后续可删
+//    Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
+//
+//    Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
+//                                            List<String> channelTypeList);
+//
+//    Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
 
     Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO);
 

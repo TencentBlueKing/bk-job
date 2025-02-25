@@ -279,4 +279,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     public List<ApplicationDTO> listAllDeletedApps() {
         return applicationDAO.listAllDeletedApps();
     }
+
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        ApplicationDTO app = applicationCache.getApplication(appId);
+        if (app != null) {
+            return app.getTenantId();
+        }
+        return applicationDAO.getTenantIdByAppId(appId);
+    }
 }

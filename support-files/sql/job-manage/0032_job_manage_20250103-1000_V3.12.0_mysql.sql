@@ -96,6 +96,54 @@ BEGIN
     ALTER TABLE application ADD COLUMN `default` int(10) NOT NULL DEFAULT 0;
   END IF;
 
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'notify_template'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+    ALTER TABLE notify_template ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default' AFTER `id`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'notify_template'
+                    AND INDEX_NAME = 'idx_tenant_id') THEN
+    ALTER TABLE notify_template ADD INDEX idx_tenant_id(`tenant_id`);
+  END IF;
+
+--   IF NOT EXISTS(SELECT 1
+--                   FROM information_schema.statistics
+--                   WHERE TABLE_SCHEMA = db
+--                     AND TABLE_NAME = 'notify_template'
+--                     AND INDEX_NAME = 'idx_code_tenant_id') THEN
+--     ALTER TABLE notify_template ADD INDEX idx_code_tenant_id(`code`, `tenant_id`);
+--   END IF;
+
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'global_setting'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+    ALTER TABLE global_setting ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'available_esb_channel'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+    ALTER TABLE available_esb_channel ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'notify_black_user_info'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+    ALTER TABLE notify_black_user_info ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default' AFTER `id`;
+  END IF;
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

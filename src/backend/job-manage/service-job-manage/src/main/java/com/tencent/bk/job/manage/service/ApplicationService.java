@@ -201,4 +201,10 @@ public interface ApplicationService {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllDeletedApps();
+
+    /**
+     * 通过appId获取对应租户
+     *
+     */
+    String getTenantIdByAppId(long appId);
 }

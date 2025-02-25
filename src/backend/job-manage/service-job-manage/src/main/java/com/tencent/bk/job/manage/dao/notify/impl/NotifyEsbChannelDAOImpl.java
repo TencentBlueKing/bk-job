@@ -50,16 +50,21 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
     private final CmsiApiClient cmsiApiClient;
+
+    private final int KEY_INDEX_TENANT_ID = 0;
+    private final int KEY_INDEX_LANG = 1;
+
     private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
             build(new CacheLoader<String, List<NotifyEsbChannelDTO>>() {
                       @Override
                       public List<NotifyEsbChannelDTO> load(@NonNull String searchKey) {
                           logger.info("esbChannelCache searchKey=" + searchKey);
+                          String tenantId = searchKey.split("_")[KEY_INDEX_TENANT_ID];
                           List<NotifyEsbChannelDTO> channelDtoList;
                           //新增渠道默认为已启用
                           channelDtoList =
-                              cmsiApiClient.getNotifyChannelList().stream().map(it -> new NotifyEsbChannelDTO(
+                              cmsiApiClient.getNotifyChannelList(tenantId).stream().map(it -> new NotifyEsbChannelDTO(
                                   it.getType(),
                                   it.getLabel(),
                                   it.isActive(),
@@ -78,10 +83,11 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
     }
 
     @Override
-    public List<NotifyEsbChannelDTO> listNotifyEsbChannel() {
+    public List<NotifyEsbChannelDTO> listNotifyEsbChannel(String tenantId) {
         try {
             String lang = JobContextUtil.getUserLang();
-            return esbChannelCache.get(lang);
+            String cacheKey = tenantId + "_" + lang;
+            return esbChannelCache.get(cacheKey);
         } catch (ExecutionException | UncheckedExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";
             logger.error(errorMsg, e);
