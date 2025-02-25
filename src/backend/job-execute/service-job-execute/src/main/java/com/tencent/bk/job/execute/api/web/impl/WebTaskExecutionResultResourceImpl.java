@@ -147,6 +147,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
+    private static final int CHANNEL_CACHE_INDEX_TENANT_ID = 0;
+    private static final int CHANNEL_CACHE_INDEX_LANG = 1;
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -174,9 +176,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                   @Override
                   public Map<String, String> load(String key) {
                       List<String> l = Arrays.asList(key.split("_"));
-                      int CHANNEL_CACHE_INDEX_TENANT_ID = 0;
                       String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
-                      int CHANNEL_CACHE_INDEX_LANG = 1;
                       String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
                       InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang,
                           tenantId);

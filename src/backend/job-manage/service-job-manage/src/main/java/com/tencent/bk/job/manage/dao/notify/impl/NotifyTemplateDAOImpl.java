@@ -189,7 +189,10 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault, String tenantId) {
+    public boolean existsNotifyTemplate(String channelCode,
+                                        String messageTypeCode,
+                                        boolean isDefault,
+                                        String tenantId) {
         Integer count = dslContext.selectCount().from(defaultTable)
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))

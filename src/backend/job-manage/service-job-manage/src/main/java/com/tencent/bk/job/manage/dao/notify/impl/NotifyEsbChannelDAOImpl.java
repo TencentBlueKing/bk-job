@@ -51,8 +51,8 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
     private final CmsiApiClient cmsiApiClient;
 
-    private final int KEY_INDEX_TENANT_ID = 0;
-    private final int KEY_INDEX_LANG = 1;
+    private static final int KEY_INDEX_TENANT_ID = 0;
+    private static final int KEY_INDEX_LANG = 1;
 
     private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).

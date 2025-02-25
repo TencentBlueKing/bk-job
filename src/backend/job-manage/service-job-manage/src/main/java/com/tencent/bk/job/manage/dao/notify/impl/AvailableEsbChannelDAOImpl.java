@@ -91,7 +91,10 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
 
     @Override
     public List<AvailableEsbChannelDTO> listAvailableEsbChannel(String tenantId) {
-        val records = dslContext.select(ALL_FIELDS).from(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId)).fetch();
+        val records = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(defaultTable.TENANT_ID.eq(tenantId))
+            .fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {

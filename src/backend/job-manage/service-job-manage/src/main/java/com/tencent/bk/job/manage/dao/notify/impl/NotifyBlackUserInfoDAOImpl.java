@@ -100,7 +100,10 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
 
     @Override
     public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(String tenantId) {
-        val records = dslContext.select(ALL_FIELDS).from(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId)).fetch();
+        val records = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(defaultTable.TENANT_ID.eq(tenantId))
+            .fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {

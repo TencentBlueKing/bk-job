@@ -132,7 +132,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     private void initDefaultNotifyChannels() {
         log.info("init default notify channels");
         List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
-        tenantList.forEach( tenant ->
+        tenantList.forEach(tenant ->
             initDefaultNotifyChannelsWithSingleTenant(tenant.getId())
         );
     }
