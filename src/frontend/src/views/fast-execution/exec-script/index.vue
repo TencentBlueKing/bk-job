@@ -482,7 +482,7 @@
                 });
               });
           })
-          .catch(() => {
+          .finally(() => {
             this.isSubmiting = false;
           });
       },

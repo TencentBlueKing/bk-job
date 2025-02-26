@@ -28,6 +28,7 @@
   </bk-form-item>
 </template>
 <script setup>
+  import _ from 'lodash';
   import { computed, ref, watch } from 'vue';
 
   import { useI18n } from '@/i18n';
@@ -73,7 +74,7 @@
   ];
 
   watch(() => props.formData, () => {
-    isCustom.value = props.formData[props.field] !== undefined;
+    isCustom.value = _.isString(props.formData[props.field]);
   }, {
     immediate: true,
     deep: true,
