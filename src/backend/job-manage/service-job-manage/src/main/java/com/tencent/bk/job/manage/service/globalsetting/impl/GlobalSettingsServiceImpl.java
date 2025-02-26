@@ -388,7 +388,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             //英文环境
             currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN;
         }
-        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(currentNameRulesKey);
+        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(currentNameRulesKey, tenantId);
         GlobalSettingDTO inputNameRulesDTO = new GlobalSettingDTO(currentNameRulesKey,
             JsonUtils.toJson(req.getRules()), String.format("Updated by %s at %s", username,
             DateUtils.defaultLocalDateTime(LocalDateTime.now())),
@@ -447,11 +447,16 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             // 去重
             suffixList = suffixList.stream().distinct().collect(Collectors.toList());
         }
+
+        String tenantId = JobContextUtil.getTenantId();
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING,
+            tenantId
+        );
         if (fileUploadSettingDTO == null) {
             fileUploadSettingDTO = new GlobalSettingDTO();
             fileUploadSettingDTO.setDescription("setting of upload file");
+            fileUploadSettingDTO.setTenantId(tenantId);
         }
         fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
         fileUploadSettingDTO.setValue(JsonUtils.toJson(
@@ -465,8 +470,11 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public FileUploadSettingVO getFileUploadSettings() {
+        String tenantId = JobContextUtil.getTenantId();
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING,
+            tenantId
+        );
         FileUploadSettingVO fileUploadSettingVO;
         if (fileUploadSettingDTO == null) {
             fileUploadSettingVO = getConfigedFileUploadSettings();
