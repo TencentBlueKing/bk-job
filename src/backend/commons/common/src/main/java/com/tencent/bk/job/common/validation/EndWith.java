@@ -22,9 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.common.validation;
+
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Constraint;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -39,14 +43,33 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = MaxLengthValidator.class)
+@Constraint(validatedBy = EndWith.Validator.class)
 @Documented
-public @interface MaxLength {
-    long value();
+public @interface EndWith {
+    String fieldName();
 
-    String message() default "{validation.constraints.ExceedMaxLength.message}";
+    String value();
+
+    String message() default "{fieldName} {validation.constraints.MustEndWithSuffix.message}: {value}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
+
+    class Validator implements ConstraintValidator<EndWith, String> {
+        private String suffix;
+
+        @Override
+        public void initialize(EndWith endWithAnnotation) {
+            this.suffix = endWithAnnotation.value();
+        }
+
+        @Override
+        public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
+            if (StringUtils.isBlank(value)) {
+                return true;
+            }
+            return value.trim().endsWith(suffix);
+        }
+    }
 }

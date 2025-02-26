@@ -227,6 +227,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -269,6 +270,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -420,6 +422,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         builder.addScriptTask(agents, scriptFilePath, getJobParamScriptFileName, null, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 

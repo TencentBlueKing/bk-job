@@ -32,7 +32,7 @@ dependencies {
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework:spring-webmvc'
-    runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     testImplementation("com.h2database:h2")
 }

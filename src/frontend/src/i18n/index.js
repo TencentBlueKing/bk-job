@@ -85,7 +85,7 @@ export const setLocale = (locale) => {
 export default i18n;
 
 export const useI18n = () => ({
-  t: i18n._t, // eslint-disable-line no-underscore-dangle
+  t: key => i18n.t(key), // eslint-disable-line no-underscore-dangle
   locale: i18n.locale,
 });
 

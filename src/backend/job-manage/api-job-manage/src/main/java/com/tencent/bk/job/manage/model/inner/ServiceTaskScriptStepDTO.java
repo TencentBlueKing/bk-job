@@ -75,6 +75,9 @@ public class ServiceTaskScriptStepDTO {
     @ApiModelProperty("脚本参数")
     private String scriptParam;
 
+    @ApiModelProperty("Windows解释器")
+    private String windowsInterpreter;
+
     @ApiModelProperty("脚本超时时间")
     private Long scriptTimeout;
 

@@ -197,7 +197,9 @@
       formData: {
         handler(formData) {
           this.validatorExpr(formData[this.exprField]);
-          this.showTips();
+          setTimeout(() => {
+            this.showTips();
+          });
         },
         immediate: true,
         deep: true,

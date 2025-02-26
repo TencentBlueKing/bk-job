@@ -22,25 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req.validation;
+package com.tencent.bk.job.common.log.pojo.filter;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.filter.AbstractMatcherFilter;
+import ch.qos.logback.core.spi.FilterReply;
 
-public class MaxLengthValidator implements ConstraintValidator<MaxLength, String> {
-    private Long maxLength;
+import java.util.HashSet;
+import java.util.Set;
 
-    @Override
-    public void initialize(MaxLength maxLengthAnnotation) {
-        this.maxLength = maxLengthAnnotation.value();
+/**
+ * 排除特定logger打出的日志
+ */
+public class LoggerExclusionFilter extends AbstractMatcherFilter<ILoggingEvent> {
+    private final Set<String> exclusiveLoggerSet = new HashSet<>();
+
+    public void addExclusiveLogger(String exclusiveLogger) {
+        this.exclusiveLoggerSet.add(exclusiveLogger);
     }
 
     @Override
-    public boolean isValid(String content,
-                           ConstraintValidatorContext constraintValidatorContext) {
-        if (content == null) {
-            return true;
+    public FilterReply decide(ILoggingEvent event) {
+        if (!isStarted()) {
+            return FilterReply.NEUTRAL;
         }
-        return content.length() <= maxLength;
+
+        if (exclusiveLoggerSet.contains(event.getLoggerName())) {
+            return onMatch;
+        }
+
+        return onMismatch;
+    }
+
+    public void start() {
+        super.start();
     }
 }

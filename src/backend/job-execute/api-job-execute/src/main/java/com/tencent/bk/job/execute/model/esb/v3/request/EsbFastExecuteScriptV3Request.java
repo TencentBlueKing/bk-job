@@ -26,9 +26,13 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,6 +58,11 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * "脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "script_content",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
+    )
     private String content;
 
     /**
@@ -78,7 +87,21 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "script_param",
+        fieldType = MySQLTextDataType.TEXT,
+        base64 = true
+    )
     private String scriptParam;
+
+    /**
+     * 自定义Windows解释器路径
+     */
+    @EndWith(fieldName = "windows_interpreter", value = ".exe")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    @JsonProperty("windows_interpreter")
+    private String windowsInterpreter;
 
     /**
      * 脚本ID
@@ -102,7 +125,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
+    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
         message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
     private Integer timeout;
 
@@ -136,4 +159,12 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
         }
     }
 
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
+    }
 }
