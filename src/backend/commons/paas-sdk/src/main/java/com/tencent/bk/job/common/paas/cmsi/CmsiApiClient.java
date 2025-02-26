@@ -49,6 +49,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -107,7 +108,40 @@ public class CmsiApiClient extends BkApiV1Client {
 //            HttpMetricUtil.clearHttpMetric();
 //        }
         // 临时注释，保证多租户联调正常
-        return Collections.emptyList();
+        if ("system".equals(tenantId)) {
+            List<EsbNotifyChannelDTO> channelList = new ArrayList<>();
+            channelList.add(new EsbNotifyChannelDTO(
+                "weixin",
+                "微信",
+                true,
+                ""
+            ));
+            channelList.add(new EsbNotifyChannelDTO(
+                "rtx",
+                "企业微信",
+                true,
+                ""
+            ));
+            return channelList;
+        } else if ("putongoa".equals(tenantId)) {
+            List<EsbNotifyChannelDTO> channelList = new ArrayList<>();
+            channelList.add(new EsbNotifyChannelDTO(
+                "weixin",
+                "微信",
+                true,
+                ""
+            ));
+            channelList.add(new EsbNotifyChannelDTO(
+                "sms",
+                "短信",
+                true,
+                ""
+            ));
+            return channelList;
+        } else {
+            return Collections.emptyList();
+        }
+
     }
 
     public void sendMsg(String msgType,
