@@ -10,6 +10,7 @@ CREATE PROCEDURE job_schema_update()
 BEGIN
 
   DECLARE db VARCHAR(100);
+  DECLARE current_primary_key VARCHAR(100);
   SET AUTOCOMMIT = 0;
   SELECT DATABASE() INTO db;
 
@@ -128,12 +129,34 @@ BEGIN
     ALTER TABLE global_setting ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
   END IF;
 
+  SELECT GROUP_CONCAT(COLUMN_NAME) INTO current_primary_key
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = db
+      AND TABLE_NAME = 'global_setting'
+      AND CONSTRAINT_NAME = 'PRIMARY';
+
+  IF current_primary_key = 'key' THEN
+    ALTER TABLE global_setting DROP PRIMARY KEY;
+    ALTER TABLE global_setting ADD PRIMARY KEY (`key`, `tenant_id`);
+  END IF;
+
   IF NOT EXISTS(SELECT 1
                     FROM information_schema.columns
                     WHERE TABLE_SCHEMA = db
                       AND TABLE_NAME = 'available_esb_channel'
                       AND COLUMN_NAME = 'tenant_id') THEN
     ALTER TABLE available_esb_channel ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default';
+  END IF;
+
+  SELECT GROUP_CONCAT(COLUMN_NAME) INTO current_primary_key
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = db
+      AND TABLE_NAME = 'available_esb_channel'
+      AND CONSTRAINT_NAME = 'PRIMARY';
+
+  IF current_primary_key = 'type' THEN
+    ALTER TABLE available_esb_channel DROP PRIMARY KEY;
+    ALTER TABLE available_esb_channel ADD PRIMARY KEY (type, tenant_id);
   END IF;
 
   IF NOT EXISTS(SELECT 1
