@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -54,4 +55,17 @@ public class ListUtilTest {
         assertThat(result).containsOnly("a", "b", "c", "d");
     }
 
+    @Test
+    void testTrimStringList() {
+        assertThat(ListUtil.trimStringList(null)).isNull();
+        assertThat(ListUtil.trimStringList(Collections.emptyList())).isNotNull();
+        assertThat(ListUtil.trimStringList(Collections.emptyList())).size().isEqualTo(0);
+
+        List<String> list1 = Lists.newArrayList(null, " a  ", " b b ", "");
+        assertThat(ListUtil.trimStringList(list1)).size().isEqualTo(4);
+        assertThat(ListUtil.trimStringList(list1).get(0)).isNull();
+        assertThat(ListUtil.trimStringList(list1).get(1)).isEqualTo("a");
+        assertThat(ListUtil.trimStringList(list1).get(2)).isEqualTo("b b");
+        assertThat(ListUtil.trimStringList(list1).get(3)).isEqualTo("");
+    }
 }
