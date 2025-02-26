@@ -453,19 +453,27 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING,
             tenantId
         );
-        if (fileUploadSettingDTO == null) {
-            fileUploadSettingDTO = new GlobalSettingDTO();
-            fileUploadSettingDTO.setDescription("setting of upload file");
-            fileUploadSettingDTO.setTenantId(tenantId);
+        if (fileUploadSettingDTO != null) {
+            fileUploadSettingDTO.setValue(JsonUtils.toJson(
+                new UploadFileRestrictDTO(
+                    uploadMaxSize.toString() + unit.name()
+                    , restrictMode
+                    , suffixList)));
+            int affectedRows = globalSettingDAO.updateGlobalSetting(fileUploadSettingDTO);
+            return affectedRows > 0;
+        } else {
+            GlobalSettingDTO insertFileUploadSettingDTO = new GlobalSettingDTO();
+            insertFileUploadSettingDTO.setDescription("setting of upload file");
+            insertFileUploadSettingDTO.setTenantId(tenantId);
+            insertFileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+            insertFileUploadSettingDTO.setValue(JsonUtils.toJson(
+                new UploadFileRestrictDTO(
+                    uploadMaxSize.toString() + unit.name()
+                    , restrictMode
+                    , suffixList)));
+            int affectedRows = globalSettingDAO.insertGlobalSetting(insertFileUploadSettingDTO);
+            return affectedRows > 0;
         }
-        fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        fileUploadSettingDTO.setValue(JsonUtils.toJson(
-            new UploadFileRestrictDTO(
-                uploadMaxSize.toString() + unit.name()
-                , restrictMode
-                , suffixList)));
-        int affectedRows = globalSettingDAO.upsertGlobalSetting(fileUploadSettingDTO);
-        return affectedRows > 0;
     }
 
     @Override
