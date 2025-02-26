@@ -355,6 +355,8 @@ public class ErrorCode {
     public static final int RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT = 1244033;
     // 当前执行的作业总量超过系统配额限制
     public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
+    // 作业执行历史查询结束时间必须小于{0}天
+    public static final int TASK_INSTANCE_QUERY_END_TIME_TOO_EARLY = 1244035;
     // 作业执行 end
 
     // 定时作业 start

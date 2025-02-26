@@ -57,6 +57,11 @@ public class ArchiveProperties {
     private String cron;
 
     /**
+     * 归档任务并行执行数量
+     */
+    private Integer concurrent = 10;
+
+    /**
      * DB数据保留天数
      */
     private int keepDays = 30;

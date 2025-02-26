@@ -80,11 +80,18 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
     }
 
     @Override
-    public InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(Long appId, String taskName,
-                                                                              Long taskInstanceId, Integer status
-        , String operator, Integer startupMode, Integer taskType, String startTime,
-                                                                              String endTime, Integer start,
-                                                                              Integer pageSize, Long cronTaskId) {
+    public InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(Long appId,
+                                                                                   String taskName,
+                                                                                   Long taskInstanceId,
+                                                                                   Integer status,
+                                                                                   String operator,
+                                                                                   Integer startupMode,
+                                                                                   Integer taskType,
+                                                                                   String startTime,
+                                                                                   String endTime,
+                                                                                   Integer start,
+                                                                                   Integer pageSize,
+                                                                                   Long cronTaskId) {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
         taskQuery.setAppId(appId);
@@ -98,6 +105,7 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
             taskQuery.setEndTime(DateUtils.convertUnixTimestampFromDateTimeStr(endTime, "yyyy-MM-dd HH:mm:ss",
                 ChronoUnit.MILLIS, ZoneId.of("UTC")));
         }
+        taskQuery.setDisableTimeRangeValidate(true);
         taskQuery.setOperator(operator);
         if (startupMode != null) {
             taskQuery.setStartupModes(Collections.singletonList(TaskStartupModeEnum.getStartupMode(startupMode)));

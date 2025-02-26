@@ -34,6 +34,30 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          source: archive-task
+          bindings:
+            handleArchiveTaskEvent-in-0:
+              destination: archive.task
+              group: service.job.backup
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+            archive-task-out-0:
+              destination: archive.task
+              group: service.job.backup
+              binder: jobCommon
+              consumer:
+                concurrency: 5
+          rabbit:
+            bindings:
+              handleArchiveTaskEvent-in-0:
+                consumer:
+                  maxConcurrency: 20
+              archive-task-out-0:
+                consumer:
+                  maxConcurrency: 20
+        function:
+          definition: handleArchiveTaskEvent
       datasource:
         job-backup:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -123,5 +147,165 @@ data:
           repo: {{ .Values.backupConfig.artifactory.repo }}
         archive:  
           execute:
-            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+            mysql:
+              dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
+              sharding:
+                enabled: {{ .Values.executeConfig.mysql.sharding.enabled }}
+                {{- if .Values.executeConfig.mysql.sharding.enabled }}
+                databases:
+                  job_execute:
+                    logicDatabaseName: job_execute
+                    dataSourceDriverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+                    username: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.username | quote }}
+                    password: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.password | quote }}
+                    maximumPoolSize: 5
+                    minimumIdle: 1
+                    idleTimeout: 600000
+                    validationTimeout: 5000
+                    connectionTimeout: 30000
+                    # 数据源分组配置
+                    dataSourceGroups:
+                      # 分片数据源
+                      {{- toYaml .Values.executeConfig.mysql.sharding.databases.job_execute.dataSourceGroups | nindent 22 }}
+                    # 规则配置
+                    rule:
+                      # 分片表规则配置
+                      sharding:
+                        tables:
+                          task_instance:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance_script:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance_file:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance_confirm:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          gse_script_execute_obj_task:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          gse_file_execute_obj_task:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          gse_task:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          file_source_task_log:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          operation_log:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          task_instance_variable:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance_variable:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          rolling_config:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          step_instance_rolling_task:
+                            {{ include "job.execute.sharding.jobInstance.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          task_instance_app:
+                            {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                          task_instance_host:
+                            {{ include "job.execute.sharding.jobInstanceSearch.dataNodes" . }}
+                            databaseStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                            tableStrategy:
+                              type: hint
+                              shardingAlgorithmName: job_instance_hint
+                        ## 分库分表算法
+                        shardingAlgorithms:
+                          # 强制路由分片算法
+                          job_instance_hint:
+                            type: JOB_INSTANCE_HINT
+                    # 全局配置
+                    props:
+              {{- end }}
 {{- end }}

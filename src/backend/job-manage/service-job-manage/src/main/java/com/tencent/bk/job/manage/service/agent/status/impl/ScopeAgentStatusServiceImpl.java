@@ -32,12 +32,12 @@ public class ScopeAgentStatusServiceImpl implements ScopeAgentStatusService {
 
     @Override
     public boolean needToUseGseV2(ResourceScope resourceScope) {
-        ToggleEvaluateContext featureExecutionContext =
+        ToggleEvaluateContext toggleEvaluateContext =
             ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, resourceScope);
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_AGENT_STATUS_GSE_V2,
-            featureExecutionContext
+            toggleEvaluateContext
         );
     }
 

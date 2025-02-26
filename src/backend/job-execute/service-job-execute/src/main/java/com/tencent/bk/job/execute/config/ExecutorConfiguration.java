@@ -107,7 +107,7 @@ public class ExecutorConfiguration {
                 //使用请求的线程直接拉取数据
                 log.error(
                     "download localupload file from artifactory runnable rejected," +
-                        " use current thread({}), plz add more threads",
+                        " use get thread({}), plz add more threads",
                     Thread.currentThread().getName());
                 r.run();
             }
@@ -128,7 +128,7 @@ public class ExecutorConfiguration {
                 //使用请求的线程直接拉取数据
                 log.error(
                     "watch localupload file from artifactory runnable rejected," +
-                        " use current thread({}), plz add more job-execute instances",
+                        " use get thread({}), plz add more job-execute instances",
                     Thread.currentThread().getName());
                 r.run();
             }

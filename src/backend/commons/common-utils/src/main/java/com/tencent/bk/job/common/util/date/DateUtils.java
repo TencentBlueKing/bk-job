@@ -414,4 +414,13 @@ public class DateUtils {
 
         return 1000 * (localDateUTC.atStartOfDay().toEpochSecond(ZoneOffset.UTC) + 86400);
     }
+
+    /**
+     * 计算当天（UTC 时区)的开始时间戳
+     *
+     * @return 当天（UTC 时区)的开始时间戳，单位毫秒
+     */
+    public static long getUTCCurrentDayStartTimestamp() {
+        return 1000 * (LocalDate.now(ZoneId.of("UTC")).atStartOfDay().toEpochSecond(ZoneOffset.UTC));
+    }
 }

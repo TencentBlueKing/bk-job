@@ -648,6 +648,10 @@ job:
       secureKey: ""
       # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
+  toggle:
+    # 动态属性开关配置
+    props:
+
 
   migration:
     iamModel:
@@ -928,6 +932,20 @@ executeConfig:
     query:
       # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
       contentSizeLimit: 512MB
+  # 作业实例数据存储、查询配置
+  jobInstance:
+    query:
+      # 可以查询多少天之前的热数据
+      maxDays: 30
+      cold:
+        enabled: false
+    store:
+      hot:
+        # 热数据保留天数
+        maxDays: 60
+      cold:
+        # 冷数据
+        enabled: false
   image:
     registry: hub.bktencent.com
     repository: blueking/job-execute
@@ -1001,7 +1019,10 @@ executeConfig:
         enabled: true
         # 过期时间（s）
         expireSeconds: 10
-
+  jvm:
+    debug:
+      enabled: false
+      port: 5005
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
     dataSourceMode: standalone
@@ -1026,6 +1047,52 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+    sharding:
+      # 是否启用分库分表
+      enabled: true
+      databases:
+        job_execute:
+          username : job
+          password : job
+          # 数据源组
+          dataSourceGroups:
+            ds_job_instance:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_1:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_2:3306/job_execute
+            ds_job_instance_search:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_3:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_4:3306/job_execute
+            ds_job_instance_search_biz_a:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_5:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_6:3306/job_execute
+            ds_job_instance_search_biz_set_b:
+              dataSources:
+                - index: 0
+                  jdbcUrl: jdbc:otel:mysql://db_host_7:3306/job_execute
+                - index: 1
+                  jdbcUrl: jdbc:otel:mysql://db_host_8:3306/job_execute
+          shardingRule:
+            jobInstance:
+              dataNodes: "ds_group=ds_job_instance,db_node_count=2,tb_node_count=32"
+            jobInstanceSearch:
+              dataNodes: "ds_group=ds_job_instance_search,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_a,db_node_count=2,tb_node_count=32;ds_group=ds_job_instance_search_biz_set_b,db_node_count=2,tb_node_count=32"
+              shardingAlgorithmProps:
+                defaultDsGroup: "ds_job_instance_search"
+                largeDataDsGroup: "biz:10000=ds_job_instance_search_biz_a;biz_set:10001=ds_job_instance_search_biz_set_b"
+          props:
+            # 一次查询请求在每个数据库实例中所能使用的最大连接数
+            max-connections-size-per-query : 32
+            # 是否在日志中打印实际执行的 SQL
+            sql-show: false
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
@@ -1035,7 +1102,6 @@ executeConfig:
       enabled: false
     # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
-
 ## job-crontab定时任务配置
 crontabConfig:
   # 是否部署定时任务微服务，默认部署
@@ -1231,8 +1297,8 @@ backupConfig:
       mode: deleteOnly
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
-      # 热库中的数据保留时间（天）
-      keeyDays: 30
+      # 归档任务并发线程总数
+      concurrent: 10
       # 每批次从 db 表中读取的记录数量
       readRowLimit: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
@@ -1744,7 +1810,7 @@ k8sConfigWatcherConfig:
       memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi 
+      memory: 256Mi
 
 ## job-assemble 配置
 assembleConfig:

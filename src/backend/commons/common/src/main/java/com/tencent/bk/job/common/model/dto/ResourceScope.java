@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.model.dto;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.util.NumberUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -52,6 +53,12 @@ public class ResourceScope {
      */
     @ApiModelProperty(value = "资源范围Id", required = true)
     private String id;
+
+    public ResourceScope(String resourceScope) {
+        String[] typeAndId = resourceScope.split(":");
+        this.type = ResourceScopeTypeEnum.from(typeAndId[0]);
+        this.id = typeAndId[1];
+    }
 
     public ResourceScope(String type, String id) {
         this.type = ResourceScopeTypeEnum.from(type);
@@ -99,5 +106,11 @@ public class ResourceScope {
     @Override
     public int hashCode() {
         return Objects.hash(type, id);
+    }
+
+    public static boolean checkValid(String resourceScope) {
+        String[] typeAndId = resourceScope.split(":");
+        return ResourceScopeTypeEnum.isValid(typeAndId[0])
+            && NumberUtil.isValidLong(typeAndId[1]);
     }
 }

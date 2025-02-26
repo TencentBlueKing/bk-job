@@ -69,7 +69,7 @@ public class Parser {
     }
 
     /**
-     * lookahead func returns the current token and string. No increment of current position
+     * lookahead func returns the get token and string. No increment of get position
      */
     private ScannedItem lookahead(ParserContext context) {
         Token token = scannedItems.get(position).getToken();
@@ -85,7 +85,7 @@ public class Parser {
     }
 
     /**
-     * consume returns current token and string. Increments the position
+     * consume returns get token and string. Increments the position
      */
     private ScannedItem consume(ParserContext context) {
         position++;

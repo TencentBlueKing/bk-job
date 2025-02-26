@@ -1,0 +1,33 @@
+databaseName: job_execute
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: org.h2.Driver
+    jdbcUrl: jdbc:h2:mem:job_execute;MODE=MYSQL;INIT=RUNSCRIPT FROM 'classpath:init_schema_sharding.sql'
+    username: ${job.execute.db.username}
+    password: ${job.execute.db.password}
+rules:
+  - !SHARDING
+    tables:
+      task_instance:
+        actualDataNodes: ds_0.task_instance_${0..1}
+        tableStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: t_task_instance_inline
+#        keyGenerateStrategy:
+#          column: id
+#          keyGeneratorName: snowflake
+    shardingAlgorithms:
+      t_task_instance_inline:
+        type: INLINE
+        props:
+          algorithm-expression: task_instance_${id % 2}
+#    keyGenerators:
+#      snowflake:
+#        type: SNOWFLAKE
+#  - !SQL_TRANSLATOR
+#    type: JOOQ
+#    useOriginalSQLWhenTranslatingFailed: false
+props:
+  sql-show: true

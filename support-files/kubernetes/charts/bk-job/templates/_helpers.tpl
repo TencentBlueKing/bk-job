@@ -784,3 +784,32 @@ password: ${mariadb-password}
     {{- end }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Return the job execute job instance data sharding data nodes
+*/}}
+{{- define "job.execute.sharding.jobInstance.dataNodes" -}}
+dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstance.dataNodes | quote }}
+{{- end -}}
+
+{{/*
+Return the job execute job instance search data sharding data nodes
+*/}}
+{{- define "job.execute.sharding.jobInstanceSearch.dataNodes" -}}
+dataNodes: {{ .Values.executeConfig.mysql.sharding.databases.job_execute.shardingRule.jobInstanceSearch.dataNodes | quote }}
+{{- end -}}
+
+{{/*
+Return the job backup sharding database algorithm expression
+*/}}
+{{- define "job.backup.sharding.database.algorithm.expression" -}}
+{{ printf "ds_${value}" }}
+{{- end -}}
+
+{{/*
+Return the job-backup execute sharding table algorithm expression
+*/}}
+{{- define "job.backup.sharding.table.algorithm.expression" -}}
+{{- $table_name := .tableName -}}
+{{ printf "%s_${value}" $table_name }}
+{{- end -}}

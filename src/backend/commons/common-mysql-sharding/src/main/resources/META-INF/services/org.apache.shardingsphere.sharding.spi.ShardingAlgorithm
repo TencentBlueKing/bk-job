@@ -1,0 +1,2 @@
+com.tencent.bk.job.common.sharding.mysql.algorithm.IdHashStandardShardingAlgorithm
+

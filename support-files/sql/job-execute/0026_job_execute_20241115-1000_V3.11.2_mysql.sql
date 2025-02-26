@@ -342,4 +342,3 @@ COMMIT;
 
 CALL job_update_task_instance_host_data(-1,-1);
 DROP PROCEDURE IF EXISTS job_update_task_instance_host_data;
-

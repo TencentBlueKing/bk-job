@@ -408,7 +408,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         RunStatusEnum stepStatus = stepInstance.getStatus();
 
         if (RunStatusEnum.STOP_SUCCESS == stepStatus) {
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
+            taskInstanceService.updateTaskStatus(stepInstance.getAppId(),
+                taskInstanceId, RunStatusEnum.RUNNING.getValue());
             long endTime = DateUtils.currentTimeMillis();
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
@@ -449,7 +450,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         stepInstanceService.updateStepStatus(taskInstanceId, stepInstance.getId(),
             RunStatusEnum.IGNORE_ERROR.getValue());
-        taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getTaskInstanceId());
+        taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getAppId(), stepInstance.getTaskInstanceId());
         if (isRollingStep) {
             StepInstanceRollingTaskDTO stepInstanceRollingTask =
                 stepInstanceRollingTaskService.queryRollingTask(taskInstanceId, stepInstanceId,
@@ -473,7 +474,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         if (!(taskInstance.getCurrentStepInstanceId() == stepInstanceId)) {
-            log.warn("Only current running step is support for skipping, stepInstanceId={}", stepInstanceId);
+            log.warn("Only get running step is support for skipping, stepInstanceId={}", stepInstanceId);
             return;
         }
 
@@ -486,7 +487,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             stepInstanceService.updateStepStatus(taskInstanceId, stepInstanceId, RunStatusEnum.SKIPPED.getValue());
             stepInstanceService.updateStepEndTime(taskInstanceId, stepInstanceId, now);
 
-            taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.RUNNING.getValue());
+            taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+                taskInstanceId, RunStatusEnum.RUNNING.getValue());
             taskExecuteMQEventDispatcher.dispatchJobEvent(
                 JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
         } else {
@@ -700,7 +702,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long taskInstanceId = stepInstance.getTaskInstanceId();
 
         stepInstanceService.resetStepExecuteInfoForRetry(taskInstanceId, stepInstanceId);
-        taskInstanceService.resetTaskExecuteInfoForRetry(taskInstanceId);
+        taskInstanceService.resetTaskExecuteInfoForRetry(stepInstance.getAppId(), taskInstanceId);
     }
 
     private void refreshStep(StepEvent stepEvent, StepInstanceDTO stepInstance) {

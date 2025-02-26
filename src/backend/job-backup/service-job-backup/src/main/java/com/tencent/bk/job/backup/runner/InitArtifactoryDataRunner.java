@@ -65,7 +65,7 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
         // 3.Backup仓库不存在则创建
         String REPO_BACKUP_DESCRIPTION = "BlueKing bk-job official project backup repo," +
             " which is used to save job export data produced by program. " +
-            "Do not delete me unless you know what you are doing";
+            "Do not deleteJobInstanceHotData me unless you know what you are doing";
         boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
             baseUrl,
             adminUsername,

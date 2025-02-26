@@ -32,14 +32,15 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.StepRunModeEnum;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
+import com.tencent.bk.job.execute.config.JobInstanceConfigurationProperties;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
-import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ConfirmStepInstanceDTO;
@@ -92,6 +93,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.Order.DESCENDING;
+import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
 
 /**
  * 作业执行结果查询Service
@@ -99,7 +101,6 @@ import static com.tencent.bk.job.common.constant.Order.DESCENDING;
 @Service
 @Slf4j
 public class TaskResultServiceImpl implements TaskResultService {
-    private final TaskInstanceDAO taskInstanceDAO;
     private final StepInstanceDAO stepInstanceDAO;
     private final TaskInstanceService taskInstanceService;
     private final FileSourceTaskLogService fileSourceTaskLogService;
@@ -112,9 +113,11 @@ public class TaskResultServiceImpl implements TaskResultService {
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
+    private final JobInstanceConfigurationProperties jobInstanceConfigurationProperties;
+
+
     @Autowired
-    public TaskResultServiceImpl(TaskInstanceDAO taskInstanceDAO,
-                                 StepInstanceDAO stepInstanceDAO,
+    public TaskResultServiceImpl(StepInstanceDAO stepInstanceDAO,
                                  TaskInstanceService taskInstanceService,
                                  FileSourceTaskLogService fileSourceTaskLogService,
                                  ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
@@ -124,8 +127,8 @@ public class TaskResultServiceImpl implements TaskResultService {
                                  RollingConfigService rollingConfigService,
                                  StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                  TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                 StepInstanceService stepInstanceService) {
-        this.taskInstanceDAO = taskInstanceDAO;
+                                 StepInstanceService stepInstanceService,
+                                 JobInstanceConfigurationProperties jobInstanceConfigurationProperties) {
         this.stepInstanceDAO = stepInstanceDAO;
         this.taskInstanceService = taskInstanceService;
         this.fileSourceTaskLogService = fileSourceTaskLogService;
@@ -137,14 +140,38 @@ public class TaskResultServiceImpl implements TaskResultService {
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
+        this.jobInstanceConfigurationProperties = jobInstanceConfigurationProperties;
     }
 
     @Override
     public PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                           BaseSearchCondition baseSearchCondition) {
-        PageData<TaskInstanceDTO> pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
+        checkTaskInstanceQueryTimeRange(taskQuery);
+        PageData<TaskInstanceDTO> pageData = taskInstanceService.listPageTaskInstance(taskQuery, baseSearchCondition);
         computeTotalTime(pageData.getData());
         return pageData;
+    }
+
+    private void checkTaskInstanceQueryTimeRange(TaskInstanceQuery taskQuery) {
+        if (taskQuery.isDisableTimeRangeValidate()) {
+            return;
+        }
+        // 校验查询时间范围
+        long start = taskQuery.getStartTime();
+        long end = taskQuery.getEndTime();
+        if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
+            log.info("Query task instance history time span must be less than 30 days");
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
+        }
+        Integer maxQueryDays = jobInstanceConfigurationProperties.getQuery().getMaxDays();
+        long currentDayStartTime = DateUtils.getUTCCurrentDayStartTimestamp();
+        if (currentDayStartTime - end > maxQueryDays * 86400000L) {
+            log.info("Query task instance history end time must be less than {} days."
+                    + "currentDayStartTime: {}, endTime: {}",
+                maxQueryDays, currentDayStartTime, end);
+            throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_END_TIME_TOO_EARLY,
+                new String[]{String.valueOf(maxQueryDays)});
+        }
     }
 
     private void computeTotalTime(List<TaskInstanceDTO> pageData) {
@@ -155,7 +182,7 @@ public class TaskResultServiceImpl implements TaskResultService {
                     if (status == RunStatusEnum.RUNNING || status == RunStatusEnum.WAITING_USER
                         || status == RunStatusEnum.STOPPING) {
                         taskInstanceDTO.setTotalTime((TaskCostCalculator.calculate(taskInstanceDTO.getStartTime(),
-                            taskInstanceDTO.getEndTime(), taskInstanceDTO.getTotalTime())));
+                            taskInstanceDTO.getEndTime(), null)));
                     }
                 }
             });
@@ -780,9 +807,9 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         Map<Integer, StepInstanceRollingTaskDTO> latestStepInstanceRollingTasks =
             stepInstanceRollingTaskService.listLatestRollingTasks(
-                stepInstance.getTaskInstanceId(),
-                stepExecutionDetail.getStepInstanceId(),
-                stepExecutionDetail.getExecuteCount())
+                    stepInstance.getTaskInstanceId(),
+                    stepExecutionDetail.getStepInstanceId(),
+                    stepExecutionDetail.getExecuteCount())
                 .stream()
                 .collect(Collectors.toMap(StepInstanceRollingTaskDTO::getBatch,
                     stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
@@ -868,7 +895,7 @@ public class TaskResultServiceImpl implements TaskResultService {
         StopWatch watch = new StopWatch("cron-task-statistics");
         for (Long cronTaskId : cronTaskIdList) {
             watch.start("get-last24h-tasks-" + cronTaskId);
-            List<TaskInstanceDTO> last24HourTaskInstances = taskInstanceDAO.listLatestCronTaskInstance(appId,
+            List<TaskInstanceDTO> last24HourTaskInstances = taskInstanceService.listLatestCronTaskInstance(appId,
                 cronTaskId, 86400L, null, null);
 
             boolean isGe10Within24Hour = false;
@@ -895,8 +922,8 @@ public class TaskResultServiceImpl implements TaskResultService {
             } else {
                 watch.start("get-last10-tasks-" + cronTaskId);
                 // 如果24小时内执行次数少于10次，那么统计最近10次的数据。由于可能存在正在运行任务，所以默认返回最近11次的数据
-                List<TaskInstanceDTO> last10TaskInstances = taskInstanceDAO.listLatestCronTaskInstance(appId,
-                    cronTaskId, null, null, 11);
+                List<TaskInstanceDTO> last10TaskInstances = taskInstanceService.listLatestCronTaskInstance(
+                    appId, cronTaskId, null, null, 11);
                 ServiceCronTaskExecuteResultStatistics statistic = new ServiceCronTaskExecuteResultStatistics();
                 statistic.setCronTaskId(cronTaskId);
                 statistic.setLast10ExecuteRecords(convertToCronTaskExecuteResult(last10TaskInstances));

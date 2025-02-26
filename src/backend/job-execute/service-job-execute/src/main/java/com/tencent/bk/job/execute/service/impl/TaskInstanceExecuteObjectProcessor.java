@@ -978,14 +978,14 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isSupportExecuteObjectFeature(TaskInstanceDTO taskInstance) {
-        ToggleEvaluateContext featureExecutionContext =
+        ToggleEvaluateContext toggleEvaluateContext =
             ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()));
 
         boolean featureEnabled = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_EXECUTE_OBJECT,
-            featureExecutionContext
+            toggleEvaluateContext
         );
         log.info("Check feature: {}, result: {}", FeatureIdConstants.FEATURE_EXECUTE_OBJECT, featureEnabled);
         return featureEnabled;
@@ -1023,7 +1023,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
         // 初始化Job任务灰度对接 GSE2.0 上下文
-        ToggleEvaluateContext featureExecutionContext =
+        ToggleEvaluateContext toggleEvaluateContext =
             ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
@@ -1038,7 +1038,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
         boolean isUsingGseV2 = FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_GSE_V2,
-            featureExecutionContext
+            toggleEvaluateContext
         );
         log.info("Use gse version {}", isUsingGseV2 ? "v2" : "v1");
         return isUsingGseV2;

@@ -128,8 +128,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
-
 @SuppressWarnings("Duplicates")
 @RestController
 @Slf4j
@@ -315,6 +313,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
             // 当天结束时间 - 往前的天数
+            end = System.currentTimeMillis();
             start = DateUtils.getUTCCurrentDayEndTimestamp() - timeRange * 24 * 3600 * 1000L;
         } else {
             if (StringUtils.isNotBlank(startTime)) {
@@ -332,10 +331,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
             if (end == null) {
                 end = System.currentTimeMillis();
-            }
-            if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-                log.info("Query task instance history time span must be less than 30 days");
-                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
             }
         }
 

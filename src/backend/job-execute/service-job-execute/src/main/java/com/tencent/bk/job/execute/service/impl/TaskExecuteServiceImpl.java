@@ -1888,7 +1888,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(stepInstance.getAppId(), stepInstance.getTaskInstanceId(),
+            RunStatusEnum.RUNNING.getValue());
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getTaskInstanceId(),
             stepInstance.getId(), stepInstance.getBatch() + 1));
     }
@@ -2014,7 +2015,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         stepInstanceService.updateStepOperator(stepInstance.getTaskInstanceId(), stepInstance.getId(), operator);
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+            taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
 
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.confirmStepContinue(stepInstance.getTaskInstanceId(), stepInstance.getId()));
@@ -2036,7 +2038,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             UserOperationEnum.NEXT_STEP));
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+            taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.nextStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
@@ -2053,7 +2056,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance.getId()
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+            stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         stepInstanceService.addStepInstanceExecuteCount(
             stepInstance.getTaskInstanceId(), stepInstance.getId());
         taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getTaskInstanceId(),
@@ -2075,7 +2079,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance.getId()
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+            stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         stepInstanceService.addStepInstanceExecuteCount(stepInstance.getTaskInstanceId(), stepInstance.getId());
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.retryStepAll(stepInstance.getTaskInstanceId(), stepInstance.getId()));
@@ -2105,7 +2110,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstance.getId()
         );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
-        taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
+        taskInstanceService.updateTaskStatus(taskInstance.getAppId(),
+            stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
         taskExecuteMQEventDispatcher.dispatchStepEvent(
             StepEvent.ignoreError(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,

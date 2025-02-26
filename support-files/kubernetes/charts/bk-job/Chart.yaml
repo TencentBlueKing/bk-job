@@ -3,7 +3,8 @@ name: "bk-job"
 description: The BK-JOB is a ops script management and execution system with the capability of dealing with multiple tasks simultaneously.
 type: application
 # release 的时候需要改为实际的版本号
-version: {{CHART_VERSION}}
+#version: {{CHART_VERSION}}
+version: 1.0.0
 # release 的时候需要改为实际的版本号
 appVersion: "{{APP_VERSION}}"
 

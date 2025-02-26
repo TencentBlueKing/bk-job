@@ -22,14 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.dao;
+package com.tencent.bk.job.execute.dao.common;
 
-import org.jooq.TableRecord;
+import org.jooq.DSLContext;
 
-import java.io.IOException;
-import java.util.List;
+public interface DSLContextDynamicProvider {
+    DSLContext get();
 
-public interface ExecuteArchiveDAO {
-    Integer batchInsert(List<? extends TableRecord<?>> recordList, int bulkSize)
-        throws IOException;
+    void set(DSLContext currentDSLContext);
+
+    void unset();
 }
+

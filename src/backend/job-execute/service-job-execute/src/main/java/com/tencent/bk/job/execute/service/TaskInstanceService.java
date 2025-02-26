@@ -26,9 +26,12 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceQuery;
 
 import java.util.Collection;
 import java.util.List;
@@ -66,22 +69,24 @@ public interface TaskInstanceService {
     TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException;
 
-    void updateTaskStatus(long taskInstanceId, int status);
+    void updateTaskStatus(long appId, long taskInstanceId, int status);
 
-    void updateTaskCurrentStepId(long taskInstanceId, Long stepInstanceId);
+    void updateTaskCurrentStepId(long appId, long taskInstanceId, Long stepInstanceId);
 
-    void resetTaskStatus(long taskInstanceId);
+    void resetTaskStatus(long appId, long taskInstanceId);
 
     /**
      * 作业恢复执行-重置作业执行状态
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      */
-    void resetTaskExecuteInfoForRetry(long taskInstanceId);
+    void resetTaskExecuteInfoForRetry(long appId, long taskInstanceId);
 
     /**
      * 更新作业的执行信息
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      * @param status         作业状态
      * @param currentStepId  当前步骤实例ID
@@ -89,7 +94,8 @@ public interface TaskInstanceService {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateTaskExecutionInfo(long taskInstanceId,
+    void updateTaskExecutionInfo(long appId,
+                                 long taskInstanceId,
                                  RunStatusEnum status,
                                  Long currentStepId,
                                  Long startTime,
@@ -110,4 +116,23 @@ public interface TaskInstanceService {
      * @param hosts          主机列表
      */
     void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts);
+
+    PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
+                                                   BaseSearchCondition baseSearchCondition);
+
+    /**
+     * 获取定时作业执行情况
+     *
+     * @param appId               业务ID
+     * @param cronTaskId          定时作业ID
+     * @param latestTimeInSeconds 时间范围
+     * @param status              任务状态,如果为NULL,那么返回所有状态
+     * @param limit               返回记录个数；如果未NULL,那么不限制返回数量
+     * @return 作业实例列表
+     */
+    List<TaskInstanceDTO> listLatestCronTaskInstance(long appId,
+                                                     Long cronTaskId,
+                                                     Long latestTimeInSeconds,
+                                                     RunStatusEnum status,
+                                                     Integer limit);
 }

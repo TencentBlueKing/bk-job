@@ -73,7 +73,7 @@ public class TaskEvictPolicyManager {
             .get(RedisConstants.KEY_EXECUTE_TASK_EVICT_POLICY);
         // 策略无任何改变则无须解析更新
         if (!StringUtil.isDifferent(policyJsonStr, loadedPolicyJsonStr)) {
-            log.debug("taskEvictPolicy not change");
+            log.debug("taskEvictPolicy not set");
             return;
         }
         policyJsonStr = loadedPolicyJsonStr;
