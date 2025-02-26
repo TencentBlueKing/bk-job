@@ -182,7 +182,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public Boolean setNotifyChannelConfiged(String tenantId) {
         GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
+            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
+            tenantId
+        );
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
                 "true",
