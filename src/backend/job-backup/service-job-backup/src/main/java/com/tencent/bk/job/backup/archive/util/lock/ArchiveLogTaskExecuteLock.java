@@ -22,37 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
-    /**
-     * 作业实例数据归档
-     */
-    JOB_INSTANCE(1),
-    /**
-     * 作业实例按业务冗余数据归档
-     */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+/**
+ * 归档执行日志任务执行分布式锁
+ */
+@Slf4j
+public class ArchiveLogTaskExecuteLock {
 
-    private final int type;
+    private final HeartBeatRedisLocks locks;
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
+    public ArchiveLogTaskExecuteLock(StringRedisTemplate redisTemplate) {
+        locks = new HeartBeatRedisLocks(
+            "archive:log:task:execute",
+            redisTemplate,
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-archive:task:log:execute",
+                600 * 1000L, // 10min 超时时间
+                60 * 1000L // 1min 续期一次
+            )
+        );
     }
 
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+    public boolean lock(String taskId) {
+        return locks.lock(taskId);
+    }
+
+    public void unlock(String taskId) {
+        locks.unlock(taskId);
     }
 }

@@ -32,13 +32,18 @@ import lombok.Getter;
 @Getter
 public enum DbDataNodeTypeEnum {
     /**
-     * 单节点
+     * 单MySql节点
      */
     STANDALONE(0),
     /**
-     * 分库分表节点
+     * MySql分库分表节点
      */
-    SHARDING(1);
+    SHARDING(1),
+
+    /**
+     * 单MongoDB节点
+     */
+    SINGLE_MONGODB(2);
 
     private final int value;
 
