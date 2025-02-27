@@ -102,6 +102,7 @@ public class SyncServiceImpl implements SyncService {
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
+    private final TenantSetSyncService tenantSetSyncService;
     private final HostSyncService hostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
     private final BizSetEventWatcher bizSetEventWatcher;
@@ -111,6 +112,7 @@ public class SyncServiceImpl implements SyncService {
     @Autowired
     public SyncServiceImpl(BizSyncService bizSyncService,
                            BizSetSyncService bizSetSyncService,
+                           TenantSetSyncService tenantSetSyncService,
                            HostSyncService hostSyncService,
                            AgentStatusSyncService agentStatusSyncService,
                            ApplicationDAO applicationDAO,
@@ -134,6 +136,7 @@ public class SyncServiceImpl implements SyncService {
         this.applicationCache = applicationCache;
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
+        this.tenantSetSyncService = tenantSetSyncService;
         this.hostSyncService = hostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
         this.bizEventWatcher = bizEventWatcher;
@@ -238,6 +241,7 @@ public class SyncServiceImpl implements SyncService {
         watch.start("total");
         List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
         try {
+            tenantSetSyncService.syncTenantSetFromCMDB();
             // 遍历所有租户
             for (OpenApiTenant openApiTenant : tenantList) {
                 // 从CMDB同步业务信息

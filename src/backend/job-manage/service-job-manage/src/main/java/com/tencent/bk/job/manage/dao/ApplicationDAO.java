@@ -56,6 +56,8 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllBizSetAppsWithDeleted();
 
+    List<ApplicationDTO> listAllTenantSetAppsWithDeleted();
+
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
     Long insertApp(ApplicationDTO applicationDTO);

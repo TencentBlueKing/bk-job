@@ -22,34 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.sdk;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.common.cc.model.tenantset.TenantSetInfo;
 
 import java.util.List;
 
 /**
- * Job业务属性DO
+ * CMDB租户集相关接口
  */
-@NoArgsConstructor
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationAttrsDO {
+public interface ITenantSetCmdbClient {
 
     /**
-     * cmdb业务集的子业务ID列表
+     * 从CMDB获取所有租户集信息
+     *
+     * @return 所有租户集列表
      */
-    private List<Long> subBizIds;
+    List<TenantSetInfo> listAllTenantSet();
 
-    /**
-     * cmdb业务集是否包含所有子业务
-     */
-    private Boolean matchAllBiz;
-
-    /**
-     * cmdb租户集是否包含所有租户
-     */
-    private Boolean matchAllTenant;
 }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.cc.config;
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.TenantSetCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
@@ -140,6 +141,23 @@ public class CmdbAutoConfiguration {
                                              ObjectProvider<FlowController> flowControllerProvider,
                                              TenantEnvService tenantEnvService) {
         return new BizSetCmdbClient(
+            appProperties,
+            bkApiGatewayProperties,
+            cmdbConfig,
+            flowControllerProvider.getIfAvailable(),
+            meterRegistry,
+            tenantEnvService
+        );
+    }
+
+    @Bean
+    public TenantSetCmdbClient tenantSetCmdbClient(AppProperties appProperties,
+                                                   BkApiGatewayProperties bkApiGatewayProperties,
+                                                   CmdbConfig cmdbConfig,
+                                                   MeterRegistry meterRegistry,
+                                                   ObjectProvider<FlowController> flowControllerProvider,
+                                                   TenantEnvService tenantEnvService) {
+        return new TenantSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,

@@ -22,34 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.model.filter;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * Job业务属性DO
+ * CMDB接口请求实体类，定义业务集过滤业务的规则
  */
 @NoArgsConstructor
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationAttrsDO {
+@AllArgsConstructor
+@Setter
+@Getter
+@ToString
+public class Rule {
 
     /**
-     * cmdb业务集的子业务ID列表
+     * 业务字段名
      */
-    private List<Long> subBizIds;
+    private String field;
 
     /**
-     * cmdb业务集是否包含所有子业务
+     * 操作符
      */
-    private Boolean matchAllBiz;
+    private String operator;
 
     /**
-     * cmdb租户集是否包含所有租户
+     * 业务字段取值，根据字段不同可为不同类型
      */
-    private Boolean matchAllTenant;
+    private Object value;
 }

@@ -22,33 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.common.cc.model.tenantset;
 
+import com.tencent.bk.job.common.cc.model.filter.CmdbFilter;
+import com.tencent.bk.job.common.cc.model.bizset.Page;
+import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * CMDB接口请求实体类，定义业务集通过组合规则选择业务的过滤器
+ * CMDB接口请求实体类，用于查询租户集
  */
 @Setter
 @Getter
 @ToString
-public class BizSetFilter {
-
-    public static final String CONDITION_AND = "AND";
-    public static final String CONDITION_OR = "OR";
+public class ListTenantSetReq extends EsbReq {
 
     /**
-     * 多个规则之间的组合条件，取值为：AND/OR
+     * 过滤器
      */
-    private String condition;
+    private CmdbFilter filter;
 
     /**
-     * 规则列表
+     * 查询字段
      */
-    private List<Rule> rules;
+    private List<String> fields = Arrays.asList(
+        "id",
+        "name",
+        "maintainer",
+        "description",
+        "default",
+        "bk_scope",
+        "bk_created_at",
+        "bk_created_by",
+        "bk_updated_at",
+        "bk_updated_by"
+    );
+
+    /**
+     * 分页参数
+     */
+    private Page page;
 
 }

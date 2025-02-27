@@ -22,34 +22,75 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.model.tenantset;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * Job业务属性DO
+ * CMDB接口响应实体类，定义租户集字段
  */
-@NoArgsConstructor
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationAttrsDO {
+@Setter
+@Getter
+@ToString
+public class TenantSetInfo {
 
     /**
-     * cmdb业务集的子业务ID列表
+     * ID
      */
-    private List<Long> subBizIds;
+    private Long id;
 
     /**
-     * cmdb业务集是否包含所有子业务
+     * 名称
      */
-    private Boolean matchAllBiz;
+    private String name;
 
     /**
-     * cmdb租户集是否包含所有租户
+     * 运维人员
      */
-    private Boolean matchAllTenant;
+    private String maintainer;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 资源（业务/业务集/租户集）类型，1表示内置资源
+     */
+    @JsonProperty("default")
+    private Integer deFault;
+
+    /**
+     * 租户范围
+     */
+    @JsonProperty("bk_scope")
+    private TenantSetScope scope;
+
+    /**
+     * 创建时间
+     */
+    @JsonProperty("bk_created_at")
+    private String createTime;
+
+    /**
+     * 创建人
+     */
+    @JsonProperty("bk_created_by")
+    private String createUser;
+
+    /**
+     * 最后修改时间
+     */
+    @JsonProperty("bk_updated_at")
+    private String updateTime;
+
+    /**
+     * 更新人
+     */
+    @JsonProperty("bk_updated_by")
+    private String updateUser;
+
 }

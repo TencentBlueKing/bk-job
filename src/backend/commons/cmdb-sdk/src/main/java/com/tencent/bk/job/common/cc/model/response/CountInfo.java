@@ -31,7 +31,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * CMDB 返回的通用数据结构
@@ -41,14 +40,14 @@ import java.util.Map;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class CcCountInfo {
+public class CountInfo<T> {
     /**
      * info count
      */
     private Integer count;
 
     /**
-     * 查询返回的数据列表，Map<Sting,Object>为属性Map
+     * 查询返回的数据列表
      */
-    private List<Map<String, Object>> info;
+    private List<T> info;
 }

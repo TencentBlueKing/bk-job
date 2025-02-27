@@ -38,7 +38,11 @@ public enum ResourceScopeTypeEnum {
     /**
      * CMDB业务集
      */
-    BIZ_SET("biz_set");
+    BIZ_SET("biz_set"),
+    /**
+     * CMDB租户集
+     */
+    TENANT_SET("tenant_set");
 
     /**
      * 资源范围类型

@@ -44,7 +44,7 @@ import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
 import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
-import com.tencent.bk.job.common.cc.model.bizset.Rule;
+import com.tencent.bk.job.common.cc.model.filter.Rule;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -84,7 +84,7 @@ import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
-import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
+import com.tencent.bk.job.common.cc.model.response.CountInfo;
 import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
@@ -1202,19 +1202,19 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
     @Override
     public Set<String> listUsersByRole(Long bizId, String role) {
-        CcCountInfo searchResult;
+        CountInfo<Map<String, Object>> searchResult;
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> condition = new HashMap<>();
         condition.put("bk_biz_id", bizId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
-        EsbResp<CcCountInfo> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
             uri,
             null,
             req,
-            new TypeReference<EsbResp<CcCountInfo>>() {
+            new TypeReference<EsbResp<CountInfo<Map<String, Object>>>>() {
             });
         searchResult = esbResp.getData();
 

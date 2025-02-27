@@ -22,34 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.dto;
+package com.tencent.bk.job.common.cc.model.filter;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.List;
 
 /**
- * Job业务属性DO
+ * CMDB接口请求实体类，定义通过组合规则选择各种CMDB资源的过滤器
  */
-@NoArgsConstructor
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationAttrsDO {
+@Setter
+@Getter
+@ToString
+public class CmdbFilter {
+
+    public static final String CONDITION_AND = "AND";
+    public static final String CONDITION_OR = "OR";
 
     /**
-     * cmdb业务集的子业务ID列表
+     * 多个规则之间的组合条件，取值为：AND/OR
      */
-    private List<Long> subBizIds;
+    private String condition;
 
     /**
-     * cmdb业务集是否包含所有子业务
+     * 规则列表
      */
-    private Boolean matchAllBiz;
+    private List<Rule> rules;
 
-    /**
-     * cmdb租户集是否包含所有租户
-     */
-    private Boolean matchAllTenant;
 }

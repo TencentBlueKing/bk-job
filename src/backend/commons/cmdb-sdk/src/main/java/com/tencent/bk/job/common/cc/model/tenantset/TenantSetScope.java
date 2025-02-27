@@ -22,36 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.model.bizset;
+package com.tencent.bk.job.common.cc.model.tenantset;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * CMDB接口请求实体类，定义业务集过滤业务的规则
+ * CMDB接口请求实体类，定义租户集选择租户的范围
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Setter
 @Getter
 @ToString
-public class Rule {
+public class TenantSetScope {
 
     /**
-     * 业务字段名
+     * 是否匹配全部租户
      */
-    private String field;
+    @JsonProperty("match_all")
+    private boolean matchAll;
 
-    /**
-     * 操作符
-     */
-    private String operator;
-
-    /**
-     * 业务字段取值，根据字段不同可为不同类型
-     */
-    private Object value;
 }

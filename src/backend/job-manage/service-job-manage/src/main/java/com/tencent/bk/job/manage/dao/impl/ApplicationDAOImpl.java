@@ -216,6 +216,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
+    public List<ApplicationDTO> listAllTenantSetAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.TENANT_SET.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType) {
         List<Condition> conditions = getBasicNotDeletedConditions();
         conditions.add(T_APP.BK_SCOPE_TYPE.eq(scopeType.getValue()));
