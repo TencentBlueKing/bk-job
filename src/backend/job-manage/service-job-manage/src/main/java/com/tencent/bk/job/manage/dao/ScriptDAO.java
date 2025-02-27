@@ -133,15 +133,6 @@ public interface ScriptDAO {
     List<ScriptDTO> listScriptVersionsByScriptId(String scriptId);
 
     /**
-     * 业务下是否存在相同脚本Id
-     *
-     * @param appId
-     * @param scriptId
-     * @return
-     */
-    boolean isExistDuplicateScriptId(Long appId, String scriptId);
-
-    /**
      * 业务下是否存在同名脚本
      *
      * @param appId
@@ -287,14 +278,6 @@ public interface ScriptDAO {
      * @return 是否重复
      */
     boolean isExistDuplicateVersion(String scriptId, String version);
-
-    /**
-     * 脚本版本Id是否重复
-     *
-     * @param scriptVersionId 脚本版本Id
-     * @return 是否重复
-     */
-    boolean isExistDuplicateScriptId(Long scriptVersionId);
 
     /**
      * 业务下是否存在任意脚本

@@ -498,17 +498,6 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @SuppressWarnings("DataFlowIssue")
     @Override
-    public boolean isExistDuplicateScriptId(Long appId, String scriptId) {
-        int count = dslContext.selectCount()
-            .from(TB_SCRIPT)
-            .where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId))
-                .and(TB_SCRIPT.ID.eq(scriptId)))
-            .fetchOne(0, Integer.class);
-        return (count >= 1);
-    }
-
-    @SuppressWarnings("DataFlowIssue")
-    @Override
     public boolean isExistDuplicateName(Long appId, String scriptName) {
         int count = dslContext.selectCount()
             .from(TB_SCRIPT)
@@ -864,15 +853,6 @@ public class ScriptDAOImpl implements ScriptDAO {
             .where(TB_SCRIPT_VERSION.SCRIPT_ID.eq(scriptId))
             .and(TB_SCRIPT_VERSION.VERSION.eq(version))
             .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0)))
-            .fetchOne(0, Integer.class);
-        return (count != null && count >= 1);
-    }
-
-    @Override
-    public boolean isExistDuplicateScriptId(Long scriptVersionId) {
-        Integer count = dslContext.selectCount()
-            .from(TB_SCRIPT_VERSION)
-            .where(TB_SCRIPT_VERSION.ID.eq(ULong.valueOf(scriptVersionId)))
             .fetchOne(0, Integer.class);
         return (count != null && count >= 1);
     }
