@@ -153,9 +153,9 @@ public class JobExecuteLogArchiveTaskScheduler implements SmartLifecycle {
                         continue;
                     }
 
+                    watch.start("queryFirstScheduleArchiveTask");
                     ArchiveTaskInfo archiveTaskInfo =
                         archiveTaskService.getFirstScheduleArchiveTask(ArchiveTaskTypeEnum.JOB_EXECUTE_LOG);
-
                     watch.stop();
 
                     // 启动任务

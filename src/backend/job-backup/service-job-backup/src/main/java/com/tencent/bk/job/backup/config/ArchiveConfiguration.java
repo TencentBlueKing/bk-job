@@ -182,7 +182,7 @@ public class ArchiveConfiguration {
     }
 
     @Bean
-    public JobExecuteLogArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
+    public JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
         ArchiveProperties archiveProperties,
         JobExecuteLogArchiveTaskScheduleLock jobExecuteLogArchiveTaskScheduleLock,

@@ -33,10 +33,11 @@ import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.constant.JobLogTypeEnum;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,11 +50,14 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
     private final ArchiveTaskService archiveTaskService;
     private final JobLogTypeEnum jobLogTypeEnum;
     private final MongoTemplate mongoTemplate;
-    private final String SCRIPT_LOG_PREFIX = "job_log_script";
-    private final String FILE_LOG_PREFIX = "job_log_file";
-    private final String COLLECTION_NAME_SEPARATOR = "_";
-    private final String ARCHIVE_DAY_FORMATTER = "yyyyMMdd";
-    private final String COLLECTION_NAME_DATE_FORMATTER = "yyyy_MM_dd";
+    private static final String SCRIPT_LOG_PREFIX = "job_log_script";
+    private static final String FILE_LOG_PREFIX = "job_log_file";
+    private static final String COLLECTION_NAME_SEPARATOR = "_";
+    private static final String ARCHIVE_DAY_FORMATTER = "yyyyMMdd";
+    private static final String COLLECTION_NAME_DATE_FORMATTER = "yyyy_MM_dd";
+    private static final DateTimeFormatter INPUT_DATE_FORMATTER = DateTimeFormatter.ofPattern(ARCHIVE_DAY_FORMATTER);
+    private static final DateTimeFormatter OUTPUT_DATE_FORMATTER =
+        DateTimeFormatter.ofPattern(COLLECTION_NAME_DATE_FORMATTER);
 
     public AbstractJobExecuteLogArchiver(MongoTemplate mongoTemplate,
                                          ArchiveTaskService archiveTaskService,
@@ -106,9 +110,11 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
 
     private String getCollectionName(Integer day) {
         String prefix = getCollectionNamePrefix();
-        String date = DateUtils.formatLocalDateTime(DateUtils.convertFromStringDate(String.valueOf(day),
-            ARCHIVE_DAY_FORMATTER), COLLECTION_NAME_DATE_FORMATTER);
-        return prefix + COLLECTION_NAME_SEPARATOR + date;
+        String formattedDate = LocalDate.parse(
+            String.valueOf(day),
+            INPUT_DATE_FORMATTER
+        ).format(OUTPUT_DATE_FORMATTER);
+        return prefix + formattedDate;
     }
 
     private String getCollectionNamePrefix() {
