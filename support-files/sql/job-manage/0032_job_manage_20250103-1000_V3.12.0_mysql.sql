@@ -97,6 +97,17 @@ BEGIN
     ALTER TABLE application ADD COLUMN `default` int(10) NOT NULL DEFAULT 0;
   END IF;
 
+  SELECT GROUP_CONCAT(COLUMN_NAME) INTO current_primary_key
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = db
+      AND TABLE_NAME = 'user'
+      AND CONSTRAINT_NAME = 'PRIMARY';
+
+  IF current_primary_key = 'username' THEN
+    ALTER TABLE user DROP PRIMARY KEY;
+    ALTER TABLE user ADD PRIMARY KEY (`tenant_id`, `username`);
+  END IF;
+
   IF NOT EXISTS(SELECT 1
                     FROM information_schema.columns
                     WHERE TABLE_SCHEMA = db
