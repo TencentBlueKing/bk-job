@@ -277,7 +277,7 @@ public interface ScriptDAO {
      * @param appId 业务 ID
      * @return 脚本数
      */
-    long countScriptByAppId(long appId);
+    Long countScriptByAppId(long appId);
 
     /**
      * 脚本版本号是否重复
