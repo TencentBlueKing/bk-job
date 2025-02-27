@@ -37,7 +37,7 @@ import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
-import com.tencent.bk.job.manage.service.DangerousRuleService;
+import com.tencent.bk.job.manage.service.CurrentTenantDangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,10 +47,10 @@ import java.util.List;
 @RestController
 @Slf4j
 public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
-    private final DangerousRuleService dangerousRuleService;
+    private final CurrentTenantDangerousRuleService dangerousRuleService;
 
     @Autowired
-    public WebDangerousRuleResourceImpl(DangerousRuleService dangerousRuleService) {
+    public WebDangerousRuleResourceImpl(CurrentTenantDangerousRuleService dangerousRuleService) {
         this.dangerousRuleService = dangerousRuleService;
     }
 

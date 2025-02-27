@@ -25,20 +25,17 @@
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
+import com.tencent.bk.job.manage.dao.globalsetting.CurrentTenantDangerousRuleDAO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
-import com.tencent.bk.job.manage.model.tables.DangerousRule;
-import com.tencent.bk.job.manage.model.tables.records.DangerousRuleRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Record;
-import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
@@ -49,18 +46,18 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * 对当前租户下的高危语句规则进行操作的DAO实现，租户ID从JobContext中获取。
+ */
 @Repository
 @Slf4j
-public class DangerousRuleDAOImpl implements DangerousRuleDAO {
-
-    private static final DangerousRule T = DangerousRule.DANGEROUS_RULE;
-    private final DSLContext dslContext;
+public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
+    implements CurrentTenantDangerousRuleDAO {
 
     @Autowired
-    public DangerousRuleDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
-        this.dslContext = dslContext;
+    public CurrentTenantDangerousRuleDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
+        super(dslContext);
     }
 
     private void setDefaultValue(DangerousRuleDTO dangerousRuleDTO) {
@@ -69,6 +66,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
         }
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public Long insertDangerousRule(DangerousRuleDTO dangerousRuleDTO) {
         setDefaultValue(dangerousRuleDTO);
@@ -95,7 +93,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             ULong.valueOf(dangerousRuleDTO.getLastModifyTime()),
             JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getAction()),
             JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getStatus()),
-            dangerousRuleDTO.getTenantId()
+            JobContextUtil.getTenantId()
         ).returning(T.ID);
         try {
             return query.fetchOne().getId();
@@ -117,7 +115,7 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             .set(T.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
             .set(T.ACTION, JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getAction()))
             .set(T.STATUS, JooqDataTypeUtil.getByteFromInteger(dangerousRuleDTO.getStatus()))
-            .where(T.ID.eq(dangerousRuleDTO.getId()));
+            .where(buildIdConditions(dangerousRuleDTO.getId()));
         try {
             return query.execute();
         } catch (Exception e) {
@@ -127,19 +125,31 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
         }
     }
 
+    private List<Condition> buildIdConditions(Long id) {
+        List<Condition> conditions = buildTenantIdConditions();
+        conditions.add(T.ID.eq(id));
+        return conditions;
+    }
+
+    private List<Condition> buildTenantIdConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.TENANT_ID.eq(JobContextUtil.getTenantId()));
+        return conditions;
+    }
 
     @Override
     public int deleteDangerousRuleById(Long id) {
-        return dslContext.deleteFrom(T).where(
-            T.ID.eq(id)
-        ).execute();
+        return dslContext.deleteFrom(T)
+            .where(buildIdConditions(id))
+            .execute();
     }
 
     @Override
     public DangerousRuleDTO getDangerousRuleById(Long id) {
-        val record = dslContext.selectFrom(T).where(
-            T.ID.eq(id)
-        ).fetchOne();
+        val record = dslContext.select(ALL_FIELDS)
+            .from(T)
+            .where(buildIdConditions(id))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -149,7 +159,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     @Override
     public DangerousRuleDTO getDangerousRuleByPriority(String tenantId, int priority) {
-        val record = dslContext.selectFrom(T)
+        val record = dslContext.select(ALL_FIELDS)
+            .from(T)
             .where(T.PRIORITY.eq(priority))
             .and(T.TENANT_ID.eq(tenantId))
             .fetchOne();
@@ -162,7 +173,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     @Override
     public List<DangerousRuleDTO> listDangerousRules(String tenantId) {
-        val records = dslContext.selectFrom(T)
+        val records = dslContext.select(ALL_FIELDS)
+            .from(T)
             .where(T.TENANT_ID.eq(tenantId))
             .orderBy(T.PRIORITY)
             .fetch();
@@ -176,31 +188,18 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     @Override
     public List<DangerousRuleDTO> listDangerousRules(DangerousRuleDTO dangerousRuleQuery) {
         Integer scriptType = dangerousRuleQuery.getScriptType();
-        List<Condition> conditions = new ArrayList<>();
+        List<Condition> conditions = buildTenantIdConditions();
         if (dangerousRuleQuery.getStatus() != null) {
             conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
         }
-        conditions.add(T.TENANT_ID.eq(dangerousRuleQuery.getTenantId()));
-        val records =
-            dslContext.selectFrom(T).where(conditions).orderBy(T.PRIORITY).fetch();
-        if (records.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            List<DangerousRuleDTO> dangerousRuleList = records.map(this::convertRecordToDto);
-            if (scriptType == null) {
-                return dangerousRuleList;
-            }
-            int typeFlag = 1 << scriptType - 1;
-            return dangerousRuleList.stream()
-                .filter(rule -> (rule.getScriptType() & (typeFlag)) == typeFlag)
-                .collect(Collectors.toList());
-        }
+        return listDangerousRulesByConditions(scriptType, conditions);
     }
 
     @Override
     public List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query) {
         List<Condition> conditions = buildConditionList(query);
-        Result<DangerousRuleRecord> records = dslContext.selectFrom(T)
+        val records = dslContext.select(ALL_FIELDS)
+            .from(T)
             .where(conditions)
             .orderBy(T.PRIORITY)
             .fetch();
@@ -272,22 +271,6 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             log.error(sql);
             throw e;
         }
-    }
-
-    private DangerousRuleDTO convertRecordToDto(Record record) {
-        return new DangerousRuleDTO(
-            record.get(T.ID),
-            record.get(T.EXPRESSION),
-            record.get(T.DESCRIPTION),
-            record.get(T.PRIORITY),
-            record.get(T.SCRIPT_TYPE),
-            record.get(T.CREATOR),
-            record.get(T.CREATE_TIME).longValue(),
-            record.get(T.LAST_MODIFY_USER),
-            record.get(T.LAST_MODIFY_TIME).longValue(),
-            record.get(T.ACTION).intValue(),
-            record.get(T.STATUS).intValue(),
-            record.get(T.TENANT_ID));
     }
 
 }

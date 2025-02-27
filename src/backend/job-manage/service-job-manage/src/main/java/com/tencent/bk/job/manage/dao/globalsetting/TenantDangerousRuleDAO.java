@@ -24,32 +24,15 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting;
 
-import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
-import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 
 import java.util.List;
 
-public interface DangerousRuleDAO {
-    Long insertDangerousRule(DangerousRuleDTO dangerousRuleDTO);
+/**
+ * 对指定租户的高危语句规则进行操作的DAO
+ */
+public interface TenantDangerousRuleDAO {
 
-    int updateDangerousRule(DangerousRuleDTO dangerousRuleDTO);
+    List<DangerousRuleDTO> listDangerousRules(String tenantId, DangerousRuleDTO dangerousRuleQuery);
 
-    int deleteDangerousRuleById(Long id);
-
-    DangerousRuleDTO getDangerousRuleById(Long id);
-
-    DangerousRuleDTO getDangerousRuleByPriority(String tenantId, int priority);
-
-    List<DangerousRuleDTO> listDangerousRules(String tenantId);
-
-    List<DangerousRuleDTO> listDangerousRules(DangerousRuleDTO dangerousRuleQuery);
-
-    List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query);
-
-    int getMaxPriority(String tenantId);
-
-    int getMinPriority(String tenantId);
-
-    int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
 }

@@ -34,9 +34,10 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 
 import java.util.List;
 
-public interface DangerousRuleService {
-
-    List<DangerousRuleVO> listDangerousRules(User user);
+/**
+ * 对当前租户下的高危语句规则进行相关操作的接口
+ */
+public interface CurrentTenantDangerousRuleService {
 
     DangerousRuleDTO getDangerousRuleById(Long id);
 

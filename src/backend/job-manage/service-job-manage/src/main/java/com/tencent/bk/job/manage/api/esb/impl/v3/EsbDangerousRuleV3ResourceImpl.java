@@ -43,7 +43,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
-import com.tencent.bk.job.manage.service.DangerousRuleService;
+import com.tencent.bk.job.manage.service.CurrentTenantDangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,11 +55,11 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resource {
-    private final DangerousRuleService dangerousRuleService;
+    private final CurrentTenantDangerousRuleService currentTenantDangerousRuleService;
 
     @Autowired
-    public EsbDangerousRuleV3ResourceImpl(DangerousRuleService dangerousRuleService) {
-        this.dangerousRuleService = dangerousRuleService;
+    public EsbDangerousRuleV3ResourceImpl(CurrentTenantDangerousRuleService currentTenantDangerousRuleService) {
+        this.currentTenantDangerousRuleService = currentTenantDangerousRuleService;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
         req.setScriptTypeList(request.getScriptTypeList());
         req.setDescription(request.getDescription());
         req.setAction(request.getAction());
-        DangerousRuleDTO dangerousRule = dangerousRuleService.createDangerousRule(user, req);
+        DangerousRuleDTO dangerousRule = currentTenantDangerousRuleService.createDangerousRule(user, req);
         return EsbResp.buildSuccessResp(dangerousRule.toEsbDangerousRuleV3DTO());
     }
 
@@ -86,14 +86,14 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                               @AuditRequestBody EsbUpdateDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
         AddOrUpdateDangerousRuleReq req = new AddOrUpdateDangerousRuleReq();
-        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.getDangerousRuleById(request.getId());
+        DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.getDangerousRuleById(request.getId());
         req.setId(request.getId());
         req.setExpression(request.getExpression());
         req.setScriptTypeList(request.getScriptTypeList());
         req.setDescription(request.getDescription());
         req.setAction(request.getAction());
         req.setStatus(dangerousRuleDTO.getStatus());
-        DangerousRuleDTO updateDangerousRuleDTO = dangerousRuleService.updateDangerousRule(user, req);
+        DangerousRuleDTO updateDangerousRuleDTO = currentTenantDangerousRuleService.updateDangerousRule(user, req);
         return EsbResp.buildSuccessResp(updateDangerousRuleDTO.toEsbDangerousRuleV3DTO());
     }
 
@@ -104,7 +104,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                        String appCode,
                                        @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
-        dangerousRuleService.deleteDangerousRuleById(user, request.getId());
+        currentTenantDangerousRuleService.deleteDangerousRuleById(user, request.getId());
         return EsbResp.buildSuccessResp(null);
     }
 
@@ -122,7 +122,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
             .action(request.getAction() != null ? Collections.singletonList(request.getAction().byteValue()) : null)
             .tenantId(JobContextUtil.getTenantId())
             .build();
-        List<DangerousRuleVO> dangerousRuleVOS = dangerousRuleService.listDangerousRules(query);
+        List<DangerousRuleVO> dangerousRuleVOS = currentTenantDangerousRuleService.listDangerousRules(query);
         List<EsbDangerousRuleV3DTO> esbDangerousRuleV3DTOList = dangerousRuleVOS.stream()
             .map(DangerousRuleVO::toEsbDangerousRuleV3DTO)
             .collect(Collectors.toList());
@@ -136,7 +136,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                               String appCode,
                                                               @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
-        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(user,
+        DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.updateDangerousRuleStatus(user,
             request.getId(),
             EnableStatusEnum.ENABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());
@@ -149,7 +149,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                                String appCode,
                                                                @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
-        DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(user,
+        DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.updateDangerousRuleStatus(user,
             request.getId(),
             EnableStatusEnum.DISABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbManageDangerousRuleV3DTO());
