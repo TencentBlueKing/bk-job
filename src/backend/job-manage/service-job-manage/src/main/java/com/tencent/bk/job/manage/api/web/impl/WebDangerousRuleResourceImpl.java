@@ -70,6 +70,7 @@ public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
             .description(description)
             .scriptTypeList(scriptTypeList)
             .action(action)
+            .tenantId(JobContextUtil.getTenantId())
             .build();
         return Response.buildSuccessResp(dangerousRuleService.listDangerousRules(query));
     }
