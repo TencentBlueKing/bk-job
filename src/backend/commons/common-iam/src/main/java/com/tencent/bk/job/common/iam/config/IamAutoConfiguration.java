@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
-import com.tencent.bk.job.common.iam.client.MockIamClient;
+import com.tencent.bk.job.common.iam.mock.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
 import com.tencent.bk.job.common.iam.mock.MockBusinessAuthHelper;
 import com.tencent.bk.job.common.iam.service.AppAuthService;

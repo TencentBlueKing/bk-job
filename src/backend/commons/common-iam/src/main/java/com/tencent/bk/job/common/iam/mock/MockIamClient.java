@@ -22,8 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.client;
+package com.tencent.bk.job.common.iam.mock;
 
+import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.dto.EsbIamAction;
 import com.tencent.bk.job.common.iam.dto.EsbIamAuthedPolicy;
 import com.tencent.bk.job.common.iam.dto.EsbIamBatchAuthedPolicy;
