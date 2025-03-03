@@ -41,11 +41,11 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 初始化租户接口实现类
+ * 多租户OP接口实现类
  */
 @Slf4j
 @RestController
-public class InitTenantOpResourceImpl implements TenantOpResource {
+public class TenantOpResourceImpl implements TenantOpResource {
     private static final String machineIp = IpUtils.getFirstMachineIP();
     private static final String REDIS_KEY_INIT_TENANT_PREFIX = "initTenant-";
     private final RedisTemplate<String, String> redisTemplate;
@@ -56,11 +56,11 @@ public class InitTenantOpResourceImpl implements TenantOpResource {
 
     // TODO:用户数据、消息通知渠道数据同步
     @Autowired
-    public InitTenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
-                                    BizSyncService bizSyncService,
-                                    BizSetSyncService bizSetSyncService,
-                                    TenantSetSyncService tenantSetSyncService,
-                                    TenantHostSyncService tenantHostSyncService) {
+    public TenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
+                                BizSyncService bizSyncService,
+                                BizSetSyncService bizSetSyncService,
+                                TenantSetSyncService tenantSetSyncService,
+                                TenantHostSyncService tenantHostSyncService) {
         this.redisTemplate = redisTemplate;
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
