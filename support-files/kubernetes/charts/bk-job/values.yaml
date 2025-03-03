@@ -458,6 +458,10 @@ mockApi:
   iam:
     # 是否启用IAM Mock API
     enabled: false
+  # 配置平台API
+  cmdb:
+    # 是否启用CMDB Mock API
+    enabled: false
 
 ## 蓝鲸GSE参数配置
 gse:

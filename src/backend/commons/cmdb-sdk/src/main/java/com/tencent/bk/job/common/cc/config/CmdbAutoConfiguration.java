@@ -25,8 +25,13 @@
 package com.tencent.bk.job.common.cc.config;
 
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import com.tencent.bk.job.common.cc.mock.MockBizCmdbClient;
+import com.tencent.bk.job.common.cc.mock.MockTenantSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.ITenantSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.TenantSetCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
@@ -90,14 +95,15 @@ public class CmdbAutoConfiguration {
 
     @Bean
     @Primary
-    public BizCmdbClient bizCmdbClient(AppProperties appProperties,
-                                       BkApiGatewayProperties bkApiGatewayProperties,
-                                       CmdbConfig cmdbConfig,
-                                       ThreadPoolExecutor cmdbThreadPoolExecutor,
-                                       ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                       MeterRegistry meterRegistry,
-                                       ObjectProvider<FlowController> flowControllerProvider,
-                                       TenantEnvService tenantEnvService) {
+    @ConditionalOnMockCmdbApiDisabled
+    public IBizCmdbClient bizCmdbClient(AppProperties appProperties,
+                                        BkApiGatewayProperties bkApiGatewayProperties,
+                                        CmdbConfig cmdbConfig,
+                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
+                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
+                                        MeterRegistry meterRegistry,
+                                        ObjectProvider<FlowController> flowControllerProvider,
+                                        TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -112,14 +118,15 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean("cnBizCmdbClient")
-    public BizCmdbClient cnBizCmdbClient(AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties,
-                                         CmdbConfig cmdbConfig,
-                                         ThreadPoolExecutor cmdbThreadPoolExecutor,
-                                         ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                         MeterRegistry meterRegistry,
-                                         ObjectProvider<FlowController> flowControllerProvider,
-                                         TenantEnvService tenantEnvService) {
+    @ConditionalOnMockCmdbApiDisabled
+    public IBizCmdbClient cnBizCmdbClient(AppProperties appProperties,
+                                          BkApiGatewayProperties bkApiGatewayProperties,
+                                          CmdbConfig cmdbConfig,
+                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
+                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
+                                          MeterRegistry meterRegistry,
+                                          ObjectProvider<FlowController> flowControllerProvider,
+                                          TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -134,12 +141,13 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
-    public BizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
-                                             BkApiGatewayProperties bkApiGatewayProperties,
-                                             CmdbConfig cmdbConfig,
-                                             MeterRegistry meterRegistry,
-                                             ObjectProvider<FlowController> flowControllerProvider,
-                                             TenantEnvService tenantEnvService) {
+    @ConditionalOnMockCmdbApiDisabled
+    public IBizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
+                                              BkApiGatewayProperties bkApiGatewayProperties,
+                                              CmdbConfig cmdbConfig,
+                                              MeterRegistry meterRegistry,
+                                              ObjectProvider<FlowController> flowControllerProvider,
+                                              TenantEnvService tenantEnvService) {
         return new BizSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -151,12 +159,13 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
-    public TenantSetCmdbClient tenantSetCmdbClient(AppProperties appProperties,
-                                                   BkApiGatewayProperties bkApiGatewayProperties,
-                                                   CmdbConfig cmdbConfig,
-                                                   MeterRegistry meterRegistry,
-                                                   ObjectProvider<FlowController> flowControllerProvider,
-                                                   TenantEnvService tenantEnvService) {
+    @ConditionalOnMockCmdbApiDisabled
+    public ITenantSetCmdbClient tenantSetCmdbClient(AppProperties appProperties,
+                                                    BkApiGatewayProperties bkApiGatewayProperties,
+                                                    CmdbConfig cmdbConfig,
+                                                    MeterRegistry meterRegistry,
+                                                    ObjectProvider<FlowController> flowControllerProvider,
+                                                    TenantEnvService tenantEnvService) {
         return new TenantSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -167,4 +176,31 @@ public class CmdbAutoConfiguration {
         );
     }
 
+    @Bean
+    @ConditionalOnMockCmdbApiEnabled
+    public IBizCmdbClient mockedBizCmdbClient(AppProperties appProperties,
+                                              BkApiGatewayProperties bkApiGatewayProperties,
+                                              CmdbConfig cmdbConfig,
+                                              ThreadPoolExecutor cmdbThreadPoolExecutor,
+                                              ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
+                                              MeterRegistry meterRegistry,
+                                              ObjectProvider<FlowController> flowControllerProvider,
+                                              TenantEnvService tenantEnvService) {
+        return new MockBizCmdbClient(
+            appProperties,
+            bkApiGatewayProperties,
+            cmdbConfig,
+            cmdbThreadPoolExecutor,
+            cmdbLongTermThreadPoolExecutor,
+            meterRegistry,
+            flowControllerProvider,
+            tenantEnvService
+        );
+    }
+
+    @Bean
+    @ConditionalOnMockCmdbApiEnabled
+    public ITenantSetCmdbClient mockedTenantSetCmdbClient() {
+        return new MockTenantSetCmdbClient();
+    }
 }
