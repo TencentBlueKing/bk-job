@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,38 +65,40 @@ public class NotifyUserService {
         return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId, start, pageSize);
     }
 
-    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList, String tenantId) {
-        for (String user : users) {
-            if (StringUtils.isBlank(user)) {
-                continue;
-            }
+    private void saveBlackUsersToDB(Collection<BkUserDTO> users,
+                                    String creator,
+                                    List<String> resultList,
+                                    String tenantId) {
+        for (BkUserDTO user : users) {
             notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(
                 new NotifyBlackUserInfoDTO(
                     null,
                     tenantId,
-                    user,
+                    user.getUsername(),
+                    user.getDisplayName(),
                     creator,
                     System.currentTimeMillis()
                 ));
-            resultList.add(user);
+            resultList.add(user.getDisplayName());
         }
     }
 
-    public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        String[] users = req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA);
-        return saveNotifyBlackUsers(username, users);
+    public List<String> saveNotifyBlackUsers(String operator, NotifyBlackUsersReq req) {
+        Collection<String> users = Arrays.asList(req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA));
+        return saveNotifyBlackUsers(operator, users);
     }
 
-    public List<String> saveNotifyBlackUsers(String username, String[] users) {
+    public List<String> saveNotifyBlackUsers(String operator, Collection<String> displayNames) {
         String tenantId = JobContextUtil.getTenantId();
+        List<BkUserDTO> users = userCacheService.listUsersByDisplayNames(tenantId, displayNames);
         val resultList = new ArrayList<String>();
         notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
-        saveBlackUsersToDB(users, username, resultList, tenantId);
+        saveBlackUsersToDB(users, operator, resultList, tenantId);
         return resultList;
     }
 
     public Set<String> filterBlackUser(Set<String> userSet, String tenantId) {
-        // 过滤租户哪黑名单内用户
+        // 过滤租户内黑名单用户
         Set<String> blackUserSet =
             notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
@@ -109,7 +112,7 @@ public class NotifyUserService {
 
     private void filterBlackUsers(List<UserVO> userVOList) {
         String tenantId = JobContextUtil.getTenantId();
-        //过滤黑名单内用户
+        // 通过uuid过滤黑名单内用户
         Set<String> blackUserSet =
             notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
@@ -151,11 +154,11 @@ public class NotifyUserService {
         // 从数据库查
         if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
             // 前端回显，传全量
-            List<String> userNames = Arrays.asList(prefixStr.split(NotifyConsts.SEPERATOR_COMMA));
-            while (userNames.contains("")) {
-                userNames.remove("");
+            List<String> displayNames = Arrays.asList(prefixStr.split(NotifyConsts.SEPERATOR_COMMA));
+            while (displayNames.contains("")) {
+                displayNames.remove("");
             }
-            return userCacheService.listUsersByUsernames(tenantId, userNames);
+            return userCacheService.listUsersByDisplayNames(tenantId, displayNames);
         } else {
             return userCacheService.listUsersByDisplayNamePrefix(tenantId, prefixStr, -1L);
         }

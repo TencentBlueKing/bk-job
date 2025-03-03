@@ -41,7 +41,7 @@ import java.util.Set;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 
-public class MockCmsiClient extends BkApiV1Client implements ICmsiClient{
+public class MockCmsiClient extends BkApiV1Client implements ICmsiClient {
 
     private final BkApiAuthorization authorization;
 

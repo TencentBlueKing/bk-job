@@ -43,10 +43,13 @@ public class NotifyBlackUserInfoDTO {
      */
     private String tenantId;
     /**
-     * 用户名（可读）
+     * 用户uuid（不可读）
      */
     private String username;
-
+    /**
+     * 用户名（可读）
+     */
+    private String displayName;
     /**
      * 创建者
      */

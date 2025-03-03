@@ -42,8 +42,8 @@ public class UserCacheServiceImpl implements UserCacheService {
     }
 
     @Override
-    public List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames) {
-        return userDAO.listUsersByUsernames(tenantId, usernames);
+    public List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames) {
+        return userDAO.listUsersByDisplayNames(tenantId, displayNames);
     }
 
     @Override

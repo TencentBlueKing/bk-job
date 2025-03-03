@@ -98,12 +98,12 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+    public List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames) {
         Result<Record> result = dslContext
             .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
-            .and(T_USER.USERNAME.in(usernames))
+            .and(T_USER.DISPLAY_NAME.in(displayNames))
             .fetch();
         if (result.isEmpty()) {
             return new ArrayList<>();

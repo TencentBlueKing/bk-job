@@ -18,7 +18,7 @@ public interface UserCacheService {
 
     List<BkUserDTO> listUsersByDisplayNamePrefix(String tenantId, String prefixStr, Long limit);
 
-    List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames);
+    List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> usernames);
 
     List<String> listExistUserName(String tenantId, Collection<String> usernames);
 

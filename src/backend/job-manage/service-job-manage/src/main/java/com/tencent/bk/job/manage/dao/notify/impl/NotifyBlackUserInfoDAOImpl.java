@@ -59,6 +59,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
         defaultTable.ID,
         defaultTable.TENANT_ID,
         defaultTable.USERNAME,
+        defaultTable.DISPLAY_NAME,
         defaultTable.CREATOR,
         defaultTable.LAST_MODIFY_TIME
     };
@@ -73,11 +74,15 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     @Override
     public Long insertNotifyBlackUserInfo(NotifyBlackUserInfoDTO notifyBlackUserInfoDTO) {
         val query = dslContext.insertInto(defaultTable,
+            defaultTable.TENANT_ID,
             defaultTable.USERNAME,
+            defaultTable.DISPLAY_NAME,
             defaultTable.CREATOR,
             defaultTable.LAST_MODIFY_TIME
         ).values(
+            notifyBlackUserInfoDTO.getTenantId(),
             notifyBlackUserInfoDTO.getUsername(),
+            notifyBlackUserInfoDTO.getDisplayName(),
             notifyBlackUserInfoDTO.getCreator(),
             ULong.valueOf(notifyBlackUserInfoDTO.getLastModifyTime())
         ).returning(defaultTable.ID);
@@ -110,6 +115,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
                 record.get(defaultTable.ID),
                 record.get(defaultTable.TENANT_ID),
                 record.get(defaultTable.USERNAME),
+                record.get(defaultTable.DISPLAY_NAME),
                 record.get(defaultTable.CREATOR),
                 record.get(defaultTable.LAST_MODIFY_TIME).longValue()
             ));
@@ -135,6 +141,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
             return records.map(record -> new NotifyBlackUserInfoVO(
                 record.get(defaultTable.ID),
                 record.get(defaultTable.USERNAME),
+                record.get(defaultTable.DISPLAY_NAME),
                 record.get(defaultTable.CREATOR),
                 record.get(defaultTable.LAST_MODIFY_TIME).longValue()
             ));

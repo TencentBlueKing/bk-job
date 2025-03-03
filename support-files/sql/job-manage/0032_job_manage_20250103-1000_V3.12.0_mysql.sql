@@ -171,6 +171,22 @@ BEGIN
   END IF;
 
   IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'notify_black_user_info'
+                      AND COLUMN_NAME = 'display_name') THEN
+    ALTER TABLE notify_black_user_info ADD COLUMN display_name varchar(128) DEFAULT NULL AFTER `username`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'notify_black_user_info'
+                    AND INDEX_NAME = 'idx_tenant_id_username') THEN
+    ALTER TABLE notify_black_user_info ADD INDEX idx_tenant_id_username(`tenant_id`, `username`);
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
                   FROM information_schema.statistics
                   WHERE TABLE_SCHEMA = db
                     AND TABLE_NAME = 'user'
