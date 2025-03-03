@@ -93,14 +93,6 @@ public interface NotifyService {
 
     PageTemplateVO getPageTemplate(String username);
 
-    // no usage，暂时注释，后续可删
-//    Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
-//
-//    Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-//                                            List<String> channelTypeList);
-//
-//    Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
-
     Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO);
 
     Integer triggerTemplateNotification(ServiceTriggerTemplateNotificationDTO triggerTemplateNotification);

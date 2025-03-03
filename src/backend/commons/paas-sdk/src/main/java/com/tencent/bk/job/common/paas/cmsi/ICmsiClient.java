@@ -22,51 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.notify;
+package com.tencent.bk.job.common.paas.cmsi;
 
-import lombok.*;
+import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 
-import java.util.Objects;
+import java.util.List;
+import java.util.Set;
 
-/**
- * 通知黑名单用户信息DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class NotifyBlackUserInfoDTO {
-    private Long id;
-    /**
-     * 租户ID
-     */
-    private String tenantId;
-    /**
-     * 用户名（可读）
-     */
-    private String username;
+public interface ICmsiClient {
 
-    /**
-     * 创建者
-     */
-    private String creator;
-    /**
-     * 更新时间
-     */
-    private Long lastModifyTime;
+    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId);
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NotifyBlackUserInfoDTO that = (NotifyBlackUserInfoDTO) o;
-        return Objects.equals(id, that.id) &&
-            Objects.equals(username, that.username);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, username);
-    }
+    public void sendMsg(String msgType,
+                        String sender,
+                        Set<String> receivers,
+                        String title,
+                        String content);
 }

@@ -642,39 +642,6 @@ public class NotifyServiceImpl implements NotifyService {
         );
     }
 
-    // no usage，暂时注释，后续可删
-//    @Override
-//    public Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-//        // 获取所有可用渠道
-//        List<String> availableChannelTypeList = getAvailableChannelTypeList();
-//        return asyncSendNotificationsByChannel(serviceUserNotificationDTO, availableChannelTypeList);
-//    }
-//
-//    @Override
-//    public Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-//                                                   List<String> channelTypeList) {
-//        // 组装通知map
-//        Map<String, Set<String>> channelUsersMap = new HashMap<>();
-//        for (String channelType : channelTypeList) {
-//            channelUsersMap.put(channelType, serviceUserNotificationDTO.getReceivers());
-//        }
-//        ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
-//        notifySendService.asyncSendNotifyMessages(
-//            null,
-//            channelUsersMap,
-//            notificationMessage.getTitle(),
-//            notificationMessage.getContent()
-//        );
-//        return serviceUserNotificationDTO.getReceivers().size();
-//    }
-//
-//    @Override
-//    public Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage) {
-//        List<String> administrators = localPermissionService.getAdministrators();
-//        return asyncSendNotificationsToUsers(new ServiceUserNotificationDTO(new HashSet<>(administrators),
-//            serviceNotificationMessage));
-//    }
-
     private Set<String> findUserByRole(Long appId,
                                        String triggerUser,
                                        Integer resourceType,

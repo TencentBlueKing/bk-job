@@ -27,7 +27,6 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.tables.NotifyBlackUserInfo;
-import com.tencent.bk.job.manage.model.tables.records.NotifyBlackUserInfoRecord;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import lombok.val;
 import org.jooq.DSLContext;
@@ -94,8 +93,8 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public int deleteAllNotifyBlackUser() {
-        return dslContext.deleteFrom(defaultTable).execute();
+    public int deleteAllNotifyBlackUser(String tenantId) {
+        return dslContext.deleteFrom(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId)).execute();
     }
 
     @Override
@@ -109,6 +108,7 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
         } else {
             return records.map(record -> new NotifyBlackUserInfoDTO(
                 record.get(defaultTable.ID),
+                record.get(defaultTable.TENANT_ID),
                 record.get(defaultTable.USERNAME),
                 record.get(defaultTable.CREATOR),
                 record.get(defaultTable.LAST_MODIFY_TIME).longValue()

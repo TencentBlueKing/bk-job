@@ -53,28 +53,6 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
         this.notifyService = notifyService;
     }
 
-    // no usage，暂时注释，后续可删
-//    @Override
-//    public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-//        if (log.isDebugEnabled()) {
-//            log.debug("Input: {}", JsonUtils.toJson(serviceUserNotificationDTO));
-//        }
-//        return InternalResponse.buildSuccessResp(
-//            notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
-//    }
-//
-//    @Override
-//    public InternalResponse<Integer> sendNotificationsToAdministrators(
-//        ServiceNotificationMessage serviceNotificationMessage
-//    ) {
-//        if (log.isDebugEnabled()) {
-//            log.debug("Input: {}", JsonUtils.toJson(serviceNotificationMessage));
-//        }
-//        return InternalResponse.buildSuccessResp(
-//            notifyService.asyncSendNotificationsToAdministrators(serviceNotificationMessage)
-//        );
-//    }
-
     @Override
     public InternalResponse<Integer> triggerTemplateNotification(
         ServiceTriggerTemplateNotificationDTO triggerTemplateNotification

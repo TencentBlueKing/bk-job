@@ -22,51 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.notify;
+package com.tencent.bk.job.common.paas.config;
 
-import lombok.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.util.Objects;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * 通知黑名单用户信息DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class NotifyBlackUserInfoDTO {
-    private Long id;
-    /**
-     * 租户ID
-     */
-    private String tenantId;
-    /**
-     * 用户名（可读）
-     */
-    private String username;
-
-    /**
-     * 创建者
-     */
-    private String creator;
-    /**
-     * 更新时间
-     */
-    private Long lastModifyTime;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NotifyBlackUserInfoDTO that = (NotifyBlackUserInfoDTO) o;
-        return Objects.equals(id, that.id) &&
-            Objects.equals(username, that.username);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, username);
-    }
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "mockApi.cmsi.enabled",
+    havingValue = "true"
+)
+public @interface ConditionalOnMockCmsiApiEnable {
 }

@@ -30,7 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(NotifyEsbChannelDAOImpl.class);
-    private final CmsiApiClient cmsiApiClient;
+    private final ICmsiClient cmsiApiClient;
 
     private static final int KEY_INDEX_TENANT_ID = 0;
     private static final int KEY_INDEX_LANG = 1;
@@ -78,7 +78,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                   }
             );
 
-    public NotifyEsbChannelDAOImpl(CmsiApiClient cmsiApiClient) {
+    public NotifyEsbChannelDAOImpl(ICmsiClient cmsiApiClient) {
         this.cmsiApiClient = cmsiApiClient;
     }
 

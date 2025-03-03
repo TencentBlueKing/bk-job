@@ -64,7 +64,7 @@ public class NotifyUserService {
         return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId, start, pageSize);
     }
 
-    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList) {
+    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList, String tenantId) {
         for (String user : users) {
             if (StringUtils.isBlank(user)) {
                 continue;
@@ -72,6 +72,7 @@ public class NotifyUserService {
             notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(
                 new NotifyBlackUserInfoDTO(
                     null,
+                    tenantId,
                     user,
                     creator,
                     System.currentTimeMillis()
@@ -86,9 +87,10 @@ public class NotifyUserService {
     }
 
     public List<String> saveNotifyBlackUsers(String username, String[] users) {
+        String tenantId = JobContextUtil.getTenantId();
         val resultList = new ArrayList<String>();
-        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser();
-        saveBlackUsersToDB(users, username, resultList);
+        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
+        saveBlackUsersToDB(users, username, resultList, tenantId);
         return resultList;
     }
 

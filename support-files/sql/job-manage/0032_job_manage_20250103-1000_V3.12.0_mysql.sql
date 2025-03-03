@@ -124,14 +124,6 @@ BEGIN
     ALTER TABLE notify_template ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
---   IF NOT EXISTS(SELECT 1
---                   FROM information_schema.statistics
---                   WHERE TABLE_SCHEMA = db
---                     AND TABLE_NAME = 'notify_template'
---                     AND INDEX_NAME = 'idx_code_tenant_id') THEN
---     ALTER TABLE notify_template ADD INDEX idx_code_tenant_id(`code`, `tenant_id`);
---   END IF;
-
   IF NOT EXISTS(SELECT 1
                     FROM information_schema.columns
                     WHERE TABLE_SCHEMA = db
@@ -146,9 +138,9 @@ BEGIN
       AND TABLE_NAME = 'global_setting'
       AND CONSTRAINT_NAME = 'PRIMARY';
 
-  IF current_primary_key = 'key' THEN
+  IF current_primary_key = 'key' OR current_primary_key = 'key,tenant_id' THEN
     ALTER TABLE global_setting DROP PRIMARY KEY;
-    ALTER TABLE global_setting ADD PRIMARY KEY (`key`, `tenant_id`);
+    ALTER TABLE global_setting ADD PRIMARY KEY (`tenant_id`, `key`);
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -165,9 +157,9 @@ BEGIN
       AND TABLE_NAME = 'available_esb_channel'
       AND CONSTRAINT_NAME = 'PRIMARY';
 
-  IF current_primary_key = 'type' THEN
+  IF current_primary_key = 'type' OR current_primary_key = 'type,tenant_id' THEN
     ALTER TABLE available_esb_channel DROP PRIMARY KEY;
-    ALTER TABLE available_esb_channel ADD PRIMARY KEY (type, tenant_id);
+    ALTER TABLE available_esb_channel ADD PRIMARY KEY (tenant_id, type);
   END IF;
 
   IF NOT EXISTS(SELECT 1
