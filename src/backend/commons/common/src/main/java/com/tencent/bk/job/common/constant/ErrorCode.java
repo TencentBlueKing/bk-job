@@ -47,6 +47,10 @@ public class ErrorCode {
     public static final int GSE_ERROR = 1210001;
     // GSE数据异常：{0}
     public static final int GSE_API_DATA_ERROR = 1210002;
+    // 初始化租户失败：{0}
+    public static final int INIT_TENANT_ERROR = 1210003;
+    // 已有另一个初始化租户任务正在执行：{0}
+    public static final int INIT_TENANT_TASK_ALREADY_RUNNING = 1210004;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
