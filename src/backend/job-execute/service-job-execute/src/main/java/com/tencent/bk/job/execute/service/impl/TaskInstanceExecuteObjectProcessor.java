@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -40,7 +40,6 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
-import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -108,7 +107,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private final MeterRegistry meterRegistry;
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
                                               ApplicationService applicationService,
@@ -117,7 +116,8 @@ public class TaskInstanceExecuteObjectProcessor {
                                               WhiteHostCache whiteHostCache,
                                               @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
                                               AgentStateClient preferV2AgentStateClient,
-                                              MeterRegistry meterRegistry, BizCmdbClient bizCmdbClient) {
+                                              MeterRegistry meterRegistry,
+                                              IBizCmdbClient bizCmdbClient) {
         this.hostService = hostService;
         this.applicationService = applicationService;
         this.containerService = containerService;

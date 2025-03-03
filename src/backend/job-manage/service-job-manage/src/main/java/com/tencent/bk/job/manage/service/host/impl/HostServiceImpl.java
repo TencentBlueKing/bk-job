@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -71,13 +70,13 @@ public class HostServiceImpl implements HostService {
     private final ApplicationHostDAO applicationHostDAO;
     private final ApplicationService applicationService;
     private final HostCache hostCache;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public HostServiceImpl(ApplicationHostDAO applicationHostDAO,
                            ApplicationService applicationService,
                            HostCache hostCache,
-                           BizCmdbClient bizCmdbClient) {
+                           IBizCmdbClient bizCmdbClient) {
         this.applicationHostDAO = applicationHostDAO;
         this.applicationService = applicationService;
         this.hostCache = hostCache;

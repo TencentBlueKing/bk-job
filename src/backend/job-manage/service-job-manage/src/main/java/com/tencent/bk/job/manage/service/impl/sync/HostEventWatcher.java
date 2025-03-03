@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -58,7 +58,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
     private final HostService hostService;
     private final AgentStateClient agentStateClient;
 
@@ -71,10 +71,10 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     public HostEventWatcher(RedisTemplate<String, String> redisTemplate,
                             Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
-                            BizCmdbClient bizCmdbClient,
+                            IBizCmdbClient bizCmdbClient,
                             HostService hostService,
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                                AgentStateClient agentStateClient,
+                            AgentStateClient agentStateClient,
                             JobManageConfig jobManageConfig) {
         super("host", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;

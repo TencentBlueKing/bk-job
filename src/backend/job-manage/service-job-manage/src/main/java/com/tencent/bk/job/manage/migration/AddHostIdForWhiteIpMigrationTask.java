@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.migration;
 
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
@@ -49,10 +49,10 @@ import java.util.Map;
 public class AddHostIdForWhiteIpMigrationTask {
 
     private final WhiteIPIPDAO whiteIPIPDAO;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public AddHostIdForWhiteIpMigrationTask(WhiteIPIPDAO whiteIPIPDAO, BizCmdbClient bizCmdbClient) {
+    public AddHostIdForWhiteIpMigrationTask(WhiteIPIPDAO whiteIPIPDAO, IBizCmdbClient bizCmdbClient) {
         this.whiteIPIPDAO = whiteIPIPDAO;
         this.bizCmdbClient = bizCmdbClient;
     }

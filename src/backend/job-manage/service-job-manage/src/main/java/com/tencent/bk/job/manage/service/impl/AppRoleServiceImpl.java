@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -48,11 +48,11 @@ import java.util.Set;
 public class AppRoleServiceImpl implements AppRoleService {
 
     private final ApplicationService applicationService;
-    private final BizSetCmdbClient bizSetCmdbClient;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public AppRoleServiceImpl(@Lazy ApplicationService applicationService,
-                              BizSetCmdbClient bizSetCmdbClient) {
+                              IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }

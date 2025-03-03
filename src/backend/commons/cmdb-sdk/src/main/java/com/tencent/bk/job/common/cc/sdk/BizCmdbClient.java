@@ -1038,19 +1038,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
-        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
-        PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition(RuleConditionEnum.AND.getCondition());
-        condition.addRule(BaseRuleDTO.equals("bk_host_innerip", ip));
-        condition.addRule(BaseRuleDTO.equals("bk_cloud_id", cloudAreaId));
-        req.setCondition(condition);
-
-        List<ApplicationHostDTO> hosts = listHostsWithoutBiz(req);
-        return hosts.size() > 0 ? hosts.get(0) : null;
-    }
-
-    @Override
     public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
         if (CollectionUtils.isEmpty(cloudIps)) {
             return Collections.emptyList();
@@ -1456,6 +1443,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param bizId 业务 ID
      * @return 容器拓扑
      */
+    @Override
     public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
         GetBizKubeCacheTopoReq req = makeCmdbBaseReq(GetBizKubeCacheTopoReq.class);
         req.setBizId(bizId);
@@ -1476,6 +1464,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param req 请求
      * @return 容器列表（分页）
      */
+    @Override
     public PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         return listPageKubeContainerByTopo(req, true);
     }
@@ -1505,6 +1494,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param req 请求
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
         req.setContainerFields(ContainerDTO.Fields.ALL);
@@ -1597,6 +1587,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param containerIds 容器 ID 集合
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
             bizId, ContainerDTO.Fields.ID, containerIds);
@@ -1609,6 +1600,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param containerUIds 容器 UID 集合
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
             bizId, ContainerDTO.Fields.CONTAINER_UID, containerUIds);
@@ -1651,6 +1643,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return containers;
     }
 
+    @Override
     public List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query) {
         ListKubeClusterReq req = makeCmdbBaseReq(ListKubeClusterReq.class);
 
@@ -1736,6 +1729,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return new PageData<>(originPage.getStart(), originPage.getLimit(), count, response.getData().getInfo());
     }
 
+    @Override
     public List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query) {
         ListKubeNamespaceReq req = makeCmdbBaseReq(ListKubeNamespaceReq.class);
 
@@ -1802,6 +1796,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return nextPageReq;
     }
 
+    @Override
     public List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query) {
         ListKubeWorkloadReq req = makeCmdbBaseReq(ListKubeWorkloadReq.class);
 

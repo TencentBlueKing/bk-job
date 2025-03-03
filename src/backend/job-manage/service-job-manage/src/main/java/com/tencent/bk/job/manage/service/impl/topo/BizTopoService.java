@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.impl.topo;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
@@ -45,10 +45,10 @@ import java.util.List;
 @Service
 public class BizTopoService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public BizTopoService(BizCmdbClient bizCmdbClient) {
+    public BizTopoService(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }
 

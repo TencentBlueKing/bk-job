@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.result.HostProp;
 import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ModuleProp;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -70,14 +70,14 @@ public class HostSyncService {
     private final ApplicationHostDAO applicationHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final HostService hostService;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public HostSyncService(AppHostsUpdateHelper appHostsUpdateHelper,
                            ApplicationHostDAO applicationHostDAO,
                            HostTopoDAO hostTopoDAO,
                            HostService hostService,
-                           BizCmdbClient bizCmdbClient) {
+                           IBizCmdbClient bizCmdbClient) {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.applicationHostDAO = applicationHostDAO;
         this.hostTopoDAO = hostTopoDAO;

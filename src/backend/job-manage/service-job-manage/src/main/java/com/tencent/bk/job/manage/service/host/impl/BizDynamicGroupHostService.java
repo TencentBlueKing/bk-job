@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotImplementedException;
@@ -57,11 +57,11 @@ import java.util.stream.Collectors;
 @Service
 public class BizDynamicGroupHostService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
     private final HostDetailService hostDetailService;
 
     @Autowired
-    public BizDynamicGroupHostService(BizCmdbClient bizCmdbClient,
+    public BizDynamicGroupHostService(IBizCmdbClient bizCmdbClient,
                                       HostDetailService hostDetailService) {
         this.bizCmdbClient = bizCmdbClient;
         this.hostDetailService = hostDetailService;

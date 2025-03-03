@@ -31,7 +31,16 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
@@ -39,6 +48,7 @@ import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -155,15 +165,6 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input);
 
     /**
-     * 根据云区域ID+IP获取主机信息
-     *
-     * @param cloudAreaId 云区域ID
-     * @param ip          IP
-     * @return 主机信息
-     */
-    ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip);
-
-    /**
      * 根据IP批量获取主机
      *
      * @param cloudIps 云区域+IP列表
@@ -251,4 +252,20 @@ public interface IBizCmdbClient {
      * 监听CMDB业务事件
      */
     ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
+
+    List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds);
+
+    List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req);
+
+    List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query);
+
+    List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query);
+
+    List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query);
+
+    KubeTopologyDTO getBizKubeCacheTopo(long bizId);
+
+    PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req);
+
+    List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds);
 }

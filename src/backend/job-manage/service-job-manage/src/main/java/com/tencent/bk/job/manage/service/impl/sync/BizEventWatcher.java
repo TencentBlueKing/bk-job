@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDetail> {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
 
     private final AtomicBoolean bizWatchFlag = new AtomicBoolean(true);
@@ -57,7 +57,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
     public BizEventWatcher(RedisTemplate<String, String> redisTemplate,
                            Tracer tracer,
                            CmdbEventSampler cmdbEventSampler,
-                           BizCmdbClient bizCmdbClient,
+                           IBizCmdbClient bizCmdbClient,
                            ApplicationService applicationService) {
         super("biz", redisTemplate, tracer, cmdbEventSampler);
         this.bizCmdbClient = bizCmdbClient;
