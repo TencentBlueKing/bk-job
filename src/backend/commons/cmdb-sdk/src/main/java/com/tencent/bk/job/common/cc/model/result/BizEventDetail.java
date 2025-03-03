@@ -50,7 +50,7 @@ public class BizEventDetail {
     @JsonProperty("language")
     private String language;
     @JsonProperty("default")
-    private Integer deFault;
+    private Integer deFault = 0;
 
     public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
