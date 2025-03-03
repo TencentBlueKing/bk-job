@@ -53,6 +53,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
 
     private static final int KEY_INDEX_TENANT_ID = 0;
     private static final int KEY_INDEX_LANG = 1;
+    private static final String CACHE_DELIMITER = ":";
 
     private final LoadingCache<String, List<NotifyEsbChannelDTO>> esbChannelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -60,7 +61,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                       @Override
                       public List<NotifyEsbChannelDTO> load(@NonNull String searchKey) {
                           logger.info("esbChannelCache searchKey=" + searchKey);
-                          String tenantId = searchKey.split("_")[KEY_INDEX_TENANT_ID];
+                          String tenantId = searchKey.split(CACHE_DELIMITER)[KEY_INDEX_TENANT_ID];
                           List<NotifyEsbChannelDTO> channelDtoList;
                           //新增渠道默认为已启用
                           channelDtoList =
@@ -86,7 +87,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
     public List<NotifyEsbChannelDTO> listNotifyEsbChannel(String tenantId) {
         try {
             String lang = JobContextUtil.getUserLang();
-            String cacheKey = tenantId + "_" + lang;
+            String cacheKey = tenantId + CACHE_DELIMITER + lang;
             return esbChannelCache.get(cacheKey);
         } catch (ExecutionException | UncheckedExecutionException e) {
             String errorMsg = "Fail to load EsbChannel from cache";

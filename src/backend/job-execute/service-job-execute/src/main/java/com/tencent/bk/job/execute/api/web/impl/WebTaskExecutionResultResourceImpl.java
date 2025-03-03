@@ -149,6 +149,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
 
     private static final int CHANNEL_CACHE_INDEX_TENANT_ID = 0;
     private static final int CHANNEL_CACHE_INDEX_LANG = 1;
+    private static final String CHANNEL_CACHE_DELIMITER = ":";
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -175,7 +176,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         build(new CacheLoader<String, Map<String, String>>() {
                   @Override
                   public Map<String, String> load(String key) {
-                      List<String> l = Arrays.asList(key.split("_"));
+                      List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
                       String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
                       String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
                       InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang,
@@ -490,7 +491,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 && !stepExecutionDTO.getConfirmNotifyChannels().isEmpty()) {
                 Map<String, String> channelTypeAndName;
                 try {
-                    String key = JobContextUtil.getTenantId() + "_" + JobContextUtil.getUserLang();
+                    String key = JobContextUtil.getTenantId() + CHANNEL_CACHE_DELIMITER + JobContextUtil.getUserLang();
                     channelTypeAndName = channelCache.get(key);
                 } catch (Exception e) {
                     log.warn("Get channel from cache fail", e);
