@@ -176,6 +176,7 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
+    @Primary
     @ConditionalOnMockCmdbApiEnabled
     public IBizCmdbClient mockedBizCmdbClient(AppProperties appProperties,
                                               BkApiGatewayProperties bkApiGatewayProperties,
@@ -189,6 +190,30 @@ public class CmdbAutoConfiguration {
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,
+            EsbLang.EN,
+            cmdbThreadPoolExecutor,
+            cmdbLongTermThreadPoolExecutor,
+            meterRegistry,
+            flowControllerProvider,
+            tenantEnvService
+        );
+    }
+
+    @Bean("cnBizCmdbClient")
+    @ConditionalOnMockCmdbApiEnabled
+    public IBizCmdbClient mockedCnBizCmdbClient(AppProperties appProperties,
+                                                BkApiGatewayProperties bkApiGatewayProperties,
+                                                CmdbConfig cmdbConfig,
+                                                ThreadPoolExecutor cmdbThreadPoolExecutor,
+                                                ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
+                                                MeterRegistry meterRegistry,
+                                                ObjectProvider<FlowController> flowControllerProvider,
+                                                TenantEnvService tenantEnvService) {
+        return new MockBizCmdbClient(
+            appProperties,
+            bkApiGatewayProperties,
+            cmdbConfig,
+            EsbLang.CN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             meterRegistry,
