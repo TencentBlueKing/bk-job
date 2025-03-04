@@ -22,23 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner;
+package com.tencent.bk.job.common.paas.cmsi;
 
-import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
-import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 
-@Api(tags = {"job-manage:service:GlobalSettings"})
-@SmartFeignClient(value = "job-manage", contextId = "globalSettingsResource")
-@InternalAPI
-public interface ServiceGlobalSettingsResource {
+import java.util.List;
+import java.util.Set;
 
-    @ApiOperation(value = "获取文档中心Job文档基础Url", produces = "application/json")
-    @GetMapping("/service/globalSettings/docJobRootUrl")
-    InternalResponse<String> getDocJobRootUrl();
+public interface ICmsiClient {
 
+    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId);
+
+    public void sendMsg(String msgType,
+                        String sender,
+                        Set<String> receivers,
+                        String title,
+                        String content);
 }

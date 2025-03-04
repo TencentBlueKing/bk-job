@@ -55,6 +55,11 @@ public class AvailableEsbChannelDTO {
      */
     private LocalDateTime lastModifyTime;
 
+    /**
+     * 租户ID
+     */
+    private String tenantId;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

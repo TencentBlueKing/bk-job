@@ -61,7 +61,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_AP
  * 用户管理 API 客户端
  */
 @Slf4j
-public class UserMgrApiClient extends BkApiV2Client {
+public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
     private final BkApiAuthorization authorization;
 
@@ -79,6 +79,7 @@ public class UserMgrApiClient extends BkApiV2Client {
             appProperties.getSecret());
     }
 
+    @Override
     public List<BkUserDTO> getAllUserList(String tenantId) {
         // TODO:tenant 网关暂未提供实现
         return Collections.emptyList();
@@ -87,6 +88,7 @@ public class UserMgrApiClient extends BkApiV2Client {
     /**
      * 获取全量租户
      */
+    @Override
     public List<OpenApiTenant> listAllTenant() {
         OpenApiResponse<List<OpenApiTenant>> response = requestBkUserApi(
             "list_tenant",
@@ -126,11 +128,13 @@ public class UserMgrApiClient extends BkApiV2Client {
         }
     }
 
+    @Override
     public BkUserDTO getUserByUsername(String username) {
         // TODO:tenant 网关暂未提供实现
         return null;
     }
 
+    @Override
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
         // TODO:tenant 网关暂未提供实现
         return new HashMap<>();

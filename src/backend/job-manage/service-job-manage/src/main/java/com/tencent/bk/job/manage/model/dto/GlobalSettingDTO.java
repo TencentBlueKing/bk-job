@@ -51,4 +51,8 @@ public class GlobalSettingDTO {
      * 描述
      */
     private String description;
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 }

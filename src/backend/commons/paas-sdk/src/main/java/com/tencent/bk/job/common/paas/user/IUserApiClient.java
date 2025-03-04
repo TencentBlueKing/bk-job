@@ -22,23 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner;
+package com.tencent.bk.job.common.paas.user;
 
-import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
-import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
+import com.tencent.bk.job.common.esb.model.OpenApiResponse;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import io.micrometer.core.instrument.Tag;
 
-@Api(tags = {"job-manage:service:GlobalSettings"})
-@SmartFeignClient(value = "job-manage", contextId = "globalSettingsResource")
-@InternalAPI
-public interface ServiceGlobalSettingsResource {
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-    @ApiOperation(value = "获取文档中心Job文档基础Url", produces = "application/json")
-    @GetMapping("/service/globalSettings/docJobRootUrl")
-    InternalResponse<String> getDocJobRootUrl();
+import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API_HTTP;
+
+public interface IUserApiClient {
+
+    public List<BkUserDTO> getAllUserList(String tenantId);
+
+    public List<OpenApiTenant> listAllTenant();
+
+    public BkUserDTO getUserByUsername(String username);
+
+    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 
 }

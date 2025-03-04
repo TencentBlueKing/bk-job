@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,21 +93,21 @@ public class UserDAOImpl implements UserDAO {
             .and(T_USER.DISPLAY_NAME.startsWith(prefixStr))
             .fetch();
         if (result.isEmpty()) {
-            return null;
+            return new ArrayList<>();
         }
         return result.stream().map(this::extract).collect(Collectors.toList());
     }
 
     @Override
-    public List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+    public List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames) {
         Result<Record> result = dslContext
             .select(ALL_FIELDS)
             .from(T_USER)
             .where(T_USER.TENANT_ID.eq(tenantId))
-            .and(T_USER.USERNAME.in(usernames))
+            .and(T_USER.DISPLAY_NAME.in(displayNames))
             .fetch();
         if (result.isEmpty()) {
-            return null;
+            return new ArrayList<>();
         }
         return result.stream().map(this::extract).collect(Collectors.toList());
     }
@@ -122,5 +124,15 @@ public class UserDAOImpl implements UserDAO {
             return null;
         }
         return result.stream().map(record -> record.get(T_USER.USERNAME)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
+            .from(T_USER)
+            .where(T_USER.USERNAME.in(usernames))
+            .fetch();
+        return result.stream().map(this::extract).collect(Collectors.toList());
     }
 }

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -43,11 +43,11 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WatchableSendMsgService {
 
-    private final CmsiApiClient cmsiApiClient;
+    private final ICmsiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
 
     @Autowired
-    public WatchableSendMsgService(CmsiApiClient cmsiApiClient,
+    public WatchableSendMsgService(ICmsiClient cmsiApiClient,
                                    MeterRegistry meterRegistry) {
         this.cmsiApiClient = cmsiApiClient;
         this.meterRegistry = meterRegistry;

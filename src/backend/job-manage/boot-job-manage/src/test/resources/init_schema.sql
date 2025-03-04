@@ -601,7 +601,8 @@ CREATE TABLE IF NOT EXISTS `global_setting`
 (
     `key`        varchar(255) NOT NULL,
     `value`      text         NULL,
-    `decription` varchar(255) NULL DEFAULT NULL
+    `decription` varchar(255) NULL DEFAULT NULL,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default'
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `available_esb_channel`
@@ -610,6 +611,7 @@ CREATE TABLE IF NOT EXISTS `available_esb_channel`
     `enable`           bit(1)       NOT NULL,
     `creator`          varchar(255) NULL,
     `last_modify_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default',
     PRIMARY KEY (`type`)
 ) ENGINE = InnoDB;
 

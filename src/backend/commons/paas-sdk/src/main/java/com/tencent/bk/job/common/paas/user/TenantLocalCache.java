@@ -4,9 +4,7 @@ import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -15,7 +13,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class TenantLocalCache {
 
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
 
     private ScheduledThreadPoolExecutor refresher = new ScheduledThreadPoolExecutor(1);
 
@@ -27,7 +25,7 @@ public class TenantLocalCache {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 
-    public TenantLocalCache(UserMgrApiClient userMgrApiClient) {
+    public TenantLocalCache(IUserApiClient userMgrApiClient) {
         this.userMgrApiClient = userMgrApiClient;
 //        refresher.scheduleAtFixedRate(this::loadCache, )
     }

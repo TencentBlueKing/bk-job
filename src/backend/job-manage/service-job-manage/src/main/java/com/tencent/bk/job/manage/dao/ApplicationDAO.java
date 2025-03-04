@@ -100,4 +100,9 @@ public interface ApplicationDAO {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllDeletedApps();
+
+    /**
+     * 根据appId获取租户ID
+     */
+    String getTenantIdByAppId(long appId);
 }

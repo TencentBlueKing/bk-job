@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -42,8 +43,8 @@ public class UserCacheServiceImpl implements UserCacheService {
     }
 
     @Override
-    public List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames) {
-        return userDAO.listUsersByUsernames(tenantId, usernames);
+    public List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames) {
+        return userDAO.listUsersByDisplayNames(tenantId, displayNames);
     }
 
     @Override
@@ -56,5 +57,10 @@ public class UserCacheServiceImpl implements UserCacheService {
     public void batchPatchUsers(Set<BkUserDTO> deleteUsers, Set<BkUserDTO> addUsers) {
         deleteUsers.forEach(user -> userDAO.deleteUser(user.getUsername()));
         addUsers.forEach(userDAO::saveUser);
+    }
+
+    @Override
+    public List<BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
+        return userDAO.listUsersByUsernames(usernames);
     }
 }

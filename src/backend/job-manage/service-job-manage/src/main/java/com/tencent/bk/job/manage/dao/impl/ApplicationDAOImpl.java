@@ -361,6 +361,15 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return listAppsByConditions(conditions);
     }
 
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        val record = dslContext.select(T_APP.TENANT_ID).where(T_APP.APP_ID.eq(ULong.valueOf(appId))).fetchOne();
+        if (record != null) {
+            return record.get(T_APP.TENANT_ID);
+        }
+        return null;
+    }
+
     private List<Condition> getBasicDeletedConditions() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(1)));

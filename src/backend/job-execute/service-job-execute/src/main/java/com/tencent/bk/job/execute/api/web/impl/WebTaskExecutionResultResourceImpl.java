@@ -122,6 +122,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -146,6 +147,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
+    private static final int CHANNEL_CACHE_INDEX_TENANT_ID = 0;
+    private static final int CHANNEL_CACHE_INDEX_LANG = 1;
+    private static final String CHANNEL_CACHE_DELIMITER = ":";
 
     private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
@@ -171,8 +175,12 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
         build(new CacheLoader<String, Map<String, String>>() {
                   @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                  public Map<String, String> load(String key) {
+                      List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
+                      String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
+                      String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
+                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang,
+                          tenantId);
                       log.info("Get notify channels, resp={}", resp);
                       if (!resp.isSuccess() || resp.getData() == null) {
                           return new HashMap<>();
@@ -483,7 +491,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 && !stepExecutionDTO.getConfirmNotifyChannels().isEmpty()) {
                 Map<String, String> channelTypeAndName;
                 try {
-                    channelTypeAndName = channelCache.get(JobContextUtil.getUserLang());
+                    String key = JobContextUtil.getTenantId() + CHANNEL_CACHE_DELIMITER + JobContextUtil.getUserLang();
+                    channelTypeAndName = channelCache.get(key);
                 } catch (Exception e) {
                     log.warn("Get channel from cache fail", e);
                     channelTypeAndName = new HashMap<>();
