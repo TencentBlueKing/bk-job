@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,5 +124,15 @@ public class UserDAOImpl implements UserDAO {
             return null;
         }
         return result.stream().map(record -> record.get(T_USER.USERNAME)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
+        Result<Record> result = dslContext
+            .select(ALL_FIELDS)
+            .from(T_USER)
+            .where(T_USER.USERNAME.in(usernames))
+            .fetch();
+        return result.stream().map(this::extract).collect(Collectors.toList());
     }
 }

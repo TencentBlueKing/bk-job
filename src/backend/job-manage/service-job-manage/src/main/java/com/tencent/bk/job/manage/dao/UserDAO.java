@@ -18,4 +18,6 @@ public interface UserDAO {
     List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> usernames);
 
     List<String> listExistUserName(String tenantId, Collection<String> usernames);
+
+    List<BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 }

@@ -88,9 +88,9 @@ public class NotifyUserService {
         return saveNotifyBlackUsers(operator, users);
     }
 
-    public List<String> saveNotifyBlackUsers(String operator, Collection<String> displayNames) {
+    public List<String> saveNotifyBlackUsers(String operator, Collection<String> usernames) {
         String tenantId = JobContextUtil.getTenantId();
-        List<BkUserDTO> users = userCacheService.listUsersByDisplayNames(tenantId, displayNames);
+        List<BkUserDTO> users = userCacheService.listUsersByUsernames(usernames);
         val resultList = new ArrayList<String>();
         notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
         saveBlackUsersToDB(users, operator, resultList, tenantId);

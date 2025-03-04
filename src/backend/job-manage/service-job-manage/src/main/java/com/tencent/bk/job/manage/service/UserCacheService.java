@@ -23,4 +23,6 @@ public interface UserCacheService {
     List<String> listExistUserName(String tenantId, Collection<String> usernames);
 
     void batchPatchUsers(Set<BkUserDTO> deleteUsers, Set<BkUserDTO> addUsers);
+
+    List<BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 }
