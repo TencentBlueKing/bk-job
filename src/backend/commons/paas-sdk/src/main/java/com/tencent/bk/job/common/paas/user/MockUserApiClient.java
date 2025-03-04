@@ -76,8 +76,8 @@ public class MockUserApiClient extends BkApiV2Client implements IUserApiClient {
         List<BkUserDTO> users = displayNames.stream().map(s -> {
             BkUserDTO user = new BkUserDTO();
             user.setTenantId(tenantId);
-            user.setUsername("uuid_" + s);
-            user.setDisplayName("display_" + s);
+            user.setUsername("uuid_" + tenantId + "_" + s);
+            user.setDisplayName("display_" + tenantId + "_" + s);
             return user;
         }).collect(Collectors.toList());
         log.info("[MockUserApiClient] tenant: {}, users: {}",
