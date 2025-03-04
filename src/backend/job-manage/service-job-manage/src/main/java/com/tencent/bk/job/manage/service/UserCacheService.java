@@ -18,9 +18,11 @@ public interface UserCacheService {
 
     List<BkUserDTO> listUsersByDisplayNamePrefix(String tenantId, String prefixStr, Long limit);
 
-    List<BkUserDTO> listUsersByUsernames(String tenantId, Collection<String> usernames);
+    List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames);
 
     List<String> listExistUserName(String tenantId, Collection<String> usernames);
 
     void batchPatchUsers(Set<BkUserDTO> deleteUsers, Set<BkUserDTO> addUsers);
+
+    List<BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 }

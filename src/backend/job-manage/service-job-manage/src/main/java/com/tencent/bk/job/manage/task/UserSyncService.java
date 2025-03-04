@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -66,11 +65,11 @@ public class UserSyncService {
 
     private final String REDIS_KEY_SYNC_USER_JOB_RUNNING_MACHINE = "sync-user-job-running-machine";
     private final RedisTemplate<String, String> redisTemplate;
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
     private final UserCacheService userCacheService;
 
     @Autowired
-    public UserSyncService(UserMgrApiClient userMgrApiClient,
+    public UserSyncService(IUserApiClient userMgrApiClient,
                            UserCacheService userCacheService,
                            RedisTemplate<String, String> redisTemplate) {
         this.userMgrApiClient = userMgrApiClient;

@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -106,7 +106,7 @@ public class SyncServiceImpl implements SyncService {
     private final AgentStatusSyncService agentStatusSyncService;
     private final BizSetEventWatcher bizSetEventWatcher;
     private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
 
     @Autowired
     public SyncServiceImpl(BizSyncService bizSyncService,
@@ -124,7 +124,7 @@ public class SyncServiceImpl implements SyncService {
                            HostRelationEventWatcher hostRelationEventWatcher,
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
-                           UserMgrApiClient userMgrApiClient) {
+                           IUserApiClient userMgrApiClient) {
         this.applicationDAO = applicationDAO;
         this.jobManageConfig = jobManageConfig;
         this.redisTemplate = redisTemplate;

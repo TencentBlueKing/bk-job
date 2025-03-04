@@ -22,23 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.inner;
+package com.tencent.bk.job.common.paas.config.condition;
 
-import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
-import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Api(tags = {"job-manage:service:GlobalSettings"})
-@SmartFeignClient(value = "job-manage", contextId = "globalSettingsResource")
-@InternalAPI
-public interface ServiceGlobalSettingsResource {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    @ApiOperation(value = "获取文档中心Job文档基础Url", produces = "application/json")
-    @GetMapping("/service/globalSettings/docJobRootUrl")
-    InternalResponse<String> getDocJobRootUrl();
-
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "mockApi.cmsi.enabled",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public @interface ConditionalOnMockCmsiApiDisable {
 }

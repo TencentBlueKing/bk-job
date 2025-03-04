@@ -39,4 +39,9 @@ public interface TenantService {
      * @return 租户列表
      */
     List<TenantDTO> listEnabledTenant();
+
+    /**
+     * 通过appId获取tenantId
+     */
+    String getTenantIdByAppId(long appId);
 }

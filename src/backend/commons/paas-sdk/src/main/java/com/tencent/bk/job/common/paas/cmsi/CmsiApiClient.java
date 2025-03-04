@@ -35,7 +35,6 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
-import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
@@ -49,6 +48,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -59,7 +59,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiV1Client {
+public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
@@ -83,7 +83,7 @@ public class CmsiApiClient extends BkApiV1Client {
             appProperties.getSecret(), "admin");
     }
 
-    public List<EsbNotifyChannelDTO> getNotifyChannelList() {
+    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
 //        try {
 //            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
 //            HttpMetricUtil.addTagForCurrentMetric(

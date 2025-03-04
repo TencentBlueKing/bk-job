@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.globalsetting.impl;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
@@ -31,6 +32,7 @@ import com.tencent.bk.job.manage.model.tables.GlobalSetting;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +47,12 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     private final DSLContext dslContext;
 
     private static final GlobalSetting defaultTable = GlobalSetting.GLOBAL_SETTING;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.KEY,
+        defaultTable.VALUE,
+        defaultTable.DECRIPTION,
+        defaultTable.TENANT_ID
+    };
 
     @Autowired
     public GlobalSettingDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
@@ -65,11 +73,13 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
         val query = dslContext.insertInto(defaultTable,
             defaultTable.KEY,
             defaultTable.VALUE,
-            defaultTable.DECRIPTION
+            defaultTable.DECRIPTION,
+            defaultTable.TENANT_ID
         ).values(
             globalSettingDTO.getKey(),
             globalSettingDTO.getValue(),
-            globalSettingDTO.getDescription()
+            globalSettingDTO.getDescription(),
+            globalSettingDTO.getTenantId()
         );
         val sql = query.getSQL(ParamType.INLINED);
         try {
@@ -85,7 +95,8 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
         val query = dslContext.update(defaultTable)
             .set(defaultTable.VALUE, globalSettingDTO.getValue())
             .set(defaultTable.DECRIPTION, globalSettingDTO.getDescription())
-            .where(defaultTable.KEY.eq(globalSettingDTO.getKey()));
+            .where(defaultTable.KEY.eq(globalSettingDTO.getKey())
+            .and(defaultTable.TENANT_ID.eq(globalSettingDTO.getTenantId())));
         val sql = query.getSQL(ParamType.INLINED);
         try {
             return query.execute();
@@ -102,18 +113,31 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
         ).execute();
     }
 
+    /**
+     * 兼容平台级别资源的查询，此类资源不是租户内独有的
+     */
     @Override
     public GlobalSettingDTO getGlobalSetting(String key) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.KEY.eq(key)
-        ).fetchOne();
+        return getGlobalSetting(key, null);
+    }
+
+    @Override
+    public GlobalSettingDTO getGlobalSetting(String key, String tenantId) {
+        val query = dslContext.select(ALL_FIELDS).from(defaultTable).where(defaultTable.KEY.eq(key));
+        if (tenantId != null) {
+            query.and(defaultTable.TENANT_ID.eq(tenantId));
+        } else {
+            query.and(defaultTable.TENANT_ID.eq(TenantIdConstants.DEFAULT_TENANT_ID));
+        }
+        val record = query.fetchOne();
         if (record == null) {
             return null;
         } else {
             return new GlobalSettingDTO(
-                record.getKey(),
-                record.getValue(),
-                record.getDecription()
+                record.get(defaultTable.KEY),
+                record.get(defaultTable.VALUE),
+                record.get(defaultTable.DECRIPTION),
+                record.get(defaultTable.TENANT_ID)
             );
         }
     }

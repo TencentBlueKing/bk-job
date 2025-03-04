@@ -25,12 +25,14 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -41,11 +43,15 @@ import java.util.stream.Collectors;
 @Service
 public class TenantServiceImpl implements TenantService {
 
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
+    private final ApplicationService applicationService;
 
     @Autowired
-    public TenantServiceImpl(UserMgrApiClient userMgrApiClient) {
+    public TenantServiceImpl(IUserApiClient userMgrApiClient,
+                             // 此处存在循环依赖，暂时用Lazy打破
+                             @Lazy ApplicationService applicationService) {
         this.userMgrApiClient = userMgrApiClient;
+        this.applicationService = applicationService;
     }
 
 
@@ -59,5 +65,14 @@ public class TenantServiceImpl implements TenantService {
             .filter(OpenApiTenant::isEnabled)
             .map(openApiTenant -> new TenantDTO(openApiTenant.getId(), openApiTenant.getName()))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        String tenantId = applicationService.getTenantIdByAppId(appId);
+        if (tenantId == null) {
+            log.warn("Cannot get tenant id by appId:{}", appId);
+        }
+        return tenantId;
     }
 }
