@@ -73,13 +73,17 @@ public class MockUserApiClient extends BkApiV2Client implements IUserApiClient {
     @Override
     public List<BkUserDTO> getAllUserList(String tenantId) {
         List<String> displayNames = Arrays.asList("a", "b", "c");
-        return displayNames.stream().map(s -> {
+        List<BkUserDTO> users = displayNames.stream().map(s -> {
             BkUserDTO user = new BkUserDTO();
             user.setTenantId(tenantId);
             user.setUsername("uuid_" + s);
             user.setDisplayName("display_" + s);
             return user;
         }).collect(Collectors.toList());
+        log.info("[MockUserApiClient] tenant: {}, users: {}",
+            tenantId,
+            users.stream().map(BkUserDTO::getUsername).collect(Collectors.toList()));
+        return users;
     }
 
     @Override
