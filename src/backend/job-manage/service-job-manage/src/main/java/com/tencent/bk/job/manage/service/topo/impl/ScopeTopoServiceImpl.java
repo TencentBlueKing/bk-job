@@ -22,43 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host.impl;
+package com.tencent.bk.job.manage.service.topo.impl;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
-import com.tencent.bk.job.manage.service.host.BizHostService;
-import com.tencent.bk.job.manage.service.host.BizTopoHostService;
+import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.topo.BizTopoService;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.manage.service.topo.ScopeTopoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-public class BizTopoHostServiceImpl implements BizTopoHostService {
+public class ScopeTopoServiceImpl implements ScopeTopoService {
 
+    private final ApplicationService applicationService;
     private final BizTopoService bizTopoService;
-    private final BizHostService bizHostService;
 
     @Autowired
-    public BizTopoHostServiceImpl(BizTopoService bizTopoService,
-                                  BizHostService bizHostService) {
+    public ScopeTopoServiceImpl(ApplicationService applicationService,
+                                BizTopoService bizTopoService) {
+        this.applicationService = applicationService;
         this.bizTopoService = bizTopoService;
-        this.bizHostService = bizHostService;
     }
 
-    @Override
-    public List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
-        return bizHostService.getHostsByModuleIds(moduleIds);
-    }
 
     @Override
-    public List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, nodes);
-        return bizHostService.getHostsByModuleIds(moduleIds);
+    public List<List<InstanceTopologyDTO>> queryNodePaths(AppResourceScope appResourceScope,
+                                                          List<TargetNodeVO> targetNodeVOList) {
+        ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
+        if (appDTO.isBizSet()) {
+            return Collections.emptyList();
+        }
+        return bizTopoService.queryBizNodePaths(
+            appDTO.getBizIdIfBizApp(),
+            targetNodeVOList.stream().map(it -> {
+                InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();
+                instanceTopologyDTO.setObjectId(it.getObjectId());
+                instanceTopologyDTO.setInstanceId(it.getInstanceId());
+                return instanceTopologyDTO;
+            }).collect(Collectors.toList()));
     }
 }

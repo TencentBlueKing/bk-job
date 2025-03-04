@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.service.host;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -89,10 +88,6 @@ public interface HostService {
     long countHostsByOsType(String osType);
 
     Map<String, Integer> groupHostByOsType();
-
-    List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
-                                                      Long bizId,
-                                                      List<InstanceTopologyDTO> nodeList);
 
     /**
      * 获取业务下的主机。如果在Job缓存的主机中不存在，那么从cmdb查询

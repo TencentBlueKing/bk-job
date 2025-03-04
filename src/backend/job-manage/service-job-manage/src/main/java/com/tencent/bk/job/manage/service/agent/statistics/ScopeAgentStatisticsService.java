@@ -22,43 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host.impl;
+package com.tencent.bk.job.manage.service.agent.statistics;
 
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
-import com.tencent.bk.job.manage.service.host.BizHostService;
-import com.tencent.bk.job.manage.service.host.BizTopoHostService;
-import com.tencent.bk.job.manage.service.topo.BizTopoService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 
-import java.util.Collections;
 import java.util.List;
 
-@Slf4j
-@Service
-public class BizTopoHostServiceImpl implements BizTopoHostService {
-
-    private final BizTopoService bizTopoService;
-    private final BizHostService bizHostService;
-
-    @Autowired
-    public BizTopoHostServiceImpl(BizTopoService bizTopoService,
-                                  BizHostService bizHostService) {
-        this.bizTopoService = bizTopoService;
-        this.bizHostService = bizHostService;
-    }
-
-    @Override
-    public List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
-        return bizHostService.getHostsByModuleIds(moduleIds);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, nodes);
-        return bizHostService.getHostsByModuleIds(moduleIds);
-    }
+/**
+ * 资源范围下的Agent统计服务
+ */
+public interface ScopeAgentStatisticsService {
+    AgentStatistics getAgentStatistics(AppResourceScope appResourceScope,
+                                       List<Long> hostIdList,
+                                       List<BizTopoNode> nodeList,
+                                       List<String> dynamicGroupIdList);
 }

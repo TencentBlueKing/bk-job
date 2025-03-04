@@ -36,7 +36,7 @@ import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
-import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
+import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

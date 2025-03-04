@@ -26,15 +26,14 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
+import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
+import com.tencent.bk.job.manage.util.ScopeFeatureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,14 +54,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BizDynamicGroupHostService {
+public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostService {
 
     private final IBizCmdbClient bizCmdbClient;
     private final HostDetailService hostDetailService;
 
     @Autowired
-    public BizDynamicGroupHostService(IBizCmdbClient bizCmdbClient,
-                                      HostDetailService hostDetailService) {
+    public ScopeDynamicGroupHostServiceImpl(IBizCmdbClient bizCmdbClient,
+                                            HostDetailService hostDetailService) {
         this.bizCmdbClient = bizCmdbClient;
         this.hostDetailService = hostDetailService;
     }
@@ -86,13 +85,21 @@ public class BizDynamicGroupHostService {
         return PageUtil.pageInMem(hostList, start, pageSize);
     }
 
-    public List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope, Collection<String> ids) {
+    public List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope,
+                                                            Collection<String> ids) {
         List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, ids);
         // 展示信息需要包含主机详情完整字段
         return hostDetailService.listHostDetails(appResourceScope, hostIds);
     }
 
-    public List<Long> listHostIdsByDynamicGroups(AppResourceScope appResourceScope, Collection<String> ids) {
+    public List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id) {
+        List<Long> hostIds = listHostIdsByDynamicGroup(appResourceScope, id);
+        // 展示信息需要包含主机详情完整字段
+        return hostDetailService.listHostDetails(appResourceScope, hostIds);
+    }
+
+    private List<Long> listHostIdsByDynamicGroups(AppResourceScope appResourceScope,
+                                                  Collection<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
@@ -106,17 +113,9 @@ public class BizDynamicGroupHostService {
         return hostIdList;
     }
 
-    public List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id) {
-        List<Long> hostIds = listHostIdsByDynamicGroup(appResourceScope, id);
-        // 展示信息需要包含主机详情完整字段
-        return hostDetailService.listHostDetails(appResourceScope, hostIds);
-    }
-
     private List<Long> listHostIdsByDynamicGroup(AppResourceScope appResourceScope, String id) {
-        // 动态分组当前只支持业务，不支持业务集
-        if (appResourceScope.getType() != ResourceScopeTypeEnum.BIZ) {
-            throw new NotImplementedException(ErrorCode.NOT_SUPPORT_FEATURE_FOR_BIZ_SET);
-        }
+        // 动态分组当前只支持业务，不支持业务集/租户集
+        ScopeFeatureUtil.assertOnlyBizSupported(appResourceScope);
         long bizId = Long.parseLong(appResourceScope.getId());
         List<DynamicGroupHostPropDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {

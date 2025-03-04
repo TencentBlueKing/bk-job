@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
@@ -36,9 +34,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.model.db.CacheHostDO;
@@ -344,17 +340,6 @@ public class HostServiceImpl implements HostService {
     @Override
     public Map<String, Integer> groupHostByOsType() {
         return applicationHostDAO.groupHostByOsType();
-    }
-
-    @Override
-    public List<List<InstanceTopologyDTO>> queryBizNodePaths(String username,
-                                                             Long bizId,
-                                                             List<InstanceTopologyDTO> nodeList) {
-        // 查业务拓扑树
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
-        // 搜索路径
-        return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
     }
 
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {

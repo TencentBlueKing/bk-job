@@ -22,35 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.host;
+package com.tencent.bk.job.manage.util;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
-import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
-
-import java.util.List;
 
 /**
- * 主机、topo相关服务
+ * 封装部分资源范围相关的特性判断逻辑
  */
-public interface ScopeTopoHostService {
+public class ScopeFeatureUtil {
 
     /**
-     * 查询带主机数量信息的业务拓扑树
-     *
-     * @param username         用户名
-     * @param appResourceScope 资源范围
-     * @return 带主机数量信息的拓扑结构树
-     */
-    CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
-
-    /**
-     * 根据拓扑节点列表查询所有节点下的主机
+     * 断言资源范围是否为业务，否则就抛出异常
      *
      * @param appResourceScope 资源范围
-     * @param nodeList         拓扑节点列表
-     * @return 节点下的主机列表
      */
-    List<ApplicationHostDTO> listHostByNodes(AppResourceScope appResourceScope, List<BizTopoNode> nodeList);
+    public static void assertOnlyBizSupported(AppResourceScope appResourceScope) {
+        if (!appResourceScope.isBiz()) {
+            throw new NotImplementedException(
+                ErrorCode.NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE,
+                new Object[]{
+                    ResourceScopeTypeEnum.BIZ.name(),
+                    appResourceScope.getType().name()
+                }
+            );
+        }
+    }
 }

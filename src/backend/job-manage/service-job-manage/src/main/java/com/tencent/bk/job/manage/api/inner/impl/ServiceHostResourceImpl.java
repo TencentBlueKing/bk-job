@@ -51,7 +51,7 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.HostService;
-import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
+import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     private final ApplicationService applicationService;
     private final HostService hostService;
     private final BizTopoHostService bizTopoHostService;
-    private final BizDynamicGroupHostService bizDynamicGroupHostService;
+    private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
     private final HostDetailService hostDetailService;
     private final HostTopoDAO hostTopoDAO;
 
@@ -80,14 +80,14 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                                    ApplicationService applicationService,
                                    HostService hostService,
                                    BizTopoHostService bizTopoHostService,
-                                   BizDynamicGroupHostService bizDynamicGroupHostService,
+                                   ScopeDynamicGroupHostService scopeDynamicGroupHostService,
                                    HostDetailService hostDetailService,
                                    HostTopoDAO hostTopoDAO) {
         this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
         this.hostService = hostService;
         this.bizTopoHostService = bizTopoHostService;
-        this.bizDynamicGroupHostService = bizDynamicGroupHostService;
+        this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
         this.hostDetailService = hostDetailService;
         this.hostTopoDAO = hostTopoDAO;
     }
@@ -125,7 +125,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
         AppResourceScope appResourceScope = new AppResourceScope(appId);
         appScopeMappingService.fillAppResourceScope(appResourceScope);
-        List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroups(
+        List<ApplicationHostDTO> hostList = scopeDynamicGroupHostService.listHostByDynamicGroups(
             appResourceScope,
             dynamicGroupIdList
         );

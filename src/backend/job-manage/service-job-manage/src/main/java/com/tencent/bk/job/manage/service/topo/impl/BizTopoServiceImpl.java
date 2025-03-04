@@ -22,14 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.topo;
+package com.tencent.bk.job.manage.service.topo.impl;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,19 +42,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * 业务拓扑服务
- */
 @Slf4j
 @Service
-public class BizTopoService {
+public class BizTopoServiceImpl implements BizTopoService {
 
     private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public BizTopoService(IBizCmdbClient bizCmdbClient) {
+    public BizTopoServiceImpl(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }
+
+    @Override
+    public List<List<InstanceTopologyDTO>> queryBizNodePaths(Long bizId,
+                                                             List<InstanceTopologyDTO> nodeList) {
+        // 查业务拓扑树
+        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
+        // 搜索路径
+        return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
+    }
+
 
     /**
      * 找出多个拓扑节点下属的所有模块ID

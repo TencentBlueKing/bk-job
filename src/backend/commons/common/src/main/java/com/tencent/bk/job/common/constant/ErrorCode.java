@@ -177,8 +177,8 @@ public class ErrorCode {
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
-    // 该功能暂不支持业务集
-    public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
+    // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
+    public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;
     // IPv6地址不合法：{0}
     public static final int INVALID_IPV6_ADDRESS = 1241014;
     // 业务通用 end
