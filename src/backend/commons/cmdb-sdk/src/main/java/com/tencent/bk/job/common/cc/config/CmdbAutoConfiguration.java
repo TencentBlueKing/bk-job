@@ -141,7 +141,6 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMockCmdbApiDisabled
     public IBizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
                                               BkApiGatewayProperties bkApiGatewayProperties,
                                               CmdbConfig cmdbConfig,
