@@ -39,7 +39,8 @@ import java.lang.annotation.Target;
 @Inherited
 @ConditionalOnProperty(
     value = "mockApi.bkUser.enabled",
-    havingValue = "true"
+    havingValue = "false",
+    matchIfMissing = true
 )
 public @interface ConditionalOnMockUserApiDisable {
 }
