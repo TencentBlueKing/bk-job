@@ -51,26 +51,4 @@ public interface IUserApiClient {
 
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 
-    default  <T, R> OpenApiResponse<R> requestBkUserApi(
-        String apiName,
-        OpenApiRequestInfo<T> request,
-        Function<OpenApiRequestInfo<T>, OpenApiResponse<R>> requestHandler) {
-
-        try {
-            HttpMetricUtil.setHttpMetricName(USER_MANAGE_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", apiName));
-            return requestHandler.apply(request);
-        } catch (Throwable e) {
-            String errorMsg = "Fail to request bk-user api|method=" + request.getMethod()
-                + "|uri=" + request.getUri() + "|queryParams="
-                + request.getQueryParams() + "|body="
-                + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(request.getBody()));
-            logError(errorMsg, e);
-            throw new InternalException(e.getMessage(), e, ErrorCode.BK_USER_MANAGE_API_ERROR);
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-        }
-    }
-
-    void logError(String message, Object... objects);
 }

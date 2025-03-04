@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.message.BasicHeader;
 
@@ -52,26 +53,29 @@ import java.util.stream.Collectors;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API;
 
 @Slf4j
-public class MockUserApiClient extends BkApiV2Client implements IUserApiClient {
+public class MockUserApiClient implements IUserApiClient {
 
-    private final BkApiAuthorization authorization;
+    @Delegate
+    private final IUserApiClient proxy;
 
     public MockUserApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                              AppProperties appProperties,
                              MeterRegistry meterRegistry,
                              TenantEnvService tenantEnvService) {
-        super(meterRegistry,
-            USER_MANAGE_API,
-            bkApiGatewayProperties.getBkUser().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+        this.proxy = new UserMgrApiClient(
+            bkApiGatewayProperties,
+            appProperties,
+            meterRegistry,
             tenantEnvService
         );
-        this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
-            appProperties.getSecret());
     }
 
     @Override
     public List<BkUserDTO> getAllUserList(String tenantId) {
+        return mockAllUser(tenantId);
+    }
+
+    private List<BkUserDTO> mockAllUser(String tenantId) {
         List<String> displayNames = Arrays.asList("a", "b", "c");
         List<BkUserDTO> users = displayNames.stream().map(s -> {
             BkUserDTO user = new BkUserDTO();
@@ -84,39 +88,6 @@ public class MockUserApiClient extends BkApiV2Client implements IUserApiClient {
             tenantId,
             users.stream().map(BkUserDTO::getUsername).collect(Collectors.toList()));
         return users;
-    }
-
-    @Override
-    public List<OpenApiTenant> listAllTenant() {
-        OpenApiResponse<List<OpenApiTenant>> response = requestBkUserApi(
-            "list_tenant",
-            OpenApiRequestInfo
-                .builder()
-                .method(HttpMethodEnum.GET)
-                .uri("/api/v3/open/tenants")
-                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.SYSTEM_TENANT_ID))
-                .authorization(authorization)
-                .build(),
-            request -> doRequest(request, new TypeReference<OpenApiResponse<List<OpenApiTenant>>>() {
-            })
-        );
-
-        return response.getData();
-    }
-
-    @Override
-    public BkUserDTO getUserByUsername(String username) {
-        return null;
-    }
-
-    @Override
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public void logError(String message, Object... objects) {
-        log.error(message, objects);
     }
 
 }

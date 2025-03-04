@@ -106,6 +106,28 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return response.getData();
     }
 
+
+    protected <T, R> OpenApiResponse<R> requestBkUserApi(
+        String apiName,
+        OpenApiRequestInfo<T> request,
+        Function<OpenApiRequestInfo<T>, OpenApiResponse<R>> requestHandler) {
+
+        try {
+            HttpMetricUtil.setHttpMetricName(USER_MANAGE_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", apiName));
+            return requestHandler.apply(request);
+        } catch (Throwable e) {
+            String errorMsg = "Fail to request bk-user api|method=" + request.getMethod()
+                + "|uri=" + request.getUri() + "|queryParams="
+                + request.getQueryParams() + "|body="
+                + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(request.getBody()));
+            log.error(errorMsg, e);
+            throw new InternalException(e.getMessage(), e, ErrorCode.BK_USER_MANAGE_API_ERROR);
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
     @Override
     public BkUserDTO getUserByUsername(String username) {
         // TODO:tenant 网关暂未提供实现
@@ -116,10 +138,5 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
         // TODO:tenant 网关暂未提供实现
         return new HashMap<>();
-    }
-
-    @Override
-    public void logError(String message, Object... objects) {
-        log.error(message, objects);
     }
 }
