@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config;
+package com.tencent.bk.job.common.paas.config.condition;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
@@ -39,7 +39,8 @@ import java.lang.annotation.Target;
 @Inherited
 @ConditionalOnProperty(
     value = "mockApi.cmsi.enabled",
-    havingValue = "true"
+    havingValue = "false",
+    matchIfMissing = true
 )
-public @interface ConditionalOnMockCmsiApiEnable {
+public @interface ConditionalOnMockCmsiApiDisable {
 }

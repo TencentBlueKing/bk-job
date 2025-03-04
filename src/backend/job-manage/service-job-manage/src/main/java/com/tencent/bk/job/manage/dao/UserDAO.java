@@ -15,7 +15,7 @@ public interface UserDAO {
 
     List<BkUserDTO> listUsersByDisplayNamePrefix(String tenantId, String prefixStr, Long limit);
 
-    List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> usernames);
+    List<BkUserDTO> listUsersByDisplayNames(String tenantId, Collection<String> displayNames);
 
     List<String> listExistUserName(String tenantId, Collection<String> usernames);
 

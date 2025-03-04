@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
@@ -67,7 +67,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     private final NotifyService notifyService;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
@@ -78,7 +78,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
                               NotifyService notifyService,
                               AvailableEsbChannelDAO availableEsbChannelDAO,
                               NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
-                              UserMgrApiClient userMgrApiClient) {
+                              IUserApiClient userMgrApiClient) {
         this.cmsiApiClient = cmsiApiClient;
         this.globalSettingsService = globalSettingsService;
         this.notifyService = notifyService;

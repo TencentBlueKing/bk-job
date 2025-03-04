@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
 import com.tencent.bk.job.common.paas.cmsi.MockCmsiClient;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiDisable;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiEnable;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;

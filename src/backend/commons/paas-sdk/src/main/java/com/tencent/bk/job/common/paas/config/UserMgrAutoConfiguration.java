@@ -26,6 +26,10 @@ package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiDisable;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiEnable;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.MockUserApiClient;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
@@ -40,10 +44,11 @@ import org.springframework.context.annotation.Configuration;
 public class UserMgrAutoConfiguration {
 
     @Bean
-    public UserMgrApiClient userMgrApiClient(AppProperties appProperties,
-                                             BkApiGatewayProperties bkApiGatewayProperties,
-                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                             TenantEnvService tenantEnvService) {
+    @ConditionalOnMockUserApiDisable
+    public IUserApiClient userMgrApiClient(AppProperties appProperties,
+                                           BkApiGatewayProperties bkApiGatewayProperties,
+                                           ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                           TenantEnvService tenantEnvService) {
         log.info("Init UserMgrApiClient");
         return new UserMgrApiClient(
             bkApiGatewayProperties,
@@ -54,7 +59,22 @@ public class UserMgrAutoConfiguration {
     }
 
     @Bean
-    UserLocalCache userLocalCache(UserMgrApiClient userMgrApiClient) {
+    @ConditionalOnMockUserApiEnable
+    public IUserApiClient mockUserApiClient(AppProperties appProperties,
+                                            BkApiGatewayProperties bkApiGatewayProperties,
+                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                            TenantEnvService tenantEnvService) {
+        log.info("Init MockUserApiClient");
+        return new MockUserApiClient(
+            bkApiGatewayProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable(),
+            tenantEnvService
+        );
+    }
+
+    @Bean
+    UserLocalCache userLocalCache(IUserApiClient userMgrApiClient) {
         log.info("Init UserLocalCache");
         return new UserLocalCache(userMgrApiClient);
     }

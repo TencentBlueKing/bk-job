@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class UserLocalCache {
 
-    private final UserMgrApiClient userMgrApiClient;
+    private final IUserApiClient userMgrApiClient;
 
-    public UserLocalCache(UserMgrApiClient userMgrApiClient) {
+    public UserLocalCache(IUserApiClient userMgrApiClient) {
         this.userMgrApiClient = userMgrApiClient;
     }
 

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
@@ -35,40 +34,32 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.model.OpenApiResponse;
 import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
-import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.message.BasicHeader;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API;
-import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API_HTTP;
 
-/**
- * 用户管理 API 客户端
- */
 @Slf4j
-public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
+public class MockUserApiClient extends BkApiV2Client implements IUserApiClient {
 
     private final BkApiAuthorization authorization;
 
-    public UserMgrApiClient(BkApiGatewayProperties bkApiGatewayProperties,
-                            AppProperties appProperties,
-                            MeterRegistry meterRegistry,
-                            TenantEnvService tenantEnvService) {
+    public MockUserApiClient(BkApiGatewayProperties bkApiGatewayProperties,
+                             AppProperties appProperties,
+                             MeterRegistry meterRegistry,
+                             TenantEnvService tenantEnvService) {
         super(meterRegistry,
             USER_MANAGE_API,
             bkApiGatewayProperties.getBkUser().getUrl(),
@@ -81,13 +72,16 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
     @Override
     public List<BkUserDTO> getAllUserList(String tenantId) {
-        // TODO:tenant 网关暂未提供实现
-        return Collections.emptyList();
+        List<String> displayNames = Arrays.asList("a", "b", "c");
+        return displayNames.stream().map(s -> {
+            BkUserDTO user = new BkUserDTO();
+            user.setTenantId(tenantId);
+            user.setUsername("uuid_" + s);
+            user.setDisplayName("display_" + s);
+            return user;
+        }).collect(Collectors.toList());
     }
 
-    /**
-     * 获取全量租户
-     */
     @Override
     public List<OpenApiTenant> listAllTenant() {
         OpenApiResponse<List<OpenApiTenant>> response = requestBkUserApi(
@@ -108,18 +102,17 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
     @Override
     public BkUserDTO getUserByUsername(String username) {
-        // TODO:tenant 网关暂未提供实现
         return null;
     }
 
     @Override
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
-        // TODO:tenant 网关暂未提供实现
-        return new HashMap<>();
+        return Collections.emptyMap();
     }
 
     @Override
     public void logError(String message, Object... objects) {
         log.error(message, objects);
     }
+
 }
