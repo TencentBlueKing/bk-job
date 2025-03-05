@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.tenantset.TenantSetScope;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.ITenantSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -182,6 +183,7 @@ public class TenantSetSyncService extends BasicAppSyncService {
         appInfoDTO.setScope(
             new ResourceScope(ResourceScopeTypeEnum.TENANT_SET, tenantSetInfo.getId().toString()));
         appInfoDTO.setDeFault(tenantSetInfo.getDeFault());
+        appInfoDTO.setTenantId(TenantIdConstants.SYSTEM_TENANT_ID);
         return appInfoDTO;
     }
 }
