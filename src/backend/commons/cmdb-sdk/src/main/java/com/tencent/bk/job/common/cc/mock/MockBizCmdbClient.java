@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
@@ -40,6 +39,7 @@ import lombok.experimental.Delegate;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -116,7 +116,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
+    public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setHostId(1L);
         host.setBizId(1L);
@@ -126,6 +126,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         host.setAgentId("MockAgentId1");
         host.setCloudAreaId(0L);
         host.setCloudAreaName("MockCloudArea1");
-        return null;
+        host.setTenantId(tenantId);
+        return Collections.singletonList(host);
     }
 }

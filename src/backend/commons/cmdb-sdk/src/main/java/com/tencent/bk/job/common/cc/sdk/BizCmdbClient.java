@@ -44,7 +44,6 @@ import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
 import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
-import com.tencent.bk.job.common.cc.model.filter.Rule;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -57,6 +56,7 @@ import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.IRule;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.Rule;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
@@ -383,8 +383,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
-        String tenantId = JobContextUtil.getTenantId();
+    public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
         List<HostWithModules> hostWithModuleList = getHostRelationsByTopology(tenantId, bizId, ccInstList);
         return convertToHostInfoDTOList(bizId, hostWithModuleList);
     }
@@ -435,7 +434,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 valid = false;
             }
             return valid;
-        }).collect(Collectors.toList());
+        }).peek(hostWithModules -> hostWithModules.getHost().setTenantId(tenantId)
+        ).collect(Collectors.toList());
         return hostWithModulesList;
     }
 
@@ -1038,7 +1038,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
+    public List<ApplicationHostDTO> listHostsByCloudIps(String tenantId, List<String> cloudIps) {
         if (CollectionUtils.isEmpty(cloudIps)) {
             return Collections.emptyList();
         }
@@ -1055,11 +1055,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         });
         req.setCondition(condition);
 
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+    public List<ApplicationHostDTO> listHostsByCloudIpv6s(String tenantId, List<String> cloudIpv6s) {
         if (CollectionUtils.isEmpty(cloudIpv6s)) {
             return Collections.emptyList();
         }
@@ -1077,7 +1077,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 condition.addRule(hostRule);
             }));
         req.setCondition(condition);
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     private BaseRuleDTO buildIpv6Rule(String ipv6) {
@@ -1089,7 +1089,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return BaseRuleDTO.equals("bk_cloud_id", bkCloudId);
     }
 
-    private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
+    private List<ApplicationHostDTO> listHostsWithoutBiz(String tenantId, ListHostsWithoutBizReq req) {
         int limit = 500;
         int start = 0;
         int total;
@@ -1097,7 +1097,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         do {
             Page page = new Page(start, limit, "");
             req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApiUseContextTenantId(
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 LIST_HOSTS_WITHOUT_BIZ,
                 null,
@@ -1160,7 +1161,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds) {
+    public List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds) {
         if (CollectionUtils.isEmpty(hostIds)) {
             return Collections.emptyList();
         }
@@ -1170,7 +1171,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         condition.setCondition(RuleConditionEnum.AND.getCondition());
         condition.addRule(BaseRuleDTO.in("bk_host_id", hostIds));
         req.setCondition(condition);
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     @Override

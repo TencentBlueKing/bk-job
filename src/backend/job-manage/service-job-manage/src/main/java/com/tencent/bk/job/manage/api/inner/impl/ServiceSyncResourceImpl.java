@@ -34,7 +34,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.SyncService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,15 +47,16 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceSyncResourceImpl implements ServiceSyncResource {
     private final ApplicationService applicationService;
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
     private final SyncService syncService;
 
 
     @Autowired
     public ServiceSyncResourceImpl(ApplicationService applicationService,
-                                   HostService hostService, SyncService syncService) {
+                                   NoTenantHostService noTenantHostService,
+                                   SyncService syncService) {
         this.applicationService = applicationService;
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.syncService = syncService;
     }
 
@@ -82,7 +83,7 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
     @Override
     public InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(Long appId) {
         try {
-            List<ApplicationHostDTO> hosts = hostService.getHostsByAppId(appId);
+            List<ApplicationHostDTO> hosts = noTenantHostService.getHostsByAppId(appId);
             List<ServiceHostInfoDTO> serviceHosts = new ArrayList<>();
             if (hosts != null) {
                 serviceHosts =

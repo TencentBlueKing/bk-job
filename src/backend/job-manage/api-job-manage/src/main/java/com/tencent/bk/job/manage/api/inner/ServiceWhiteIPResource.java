@@ -47,7 +47,7 @@ public interface ServiceWhiteIPResource {
     @CompatibleImplementation(
         name = "tenant",
         explain = "兼容发布过程中老的调用，发布完成后删除",
-        deprecatedVersion = "3.13.x",
+        deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")

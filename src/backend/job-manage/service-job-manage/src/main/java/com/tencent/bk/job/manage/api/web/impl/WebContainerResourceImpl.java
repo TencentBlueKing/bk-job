@@ -49,7 +49,7 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContain
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ContainerService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,17 +69,17 @@ public class WebContainerResourceImpl implements WebContainerResource {
     private final ContainerService containerService;
     private final ApplicationService applicationService;
     private final MessageI18nService i18nService;
-    private final HostService hostService;
+    private final CurrentTenantHostService currentTenantHostService;
 
     @Autowired
     public WebContainerResourceImpl(ContainerService containerService,
                                     ApplicationService applicationService,
                                     MessageI18nService i18nService,
-                                    HostService hostService) {
+                                    CurrentTenantHostService currentTenantHostService) {
         this.containerService = containerService;
         this.applicationService = applicationService;
         this.i18nService = i18nService;
-        this.hostService = hostService;
+        this.currentTenantHostService = currentTenantHostService;
     }
 
     @Override
@@ -189,7 +189,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
     private void fillNodesHostInfo(Collection<ContainerVO> containerVOs) {
         List<Long> hostIds = containerVOs.stream()
             .map(ContainerVO::getNodeHostId).distinct().collect(Collectors.toList());
-        Map<Long, ApplicationHostDTO> hostMap = hostService.listHostsByHostIds(hostIds);
+        Map<Long, ApplicationHostDTO> hostMap = currentTenantHostService.listHostsByHostIds(hostIds);
 
         containerVOs.forEach(containerVO -> {
             Long nodeHostId = containerVO.getNodeHostId();

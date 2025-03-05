@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -62,13 +62,13 @@ public class BizSetSyncService extends BasicAppSyncService {
 
     @Autowired
     public BizSetSyncService(ApplicationDAO applicationDAO,
-                             ApplicationHostDAO applicationHostDAO,
+                             NoTenantHostDAO noTenantHostDAO,
                              ApplicationService applicationService,
                              IBizCmdbClient bizCmdbClient,
                              IBizSetCmdbClient bizSetCmdbClient,
                              BizSetService bizSetService,
                              CmdbConfig cmdbConfig) {
-        super(applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
+        super(applicationDAO, noTenantHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.bizSetService = bizSetService;

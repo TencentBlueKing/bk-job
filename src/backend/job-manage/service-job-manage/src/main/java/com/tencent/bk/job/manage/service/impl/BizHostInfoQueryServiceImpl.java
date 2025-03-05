@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.gse.service.BizHostInfoQueryService;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,11 +43,11 @@ import java.util.stream.Collectors;
 @Service("jobManageBizHostInfoQueryService")
 public class BizHostInfoQueryServiceImpl implements BizHostInfoQueryService {
 
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
 
     @Autowired
-    public BizHostInfoQueryServiceImpl(HostService hostService) {
-        this.hostService = hostService;
+    public BizHostInfoQueryServiceImpl(NoTenantHostService noTenantHostService) {
+        this.noTenantHostService = noTenantHostService;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class BizHostInfoQueryServiceImpl implements BizHostInfoQueryService {
 
     private List<ApplicationHostDTO> queryHosts(Collection<Long> hostIds) {
         Set<HostDTO> hostDTOSet = hostIds.stream().map(HostDTO::fromHostId).collect(Collectors.toSet());
-        return hostService.listHosts(hostDTOSet);
+        return noTenantHostService.listHostsFromCacheOrDB(hostDTOSet);
     }
 
 }

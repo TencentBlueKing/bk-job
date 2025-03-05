@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,17 +46,17 @@ import java.util.Map;
 public class BasicAppSyncService {
 
     private final ApplicationDAO applicationDAO;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final ApplicationService applicationService;
     protected final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public BasicAppSyncService(ApplicationDAO applicationDAO,
-                               ApplicationHostDAO applicationHostDAO,
+                               NoTenantHostDAO noTenantHostDAO,
                                ApplicationService applicationService,
                                IBizCmdbClient bizCmdbClient) {
         this.applicationDAO = applicationDAO;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.applicationService = applicationService;
         this.bizCmdbClient = bizCmdbClient;
     }
@@ -85,7 +85,7 @@ public class BasicAppSyncService {
         //先删Job业务对应主机
         if (applicationDTO.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
             long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            int deletedHostNum = applicationHostDAO.deleteBizHostInfoByBizId(bizId);
+            int deletedHostNum = noTenantHostDAO.deleteBizHostInfoByBizId(bizId);
             log.info("{} hosts of biz {} deleted", deletedHostNum, bizId);
         }
         //再删Job业务本身

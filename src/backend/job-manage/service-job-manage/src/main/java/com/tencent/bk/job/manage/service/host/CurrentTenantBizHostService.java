@@ -32,9 +32,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 业务主机相关服务
+ * 当前租户下的业务主机相关服务
  */
-public interface BizHostService {
+public interface CurrentTenantBizHostService {
 
     /**
      * 根据 hostId 集合查询主机信息

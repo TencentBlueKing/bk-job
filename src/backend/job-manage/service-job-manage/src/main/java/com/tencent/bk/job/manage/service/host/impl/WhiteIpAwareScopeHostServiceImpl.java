@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,15 +58,15 @@ import java.util.stream.Collectors;
 public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostService {
 
     private final WhiteIPService whiteIPService;
-    private final HostService hostService;
+    private final CurrentTenantHostService currentTenantHostService;
     private final ScopeHostService scopeHostService;
 
     @Autowired
     public WhiteIpAwareScopeHostServiceImpl(WhiteIPService whiteIPService,
-                                            HostService hostService,
+                                            CurrentTenantHostService currentTenantHostService,
                                             ScopeHostService scopeHostService) {
         this.whiteIPService = whiteIPService;
-        this.hostService = hostService;
+        this.currentTenantHostService = currentTenantHostService;
         this.scopeHostService = scopeHostService;
     }
 
@@ -117,7 +117,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             hostIdSet
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);
@@ -137,7 +137,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             ips
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);
@@ -151,7 +151,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
                                                                            Collection<String> cloudIps) {
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByCloudIps(appResourceScope, cloudIps);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
-        Map<String, ApplicationHostDTO> map = hostService.listHostsByIps(cloudIps);
+        Map<String, ApplicationHostDTO> map = currentTenantHostService.listHostsByIps(cloudIps);
         Set<Long> hostIds = map.values().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
         List<ApplicationHostDTO> whiteIpHostList = listWhiteIpHostsByIds(appResourceScope, actionScope, hostIds);
         log.info("{} white ips added", whiteIpHostList.size());
@@ -169,7 +169,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             hostIds
         );
-        return hostService.listHosts(whiteIpHostDTOList);
+        return currentTenantHostService.listHosts(whiteIpHostDTOList);
     }
 
     @Override
@@ -183,7 +183,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             ipv6s
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);

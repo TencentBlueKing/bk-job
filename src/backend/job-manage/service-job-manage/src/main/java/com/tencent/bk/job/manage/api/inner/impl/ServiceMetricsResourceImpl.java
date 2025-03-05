@@ -37,7 +37,7 @@ import com.tencent.bk.job.manage.service.AccountService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     private final ScriptManager scriptManager;
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
     private final TagService tagService;
 
     @Autowired
@@ -65,14 +65,14 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
                                       ScriptManager scriptManager,
                                       TaskTemplateService taskTemplateService,
                                       TaskPlanService taskPlanService,
-                                      HostService hostService,
+                                      NoTenantHostService noTenantHostService,
                                       TagService tagService) {
         this.applicationService = applicationService;
         this.accountService = accountService;
         this.scriptManager = scriptManager;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.tagService = tagService;
     }
 
@@ -130,12 +130,12 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
     @Override
     public InternalResponse<Long> countHostsByOsType(String osType) {
-        return InternalResponse.buildSuccessResp(hostService.countHostsByOsType(osType));
+        return InternalResponse.buildSuccessResp(noTenantHostService.countHostsByOsType(osType));
     }
 
     @Override
     public InternalResponse<Map<String, Integer>> groupHostByOsType() {
-        return InternalResponse.buildSuccessResp(hostService.groupHostByOsType());
+        return InternalResponse.buildSuccessResp(noTenantHostService.groupHostByOsType());
     }
 
     @Override

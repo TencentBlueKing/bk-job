@@ -35,7 +35,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +58,12 @@ public class TenantSetSyncService extends BasicAppSyncService {
 
     @Autowired
     public TenantSetSyncService(ApplicationDAO applicationDAO,
-                                ApplicationHostDAO applicationHostDAO,
+                                NoTenantHostDAO noTenantHostDAO,
                                 ApplicationService applicationService,
                                 IBizCmdbClient bizCmdbClient,
                                 ITenantSetCmdbClient tenantSetCmdbClient,
                                 CmdbConfig cmdbConfig) {
-        super(applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
+        super(applicationDAO, noTenantHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
         this.tenantSetCmdbClient = tenantSetCmdbClient;
         this.cmdbConfig = cmdbConfig;

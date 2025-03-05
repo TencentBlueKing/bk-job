@@ -35,10 +35,10 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -67,21 +67,21 @@ import java.util.stream.Collectors;
 public class HostSyncService {
 
     private final AppHostsUpdateHelper appHostsUpdateHelper;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
     private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public HostSyncService(AppHostsUpdateHelper appHostsUpdateHelper,
-                           ApplicationHostDAO applicationHostDAO,
+                           NoTenantHostDAO noTenantHostDAO,
                            HostTopoDAO hostTopoDAO,
-                           HostService hostService,
+                           NoTenantHostService noTenantHostService,
                            IBizCmdbClient bizCmdbClient) {
         this.appHostsUpdateHelper = appHostsUpdateHelper;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.bizCmdbClient = bizCmdbClient;
     }
 
@@ -250,7 +250,7 @@ public class HostSyncService {
             }
         }
         // 本地数据：主机
-        List<BasicHostDTO> localHostList = applicationHostDAO.listBasicHostInfo(cmdbHostIds);
+        List<BasicHostDTO> localHostList = noTenantHostDAO.listBasicHostInfo(cmdbHostIds);
         Set<Long> localHostIds = localHostList.stream().map(BasicHostDTO::getHostId).collect(Collectors.toSet());
 
         logCmdbHostIds(watch, bizId, cmdbHostIds);
@@ -692,7 +692,7 @@ public class HostSyncService {
         try {
             watch.start("batchInsertHosts");
             // 新增主机
-            insertNum = hostService.batchInsertHosts(insertHostList);
+            insertNum = noTenantHostService.batchInsertHosts(insertHostList);
             watch.stop();
         } catch (Exception e) {
             log.error("Fail to batchInsertHosts, try to insert one by one", e);
@@ -707,7 +707,7 @@ public class HostSyncService {
 
     private int tryToInsertOneHost(ApplicationHostDTO hostDTO) {
         try {
-            Pair<Boolean, Integer> pair = hostService.createOrUpdateHostBeforeLastTime(hostDTO);
+            Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeLastTime(hostDTO);
             return pair.getRight();
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format("Fail to insert host={}", hostDTO);
@@ -722,7 +722,7 @@ public class HostSyncService {
         try {
             watch.start("batchUpdateHostsBeforeLastTime");
             // 更新主机
-            updateNum = hostService.batchUpdateHostsBeforeLastTime(updateHostList);
+            updateNum = noTenantHostService.batchUpdateHostsBeforeLastTime(updateHostList);
             watch.stop();
         } catch (Exception e) {
             log.error("Fail to batchUpdateHostsBeforeLastTime, try to update one by one", e);
@@ -737,7 +737,7 @@ public class HostSyncService {
 
     private int tryToUpdateOneHost(ApplicationHostDTO hostDTO) {
         try {
-            return hostService.updateHostAttrsBeforeLastTime(hostDTO);
+            return noTenantHostService.updateHostAttrsBeforeLastTime(hostDTO);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
                 "Fail to updateHostAttrsBeforeLastTime, host={}",
@@ -867,7 +867,7 @@ public class HostSyncService {
         // 删除主机
         List<BasicHostDTO> deleteHostList = computeDeleteHostList(cmdbBasicHosts, cmdbHostsFetchTimeMills);
         if (!CollectionUtils.isEmpty(deleteHostList)) {
-            int deletedHostNum = hostService.deleteByBasicHost(deleteHostList);
+            int deletedHostNum = noTenantHostService.deleteByBasicHost(deleteHostList);
             log.info(
                 "deleteHostList.size={}, deletedHostNum={}, deleteHostIdList={}",
                 deleteHostList.size(),
@@ -905,7 +905,7 @@ public class HostSyncService {
         Set<BasicHostDTO> cmdbBasicHosts,
         long cmdbHostsFetchTimeMills
     ) {
-        List<BasicHostDTO> localBasicHosts = hostService.listAllBasicHost();
+        List<BasicHostDTO> localBasicHosts = noTenantHostService.listAllBasicHost();
         Map<Long, BasicHostDTO> cmdbBasicHostMap = new HashMap<>();
         for (BasicHostDTO cmdbBasicHost : cmdbBasicHosts) {
             cmdbBasicHostMap.put(cmdbBasicHost.getHostId(), cmdbBasicHost);

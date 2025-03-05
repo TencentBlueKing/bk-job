@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -70,7 +70,7 @@ public class IndexServiceImpl implements IndexService {
 
     private final IndexGreetingDAO indexGreetingDAO;
     private final ApplicationDAO applicationDAO;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
     private final TopologyHelper topologyHelper;
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
@@ -80,7 +80,7 @@ public class IndexServiceImpl implements IndexService {
     @Autowired
     public IndexServiceImpl(IndexGreetingDAO indexGreetingDAO,
                             ApplicationDAO applicationDAO,
-                            ApplicationHostDAO applicationHostDAO,
+                            CurrentTenantHostDAO currentTenantHostDAO,
                             TopologyHelper topologyHelper,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
@@ -88,7 +88,7 @@ public class IndexServiceImpl implements IndexService {
                             HostDetailService hostDetailService) {
         this.indexGreetingDAO = indexGreetingDAO;
         this.applicationDAO = applicationDAO;
-        this.applicationHostDAO = applicationHostDAO;
+        this.currentTenantHostDAO = currentTenantHostDAO;
         this.topologyHelper = topologyHelper;
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -138,7 +138,7 @@ public class IndexServiceImpl implements IndexService {
         } else {
             throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
         }
-        List<HostStatusNumStatisticsDTO> statisticsDTOS = applicationHostDAO.countHostStatusNumByBizIds(bizIds);
+        List<HostStatusNumStatisticsDTO> statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(bizIds);
         for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
             if (statisticsDTO.getGseAgentAlive() == AgentAliveStatusEnum.ALIVE.getStatusValue()) {
                 aliveCount += statisticsDTO.getHostNum();
@@ -189,10 +189,10 @@ public class IndexServiceImpl implements IndexService {
         pageSize = pagePair.getRight();
         List<Long> bizIds = getQueryConditionBizIds(appId);
         List<HostInfoVO> hostInfoVOList;
-        val hosts = applicationHostDAO.listHostInfoBySearchContents(
+        val hosts = currentTenantHostDAO.listHostInfoBySearchContents(
             bizIds, null, null, null, status, start, pageSize);
         hostDetailService.fillDetailForApplicationHosts(hosts);
-        Long count = applicationHostDAO.countHostInfoBySearchContents(
+        Long count = currentTenantHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
         hostInfoVOList = hosts.stream()
             .filter(Objects::nonNull)

@@ -33,7 +33,7 @@ import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +59,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
     private final IBizCmdbClient bizCmdbClient;
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
-
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private final int eventsHandlerNum;
     private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
@@ -72,7 +71,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
                             Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
                             IBizCmdbClient bizCmdbClient,
-                            HostService hostService,
+                            NoTenantHostService noTenantHostService,
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                             AgentStateClient agentStateClient,
                             JobManageConfig jobManageConfig) {
@@ -80,7 +79,7 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.eventsHandlerNum = jobManageConfig.getHostEventHandlerNum();
     }
@@ -157,8 +156,9 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
             tracer,
             cmdbEventSampler,
             hostEventQueue,
-            hostService,
-            agentStateClient
+            noTenantHostService,
+            agentStateClient,
+            bizCmdbClient
         );
     }
 

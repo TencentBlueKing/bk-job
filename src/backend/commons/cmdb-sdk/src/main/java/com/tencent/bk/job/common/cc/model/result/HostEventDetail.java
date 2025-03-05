@@ -67,6 +67,10 @@ public class HostEventDetail {
     @JsonProperty("last_time")
     private String lastTime;
 
+    // TODO: 待与CMDB确认实现方式
+    @JsonProperty("bk_tenant_id")
+    private String tenantId;
+
     public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
         ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
         hostInfoDTO.setHostId(eventDetail.hostId);
@@ -88,6 +92,7 @@ public class HostEventDetail {
             lastTimeMills = TimeUtil.parseIsoZonedTimeToMillis(eventDetail.getLastTime());
         }
         hostInfoDTO.setLastTime(lastTimeMills);
+        hostInfoDTO.setTenantId(eventDetail.tenantId);
         return hostInfoDTO;
     }
 }

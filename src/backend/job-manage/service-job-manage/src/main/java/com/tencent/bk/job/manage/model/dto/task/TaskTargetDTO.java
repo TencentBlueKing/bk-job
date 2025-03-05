@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -106,8 +106,8 @@ public class TaskTargetDTO {
     }
 
     private static void fillHostDetail(TaskTargetDTO target) {
-        HostService hostService =
-            ApplicationContextRegister.getBean(HostService.class);
+        CurrentTenantHostService currentTenantHostService =
+            ApplicationContextRegister.getBean(CurrentTenantHostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
             Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
                 .map(ApplicationHostDTO::getHostId)
@@ -116,7 +116,7 @@ public class TaskTargetDTO {
             if (CollectionUtils.isEmpty(hostIds)) {
                 return;
             }
-            Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
+            Map<Long, ApplicationHostDTO> hosts = currentTenantHostService.listHostsByHostIds(hostIds);
             if (hosts == null || hosts.isEmpty()) {
                 return;
             }

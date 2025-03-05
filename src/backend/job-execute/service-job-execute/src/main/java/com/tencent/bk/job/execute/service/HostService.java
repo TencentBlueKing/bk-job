@@ -46,7 +46,7 @@ public interface HostService {
      * @param hostIps 主机Ip列表
      * @return 主机信息
      */
-    Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps);
+    Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(List<HostDTO> hostIps);
 
     /**
      * 获取主机信息
@@ -54,16 +54,17 @@ public interface HostService {
      * @param host 主机
      * @return 主机信息
      */
-    ServiceHostDTO getHost(HostDTO host);
+    ServiceHostDTO getHostFromCacheOrDB(HostDTO host);
 
     /**
      * 通过云区域ID与IPv6地址获取主机信息
      *
+     * @param tenantId    租户ID
      * @param cloudAreaId 云区域ID
      * @param ipv6        IPv6地址
      * @return 主机信息
      */
-    ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6);
+    ServiceHostDTO getHostByCloudIpv6(String tenantId, long cloudAreaId, String ipv6);
 
     /**
      * 获取业务下的主机列表

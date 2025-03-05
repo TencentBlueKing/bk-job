@@ -82,7 +82,7 @@ public class HostServiceImpl implements HostService {
             return 0;
         }
         InternalResponse<List<ServiceHostDTO>> resp =
-            hostResource.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
+            hostResource.batchGetHostsFromCacheOrDB(new ServiceBatchGetHostsReq(hostList));
         List<ServiceHostDTO> serviceHostDTOList = resp.getData();
         if (CollectionUtils.isEmpty(serviceHostDTOList)) {
             log.info(

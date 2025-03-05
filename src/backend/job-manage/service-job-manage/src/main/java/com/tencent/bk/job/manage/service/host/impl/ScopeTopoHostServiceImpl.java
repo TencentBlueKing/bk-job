@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.manage.common.TopologyHelper;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 @Service
 public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
-    private final ApplicationHostDAO applicationHostDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
@@ -72,7 +72,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
     private final BizTopoHostService bizTopoHostService;
 
     @Autowired
-    public ScopeTopoHostServiceImpl(ApplicationHostDAO applicationHostDAO,
+    public ScopeTopoHostServiceImpl(CurrentTenantHostDAO currentTenantHostDAO,
                                     ApplicationService applicationService,
                                     HostTopoDAO hostTopoDAO,
                                     TopologyHelper topologyHelper,
@@ -80,7 +80,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
                                     MessageI18nService i18nService,
                                     BkNetService bkNetService,
                                     BizTopoHostService bizTopoHostService) {
-        this.applicationHostDAO = applicationHostDAO;
+        this.currentTenantHostDAO = currentTenantHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
@@ -137,12 +137,12 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         ccTopologyNodeVO.setInstanceName(appInfo.getName());
         if (appInfo.isAllBizSet()) {
             // 全业务
-            ccTopologyNodeVO.setCount((int) applicationHostDAO.countAllHosts());
+            ccTopologyNodeVO.setCount((int) currentTenantHostDAO.countAllHosts());
             return ccTopologyNodeVO;
         } else if (appInfo.isBizSet()) {
             // 业务集
             ccTopologyNodeVO.setCount(
-                (int) applicationHostDAO.countHostsByBizIds(topologyHelper.getBizSetSubBizIds(appInfo))
+                (int) currentTenantHostDAO.countHostsByBizIds(topologyHelper.getBizSetSubBizIds(appInfo))
             );
             return ccTopologyNodeVO;
         }
@@ -216,7 +216,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         watch.stop();
         watch.start("getHosts of Module:" + topologyTree.getInstanceId());
         // 从DB拿主机
-        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
+        List<ApplicationHostDTO> dbHosts = currentTenantHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
         watch.stop();
         //批量设置agent状态

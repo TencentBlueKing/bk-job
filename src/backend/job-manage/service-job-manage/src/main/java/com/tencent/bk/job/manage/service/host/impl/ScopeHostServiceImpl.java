@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.host.BizHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.AllArgsConstructor;
@@ -60,17 +60,17 @@ import java.util.stream.Collectors;
 public class ScopeHostServiceImpl implements ScopeHostService {
 
     private final ApplicationService applicationService;
-    private final BizHostService bizHostService;
+    private final CurrentTenantBizHostService currentTenantBizHostService;
     private final BkNetService bkNetService;
     private final BizTopoService bizTopoService;
 
     @Autowired
     public ScopeHostServiceImpl(ApplicationService applicationService,
-                                BizHostService bizHostService,
+                                CurrentTenantBizHostService currentTenantBizHostService,
                                 BkNetService bkNetService,
                                 BizTopoService bizTopoService) {
         this.applicationService = applicationService;
-        this.bizHostService = bizHostService;
+        this.currentTenantBizHostService = currentTenantBizHostService;
         this.bkNetService = bkNetService;
         this.bizTopoService = bizTopoService;
     }
@@ -85,11 +85,11 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.filterHostIdsByBiz(bizIds, hostIds);
+            return currentTenantBizHostService.filterHostIdsByBiz(bizIds, hostIds);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.filterHostIdsByBiz(Collections.singletonList(bizId), hostIds);
+            return currentTenantBizHostService.filterHostIdsByBiz(Collections.singletonList(bizId), hostIds);
         }
     }
 
@@ -99,15 +99,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByHostIds(hostIds);
+            return currentTenantBizHostService.getHostsByHostIds(hostIds);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndHostIds(bizIds, hostIds);
+            return currentTenantBizHostService.getHostsByBizAndHostIds(bizIds, hostIds);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndHostIds(Collections.singletonList(bizId), hostIds);
+            return currentTenantBizHostService.getHostsByBizAndHostIds(Collections.singletonList(bizId), hostIds);
         }
     }
 
@@ -116,15 +116,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByIps(ips);
+            return currentTenantBizHostService.getHostsByIps(ips);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndIps(bizIds, ips);
+            return currentTenantBizHostService.getHostsByBizAndIps(bizIds, ips);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
+            return currentTenantBizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
         }
     }
 
@@ -134,15 +134,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByCloudIps(cloudIps);
+            return currentTenantBizHostService.getHostsByCloudIps(cloudIps);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndCloudIps(bizIds, cloudIps);
+            return currentTenantBizHostService.getHostsByBizAndCloudIps(bizIds, cloudIps);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndCloudIps(Collections.singletonList(bizId), cloudIps);
+            return currentTenantBizHostService.getHostsByBizAndCloudIps(Collections.singletonList(bizId), cloudIps);
         }
     }
 
@@ -151,15 +151,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByIpv6s(ipv6s);
+            return currentTenantBizHostService.getHostsByIpv6s(ipv6s);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
+            return currentTenantBizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
+            return currentTenantBizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
         }
     }
 
@@ -169,15 +169,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByHostNames(hostNames);
+            return currentTenantBizHostService.getHostsByHostNames(hostNames);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
+            return currentTenantBizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
+            return currentTenantBizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
         }
     }
 
@@ -214,7 +214,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             .start(start)
             .limit(pageSize)
             .build();
-        PageData<Long> result = bizHostService.pageListHostId(hostQuery);
+        PageData<Long> result = currentTenantBizHostService.pageListHostId(hostQuery);
         watch.stop();
         if (watch.getTotalTimeMillis() > 5000) {
             log.warn("listHostIdByBizTopologyNodes slow:" + watch.prettyPrint());
@@ -260,7 +260,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             .start(start)
             .limit(pageSize)
             .build();
-        return bizHostService.pageListHost(hostQuery);
+        return currentTenantBizHostService.pageListHost(hostQuery);
     }
 
     private BasicParsedSearchConditions buildSearchConditions(AppResourceScope appResourceScope,

@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
@@ -36,10 +35,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 主机、topo相关服务
+ * 租户无关的主机服务接口，仅用于系统内部调用
+ * 用户触发的调用请使用CurrentTenantHostService/TenantHostService
  */
-public interface HostService {
+public interface NoTenantHostService {
 
+    /**
+     * 获取指定业务下的机器列表
+     *
+     * @param appId Job业务ID
+     * @return 机器列表
+     */
     List<ApplicationHostDTO> getHostsByAppId(Long appId);
 
     /**
@@ -83,70 +89,27 @@ public interface HostService {
      */
     int deleteHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
+    /**
+     * 更新缓存中的主机信息
+     *
+     * @param hostId 主机ID
+     */
     void updateDbHostToCache(Long hostId);
 
+    /**
+     * 获取指定系统类型的主机数量
+     *
+     * @param osType 系统类型
+     * @return 主机数量
+     */
     long countHostsByOsType(String osType);
 
+    /**
+     * 获取各种系统类型的主机数量分布
+     *
+     * @return 系统类型及数量映射Map
+     */
     Map<String, Integer> groupHostByOsType();
-
-    /**
-     * 获取业务下的主机。如果在Job缓存的主机中不存在，那么从cmdb查询
-     *
-     * @param appId          Job业务ID
-     * @param hosts          主机列表
-     * @param refreshAgentId 是否刷新主机的bk_agent_id
-     */
-    ServiceListAppHostResultDTO listAppHostsPreferCache(Long appId, List<HostDTO> hosts, boolean refreshAgentId);
-
-    /**
-     * 批量获取主机。如果在Job缓存的主机中不存在，那么从cmdb查询
-     *
-     * @param hosts 主机
-     * @return 主机
-     */
-    List<ApplicationHostDTO> listHosts(Collection<HostDTO> hosts);
-
-    /**
-     * 根据云区域ID与IPv6地址查询主机。如果在同步的主机中不存在，那么从cmdb查询
-     * ipv6字段精确匹配目标主机多个Ipv6地址中的其中一个
-     *
-     * @param cloudAreaId 云区域ID
-     * @param ipv6        IPv6地址
-     * @return 主机
-     */
-    List<ApplicationHostDTO> listHostsByCloudIpv6(Long cloudAreaId, String ipv6);
-
-    /**
-     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
-     *
-     * @param hostIds 主机ID列表
-     * @return 主机 Map<hostId, host>
-     */
-    Map<Long, ApplicationHostDTO> listHostsByHostIds(Collection<Long> hostIds);
-
-    /**
-     * 从cmdb实时查询主机
-     *
-     * @param hostIds 主机ID列表
-     * @return 主机
-     */
-    List<ApplicationHostDTO> listHostsFromCmdbByHostIds(List<Long> hostIds);
-
-    /**
-     * 根据ip获取主机
-     *
-     * @param cloudIp 云区域+IP
-     * @return 主机
-     */
-    ApplicationHostDTO getHostByIp(String cloudIp);
-
-    /**
-     * 根据主机批量获取主机。如果在同步的主机中不存在，那么从cmdb查询
-     *
-     * @param cloudIps 主机云区域+ip列表
-     * @return 主机 Map<hostId, host>
-     */
-    Map<String, ApplicationHostDTO> listHostsByIps(Collection<String> cloudIps);
 
     /**
      * 更新主机状态
@@ -169,4 +132,12 @@ public interface HostService {
      * @return 成功删除的主机数量
      */
     int deleteByBasicHost(List<BasicHostDTO> basicHostList);
+
+    /**
+     * 批量获取主机。如果在Job缓存的主机中不存在，那么从DB查询
+     *
+     * @param hosts    主机
+     * @return 主机
+     */
+    List<ApplicationHostDTO> listHostsFromCacheOrDB(Collection<HostDTO> hosts);
 }

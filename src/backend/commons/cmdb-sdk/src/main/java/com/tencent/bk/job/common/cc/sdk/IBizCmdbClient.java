@@ -89,11 +89,11 @@ public interface IBizCmdbClient {
     /**
      * 根据topo实例获取hosts
      *
-     * @param bizId      cmdb业务ID
+     * @param tenantId   租户ID
      * @param ccInstList topo节点列表
      * @return 主机
      */
-    List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据topo实例获取主机及主机关系
@@ -167,26 +167,29 @@ public interface IBizCmdbClient {
     /**
      * 根据IP批量获取主机
      *
+     * @param tenantId 租户ID
      * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps);
+    List<ApplicationHostDTO> listHostsByCloudIps(String tenantId, List<String> cloudIps);
 
     /**
      * 根据IPv6批量获取主机
      *
+     * @param tenantId   租户ID
      * @param cloudIpv6s 云区域+IPv6列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
+    List<ApplicationHostDTO> listHostsByCloudIpv6s(String tenantId, List<String> cloudIpv6s);
 
     /**
      * 根据HostId批量获取主机
      *
-     * @param hostIds 主机ID列表
+     * @param tenantId 租户ID
+     * @param hostIds  主机ID列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds);
+    List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds);
 
     /**
      * 批量获取业务下的主机列表

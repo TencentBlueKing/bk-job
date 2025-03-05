@@ -46,6 +46,6 @@ public class BizHostInfoQueryServiceImpl implements BizHostInfoQueryService {
 
     private List<ServiceHostDTO> queryHosts(Collection<Long> hostIds) {
         List<HostDTO> hostDTOList = hostIds.stream().map(HostDTO::fromHostId).collect(Collectors.toList());
-        return hostResource.batchGetHosts(new ServiceBatchGetHostsReq(hostDTOList)).getData();
+        return hostResource.batchGetHostsFromCacheOrDB(new ServiceBatchGetHostsReq(hostDTOList)).getData();
     }
 }

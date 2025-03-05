@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
@@ -35,7 +36,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,18 +53,21 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public class HostEventHandler extends EventsHandler<HostEventDetail> {
 
-    private final HostService hostService;
+    private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     HostEventHandler(Tracer tracer,
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
-                     HostService hostService,
+                     NoTenantHostService noTenantHostService,
                      @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                     AgentStateClient agentStateClient) {
+                     AgentStateClient agentStateClient,
+                     IBizCmdbClient bizCmdbClient) {
         super(queue, tracer, cmdbEventSampler);
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
@@ -112,7 +116,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                 // 尝试设置Agent状态
                 Integer agentStatus = tryToUpdateAgentStatus(hostInfoDTO);
                 // 更新DB与缓存中的主机数据
-                Pair<Boolean, Integer> pair = hostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
+                Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
                 int affectedNum = pair.getRight();
                 if (affectedNum == 0) {
                     log.info(
@@ -120,17 +124,18 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                             "try to query latest host from cmdb and update"
                     );
                     // 从CMDB查询最新主机信息
-                    List<ApplicationHostDTO> hostList = hostService.listHostsFromCmdbByHostIds(
+                    List<ApplicationHostDTO> hostList = bizCmdbClient.listHostsByHostIds(
+                        hostInfoDTO.getTenantId(),
                         Collections.singletonList(hostInfoDTO.getHostId())
                     );
                     if (CollectionUtils.isNotEmpty(hostList)) {
                         hostInfoDTO = hostList.get(0);
                         hostInfoDTO.setGseAgentStatus(agentStatus);
-                        affectedNum = hostService.updateHostAttrsByHostId(hostInfoDTO);
+                        affectedNum = noTenantHostService.updateHostAttrsByHostId(hostInfoDTO);
                         log.info("update host attrs:{}, affectedNum={}", hostInfoDTO, affectedNum);
                         // 更新缓存
                         if (affectedNum > 0) {
-                            hostService.updateDbHostToCache(hostInfoDTO.getHostId());
+                            noTenantHostService.updateDbHostToCache(hostInfoDTO.getHostId());
                         }
                     } else {
                         // 机器在CMDB中已不存在，忽略
@@ -145,7 +150,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                 }
                 break;
             case ResourceWatchReq.EVENT_TYPE_DELETE:
-                int deletedNum = hostService.deleteHostBeforeOrEqualLastTime(hostInfoDTO);
+                int deletedNum = noTenantHostService.deleteHostBeforeOrEqualLastTime(hostInfoDTO);
                 log.info("delete host:{}, deletedNum={}", hostInfoDTO, deletedNum);
                 break;
             default:

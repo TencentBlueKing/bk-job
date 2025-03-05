@@ -27,11 +27,11 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.model.query.HostQuery;
-import com.tencent.bk.job.manage.service.host.BizHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,41 +50,41 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BizHostServiceImpl implements BizHostService {
+public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostService {
 
-    private final ApplicationHostDAO applicationHostDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
 
     @Autowired
-    public BizHostServiceImpl(ApplicationHostDAO applicationHostDAO,
-                              HostTopoDAO hostTopoDAO) {
-        this.applicationHostDAO = applicationHostDAO;
+    public CurrentTenantBizHostServiceImpl(CurrentTenantHostDAO currentTenantHostDAO,
+                                           HostTopoDAO hostTopoDAO) {
+        this.currentTenantHostDAO = currentTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByHostIds(Collection<Long> hostIds) {
-        return applicationHostDAO.listHostInfoByHostIds(hostIds);
+        return currentTenantHostDAO.listHostInfoByHostIds(hostIds);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByIps(Collection<String> ips) {
-        return applicationHostDAO.listHostInfoByIps(ips);
+        return currentTenantHostDAO.listHostInfoByIps(ips);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByCloudIps(Collection<String> cloudIps) {
-        return applicationHostDAO.listHostInfoByCloudIps(cloudIps);
+        return currentTenantHostDAO.listHostInfoByCloudIps(cloudIps);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s) {
-        return applicationHostDAO.listHostInfoByIpv6s(ipv6s);
+        return currentTenantHostDAO.listHostInfoByIpv6s(ipv6s);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByHostNames(Collection<String> hostNames) {
-        return applicationHostDAO.listHostInfoByHostNames(hostNames);
+        return currentTenantHostDAO.listHostInfoByHostNames(hostNames);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class BizHostServiceImpl implements BizHostService {
                 StringUtil.concatCollection(bizIds)
             );
         }
-        return applicationHostDAO.listHostInfoByHostIds(hostIdsInBiz);
+        return currentTenantHostDAO.listHostInfoByHostIds(hostIdsInBiz);
     }
 
     @Override
@@ -115,24 +115,24 @@ public class BizHostServiceImpl implements BizHostService {
 
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
-        return applicationHostDAO.listHostInfoByBizAndIps(bizIds, ips);
+        return currentTenantHostDAO.listHostInfoByBizAndIps(bizIds, ips);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndCloudIps(Collection<Long> bizIds,
                                                              Collection<String> cloudIps) {
-        return applicationHostDAO.listHostInfoByBizAndCloudIps(bizIds, cloudIps);
+        return currentTenantHostDAO.listHostInfoByBizAndCloudIps(bizIds, cloudIps);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
-        return applicationHostDAO.listHostInfoByBizAndIpv6s(bizIds, ipv6s);
+        return currentTenantHostDAO.listHostInfoByBizAndIpv6s(bizIds, ipv6s);
     }
 
     @Override
     public List<ApplicationHostDTO> getHostsByBizAndHostNames(Collection<Long> bizIds,
                                                               Collection<String> hostNames) {
-        return applicationHostDAO.listHostInfoByBizAndHostNames(bizIds, hostNames);
+        return currentTenantHostDAO.listHostInfoByBizAndHostNames(bizIds, hostNames);
     }
 
     @Override
@@ -143,7 +143,7 @@ public class BizHostServiceImpl implements BizHostService {
         List<String> searchContents = hostQuery.getSearchContents();
         if (searchContents != null) {
             watch.start("getHostIdListBySearchContents");
-            hostIdList = applicationHostDAO.getHostIdListBySearchContents(
+            hostIdList = currentTenantHostDAO.getHostIdListBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -154,7 +154,7 @@ public class BizHostServiceImpl implements BizHostService {
             );
             watch.stop();
             watch.start("countHostInfoBySearchContents");
-            count = applicationHostDAO.countHostInfoBySearchContents(
+            count = currentTenantHostDAO.countHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -164,7 +164,7 @@ public class BizHostServiceImpl implements BizHostService {
             watch.stop();
         } else {
             watch.start("getHostIdListByMultiKeys");
-            hostIdList = applicationHostDAO.getHostIdListByMultiKeys(
+            hostIdList = currentTenantHostDAO.getHostIdListByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -178,7 +178,7 @@ public class BizHostServiceImpl implements BizHostService {
             );
             watch.stop();
             watch.start("countHostInfoByMultiKeys");
-            count = applicationHostDAO.countHostInfoByMultiKeys(
+            count = currentTenantHostDAO.countHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -202,7 +202,7 @@ public class BizHostServiceImpl implements BizHostService {
         Long count;
         List<String> searchContents = hostQuery.getSearchContents();
         if (searchContents != null) {
-            hostList = applicationHostDAO.listHostInfoBySearchContents(
+            hostList = currentTenantHostDAO.listHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -211,7 +211,7 @@ public class BizHostServiceImpl implements BizHostService {
                 hostQuery.getStart(),
                 hostQuery.getLimit()
             );
-            count = applicationHostDAO.countHostInfoBySearchContents(
+            count = currentTenantHostDAO.countHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -219,7 +219,7 @@ public class BizHostServiceImpl implements BizHostService {
                 hostQuery.getAgentAlive()
             );
         } else {
-            hostList = applicationHostDAO.listHostInfoByMultiKeys(
+            hostList = currentTenantHostDAO.listHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -231,7 +231,7 @@ public class BizHostServiceImpl implements BizHostService {
                 hostQuery.getStart(),
                 hostQuery.getLimit()
             );
-            count = applicationHostDAO.countHostInfoByMultiKeys(
+            count = currentTenantHostDAO.countHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -250,6 +250,6 @@ public class BizHostServiceImpl implements BizHostService {
         List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
         List<Long> hostIdList =
             hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
-        return applicationHostDAO.listHostInfoByHostIds(hostIdList);
+        return currentTenantHostDAO.listHostInfoByHostIds(hostIdList);
     }
 }

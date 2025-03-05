@@ -35,7 +35,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbQueryAgentInfoV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAgentInfoV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbQueryAgentInfoV3Resp;
 import com.tencent.bk.job.manage.service.agent.status.ScopeAgentStatusService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -53,15 +53,15 @@ import java.util.Map;
 @Slf4j
 public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
-    private final HostService hostService;
+    private final CurrentTenantHostService currentTenantHostService;
     private final ScopeAgentStatusService scopeAgentStatusService;
     private final ScopeHostService scopeHostService;
 
     @Autowired
-    public EsbAgentInfoResourceV3Impl(HostService hostService,
+    public EsbAgentInfoResourceV3Impl(CurrentTenantHostService currentTenantHostService,
                                       ScopeAgentStatusService scopeAgentStatusService,
                                       ScopeHostService scopeHostService) {
-        this.hostService = hostService;
+        this.currentTenantHostService = currentTenantHostService;
         this.scopeAgentStatusService = scopeAgentStatusService;
         this.scopeHostService = scopeHostService;
     }
@@ -101,7 +101,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
     }
 
     private Map<Long, String> generateHostIdAgentIdMap(boolean needToUseGseV2, List<Long> hostIdList) {
-        Map<Long, ApplicationHostDTO> hostInfoMap = hostService.listHostsByHostIds(hostIdList);
+        Map<Long, ApplicationHostDTO> hostInfoMap = currentTenantHostService.listHostsByHostIds(hostIdList);
         Map<Long, String> hostIdAgentIdMap = new HashMap<>();
         if (needToUseGseV2) {
             // 使用AgentId

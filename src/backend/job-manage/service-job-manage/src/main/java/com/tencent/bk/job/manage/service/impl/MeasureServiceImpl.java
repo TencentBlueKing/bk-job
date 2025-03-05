@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -51,7 +51,7 @@ public class MeasureServiceImpl implements MeasureService {
     private final MeterRegistry meterRegistry;
     private final AccountDAO accountDAO;
     private final ApplicationDAO applicationDAO;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final ScriptDAO scriptDAO;
     private final WhiteIPRecordDAO whiteIPRecordDAO;
     private final TaskTemplateService taskTemplateService;
@@ -61,14 +61,14 @@ public class MeasureServiceImpl implements MeasureService {
 
     @Autowired
     public MeasureServiceImpl(MeterRegistry meterRegistry, AccountDAO accountDAO,
-                              ApplicationDAO applicationDAO, ApplicationHostDAO applicationHostDAO,
+                              ApplicationDAO applicationDAO, NoTenantHostDAO noTenantHostDAO,
                               ScriptDAO scriptDAO, WhiteIPRecordDAO whiteIPRecordDAO,
                               TaskTemplateService taskTemplateService, TaskPlanService taskPlanService,
                               SyncService syncService, ThreadPoolExecutor syncAppExecutor) {
         this.meterRegistry = meterRegistry;
         this.accountDAO = accountDAO;
         this.applicationDAO = applicationDAO;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.scriptDAO = scriptDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
         this.taskTemplateService = taskTemplateService;
@@ -105,8 +105,8 @@ public class MeasureServiceImpl implements MeasureService {
         meterRegistry.gauge(
             MetricsConstants.NAME_HOST_COUNT,
             Collections.singletonList(Tag.of(MetricsConstants.TAG_KEY_MODULE, MetricsConstants.TAG_VALUE_MODULE_HOST)),
-            this.applicationHostDAO,
-            ApplicationHostDAO::countAllHosts
+            this.noTenantHostDAO,
+            NoTenantHostDAO::countAllHosts
         );
     }
 
