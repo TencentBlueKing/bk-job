@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -35,7 +36,7 @@ import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
 import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -57,7 +58,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class ScopeHostServiceImpl implements ScopeHostService {
+public class CurrentTenantScopeHostServiceImpl implements CurrentTenantScopeHostService {
 
     private final ApplicationService applicationService;
     private final CurrentTenantBizHostService currentTenantBizHostService;
@@ -65,10 +66,10 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     private final BizTopoService bizTopoService;
 
     @Autowired
-    public ScopeHostServiceImpl(ApplicationService applicationService,
-                                CurrentTenantBizHostService currentTenantBizHostService,
-                                BkNetService bkNetService,
-                                BizTopoService bizTopoService) {
+    public CurrentTenantScopeHostServiceImpl(ApplicationService applicationService,
+                                             CurrentTenantBizHostService currentTenantBizHostService,
+                                             BkNetService bkNetService,
+                                             BizTopoService bizTopoService) {
         this.applicationService = applicationService;
         this.currentTenantBizHostService = currentTenantBizHostService;
         this.bkNetService = bkNetService;
@@ -289,7 +290,8 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
-        List<Long> cloudAreaIds = bkNetService.getAnyNameMatchedCloudAreaIds(searchContents);
+        String tenantId = JobContextUtil.getTenantId();
+        List<Long> cloudAreaIds = bkNetService.getAnyNameMatchedCloudAreaIds(tenantId, searchContents);
         return new BasicParsedSearchConditions(bizIds, moduleIds, cloudAreaIds, searchContents);
     }
 

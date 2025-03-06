@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.service.cloudarea;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
@@ -69,11 +68,11 @@ public class BkNetService {
     /**
      * 根据ID获取云区域名称
      *
+     * @param tenantId    租户ID
      * @param cloudAreaId 云区域ID
      * @return 云区域名称
      */
-    public String getCloudAreaNameFromCache(Long cloudAreaId) {
-        String tenantId = JobContextUtil.getTenantId();
+    public String getCloudAreaNameFromCache(String tenantId, Long cloudAreaId) {
         Map<Long, String> cloudAreaIdNameMap = getCloudAreaIdNameMap(tenantId);
         if (MapUtils.isNotEmpty(cloudAreaIdNameMap)) {
             if (StringUtils.isNotBlank(cloudAreaIdNameMap.get(cloudAreaId))) {
@@ -86,11 +85,11 @@ public class BkNetService {
     /**
      * 查找名称符合搜索关键字（与任意一个关键字匹配即可）的云区域，并返回其ID
      *
+     * @param tenantId       租户ID
      * @param searchContents 搜索关键字集合
      * @return 符合条件的云区域ID列表
      */
-    public List<Long> getAnyNameMatchedCloudAreaIds(Collection<String> searchContents) {
-        String tenantId = JobContextUtil.getTenantId();
+    public List<Long> getAnyNameMatchedCloudAreaIds(String tenantId, Collection<String> searchContents) {
         if (searchContents == null) {
             return getAllCloudAreaIds(tenantId);
         }

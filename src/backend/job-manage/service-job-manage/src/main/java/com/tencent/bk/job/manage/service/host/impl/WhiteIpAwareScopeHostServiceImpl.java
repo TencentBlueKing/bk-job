@@ -32,7 +32,7 @@ import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -59,15 +59,15 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
 
     private final WhiteIPService whiteIPService;
     private final CurrentTenantHostService currentTenantHostService;
-    private final ScopeHostService scopeHostService;
+    private final CurrentTenantScopeHostService currentTenantScopeHostService;
 
     @Autowired
     public WhiteIpAwareScopeHostServiceImpl(WhiteIPService whiteIPService,
                                             CurrentTenantHostService currentTenantHostService,
-                                            ScopeHostService scopeHostService) {
+                                            CurrentTenantScopeHostService currentTenantScopeHostService) {
         this.whiteIPService = whiteIPService;
         this.currentTenantHostService = currentTenantHostService;
-        this.scopeHostService = scopeHostService;
+        this.currentTenantScopeHostService = currentTenantScopeHostService;
     }
 
     /**
@@ -103,7 +103,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
                                                                           ActionScopeEnum actionScope,
                                                                           Collection<Long> hostIds) {
         Set<Long> hostIdSet = new HashSet<>(hostIds);
-        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIds(appResourceScope, hostIdSet);
+        List<ApplicationHostDTO> scopeHostList = currentTenantScopeHostService.getScopeHostsByIds(appResourceScope, hostIdSet);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
         Set<Long> scopeHostIdSet = scopeHostList.stream()
             .map(ApplicationHostDTO::getHostId)
@@ -130,7 +130,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIp(AppResourceScope appResourceScope,
                                                                       ActionScopeEnum actionScope,
                                                                       Collection<String> ips) {
-        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIps(appResourceScope, ips);
+        List<ApplicationHostDTO> scopeHostList = currentTenantScopeHostService.getScopeHostsByIps(appResourceScope, ips);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
         List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHostByIps(
             appResourceScope.getAppId(),
@@ -149,7 +149,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByCloudIp(AppResourceScope appResourceScope,
                                                                            ActionScopeEnum actionScope,
                                                                            Collection<String> cloudIps) {
-        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByCloudIps(appResourceScope, cloudIps);
+        List<ApplicationHostDTO> scopeHostList = currentTenantScopeHostService.getScopeHostsByCloudIps(appResourceScope, cloudIps);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
         Map<String, ApplicationHostDTO> map = currentTenantHostService.listHostsByIps(cloudIps);
         Set<Long> hostIds = map.values().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
@@ -176,7 +176,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByIpv6(AppResourceScope appResourceScope,
                                                                         ActionScopeEnum actionScope,
                                                                         Collection<String> ipv6s) {
-        List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByIpv6s(appResourceScope, ipv6s);
+        List<ApplicationHostDTO> scopeHostList = currentTenantScopeHostService.getScopeHostsByIpv6s(appResourceScope, ipv6s);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
         List<HostDTO> whiteIpHostDTOList = whiteIPService.listAvailableWhiteIPHostByIpv6s(
             appResourceScope.getAppId(),
@@ -196,7 +196,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
                                                                        ActionScopeEnum actionScope,
                                                                        Collection<String> keys) {
         // 当前关键字仅支持主机名称匹配
-        return scopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
+        return currentTenantScopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
     }
 
     @Override

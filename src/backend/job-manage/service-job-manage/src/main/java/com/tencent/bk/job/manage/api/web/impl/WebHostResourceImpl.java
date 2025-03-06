@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.manage.api.web.WebHostResource;
 import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
@@ -57,7 +58,7 @@ import com.tencent.bk.job.manage.service.agent.statistics.ScopeDynamicGroupAgent
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeNodeAgentStatisticsService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.ScopeDynamicGroupService;
@@ -83,7 +84,7 @@ public class WebHostResourceImpl implements WebHostResource {
 
     private final ScopeTopoService scopeTopoService;
     private final ScopeTopoHostService scopeTopoHostService;
-    private final ScopeHostService scopeHostService;
+    private final CurrentTenantScopeHostService currentTenantScopeHostService;
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final ScopeNodeAgentStatisticsService scopeNodeAgentStatisticsService;
     private final ScopeDynamicGroupAgentStatisticsService scopeDGAgentStatsService;
@@ -96,7 +97,7 @@ public class WebHostResourceImpl implements WebHostResource {
     @Autowired
     public WebHostResourceImpl(ScopeTopoService scopeTopoService,
                                ScopeTopoHostService scopeTopoHostService,
-                               ScopeHostService scopeHostService,
+                               CurrentTenantScopeHostService currentTenantScopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                ScopeNodeAgentStatisticsService scopeNodeAgentStatisticsService,
                                ScopeDynamicGroupAgentStatisticsService scopeDGAgentStatsService,
@@ -107,7 +108,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeDynamicGroupService scopeDynamicGroupService) {
         this.scopeTopoService = scopeTopoService;
         this.scopeTopoHostService = scopeTopoHostService;
-        this.scopeHostService = scopeHostService;
+        this.currentTenantScopeHostService = currentTenantScopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.scopeNodeAgentStatisticsService = scopeNodeAgentStatisticsService;
         this.scopeDGAgentStatsService = scopeDGAgentStatsService;
@@ -128,7 +129,9 @@ public class WebHostResourceImpl implements WebHostResource {
             .stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList());
         List<BizTopoNode> nodeList = agentStatisticsReq.getNodeList();
         List<String> dynamicGroupIdList = agentStatisticsReq.getDynamicGroupIds();
+        String tenantId = JobContextUtil.getTenantId();
         AgentStatistics agentStatistics = scopeAgentStatisticsService.getAgentStatistics(
+            tenantId,
             appResourceScope,
             hostIdList,
             nodeList,
@@ -197,7 +200,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                      String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        PageData<ApplicationHostDTO> pageHostList = scopeHostService.searchHost(
+        PageData<ApplicationHostDTO> pageHostList = currentTenantScopeHostService.searchHost(
             appResourceScope,
             req.getNodeList(),
             req.getAlive(),
@@ -209,7 +212,8 @@ public class WebHostResourceImpl implements WebHostResource {
             pagePair.getLeft(),
             pagePair.getRight()
         );
-        hostDetailService.fillDetailForApplicationHosts(pageHostList.getData());
+        String tenantId = JobContextUtil.getTenantId();
+        hostDetailService.fillDetailForApplicationHosts(tenantId, pageHostList.getData());
         return Response.buildSuccessResp(PageUtil.transferPageData(
             pageHostList,
             ApplicationHostDTO::toVO
@@ -225,7 +229,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                            ListHostByBizTopologyNodesReq req) {
         // 参数标准化
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        PageData<Long> pageData = scopeHostService.listHostIdByBizTopologyNodes(
+        PageData<Long> pageData = currentTenantScopeHostService.listHostIdByBizTopologyNodes(
             appResourceScope,
             req.getNodeList(),
             req.getSearchContent(),
@@ -287,7 +291,9 @@ public class WebHostResourceImpl implements WebHostResource {
         String scopeId,
         GetHostAgentStatisticsByDynamicGroupsReq req
     ) {
+        String tenantId = JobContextUtil.getTenantId();
         List<DynamicGroupHostStatisticsVO> resultList = scopeDGAgentStatsService.getAgentStatisticsByDynamicGroups(
+            tenantId,
             appResourceScope,
             req.getDynamicGroupList()
         );
@@ -301,7 +307,9 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                       String scopeType,
                                                                       String scopeId,
                                                                       PageListHostsByDynamicGroupReq req) {
+        String tenantId = JobContextUtil.getTenantId();
         PageData<ApplicationHostDTO> pageData = scopeDynamicGroupHostService.pageHostByDynamicGroups(
+            tenantId,
             appResourceScope,
             req.getId(),
             req.getStart().intValue(),
@@ -324,7 +332,8 @@ public class WebHostResourceImpl implements WebHostResource {
         // 查出所有主机
         List<ApplicationHostDTO> hostDTOList = whiteIpAwareScopeHostService.findHosts(appResourceScope, req);
         // 填充云区域名称等信息
-        hostDetailService.fillDetailForApplicationHosts(hostDTOList);
+        String tenantId = JobContextUtil.getTenantId();
+        hostDetailService.fillDetailForApplicationHosts(tenantId, hostDTOList);
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(hostDTOList);
         List<HostInfoVO> hostList = hostDTOList.stream()
@@ -344,7 +353,8 @@ public class WebHostResourceImpl implements WebHostResource {
             .map(HostIdWithMeta::getHostId)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-        List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(appResourceScope, hostIds);
+        String tenantId = JobContextUtil.getTenantId();
+        List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
         // 排序：Agent异常机器在前，Agent正常机器在后
         List<HostInfoVO> hostInfoVOList = hostList.stream()
             .filter(hostDTO -> !hostDTO.getGseAgentAlive())

@@ -34,7 +34,8 @@ import java.util.List;
  * 资源范围下的Agent统计服务
  */
 public interface ScopeAgentStatisticsService {
-    AgentStatistics getAgentStatistics(AppResourceScope appResourceScope,
+    AgentStatistics getAgentStatistics(String tenantId,
+                                       AppResourceScope appResourceScope,
                                        List<Long> hostIdList,
                                        List<BizTopoNode> nodeList,
                                        List<String> dynamicGroupIdList);

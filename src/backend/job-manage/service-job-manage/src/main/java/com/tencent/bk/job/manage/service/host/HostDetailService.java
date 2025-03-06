@@ -36,20 +36,32 @@ import java.util.List;
  */
 public interface HostDetailService {
 
-    List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds);
+    /**
+     * 查询主机详情
+     *
+     * @param tenantId         租户ID
+     * @param appResourceScope 业务资源范围
+     * @param hostIds          主机ID列表
+     * @return 主机详情列表
+     */
+    List<ApplicationHostDTO> listHostDetails(String tenantId,
+                                             AppResourceScope appResourceScope,
+                                             Collection<Long> hostIds);
 
     /**
      * 为主机填充云区域、云厂商、系统类型名称等信息
      *
+     * @param tenantId 租户ID
      * @param hostList 主机列表
      */
-    void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList);
+    void fillDetailForApplicationHosts(String tenantId, List<ApplicationHostDTO> hostList);
 
     /**
      * 为主机填充云区域、云厂商、系统类型名称等信息
      *
+     * @param tenantId 租户ID
      * @param hostList 主机列表
      */
-    void fillDetailForHosts(List<HostDTO> hostList);
+    void fillDetailForHosts(String tenantId, List<HostDTO> hostList);
 
 }

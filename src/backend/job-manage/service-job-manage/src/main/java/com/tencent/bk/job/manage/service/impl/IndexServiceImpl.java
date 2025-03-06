@@ -191,7 +191,8 @@ public class IndexServiceImpl implements IndexService {
         List<HostInfoVO> hostInfoVOList;
         val hosts = currentTenantHostDAO.listHostInfoBySearchContents(
             bizIds, null, null, null, status, start, pageSize);
-        hostDetailService.fillDetailForApplicationHosts(hosts);
+        String tenantId = JobContextUtil.getTenantId();
+        hostDetailService.fillDetailForApplicationHosts(tenantId, hosts);
         Long count = currentTenantHostDAO.countHostInfoBySearchContents(
             bizIds, null, null, null, status);
         hostInfoVOList = hosts.stream()

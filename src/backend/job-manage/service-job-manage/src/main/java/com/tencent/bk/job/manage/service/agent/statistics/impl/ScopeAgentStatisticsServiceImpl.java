@@ -30,7 +30,7 @@ import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeAgentStatisticsService;
 import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,30 +45,31 @@ import java.util.List;
 @Service
 public class ScopeAgentStatisticsServiceImpl implements ScopeAgentStatisticsService {
 
-    private final ScopeHostService scopeHostService;
+    private final CurrentTenantScopeHostService currentTenantScopeHostService;
     private final ScopeTopoHostService scopeTopoHostService;
     private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
     private final AgentStatusService agentStatusService;
 
     @Autowired
-    public ScopeAgentStatisticsServiceImpl(ScopeHostService scopeHostService,
+    public ScopeAgentStatisticsServiceImpl(CurrentTenantScopeHostService currentTenantScopeHostService,
                                            ScopeTopoHostService scopeTopoHostService,
                                            ScopeDynamicGroupHostService scopeDynamicGroupHostService,
                                            AgentStatusService agentStatusService) {
-        this.scopeHostService = scopeHostService;
+        this.currentTenantScopeHostService = currentTenantScopeHostService;
         this.scopeTopoHostService = scopeTopoHostService;
         this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
         this.agentStatusService = agentStatusService;
     }
 
     @Override
-    public AgentStatistics getAgentStatistics(AppResourceScope appResourceScope,
+    public AgentStatistics getAgentStatistics(String tenantId,
+                                              AppResourceScope appResourceScope,
                                               List<Long> hostIdList,
                                               List<BizTopoNode> nodeList,
                                               List<String> dynamicGroupIdList) {
         List<ApplicationHostDTO> allHostList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(hostIdList)) {
-            List<ApplicationHostDTO> hostsById = scopeHostService.getScopeHostsByIds(
+            List<ApplicationHostDTO> hostsById = currentTenantScopeHostService.getScopeHostsByIds(
                 appResourceScope,
                 hostIdList
             );
@@ -84,7 +85,13 @@ public class ScopeAgentStatisticsServiceImpl implements ScopeAgentStatisticsServ
         if (CollectionUtils.isNotEmpty(dynamicGroupIdList)) {
             List<ApplicationHostDTO> hostsByDynamicGroup = new ArrayList<>();
             for (String id : dynamicGroupIdList) {
-                hostsByDynamicGroup.addAll(scopeDynamicGroupHostService.listHostByDynamicGroup(appResourceScope, id));
+                hostsByDynamicGroup.addAll(
+                    scopeDynamicGroupHostService.listHostByDynamicGroup(
+                        tenantId,
+                        appResourceScope,
+                        id
+                    )
+                );
             }
             log.debug("hostsByDynamicGroup={}", hostsByDynamicGroup);
             allHostList.addAll(hostsByDynamicGroup);

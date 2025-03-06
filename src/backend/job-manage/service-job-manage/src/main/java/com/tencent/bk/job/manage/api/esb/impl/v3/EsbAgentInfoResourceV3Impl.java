@@ -36,7 +36,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbAgentInfoV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbQueryAgentInfoV3Resp;
 import com.tencent.bk.job.manage.service.agent.status.ScopeAgentStatusService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.jooq.tools.StringUtils;
@@ -55,15 +55,15 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
     private final CurrentTenantHostService currentTenantHostService;
     private final ScopeAgentStatusService scopeAgentStatusService;
-    private final ScopeHostService scopeHostService;
+    private final CurrentTenantScopeHostService currentTenantScopeHostService;
 
     @Autowired
     public EsbAgentInfoResourceV3Impl(CurrentTenantHostService currentTenantHostService,
                                       ScopeAgentStatusService scopeAgentStatusService,
-                                      ScopeHostService scopeHostService) {
+                                      CurrentTenantScopeHostService currentTenantScopeHostService) {
         this.currentTenantHostService = currentTenantHostService;
         this.scopeAgentStatusService = scopeAgentStatusService;
-        this.scopeHostService = scopeHostService;
+        this.currentTenantScopeHostService = currentTenantScopeHostService;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         boolean needToUseGseV2 = scopeAgentStatusService.needToUseGseV2(resourceScope);
 
         List<Long> hostIdList = req.getHostIdList();
-        List<Long> validHostIdList = scopeHostService.filterScopeHostIds(
+        List<Long> validHostIdList = currentTenantScopeHostService.filterScopeHostIds(
             req.getAppResourceScope(),
             new HashSet<>(hostIdList)
         );

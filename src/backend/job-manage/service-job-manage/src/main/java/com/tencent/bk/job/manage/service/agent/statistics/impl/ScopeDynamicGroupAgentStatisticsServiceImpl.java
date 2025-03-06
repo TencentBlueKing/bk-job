@@ -65,6 +65,7 @@ public class ScopeDynamicGroupAgentStatisticsServiceImpl implements ScopeDynamic
 
     @Override
     public List<DynamicGroupHostStatisticsVO> getAgentStatisticsByDynamicGroups(
+        String tenantId,
         AppResourceScope appResourceScope,
         List<DynamicGroupIdWithMeta> idWithMetaList
     ) {
@@ -80,6 +81,7 @@ public class ScopeDynamicGroupAgentStatisticsServiceImpl implements ScopeDynamic
             DynamicGroupHostStatisticsVO statisticsVO = new DynamicGroupHostStatisticsVO();
             statisticsVO.setDynamicGroup(dynamicGroupDTO.toBasicVO());
             List<ApplicationHostDTO> hostList = scopeDynamicGroupHostService.listHostByDynamicGroup(
+                tenantId,
                 appResourceScope,
                 dynamicGroupDTO.getId()
             );

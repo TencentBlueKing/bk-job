@@ -137,6 +137,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         AppResourceScope appResourceScope = new AppResourceScope(appId);
         appScopeMappingService.fillAppResourceScope(appResourceScope);
         List<ApplicationHostDTO> hostList = scopeDynamicGroupHostService.listHostByDynamicGroups(
+            appDTO.getTenantId(),
             appResourceScope,
             dynamicGroupIdList
         );
@@ -174,7 +175,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         ServiceListAppHostResultDTO result =
             tenantHostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId());
         if (CollectionUtils.isNotEmpty(result.getValidHosts())) {
-            hostDetailService.fillDetailForHosts(result.getValidHosts());
+            String tenantId = tenantService.getTenantIdByAppId(appId);
+            hostDetailService.fillDetailForHosts(tenantId, result.getValidHosts());
         }
         return InternalResponse.buildSuccessResp(result);
     }
@@ -186,7 +188,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-        hostDetailService.fillDetailForApplicationHosts(hosts);
+        String tenantId = hosts.get(0).getTenantId();
+        hostDetailService.fillDetailForApplicationHosts(tenantId, hosts);
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
@@ -205,7 +208,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-        hostDetailService.fillDetailForApplicationHosts(hosts);
+        hostDetailService.fillDetailForApplicationHosts(req.getTenantId(), hosts);
         return InternalResponse.buildSuccessResp(
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)

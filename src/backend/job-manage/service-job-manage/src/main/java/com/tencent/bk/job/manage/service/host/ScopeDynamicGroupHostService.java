@@ -32,13 +32,17 @@ import java.util.Collection;
 import java.util.List;
 
 public interface ScopeDynamicGroupHostService {
-    PageData<ApplicationHostDTO> pageHostByDynamicGroups(AppResourceScope appResourceScope,
+    PageData<ApplicationHostDTO> pageHostByDynamicGroups(String tenantId,
+                                                         AppResourceScope appResourceScope,
                                                          String idStr,
                                                          int start,
                                                          int pageSize);
 
-    List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope,
+    List<ApplicationHostDTO> listHostByDynamicGroups(String tenantId,
+                                                     AppResourceScope appResourceScope,
                                                      Collection<String> ids);
 
-    List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id);
+    List<ApplicationHostDTO> listHostByDynamicGroup(String tenantId,
+                                                    AppResourceScope appResourceScope,
+                                                    String id);
 }

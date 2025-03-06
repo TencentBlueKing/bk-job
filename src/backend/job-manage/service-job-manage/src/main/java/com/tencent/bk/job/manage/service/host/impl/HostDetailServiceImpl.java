@@ -66,7 +66,9 @@ public class HostDetailServiceImpl implements HostDetailService {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds) {
+    public List<ApplicationHostDTO> listHostDetails(String tenantId,
+                                                    AppResourceScope appResourceScope,
+                                                    Collection<Long> hostIds) {
         List<ApplicationHostDTO> scopeHostList = whiteIpAwareScopeHostService.getScopeHostsIncludingWhiteIPByHostId(
             appResourceScope,
             null,
@@ -74,14 +76,14 @@ public class HostDetailServiceImpl implements HostDetailService {
         );
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(scopeHostList);
-        fillDetailForApplicationHosts(scopeHostList);
+        fillDetailForApplicationHosts(tenantId, scopeHostList);
         return scopeHostList;
     }
 
     @Override
-    public void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList) {
+    public void fillDetailForApplicationHosts(String tenantId, List<ApplicationHostDTO> hostList) {
         fillHostsDetail(hostList, host -> {
-            host.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(host.getCloudAreaId()));
+            host.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(tenantId, host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
@@ -92,9 +94,9 @@ public class HostDetailServiceImpl implements HostDetailService {
     }
 
     @Override
-    public void fillDetailForHosts(List<HostDTO> hostList) {
+    public void fillDetailForHosts(String tenantId, List<HostDTO> hostList) {
         fillHostsDetail(hostList, host -> {
-            host.setBkCloudName(bkNetService.getCloudAreaNameFromCache(host.getBkCloudId()));
+            host.setBkCloudName(bkNetService.getCloudAreaNameFromCache(tenantId, host.getBkCloudId()));
             String cloudVendorId = host.getCloudVendorId();
             host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
                 cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));

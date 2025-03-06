@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -279,7 +280,12 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
     private void fillCloudAreaName(List<ApplicationHostDTO> hostDTOList) {
         hostDTOList.forEach(hostDTO ->
-            hostDTO.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
+            hostDTO.setCloudAreaName(
+                bkNetService.getCloudAreaNameFromCache(
+                    JobContextUtil.getTenantId(),
+                    hostDTO.getCloudAreaId()
+                )
+            )
         );
     }
 }

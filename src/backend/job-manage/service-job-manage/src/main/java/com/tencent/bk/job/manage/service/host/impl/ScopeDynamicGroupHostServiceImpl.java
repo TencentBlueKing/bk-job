@@ -66,7 +66,8 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
         this.hostDetailService = hostDetailService;
     }
 
-    public PageData<ApplicationHostDTO> pageHostByDynamicGroups(AppResourceScope appResourceScope,
+    public PageData<ApplicationHostDTO> pageHostByDynamicGroups(String tenantId,
+                                                                AppResourceScope appResourceScope,
                                                                 String idStr,
                                                                 int start,
                                                                 int pageSize) {
@@ -78,6 +79,7 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
         // 排序
         hostIds.sort(Long::compareTo);
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(
+            tenantId,
             appResourceScope,
             hostIds
         );
@@ -85,17 +87,21 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
         return PageUtil.pageInMem(hostList, start, pageSize);
     }
 
-    public List<ApplicationHostDTO> listHostByDynamicGroups(AppResourceScope appResourceScope,
+    public List<ApplicationHostDTO> listHostByDynamicGroups(String tenantId,
+                                                            AppResourceScope appResourceScope,
                                                             Collection<String> ids) {
         List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, ids);
         // 展示信息需要包含主机详情完整字段
-        return hostDetailService.listHostDetails(appResourceScope, hostIds);
+        return hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
     }
 
-    public List<ApplicationHostDTO> listHostByDynamicGroup(AppResourceScope appResourceScope, String id) {
+    @Override
+    public List<ApplicationHostDTO> listHostByDynamicGroup(String tenantId,
+                                                           AppResourceScope appResourceScope,
+                                                           String id) {
         List<Long> hostIds = listHostIdsByDynamicGroup(appResourceScope, id);
         // 展示信息需要包含主机详情完整字段
-        return hostDetailService.listHostDetails(appResourceScope, hostIds);
+        return hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
     }
 
     private List<Long> listHostIdsByDynamicGroups(AppResourceScope appResourceScope,

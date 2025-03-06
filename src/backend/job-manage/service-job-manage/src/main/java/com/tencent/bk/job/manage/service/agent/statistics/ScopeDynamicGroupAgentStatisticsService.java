@@ -34,6 +34,7 @@ import java.util.List;
  * 资源范围下的动态分组的Agent统计服务
  */
 public interface ScopeDynamicGroupAgentStatisticsService {
-    List<DynamicGroupHostStatisticsVO> getAgentStatisticsByDynamicGroups(AppResourceScope appResourceScope,
+    List<DynamicGroupHostStatisticsVO> getAgentStatisticsByDynamicGroups(String tenantId,
+                                                                         AppResourceScope appResourceScope,
                                                                          List<DynamicGroupIdWithMeta> idWithMetaList);
 }
