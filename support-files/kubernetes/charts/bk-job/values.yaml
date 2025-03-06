@@ -462,6 +462,10 @@ mockApi:
   cmdb:
     # 是否启用CMDB Mock API
     enabled: false
+  # GSE API
+  gse:
+    # 是否启用GSE Mock API
+    enabled: false
 
 ## 蓝鲸GSE参数配置
 gse:
@@ -1722,7 +1726,7 @@ k8sConfigWatcherConfig:
       memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi 
+      memory: 256Mi
 
 ## job-assemble 配置
 assembleConfig:

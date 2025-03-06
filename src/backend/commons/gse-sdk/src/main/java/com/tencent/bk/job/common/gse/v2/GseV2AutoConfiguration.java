@@ -28,7 +28,10 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiEnabled;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
+import com.tencent.bk.job.common.gse.mock.MockGseV2Client;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,6 +45,7 @@ import org.springframework.context.annotation.Configuration;
 public class GseV2AutoConfiguration {
 
     @Bean("gseV2ApiClient")
+    @ConditionalOnMockGseV2ApiDisabled
     public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
                                      AppProperties appProperties,
                                      BkApiGatewayProperties bkApiGatewayProperties,
@@ -54,5 +58,11 @@ public class GseV2AutoConfiguration {
                 tenantEnvService
             )
         );
+    }
+
+    @Bean
+    @ConditionalOnMockGseV2ApiEnabled
+    public IGseClient mockedGseV2ApiClient() {
+        return new MockGseV2Client();
     }
 }
