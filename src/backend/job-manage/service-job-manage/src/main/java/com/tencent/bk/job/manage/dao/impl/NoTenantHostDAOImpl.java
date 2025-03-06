@@ -365,6 +365,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
             .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
             .set(TABLE.LAST_TIME, applicationHostDTO.getLastTime())
+            .set(TABLE.TENANT_ID, applicationHostDTO.getTenantId())
             .where(conditions);
         try {
             return query.execute();
@@ -393,6 +394,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             .set(TABLE.LAST_MODIFY_TIME, JooqDataTypeUtil.buildULong(System.currentTimeMillis()))
             .set(TABLE.CLOUD_VENDOR_ID, applicationHostDTO.getCloudVendorId())
             .set(TABLE.LAST_TIME, applicationHostDTO.getLastTime())
+            .set(TABLE.TENANT_ID, applicationHostDTO.getTenantId())
             .where(conditions);
     }
 

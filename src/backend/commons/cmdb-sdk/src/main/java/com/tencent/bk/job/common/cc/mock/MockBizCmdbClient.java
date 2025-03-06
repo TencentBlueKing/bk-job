@@ -122,10 +122,10 @@ public class MockBizCmdbClient implements IBizCmdbClient {
                                                             long bizId,
                                                             List<CcInstanceDTO> ccInstList) {
         if ("system".equals(tenantId)
-            && bizId == 1
+            && bizId == 1L
             && ccInstList.size() == 1
             && ccInstList.get(0).getObjectType().equals("biz")
-            && ccInstList.get(0).getInstanceId().equals(1)
+            && ccInstList.get(0).getInstanceId().equals(1L)
         ) {
             HostProp host = new HostProp();
             host.setHostId(1L);
@@ -135,7 +135,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             host.setHostName("MockHost1");
             host.setOsName("Linux");
             host.setOsType("1");
-            host.setCloudAreaId(0L);
+            host.setCloudAreaId(1L);
             host.setCloudVendorId("MockCloudVendor1");
             host.setLastTime("2025-03-06T00:00:00.001+08:00");
             host.setTenantId(tenantId);
@@ -156,10 +156,10 @@ public class MockBizCmdbClient implements IBizCmdbClient {
     @Override
     public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
         if ("system".equals(tenantId)
-            && bizId == 1
+            && bizId == 1L
             && ccInstList.size() == 1
             && ccInstList.get(0).getObjectType().equals("biz")
-            && ccInstList.get(0).getInstanceId().equals(1)
+            && ccInstList.get(0).getInstanceId().equals(1L)
         ) {
             ApplicationHostDTO host = new ApplicationHostDTO();
             host.setHostId(1L);
@@ -168,7 +168,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             host.setHostName("MockHost1");
             host.setGseAgentStatus(0);
             host.setAgentId("MockAgentId1");
-            host.setCloudAreaId(0L);
+            host.setCloudAreaId(1L);
             host.setCloudAreaName("MockCloudArea1");
             host.setTenantId(tenantId);
             return Collections.singletonList(host);
