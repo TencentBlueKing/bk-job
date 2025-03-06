@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.gse.v2;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,10 +42,17 @@ import org.springframework.context.annotation.Configuration;
 public class GseV2AutoConfiguration {
 
     @Bean("gseV2ApiClient")
-    public GseV2ApiClient gseV2ApiClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties,
-                                         TenantEnvService tenantEnvService) {
-        return new GseV2ApiClient(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService);
+    public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
+                                     AppProperties appProperties,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
+                                     TenantEnvService tenantEnvService) {
+        return new GseClient(
+            new GseV2ApiClient(
+                meterRegistry,
+                appProperties,
+                bkApiGatewayProperties,
+                tenantEnvService
+            )
+        );
     }
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -50,7 +50,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected final GseTaskService gseTaskService;
     protected final ExecuteObjectTaskService executeObjectTaskService;
     protected final Tracer tracer;
-    protected final GseClient gseClient;
+    protected final IGseClient gseClient;
 
     /**
      * 步骤实例

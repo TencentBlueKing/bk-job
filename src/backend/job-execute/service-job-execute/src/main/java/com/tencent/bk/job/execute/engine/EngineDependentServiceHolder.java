@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
@@ -66,7 +66,7 @@ public class EngineDependentServiceHolder {
     private final GseTasksExceptionCounter gseTasksExceptionCounter;
     private final StepInstanceService stepInstanceService;
     private final Tracer tracer;
-    private final GseClient gseClient;
+    private final IGseClient gseClient;
     private final RunningJobKeepaliveManager runningJobKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
 
@@ -85,7 +85,7 @@ public class EngineDependentServiceHolder {
                                         GseTasksExceptionCounter gseTasksExceptionCounter,
                                         StepInstanceService stepInstanceService,
                                         Tracer tracer,
-                                        GseClient gseClient,
+                                        IGseClient gseClient,
                                         RunningJobKeepaliveManager runningJobKeepaliveManager,
                                         JobBuildInVariableResolver jobBuildInVariableResolver) {
         this.resultHandleManager = resultHandleManager;
