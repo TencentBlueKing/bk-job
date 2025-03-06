@@ -39,6 +39,7 @@ import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -123,20 +123,19 @@ public class LocalFilePrepareService {
     }
 
     private void fillLocalFileSourceHost(List<FileSourceDTO> fileSourceList, StepInstanceBaseDTO stepInstance) {
-        boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
                 HostDTO localHost = agentService.getLocalAgentHost().clone();
-                if (!isGseV2Task) {
-                    // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
+                if (StringUtils.isBlank(localHost.getAgentId())) {
+                    // 如果AgentId为空，那么该环境是GSE 2.0管控1.0 Agent，那么源Agent也必须要设置agentId={云区域:ip}
                     localHost.setAgentId(localHost.toCloudIp());
                 }
                 ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
                 fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(localHost));
                 fileSourceExecuteObjects.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
                 fileSourceDTO.setServers(fileSourceExecuteObjects);
-                log.info("FillLocalFileSourceHost -> stepInstanceId: {}, isGseV2Task: {}, localFileSource: {}",
-                    stepInstance.getId(), isGseV2Task, fileSourceDTO);
+                log.info("FillLocalFileSourceHost -> stepInstanceId: {}, localFileSource: {}",
+                    stepInstance.getId(), fileSourceDTO);
             }
         });
         // 更新本地文件任务内容

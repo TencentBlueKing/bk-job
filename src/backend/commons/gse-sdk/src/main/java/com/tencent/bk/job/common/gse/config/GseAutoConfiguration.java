@@ -31,16 +31,11 @@ import com.tencent.bk.job.common.crypto.RSAEncryptor;
 import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.gse.service.PreferV2AgentStateClientImpl;
-import com.tencent.bk.job.common.gse.v1.GseV1ApiClient;
-import com.tencent.bk.job.common.gse.v1.config.GseV1AutoConfiguration;
 import com.tencent.bk.job.common.gse.v2.GseV2ApiClient;
 import com.tencent.bk.job.common.gse.v2.GseV2AutoConfiguration;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,17 +53,14 @@ import java.util.concurrent.TimeUnit;
 @Import(
     {
         AgentStateQueryConfig.class,
-        GseV1AutoConfiguration.class,
         GseV2AutoConfiguration.class
     }
 )
 public class GseAutoConfiguration {
 
     @Bean("GseApiClient")
-    public GseClient gseClient(ObjectProvider<GseV1ApiClient> gseV1ApiClient,
-                               ObjectProvider<GseV2ApiClient> gseV2ApiClient) {
-        return new GseClient(gseV1ApiClient.getIfAvailable(),
-            gseV2ApiClient.getIfAvailable());
+    public GseClient gseClient(ObjectProvider<GseV2ApiClient> gseV2ApiClient) {
+        return new GseClient(gseV2ApiClient.getIfAvailable());
     }
 
     @ConditionalOnMissingBean(name = DefaultBeanNames.AGENT_STATUS_QUERY_THREAD_POOL_EXECUTOR)
@@ -90,14 +82,6 @@ public class GseAutoConfiguration {
                 r.run();
             }
         );
-    }
-
-    @Bean(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
-    public AgentStateClient preferV2AgentStateClientImpl(AgentStateQueryConfig agentStateQueryConfig,
-                                                         GseClient gseClient,
-                                                         @Qualifier("agentStatusQueryExecutor")
-                                                             ThreadPoolExecutor threadPoolExecutor) {
-        return new PreferV2AgentStateClientImpl(agentStateQueryConfig, gseClient, threadPoolExecutor);
     }
 
     @Bean("gseRsaEncryptor")

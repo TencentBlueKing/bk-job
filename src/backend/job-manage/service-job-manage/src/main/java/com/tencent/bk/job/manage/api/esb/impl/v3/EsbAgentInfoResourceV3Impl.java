@@ -71,7 +71,6 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
                                                            String appCode,
                                                            EsbQueryAgentInfoV3Req req) {
         ResourceScope resourceScope = new ResourceScope(req.getScopeType(), req.getScopeId());
-        boolean needToUseGseV2 = scopeAgentStatusService.needToUseGseV2(resourceScope);
 
         List<Long> hostIdList = req.getHostIdList();
         List<Long> validHostIdList = currentTenantScopeHostService.filterScopeHostIds(
@@ -82,7 +81,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         if (CollectionUtils.isNotEmpty(hostIdList)) {
             log.warn("Ignore hostIds not in {}:{}", resourceScope, hostIdList);
         }
-        Map<Long, String> hostIdAgentIdMap = generateHostIdAgentIdMap(needToUseGseV2, validHostIdList);
+        Map<Long, String> hostIdAgentIdMap = generateHostIdAgentIdMap(validHostIdList);
 
         ListAgentStateReq listAgentStateReq = new ListAgentStateReq();
         listAgentStateReq.setAgentIdList(new ArrayList<>(new HashSet<>(hostIdAgentIdMap.values())));
@@ -91,8 +90,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         List<EsbAgentInfoV3DTO> agentInfoList = buildEsbAgentInfoList(
             agentStateList,
             validHostIdList,
-            hostIdAgentIdMap,
-            needToUseGseV2
+            hostIdAgentIdMap
         );
 
         EsbQueryAgentInfoV3Resp resp = new EsbQueryAgentInfoV3Resp();
@@ -100,35 +98,18 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         return EsbResp.buildSuccessResp(resp);
     }
 
-    private Map<Long, String> generateHostIdAgentIdMap(boolean needToUseGseV2, List<Long> hostIdList) {
+    private Map<Long, String> generateHostIdAgentIdMap(List<Long> hostIdList) {
         Map<Long, ApplicationHostDTO> hostInfoMap = currentTenantHostService.listHostsByHostIds(hostIdList);
         Map<Long, String> hostIdAgentIdMap = new HashMap<>();
-        if (needToUseGseV2) {
-            // 使用AgentId
-            for (Long hostId : hostIdList) {
-                ApplicationHostDTO hostDTO = hostInfoMap.get(hostId);
-                if (hostDTO != null) {
-                    String agentId = hostDTO.getAgentId();
-                    if (!StringUtils.isBlank(agentId)) {
-                        hostIdAgentIdMap.put(hostId, agentId);
-                    } else {
-                        log.info("AgentId of host({}) is blank, ignore", hostDTO);
-                    }
-                } else {
-                    log.info("Cannot find host by hostId:{}", hostId);
-                }
-            }
-            return hostIdAgentIdMap;
-        }
-        // 使用CloudIp
+        // 使用AgentId
         for (Long hostId : hostIdList) {
             ApplicationHostDTO hostDTO = hostInfoMap.get(hostId);
             if (hostDTO != null) {
-                String cloudIp = hostDTO.getCloudIp();
-                if (!StringUtils.isBlank(cloudIp)) {
-                    hostIdAgentIdMap.put(hostId, cloudIp);
+                String agentId = hostDTO.getAgentId();
+                if (!StringUtils.isBlank(agentId)) {
+                    hostIdAgentIdMap.put(hostId, agentId);
                 } else {
-                    log.info("cloudIp of host({}) is blank, ignore", hostDTO);
+                    log.info("AgentId of host({}) is blank, ignore", hostDTO);
                 }
             } else {
                 log.info("Cannot find host by hostId:{}", hostId);
@@ -139,8 +120,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
     private List<EsbAgentInfoV3DTO> buildEsbAgentInfoList(List<AgentState> agentStateList,
                                                           List<Long> hostIdList,
-                                                          Map<Long, String> hostIdAgentIdMap,
-                                                          boolean needToUseGseV2) {
+                                                          Map<Long, String> hostIdAgentIdMap) {
         Map<String, AgentState> agentStateMap = new HashMap<>();
         for (AgentState agentState : agentStateList) {
             agentStateMap.put(agentState.getAgentId(), agentState);
@@ -161,11 +141,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
             agentInfoV3DTO.setHostId(hostId);
             agentInfoV3DTO.setStatus(getEsbAgentStatus(agentState));
             String agentVersion = agentState.getVersion();
-            if (StringUtils.isBlank(agentVersion)) {
-                if (!needToUseGseV2) {
-                    agentInfoV3DTO.setVersion("V1");
-                }
-            } else {
+            if (!StringUtils.isBlank(agentVersion)) {
                 agentInfoV3DTO.setVersion(agentVersion);
             }
             agentInfoList.add(agentInfoV3DTO);

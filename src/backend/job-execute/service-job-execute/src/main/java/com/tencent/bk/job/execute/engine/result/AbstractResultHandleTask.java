@@ -200,10 +200,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     private volatile boolean isGseTaskTerminating = false;
     /**
-     * 是否是GSE V2 TASK
-     */
-    protected boolean gseV2Task;
-    /**
      * 是否存在不可执行的目标执行对象
      */
     protected boolean existNoExecutableTargetExecuteObject;
@@ -243,7 +239,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
-        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;

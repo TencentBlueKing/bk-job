@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface ScopeAgentStatusService {
 
-    boolean needToUseGseV2(ResourceScope resourceScope);
-
     List<AgentState> listAgentState(ResourceScope resourceScope, ListAgentStateReq req);
 
 }
