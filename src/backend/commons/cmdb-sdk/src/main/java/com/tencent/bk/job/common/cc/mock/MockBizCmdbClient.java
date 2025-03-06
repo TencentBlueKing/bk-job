@@ -27,6 +27,9 @@ package com.tencent.bk.job.common.cc.mock;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.model.result.HostProp;
+import com.tencent.bk.job.common.cc.model.result.HostWithModules;
+import com.tencent.bk.job.common.cc.model.result.ModuleProp;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
@@ -101,8 +104,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         idlePoolSet.setChild(moduleList);
 
         setList.add(idlePoolSet);
-        idlePoolSet.setChild(setList);
-        return idlePoolSet;
+        bizNode.setChild(setList);
+        return bizNode;
     }
 
     @Override
@@ -115,18 +118,61 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         return mockInstanceTopologyDTO();
     }
 
+    public List<HostWithModules> getHostRelationsByTopology(String tenantId,
+                                                            long bizId,
+                                                            List<CcInstanceDTO> ccInstList) {
+        if ("system".equals(tenantId)
+            && bizId == 1
+            && ccInstList.size() == 1
+            && ccInstList.get(0).getObjectType().equals("biz")
+            && ccInstList.get(0).getInstanceId().equals(1)
+        ) {
+            HostProp host = new HostProp();
+            host.setHostId(1L);
+            host.setIp("127.0.0.1");
+            host.setIpv6(null);
+            host.setAgentId("MockAgentId1");
+            host.setHostName("MockHost1");
+            host.setOsName("Linux");
+            host.setOsType("1");
+            host.setCloudAreaId(0L);
+            host.setCloudVendorId("MockCloudVendor1");
+            host.setLastTime("2025-03-06T00:00:00.001+08:00");
+            host.setTenantId(tenantId);
+            List<ModuleProp> modules = new ArrayList<>();
+            ModuleProp moduleProp = new ModuleProp();
+            moduleProp.setModuleId(2L);
+            moduleProp.setSetId(2L);
+            moduleProp.setLastTime("2025-03-06T00:00:00.002+08:00");
+            modules.add(moduleProp);
+            HostWithModules hostWithModules = new HostWithModules();
+            hostWithModules.setHost(host);
+            hostWithModules.setModules(modules);
+            return Collections.singletonList(hostWithModules);
+        }
+        return Collections.emptyList();
+    }
+
     @Override
     public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
-        ApplicationHostDTO host = new ApplicationHostDTO();
-        host.setHostId(1L);
-        host.setBizId(1L);
-        host.setIp("127.0.0.1");
-        host.setHostName("MockHost1");
-        host.setGseAgentStatus(0);
-        host.setAgentId("MockAgentId1");
-        host.setCloudAreaId(0L);
-        host.setCloudAreaName("MockCloudArea1");
-        host.setTenantId(tenantId);
-        return Collections.singletonList(host);
+        if ("system".equals(tenantId)
+            && bizId == 1
+            && ccInstList.size() == 1
+            && ccInstList.get(0).getObjectType().equals("biz")
+            && ccInstList.get(0).getInstanceId().equals(1)
+        ) {
+            ApplicationHostDTO host = new ApplicationHostDTO();
+            host.setHostId(1L);
+            host.setBizId(1L);
+            host.setIp("127.0.0.1");
+            host.setHostName("MockHost1");
+            host.setGseAgentStatus(0);
+            host.setAgentId("MockAgentId1");
+            host.setCloudAreaId(0L);
+            host.setCloudAreaName("MockCloudArea1");
+            host.setTenantId(tenantId);
+            return Collections.singletonList(host);
+        }
+        return Collections.emptyList();
     }
 }
