@@ -15,4 +15,11 @@ public interface TenantEnvService {
      * @return 租户ID
      */
     String getJobMachineTenantId();
+
+    /**
+     * 获取调用GSE接口使用的租户ID
+     *
+     * @return 租户ID
+     */
+    String getTenantIdForGSE();
 }
