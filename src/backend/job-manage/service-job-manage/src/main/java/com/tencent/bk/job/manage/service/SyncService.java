@@ -34,7 +34,7 @@ public interface SyncService {
 
     Long syncApp();
 
-    Long syncHost();
+    void syncHost();
 
     Long syncAgentStatus();
 

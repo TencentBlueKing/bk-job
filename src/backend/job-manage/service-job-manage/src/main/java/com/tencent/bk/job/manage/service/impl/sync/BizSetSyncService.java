@@ -100,7 +100,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         }
         log.info("Cmdb sync bizSetIds: {}", cmdbBizSetIds);
 
-        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted();
+        List<ApplicationDTO> localBizSetApps = applicationDAO.listAllBizSetAppsWithDeleted(tenantId);
         // 本地业务bizId
         Set<Long> localBizSetIds =
             localBizSetApps.stream()

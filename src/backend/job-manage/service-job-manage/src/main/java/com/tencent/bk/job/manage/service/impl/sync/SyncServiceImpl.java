@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -269,24 +270,33 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Long syncHost() {
+    public void syncHost() {
+        List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
+        // 遍历所有租户同步主机
+        for (OpenApiTenant openApiTenant : tenantList) {
+            syncHost(openApiTenant.getId());
+        }
+    }
+
+    @NewSpan
+    public void syncHost(String tenantId) {
         if (!enableSyncHost) {
             log.info("syncHost not enabled, skip, you can enable it in config file");
-            return -1L;
+            return;
         }
-        log.info("syncHost arranged");
+        log.info("syncHost(tenantId={}) arranged", tenantId);
         boolean lockGotten = LockUtils.tryGetDistributedLock(
             REDIS_KEY_SYNC_HOST_JOB_LOCK, machineIp, 5000);
         if (!lockGotten) {
             log.info("syncHost lock not gotten, return");
-            return -1L;
+            return;
         }
         String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_SYNC_HOST_JOB_RUNNING_MACHINE);
         try {
             if (StringUtils.isNotBlank(runningMachine)) {
                 //已有同步线程在跑，不再同步
                 log.info("sync host thread already running on {}", runningMachine);
-                return 1L;
+                return;
             }
             syncHostExecutor.execute(() -> {
                 // 开一个心跳子线程，维护当前机器正在同步主机的状态
@@ -306,7 +316,7 @@ public class SyncServiceImpl implements SyncService {
                 watch.start("total");
                 try {
                     log.info(Thread.currentThread().getName() + ":begin to sync host from cc");
-                    List<ApplicationDTO> localApps = applicationDAO.listAllBizApps();
+                    List<ApplicationDTO> localApps = applicationDAO.listAllBizApps(tenantId);
                     Set<Long> localAppIds =
                         localApps.stream().filter(ApplicationDTO::isBiz).map(ApplicationDTO::getId)
                             .collect(Collectors.toSet());
@@ -382,7 +392,6 @@ public class SyncServiceImpl implements SyncService {
             //释放锁
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_HOST_JOB_LOCK, machineIp);
         }
-        return 1L;
     }
 
     @Override

@@ -195,22 +195,25 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizApps() {
+    public List<ApplicationDTO> listAllBizApps(String tenantId) {
         List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
         return listAppsByConditions(conditions);
     }

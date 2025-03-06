@@ -64,7 +64,7 @@ public class BizSyncService extends BasicAppSyncService {
         List<ApplicationDTO> updateList;
         List<ApplicationDTO> deleteList;
         // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted();
+        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted(tenantId);
         // CMDB业务ScopeId
         Set<String> ccBizAppScopeIds = ccBizApps.stream()
             .map(ccBizApp -> ccBizApp.getScope().getId())
