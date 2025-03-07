@@ -462,9 +462,9 @@ mockApi:
   cmdb:
     # 是否启用CMDB Mock API
     enabled: false
-  # GSE API
-  gse:
-    # 是否启用GSE Mock API
+  # GSE V2 API
+  gseV2:
+    # 是否启用GSE V2 Mock API
     enabled: false
 
 ## 蓝鲸GSE参数配置
