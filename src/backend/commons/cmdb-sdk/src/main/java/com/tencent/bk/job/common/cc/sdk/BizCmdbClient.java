@@ -450,7 +450,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         end = Math.min(end, moduleIdSize);
         do {
             List<Long> moduleIdSubList = moduleIdList.subList(start, end);
-            if (moduleIdSubList.size() > 0) {
+            if (!moduleIdSubList.isEmpty()) {
                 resultList.addAll(findModuleHostRelationConcurrently(tenantId, bizId, moduleIdSubList));
             }
             start += batchSize;
@@ -509,7 +509,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         // 如果该页未达到limit，说明是最后一页
         if (pageData.getCount() <= limit) {
             log.info("bizId {}:{} hosts in total, {} hosts indeed", bizId, pageData.getCount(), resultQueue.size());
-        } else if (pageData.getCount() > limit && hostWithModulesList.size() <= limit) {
+        } else if (hostWithModulesList.size() <= limit) {
             int totalCount = pageData.getCount() - limit;
             List<Future<?>> futures = new ArrayList<>();
             Long startTime = System.currentTimeMillis();
@@ -555,7 +555,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         multiIp = multiIp.trim();
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-        if (ipList.size() > 0) {
+        if (!ipList.isEmpty()) {
             applicationHostDTO.setIp(ipList.get(0));
         } else {
             log.warn("no available ip, raw multiIp={}", multiIp);
@@ -1108,7 +1108,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             ListHostsWithoutBizResult pageData = esbResp.getData();
             total = pageData.getCount();
             start += limit;
-            if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
+            if (CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
                 break;
             }
 

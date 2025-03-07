@@ -55,7 +55,7 @@ public class MockGseV2Client implements IGseClient {
         ScriptTaskResult scriptTaskResult = new ScriptTaskResult();
         List<ScriptExecuteObjectTaskResult> resultList = new ArrayList<>();
         ScriptExecuteObjectTaskResult scriptExecuteObjectTaskResult = new ScriptExecuteObjectTaskResult();
-        scriptExecuteObjectTaskResult.setAgentId("MockTaskId1:" + request.getAgentTasks().get(0).getAgentId());
+        scriptExecuteObjectTaskResult.setAgentId(request.getAgentTasks().get(0).getAgentId());
         scriptExecuteObjectTaskResult.setStatus(2);
         scriptExecuteObjectTaskResult.setErrorCode(0);
         scriptExecuteObjectTaskResult.setErrorMsg("OK");

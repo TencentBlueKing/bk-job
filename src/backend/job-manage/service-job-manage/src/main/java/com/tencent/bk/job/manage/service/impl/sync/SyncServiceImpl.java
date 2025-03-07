@@ -196,24 +196,24 @@ public class SyncServiceImpl implements SyncService {
     }
 
     @Override
-    public Long syncApp() {
+    public Boolean syncApp() {
         if (!enableSyncApp) {
             log.info("syncApp not enabled, skip, you can enable it in config file");
-            return -1L;
+            return false;
         }
         log.info("syncApp arranged");
         boolean lockGotten = LockUtils.tryGetDistributedLock(
             REDIS_KEY_SYNC_APP_JOB_LOCK, machineIp, 5000);
         if (!lockGotten) {
             log.info("syncApp lock not gotten, return");
-            return -1L;
+            return false;
         }
         String runningMachine = redisTemplate.opsForValue().get(REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE);
         try {
             if (StringUtils.isNotBlank(runningMachine)) {
                 //已有同步线程在跑，不再同步
                 log.info("sync app thread already running on {}", runningMachine);
-                return 1L;
+                return true;
             }
             syncAppExecutor.execute(this::doSyncApp);
         } finally {
@@ -221,7 +221,7 @@ public class SyncServiceImpl implements SyncService {
             //释放锁
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_APP_JOB_LOCK, machineIp);
         }
-        return 1L;
+        return true;
     }
 
     private void doSyncApp() {

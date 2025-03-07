@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public interface SyncService {
     void init();
 
-    Long syncApp();
+    Boolean syncApp();
 
     void syncHost();
 
