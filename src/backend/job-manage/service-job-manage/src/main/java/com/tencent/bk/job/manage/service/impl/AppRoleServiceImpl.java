@@ -73,6 +73,9 @@ public class AppRoleServiceImpl implements AppRoleService {
         } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集当前只支持运维人员
             return bizSetCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);
+        } else if (scope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            // TODO:租户集当前不支持任何角色，待后续完善
+            return Collections.emptySet();
         } else {
             log.warn("Not supported resourceScope:{}", scope);
         }

@@ -62,7 +62,9 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
 
     @Override
     public String getResourceName(ResourceTypeEnum resourceType, String resourceId) {
-        if (resourceType == ResourceTypeEnum.BUSINESS || resourceType == ResourceTypeEnum.BUSINESS_SET) {
+        if (resourceType == ResourceTypeEnum.BUSINESS
+            || resourceType == ResourceTypeEnum.BUSINESS_SET
+            || resourceType == ResourceTypeEnum.TENANT_SET) {
             Long appId = appScopeMappingService.getAppIdByScope(
                 IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
             if (appId != null && appId > 0) {
