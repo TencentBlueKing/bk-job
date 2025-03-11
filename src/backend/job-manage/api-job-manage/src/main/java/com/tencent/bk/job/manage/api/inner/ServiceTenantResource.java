@@ -42,4 +42,10 @@ public interface ServiceTenantResource {
     @ApiOperation(value = "获取启用的租户信息", produces = "application/json")
     @GetMapping("/service/tenant/listEnabledTenant")
     InternalResponse<List<TenantDTO>> listEnabledTenant();
+
+    @ApiOperation(value = "根据appId获取租户Id", produces = "application/json")
+    @GetMapping("/service/tenant/getTenantIdByAppId")
+    InternalResponse<String> getTenantIdByAppId(long appId);
+
+    ;
 }

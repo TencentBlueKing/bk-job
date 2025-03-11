@@ -55,6 +55,7 @@ import com.tencent.bk.job.manage.service.TenantService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
+import com.tencent.bk.job.manage.service.host.ScopeCachedHostService;
 import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +77,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     private final ApplicationService applicationService;
     private final TenantService tenantService;
     private final TenantHostService tenantHostService;
+    private final ScopeCachedHostService scopeCachedHostService;
     private final NoTenantHostService noTenantHostService;
     private final BizTopoHostService bizTopoHostService;
     private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
@@ -87,6 +89,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                                    ApplicationService applicationService,
                                    TenantService tenantService,
                                    TenantHostService tenantHostService,
+                                   ScopeCachedHostService scopeCachedHostService,
                                    NoTenantHostService noTenantHostService,
                                    BizTopoHostService bizTopoHostService,
                                    ScopeDynamicGroupHostService scopeDynamicGroupHostService,
@@ -96,6 +99,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         this.applicationService = applicationService;
         this.tenantService = tenantService;
         this.tenantHostService = tenantHostService;
+        this.scopeCachedHostService = scopeCachedHostService;
         this.noTenantHostService = noTenantHostService;
         this.bizTopoHostService = bizTopoHostService;
         this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
@@ -172,12 +176,12 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
                                                                           ServiceBatchGetAppHostsReq req) {
         req.validate();
-        ServiceListAppHostResultDTO result =
-            tenantHostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId());
-        if (CollectionUtils.isNotEmpty(result.getValidHosts())) {
-            String tenantId = tenantService.getTenantIdByAppId(appId);
-            hostDetailService.fillDetailForHosts(tenantId, result.getValidHosts());
-        }
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId);
+        ServiceListAppHostResultDTO result = scopeCachedHostService.listAppHostsPreferCache(
+            appResourceScope,
+            req.getHosts(),
+            req.isRefreshAgentId()
+        );
         return InternalResponse.buildSuccessResp(result);
     }
 
@@ -188,13 +192,32 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-        String tenantId = hosts.get(0).getTenantId();
+        String tenantId = getTenantIdWithDefault(req, hosts);
         hostDetailService.fillDetailForApplicationHosts(tenantId, hosts);
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
+    }
+
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private String getTenantIdWithDefault(ServiceBatchGetHostsReq req, List<ApplicationHostDTO> hosts) {
+        if (req.getTenantId() != null) {
+            return req.getTenantId();
+        }
+        if (CollectionUtils.isNotEmpty(hosts)) {
+            log.warn("Deprecated: getTenantIdWithDefault is still work with hosts, please check");
+            return hosts.get(0).getTenantId();
+        }
+        log.warn("Deprecated: getTenantIdWithDefault is still work with default, please check");
+        return TenantIdConstants.DEFAULT_TENANT_ID;
     }
 
     @Override
@@ -226,6 +249,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (req.getTenantId() != null) {
             return;
         }
+        log.warn("Deprecated: addDefaultTenant is still work with default, please check");
         req.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
     }
 

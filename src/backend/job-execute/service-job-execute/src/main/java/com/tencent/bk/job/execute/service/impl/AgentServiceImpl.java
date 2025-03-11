@@ -139,7 +139,10 @@ public class AgentServiceImpl implements AgentService {
             log.warn("Cannot find host by multiIpv4:{}", multiIpv4);
             return null;
         }
-        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHostsFromCacheOrDB(hostIps);
+        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHostsFromCacheOrDB(
+            tenantEnvService.getJobMachineTenantId(),
+            hostIps
+        );
         ServiceHostDTO aliveHost = findOneAliveHost(map.values());
         if (aliveHost == null) {
             log.warn("Cannot find alive hosts, use first ip of {}", multiIpv4);

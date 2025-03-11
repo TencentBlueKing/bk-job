@@ -43,18 +43,20 @@ public interface HostService {
     /**
      * 批量获取主机信息
      *
-     * @param hostIps 主机Ip列表
+     * @param tenantId 租户ID
+     * @param hostIps  主机Ip列表
      * @return 主机信息
      */
-    Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(List<HostDTO> hostIps);
+    Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(String tenantId, List<HostDTO> hostIps);
 
     /**
      * 获取主机信息
      *
-     * @param host 主机
+     * @param tenantId 租户ID
+     * @param host     主机
      * @return 主机信息
      */
-    ServiceHostDTO getHostFromCacheOrDB(HostDTO host);
+    ServiceHostDTO getHostFromCacheOrDB(String tenantId, HostDTO host);
 
     /**
      * 通过云区域ID与IPv6地址获取主机信息

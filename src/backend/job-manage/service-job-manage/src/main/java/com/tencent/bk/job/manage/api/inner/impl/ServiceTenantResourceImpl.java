@@ -47,4 +47,9 @@ public class ServiceTenantResourceImpl implements ServiceTenantResource {
     public InternalResponse<List<TenantDTO>> listEnabledTenant() {
         return InternalResponse.buildSuccessResp(tenantService.listEnabledTenant());
     }
+
+    @Override
+    public InternalResponse<String> getTenantIdByAppId(long appId) {
+        return InternalResponse.buildSuccessResp(tenantService.getTenantIdByAppId(appId));
+    }
 }

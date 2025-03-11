@@ -84,18 +84,18 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(List<HostDTO> hostIps) {
+    public Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(String tenantId, List<HostDTO> hostIps) {
         List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
-            new ServiceBatchGetHostsReq(hostIps)).getData();
+            new ServiceBatchGetHostsReq(tenantId, hostIps)).getData();
         Map<HostDTO, ServiceHostDTO> hostMap = new HashMap<>();
         hosts.forEach(host -> hostMap.put(new HostDTO(host.getCloudAreaId(), host.getIp()), host));
         return hostMap;
     }
 
     @Override
-    public ServiceHostDTO getHostFromCacheOrDB(HostDTO host) {
+    public ServiceHostDTO getHostFromCacheOrDB(String tenantId, HostDTO host) {
         List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
-            new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
+            new ServiceBatchGetHostsReq(tenantId, Collections.singletonList(host))).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
         }
@@ -187,7 +187,7 @@ public class HostServiceImpl implements HostService {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
-        String tenantId=applicationService.getTenantIdByAppId(appId);
+        String tenantId = applicationService.getTenantIdByAppId(appId);
         List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(tenantId, bizId, ccInstances);
         List<HostDTO> ips = new ArrayList<>();
         if (appHosts == null || appHosts.isEmpty()) {

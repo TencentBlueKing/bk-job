@@ -22,29 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner.request;
+package com.tencent.bk.job.manage.service.host;
 
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 
 import java.util.List;
 
 /**
- * 批量获取主机请求
+ * 资源范围下的带缓存的主机服务
  */
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class ServiceBatchGetHostsReq {
-    private String tenantId;
-    private List<HostDTO> hosts;
+public interface ScopeCachedHostService {
 
-    public ServiceBatchGetHostsReq(String tenantId, List<HostDTO> hosts) {
-        this.tenantId = tenantId;
-        this.hosts = hosts;
-    }
+    /**
+     * 获取业务资源范围下的主机。如果在Job缓存的主机中不存在，那么从CMDB查询
+     * （若资源范围为全租户，则只能从Job缓存查询，CMDB不支持跨租户查询资源）
+     *
+     * @param appResourceScope Job业务资源范围
+     * @param hosts            主机列表
+     * @param refreshAgentId   是否刷新主机的bk_agent_id
+     */
+    ServiceListAppHostResultDTO listAppHostsPreferCache(AppResourceScope appResourceScope,
+                                                        List<HostDTO> hosts,
+                                                        boolean refreshAgentId);
+
 }

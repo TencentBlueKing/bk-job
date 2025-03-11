@@ -92,14 +92,19 @@ public class FileWorkerHostService {
         HostDTO hostDTO;
         if (IpUtils.PROTOCOL_IP_V6.equalsIgnoreCase(ipProtocol)) {
             String fileWorkerTenantId = tenantEnvService.getJobMachineTenantId();
-            ServiceHostDTO fileWorkerHost=hostService.getHostByCloudIpv6(
+            ServiceHostDTO fileWorkerHost = hostService.getHostByCloudIpv6(
                 fileWorkerTenantId,
                 cloudAreaId,
                 ip
             );
             hostDTO = ServiceHostDTO.toHostDTO(fileWorkerHost);
         } else {
-            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHostFromCacheOrDB(new HostDTO(cloudAreaId, ip)));
+            hostDTO = ServiceHostDTO.toHostDTO(
+                hostService.getHostFromCacheOrDB(
+                    tenantEnvService.getJobMachineTenantId(),
+                    new HostDTO(cloudAreaId, ip)
+                )
+            );
         }
         if (log.isDebugEnabled()) {
             log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);
