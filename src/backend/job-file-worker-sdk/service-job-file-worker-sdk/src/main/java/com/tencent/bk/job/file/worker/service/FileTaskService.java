@@ -163,7 +163,13 @@ public class FileTaskService {
                     fileTaskFuture.cancel(true);
                     allStoppedFileCount += 1;
                 } else {
-                    log.info("task {} already done, stop too late", stopKey);
+                    log.info("fileTask {} already done, stop too late", stopKey);
+                }
+                Future<?> watchingTaskFuture = watchingTaskMap.get(stopKey);
+                if (watchingTaskFuture != null && !watchingTaskFuture.isDone()) {
+                    watchingTaskFuture.cancel(true);
+                } else {
+                    log.info("watchingTask {} already done, stop too late", stopKey);
                 }
             }
         }
