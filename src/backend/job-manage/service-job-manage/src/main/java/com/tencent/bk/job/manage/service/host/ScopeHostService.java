@@ -149,19 +149,4 @@ public interface ScopeHostService {
                                             Long start,
                                             Long pageSize);
 
-    /**
-     * 根据业务ID、Agent状态分页查询查询资源范围下的主机
-     *
-     * @param username 用户名
-     * @param appId    业务ID
-     * @param status   Agent状态
-     * @param start    数据起始位置
-     * @param pageSize 拉取数量
-     * @return 主机信息列表
-     */
-    PageData<ApplicationHostDTO> listHostsByAgentStatus(String username,
-                                                        Long appId,
-                                                        Integer status,
-                                                        Long start,
-                                                        Long pageSize);
 }

@@ -41,7 +41,7 @@ import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.service.IndexService;
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeAgentStatisticsService;
-import com.tencent.bk.job.manage.service.host.ScopeHostService;
+import com.tencent.bk.job.manage.service.host.ScopeAgentStatusHostService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 public class IndexServiceImpl implements IndexService {
 
     private final IndexGreetingDAO indexGreetingDAO;
-    private final ScopeHostService scopeHostService;
+    private final ScopeAgentStatusHostService scopeAgentStatusHostService;
     private final ScopeAgentStatisticsService scopeAgentStatisticsService;
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
@@ -65,13 +65,13 @@ public class IndexServiceImpl implements IndexService {
 
     @Autowired
     public IndexServiceImpl(IndexGreetingDAO indexGreetingDAO,
-                            ScopeHostService scopeHostService,
+                            ScopeAgentStatusHostService scopeAgentStatusHostService,
                             ScopeAgentStatisticsService scopeAgentStatisticsService,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
                             ScriptDAO scriptDAO) {
         this.indexGreetingDAO = indexGreetingDAO;
-        this.scopeHostService = scopeHostService;
+        this.scopeAgentStatusHostService = scopeAgentStatusHostService;
         this.scopeAgentStatisticsService = scopeAgentStatisticsService;
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -110,7 +110,7 @@ public class IndexServiceImpl implements IndexService {
                                                        Integer status,
                                                        Long start,
                                                        Long pageSize) {
-        PageData<ApplicationHostDTO> hostsPageData = scopeHostService.listHostsByAgentStatus(
+        PageData<ApplicationHostDTO> hostsPageData = scopeAgentStatusHostService.listHostsByAgentStatus(
             username,
             appId,
             status,
