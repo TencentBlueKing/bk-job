@@ -26,123 +26,28 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.query.HostQuery;
-import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
+import com.tencent.bk.job.manage.service.host.NoTenantBizHostService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * 业务主机服务
- */
 @Slf4j
 @Service
-public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostService {
+public class NoTenantBizHostServiceImpl implements NoTenantBizHostService {
 
-    private final CurrentTenantHostDAO currentTenantHostDAO;
-    private final HostTopoDAO hostTopoDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
 
     @Autowired
-    public CurrentTenantBizHostServiceImpl(CurrentTenantHostDAO currentTenantHostDAO,
-                                           HostTopoDAO hostTopoDAO) {
-        this.currentTenantHostDAO = currentTenantHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
+    public NoTenantBizHostServiceImpl(NoTenantHostDAO noTenantHostDAO) {
+        this.noTenantHostDAO = noTenantHostDAO;
     }
 
-    @Override
-    public List<ApplicationHostDTO> getHostsByHostIds(Collection<Long> hostIds) {
-        return currentTenantHostDAO.listHostInfoByHostIds(hostIds);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByIps(Collection<String> ips) {
-        return currentTenantHostDAO.listHostInfoByIps(ips);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByCloudIps(Collection<String> cloudIps) {
-        return currentTenantHostDAO.listHostInfoByCloudIps(cloudIps);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByIpv6s(Collection<String> ipv6s) {
-        return currentTenantHostDAO.listHostInfoByIpv6s(ipv6s);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByHostNames(Collection<String> hostNames) {
-        return currentTenantHostDAO.listHostInfoByHostNames(hostNames);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByBizAndHostIds(Collection<Long> bizIds, Collection<Long> hostIds) {
-        if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
-            return Collections.emptyList();
-        }
-        List<Long> hostIdsInBiz = hostTopoDAO.listHostIdByBizAndHostIds(bizIds, hostIds);
-        if (CollectionUtils.isNotEmpty(hostIds) && hostIdsInBiz.size() != hostIds.size()) {
-            Set<Long> hostIdsSet = new HashSet<>(hostIds);
-            hostIdsSet.removeAll(hostIdsInBiz);
-            log.warn(
-                "hostIds [{}] not in bizIds [{}]",
-                StringUtil.concatCollection(hostIdsSet),
-                StringUtil.concatCollection(bizIds)
-            );
-        }
-        return currentTenantHostDAO.listHostInfoByHostIds(hostIdsInBiz);
-    }
-
-    @Override
-    public List<Long> filterHostIds(Collection<Long> hostIds) {
-        if (CollectionUtils.isEmpty(hostIds)) {
-            return Collections.emptyList();
-        }
-        return currentTenantHostDAO.listHostIdsByHostIds(hostIds);
-    }
-
-    @Override
-    public List<Long> filterHostIdsByBiz(Collection<Long> bizIds, Collection<Long> hostIds) {
-        if (CollectionUtils.isEmpty(bizIds) || CollectionUtils.isEmpty(hostIds)) {
-            return Collections.emptyList();
-        }
-        return hostTopoDAO.listHostIdByBizAndHostIds(bizIds, hostIds);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByBizAndIps(Collection<Long> bizIds, Collection<String> ips) {
-        return currentTenantHostDAO.listHostInfoByBizAndIps(bizIds, ips);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByBizAndCloudIps(Collection<Long> bizIds,
-                                                             Collection<String> cloudIps) {
-        return currentTenantHostDAO.listHostInfoByBizAndCloudIps(bizIds, cloudIps);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByBizAndIpv6s(Collection<Long> bizIds, Collection<String> ipv6s) {
-        return currentTenantHostDAO.listHostInfoByBizAndIpv6s(bizIds, ipv6s);
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostsByBizAndHostNames(Collection<Long> bizIds,
-                                                              Collection<String> hostNames) {
-        return currentTenantHostDAO.listHostInfoByBizAndHostNames(bizIds, hostNames);
-    }
-
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public PageData<Long> pageListHostId(HostQuery hostQuery) {
         List<Long> hostIdList;
@@ -151,7 +56,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
         List<String> searchContents = hostQuery.getSearchContents();
         if (searchContents != null) {
             watch.start("getHostIdListBySearchContents");
-            hostIdList = currentTenantHostDAO.getHostIdListBySearchContents(
+            hostIdList = noTenantHostDAO.getHostIdListBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -162,7 +67,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
             );
             watch.stop();
             watch.start("countHostInfoBySearchContents");
-            count = currentTenantHostDAO.countHostInfoBySearchContents(
+            count = noTenantHostDAO.countHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -172,7 +77,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
             watch.stop();
         } else {
             watch.start("getHostIdListByMultiKeys");
-            hostIdList = currentTenantHostDAO.getHostIdListByMultiKeys(
+            hostIdList = noTenantHostDAO.getHostIdListByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -186,7 +91,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
             );
             watch.stop();
             watch.start("countHostInfoByMultiKeys");
-            count = currentTenantHostDAO.countHostInfoByMultiKeys(
+            count = noTenantHostDAO.countHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -204,13 +109,14 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
         return new PageData<>(hostQuery.getStart().intValue(), hostQuery.getLimit().intValue(), count, hostIdList);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public PageData<ApplicationHostDTO> pageListHost(HostQuery hostQuery) {
         List<ApplicationHostDTO> hostList;
         Long count;
         List<String> searchContents = hostQuery.getSearchContents();
         if (searchContents != null) {
-            hostList = currentTenantHostDAO.listHostInfoBySearchContents(
+            hostList = noTenantHostDAO.listHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -219,7 +125,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
                 hostQuery.getStart(),
                 hostQuery.getLimit()
             );
-            count = currentTenantHostDAO.countHostInfoBySearchContents(
+            count = noTenantHostDAO.countHostInfoBySearchContents(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -227,7 +133,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
                 hostQuery.getAgentAlive()
             );
         } else {
-            hostList = currentTenantHostDAO.listHostInfoByMultiKeys(
+            hostList = noTenantHostDAO.listHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -239,7 +145,7 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
                 hostQuery.getStart(),
                 hostQuery.getLimit()
             );
-            count = currentTenantHostDAO.countHostInfoByMultiKeys(
+            count = noTenantHostDAO.countHostInfoByMultiKeys(
                 hostQuery.getBizIds(),
                 hostQuery.getModuleIds(),
                 hostQuery.getCloudAreaIds(),
@@ -253,11 +159,4 @@ public class CurrentTenantBizHostServiceImpl implements CurrentTenantBizHostServ
         return new PageData<>(hostQuery.getStart().intValue(), hostQuery.getLimit().intValue(), count, hostList);
     }
 
-    @Override
-    public List<ApplicationHostDTO> getHostsByModuleIds(Collection<Long> moduleIds) {
-        List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByModuleIds(moduleIds);
-        List<Long> hostIdList =
-            hostTopoDTOList.stream().map(HostTopoDTO::getHostId).collect(Collectors.toList());
-        return currentTenantHostDAO.listHostInfoByHostIds(hostIdList);
-    }
 }

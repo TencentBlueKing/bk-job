@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
     private final CurrentTenantHostDAO currentTenantHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
@@ -74,6 +76,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
     @Autowired
     public ScopeTopoHostServiceImpl(CurrentTenantHostDAO currentTenantHostDAO,
+                                    NoTenantHostDAO noTenantHostDAO,
                                     ApplicationService applicationService,
                                     HostTopoDAO hostTopoDAO,
                                     TopologyHelper topologyHelper,
@@ -82,6 +85,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
                                     BkNetService bkNetService,
                                     BizTopoHostService bizTopoHostService) {
         this.currentTenantHostDAO = currentTenantHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
@@ -124,6 +128,9 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         } else if (appInfo.isBizSet()) {
             node.setObjectId("biz_set");
             node.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        } else if (appInfo.isTenantSet()) {
+            node.setObjectId("tenant_set");
+            node.setObjectName(i18nService.getI18n("cmdb.object.name.tenant_set"));
         }
         return node;
     }
@@ -136,7 +143,11 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         CcTopologyNodeVO ccTopologyNodeVO = fillObjInfoForNode(appInfo, new CcTopologyNodeVO());
         ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
         ccTopologyNodeVO.setInstanceName(appInfo.getName());
-        if (appInfo.isAllBizSet()) {
+        if (appInfo.isAllTenantSet()) {
+            // 全租户
+            ccTopologyNodeVO.setCount((int) noTenantHostDAO.countAllHosts());
+            return ccTopologyNodeVO;
+        } else if (appInfo.isAllBizSet()) {
             // 全业务
             ccTopologyNodeVO.setCount((int) currentTenantHostDAO.countAllHosts());
             return ccTopologyNodeVO;

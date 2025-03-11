@@ -58,7 +58,7 @@ import com.tencent.bk.job.manage.service.agent.statistics.ScopeDynamicGroupAgent
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeNodeAgentStatisticsService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
 import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
-import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
+import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import com.tencent.bk.job.manage.service.impl.ScopeDynamicGroupService;
@@ -84,7 +84,7 @@ public class WebHostResourceImpl implements WebHostResource {
 
     private final ScopeTopoService scopeTopoService;
     private final ScopeTopoHostService scopeTopoHostService;
-    private final CurrentTenantScopeHostService currentTenantScopeHostService;
+    private final ScopeHostService scopeHostService;
     private final WhiteIpAwareScopeHostService whiteIpAwareScopeHostService;
     private final ScopeNodeAgentStatisticsService scopeNodeAgentStatisticsService;
     private final ScopeDynamicGroupAgentStatisticsService scopeDGAgentStatsService;
@@ -97,7 +97,7 @@ public class WebHostResourceImpl implements WebHostResource {
     @Autowired
     public WebHostResourceImpl(ScopeTopoService scopeTopoService,
                                ScopeTopoHostService scopeTopoHostService,
-                               CurrentTenantScopeHostService currentTenantScopeHostService,
+                               ScopeHostService scopeHostService,
                                WhiteIpAwareScopeHostService whiteIpAwareScopeHostService,
                                ScopeNodeAgentStatisticsService scopeNodeAgentStatisticsService,
                                ScopeDynamicGroupAgentStatisticsService scopeDGAgentStatsService,
@@ -108,7 +108,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeDynamicGroupService scopeDynamicGroupService) {
         this.scopeTopoService = scopeTopoService;
         this.scopeTopoHostService = scopeTopoHostService;
-        this.currentTenantScopeHostService = currentTenantScopeHostService;
+        this.scopeHostService = scopeHostService;
         this.whiteIpAwareScopeHostService = whiteIpAwareScopeHostService;
         this.scopeNodeAgentStatisticsService = scopeNodeAgentStatisticsService;
         this.scopeDGAgentStatsService = scopeDGAgentStatsService;
@@ -200,7 +200,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                      String scopeId,
                                                                      ListHostByBizTopologyNodesReq req) {
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        PageData<ApplicationHostDTO> pageHostList = currentTenantScopeHostService.searchHost(
+        PageData<ApplicationHostDTO> pageHostList = scopeHostService.searchHost(
             appResourceScope,
             req.getNodeList(),
             req.getAlive(),
@@ -229,7 +229,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                                                            ListHostByBizTopologyNodesReq req) {
         // 参数标准化
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(req.getStart(), req.getPageSize());
-        PageData<Long> pageData = currentTenantScopeHostService.listHostIdByBizTopologyNodes(
+        PageData<Long> pageData = scopeHostService.listHostIdByBizTopologyNodes(
             appResourceScope,
             req.getNodeList(),
             req.getSearchContent(),

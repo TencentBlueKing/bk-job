@@ -87,6 +87,144 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
+    public List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips) {
+        return batchQueryHostInfo(ips, this::listHostInfoByIpsIndeed);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByCloudIps(Collection<String> cloudIps) {
+        return batchQueryHostInfo(cloudIps, this::listHostInfoByCloudIpsIndeed);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s) {
+        return super.listHostInfoByIpv6s(ipv6s);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames) {
+        return super.listHostInfoByHostNames(hostNames);
+    }
+
+    @Override
+    public Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                              Collection<Long> moduleIds,
+                                              Collection<Long> cloudAreaIds,
+                                              List<String> searchContents,
+                                              Integer agentStatus) {
+        return super.countHostInfoBySearchContents(bizIds, moduleIds, cloudAreaIds, searchContents, agentStatus);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
+                                                                 Collection<Long> moduleIds,
+                                                                 Collection<Long> cloudAreaIds,
+                                                                 List<String> searchContents,
+                                                                 Integer agentStatus,
+                                                                 Long start,
+                                                                 Long limit) {
+        return super.listHostInfoBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            start,
+            limit
+        );
+    }
+
+    @Override
+    public List<Long> getHostIdListBySearchContents(Collection<Long> bizIds,
+                                                    Collection<Long> moduleIds,
+                                                    Collection<Long> cloudAreaIds,
+                                                    List<String> searchContents,
+                                                    Integer agentAlive,
+                                                    Long start,
+                                                    Long limit) {
+        return super.getHostIdListBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentAlive,
+            start,
+            limit
+        );
+    }
+
+    @Override
+    public List<ApplicationHostDTO> listHostInfoByMultiKeys(Collection<Long> bizIds,
+                                                            Collection<Long> moduleIds,
+                                                            Collection<Long> cloudAreaIds,
+                                                            Collection<String> ipKeys,
+                                                            Collection<String> ipv6Keys,
+                                                            Collection<String> hostNameKeys,
+                                                            Collection<String> osNameKeys,
+                                                            Integer agentAlive,
+                                                            Long start,
+                                                            Long limit) {
+        return super.listHostInfoByMultiKeys(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive,
+            start,
+            limit
+        );
+    }
+
+    @Override
+    public List<Long> getHostIdListByMultiKeys(Collection<Long> bizIds,
+                                               Collection<Long> moduleIds,
+                                               Collection<Long> cloudAreaIds,
+                                               Collection<String> ipKeys,
+                                               Collection<String> ipv6Keys,
+                                               Collection<String> hostNameKeys,
+                                               Collection<String> osNameKeys,
+                                               Integer agentAlive,
+                                               Long start,
+                                               Long limit) {
+        return super.getHostIdListByMultiKeys(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive,
+            start,
+            limit
+        );
+    }
+
+    @Override
+    public Long countHostInfoByMultiKeys(Collection<Long> bizIds,
+                                         Collection<Long> moduleIds,
+                                         Collection<Long> cloudAreaIds,
+                                         Collection<String> ipKeys,
+                                         Collection<String> ipv6Keys,
+                                         Collection<String> hostNameKeys,
+                                         Collection<String> osNameKeys,
+                                         Integer agentAlive) {
+        return super.countHostInfoByMultiKeys(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive
+        );
+    }
+
+    @Override
     public ApplicationHostDTO getHostById(Long hostId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(JooqDataTypeUtil.buildULong(hostId)));

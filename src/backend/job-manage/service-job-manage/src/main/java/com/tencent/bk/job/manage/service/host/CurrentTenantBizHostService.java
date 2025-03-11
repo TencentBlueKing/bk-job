@@ -87,6 +87,14 @@ public interface CurrentTenantBizHostService {
                                                      Collection<Long> hostIds);
 
     /**
+     * 根据 hostIds 过滤出在当前租户下的hostIds
+     *
+     * @param hostIds 主机 ID集合
+     * @return 主机ID列表
+     */
+    List<Long> filterHostIds(Collection<Long> hostIds);
+
+    /**
      * 根据 bizIds 过滤出在这些业务下的hostIds
      *
      * @param bizIds  业务 ID集合

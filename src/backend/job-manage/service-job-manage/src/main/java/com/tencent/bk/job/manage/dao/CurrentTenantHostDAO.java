@@ -43,6 +43,8 @@ public interface CurrentTenantHostDAO {
 
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
+    List<Long> listHostIdsByHostIds(Collection<Long> hostIds);
+
     List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds);
 
     List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);

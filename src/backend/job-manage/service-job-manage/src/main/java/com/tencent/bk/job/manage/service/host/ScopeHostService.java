@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * 资源范围主机相关服务
  */
-public interface CurrentTenantScopeHostService {
+public interface ScopeHostService {
 
     /**
      * 根据 资源范围 过滤出在该资源范围下的hostIds

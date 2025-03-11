@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.AgentStateStatusEnum;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
@@ -34,9 +35,8 @@ import com.tencent.bk.job.manage.api.esb.v3.EsbAgentInfoV3Resource;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbQueryAgentInfoV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAgentInfoV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbQueryAgentInfoV3Resp;
-import com.tencent.bk.job.manage.service.agent.status.ScopeAgentStatusService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
-import com.tencent.bk.job.manage.service.host.CurrentTenantScopeHostService;
+import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.jooq.tools.StringUtils;
@@ -54,16 +54,16 @@ import java.util.Map;
 public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
     private final CurrentTenantHostService currentTenantHostService;
-    private final ScopeAgentStatusService scopeAgentStatusService;
-    private final CurrentTenantScopeHostService currentTenantScopeHostService;
+    private final IGseClient gseClient;
+    private final ScopeHostService scopeHostService;
 
     @Autowired
     public EsbAgentInfoResourceV3Impl(CurrentTenantHostService currentTenantHostService,
-                                      ScopeAgentStatusService scopeAgentStatusService,
-                                      CurrentTenantScopeHostService currentTenantScopeHostService) {
+                                      IGseClient gseClient,
+                                      ScopeHostService scopeHostService) {
         this.currentTenantHostService = currentTenantHostService;
-        this.scopeAgentStatusService = scopeAgentStatusService;
-        this.currentTenantScopeHostService = currentTenantScopeHostService;
+        this.gseClient = gseClient;
+        this.scopeHostService = scopeHostService;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
         ResourceScope resourceScope = new ResourceScope(req.getScopeType(), req.getScopeId());
 
         List<Long> hostIdList = req.getHostIdList();
-        List<Long> validHostIdList = currentTenantScopeHostService.filterScopeHostIds(
+        List<Long> validHostIdList = scopeHostService.filterScopeHostIds(
             req.getAppResourceScope(),
             new HashSet<>(hostIdList)
         );
@@ -85,7 +85,7 @@ public class EsbAgentInfoResourceV3Impl implements EsbAgentInfoV3Resource {
 
         ListAgentStateReq listAgentStateReq = new ListAgentStateReq();
         listAgentStateReq.setAgentIdList(new ArrayList<>(new HashSet<>(hostIdAgentIdMap.values())));
-        List<AgentState> agentStateList = scopeAgentStatusService.listAgentState(resourceScope, listAgentStateReq);
+        List<AgentState> agentStateList = gseClient.listAgentState(listAgentStateReq);
 
         List<EsbAgentInfoV3DTO> agentInfoList = buildEsbAgentInfoList(
             agentStateList,

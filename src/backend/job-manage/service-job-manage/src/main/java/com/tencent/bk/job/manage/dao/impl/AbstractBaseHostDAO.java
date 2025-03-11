@@ -39,6 +39,7 @@ import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record2;
@@ -46,6 +47,7 @@ import org.jooq.Result;
 import org.jooq.SelectSeekStep2;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
+import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 
@@ -55,6 +57,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -139,6 +142,265 @@ abstract public class AbstractBaseHostDAO {
         List<Condition> conditions = getBasicConditions();
         conditions.add(TABLE.APP_ID.eq(JooqDataTypeUtil.buildULong(bizId)));
         return conditions;
+    }
+
+    protected List<ApplicationHostDTO> batchQueryHostInfo(
+        Collection<String> items,
+        Function<List<String>, List<ApplicationHostDTO>> queryFunction
+    ) {
+        List<String> itemList = new ArrayList<>(items);
+        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
+        // 分批，防止SQL超长
+        int batchSize = 30000;
+        int start = 0;
+        int end = start + batchSize;
+        int totalSize = itemList.size();
+        end = Math.min(end, totalSize);
+        do {
+            List<String> subList = itemList.subList(start, end);
+            hostInfoList.addAll(queryFunction.apply(subList));
+            start += batchSize;
+            end = start + batchSize;
+            end = Math.min(end, totalSize);
+        } while (start < totalSize);
+        return hostInfoList;
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByIpsIndeed(Collection<String> ips) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.IP.in(ips));
+        return queryHostsByCondition(conditions);
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByCloudIpsIndeed(Collection<String> cloudIps) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.CLOUD_IP.in(cloudIps));
+        return queryHostsByCondition(conditions);
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByHostIds(Collection<Long> hostIds) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.HOST_ID.in(hostIds.stream().map(ULong::valueOf).collect(Collectors.toList())));
+        return listHostInfoByConditions(conditions);
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.IP_V6.in(ipv6s));
+        return listHostInfoByConditions(conditions);
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.IP_DESC.in(hostNames));
+        return listHostInfoByConditions(conditions);
+    }
+
+    protected Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                                 Collection<Long> moduleIds,
+                                                 Collection<Long> cloudAreaIds,
+                                                 List<String> searchContents,
+                                                 Integer agentStatus) {
+        List<Long> hostIdList = getHostIdListBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            null,
+            null
+        );
+        return (long) (hostIdList.size());
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
+                                                                    Collection<Long> moduleIds,
+                                                                    Collection<Long> cloudAreaIds,
+                                                                    List<String> searchContents,
+                                                                    Integer agentStatus,
+                                                                    Long start,
+                                                                    Long limit) {
+        List<Long> hostIdList = getHostIdListBySearchContents(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentStatus,
+            start,
+            limit
+        );
+        return listHostInfoByHostIds(hostIdList);
+    }
+
+    protected List<Long> getHostIdListBySearchContents(Collection<Long> bizIds,
+                                                       Collection<Long> moduleIds,
+                                                       Collection<Long> cloudAreaIds,
+                                                       List<String> searchContents,
+                                                       Integer agentAlive,
+                                                       Long start,
+                                                       Long limit) {
+        List<Condition> conditions = buildSearchContentsConditions(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            searchContents,
+            agentAlive
+        );
+        return getHostIdListByConditions(conditions, start, limit);
+    }
+
+    protected List<ApplicationHostDTO> listHostInfoByMultiKeys(Collection<Long> bizIds,
+                                                               Collection<Long> moduleIds,
+                                                               Collection<Long> cloudAreaIds,
+                                                               Collection<String> ipKeys,
+                                                               Collection<String> ipv6Keys,
+                                                               Collection<String> hostNameKeys,
+                                                               Collection<String> osNameKeys,
+                                                               Integer agentAlive,
+                                                               Long start,
+                                                               Long limit) {
+        List<Long> hostIdList = getHostIdListByMultiKeys(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive,
+            start,
+            limit
+        );
+        return listHostInfoByHostIds(hostIdList);
+    }
+
+    protected List<Long> getHostIdListByMultiKeys(Collection<Long> bizIds,
+                                                  Collection<Long> moduleIds,
+                                                  Collection<Long> cloudAreaIds,
+                                                  Collection<String> ipKeys,
+                                                  Collection<String> ipv6Keys,
+                                                  Collection<String> hostNameKeys,
+                                                  Collection<String> osNameKeys,
+                                                  Integer agentAlive,
+                                                  Long start,
+                                                  Long limit) {
+        List<Condition> conditions = buildMultiKeysConditions(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive
+        );
+        return getHostIdListByConditions(conditions, start, limit);
+    }
+
+    protected Long countHostInfoByMultiKeys(Collection<Long> bizIds,
+                                            Collection<Long> moduleIds,
+                                            Collection<Long> cloudAreaIds,
+                                            Collection<String> ipKeys,
+                                            Collection<String> ipv6Keys,
+                                            Collection<String> hostNameKeys,
+                                            Collection<String> osNameKeys,
+                                            Integer agentAlive) {
+        List<Condition> conditions = buildMultiKeysConditions(
+            bizIds,
+            moduleIds,
+            cloudAreaIds,
+            ipKeys,
+            ipv6Keys,
+            hostNameKeys,
+            osNameKeys,
+            agentAlive
+        );
+        return countHostIdByConditions(conditions);
+    }
+
+    private List<Condition> buildSearchContentsConditions(Collection<Long> bizIds,
+                                                          Collection<Long> moduleIds,
+                                                          Collection<Long> cloudAreaIds,
+                                                          List<String> searchContents,
+                                                          Integer agentAlive) {
+        Host tHost = Host.HOST;
+        List<Condition> conditions = buildConditions(bizIds, moduleIds, agentAlive);
+        Condition condition = null;
+        if (searchContents != null && !searchContents.isEmpty()) {
+            String firstContent = searchContents.get(0);
+            condition = tHost.IP.like("%" + firstContent + "%");
+            for (int i = 1; i < searchContents.size(); i++) {
+                condition = condition.or(tHost.IP.like("%" + searchContents.get(i) + "%"));
+            }
+            condition = condition.or(tHost.IP_V6.like("%" + firstContent + "%"));
+            for (int i = 1; i < searchContents.size(); i++) {
+                condition = condition.or(tHost.IP_V6.like("%" + searchContents.get(i) + "%"));
+            }
+            condition = condition.or(tHost.IP_DESC.like("%" + firstContent + "%"));
+            for (int i = 1; i < searchContents.size(); i++) {
+                condition = condition.or(tHost.IP_DESC.like("%" + searchContents.get(i) + "%"));
+            }
+            condition = condition.or(tHost.OS.like("%" + firstContent + "%"));
+            for (int i = 1; i < searchContents.size(); i++) {
+                condition = condition.or(tHost.OS.like("%" + searchContents.get(i) + "%"));
+            }
+        }
+        if (cloudAreaIds != null) {
+            if (condition != null) {
+                condition = condition.or(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+            } else {
+                condition = tHost.CLOUD_AREA_ID.in(cloudAreaIds);
+            }
+        }
+        if (condition != null) {
+            conditions.add(condition);
+        }
+        return conditions;
+    }
+
+    private <T> void addFieldMultiLikeCondition(List<Condition> conditions, Field<T> field, Collection<String> keys) {
+        if (CollectionUtils.isNotEmpty(keys)) {
+            List<String> keyList = new ArrayList<>(keys);
+            String firstContent = keyList.get(0);
+            Condition condition = field.like("%" + firstContent + "%");
+            for (int i = 1; i < keyList.size(); i++) {
+                condition = condition.or(field.like("%" + keyList.get(i) + "%"));
+            }
+            conditions.add(condition);
+        }
+    }
+
+    private List<Condition> buildMultiKeysConditions(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     Collection<String> ipKeys,
+                                                     Collection<String> ipv6Keys,
+                                                     Collection<String> hostNameKeys,
+                                                     Collection<String> osNameKeys,
+                                                     Integer agentAlive) {
+        Host tHost = Host.HOST;
+        List<Condition> conditions = buildConditions(bizIds, moduleIds, agentAlive);
+        if (cloudAreaIds != null) {
+            conditions.add(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+        }
+        addFieldMultiLikeCondition(conditions, tHost.IP, ipKeys);
+        addFieldMultiLikeCondition(conditions, tHost.IP_V6, ipv6Keys);
+        addFieldMultiLikeCondition(conditions, tHost.IP_DESC, hostNameKeys);
+        addFieldMultiLikeCondition(conditions, tHost.OS, osNameKeys);
+        return conditions;
+    }
+
+
+    private Long countHostIdByConditions(Collection<Condition> conditions) {
+        Host tHost = Host.HOST;
+        HostTopo tHostTopo = HostTopo.HOST_TOPO;
+        return context
+            .select(DSL.countDistinct(tHost.HOST_ID))
+            .from(tHost)
+            .join(tHostTopo)
+            .on(tHost.HOST_ID.eq(tHostTopo.HOST_ID))
+            .where(conditions)
+            .fetchOne(0, Long.class);
     }
 
     protected List<Long> getHostIdListByConditions(Collection<Condition> conditions,

@@ -56,7 +56,8 @@ public class ScopeTopoServiceImpl implements ScopeTopoService {
     public List<List<InstanceTopologyDTO>> queryNodePaths(AppResourceScope appResourceScope,
                                                           List<TargetNodeVO> targetNodeVOList) {
         ApplicationDTO appDTO = applicationService.getAppByScope(appResourceScope);
-        if (appDTO.isBizSet()) {
+        if (appDTO.isBizSet() || appDTO.isTenantSet()) {
+            // 业务集/租户集
             return Collections.emptyList();
         }
         return bizTopoService.queryBizNodePaths(

@@ -159,6 +159,9 @@ public class WebContainerResourceImpl implements WebContainerResource {
         } else if (bizSetApp.isBizSet()) {
             topo.setObjectId("biz_set");
             topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        } else if (bizSetApp.isTenantSet()) {
+            topo.setObjectId("tenant_set");
+            topo.setObjectName(i18nService.getI18n("cmdb.object.name.tenant_set"));
         }
         topo.setCount(0);
         return Collections.singletonList(topo);

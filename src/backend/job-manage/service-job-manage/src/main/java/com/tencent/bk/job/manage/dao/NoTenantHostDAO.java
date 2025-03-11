@@ -39,6 +39,67 @@ import java.util.Map;
 public interface NoTenantHostDAO {
 
     // 查询类操作
+    List<ApplicationHostDTO> listHostInfoByIps(Collection<String> ips);
+
+    List<ApplicationHostDTO> listHostInfoByCloudIps(Collection<String> cloudIps);
+
+    List<ApplicationHostDTO> listHostInfoByIpv6s(Collection<String> ipv6s);
+
+    List<ApplicationHostDTO> listHostInfoByHostNames(Collection<String> hostNames);
+
+    List<ApplicationHostDTO> listHostInfoBySearchContents(Collection<Long> bizIds,
+                                                          Collection<Long> moduleIds,
+                                                          Collection<Long> cloudAreaIds,
+                                                          List<String> searchContents,
+                                                          Integer agentStatus,
+                                                          Long start,
+                                                          Long limit);
+
+    List<Long> getHostIdListBySearchContents(Collection<Long> appIds,
+                                             Collection<Long> moduleIds,
+                                             Collection<Long> cloudAreaIds,
+                                             List<String> searchContents,
+                                             Integer agentAlive,
+                                             Long start,
+                                             Long limit);
+
+    Long countHostInfoBySearchContents(Collection<Long> bizIds,
+                                       Collection<Long> moduleIds,
+                                       Collection<Long> cloudAreaIds,
+                                       List<String> searchContents,
+                                       Integer agentStatus);
+
+    List<ApplicationHostDTO> listHostInfoByMultiKeys(Collection<Long> bizIds,
+                                                     Collection<Long> moduleIds,
+                                                     Collection<Long> cloudAreaIds,
+                                                     Collection<String> ipKeys,
+                                                     Collection<String> ipv6Keys,
+                                                     Collection<String> hostNameKeys,
+                                                     Collection<String> osNameKeys,
+                                                     Integer agentAlive,
+                                                     Long start,
+                                                     Long limit);
+
+    List<Long> getHostIdListByMultiKeys(Collection<Long> bizIds,
+                                        Collection<Long> moduleIds,
+                                        Collection<Long> cloudAreaIds,
+                                        Collection<String> ipKeys,
+                                        Collection<String> ipv6Keys,
+                                        Collection<String> hostNameKeys,
+                                        Collection<String> osNameKeys,
+                                        Integer agentAlive,
+                                        Long start,
+                                        Long limit);
+
+    Long countHostInfoByMultiKeys(Collection<Long> bizIds,
+                                  Collection<Long> moduleIds,
+                                  Collection<Long> cloudAreaIds,
+                                  Collection<String> ipKeys,
+                                  Collection<String> ipv6Keys,
+                                  Collection<String> hostNameKeys,
+                                  Collection<String> osNameKeys,
+                                  Integer agentAlive);
+
     boolean existAppHostInfoByHostId(Long hostId);
 
     ApplicationHostDTO getHostById(Long hostId);
