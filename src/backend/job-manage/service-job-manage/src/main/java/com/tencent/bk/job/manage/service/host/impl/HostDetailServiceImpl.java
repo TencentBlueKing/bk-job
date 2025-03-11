@@ -40,6 +40,7 @@ import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -91,6 +92,13 @@ public class HostDetailServiceImpl implements HostDetailService {
             host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
                 osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
         });
+    }
+
+    @Override
+    public void fillDetailForTenantHosts(Map<String, List<ApplicationHostDTO>> tenantHostMap) {
+        for (Map.Entry<String, List<ApplicationHostDTO>> entry : tenantHostMap.entrySet()) {
+            fillDetailForApplicationHosts(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override

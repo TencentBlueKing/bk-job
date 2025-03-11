@@ -93,7 +93,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .and(T_APP.BK_SCOPE_ID.eq("" + bizId))
             .limit(1)
             .fetch();
-        return records.size() > 0;
+        return !records.isEmpty();
     }
 
     @Override

@@ -31,13 +31,9 @@ import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.model.tables.HostTopo;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import lombok.var;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -282,28 +278,7 @@ public class CurrentTenantHostDAOImpl extends AbstractBaseHostDAO implements Cur
 
     @Override
     public List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds) {
-        List<Condition> conditions = getBasicConditions();
-        if (bizIds != null) {
-            conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
-        }
-        var query = context.select(
-                TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
-                DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
-            ).from(TABLE)
-            .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
-            .where(conditions)
-            .groupBy(TABLE.IS_AGENT_ALIVE);
-        val records = query.fetch();
-        List<HostStatusNumStatisticsDTO> countList = new ArrayList<>();
-        if (!records.isEmpty()) {
-            records.forEach(record -> {
-                HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
-                statisticsDTO.setHostNum(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM, Integer.class));
-                statisticsDTO.setGseAgentAlive(record.get(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE, Integer.class));
-                countList.add(statisticsDTO);
-            });
-        }
-        return countList;
+        return super.countHostStatusNumByBizIds(bizIds);
     }
 
 }

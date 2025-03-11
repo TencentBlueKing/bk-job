@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao.impl;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
@@ -36,6 +37,7 @@ import com.tencent.bk.job.manage.model.tables.Host;
 import com.tencent.bk.job.manage.model.tables.HostTopo;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -604,6 +606,31 @@ abstract public class AbstractBaseHostDAO {
         basicHost.setHostId(record.get(TABLE.HOST_ID).longValue());
         basicHost.setLastTime(record.get(TABLE.LAST_TIME));
         return basicHost;
+    }
+
+    protected List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds) {
+        List<Condition> conditions = getBasicConditions();
+        if (bizIds != null) {
+            conditions.add(HostTopo.HOST_TOPO.APP_ID.in(bizIds));
+        }
+        var query = context.select(
+                TABLE.IS_AGENT_ALIVE.as(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE),
+                DSL.countDistinct(TABLE.HOST_ID).as(HostStatusNumStatisticsDTO.KEY_HOST_NUM)
+            ).from(TABLE)
+            .leftJoin(HostTopo.HOST_TOPO).on(TABLE.HOST_ID.eq(HostTopo.HOST_TOPO.HOST_ID))
+            .where(conditions)
+            .groupBy(TABLE.IS_AGENT_ALIVE);
+        val records = query.fetch();
+        List<HostStatusNumStatisticsDTO> countList = new ArrayList<>();
+        if (!records.isEmpty()) {
+            records.forEach(record -> {
+                HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
+                statisticsDTO.setHostNum(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM, Integer.class));
+                statisticsDTO.setGseAgentAlive(record.get(HostStatusNumStatisticsDTO.KEY_AGENT_ALIVE, Integer.class));
+                countList.add(statisticsDTO);
+            });
+        }
+        return countList;
     }
 
     protected abstract List<Condition> getBasicConditions();

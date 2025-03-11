@@ -24,8 +24,16 @@
 
 package com.tencent.bk.job.manage.service.agent.statistics.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeAgentStatisticsService;
@@ -39,22 +47,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
 @Service
 public class ScopeAgentStatisticsServiceImpl implements ScopeAgentStatisticsService {
 
+    private final ApplicationDAO applicationDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final ScopeHostService scopeHostService;
     private final ScopeTopoHostService scopeTopoHostService;
     private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
     private final AgentStatusService agentStatusService;
 
     @Autowired
-    public ScopeAgentStatisticsServiceImpl(ScopeHostService scopeHostService,
+    public ScopeAgentStatisticsServiceImpl(ApplicationDAO applicationDAO,
+                                           CurrentTenantHostDAO currentTenantHostDAO,
+                                           NoTenantHostDAO noTenantHostDAO,
+                                           ScopeHostService scopeHostService,
                                            ScopeTopoHostService scopeTopoHostService,
                                            ScopeDynamicGroupHostService scopeDynamicGroupHostService,
                                            AgentStatusService agentStatusService) {
+        this.applicationDAO = applicationDAO;
+        this.currentTenantHostDAO = currentTenantHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.scopeHostService = scopeHostService;
         this.scopeTopoHostService = scopeTopoHostService;
         this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
@@ -98,5 +116,40 @@ public class ScopeAgentStatisticsServiceImpl implements ScopeAgentStatisticsServ
             allHostList.addAll(hostsByDynamicGroup);
         }
         return agentStatusService.calcAgentStatistics(allHostList);
+    }
+
+    @Override
+    public AgentStatistics getAgentStatistics(AppResourceScope appResourceScope) {
+        // 查出业务
+        ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
+        int aliveCount = 0;
+        int notAliveCount = 0;
+        List<Long> bizIds;
+        List<HostStatusNumStatisticsDTO> statisticsDTOS;
+        if (appInfo.isBiz()) {
+            // 普通业务
+            bizIds = Collections.singletonList(Long.valueOf(appResourceScope.getId()));
+            statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(bizIds);
+        } else if (appInfo.isBizSet()) {
+            // 业务集
+            bizIds = appInfo.getSubBizIds();
+            statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(bizIds);
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(null);
+        } else if (appInfo.isAllTenantSet()) {
+            // 全租户
+            statisticsDTOS = noTenantHostDAO.countHostStatusNumByBizIds(null);
+        } else {
+            throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
+        }
+        for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
+            if (statisticsDTO.getGseAgentAlive() == AgentAliveStatusEnum.ALIVE.getStatusValue()) {
+                aliveCount += statisticsDTO.getHostNum();
+            } else {
+                notAliveCount += statisticsDTO.getHostNum();
+            }
+        }
+        return new AgentStatistics(aliveCount, notAliveCount);
     }
 }

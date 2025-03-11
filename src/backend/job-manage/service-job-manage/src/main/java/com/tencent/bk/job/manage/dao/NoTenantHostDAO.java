@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.dao;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
+import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -193,4 +194,12 @@ public interface NoTenantHostDAO {
     int deleteByBasicHost(List<BasicHostDTO> basicHostList);
 
     List<ApplicationHostDTO> listHostsByCloudIps(Collection<String> cloudIps);
+
+    /**
+     * 根据业务id统计主机状态数量
+     *
+     * @param bizIds 业务id
+     * @return 状态数量
+     */
+    List<HostStatusNumStatisticsDTO> countHostStatusNumByBizIds(List<Long> bizIds);
 }

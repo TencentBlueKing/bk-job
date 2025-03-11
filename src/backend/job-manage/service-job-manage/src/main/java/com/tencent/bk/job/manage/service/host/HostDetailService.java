@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 主机详情服务，查出的主机信息包含Agent状态，云区域名称，云厂商等详情信息
@@ -55,6 +56,13 @@ public interface HostDetailService {
      * @param hostList 主机列表
      */
     void fillDetailForApplicationHosts(String tenantId, List<ApplicationHostDTO> hostList);
+
+    /**
+     * 为主机填充云区域、云厂商、系统类型名称等信息
+     *
+     * @param tenantHostMap Map<租户ID,主机列表>
+     */
+    void fillDetailForTenantHosts(Map<String, List<ApplicationHostDTO>> tenantHostMap);
 
     /**
      * 为主机填充云区域、云厂商、系统类型名称等信息

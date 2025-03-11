@@ -39,4 +39,6 @@ public interface ScopeAgentStatisticsService {
                                        List<Long> hostIdList,
                                        List<BizTopoNode> nodeList,
                                        List<String> dynamicGroupIdList);
+
+    AgentStatistics getAgentStatistics(AppResourceScope appResourceScope);
 }
