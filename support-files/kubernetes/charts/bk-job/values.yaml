@@ -1419,6 +1419,10 @@ fileGatewayConfig:
       enabled: true
       # 超时时间（秒）
       timeoutSeconds: 10
+  # 数据库相关配置
+  database:
+    # DB连接池最大连接数量
+    maxPoolSize: 100
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:

@@ -226,10 +226,11 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
             // 任务结束了，且日志拉取完毕才算结束
             isDone = batchTaskStatusDTO.isDone() && allLogDone;
             log.info(
-                "[{}]: batchTaskDone={}, allLogDone={}",
+                "[{}]: batchTaskDone={}, allLogDone={}, logStart={}",
                 stepInstance.getUniqueKey(),
                 batchTaskStatusDTO.isDone(),
-                allLogDone
+                allLogDone,
+                logStart
             );
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
