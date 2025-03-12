@@ -127,12 +127,6 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: job-gse-tls-certs
-              mountPath: /data/job/cert
-              readOnly: true
-            - name: job-gse-tls-password
-              mountPath: /etc/secrets
-              readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
         {{- if .Values.crontabConfig.database.host }}
