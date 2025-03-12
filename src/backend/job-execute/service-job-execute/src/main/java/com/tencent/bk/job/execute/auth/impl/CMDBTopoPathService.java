@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +74,11 @@ public class CMDBTopoPathService implements TopoPathService {
         List<HostBizRelationDTO> hostBizRelationDTOList = ConcurrencyUtil.getResultWithThreads(
             hostIdsSubList,
             executorService,
-            bizCmdbClient::findHostBizRelations
+            pHostIdList ->
+                bizCmdbClient.findHostBizRelations(
+                    JobContextUtil.getTenantId(),
+                    pHostIdList
+                )
         );
         return buildTopoPathMap(hostBizRelationDTOList);
     }

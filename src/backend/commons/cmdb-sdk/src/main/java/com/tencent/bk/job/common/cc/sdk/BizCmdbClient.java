@@ -976,10 +976,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @return 主机业务关系列表
      */
     @Override
-    public List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList) {
+    public List<HostBizRelationDTO> findHostBizRelations(String tenantId, List<Long> hostIdList) {
         FindHostBizRelationsReq req = makeCmdbBaseReq(FindHostBizRelationsReq.class);
         req.setHostIdList(hostIdList);
-        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             FIND_HOST_BIZ_RELATIONS,
             null,
@@ -1118,15 +1119,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 .collect(Collectors.toList()));
 
             // 设置主机业务信息
-            setBizRelationInfo(hosts);
+            setBizRelationInfo(tenantId, hosts);
         } while (start < total);
 
         return hosts;
     }
 
-    private void setBizRelationInfo(List<ApplicationHostDTO> hosts) {
+    private void setBizRelationInfo(String tenantId, List<ApplicationHostDTO> hosts) {
         List<Long> hostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
-        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(hostIds);
+        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(tenantId, hostIds);
         Map<Long, List<HostBizRelationDTO>> hostBizRelationMap =
             hostBizRelations.stream().collect(
                 Collectors.groupingBy(HostBizRelationDTO::getHostId));
