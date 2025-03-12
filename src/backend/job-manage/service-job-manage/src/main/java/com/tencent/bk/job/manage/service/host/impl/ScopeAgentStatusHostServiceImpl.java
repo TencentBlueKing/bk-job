@@ -72,9 +72,6 @@ public class ScopeAgentStatusHostServiceImpl implements ScopeAgentStatusHostServ
                                                                Integer status,
                                                                Long start,
                                                                Long pageSize) {
-        Pair<Long, Long> pagePair = PageUtil.normalizePageParam(start, pageSize);
-        start = pagePair.getLeft();
-        pageSize = pagePair.getRight();
         // 查出业务
         ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
         List<Long> bizIds;

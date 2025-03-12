@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
@@ -45,6 +46,7 @@ import com.tencent.bk.job.manage.service.host.ScopeAgentStatusHostService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -110,6 +112,9 @@ public class IndexServiceImpl implements IndexService {
                                                        Integer status,
                                                        Long start,
                                                        Long pageSize) {
+        Pair<Long, Long> pagePair = PageUtil.normalizePageParam(start, pageSize);
+        start = pagePair.getLeft();
+        pageSize = pagePair.getRight();
         PageData<ApplicationHostDTO> hostsPageData = scopeAgentStatusHostService.listHostsByAgentStatus(
             username,
             appId,
