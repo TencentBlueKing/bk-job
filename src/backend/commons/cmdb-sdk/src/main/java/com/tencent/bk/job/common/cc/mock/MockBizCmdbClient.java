@@ -108,19 +108,9 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         return bizNode;
     }
 
-    @Override
-    public InstanceTopologyDTO getBizInstTopology(long bizId) {
-        return mockInstanceTopologyDTO();
-    }
-
-    @Override
-    public InstanceTopologyDTO getBizInstCompleteTopology(String tenantId, long bizId) {
-        return mockInstanceTopologyDTO();
-    }
-
-    public List<HostWithModules> getHostRelationsByTopology(String tenantId,
-                                                            long bizId,
-                                                            List<CcInstanceDTO> ccInstList) {
+    public List<HostWithModules> mockHostRelationsByTopology(String tenantId,
+                                                             long bizId,
+                                                             List<CcInstanceDTO> ccInstList) {
         if ("system".equals(tenantId)
             && bizId == 1L
             && ccInstList.size() == 1
@@ -153,8 +143,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         return Collections.emptyList();
     }
 
-    @Override
-    public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
+    public List<ApplicationHostDTO> mockHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
         if ("system".equals(tenantId)
             && bizId == 1L
             && ccInstList.size() == 1
