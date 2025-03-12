@@ -48,6 +48,8 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllApps();
 
+    List<ApplicationDTO> listAllAppsForTenant(String tenantId);
+
     List<ApplicationDTO> listAllBizApps();
 
     List<ApplicationDTO> listAllBizAppsWithDeleted();
@@ -96,4 +98,9 @@ public interface ApplicationDAO {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllDeletedApps();
+
+    /**
+     * 根据appId获取租户ID
+     */
+    String getTenantIdByAppId(long appId);
 }

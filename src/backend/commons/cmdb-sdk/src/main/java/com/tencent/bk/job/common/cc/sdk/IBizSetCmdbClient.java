@@ -40,25 +40,28 @@ public interface IBizSetCmdbClient {
     /**
      * 查询业务集
      *
+     * @param tenantId 租户ID
      * @param bizSetId 业务集ID
      * @return 业务集
      */
-    BizSetInfo queryBizSet(Long bizSetId);
+    BizSetInfo queryBizSet(String tenantId, Long bizSetId);
 
     /**
      * 从CC获取所有业务集信息
      *
+     * @param tenantId 租户ID
      * @return 业务集列表
      */
-    List<BizSetInfo> listAllBizSets();
+    List<BizSetInfo> listAllBizSets(String tenantId);
 
     /**
      * 从CC获取业务集信息
      *
+     * @param tenantId 租户ID
      * @param bizSetIds 业务集ID
      * @return 业务集列表
      */
-    List<BizSetInfo> ListBizSetByIds(List<Long> bizSetIds);
+    List<BizSetInfo> listBizSetByIds(String tenantId, List<Long> bizSetIds);
 
     /**
      * 根据游标获取业务集事件
@@ -81,8 +84,9 @@ public interface IBizSetCmdbClient {
     /**
      * 根据cmdb业务角色获取人员
      *
+     * @param tenantId 租户ID
      * @param bizId cmdb业务ID
      * @param role  业务角色
      */
-    Set<String> listUsersByRole(Long bizId, String role);
+    Set<String> listUsersByRole(String tenantId, Long bizId, String role);
 }

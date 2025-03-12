@@ -171,19 +171,26 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     @Override
-    public Boolean isNotifyChannelConfiged() {
+    public Boolean isNotifyChannelConfiged(String tenantId) {
         GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
+            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
+            tenantId
+        );
         return globalSettingDTO != null && globalSettingDTO.getValue().toLowerCase().equals("true");
     }
 
     @Override
-    public Boolean setNotifyChannelConfiged() {
+    public Boolean setNotifyChannelConfiged(String tenantId) {
         GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED);
+            GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
+            tenantId
+        );
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_NOTIFY_CHANNEL_CONFIGED,
-                "true", "whether available notify channels are configed");
+                "true",
+                "whether available notify channels are configed",
+                tenantId
+                );
             return 1 == globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         } else if (!globalSettingDTO.getValue().toLowerCase().equals("true")) {
             globalSettingDTO.setValue("true");
@@ -195,11 +202,12 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
 
     @Override
     public List<NotifyChannelWithIconVO> listNotifyChannel(String username) {
+        String tenantId = JobContextUtil.getTenantId();
         List<NotifyEsbChannelDTO> allNotifyChannelList =
-            notifyEsbChannelDAO.listNotifyEsbChannel().stream()
+            notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream()
                 .filter(NotifyEsbChannelDTO::isActive).collect(Collectors.toList());
         List<AvailableEsbChannelDTO> availableNotifyChannelList =
-            availableEsbChannelDAO.listAvailableEsbChannel();
+            availableEsbChannelDAO.listAvailableEsbChannel(tenantId);
         Set<String> availableNotifyChannelTypeSet =
             availableNotifyChannelList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toSet());
         return allNotifyChannelList.stream().map(it -> {
@@ -252,8 +260,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS);
         if (globalSettingDTO == null) {
             globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
-                "60", "执行记录默认保存天数" +
-                "(default history expire days)");
+                "60",
+                "执行记录默认保存天数" + "(default history expire days)",
+                JobContextUtil.getTenantId()
+                );
             globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         }
         return Long.parseLong(globalSettingDTO.getValue());
@@ -271,8 +281,11 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 new String[]{"days", "days must be positive"});
         }
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
-            days.toString(), String.format("执行记录保存天数(history expire days):%s,%s", username,
-            DateUtils.defaultLocalDateTime(LocalDateTime.now())));
+            days.toString(),
+            String.format("执行记录保存天数(history expire days):%s,%s", username,
+            DateUtils.defaultLocalDateTime(LocalDateTime.now())),
+            JobContextUtil.getTenantId()
+        );
         return globalSettingDAO.updateGlobalSetting(globalSettingDTO);
     }
 
@@ -327,18 +340,23 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public AccountNameRulesWithDefaultVO getAccountNameRules() {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
+        String tenantId = JobContextUtil.getTenantId();
         List<AccountNameRule> defaultNameRules;
         GlobalSettingDTO currentNameRulesDTO;
         if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
             //英文环境
             defaultNameRules = getDefaultNameRules(Locale.ENGLISH);
             currentNameRulesDTO = globalSettingDAO.getGlobalSetting(
-                GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN);
+                GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN,
+                tenantId
+            );
         } else {
             //中文环境
             defaultNameRules = getDefaultNameRules(Locale.CHINA);
             currentNameRulesDTO = globalSettingDAO.getGlobalSetting(
-                GlobalSettingKeys.KEY_CURRENT_NAME_RULES);
+                GlobalSettingKeys.KEY_CURRENT_NAME_RULES,
+                tenantId
+            );
         }
         List<AccountNameRule> currentNameRules;
         if (currentNameRulesDTO != null) {
@@ -364,15 +382,18 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     )
     public Boolean setAccountNameRules(String username, AccountNameRulesReq req) {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
+        String tenantId = JobContextUtil.getTenantId();
         String currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES;
         if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
             //英文环境
             currentNameRulesKey = GlobalSettingKeys.KEY_CURRENT_NAME_RULES_EN;
         }
-        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(currentNameRulesKey);
+        GlobalSettingDTO currentNameRulesDTO = globalSettingDAO.getGlobalSetting(currentNameRulesKey, tenantId);
         GlobalSettingDTO inputNameRulesDTO = new GlobalSettingDTO(currentNameRulesKey,
             JsonUtils.toJson(req.getRules()), String.format("Updated by %s at %s", username,
-            DateUtils.defaultLocalDateTime(LocalDateTime.now())));
+            DateUtils.defaultLocalDateTime(LocalDateTime.now())),
+            tenantId
+        );
         if (currentNameRulesDTO == null) {
             return globalSettingDAO.insertGlobalSetting(inputNameRulesDTO) == 1;
         } else {
@@ -426,26 +447,42 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             // 去重
             suffixList = suffixList.stream().distinct().collect(Collectors.toList());
         }
+
+        String tenantId = JobContextUtil.getTenantId();
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        if (fileUploadSettingDTO == null) {
-            fileUploadSettingDTO = new GlobalSettingDTO();
-            fileUploadSettingDTO.setDescription("setting of upload file");
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING,
+            tenantId
+        );
+        if (fileUploadSettingDTO != null) {
+            fileUploadSettingDTO.setValue(JsonUtils.toJson(
+                new UploadFileRestrictDTO(
+                    uploadMaxSize.toString() + unit.name()
+                    , restrictMode
+                    , suffixList)));
+            int affectedRows = globalSettingDAO.updateGlobalSetting(fileUploadSettingDTO);
+            return affectedRows > 0;
+        } else {
+            GlobalSettingDTO insertFileUploadSettingDTO = new GlobalSettingDTO();
+            insertFileUploadSettingDTO.setDescription("setting of upload file");
+            insertFileUploadSettingDTO.setTenantId(tenantId);
+            insertFileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+            insertFileUploadSettingDTO.setValue(JsonUtils.toJson(
+                new UploadFileRestrictDTO(
+                    uploadMaxSize.toString() + unit.name()
+                    , restrictMode
+                    , suffixList)));
+            int affectedRows = globalSettingDAO.insertGlobalSetting(insertFileUploadSettingDTO);
+            return affectedRows > 0;
         }
-        fileUploadSettingDTO.setKey(GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
-        fileUploadSettingDTO.setValue(JsonUtils.toJson(
-            new UploadFileRestrictDTO(
-                uploadMaxSize.toString() + unit.name()
-                , restrictMode
-                , suffixList)));
-        int affectedRows = globalSettingDAO.upsertGlobalSetting(fileUploadSettingDTO);
-        return affectedRows > 0;
     }
 
     @Override
     public FileUploadSettingVO getFileUploadSettings() {
+        String tenantId = JobContextUtil.getTenantId();
         GlobalSettingDTO fileUploadSettingDTO = globalSettingDAO.getGlobalSetting(
-            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING);
+            GlobalSettingKeys.KEY_FILE_UPLOAD_SETTING,
+            tenantId
+        );
         FileUploadSettingVO fileUploadSettingVO;
         if (fileUploadSettingDTO == null) {
             fileUploadSettingVO = getConfigedFileUploadSettings();
@@ -475,16 +512,32 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{"channelCode", "channelCode cannot be blank"});
         }
+
+        String tenantId = JobContextUtil.getTenantId();
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             req.getChannelCode(),
             req.getMessageTypeCode(),
-            false
+            false,
+            tenantId
         );
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         if (notifyTemplateDTO == null) {
-            notifyTemplateDTO = new NotifyTemplateDTO(null, req.getMessageTypeCode(), req.getMessageTypeCode(),
-                req.getChannelCode(), req.getTitle(), req.getContent(), req.getTitle(), req.getContent(), false,
-                username, System.currentTimeMillis(), username, System.currentTimeMillis());
+            notifyTemplateDTO = NotifyTemplateDTO.builder()
+                .id(null)
+                .code(req.getMessageTypeCode())
+                .name(req.getMessageTypeCode())
+                .channel(req.getChannelCode())
+                .title(req.getTitle())
+                .content(req.getContent())
+                .titleEn(req.getTitle())
+                .contentEn(req.getContent())
+                .isDefault(false)
+                .creator(username)
+                .createTime(System.currentTimeMillis())
+                .lastModifyUser(username)
+                .lastModifyTime(System.currentTimeMillis())
+                .tenantId(tenantId)
+                .build();
             return notifyTemplateDAO.insertNotifyTemplate(notifyTemplateDTO);
         } else {
             if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
@@ -518,28 +571,33 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     @Override
     public ChannelTemplateDetailWithDefaultVO getChannelTemplateDetail(String username, String channelCode,
                                                                        String messageTypeCode) {
+        String tenantId = JobContextUtil.getTenantId();
         NotifyTemplateDTO currentNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             channelCode,
             messageTypeCode,
-            false
+            false,
+            tenantId
         );
         NotifyTemplateDTO defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             channelCode,
             messageTypeCode,
-            true
+            true,
+            tenantId
         );
         // 渠道下无默认模板，则为新增渠道，使用通用模板
         if (defaultNotifyTemplateDTO == null) {
             defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
                 NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
                 messageTypeCode,
-                false
+                false,
+                tenantId
             );
             if (defaultNotifyTemplateDTO == null) {
                 defaultNotifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
                     NotifyConsts.NOTIFY_CHANNEL_CODE_COMMON,
                     messageTypeCode,
-                    true
+                    true,
+                    tenantId
                 );
             }
             if (defaultNotifyTemplateDTO != null) {
@@ -582,12 +640,16 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             NotifyConsts.NOTIFY_TEMPLATE_CODE_CRON_EXECUTE_FAILED
         );
         List<NotifyChannelWithIconVO> notifyChannelWithIconVOList = listNotifyChannel(username);
+        String tenantId = JobContextUtil.getTenantId();
         notifyChannelWithIconVOList.forEach(notifyChannelWithIconVO -> {
             String channelCode = notifyChannelWithIconVO.getCode();
             List<TemplateBasicInfo> configStatusList = new ArrayList<>();
             messageCodeList.forEach(messageCode -> {
-                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(channelCode, messageCode,
-                    false);
+                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(
+                    channelCode,
+                    messageCode,
+                    false,
+                    tenantId);
                 configStatusList.add(new TemplateBasicInfo(messageCode,
                     i18nService.getI18n(NotifyConsts.NOTIFY_TEMPLATE_NAME_PREFIX + messageCode), configStatus));
             });

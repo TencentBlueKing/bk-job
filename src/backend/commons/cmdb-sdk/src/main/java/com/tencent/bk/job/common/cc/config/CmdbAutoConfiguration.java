@@ -27,13 +27,11 @@ package com.tencent.bk.job.common.cc.config;
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -92,67 +90,63 @@ public class CmdbAutoConfiguration {
     @Bean
     @Primary
     public BizCmdbClient bizCmdbClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
                                        BkApiGatewayProperties bkApiGatewayProperties,
                                        CmdbConfig cmdbConfig,
                                        ThreadPoolExecutor cmdbThreadPoolExecutor,
                                        ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                        MeterRegistry meterRegistry,
-                                       ObjectProvider<FlowController> flowControllerProvider) {
+                                       ObjectProvider<FlowController> flowControllerProvider,
+                                       TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
-            esbProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             EsbLang.EN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 
     @Bean("cnBizCmdbClient")
     public BizCmdbClient cnBizCmdbClient(AppProperties appProperties,
-                                         EsbProperties esbProperties,
                                          BkApiGatewayProperties bkApiGatewayProperties,
                                          CmdbConfig cmdbConfig,
                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                          MeterRegistry meterRegistry,
-                                         ObjectProvider<FlowController> flowControllerProvider) {
+                                         ObjectProvider<FlowController> flowControllerProvider,
+                                         TenantEnvService tenantEnvService) {
         return new BizCmdbClient(
             appProperties,
-            esbProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             EsbLang.CN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 
     @Bean
     public BizSetCmdbClient bizSetCmdbClient(AppProperties appProperties,
-                                             EsbProperties esbProperties,
                                              BkApiGatewayProperties bkApiGatewayProperties,
                                              CmdbConfig cmdbConfig,
                                              MeterRegistry meterRegistry,
-                                             ObjectProvider<FlowController> flowControllerProvider) {
+                                             ObjectProvider<FlowController> flowControllerProvider,
+                                             TenantEnvService tenantEnvService) {
         return new BizSetCmdbClient(
             appProperties,
-            esbProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
-            meterRegistry
+            meterRegistry,
+            tenantEnvService
         );
     }
 
-    @Bean
-    public BkNetClient cloudAreaService(IBizCmdbClient bizCmdbClient) {
-        return new BkNetClient(bizCmdbClient);
-    }
 }

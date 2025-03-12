@@ -31,9 +31,11 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
@@ -168,8 +170,9 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
     }
 
     private void auth(String username, AppResourceScope appResourceScope) {
+        User user = JobContextUtil.getUser();
         AuthResult authResult = appAuthService.auth(
-            username,
+            user,
             ActionId.ACCESS_BUSINESS,
             appResourceScope
         );
@@ -178,7 +181,7 @@ public class EsbQueryToolsV3ResourceImpl implements EsbQueryToolsV3Resource {
         }
 
         authResult = appAuthService.auth(
-            username,
+            user,
             ActionId.VIEW_HISTORY,
             appResourceScope
         );

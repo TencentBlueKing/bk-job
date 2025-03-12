@@ -37,7 +37,6 @@ import java.util.List;
 /**
  * Job业务
  */
-@NoArgsConstructor
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
@@ -84,6 +83,19 @@ public class ApplicationDTO {
      */
     private ApplicationAttrsDO attrs;
 
+    /**
+     * 业务所属租户 ID
+     */
+    private String tenantId;
+
+    /**
+     * 资源（业务/业务集/租户集）类型，1表示内置资源
+     */
+    private Integer deFault;
+
+    public ApplicationDTO() {
+    }
+
     @JsonIgnore
     public boolean isBiz() {
         return scope != null && scope.getType() == ResourceScopeTypeEnum.BIZ;
@@ -126,4 +138,8 @@ public class ApplicationDTO {
         }
     }
 
+    @JsonIgnore
+    public boolean isBuiltInResource() {
+        return this.deFault != null && this.deFault == 1;
+    }
 }

@@ -244,6 +244,11 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
+    public List<ApplicationDTO> listAllAppsForTenant(String tenantId) {
+        return applicationDAO.listAllAppsForTenant(tenantId);
+    }
+
+    @Override
     public void updateApp(ApplicationDTO application) {
         log.info("Update app: {}", JsonUtils.toJson(application));
         applicationDAO.updateApp(application);
@@ -273,5 +278,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationDTO> listAllDeletedApps() {
         return applicationDAO.listAllDeletedApps();
+    }
+
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        ApplicationDTO app = applicationCache.getApplication(appId);
+        if (app != null) {
+            return app.getTenantId();
+        }
+        return applicationDAO.getTenantIdByAppId(appId);
     }
 }

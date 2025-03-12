@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.sync;
 
+import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
@@ -57,6 +58,7 @@ public class BizSetSyncService extends BasicAppSyncService {
     private final ApplicationDAO applicationDAO;
     protected final IBizSetCmdbClient bizSetCmdbClient;
     private final BizSetService bizSetService;
+    private final CmdbConfig cmdbConfig;
 
     @Autowired
     public BizSetSyncService(ApplicationDAO applicationDAO,
@@ -64,14 +66,16 @@ public class BizSetSyncService extends BasicAppSyncService {
                              ApplicationService applicationService,
                              IBizCmdbClient bizCmdbClient,
                              IBizSetCmdbClient bizSetCmdbClient,
-                             BizSetService bizSetService) {
+                             BizSetService bizSetService,
+                             CmdbConfig cmdbConfig) {
         super(applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.bizSetService = bizSetService;
+        this.cmdbConfig = cmdbConfig;
     }
 
-    public void syncBizSetFromCMDB() {
+    public void syncBizSetFromCMDB(String tenantId) {
         if (!bizSetService.isBizSetMigratedToCMDB()) {
             log.warn("Job BizSets have not been migrated to CMDB, " +
                 "do not sync bizSet from CMDB, " +
@@ -80,7 +84,7 @@ public class BizSetSyncService extends BasicAppSyncService {
             return;
         }
         log.info("[{}] Begin to sync bizSet from cmdb", Thread.currentThread().getName());
-        List<BizSetInfo> ccBizSets = bizSetCmdbClient.listAllBizSets();
+        List<BizSetInfo> ccBizSets = bizSetCmdbClient.listAllBizSets(tenantId);
         if (log.isInfoEnabled()) {
             log.info("Sync cmdb bizSet result: {}", JsonUtils.toJson(ccBizSets));
         }
@@ -177,7 +181,8 @@ public class BizSetSyncService extends BasicAppSyncService {
 
     private ApplicationDTO convertBizSetToApplication(BizSetInfo bizSetInfo) {
         ApplicationDTO appInfoDTO = new ApplicationDTO();
-        appInfoDTO.setBkSupplierAccount(bizSetInfo.getSupplierAccount());
+        appInfoDTO.setTenantId(bizSetInfo.getTenantId());
+        appInfoDTO.setBkSupplierAccount(cmdbConfig.getDefaultSupplierAccount());
         appInfoDTO.setName(bizSetInfo.getName());
         appInfoDTO.setTimeZone(bizSetInfo.getTimezone());
         BizSetScope scope = bizSetInfo.getScope();
@@ -195,6 +200,7 @@ public class BizSetSyncService extends BasicAppSyncService {
         appInfoDTO.setAttrs(attrs);
         appInfoDTO.setScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, bizSetInfo.getId().toString()));
+        appInfoDTO.setDeFault(bizSetInfo.getDeFault());
         return appInfoDTO;
     }
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.cc.constants.CmdbConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -37,6 +38,7 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
+import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,19 +60,25 @@ public class NotifyTemplateService {
     private final ApplicationDAO applicationDAO;
     private final JobCommonConfig jobCommonConfig;
     private final NotifyTemplateDAO notifyTemplateDAO;
+    private final TenantService tenantService;
 
     @Autowired
     public NotifyTemplateService(ApplicationDAO applicationDAO,
                                  JobCommonConfig jobCommonConfig,
-                                 NotifyTemplateDAO notifyTemplateDAO) {
+                                 NotifyTemplateDAO notifyTemplateDAO,
+                                 TenantService tenantService) {
         this.applicationDAO = applicationDAO;
         this.jobCommonConfig = jobCommonConfig;
         this.notifyTemplateDAO = notifyTemplateDAO;
+        this.tenantService = tenantService;
     }
 
-    public Map<String, NotifyTemplateDTO> getChannelTemplateMap(String templateCode) {
+    public Map<String, NotifyTemplateDTO> getChannelTemplateMap(String templateCode, String tenantId) {
         Map<String, NotifyTemplateDTO> channelTemplateMap = new HashMap<>();
-        List<NotifyTemplateDTO> notifyTemplateDTOList = notifyTemplateDAO.listNotifyTemplateByCode(templateCode);
+        List<NotifyTemplateDTO> notifyTemplateDTOList = notifyTemplateDAO.listNotifyTemplateByCode(
+            templateCode,
+            tenantId
+        );
         if (CollectionUtils.isEmpty(notifyTemplateDTOList)) {
             log.warn("no valid templates of code:{}", templateCode);
             return Collections.emptyMap();
@@ -166,11 +174,21 @@ public class NotifyTemplateService {
 
     public ServiceNotificationMessage getNotificationMessage(Long appId, String templateCode, String channel,
                                                              Map<String, String> variablesMap) {
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         //1.查出自定义模板信息
-        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(channel, templateCode, false);
+        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channel,
+            templateCode,
+            false,
+            tenantId
+            );
         if (notifyTemplateDTO == null) {
             //2.未配置自定义模板则使用默认模板
-            notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(channel, templateCode, true);
+            notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                channel,
+                templateCode,
+                true,
+                TenantIdConstants.DEFAULT_TENANT_ID);
         }
         if (notifyTemplateDTO == null) {
             log.warn("Cannot find template of templateCode:{},channel:{}, plz config a default template",

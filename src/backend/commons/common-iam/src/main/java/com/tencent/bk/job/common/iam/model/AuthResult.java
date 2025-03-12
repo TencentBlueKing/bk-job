@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.iam.model;
 
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.model.iam.PathInfoDTO;
 import com.tencent.bk.job.common.model.iam.PermissionActionResourceDTO;
@@ -57,15 +58,23 @@ public class AuthResult {
      */
     private List<PermissionActionResource> requiredActionResources = new ArrayList<>();
 
-    public static AuthResult pass() {
+    /**
+     * 用户
+     */
+    private User user;
+
+
+    public static AuthResult pass(User user) {
         AuthResult authResult = new AuthResult();
         authResult.pass = true;
+        authResult.user = user;
         return authResult;
     }
 
-    public static AuthResult fail() {
+    public static AuthResult fail(User user) {
         AuthResult authResult = new AuthResult();
         authResult.pass = false;
+        authResult.user = user;
         return authResult;
     }
 
