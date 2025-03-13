@@ -73,6 +73,28 @@ public class MockBizCmdbClient implements IBizCmdbClient {
         );
     }
 
+    @Override
+    public List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds) {
+        if ("system".equals(tenantId)
+            && hostIds.size() == 1
+            && hostIds.get(0) == 3L
+        ) {
+            ApplicationHostDTO host = new ApplicationHostDTO();
+            host.setHostId(3L);
+            host.setBizId(1L);
+            host.setIp("10.0.0.3");
+            host.setHostName("MockHost1");
+            host.setGseAgentStatus(-2);
+            host.setAgentId(null);
+            host.setCloudAreaId(8L);
+            host.setCloudAreaName("MockCloudArea1");
+            host.setTenantId(tenantId);
+            return Collections.singletonList(host);
+        } else {
+            return proxy.listHostsByHostIds(tenantId, hostIds);
+        }
+    }
+
     private InstanceTopologyDTO mockInstanceTopologyDTO() {
         InstanceTopologyDTO bizNode = new InstanceTopologyDTO();
         bizNode.setObjectId("biz");
